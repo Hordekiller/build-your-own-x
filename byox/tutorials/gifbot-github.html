@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «gifbot — Building a GitHub App» (Colin Eberhardt — Scott Logic)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | gifbot — ساخت یک GitHub App</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>gifbot — ساخت یک GitHub App</span>
+      </div>
+      <h1>gifbot — ساخت یک GitHub App</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.scottlogic.com/2017/05/22/gifbot-github-integration.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «gifbot — Building a GitHub App» نوشته «کالین ابرهارت
+          (Colin Eberhardt)» از «وبلاگ اسکات لاجیک (Scott Logic)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://blog.scottlogic.com/2017/05/22/gifbot-github-integration.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>GitHub Apps که قبلاً با نام «Integrations» شناخته می‌شدند،
+        <a href="https://github.com/blog/2359-introducing-github-marketplace-and-more-tools-to-customize-your-workflow" target="_blank" rel="noopener">دیروز راه‌اندازی شدند</a>.
+        آن‌ها افزودن خودکارسازی‌ها (automations)، سرویس‌ها و ربات‌ها به مخازن شما را آسان‌تر می‌کنند و امکان به‌اشتراک‌گذاری
+        این موارد با دیگران را نیز فراهم می‌آورند.</p>
+        <p>مستندات GitHub برای توسعهٔ App در سطح جزئیات عالی است؛ با این حال، درک اینکه دقیقاً به کدام بخش‌ها نیاز دارید و
+        همهٔ آن‌ها چگونه به یکدیگر متصل می‌شوند می‌تواند چالش‌برانگیز باشد. همچنین چندان آسان نیست که بفهمیم این روش چه
+        تفاوتی با «دنیای قدیمی» وب‌هوک‌های پیکربندی‌شدهٔ دستی و حساب‌های ربات دارد.</p>
+        <p>این پست وبلاگ توسعهٔ gifbot را توصیف می‌کند؛ یک GitHub App ساده که به کامنت‌ها با GIFهای متحرک پاسخ می‌دهد:</p>
+        <img src="https://blog.scottlogic.com/ceberhardt/assets/gifbot/surprise-anim.gif" alt="پاسخ gifbot با یک GIF متحرک غافلگیرانه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آزاد باشید این App را در مخزن خود نصب کنید، از طریق این لینک
+        <a href="https://github.com/integration/gifbot" target="_blank" rel="noopener">https://github.com/integration/gifbot</a>.</p>
+      </section>
+
+      <!-- ==================== Appها در برابر ربات‌ها ==================== -->
+      <section>
+        <h2>Appها در برابر ربات‌ها (Apps vs. Bots)</h2>
+        <p>قبل از افزوده‌شدن GitHub Apps، می‌توانستید کارهای خودکار را از طریق
+        <a href="https://developer.github.com/v3/" target="_blank" rel="noopener">GitHub API</a> انجام دهید. روش‌های
+        (methods) موجود گسترده هستند و به شما اجازه می‌دهند تقریباً هر جنبه‌ای از تعاملات خود با GitHub را خودکار کنید.
+        می‌توانید مجموعه‌ای بسیار محدود از عملیات را بدون احراز هویت انجام دهید، اما برای هر عملیات غیرخواندنی باید یک توکن
+        دسترسی شخصی (personal access token) از حساب GitHub خود تولید کنید. این توکن که همهٔ درخواست‌های API را همراهی
+        می‌کند، به ربات اجازه می‌دهد اقداماتی را با استفاده از هویت شما انجام دهد.</p>
+        <p>بیشتر کارهای خودکارسازی از طریق یک
+        <a href="https://developer.github.com/webhooks/" target="_blank" rel="noopener">وب‌هوک (webhook)</a> فعال می‌شوند؛
+        یک URL که برای فراخوانی هنگام وقوع رویدادهای خاص (مثلاً ایجاد issue، ایجاد کامنت) ثبت شده است. ترکیب وب‌هوک‌ها و
+        API به ربات‌ها اجازه می‌دهد طیف کاملی از کارهای خودکارسازی را انجام دهند.</p>
+        <p>با این حال، این روش یکپارچه‌سازی اگر در حال ساختن رباتی برای استفادهٔ دیگران باشید، محدودیت‌های متعددی دارد.
+        این موارد عبارت‌اند از:</p>
+        <ul>
+          <li>توکن دسترسی شخصی «شخصی» است؛ یعنی ربات هویت شما را به خود می‌گیرد.</li>
+          <li>باید مجوزهای (permissions) مناسب برای هر مخزنی که ربات شما روی آن کار می‌کند داشته باشید؛ که ممکن است به این
+          معنا باشد که باید به‌عنوان همکار (collaborator) به مخزن اضافه شوید.</li>
+          <li>وب‌هوک‌ها و مجوزهای موردنیاز آن‌ها باید به‌صورت دستی به هر مخزنی که از ربات استفاده می‌کند اضافه شوند.</li>
+          <li>کاربران احراز هویت‌شده یک محدودیت نرخ (rate limit) بر استفادهٔ خود از API دارند: ۵۰۰۰ درخواست در ساعت. این
+          موضوع محدود می‌کند که ربات شما چقدر می‌تواند محبوب شود!</li>
+        </ul>
+        <p>می‌توانید یک حساب GitHub دیگر برای ارائهٔ هویتی متفاوت بسازید؛ هرچند فقط
+        <a href="https://help.github.com/articles/github-terms-of-service/#2-account-requirements" target="_blank" rel="noopener">مجاز به داشتن یک حساب کاربری و یک حساب ربات</a>
+        هستید. این موضوع اولین مشکل را حل می‌کند، اما بقیهٔ آن‌ها همچنان باقی می‌مانند.</p>
+        <p>در اینجا چند نمونه ربات آورده شده است:</p>
+        <ul>
+          <li><a href="https://github.com/facebook/mention-bot/blob/master/README.md" target="_blank" rel="noopener">mention-bot</a>
+          — رباتی از فیسبوک برای ذکر کردن بازبینان بالقوه.</li>
+          <li><a href="https://github.com/ReadmeCritic" target="_blank" rel="noopener">ReadmeCritic</a> — رباتی که کارهای
+          مختلفی برای مرتب‌کردن فایل‌های readme انجام می‌دهد.</li>
+        </ul>
+        <p>ربات‌های فوق Pull Request ایجاد می‌کنند و کامنت اضافه می‌کنند، بنابراین به دسترسی نوشتن (write) در مخازنی که
+        روی آن‌ها کار می‌کنند نیازی ندارند.</p>
+        <p>نمونهٔ دیگری از سرویس‌های ربات‌مانند،
+        <a href="https://github.com/semantic-release/semantic-release" target="_blank" rel="noopener">semantic-release</a>
+        است که فرایند انتشار شما را (به npm و GitHub) خودکار می‌کند. به دلیل پیچیدگی راه‌اندازی وب‌هوک‌ها و ایجاد توکن‌های
+        دسترسی (این ربات به دسترسی نوشتن نیاز دارد)، semantic-release یک ابزار CLI دارد که پیکربندی را خودکار می‌کند.</p>
+        <p>GitHub Apps اخیراً از مرحلهٔ پیش‌انتشار (pre-release، با نام Integrations) به انتشار عمومی گذر کردند؛ دقیقاً
+        دیروز. آن‌ها به توسعه‌دهندگان اجازه می‌دهند خودکارسازی انجام دهند و ربات‌هایی بسازند که از همان GitHub API استفاده
+        می‌کنند، اما با چند مزیت:</p>
+        <ul>
+          <li>Appها «هویت» (identity) خودشان را دارند، بنابراین دیگر نیازی به ایجاد حساب ربات ندارید.</li>
+          <li>یک جریان کاری مبتنی بر وب وجود دارد که به کاربران اجازه می‌دهد Appها را اضافه کنند، مجوزهای درخواستی را
+          بررسی کنند و آن‌ها را روی چندین مخزن / سازمان (organisation) اعمال کنند.</li>
+          <li>وب‌هوکی که App شما استفاده می‌کند فقط یک بار پیکربندی می‌شود.</li>
+          <li>محدودیت نرخ ۵۰۰۰ درخواست همچنان اعمال می‌شود، اما این بار برای هر نصب (per-installation).</li>
+        </ul>
+        <p>به‌وضوح GitHub Apps راه آینده است!</p>
+        <p>در ادامهٔ این پست وبلاگ، روند ایجاد یک ربات GitHub و نحوهٔ تبدیل آن به یک App را بررسی خواهم کرد.</p>
+      </section>
+
+      <!-- ==================== ساخت یک ربات ==================== -->
+      <section>
+        <h2>ساخت یک ربات (Building a Bot)</h2>
+        <p>رباتی که برای اهداف نمایشی ساخته‌ام روی AWS به‌عنوان یک تابع Lambda میزبانی می‌شود؛ اگر به نحوهٔ توسعه،
+        بسته‌بندی و استقرار (deploy) در AWS علاقه‌مندید،
+        <a href="http://blog.scottlogic.com/2017/05/08/aws-lambda-github-bot.html" target="_blank" rel="noopener">پست وبلاگ قبلی من</a>
+        را ببینید. در این پست، فقط به کد می‌چسبم!</p>
+        <p>gifbot به رویدادهای وب‌هوکی پاسخ می‌دهد که هنگام افزوده‌شدن کامنت‌ها به یک مخزن رخ می‌دهند. منطق آن بسیار ساده
+        است: یافتن کامنت‌های حاوی متن جادویی <code class="inline">[gifbot:search]</code>، استفاده از Giphy برای یافتن یک
+        GIF مناسب (و گاهی نامناسب!) و سپس ارسال یک پاسخ.</p>
+        <p>کد زیر از
+        <a href="https://github.com/ColinEberhardt/gifbot/blob/master/requestAsPromise.js" target="_blank" rel="noopener">یک wrapper کوچک حول ماژول request نود</a>
+        برای ایجاد یک رابط مبتنی بر promise استفاده می‌کند و چند تابع را تعریف می‌کند؛ یکی که Giphy را جست‌وجو می‌کند و
+        دیگری که یک کامنت ارسال می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const requestp = require('./requestAsPromise');
+
+const searchGifs = (searchTerm) =>
+  requestp({
+    url: 'http://api.giphy.com/v1/gifs/search',
+    json: true,
+    qs: {
+      q: searchTerm,
+      api_key: 'dc6zaTOxFJmzC'
+    }
+  });
+
+const addComment = (url, body, token) =>
+  requestp({
+    json: true,
+    headers: {
+      'Authorization': 'token ' + token,
+      'User-Agent': 'ColinEberhardt',
+      'Accept': 'application/vnd.github.machine-man-preview+json'
+    },
+    method: 'POST',
+    url,
+    body: {
+      body
+    }
+  });</code></pre>
+        <p>هدرها و کلیدهای مختلف موردنیاز هر API در مستندات مربوطهٔ آن‌ها توصیف شده‌اند؛ من وارد جزئیات آن‌ها در این‌جا
+        نمی‌شوم. می‌توانید ببینید که در حالی که Giphy به درخواست‌های ناشناس اجازه می‌دهد، GitHub به یک توکن دسترسی نیاز
+        دارد.</p>
+        <p>با تعریف این توابع، منطقی که وب‌هوک را مدیریت می‌کند واقعاً بسیار ساده است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const regex = /\[gifbot:(.*?)\]/g;
+
+const accessToken = process.env.GITHUB_ACCESS_TOKEN;
+
+exports.handler = ({ body }, lambdaContext, callback) => {
+
+  // ۱. بررسی اینکه آیا این اکشن یک کامنت اضافه می‌کند
+  if (body.action !== 'created') {
+    callback(null, {'message': 'ignored action of type ' + body.action});
+    return;
+  }
+
+  // ۲. بررسی اینکه آیا متن '[gifbot:search]' در کامنت ظاهر شده است
+  const matches = regex.exec(webhook.comment.body);
+  if (!matches) {
+    callback(null, `The comment didn't summon the almighty gifbot`);
+    return;
+  }
+
+  const searchTerm = matches[1];
+
+  // ۳. جست‌وجو در Giphy
+  searchGifs(searchTerm)
+    .then((results) => {
+      // ۴. دریافت اولین نتیجه و افزودن یک کامنت
+      const gifUrl = results.data[0].images.fixed_height.url;
+      comment = `![animated gif of ${searchTerm}](${gifUrl})`;
+      return addComment(body.issue.comments_url, comment, accessToken);
+    })
+    .then(() => callback(null, 'added comment'))
+    .catch((err) => callback(err.toString()));
+};</code></pre>
+        <p>فکر می‌کنم کامنت‌های داخل کد بالا کاملاً خودتوضیحی هستند! متوجه خواهید شد که توکن دسترسی به‌صورت خارجی و به‌عنوان
+        یک متغیر محیطی (environment variable) تأمین می‌شود.</p>
+        <p>برای زنده‌کردن این ربات، باید سه کار انجام دهید:</p>
+        <ol>
+          <li>آن را در جایی مناسب مستقر کنید؛ من از AWS استفاده می‌کنم، اما شما به همان اندازه می‌توانید روی Heroku یا
+          سایر میزبان‌های node مستقر کنید.</li>
+          <li>یک <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">توکن دسترسی شخصی</a> از حساب
+          GitHub خود، یا یک حساب ربات اختصاصی ایجاد کنید. هنگام ایجاد توکن، scopeها را تعریف می‌کنید که به شما اجازه
+          می‌دهند عملکردهایی را که یک ربات می‌تواند انجام دهد محدود کنید. در این مورد فقط scope «public_repo» لازم است.</li>
+          <li>برای یکپارچه‌سازی ربات در یک پروژه، به Settings / Webhooks بروید و یک وب‌هوک اضافه کنید که به محل استقرار
+          ربات شما اشاره می‌کند. در این مرحله می‌توانید در مورد انواع رویدادهایی که وب‌هوک شما دریافت می‌کند انتخابی
+          باشید.</li>
+        </ol>
+        <p>این مقدار زیادی تلاش پیکربندی است؛ مخصوصاً چون مراحل ۲ و ۳ باید برای هر مخزنی که ربات با آن یکپارچه می‌شود
+        تکرار شوند.</p>
+        <p>پس از پیکربندی، این ربات وظیفه‌شناسانه GIFهای متحرک را در صورت درخواست سرو می‌کند:</p>
+        <img src="https://blog.scottlogic.com/ceberhardt/assets/gifbot/webhook-comment.png" alt="ربات در حال پاسخ دادن به کامنت با هویت کاربر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>توجه کنید که ربات در تصویر بالا از هویت من استفاده می‌کند که ایده‌آل نیست.</p>
+      </section>
+
+      <!-- ==================== ساخت یک App ==================== -->
+      <section>
+        <h2>ساخت یک App (Creating an App)</h2>
+        <p>می‌توانید Appهای جدید را از طریق
+        <a href="https://github.com/settings/apps" target="_blank" rel="noopener">Settings / Developer Settings / GitHub Apps</a>
+        ایجاد کنید. این فرایند کاملاً ساده است و فقط کمی فرم‌پرکردن نیاز دارد؛ مثلاً نام، توضیحات، صفحهٔ اصلی (homepage).
+        همچنین یک Webhook و مجوزهایی که App شما هنگام نصب به آن‌ها نیاز دارد را مشخص می‌کنید. این موضوع اطلاعاتی را که در
+        مراحل ۲ و ۳ بالا شرح داده شد، اما به‌صورت متمرکز، پوشش می‌دهد.</p>
+        <p>هنگامی که App شما ایجاد شد، می‌توانید آن را از طریق یک لینک عمومی به اشتراک بگذارید. برای مثال، gifbot از طریق
+        <a href="https://github.com/integration/gifbot" target="_blank" rel="noopener">https://github.com/integration/gifbot</a>
+        قابل اشتراک‌گذاری است.</p>
+        <img src="https://blog.scottlogic.com/ceberhardt/assets/gifbot/add-app.png" alt="صفحهٔ اشتراک‌گذاری و نصب App در گیت‌هاب" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این صفحه به کاربران نهایی این فرصت را می‌دهد که ویژگی‌های ربات/App شما را بررسی کنند و گزینهٔ نصب آن را داشته
+        باشند. وقتی روی دکمهٔ Install کلیک می‌کنند، می‌توانند مجوزهای درخواستی را با جزئیات بیشتری بررسی کنند و تصمیم
+        بگیرند که این App با کدام مخازن یکپارچه شود:</p>
+        <img src="https://blog.scottlogic.com/ceberhardt/assets/gifbot/integration-permissions.png" alt="بررسی مجوزهای درخواستی هنگام نصب App" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همان‌طور که می‌بینید، این رویکرد امکان نصب ربات را در بسیاری از مخازن با یک کلیک فراهم می‌کند. همچنین، اگر
+        کاربر مجوزهای مدیریتی مناسب داشته باشد، می‌تواند آن را در چندین سازمان نیز نصب کند.</p>
+        <p>هنگامی که کاربری App را نصب می‌کند، شروع به دریافت رویدادهای وب‌هوک خواهید کرد. این رویدادها دقیقاً همان
+        رویدادهای وب‌هوکی هستند که قبلاً توصیف شدند، با یک افزودهٔ مهم: هر رویداد همچنین یک شناسهٔ نصب (installation ID)
+        را در خود دارد:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "action": "created",
+  "issue": {
+    ...
+  },
+  "installation": {
+    "id": 26269
+  }
+}</code></pre>
+        <p>همان‌طور که از نام آن پیداست، هر بار که کاربری App شما را نصب می‌کند، یک نصب جدید و یکتا ایجاد می‌شود.
+        محدودیت‌های نرخ استفاده از API برای هر نصب به‌طور مستقل اعمال می‌شوند.</p>
+      </section>
+
+      <!-- ==================== جریان احراز هویت App ==================== -->
+      <section>
+        <h2>جریان احراز هویت App (App Authentication Flow)</h2>
+        <p>حالا که App ایجاد و نصب شده است، ربات باید با یک جریان کاری احراز هویت / مجوزدهی متفاوت به‌روزرسانی شود. به‌جای
+        توکن دسترسی شخصی که با یک حساب کاربری GitHub (یا ربات) مرتبط است، باید یک توکن دسترسی نصب (installation access
+        token) به‌دست آورید که با یک نصب یکتا مرتبط است.</p>
+        <p>فرایند به‌دست‌آوردن این توکن شامل ایجاد یک
+        <a href="https://en.wikipedia.org/wiki/JSON_Web_Token" target="_blank" rel="noopener">JSON Web Token</a> (JWT)
+        است که «ادعای» (claim) اینکه درخواست از طرف App می‌آید را تأیید می‌کند. برای ارائهٔ این ادعا به دو قطعه اطلاعات
+        نیاز دارید: اولی شناسهٔ این App است که در صفحهٔ تنظیمات نمایش داده می‌شود، و یک کلید خصوصی (private key) که
+        می‌توانید آن را از صفحهٔ تنظیمات تولید و دانلود کنید.</p>
+        <p>با استفاده از این اطلاعات، یک توکن ایجاد می‌کنید که ویژگی <code class="inline">iss</code> آن هویت این App را
+        نشان می‌دهد و سپس با استفاده از کلید خصوصی امضا می‌شود. من از پکیج
+        <a href="https://github.com/auth0/node-jsonwebtoken" target="_blank" rel="noopener">jsonwebtoken</a> برای ایجاد JWT
+        استفاده می‌کنم، اما هر کتابخانه‌ای که با مشخصات سازگار باشد باید کار کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const fs = require('fs');
+const jwt = require('jsonwebtoken');
+const appId = 2429;
+
+const cert = fs.readFileSync('gifbot-private-key.pem');
+const token = jwt.sign({ iss: appId },
+  cert, {
+    algorithm: 'RS256',
+    expiresIn: '10m'
+  });</code></pre>
+        <p>هنگامی که JWT ایجاد شد، از متد API
+        <code class="inline">/installations/${installationId}/access_tokens</code> برای درخواست توکن برای نصب داده‌شده
+        استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const requestp = require('./requestAsPromise');
+
+const installationToken = (installationId) => requestp({
+  url: `https://api.github.com/installations/${installationId}/access_tokens`,
+  json: true,
+  headers: {
+    'Authorization': 'Bearer ' + token,
+    'User-Agent': 'ColinEberhardt',
+    'Accept': 'application/vnd.github.machine-man-preview+json'
+  },
+  method: 'POST'
+})
+.then(({token}) => token);</code></pre>
+        <p>در این‌جا یک نمونه پاسخ آورده شده است:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  token: 'v1.3cd2ef6a62...............e062bd73',
+  expires_at: '2017-05-21T22:12:38Z'
+}</code></pre>
+        <p>استفاده از این توکن به App اجازه می‌دهد عملیات را، با مجوزهای درخواستی، برای نصب داده‌شده انجام دهد.</p>
+        <p>یکپارچه‌سازی این منطق در ربات بسیار ساده است. در حال حاضر، ربات با استفاده از یک توکن دسترسی شخصی یک درخواست
+        API واحد انجام می‌دهد، به این شکل:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">return addComment(issueOrPull.comments_url, comment, accessToken);</code></pre>
+        <p>این می‌تواند به‌روزرسانی شود تا ابتدا توکن دسترسی نصب را به‌دست آورد و سپس از آن برای درخواست‌های API بعدی
+        استفاده کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">return installationToken(body.installation.id)
+       .then((token) => addComment(issueOrPull.comments_url, comment, token));</code></pre>
+        <p>از دیدگاه کاربر نهایی، App دقیقاً مانند نسخهٔ یکپارچه‌شده با وب‌هوک کار می‌کند:</p>
+        <img src="https://blog.scottlogic.com/ceberhardt/assets/gifbot/integration-comment.png" alt="پاسخ App با هویت ربات خودش در کامنت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>با این حال، App حالا هویت خودش را دارد و به‌وضوح به‌عنوان یک «ربات» برچسب‌گذاری شده است.</p>
+        <p>و همین! پس از به‌دست‌آوردن توکن نصب، می‌توانید از هر یک از متدهای API که برای استفاده به آن‌ها دسترسی
+        (permission) داشته‌اید استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی (Conclusions)</h2>
+        <p>امیدوارم این معرفی مفیدی برای GitHub Apps بوده باشد. تعدادی ربات، ابزار و یکپارچه‌سازی وجود دارند که من با
+        آن‌ها روی GitHub کار کرده‌ام و فکر می‌کنم تبدیل آن‌ها به App سودمند خواهد بود. مشتاقم در آینده تعداد بیشتری از
+        این‌ها را ببینم!</p>
+      </section>
+
+      <!-- ==================== مطالب مرتبط ==================== -->
+      <section>
+        <h2>مطالب مرتبط (Read more)</h2>
+        <h3>Developing a GitHub Bot with AWS Lambda</h3>
+        <p>این پست وبلاگ فرایند ایجاد یک ربات GitHub را توصیف می‌کند که به‌عنوان یک تابع Lambda از
+        آمازون وب سرویس‌ها (Amazon Web Services — AWS) میزبانی می‌شود و بررسی‌های مختلفی روی Pull Requestها انجام
+        می‌دهد.</p>
+        <p><a href="/2017/05/08/aws-lambda-github-bot.html" target="_blank" rel="noopener">کالین ابرهارت (Colin Eberhardt)</a>
+        · ۸ مهٔ ۲۰۱۷ · ۱۵ دقیقه مطالعه</p>
+        <h3>GitHub یک راه‌حل رایگان CI/CD و میزبانی است</h3>
+        <p>با تمرین یکپارچه‌سازی مداوم و استقرار مداوم (Continuous Integration &amp; Deployment — CI/CD) می‌توانیم
+        ویژگی‌های جدید را سریع‌تر به کاربران برسانیم و حلقه‌های بازخورد خود را محکم‌تر کنیم. در این معرفی CI/CD، یک مثال
+        از جریان کاری GitHub Actions را معرفی و توضیح می‌دهم که فرانت‌اند شما را می‌سازد و آن را با GitHub Pages مستقر
+        می‌کند.</p>
+        <p><a href="/2020/02/24/github-cd.html" target="_blank" rel="noopener">استیون واترمن (Steven Waterman)</a> ·
+        ۲۴ فوریهٔ ۲۰۲۰ · ۸ دقیقه مطالعه</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «gifbot — Building a GitHub App» اثر «کالین ابرهارت (Colin Eberhardt)» از
+        «وبلاگ اسکات لاجیک (Scott Logic)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است (تحت مجوز Creative Commons BY-NC-SA). برای مشاهدهٔ اصل مطلب به
+        <a href="https://blog.scottlogic.com/2017/05/22/gifbot-github-integration.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

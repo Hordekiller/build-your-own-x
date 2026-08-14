@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to build a Slack Bot with Python using
+  Slack Events API & Django under 20 minute — Code Included»
+  (Prabakaran Kumaresshan, freehunch — Medium)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات اسلک با پایتون با استفاده از Slack Events API و جنگو</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات اسلک با پایتون با استفاده از Slack Events API و جنگو</span>
+      </div>
+      <h1>ساخت ربات اسلک با پایتون با استفاده از Slack Events API و جنگو در کمتر از ۲۰ دقیقه — همراه با کد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/freehunch/how-to-build-a-slack-bot-with-python-using-slack-events-api-django-under-20-minute-code-included-269c3a9bf64e" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to build a Slack Bot with Python using Slack Events API
+          &amp; Django under 20 minute — Code Included» نوشته «پرباکاران کوما رشّن (Prabakaran Kumaresshan)» در نشریهٔ
+          freehunch است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/freehunch/how-to-build-a-slack-bot-with-python-using-slack-events-api-django-under-20-minute-code-included-269c3a9bf64e" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://miro.medium.com/max/2800/1*QegG0tODEy3ysRO3KdYs5w.png"
+             alt="تصویر سربرگ مقاله: ساخت ربات اسلک با پایتون و جنگو"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اسلک (Slack) پلتفرم فوق‌العاده‌ای برای همکاری تیمی است؛ و نه‌تنها این، بلکه یکی از بهترین رابط‌های برنامه‌نویسی
+        (API) را برای ساخت چت‌بات‌ها (Chatbot) دارد. چت‌بات‌ها در همهٔ اندازه‌ها وجود دارند؛ از رباتی که یادآوری می‌کند
+        <a href="https://www.todobot.io/slack/" target="_blank" rel="noopener">شیر بخرید</a> تا رباتی که به شما کمک می‌کند
+        <a href="https://www.paypal.com/slack/" target="_blank" rel="noopener">پول بفرستید یا دریافت کنید</a>.</p>
+        <p>در این نوشته، شما را در ساخت یک ربات اسلک (Slack Bot) حداقلی با پس‌زمینهٔ پایتون همراهی می‌کنم. ایده این است که
+        رباتی در اسلک راه‌اندازی کنیم که وقتی به آن سلام کنید، جواب سلام دهد؛ وقتی راه افتاد و در حال اجرا شد، می‌توانیم
+        تنها با کدنویسی منطق اضافه، توانایی‌های ربات را گسترش دهیم.</p>
+      </section>
+
+      <!-- ==================== دقیقه ۱: اسلک ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱: اسلک (Slack)</h2>
+        <p>پیش از شروع کدنویسی ربات، بیایید چرخهٔ زندگی ربات‌های اسلک را بفهمیم:</p>
+        <ol>
+          <li>اگر با
+          <a href="https://slack.com/" target="_blank" rel="noopener"><strong><em>اسلک</em></strong></a> تازه‌کار هستید،
+          بدانید که یک پلتفرم پیام‌رسان با تمرکز بر همکاری تیمی است. اسلک به شما اجازه می‌دهد برنامه‌های سفارشی بسازید، از
+          جمله ربات‌ها (نوعی پلتفرم پیام‌رسان به‌عنوان سرویس؛ Messaging Platform as a Service). شما بخش پشتیبان
+          (backend) برنامه را روی سرور خودتان اجرا می‌کنید تا منطق تجاری (business logic) پردازش شود.</li>
+          <li>برای شروع، باید عضو یک تیم اسلک باشید و برای ساخت اپلیکیشن اسلک (Slack App) جدید، امتیاز
+          <strong><em>مدیر</em></strong> (admin privilege) داشته باشید. اگر عضو هیچ تیم اسلکی نیستید، می‌توانید
+          <a href="https://slack.com/get-started" target="_blank" rel="noopener">یک تیم بسازید</a>.</li>
+          <li>برای تیم اسلک یک <strong><em>اپلیکیشن اسلک</em></strong> می‌سازیم و سپس یک <strong><em>کاربر ربات</em></strong>
+          (Bot User) به اپ اضافه می‌کنیم.</li>
+          <li>برای پردازش درخواست‌های <strong><em>کاربر ربات</em></strong>، یک برنامهٔ وب REST پشتیبان مبتنی بر جنگو
+          (Django) می‌سازیم.</li>
+          <li>چون پس‌زمینه را روی سیستم محلی خودمان اجرا می‌کنیم، از
+          <a href="https://ngrok.com/" target="_blank" rel="noopener"><strong><em>ngrok</em></strong></a> برای تونل‌زنی
+          (tunneling) شبکهٔ محلی و دریافت یک آدرس اینترنتی (url) عمومی استفاده می‌کنیم.</li>
+          <li>وقتی پس‌زمینه آماده شد، می‌توانیم آدرس نقطهٔ پایانی (endpoint) را برای <strong><em>تأیید نشانی توسط
+          چالش</em></strong> (url verification by challenge) به اسلک ارائه دهیم. نخستین بار که یک endpoint ارائه می‌دهید،
+          اسلک یک درخواست POST چالش با یک توکن (token) محرمانه می‌فرستد. برای تکمیل موفقیت‌آمیز چالش، باید درخواست را
+          همراه با همان رازِ چالش بازگردانید (فقط کافی است پیام دریافتی را منعکس — echo — کنید). این کار برای یک
+          endpoint مشخص فقط یک‌بار انجام می‌شود.</li>
+          <li>پس از تأیید، می‌توانیم در <strong><em>رویدادها</em></strong> (events) عضو (subscribe) شویم تا اسلک برای هر
+          کدام که بخواهیم پیامی به پس‌زمینهٔ ما بفرستد. این بهترین بخش ماجراست: برای دریافت رویدادهای جدید لازم نیست اسلک
+          را استعلام (poll) کنید؛ اسلک کارهای سنگین را خودش انجام می‌دهد؛ همین موضوع این کار را نمونهٔ استفادهٔ بسیار
+          مناسبی برای AWS Lambda می‌سازد. فهرست بلندبالای رویدادها را می‌توانید
+          <a href="https://api.slack.com/events" target="_blank" rel="noopener">اینجا</a> ببینید.</li>
+          <li>بعد از راه‌اندازی اپلیکیشن اسلک و آماده‌بودن پس‌زمینه برای پردازش رویدادها، می‌توانیم منطق ربات را بنویسیم
+          تا در واکنش به یک رویداد، کار مشخصی انجام دهد. در این‌جا وقتی کاربری سلام می‌کند، ربات ما با یک پیام سلام
+          پاسخ می‌دهد.</li>
+        </ol>
+        <p>بیایید شیرجه بزنیم به ساخت ربات…</p>
+      </section>
+
+      <!-- ==================== دقیقه ۲: ساخت اپلیکیشن اسلک ==================== -->
+      <section>
+        <h2>دقیقهٔ ۲: ساخت اپلیکیشن اسلک (Create a Slack App)</h2>
+        <p>با ساخت اپلیکیشن اسلک از
+        <a href="https://api.slack.com/apps" target="_blank" rel="noopener">اینجا</a> شروع کنید؛ روی
+        <strong><em>ساخت اپ</em></strong> (Create App) کلیک کنید. سپس مراحل ساخت اپ را ادامه دهید؛ نامی برایش انتخاب
+        کنید و تیم اسلک را برگزینید.</p>
+        <p>سپس به صفحهٔ پیکربندی اپ (App configuration) هدایت می‌شوید؛ برای اینکه ربات ما راه بیفتد و اجرا شود، باید
+        کارهای زیر را انجام دهید:</p>
+        <ol>
+          <li>ساخت کاربر ربات (Bot User)</li>
+          <li>نصب اپلیکیشن اسلک روی تیم</li>
+          <li>تأیید پس‌زمینه (Back End)</li>
+          <li>عضو شدن در رویدادها (Subscribe to Events)</li>
+        </ol>
+        <p>در پنل سمت چپ روی <strong><em>کاربر ربات</em></strong> (Bot User) کلیک کنید، یک نام کاربری برای ربات انتخاب
+        کنید و کلید «<strong><em>همیشه ربات من را آنلاین نشان بده</em></strong>» (Always Show My Bot as Online) را روشن
+        کنید. چون قرار است فقط از Events API استفاده کنیم، در غیر این صورت ربات آنلاین نمایش داده نمی‌شود. برای ساخت
+        «ربات سلام» ما روی <strong><em>افزودن کاربر ربات</em></strong> (Add Bot User) کلیک کنید.</p>
+        <img src="https://miro.medium.com/max/1134/1*ufvQ_8-720dZlYHOwOFFYA.png"
+             alt="تصویر ساخت کاربر ربات (Bot User) در پیکربندی اپلیکیشن اسلک"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== دقیقه ۳: نصب اپ روی تیم ==================== -->
+      <section>
+        <h2>دقیقهٔ ۳: نصب اپلیکیشن اسلک روی تیم (Install Slack App to Team)</h2>
+        <p>حالا در پنل سمت چپ روی <strong><em>نصب اپ</em></strong> (Install App) کلیک کنید و اپ را روی تیم اسلک خود
+        نصب کنید.</p>
+        <p>بعد از نصب، <strong><em>توکن دسترسی OAuth کاربر ربات</em></strong> (Bot User OAuth Access Token) را دریافت
+        خواهید کرد؛ این توکن را یادداشت کنید؛ بعداً هنگام پیکربندی اپ جنگو به آن نیاز داریم. این توکن مانند گذرواژه‌ای
+        است که ربات ما با آن با تیم اسلک ارتباط برقرار می‌کند. در ادامهٔ این آموزش از این توکن با نام
+        <code class="inline">SLACK_BOT_USER_TOKEN</code> یاد خواهیم کرد.</p>
+        <img src="https://miro.medium.com/max/900/1*U-hy_z5tDuWS5yEZhb60OA.png"
+             alt="تصویر نصب اپلیکیشن اسلک روی تیم و دریافت توکن دسترسی OAuth کاربر ربات"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== دقیقه ۴: اعتبارنامه‌های کلاینت اسلک ==================== -->
+      <section>
+        <h2>دقیقهٔ ۴: اعتبارنامه‌های کلاینت اسلک (Slack Client Credentials)</h2>
+        <p>همچنین <strong><em>اعتبارنامه‌های اپ</em></strong> (App Credentials) را از بخش
+        <strong><em>اطلاعات پایه</em></strong> (Basic Information) در پنل سمت چپ یادداشت کنید. این اعتبارنامه‌ها به ما
+        اجازه می‌دهند با API اسلک صحبت کنیم؛ بنابراین هر بار که پیامی به اسلک می‌فرستیم، باید
+        <strong><em>شناسهٔ کلاینت</em></strong> (Client ID / <code class="inline">CLIENT_ID</code>) و
+        <strong><em>راز کلاینت</em></strong> (Client Secret / <code class="inline">CLIENT_SECRET</code>) خودمان را
+        بفرستیم تا در اسلک شناسایی شویم. به همین ترتیب می‌توانیم تأیید کنیم که پیامِ دریافتی واقعاً از سمت اسلک ارسال
+        شده است؛ با بررسی اینکه <strong><em>توکن تأیید</em></strong> (Verification Token /
+        <code class="inline">VERIFICATION_TOKEN</code>) داخل پیام با توکن موجود در اعتبارنامه‌های اپ یکی است.</p>
+        <img src="https://miro.medium.com/max/1000/1*7URX9cInQE1hgRfsZjWt4g.png"
+             alt="تصویر اعتبارنامه‌های اپلیکیشن اسلک در بخش اطلاعات پایه (Basic Information)"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا باید چهار مقدار کلیدی در دست داشته باشیم:</p>
+        <ol>
+          <li>شناسهٔ کلاینت — <code class="inline">SLACK_CLIENT_ID</code></li>
+          <li>راز کلاینت — <code class="inline">SLACK_CLIENT_SECRET</code></li>
+          <li>توکن تأیید — <code class="inline">SLACK_VERIFICATION_TOKEN</code></li>
+          <li>توکن کاربر ربات — <code class="inline">SLACK_BOT_USER_TOKEN</code></li>
+        </ol>
+        <img src="https://miro.medium.com/max/1000/1*U9D5u5q4evIE2FlN3uOJqA.png"
+             alt="تصویر چهار مقدار کلیدی اسلک: شناسهٔ کلاینت، راز کلاینت، توکن تأیید و توکن کاربر ربات"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در پیکربندی اپلیکیشن اسلک فقط یک گام آخر داریم: ارائهٔ نقطهٔ پایانی (endpoint) REST API ربات‌مان به اسلک و
+        تأیید گرفتن آن.</p>
+        <p>پیش از آن‌که ربات را تأیید کنیم و در رویدادها عضو شویم، باید اپ جنگو را در حال اجرا داشته باشیم.</p>
+      </section>
+
+      <!-- ==================== دقیقه ۵: آماده‌سازی محیط ==================== -->
+      <section>
+        <h2>دقیقهٔ ۵: آماده‌سازی محیط (Environment Setup)</h2>
+        <p>از پایتون 3.5 و بسته‌های زیر استفاده خواهیم کرد:</p>
+        <ol>
+          <li>جنگو (Django)</li>
+          <li>چارچوب REST جنگو (Django REST Framework)</li>
+          <li><a href="https://github.com/slackapi/python-slackclient" target="_blank" rel="noopener">کلاینت اسلک برای
+          پایتون</a> (Slack Client for Python)</li>
+          <li><a href="https://github.com/slackapi/python-slack-events-api" target="_blank" rel="noopener">API رویدادهای
+          اسلک</a> (Slack Events API)</li>
+        </ol>
+        <p>برای محیط مجازی (virtual environment) از <a href="https://www.continuum.io/downloads" target="_blank" rel="noopener"><strong><em>conda</em></strong></a>
+        و برای مدیریت بسته‌ها از <strong><em>pip</em></strong> استفاده می‌کنیم. بیایید برای پروژه‌مان یک محیط مجازی جدید
+        به نام <code class="inline">slack_bot</code> با نسخهٔ پایتون 3.5.x بسازیم و محیط مجازی را فعال کنیم.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">conda create -n slack_bot python==3.5
+# ویندوز
+activate slack_bot
+# مک‌اواس، لینوکس
+source activate slack_bot</code></pre>
+        <p>حالا بسته‌های لازم را نصب می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">pip install django
+
+pip install djangorestframework
+
+pip install slackclient
+
+pip install slackeventsapi</code></pre>
+      </section>
+
+      <!-- ==================== دقیقه ۶: ساخت اپلیکیشن جنگو ==================== -->
+      <section>
+        <h2>دقیقهٔ ۶: ساخت اپلیکیشن جنگو (Create Django Application)</h2>
+        <p>در پوشهٔ کاری، یک پروژهٔ جنگو و یک اپ بسازید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">django-admin startproject slack
+
+cd slack
+
+django-admin startapp events</code></pre>
+        <p>حالا ساختار پوشهٔ پروژهٔ شما باید شبیه این باشد. از این به بعد، همهٔ مسیرهای فایلی که ذکر می‌کنم،
+        <code class="inline">slack</code> (پوشهٔ پروژه) را به‌عنوان ریشه (root) فرض می‌کنند.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">└── slack
+    ├── events
+    │   ├── admin.py
+    │   ├── apps.py
+    │   ├── __init__.py
+    │   ├── migrations
+    │   │   └── __init__.py
+    │   ├── models.py
+    │   ├── tests.py
+    │   └── views.py
+    ├── manage.py
+    └── slack
+        ├── __init__.py
+        ├── __pycache__
+        │   ├── __init__.cpython-35.pyc
+        │   ├── settings.cpython-35.pyc
+        │   ├── urls.cpython-35.pyc
+        │   └── wsgi.cpython-35.pyc
+        ├── settings.py
+        ├── urls.py
+        └── wsgi.py</code></pre>
+      </section>
+
+      <!-- ==================== دقیقه ۷: پیکربندی تنظیمات جنگو ==================== -->
+      <section>
+        <h2>دقیقهٔ ۷: پیکربندی تنظیمات جنگو (Configure Django Settings)</h2>
+        <p>چارچوب REST با نمای API (API View) داخلی و رابط API قابل مرور (browseable API) خود، ساخت نقطه‌های پایانی
+        (endpoint) API را آسان می‌کند. بیایید <strong><em>چارچوب REST</em></strong> را به‌عنوان وابستگی (dependency) به
+        تنظیمات جنگو اضافه کنیم. همچنین باید اپلیکیشن خودمان یعنی <strong><em>events</em></strong> را هم به‌عنوان
+        وابستگی اضافه کنیم. دو خطی که در ادامه آمده را در فایل <code class="inline">slack/settings.py</code> اضافه
+        کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># slack/settings.py
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',             # <== این خط را اضافه کنید
+    'events',                     # <== این خط را اضافه کنید
+]</code></pre>
+        <p>سپس پیکربندی‌های زیر را با کلیدهای احراز هویت (authentication) خودتان از اسلک، در
+        <code class="inline">slack/settings.py</code> اضافه کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># slack/settings.py
+# پیکربندی‌های API اسلک
+# ----------------------------------------------
+# از کلیدهای خودتان استفاده کنید
+SLACK_CLIENT_ID = '20xxxxxxxxxx.20xxxxxxxxxx'
+SLACK_CLIENT_SECRET = 'd29fe85a95c9xxxxxxxxxxxxxxxxxxxxx'
+SLACK_VERIFICATION_TOKEN = 'xpxxxxxxxxxxxxxxxxxxxxxxxxx'
+SLACK_BOT_USER_TOKEN = 'xoxb-xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxx'</code></pre>
+        <div class="callout warn">
+          <strong>هشدار:</strong> لطفاً کدتان را با این مقادیر در هیچ مخزن عمومی مثل گیت‌هاب (GitHub) ثبت نکنید
+          (check in). در حالت ایده‌آل این مقادیر باید به‌صورت متغیرهای محیطی (environment variables) صادر (export)
+          شوند و توسط اسکریپت‌های راه‌اندازی (startup scripts) خوانده شوند.
+        </div>
+        <p>حالا سرور توسعهٔ جنگو را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">python manage.py runserver</code></pre>
+        <p>وقتی سرور راه افتاد، چیزی شبیه به این چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">Performing system checks…
+
+System check identified no issues (0 silenced).You have 13 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.July 03, 2017–17:30:32
+Django version 1.11.3, using settings 'slack.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.</code></pre>
+        <p>هشدارهای مهاجرت (migration) را نادیده بگیرید و آدرس را در مرورگر خود باز کنید.</p>
+        <img src="https://miro.medium.com/max/1732/1*VNRYg5gwmeRr4JESbs-tuQ.png"
+             alt="تصویر خروجی اجرای سرور توسعهٔ جنگو و باز کردن آدرس در مرورگر"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== دقیقه ۸: ساخت نقطهٔ پایانی API ==================== -->
+      <section>
+        <h2>دقیقهٔ ۸: ساخت یک نقطهٔ پایانی API (Create an API endpoint)</h2>
+        <p>حالا که سرور اپلیکیشن ما راه افتاده و در حال اجراست، باید یک نقطهٔ پایانی برای اسلک بسازیم تا پیام‌های
+        رویداد را به آن بفرستد. با چارچوب REST جنگو (Django Rest Framework / DRF) یک نمای API به شکل زیر می‌سازیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># events/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+
+SLACK_VERIFICATION_TOKEN = getattr(settings, 'SLACK_VERIFICATION_TOKEN', None)
+
+class Events(APIView):
+    def post(self, request, *args, **kwargs):
+        slack_message = request.data
+        if slack_message.get('token') != SLACK_VERIFICATION_TOKEN:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        return Response(status=status.HTTP_200_OK)</code></pre>
+        <p>در کد بالا، بسته‌های پایتون موردنیاز را وارد (import) می‌کنیم، توکنِ ذخیره‌شده در پیکربندی را بازیابی
+        می‌کنیم و سپس یک نمای API تعریف می‌کنیم تا درخواست POST را مدیریت کند.</p>
+        <p>در تابع POST بررسی می‌کنیم که آیا توکن داخل پیام با توکن تأیید کاربر ربات ما مطابقت دارد یا نه؛ این کار برای
+        اعتبارسنجی این است که درخواستِ دریافتی واقعاً از سمت اسلک آمده است. اگر مطابقت داشت، پیام
+        <strong><em>«OK»</em></strong> می‌فرستیم وگرنه به درخواست‌کننده اعلام می‌کنیم که از دسترسی به سرور ما
+        <strong><em>«منع شده»</em></strong> (Forbidden) است.</p>
+      </section>
+
+      <!-- ==================== دقیقه ۹: پیکربندی مسیرهای جنگو ==================== -->
+      <section>
+        <h2>دقیقهٔ ۹: پیکربندی مسیرهای جنگو (Configure Django Routes)</h2>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر در برنامه‌های وب تازه‌کار هستید، بدانید که مسیریابی (routing) روشی است که با آن به
+          سرور وب می‌گوییم وقتی به یک آدرس (URL) درخواستی می‌رسد، کدام تابع فراخوانی شود. وقتی آدرس با یک پیام درخواست
+          مواجه شود، تابع متناظر فراخوانی می‌شود و پیامِ درخواست‌کننده به‌عنوان پارامتر به تابع پاس داده می‌شود.
+        </div>
+        <p>برای اتصال کلاس Events API به آدرس
+        <a href="http://127.0.0.1:8000/events/" target="_blank" rel="noopener"><code class="inline">http://localhost:8000/events/</code></a>،
+        خطوط زیر را در <code class="inline">slack/urls.py</code> اضافه کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># slack/urls.py
+from django.conf.urls import url
+from django.contrib import admin
+from events.views import Events                                    #
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^events/', Events.as_view()),                            #
+]</code></pre>
+        <p>آدرس سرور را در مرورگر باز کنید؛ رابط API قابل مرور (browsable API interface) را خواهید دید.</p>
+        <img src="https://miro.medium.com/max/2400/1*-JzfJALUMXrVaDWtPaRtgA.png"
+             alt="تصویر رابط API قابل مرور چارچوب REST جنگو در مرورگر"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>نکته:</strong> معمولاً برای هر اپ یک فایل مسیریابی جداگانه می‌سازیم و آن را در مسیریابی پروژه ثبت
+          می‌کنیم. برای ساده نگه‌داشتن کد، آدرس اپ events را در فایل مسیریابی پروژه تعریف کرده‌ام.
+        </div>
+      </section>
+
+      <!-- ==================== دقیقه ۱۰: چالش تأیید آدرس اسلک ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱۰: چالش تأیید آدرس اسلک (Slack URL Verification Challenge)</h2>
+        <p>برای ارائهٔ نقطهٔ پایانی API به اسلک، باید منطقی کدنویسی کنیم تا اسلک بتواند نقطهٔ پایانی ما را تأیید کند و آن
+        را با کاربر ربات اسلک مرتبط سازد. در کلاس Events API کد زیر را اضافه کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+
+SLACK_VERIFICATION_TOKEN = getattr(settings, 'SLACK_VERIFICATION_TOKEN', None)
+
+
+class Events(APIView):
+    def post(self, request, *args, **kwargs):
+
+        slack_message = request.data
+        
+        if slack_message.get('token') != SLACK_VERIFICATION_TOKEN:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        # چالش تأیید آدرس
+        if slack_message.get('type') == 'url_verification':        #
+            return Response(data=slack_message,                    #
+                            status=status.HTTP_200_OK)             #
+
+        return Response(status=status.HTTP_200_OK)</code></pre>
+        <p>کاری که این‌جا می‌کنیم این است که بررسی می‌کنیم آیا درخواست، تأیید نشانی (url verification) است؛ اگر بود،
+        همان پیام را عیناً به عقب برمی‌گردانیم.</p>
+      </section>
+
+      <!-- ==================== دقیقه ۱۱: ربات سلام ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱۱: ربات سلام (The Greet Bot)</h2>
+        <p>بیایید ربات سلام را کدنویسی کنیم؛ منطق را ساده نگه می‌داریم. فعلاً قرار نیست از پردازش زبان طبیعی
+        (Natural Language Processing / NLP) استفاده کنیم و آن را برای بعد نگه می‌داریم. در پیام کاربر به‌دنبال واژهٔ سلام
+        <strong><em>«Hi»</em></strong> می‌گردیم؛ اگر واژه پیدا شد، ربات با متنی مثل این پاسخ می‌دهد:</p>
+        <p>در Events API خطوطی را که با علامت <strong><em>#</em></strong> مشخص شده‌اند اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from slackclient import SlackClient                               #1
+
+
+SLACK_VERIFICATION_TOKEN = getattr(settings, 'SLACK_VERIFICATION_TOKEN', None)
+SLACK_BOT_USER_TOKEN = getattr(settings,                          #2
+'SLACK_BOT_USER_TOKEN', None)                                     #
+Client = SlackClient(SLACK_BOT_USER_TOKEN)                        #3
+
+
+class Events(APIView):
+    def post(self, request, *args, **kwargs):
+
+        slack_message = request.data
+
+        if slack_message.get('token') != SLACK_VERIFICATION_TOKEN:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        # چالش تأیید آدرس
+        if slack_message.get('type') == 'url_verification':
+            return Response(data=slack_message,
+                            status=status.HTTP_200_OK)
+        # ربات سلام
+        if 'event' in slack_message:                              #4
+            event_message = slack_message.get('event')            #
+            
+            # پیام خودِ ربات را نادیده بگیر
+            if event_message.get('subtype') == 'bot_message':     #5
+                return Response(status=status.HTTP_200_OK)        #
+            
+            # پردازش پیام کاربر
+            user = event_message.get('user')                      #6
+            text = event_message.get('text')                      #
+            channel = event_message.get('channel')                #
+            bot_text = 'Hi <@{}> :wave:'.format(user)             #
+            if 'hi' in text.lower():                              #7
+                Client.api_call(method='chat.postMessage',        #8
+                                channel=channel,                  #
+                                text=bot_text)                    #
+                return Response(status=status.HTTP_200_OK)        #9
+
+        return Response(status=status.HTTP_200_OK)</code></pre>
+        <p>کارهایی که انجام دادیم به این شرح است:</p>
+        <ol>
+          <li>بستهٔ کلاینت اسلک (Slack Client) را وارد کردیم.</li>
+          <li>توکن کاربر ربات اسلک را از تنظیمات بازیابی کردیم.</li>
+          <li>یک نمونهٔ (instance) Client ساختیم تا پاسخ ربات را به اسلک پست (post) کند.</li>
+          <li>اگر دادهٔ رویداد (event data) در پیام دریافتی موجود بود، پیام را پردازش می‌کنیم.</li>
+          <li>پیامی که ربات در یک کانال پست می‌کند، دوباره به‌عنوان بخشی از دریافت‌کنندگان به خودِ ربات هم می‌رسد؛
+          بنابراین پیامِ ربات باید توسط ربات نادیده گرفته شود.</li>
+          <li>اگر پیام از یک کاربر باشد، رویداد را پردازش می‌کنیم. شناسهٔ کاربر (user id)، شناسهٔ کانال (channel id) و
+          پیامِ کاربر به ربات را استخراج می‌کنیم و سپس پیام سلام ربات را با نام کاربر می‌سازیم.</li>
+          <li>اگر پیام کاربر شامل واژهٔ سلام <code class="inline">hi</code> بود، اقدام به پست کردن پیام سلام می‌کنیم.</li>
+          <li>برای پست کردن پیام پاسخ ربات در کانال، API کلاینت اسلک را از طریق
+          <a href="https://slack.com/api/chat.postMessage" target="_blank" rel="noopener"><strong><em>chat.postMessage</em></strong></a>
+          فراخوانی می‌کنیم.</li>
+          <li>پس از پست شدن پیام، به رویداد اسلک پاسخ OK می‌دهیم.</li>
+        </ol>
+        <p>در این‌جا تصویری از منطق ربات می‌بینید:</p>
+        <img src="https://miro.medium.com/max/1588/1*GTW6-bH1NI0-aM6GDHCoAQ.png"
+             alt="تصویر نمایش منطق ربات: دریافت پیام، نادیده گرفتن پیام ربات و پاسخ سلام"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== دقیقه ۱۲: تونل‌زنی با ngrok ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱۲: تونل‌زنی با ngrok (Tunneling with ngrok)</h2>
+        <p>حالا باید ربات خود را در یک دامنهٔ عمومی در دسترس قرار دهیم تا اسلک بتواند فراخوانی‌های سرویس (service calls)
+        را انجام دهد. یکی از راه‌های انجام این کار در سیستم محلی، استفاده از یک سرویس تونل‌زنی مثل
+        <a href="https://ngrok.com/" target="_blank" rel="noopener">ngrok</a> است؛ بروید و ngrok را برای سیستمتان نصب
+        کنید.</p>
+        <p>وقتی ngrok را راه‌اندازی کردید:</p>
+        <p>۱. سرور جنگو را با این دستور اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">python manage.py runserver 0.0.0.0:8000</code></pre>
+        <p>۲. از ngrok استفاده کنید تا پورت جنگو را به یک دامنهٔ عمومی متصل کنید، به این شکل:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">ngrok http 8000</code></pre>
+        <p>ngrok یک آدرس عمومی می‌سازد و درخواست‌ها را به سرور شما هدایت می‌کند؛ پس از اتصال موفق، چیزی شبیه به تصویر
+        زیر می‌بینید:</p>
+        <img src="https://miro.medium.com/max/2428/1*LqQTopvqEhBaTWvh6L2yeA.png"
+             alt="تصویر خروجی اجرای ngrok و نمایش آدرس عمومی ساخته‌شده"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای دسترسی به API ربات به آدرس
+        <code class="inline">http://&lt;your-unique-id&gt;.ngrok.io/events/</code> بروید.</p>
+      </section>
+
+      <!-- ==================== دقیقه ۱۳: ارائهٔ آدرس به اسلک ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱۳: ارائهٔ آدرس به اسلک (Submitting URL to Slack)</h2>
+        <p>به <a href="https://api.slack.com/apps" target="_blank" rel="noopener">داشبورد اپلیکیشن‌های اسلک</a> بروید، اپ
+        خود را انتخاب کنید و با دادن آدرس ngrok در رویدادها عضو شوید.</p>
+        <img src="https://miro.medium.com/max/2566/1*eGDillQG5zxreUxpWyE6OA.png"
+             alt="تصویر ثبت آدرس ngrok در داشبورد اپلیکیشن اسلک برای عضو شدن در رویدادها"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آدرس شما باید از پسِ چالش تأیید (verification challenge) بربیاید.</p>
+        <img src="https://miro.medium.com/max/1512/1*PVwIJC4yNQB1PeknFyLb1A.png"
+             alt="تصویر گذر موفقیت‌آمیز از چالش تأیید آدرس (URL Verification Challenge)"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>سپس به پایین اسکرول کنید و برای «پیام کانال» (channel message) و «پیام مستقیم» (direct message) عضو شوید.</p>
+        <img src="https://miro.medium.com/max/2032/1*nlotvX5J135zQN1GUs9Jhg.png"
+             alt="تصویر انتخاب اشتراک در رویدادهای پیام کانال و پیام مستقیم"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== دقیقه ۱۴: تمام! ==================== -->
+      <section>
+        <h2>دقیقهٔ ۱۴: همین و بس (That's All Folks)</h2>
+        <p>ربات شما الان راه افتاده و در حال اجراست؛ بروید و در چت اسلک به آن سلام کنید.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to build a Slack Bot with Python using Slack Events API &amp; Django under
+        20 minute — Code Included» اثر «پرباکاران کوما رشّن (Prabakaran Kumaresshan)» در نشریهٔ
+        <a href="https://medium.com/freehunch" target="_blank" rel="noopener">freehunch</a> است. این صفحه فقط ترجمهٔ
+        فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://medium.com/freehunch/how-to-build-a-slack-bot-with-python-using-slack-events-api-django-under-20-minute-code-included-269c3a9bf64e" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

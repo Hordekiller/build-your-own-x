@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «A bot for Starcraft in Rust, C or any other language»
+  (Roman Proskuryakov / نسخه انگلیسی Habr به ترجمه humbug)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | رباتی برای استارکرافت در Rust، C یا هر زبان دیگری</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>رباتی برای استارکرافت در Rust، C یا هر زبان دیگری</span>
+      </div>
+      <h1>رباتی برای استارکرافت در Rust، C یا هر زبان دیگری</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://habr.com/en/post/436254/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «A bot for Starcraft in Rust, C or any other language» اثر
+          «رومن پروسکوریاکوف (Roman Proskuryakov)» است؛ نسخه انگلیسی آن در «هابر (Habr)» منتشر شده. نسخه کامل و
+          به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://habr.com/en/post/436254/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>استارکرافت: برود وار (StarCraft: Brood War). این بازی برای من خیلی مهم است! و حدس می‌زنم برای بسیاری از شما
+        هم همین‌طور باشد. آن‌قدر مهم که نمی‌دانم اصلاً باید به صفحهٔ آن در ویکی‌پدیا
+        <a href="https://en.wikipedia.org/wiki/StarCraft:_Brood_War" target="_blank" rel="noopener">لینک</a> بدهم یا نه.</p>
+
+        <img src="https://habrastorage.org/r/w1560/webt/qv/fa/ex/qvfaexsnkzmckmwrt_spqmc7nr4.png"
+             alt="تصویر روی جلد مقاله — بازی استارکرافت: برود وار"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>مدتی پیش <a href="https://habr.com/ru/users/halt/" target="_blank" rel="noopener">هالت (Halt)</a> به من پیام
+        خصوصی (PM) فرستاد و پیشنهاد یادگیری زبان
+        <a href="https://www.rust-lang.org/ru-RU/" target="_blank" rel="noopener">راست (Rust)</a> را داد. مثل هر آدم
+        معمولی، تصمیم گرفتیم با نوشتن «سلام دنیا» شروع کنیم: یک کتابخانهٔ پویا (dynamic library) برای ویندوز که بتواند
+        در فضای آدرس‌دهی استارکرافت بارگذاری شود و واحدها (units) را مدیریت کند.</p>
+
+        <p>مقالهٔ زیر روند یافتن راه‌حل‌ها و استفاده از فناوری‌ها و تکنیک‌هایی را توصیف می‌کند که به شما امکان می‌دهند
+        چیزهای جدیدی دربارهٔ راست و اکوسیستم آن یاد بگیرید. شاید هم الهام بگیرید که رباتی را با زبان موردعلاقهٔ خودتان
+        پیاده‌سازی کنید — چه C، چه C++، چه روبی (Ruby)، پایتون و غیره.</p>
+
+        <p>حین خواندن این مقاله، قطعاً گوش‌دادن به سرود کرهٔ جنوبی ارزشش را دارد:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" href="https://www.youtube.com/watch?v=pNt0iVG2VOA" target="_blank" rel="noopener">▶ تماشای «سرود استارکرافت» (Starcraft OST) در یوتیوب</a>
+        </div>
+        <p style="font-size:0.9rem;color:var(--muted)">ویدیوی «سرود استارکرافت» (Starcraft OST) که نویسنده در مقاله
+        جاسازی کرده است؛ ما ویدیو را میزبانی نمی‌کنیم و فقط لینک اصلی یوتیوب را گذاشته‌ایم.</p>
+      </section>
+
+      <!-- ==================== BWAPI ==================== -->
+      <section>
+        <h2>BWAPI</h2>
+        <p>این بازی تقریباً ۲۰ ساله است و همچنان
+        <a href="https://sc2casts.com/cast21714-Flash-vs-Soulkey-BO5-in-1-video-2017-Starcraft-1-ASL-S3-Semi-Finals" target="_blank" rel="noopener">محبوب</a>
+        است؛ مسابقات حتی <a href="https://www.youtube.com/watch?v=k_lJFddF27I" target="_blank" rel="noopener">در سال ۲۰۱۷</a>
+        هم جمعیت زیادی را در آمریکا جذب می‌کرد، جایی که نبرد استادان بزرگ «جِیدونگ» (Jaedong) در برابر «بیسو» (Bisu)
+        برگزار شد. علاوه بر بازیکنان انسان،
+        <a href="http://www.cs.mun.ca/~dchurchill/starcraftaicomp/" target="_blank" rel="noopener">ماشین‌های بی‌شرم (soulless machines)</a>
+        هم در نبردهای SC شرکت می‌کنند! و این به لطف
+        <a href="https://github.com/bwapi/bwapi" target="_blank" rel="noopener">BWAPI</a> ممکن شده است.
+        <a href="https://github.com/bwapi/bwapi/wiki/Useful-Links" target="_blank" rel="noopener">لینک‌های مفیدتر</a>.</p>
+
+        <p>بیش از یک دهه است که جامعه‌ای از توسعه‌دهندگان ربات حول این بازی وجود دارد. علاقه‌مندان ربات می‌سازند و در
+        مسابقات مختلف شرکت می‌کنند. بسیاری از آن‌ها هوش مصنوعی (AI) و یادگیری ماشین (machine learning) مطالعه می‌کنند.
+        BWAPI توسط دانشگاه‌ها برای آموزش دانشجویان استفاده می‌شود. حتی یک
+        <a href="https://www.twitch.tv/sscait" target="_blank" rel="noopener">کانال توییچ (Twitch)</a> وجود دارد که چنین
+        مسابقاتی را پخش می‌کند.</p>
+
+        <p>پس، یک تیم از هواداران، بک‌اند (back-end) استارکرافت را سال‌ها پیش مهندسی معکوس (reverse engineering) کردند و
+        یک API به زبان C++ توسعه دادند که به شما امکان می‌دهد ربات بسازید، در فرایند بازی تزریق (injection) انجام دهید و
+        انسان‌های بیچاره را سلطه کنید.</p>
+
+        <p>همان‌طور که اغلب اتفاق می‌افتد، پیش از ساختن خانه لازم است سنگ معدن استخراج شود؛ برای ساختن ابزارِ ساخت ربات،
+        باید یک API پیاده‌سازی کرد. راست (Rust) چه پیشنهادی دارد؟</p>
+      </section>
+
+      <!-- ==================== FFI ==================== -->
+      <section>
+        <h2>FFI (واسط توابع خارجی)</h2>
+        <p>کار با زبان‌های دیگر از راست بسیار ساده است. برای این کار یک FFI (واسط توابع خارجی — Foreign Function Interface)
+        وجود دارد. بگذارید گزیدهٔ کوتاهی از
+        <a href="https://doc.rust-lang.org/nomicon/ffi.html" target="_blank" rel="noopener">مستندات</a> را بیاورم.</p>
+
+        <p>تصور کنید یک کتابخانهٔ <a href="https://github.com/google/snappy" target="_blank" rel="noopener">snappy</a> داریم
+        که فایل هدر <a href="https://github.com/google/snappy/blob/master/snappy-c.h" target="_blank" rel="noopener">snappy-c.h</a>
+        را دارد و این فایل شامل اعلان توابع است.</p>
+
+        <p>بیایید با استفاده از <a href="https://doc.rust-lang.org/cargo/guide/" target="_blank" rel="noopener">cargo</a>
+        یک پروژه بسازیم:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo new --bin snappy
+     Created binary (application) `snappy` project
+$ cd snappy
+snappy$ tree
+.
+├── Cargo.toml
+└── src
+    └── main.rs
+
+1 directory, 2 files</code></pre>
+
+        <p>Cargo ساختار فایل استاندارد پروژه را ایجاد کرده است.</p>
+
+        <p>در <code class="inline">Cargo.toml</code> وابستگی به
+        <a href="https://crates.io/crates/libc" target="_blank" rel="noopener">libc</a> را مشخص می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">toml</span><code style="direction:ltr;text-align:left">[dependencies]
+libc = "0.2"</code></pre>
+
+        <p>فایل <code class="inline">src/main.rs</code> به این شکل خواهد بود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">extern crate libc; // برای وارد کردن انواع سی؛ در مورد ما برای size_t
+use libc::size_t;
+
+#[link(name = "snappy")] // نام کتابخانه را برای لینک‌کردن تابع مشخص می‌کند
+extern {
+    // اعلان تابعی را می‌نویسیم که می‌خواهیم وارد کنیم؛
+    // در C این اعلان به این شکل است:
+    // size_t snappy_max_compressed_length(size_t source_length);
+    fn snappy_max_compressed_length(source_length: size_t) -> size_t;
+}
+
+fn main() {
+    let x = unsafe { snappy_max_compressed_length(100) };
+    println!("max compressed length of a 100 byte buffer: {}", x);
+}</code></pre>
+
+        <p>بیایید پروژه را بسازیم و اجرا کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">snappy$ cargo build
+...
+snappy$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/snappy`
+max compressed length of a 100 byte buffer: 148</code></pre>
+
+        <p>می‌توانید فقط <code class="inline">cargo run</code> را صدا بزنید؛ این دستور قبل از اجرا،
+        <code class="inline">cargo build</code> را هم صدا می‌زند. گزینهٔ دیگر این است که پروژه را بسازید و مستقیم
+        باینری را صدا بزنید:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">snappy$ ./target/debug/snappy
+max compressed length of a 100 byte buffer: 148</code></pre>
+
+        <p>اگر کتابخانهٔ snappy نصب شده باشد، کد کامپایل خواهد شد (برای اوبونتو باید بستهٔ
+        <code class="inline">libsnappy-dev</code> را نصب کنید).</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">snappy$ ldd target/debug/snappy
+    ...
+    libsnappy.so.1 =&gt; /usr/lib/x86_64-linux-gnu/libsnappy.so.1 (0x00007f8de07cf000)</code></pre>
+
+        <p>همان‌طور که می‌بینید، باینری ما به کتابخانهٔ مشترک (shared library) libsnappy لینک شده است. و فراخوانی
+        <code class="inline">snappy_max_compressed_length</code> در کد ما، فراخوانی تابعی از همین کتابخانه است.</p>
+      </section>
+
+      <!-- ==================== rust-bindgen ==================== -->
+      <section>
+        <h2>rust-bindgen</h2>
+        <p>خیلی خوب می‌شد اگر می‌توانستیم FFI خودمان را خودکار تولید کنیم. خوشبختانه، ابزاری به نام
+        <a href="https://github.com/rust-lang-nursery/rust-bindgen" target="_blank" rel="noopener">rust-bindgen</a> در
+        جعبه‌ابزار یک معتاد راست وجود دارد. این ابزار قادر است بایندینگ‌های FFI را برای کتابخانه‌های C (و تا حدودی C++)
+        تولید کند.</p>
+
+        <p>نصب:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo install bindgen</code></pre>
+
+        <p><b>rust-bindgen</b> چه شکلی است؟ فایل‌های هدر C/C++ را می‌گیریم، ابزار <b>bindgen</b> را به آن‌ها نشان می‌دهیم
+        و خروجی، کد راست تولیدشده با اعلان‌های مناسب است تا بتوانیم از ساختارها و توابع C استفاده کنیم. این چیزی است که
+        <code class="inline">bindgen</code> برای snappy تولید می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ bindgen /usr/include/snappy-c.h | grep -C 1 snappy_max_compressed_length
+extern "C" {
+    pub fn snappy_max_compressed_length(source_length: usize) -> usize;
+}</code></pre>
+
+        <p>معلوم می‌شود که bindgen نمی‌تواند با هدرهای BWAPI کنار بیاید و حجم عظیمی کد غیرقابل‌استفاده تولید می‌کند
+        (به دلیل توابع عضو مجازی (virtual member functions)، <code class="inline">std::string</code> در API عمومی و
+        غیره). ماجرا این است که BWAPI به زبان C++ نوشته شده است. استفاده از C++ حتی از پروژه‌های C++ هم عموماً دشوار
+        است. وقتی کتابخانه ساخته شد، بهتر است با همان لینکر (linker) (همان نسخه) لینک شود؛ فایل‌های هدر باید با همان
+        کامپایلر (همان نسخه) تجزیه شوند. همهٔ این عوامل ممکن است روی نتیجه اثر بگذارند.
+        <a href="https://en.wikipedia.org/wiki/Name_mangling#C++" target="_blank" rel="noopener">Mangling</a> مثلاً که
+        هنوز <a href="http://fitzgeraldnick.com/2017/02/22/cpp-demangle.html" target="_blank" rel="noopener">در GNU GCC نمی‌تواند بدون خطا پیاده‌سازی شود</a>.
+        این عوامل آن‌قدر قابل‌توجه‌اند که حتی gtest هم نتوانست بر آن‌ها غلبه کند. و در
+        <a href="https://github.com/google/googletest/blob/master/googletest/README.md#incorporating-into-an-existing-cmake-project" target="_blank" rel="noopener">مستندات</a>
+        آمده است: بهتر است gtest را به‌عنوان بخشی از پروژه با همان کامپایلر و همان لینکر بسازید.</p>
+      </section>
+
+      <!-- ==================== BWAPI-C ==================== -->
+      <section>
+        <h2>BWAPI-C</h2>
+        <p>زبان C زبان میانجی (lingua franca) مهندسی نرم‌افزار است. اگر rust-bindgen برای زبان C خوب کار می‌کند، چرا
+        BWAPI را برای C پیاده‌سازی نکنیم و بعد از API آن استفاده کنیم؟ ایدهٔ خوبی است!</p>
+
+        <p>بله، این ایدهٔ خوبی است — تا وقتی که به درون BWAPI نگاه کنید و تعداد کلاس‌ها و متدهایی را ببینید که باید
+        پیاده‌سازی کنید. به‌خصوص همهٔ این چیدمان‌های حافظه (memory layouts)، کدهای asm، وصله‌کردن حافظه (memory
+        patching) و دیگر «وحشت‌ها»یی که وقت آن‌ها را نداریم. لازم است از راه‌حل موجود به‌طور کامل استفاده شود.</p>
+
+        <p>اما به هر حال باید بر mangling، کد C++، وراثت (inheritance) و توابع عضو مجازی غلبه کنیم.</p>
+
+        <p>در C++ دو ابزار قدرتمند وجود دارد که برای حل مسئله‌مان استفاده خواهیم کرد:
+        <a href="https://en.wikipedia.org/wiki/Opaque_pointer" target="_blank" rel="noopener">اشاره‌گرهای ناشفاف (opaque pointers)</a>
+        و <code class="inline">extern "C"</code>.</p>
+
+        <p><code class="inline">extern "C" {}</code> به کد C++ اجازه می‌دهد خودش را زیر نقاب C «ماسک» کند. این کار
+        تولید نام توابع بدون mangling را ممکن می‌سازد.</p>
+
+        <p>اشاره‌گرهای ناشفاف به ما اجازه می‌دهند نوع را پاک کنیم و بدون ارائهٔ پیاده‌سازی، به «نوعی نامعین» اشاره‌گر
+        بسازیم. چون این فقط اعلانِ یک نوع است، نمی‌توان از این نوع به‌صورت مقدار (by value) استفاده کرد؛ فقط از طریق
+        اشاره‌گر.</p>
+
+        <p>تصور کنیم این کد C++ را داریم:</p>
+
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">namespace cpp {
+
+struct Foo {
+    int bar;
+
+    virtual int get_bar() {
+        return this-&gt;bar;
+    }
+};
+
+} // namespace cpp</code></pre>
+
+        <p>می‌توانیم آن را به یک هدر C تبدیل کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">extern "C" {
+
+typedef struct Foo_ Foo; // اشاره‌گر ناشفاف به Foo
+
+// فراخوانی cpp::Foo::get_bar
+int Foo_get_bar(Foo* self);
+
+}</code></pre>
+
+        <p>و این بخش C++ است که حلقهٔ اتصال بین هدر C و پیاده‌سازی C++ خواهد بود:</p>
+
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">int Foo_get_bar(Foo* self) {
+    // اشاره‌گر ناشفاف را به cpp::Foo مشخص تبدیل کن و متد ::get_bar را صدا بزن
+    return reinterpret_cast&lt;cpp::Foo*&gt;(self)-&gt;get_bar();
+}</code></pre>
+
+        <p>لازم نبود همهٔ متدهای کلاس‌ها این‌طور پردازش شوند. در BWAPI کلاس‌هایی وجود دارند که می‌توانید خودتان با
+        فیلدهای همین ساختارها پیاده‌سازی کنید؛ مثلاً
+        <code class="inline">typedef struct Position { int x; int y; } Position;</code> و متدهایی مثل
+        <code class="inline">Position::get_distance</code>.</p>
+
+        <p>کلاس‌هایی هم بودند که مجبور بودم به‌شکلی خاص با آن‌ها رفتار کنم. مثلاً AIModule باید اشاره‌گر به یک کلاس C++
+        با مجموعهٔ مشخصی از توابع عضو مجازی باشد. با این حال، این
+        <a href="https://github.com/RnDome/bwapi-c/blob/master/include/AIModule.h" target="_blank" rel="noopener">هدر</a>
+        و این <a href="https://github.com/RnDome/bwapi-c/blob/master/src/AIModule.cpp" target="_blank" rel="noopener">پیاده‌سازی</a>
+        است.</p>
+
+        <p>پس از چند ماه کار سخت، <b>۵۵۴</b> متد و یک دوجین کلاس، کتابخانهٔ کراس‌پلتفرم
+        <a href="https://github.com/RnDome/bwapi-c" target="_blank" rel="noopener">BWAPI-C</a> متولد شد که
+        <a href="https://github.com/RnDome/bwapi-c/blob/master/example/Dll.c" target="_blank" rel="noopener">به شما اجازه می‌دهد در C ربات بسازید</a>.
+        محصول جانبی این کار، امکان کراس‌کامپایل (cross-compilation) و امکان پیاده‌سازی API در هر زبان دیگری بود که از
+        FFI و قرارداد فراخوانی cdecl پشتیبانی می‌کند.</p>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر کتابخانه می‌نویسید، لطفاً API آن را در C بنویسید.
+        </div>
+
+        <p>مهم‌ترین ویژگی BWAPI-C، گسترده‌ترین یکپارچگی ممکن با زبان‌های برنامه‌نویسی دیگر است. پایتون، روبی، راست،
+        PHP، جاوا و بسیاری دیگر قادرند با C کار کنند؛ پس اگر پیچ‌وخم‌ها را هموار کنید و wrapperهای خودتان را
+        پیاده‌سازی کنید، می‌توانید با کمک آن‌ها هم ربات بنویسید.</p>
+      </section>
+
+      <!-- ==================== نوشتن ربات در C ==================== -->
+      <section>
+        <h2>نوشتن ربات در C</h2>
+        <p>این بخش اصول کلی سازمان داخلی ماژول‌های استارکرافت را توصیف می‌کند.</p>
+
+        <p>۲ نوع ربات وجود دارد: ماژول (module) و کلاینت (client). بیایید به مثال نوشتن یک ماژول نگاه کنیم.</p>
+
+        <p>ماژول یک کتابخانهٔ پویا است. اصل کلی بارگذاری کتابخانه‌های پویا را می‌توان
+        <a href="https://github.com/bwapi/bwapi/blob/59b14af21b3c881ce06af8b1ea1d63fa3c8b2df0/bwapi/AIModuleLoader/Source/AIModuleLoader.cpp#L57..L83" target="_blank" rel="noopener">اینجا</a>
+        دید. ماژول باید ۲ تابع export کند: <code class="inline">newAIModule</code> و <code class="inline">gameInit</code>.</p>
+
+        <p><code class="inline">gameInit</code> آسان است. این تابع برای انتقال اشاره‌گر به بازی جاری فراخوانی می‌شود.
+        این اشاره‌گر بسیار مهم است، چون در درون BWAPI یک متغیر سراسری استاتیک وجود دارد که در برخی بخش‌های کد از آن
+        استفاده می‌شود. بگذارید <code class="inline">gameInit</code> را تعریف کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">DLLEXPORT void gameInit(void* game) {
+    BWAPIC_setGame(game);
+}</code></pre>
+
+        <p><code class="inline">newAIModule</code> کمی پیچیده‌تر است. باید اشاره‌گر به کلاس C++ برگرداند که یک جدول
+        متد مجازی با نام‌هایی مثل <b>onXXXXX</b> دارد؛ این متدها در رویدادهای خاص بازی فراخوانی می‌شوند. بگذارید ساختار
+        ماژول را اعلان کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">typedef struct ExampleAIModule
+{
+    const AIModule_vtable* vtable_;
+
+    const char* name;
+} ExampleAIModule;</code></pre>
+
+        <p>فیلد اول باید اشاره‌گر به جدول متدها باشد (یک‌جور جادو است). این هم تابع
+        <code class="inline">newAIModule</code>:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">DLLEXPORT void* newAIModule() {
+    ExampleAIModule* const module = (ExampleAIModule*) malloc( sizeof(ExampleAIModule) );
+    module-&gt;name = "ExampleAIModule";
+    module-&gt;vtable_ = &amp;module_vtable;
+
+    return createAIModuleWrapper( (AIModule*) module );
+}</code></pre>
+
+        <p><code class="inline">createAIModuleWrapper</code> یک ترفند جادویی دیگر است که اشاره‌گر C را به اشاره‌گر کلاس
+        C++ با توابع عضو مجازی تبدیل می‌کند.</p>
+
+        <p><code class="inline">module_vtable</code> یک متغیر استاتیک روی جدول متدهاست؛ مقادیر متدها با اشاره‌گر به
+        توابع سراسری پر می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">static AIModule_vtable module_vtable = {
+    onStart,
+    onEnd,
+    onFrame,
+    onSendText,
+    onReceiveText,
+    onPlayerLeft,
+    onNukeDetect,
+    onUnitDiscover,
+    onUnitEvade,
+    onUnitShow,
+    onUnitHide,
+    onUnitCreate,
+    onUnitDestroy,
+    onUnitMorph,
+    onUnitRenegade,
+    onSaveGame,
+    onUnitComplete
+};
+
+void onEnd(AIModule* module, bool isWinner) { }
+void onFrame(AIModule* module) {}
+void onSendText(AIModule* module, const char* text) {}
+void onReceiveText(AIModule* module, Player* player, const char* text) {}
+void onPlayerLeft(AIModule* module, Player* player) {}
+void onNukeDetect(AIModule* module, Position target) {}
+void onUnitDiscover(AIModule* module, Unit* unit) {}
+void onUnitEvade(AIModule* module, Unit* unit) {}
+void onUnitShow(AIModule* module, Unit* unit) {}
+void onUnitHide(AIModule* module, Unit* unit) {}
+void onUnitCreate(AIModule* module, Unit* unit) {}
+void onUnitDestroy(AIModule* module, Unit* unit) {}
+void onUnitMorph(AIModule* module, Unit* unit) {}
+void onUnitRenegade(AIModule* module, Unit* unit) {}
+void onSaveGame(AIModule* module, const char* gameName) {}
+void onUnitComplete(AIModule* module, Unit* unit) {}</code></pre>
+
+        <p>اگر به نام توابع و امضاهایشان نگاه کنید، مشخص است در چه شرایطی و با چه آرگومان‌هایی باید فراخوانی شوند. در
+        <a href="https://github.com/RnDome/bwapi-c/blob/master/example/Dll.c" target="_blank" rel="noopener">مثال</a> همهٔ
+        توابع را خالی گذاشتم، به‌جز:</p>
+
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void onStart(AIModule* module) {
+    ExampleAIModule* self = (ExampleAIModule*) module;
+    Game* game = BWAPIC_getGame();
+    Game_sendText(game, "Hello from bwapi-c!");
+    Game_sendText(game, "My name is %s", self-&gt;name);
+}</code></pre>
+
+        <p>این تابع وقتی فراخوانی می‌شود که بازی اجرا شود. آرگومان آن اشاره‌گر به ماژول جاری است.
+        <code class="inline">BWAPIC_getGame</code> اشاره‌گر سراسری به بازی را برمی‌گرداند که با فراخوانی
+        <code class="inline">BWAPIC_setGame</code> تنظیمش کردیم. پس بیایید یک مثال کارآمد از کراس‌کامپایل یک ماژول را
+        نشان بدهیم:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">bwapi-c/example$ tree
+.
+├── BWAPIC.dll
+└── Dll.c
+
+0 directories, 2 files
+
+bwapi-c/example$ i686-w64-mingw32-gcc -mabi=ms -shared -o Dll.dll Dll.c -I../include -L. -lBWAPIC
+bwapi-c/example$ cp Dll.dll ~/Starcraft/bwapi-data/
+bwapi-c/example$ cd ~/Starcraft/bwapi-data/
+Starcraft$ wine bwheadless.exe -e StarCraft.exe -l bwapi-data/BWAPI.dll --headful
+...
+...
+...</code></pre>
+
+        <p>دکمه‌ها را فشار دهید و بازی را اجرا کنید. اطلاعات بیشتر دربارهٔ کامپایل و اجرا در سایت
+        <a href="https://bwapi.github.io/" target="_blank" rel="noopener">BWAPI</a> و در
+        <a href="https://github.com/RnDome/bwapi-c" target="_blank" rel="noopener">BWAPI-C</a> موجود است.</p>
+
+        <p>نتیجهٔ ماژول:</p>
+
+        <img src="https://habrastorage.org/r/w1560/webt/cw/a-/41/cwa-41ihsyva-pj2stpef1xjn2g.png"
+             alt="نتیجهٔ اجرای ماژول ربات در بازی — ارسال پیام سلام از داخل استارکرافت"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>مثالی کمی پیچیده‌تر از ماژول که نحوهٔ کار با iteratorها، مدیریت واحدها، جست‌وجوی مواد معدنی و خروجی آمار را
+        نشان می‌دهد، در <a href="https://github.com/RnDome/bwapi-c/blob/master/example/Dll.c" target="_blank" rel="noopener">bwapi-c/example/Dll.c</a>
+        می‌توانید ببینید.</p>
+      </section>
+
+      <!-- ==================== bwapi-sys ==================== -->
+      <section>
+        <h2>bwapi-sys</h2>
+        <p>در اکوسیستم راست
+        <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html#case-study-linking-to-system-libraries" target="_blank" rel="noopener">روش مشخصی</a>
+        برای نام‌گذاری بسته‌هایی که به کتابخانه‌های بومی (native) لینک می‌شوند وجود دارد. هر بستهٔ
+        <code class="inline">foo-sys</code> دو کارکرد مهم را انجام می‌دهد:</p>
+        <ul>
+          <li>با کتابخانهٔ بومی <code class="inline">libfoo</code> لینک می‌شود؛</li>
+          <li>اعلان‌هایی برای توابع کتابخانهٔ <code class="inline">libfoo</code> فراهم می‌کند. اما فقط اعلان‌ها!
+          انتزاعات سطح بالا در کرِیت‌های <code class="inline">*-sys</code> فراهم نمی‌شوند.</li>
+        </ul>
+
+        <p>برای اینکه بستهٔ <code class="inline">*-sys</code> بتواند با موفقیت لینک شود، باید به cargo
+        <a href="https://github.com/sodiumoxide/sodiumoxide/blob/master/libsodium-sys/build.rs" target="_blank" rel="noopener">بگویید کتابخانهٔ بومی را جست‌وجو کند</a>
+        و/یا <a href="https://github.com/alexcrichton/ssh2-rs/blob/master/libssh2-sys/build.rs" target="_blank" rel="noopener">کتابخانه را از سورس بسازد</a>.</p>
+
+        <p>برای اینکه بستهٔ <code class="inline">*-sys</code> اعلان‌ها را فراهم کند، یا باید خودتان آن‌ها را بنویسید یا با
+        bindgen تولید کنید. باز هم bindgen. تلاش شمارهٔ دو =)</p>
+
+        <p>تولید بایندینگ‌ها فوق‌العاده آسان است:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">bindgen BWAPI.h -o lib.rs \
+  --opaque-type ".+_" \
+  --blacklist-type "std.*|__.+|.+_$|Game_v(Send|Print|Draw).*|va_list|.+_t$" \
+  --no-layout-tests \
+  --no-derive-debug \
+  --raw-line "#![allow(improper_ctypes, non_snake_case)]" \
+  -- -I../submodules/bwapi-c/include
+
+sed -i -r -- 's/.+\s+(.+)_;/pub struct \1;/' lib.rs</code></pre>
+
+        <p><code class="inline">BWAPI.h</code> فایلی است با همهٔ هدرهای C از BWAPI-C.</p>
+
+        <p>مثلاً bindgen قبلاً چنین اعلان‌هایی را برای توابع بالا تولید کرده است:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">extern "C" {
+    /// BWAPIC_setGame باید از gameInit فراخوانی شود تا BWAPI::BroodwarPtr مقداردهی شود
+    pub fn BWAPIC_setGame(game: *mut Game);
+}
+extern "C" {
+    pub fn BWAPIC_getGame() -&gt; *mut Game;
+}</code></pre>
+
+        <p>دو استراتژی وجود دارد: نگه‌داشتن کد تولیدشده در مخزن، و تولید کد در لحظهٔ ساخت (build). هر دو رویکرد مزایا و
+        <a href="https://github.com/sodiumoxide/sodiumoxide/pull/225#issuecomment-400641946" target="_blank" rel="noopener">معایب</a>
+        خودشان را دارند.</p>
+
+        <p>خوشحالم که با <a href="https://github.com/RnDome/bwapi-sys" target="_blank" rel="noopener">bwapi-sys</a> آشنا
+        می‌شوید؛ یک قدم کوچک دیگر به سمت هدفمان.</p>
+
+        <p>یادتان هست که قبلاً دربارهٔ کراس‌پلتفرم صحبت کردم؟
+        <a href="https://habr.com/ru/users/nlinker/" target="_blank" rel="noopener">nlinker</a> به پروژه پیوست و یک
+        استراتژی زیرکانه پیاده‌سازی کرد. اگر هاست هدف ویندوز باشد، BWAPIC از قبل ساخته‌شده از GitHub دانلود می‌شود. و برای
+        بقیهٔ اهداف، BWAPI-C را از سورس برای OpenBW می‌سازیم (کمی بعد درباره‌اش صحبت می‌کنم).</p>
+      </section>
+
+      <!-- ==================== bwapi-rs ==================== -->
+      <section>
+        <h2>bwapi-rs</h2>
+        <p>حالا بایندینگ‌ها را داریم و می‌توانیم انتزاعات سطح بالا را تعریف کنیم. دو نوع برای کار داریم: مقادیر خالص
+        (pure values) و اشاره‌گرهای ناشفاف.</p>
+
+        <p>با مقادیر خالص همه‌چیز ساده است. بیایید رنگ‌ها را مثال بزنیم. باید استفاده از آن‌ها را در کد راست راحت کنیم
+        تا بتوانیم رنگ‌ها را به‌شکلی راحت و طبیعی به کار ببریم:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">game.draw_line(CoordinateType::Screen, (10, 20), (30, 40), Color::Red);
+                                                                  ^^^</code></pre>
+
+        <p>پس برای استفادهٔ راحت لازم است enum را با
+        <a href="https://github.com/bwapi/bwapi/blob/master/bwapi/include/BWAPI/Color.h#L59" target="_blank" rel="noopener">ثابت‌های C++</a>
+        تعریف کنیم، اما به‌شکلی اصطلاحی (idiomatic) برای راست، و متدهای تبدیل به
+        <code class="inline">bwapi_sys::Color</code> را با استفاده از <code class="inline">std::convert::From</code>
+        تعریف کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// نسخهٔ FFI
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct Color {
+    pub color: ::std::os::raw::c_int,
+}
+
+// نسخهٔ اصطلاحی
+#[derive(PartialEq, PartialOrd, Copy, Clone)]
+pub enum Color {
+    Black = 0,
+    Brown = 19,
+...</code></pre>
+
+        <p>برای راحتی‌تان می‌توانید از کرِیت
+        <a href="https://crates.io/crates/enum-primitive-derive" target="_blank" rel="noopener">enum-primitive-derive</a>
+        استفاده کنید.</p>
+
+        <p>استفاده از اشاره‌گرهای ناشفاف هم آسان است. بیایید از الگوی
+        <a href="https://github.com/rust-unofficial/patterns/blob/master/patterns/newtype.md" target="_blank" rel="noopener">Newtype</a>
+        استفاده کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">pub struct Player(*mut sys::Player);</code></pre>
+
+        <p>یعنی Player نوعی ساختار با یک فیلد خصوصی است — یک اشاره‌گر خام ناشفاف از C. و این‌جا راه تعریف
+        <code class="inline">Player::color</code> است:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">impl Player {
+
+    // پس متد به‌صورت Player::getColor در bwapi-sys اعلان شده است
+    //extern "C" {
+    //    pub fn Player_getColor(self_: *mut Player) -> Color;
+    //}
+
+    pub fn color(&amp;self) -&gt; Color {
+        // bwapi_sys::Player_getColor - تابع پوششی (wrapper) از BWAPI-C
+        // self.0 - اشاره‌گر ناشفاف
+        let color = unsafe { bwapi_sys::Player_getColor(self.0) };
+        color.into() // تبدیل bwapi_sys::Color -&gt; Color
+    }
+}</code></pre>
+
+        <p>حالا می‌توانیم اولین ربات خودمان را در راست بنویسیم!</p>
+      </section>
+
+      <!-- ==================== ساخت ربات در Rust ==================== -->
+      <section>
+        <h2>ساخت ربات در Rust</h2>
+        <p>به‌عنوان اثبات مفهوم (proof of concept)، ربات شبیه به یک کشورِ معروف خواهد بود: کل وظیفه، استخدام کارگر و
+        جمع‌آوری مواد معدنی (minerals) است.</p>
+
+        <img src="https://habrastorage.org/r/w1560/webt/hx/r_/jm/hxr_jmj2fbsitx-tfw96p2pa2tu.png"
+             alt="نمای ربات در حال کار در بازی — مقایسهٔ طنزآمیز با «کرهٔ شمالی»"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <img src="https://habrastorage.org/r/w1560/webt/ww/gf/lr/wwgflrekcnxtv75thaurrwcm0g8.png"
+             alt="نمای ربات در حال کار در بازی — مقایسهٔ طنزآمیز با «کرهٔ جنوبی»"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>بیایید با توابع لازم <code class="inline">gameInit</code> و <code class="inline">newAIModule</code> شروع کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">#[no_mangle]
+pub unsafe extern "C" fn gameInit(game: *mut void) {
+    bwapi_sys::BWAPIC_setGame(game as *mut bwapi_sys::Game);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn newAIModule() -&gt; *mut void {
+    let module = ExampleAIModule { name: String::from("ExampleAIModule") };
+    let result = wrap_handler(Box::new(module));
+
+    result
+}</code></pre>
+
+        <p><code class="inline">#[no_mangle]</code> همان کارکرد <code class="inline">extern "C"</code> در C++ را انجام
+        می‌دهد. درون <code class="inline">wrap_handler</code> همهٔ جادو رخ می‌دهد: جایگزینی جدول توابع مجازی و
+        «ماسک‌کردن» کلاس C++.</p>
+
+        <p>تعریف ساختار ماژول حتی از C ساده‌تر و شیک‌تر است:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">struct ExampleAIModule {
+    name: String,
+}</code></pre>
+
+        <p>بیایید چند متد برای رندر آمار و دادن دستورها اضافه کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">impl ExampleAIModule {
+    fn draw_stat(&amp;mut self) {
+        let game = Game::get();
+        let message = format!("Frame {}", game.frame_count());
+        game.draw_text(CoordinateType::Screen, (10, 10), &amp;message);
+    }
+    fn give_orders(&amp;mut self) {
+        let player = Game::get().self_player();
+
+        for unit in player.units() {
+
+            match unit.get_type() {
+                UnitType::Terran_SCV |
+                UnitType::Zerg_Drone |
+                UnitType::Protoss_Probe =&gt; {
+                    if !unit.is_idle() {
+                        continue;
+                    }
+
+                    if unit.is_carrying_gas() || unit.is_carrying_minerals() {
+                        unit.return_cargo(false);
+                        continue;
+                    }
+
+                    if let Some(mineral) = Game::get()
+                        .minerals()
+                        .min_by_key(|m| unit.distance_to(m))
+                    {
+                        // به مواد معدنی بیشتری نیاز داریم!
+                        unit.right_click(&amp;mineral, false);
+                    }
+                }
+
+                UnitType::Terran_Command_Center =&gt; {
+                    unit.train(UnitType::Terran_SCV);
+                }
+
+                UnitType::Protoss_Nexus =&gt; {
+                    unit.train(UnitType::Protoss_Probe);
+                }
+
+                UnitType::Zerg_Hatchery |
+                UnitType::Zerg_Lair |
+                UnitType::Zerg_Hive =&gt; {
+                    unit.train(UnitType::Zerg_Drone);
+                }
+
+                _ =&gt; {}
+            };
+        }
+    }
+}</code></pre>
+
+        <p>برای تبدیل نوع <code class="inline">ExampleAIModule</code> به یک ماژول واقعی باید آن را به رویدادهای
+        <b>onXXXX</b> پاسخگو کنید. برای این کار باید نوع <code class="inline">EventHandler</code> را پیاده‌سازی کنید که
+        مشابه جدول مجازی <code class="inline">AIModule_vtable</code> در C است:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">impl EventHandler for ExampleAIModule {
+    fn on_start(&amp;mut self) {
+        Game::get().send_text(&amp;format!("Hello from Rust! My name is {}", self.name));
+    }
+    fn on_end(&amp;mut self, _is_winner: bool) {}
+    fn on_frame(&amp;mut self) {
+        self.draw_stat();
+        self.give_orders();
+    }
+    fn on_send_text(&amp;mut self, _text: &amp;str) {}
+    fn on_receive_text(&amp;mut self, _player: &amp;mut Player, _text: &amp;str) {}
+    fn on_player_left(&amp;mut self, _player: &amp;mut Player) {}
+    fn on_nuke_detect(&amp;mut self, _target: Position) {}
+    fn on_unit_discover(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_evade(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_show(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_hide(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_create(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_destroy(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_morph(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_unit_renegade(&amp;mut self, _unit: &amp;mut Unit) {}
+    fn on_save_game(&amp;mut self, _game_name: &amp;str) {}
+    fn on_unit_complete(&amp;mut self, _unit: &amp;mut Unit) {}
+}</code></pre>
+
+        <p>ساخت و اجرای ماژول به سادگی نمونهٔ C است:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">bwapi-rs$ cargo build --example dll --target=i686-pc-windows-gnu
+bwapi-rs$ cp ./target/i686-pc-windows-gnu/debug/examples/dll.dll ~/Starcraft/bwapi-data/Dll.dll
+bwapi-rs$ cd ~/Starcraft/bwapi-data/
+Starcraft$ wine bwheadless.exe -e StarCraft.exe -l bwapi-data/BWAPI.dll --headful
+...
+...
+...</code></pre>
+
+        <p>و ویدیوی کارِ ربات:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" href="https://www.youtube.com/watch?v=rACbnWpI01M" target="_blank" rel="noopener">▶ تماشای ویدیوی اجرای ربات در یوتیوب</a>
+        </div>
+        <p style="font-size:0.9rem;color:var(--muted)">ویدیوی اجرای ربات که نویسنده در مقاله جاسازی کرده است؛ ما ویدیو را
+        میزبانی نمی‌کنیم و فقط لینک اصلی یوتیوب را گذاشته‌ایم.</p>
+      </section>
+
+      <!-- ==================== OpenBW ==================== -->
+      <section>
+        <h2>OpenBW</h2>
+        <p>این‌ها حتی فراتر رفتند. آن‌ها تصمیم گرفتند نسخهٔ متن‌باز SC:BW بنویسند! و در این کار خوب‌اند. یکی از اهدافشان
+        پیاده‌سازی تصاویر HD بود، اما SC:Remastered از آن‌ها جلو زد = ( در این لحظه می‌توانید از API آن‌ها برای نوشتن
+        ربات استفاده کنید (بله، در C++ هم)، اما شگفت‌انگیزترین قابلیت، امکان مشاهدهٔ رپلی‌ها (replays)
+        <a href="http://www.openbw.com/project/replay-module/" target="_blank" rel="noopener">مستقیم در مرورگر</a> است.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>یک مسئلهٔ حل‌نشده در پیاده‌سازی وجود داشت: ما یگانه بودن مراجع (references) را کنترل نمی‌کنیم؛ پس وجود
+        <code class="inline">&amp;mut</code> و <code class="inline">&amp;</code> به همان ناحیه، هنگام اصلاح شیء به
+        رفتار تعریف‌نشده (undefined behavior) منجر می‌شود. یک‌جور دردسر.
+        <a href="https://habr.com/ru/users/halt/" target="_blank" rel="noopener">هالت</a>
+        <a href="https://users.rust-lang.org/t/idiomatic-bindings-to-the-starcraft-broodwar-game/11572" target="_blank" rel="noopener">تلاش کرد</a>
+        بایندینگ‌های اصطلاحی پیاده‌سازی کند، اما نتوانست راه‌حلی پیدا کند. همچنین اگر می‌خواهید این کار را کامل کنید،
+        باید با دقت API C++ را «زیرورو کنید» و اصلاح‌کننده‌های <code class="inline">const</code> را درست قرار دهید.</p>
+
+        <p>از کار روی این پروژه واقعاً لذت بردم؛ روزها (하루 종일 — تمام روز) رپلی‌ها را تماشا می‌کردم و عمیقاً در فضای
+        بازی غرق می‌شدم. این بازی یک فروکردن شگفت‌انگیز (놀라운) در جهان هستی ایجاد کرد. هیچ بازی از نظر محبوبیت با
+        SC: BW قابل مقایسه (비교할 수 없다 — غیرقابل‌مقایسه) نیست و تأثیر آن بر سیاست کرهٔ جنوبی (대한민국 정치)
+        غیرقابل‌تصور بود. احتمالاً (아마도) پروگِیمرها در کره به‌اندازهٔ بازیگران نقش اول درام‌های کره‌ای که در ساعت
+        پربیننده پخش می‌شوند محبوب‌اند. همچنین (또한)، اگر در کره پروگِیمر باشید، می‌توانید به یک یگان ویژهٔ ارتش
+        بپیوندید.</p>
+
+        <div class="callout note">
+          <strong>نکته:</strong> نویسنده در پاراگراف بالا عمداً بخش‌هایی را به زبان کر‌ه‌ای نوشته تا به بازی ادای احترام
+          کند؛ ترجمهٔ هر عبارت کر‌ه‌ای در داخل پرانتز آورده شده است.
+        </div>
+
+        <p><b>زنده‌باد استارکرافت!</b></p>
+
+        <p>بسیار سپاسگزارم از استیو کلابنیگ (Steve Klabnik) بابت کمک در بازبینی مقاله.</p>
+      </section>
+
+      <!-- ==================== لینک‌ها ==================== -->
+      <section>
+        <h2>لینک‌ها</h2>
+        <ul>
+          <li><a href="https://www.reddit.com/r/rust/comments/agvho5/a_bot_for_starcraft_in_rust_c_or_any_other/" target="_blank" rel="noopener">reddit</a></li>
+          <li><a href="https://github.com/RnDome/bwapi-rs" target="_blank" rel="noopener">bwapi-rs</a></li>
+          <li><a href="https://github.com/RnDome/bwapi-sys" target="_blank" rel="noopener">bwapi-sys</a></li>
+          <li><a href="https://github.com/RnDome/bwapi-c" target="_blank" rel="noopener">bwapi-c</a></li>
+          <li><a href="https://github.com/bwapi/bwapi/" target="_blank" rel="noopener">bwapi</a></li>
+          <li><a href="http://openbw.com/" target="_blank" rel="noopener">openbw</a></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «A bot for Starcraft in Rust, C or any other language» اثر «رومن پروسکوریاکوف
+        (Roman Proskuryakov)» است و نسخهٔ انگلیسی آن به ترجمهٔ «humbug» در سایت «هابر (Habr)» منتشر شده است. این صفحه فقط
+        ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://habr.com/en/post/436254/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

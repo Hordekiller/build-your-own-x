@@ -510,24 +510,24 @@ window.TUTORIALS = [
 "file": "tutorials/discord-js-guide.html"
 },
 {
-"id": "",
+"id": "gifbot-github",
 "category": "ربات",
 "lang": "Node.js",
 "title": "gifbot — ساخت یک اپ GitHub",
 "url": "https://blog.scottlogic.com/2017/05/22/gifbot-github-integration.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/gifbot-github.html"
 },
 {
-"id": "",
+"id": "chatbot-web-speech",
 "category": "ربات",
 "lang": "Node.js",
 "title": "ساخت چت‌بات هوش مصنوعی ساده با Web Speech API و Node.js",
 "url": "https://www.smashingmagazine.com/2017/08/ai-chatbot-web-speech-api-node-js/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/chatbot-web-speech.html"
 },
 {
 "id": "slack-bot-python",
@@ -540,14 +540,14 @@ window.TUTORIALS = [
 "file": "tutorials/slack-bot-python.html"
 },
 {
-"id": "",
+"id": "slack-bot-django",
 "category": "ربات",
 "lang": "Python",
 "title": "چگونه با پایتون و Slack Events API و Django در کمتر از ۲۰ دقیقه ربات Slack بسازیم",
 "url": "https://medium.com/freehunch/how-to-build-a-slack-bot-with-python-using-slack-events-api-django-under-20-minute-code-included-269c3a9bf64e",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/slack-bot-django.html"
 },
 {
 "id": "reddit-bot-python",
@@ -560,14 +560,14 @@ window.TUTORIALS = [
 "file": "tutorials/reddit-bot-python.html"
 },
 {
-"id": "",
+"id": "reddit-bot-youtube",
 "category": "ربات",
 "lang": "Python",
 "title": "چگونه ربات Reddit بسازیم",
 "url": "https://www.youtube.com/watch?v=krTUf7BpTc0",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/reddit-bot-youtube.html"
 },
 {
 "id": "telegram-bot-python",
@@ -580,44 +580,44 @@ window.TUTORIALS = [
 "file": "tutorials/telegram-bot-python.html"
 },
 {
-"id": "",
+"id": "twitter-bot-tweepy",
 "category": "ربات",
 "lang": "Python",
 "title": "ساخت ربات توییتر در پایتون با Tweepy",
 "url": "https://medium.freecodecamp.org/creating-a-twitter-bot-in-python-with-tweepy-ac524157a607",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/twitter-bot-tweepy.html"
 },
 {
-"id": "",
+"id": "reddit-bot-praw",
 "category": "ربات",
 "lang": "Python",
 "title": "ساخت ربات Reddit با پایتون و PRAW",
 "url": "https://www.youtube.com/playlist?list=PLIFBTFgFpoJ9vmYYlfxRFV6U_XhG-4fpP",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/reddit-bot-praw.html"
 },
 {
-"id": "",
+"id": "crypto-trading-bot-r",
 "category": "ربات",
 "lang": "R",
 "title": "ساخت ربات معامله‌گر ارز دیجیتال با R",
 "url": "https://towardsdatascience.com/build-a-cryptocurrency-trading-bot-with-r-1445c429e1b1",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/crypto-trading-bot-r.html"
 },
 {
-"id": "",
+"id": "starcraft-bot-rust",
 "category": "ربات",
 "lang": "Rust",
 "title": "رباتی برای Starcraft در Rust، C یا هر زبان دیگری",
 "url": "https://habr.com/en/post/436254/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/starcraft-bot-rust.html"
 },
 {
 "id": "",

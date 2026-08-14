@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Create a Twitter Bot in Python Using Tweepy» (Lucas Kohorst)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات توییتر با پایتون و Tweepy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات توییتر با پایتون و Tweepy</span>
+      </div>
+      <h1>ساخت ربات توییتر با پایتون و Tweepy</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.freecodecamp.org/creating-a-twitter-bot-in-python-with-tweepy-ac524157a607" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «ساخت ربات توییتر با پایتون و Tweepy» نوشته «لوکاس
+          کهورست (Lucas Kohorst)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.freecodecamp.org/creating-a-twitter-bot-in-python-with-tweepy-ac524157a607" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://cdn-media-1.freecodecamp.org/images/1*PONvGc-nH38lwuley7JoSg.png" alt="ساخت ربات توییتر با پایتون و کتابخانه Tweepy" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>با توجه به اینکه حدود ۱۵٪ از توییتر از ربات‌ها تشکیل شده، می‌خواستم دستی در این کار ببرم. گوگل کردم که چگونه یک
+        ربات توییتر بسازم و به یک وب‌اپلیکیشن (web app) تمیز و مرتب هدایت شدم. این اپلیکیشن به شما امکان می‌داد رباتی
+        بسازید که بر اساس یک کلیدواژه (keyword) یک توییت را لایک (like) کند، فالو (follow) کند یا ریتوییت (retweet) کند.
+        مشکل این بود که فقط می‌توانستید برای یک عملکرد، یک ربات بسازید.</p>
+        <p>پس تصمیم گرفتم خودم با پایتون و کتابخانهٔ Tweepy رباتی بنویسم.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی ==================== -->
+      <section>
+        <h2>راه‌اندازی (Setup)</h2>
+        <p>اول از همه Tweepy را دانلود کردم. می‌توانید این کار را با استفاده از مدیر بستهٔ
+        <code class="inline">pip</code> انجام دهید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">pip install tweepy</code></pre>
+        <p>اگر <code class="inline">pip</code> نصب ندارید، می‌توانید مخزن GitHub را هم کلون (clone) کنید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">git clone https://github.com/tweepy/tweepy.git
+cd tweepy
+python setup.py install</code></pre>
+        <p>باید Tweepy و Tkinter (برای رابط گرافیکی) را ایمپورت کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import tweepy
+import Tkinter</code></pre>
+      </section>
+
+      <!-- ==================== اعتبارنامه‌ها ==================== -->
+      <section>
+        <h2>اعتبارنامه‌ها (Credentials)</h2>
+        <p>در مرحلهٔ بعد باید حساب توییتر خود را به اسکریپت پایتون‌مان متصل کنیم. به
+        <a href="https://apps.twitter.com/" target="_blank" rel="noopener">apps.twitter.com</a> بروید و با حساب خود وارد
+        شوید. یک اپلیکیشن توییتر بسازید و کلید مصرف‌کننده (Consumer Key)، رمز مصرف‌کننده (Consumer Secret)، توکن دسترسی
+        (Access Token) و رمز توکن دسترسی (Access Token Secret) را تولید کنید. حالا آمادهٔ شروع هستید!</p>
+        <p>زیر دستورات ایمپورت خود، اعتبارنامه‌ها را داخل متغیرها ذخیره کنید و سپس از بلوک دوم کد برای احراز هویت
+        (authentication) حساب خود با tweepy استفاده کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">consumer_key = 'consumer key'
+consumer_secret = 'consumer secrets'
+access_token = 'access token'
+access_token_secret = 'access token secret'</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth)</code></pre>
+        <p>برای اینکه بررسی کنید برنامهٔ شما درست کار می‌کند، می‌توانید این کد را اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">user = api.me()
+print (user.name)</code></pre>
+        <p>این کد باید نام حساب توییتر شما را در کنسول (console) برگرداند.</p>
+      </section>
+
+      <!-- ==================== ساخت ربات ==================== -->
+      <section>
+        <h2>ساخت ربات (Building the Bot)</h2>
+        <p>این ربات قرار است کارهای زیر را انجام دهد:</p>
+        <ol>
+          <li>همهٔ کسانی را که شما را فالو می‌کنند، فالو کند.</li>
+          <li>بر اساس کلیدواژه‌ها یک توییت را لایک و ریتوییت کند.</li>
+          <li>بر اساس یک کلیدواژه به یک کاربر پاسخ دهد.</li>
+        </ol>
+        <p>قدم اول ساده‌ترین است؛ فقط کافی است در میان فالوورهای خود حلقه (loop) بزنید و سپس تک‌به‌تک آن‌ها را فالو کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">for follower in tweepy.Cursor(api.followers).items():
+    follower.follow()
+    print ("Followed everyone that is following " + user.name)</code></pre>
+        <p>در این نقطه، برای اطمینان از درست کار کردن کدتان، باید وارد توییتر شوید و شاهد افزایش تعداد افرادی که آن‌ها را
+        فالو می‌کنید باشید.</p>
+        <p>از این نقطه به بعد، به‌جز راه‌اندازی و قرار دادن برچسب‌ها (labels) در رابط گرافیکی، همه‌چیز را زیر تابع
+        <code class="inline">mainFunction()</code> می‌نویسم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def mainFunction():
+    # کد ربات اینجا قرار می‌گیرد</code></pre>
+        <p>احتمالاً می‌توانید ببینید این به کجا می‌رود. برای لایک یا ریتوییت کردن یک توییت، می‌توانیم از یک حلقهٔ
+        <code class="inline">for</code> و یک عبارت <code class="inline">try</code> به این شکل استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">search = "Keyword"</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">numberOfTweets = "Number of tweets you wish to interact with"</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">for tweet in tweepy.Cursor(api.search, search).items(numberOfTweets):
+    try:
+        tweet.retweet()
+        print('Retweeted the tweet')
+    except tweepy.TweepError as e:
+        print(e.reason)
+    except StopIteration:
+        break</code></pre>
+        <p>برای لایک کردن یک توییت، به سادگی می‌توانید</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">tweet.retweet()</code></pre>
+        <p>را با</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">tweet.favorite()</code></pre>
+        <p>جایگزین کنید.</p>
+        <p>برای پاسخ دادن به یک کاربر بر اساس کلیدواژه، باید نام کاربری و شناسهٔ توییتر کاربر را ذخیره کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">tweetId = tweet.user.id
+username = tweet.user.screen_name</code></pre>
+        <p>سپس می‌توانیم در میان توییت‌ها حلقه بزنیم و وضعیت (status) خود — یعنی توییت‌مان — را برای هر کاربر
+        به‌روزرسانی کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">phrase = "What you would like your response tweet to say"</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">for tweet in tweepy.Cursor(api.search, search).items(numberOfTweets):
+            try:
+                tweetId = tweet.user.id
+                username = tweet.user.screen_name
+                api.update_status("@" + username + " " + phrase, in_reply_to_status_id = tweetId)
+                print ("Replied with " + phrase)
+            except tweepy.TweepError as e:
+                print(e.reason)
+            except StopIteration:
+                break</code></pre>
+        <p>اگر می‌خواهید فقط از طریق ترمینال (terminal) از اسکریپت استفاده کنید و هر بار که می‌خواهید آن را اجرا کنید، کد را
+        به‌روزرسانی کنید، ربات شما کامل است.</p>
+      </section>
+
+      <!-- ==================== ساخت رابط گرافیکی ==================== -->
+      <section>
+        <h2>ساخت رابط گرافیکی (Creating the GUI)</h2>
+        <p>می‌توانیم یک اپلیکیشن گرافیکی بسازیم که ورودی‌های ما را دریافت کند؛ کلیدواژه‌ای که می‌خواهید جست‌وجو کنید و
+        این‌که آیا می‌خواهید یک توییت را لایک کنید یا نه.</p>
+        <p>ابتدا باید Tkinter را راه‌اندازی کنیم و چیدمان (layout) را آماده کنیم.</p>
+        <p>برای ساخت رابط کاربری، هفت برچسب برای جست‌وجو، تعداد توییت‌ها و پاسخ خواهیم داشت. به‌علاوهٔ پرسش‌هایی برای این‌که
+        آیا می‌خواهید به توییت پاسخ دهید، آن را لایک کنید، ریتوییت کنید و کاربر را فالو کنید.</p>
+        <p>به یاد داشته باشید که کد زیر <b>خارج</b> از <code class="inline">mainFunction()</code> و <b>بالای</b> آن است.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">root = Tk()</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label1 = Label( root, text="Search")
+E1 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label2 = Label( root, text="Number of Tweets")
+E2 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label3 = Label( root, text="Response")
+E3 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label4 = Label( root, text="Reply?")
+E4 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label5 = Label( root, text="Retweet?")
+E5 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label6 = Label( root, text="Favorite?")
+E6 = Entry(root, bd =5)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label7 = Label( root, text="Follow?")
+E7 = Entry(root, bd =5)</code></pre>
+        <p>همچنین باید هر برچسب را <b>پک (pack)</b> کنیم تا نمایش داده شوند و سپس تابع root را در یک حلقه صدا بزنیم تا
+        روی صفحه باقی بماند و بلافاصله بسته نشود.</p>
+        <p>در ادامه می‌بینید که <b>پک کردن</b> اولین برچسب چه شکلی است. من همهٔ برچسب‌ها را زیر
+        <code class="inline">mainFunction()</code> پک کرده‌ام.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">label1.pack()
+E1.pack()</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">root.mainloop()</code></pre>
+        <p>اگر فقط کد رابط گرافیکی خود را اجرا کنید، باید چیزی شبیه به این ببینید:</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/FyVf-GWVdug0wuVsY7tIJrmjP4PJdVvJwvmU" alt="نمای رابط گرافیکی ربات توییتر ساخته‌شده با Tkinter" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>با این حال، در این نقطه وارد کردن متن در برچسب‌ها یا کلیک روی دکمهٔ ارسال (submit) هیچ کاری انجام نمی‌دهد؛ چون
+        رابط هنوز به کد متصل نشده است.</p>
+        <p>برای ذخیرهٔ ورودی کاربر در برچسب‌ها، باید از تابع <code class="inline">.get()</code> استفاده کنیم. من برای هر
+        برچسب تابع جداگانه‌ای استفاده کرده‌ام.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def getE1():
+    return E1.get()</code></pre>
+        <p>سپس در <code class="inline">mainFunction()</code> خود، تابع <code class="inline">getE1()</code> را صدا زدم و
+        ورودی را در یک متغیر ذخیره کردم. برای E1 به این شکل است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">search = getE1()</code></pre>
+        <p>باید این کار را برای هر برچسب انجام دهید. برای برچسب <code class="inline">numberOfTweets</code> مطمئن شوید که
+        ورودی را به عدد صحیح (integer) تبدیل می‌کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">numberOfTweets = getE2()
+numberOfTweets = int(numberOfTweets)</code></pre>
+        <p>برای چهار برچسب آخر (پاسخ، لایک، ریتوییت و فالو)، باید بررسی کنیم که آیا ورودی کاربر «بله» (yes) است یا «نه»
+        (no) تا تابع موردنظر اجرا شود یا نشود. این کار را می‌توان با استفاده از عبارت‌های <b>if</b> انجام داد.</p>
+        <p>این کد تابع <b>پاسخ (reply)</b> است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">if reply == "yes":
+
+    for tweet in tweepy.Cursor(api.search,     search).items(numberOfTweets):
+            try:
+                tweetId = tweet.user.id
+                username = tweet.user.screen_name
+                api.update_status("@" + username + " " + phrase, in_reply_to_status_id = tweetId)
+                print ("Replied with " + phrase)
+            except tweepy.TweepError as e:
+                print(e.reason)
+            except StopIteration:
+                break</code></pre>
+        <p>برای توابع لایک، ریتوییت و فالو، به سادگی <b>reply (پاسخ)</b> را با «retweet (ریتوییت)»، «favorite (لایک)» و
+        «follow (فالو)» جایگزین کنید. سپس کدی را که در بالا برای هر کدام نوشته‌اید کپی کنید و زیر عبارت <b>if</b> قرار
+        دهید.</p>
+        <p>حالا فقط باید دکمهٔ <b>ارسال (submit)</b> را اضافه کنیم و به آن بگوییم که <code class="inline">mainFunction()</code>
+        را صدا بزند و کد ربات توییتر ما را اجرا کند. دوباره، فراموش نکنید آن را پک کنید!</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">submit = Button(root, text ="Submit", command = mainFunction)</code></pre>
+        <p>همین است! بعد از اجرای اسکریپت ربات، یک اپلیکیشن گرافیکی اجرا می‌شود و می‌توانید به کاربران پاسخ دهید، ریتوییت
+        کنید، لایک کنید و آن‌ها را فالو کنید.</p>
+        <p>با این ربات توییتر، من حساب
+        <a href="https://twitter.com/FreeWtr" target="_blank" rel="noopener">FreeWtr</a> را ساخته‌ام که از استفاده از آب
+        شیرِ فیلترشده به‌جای آب بطری حمایت می‌کند. این یک اسکرین‌شات از پروفایل است.</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/DzAOfETdkXdCFlKhwI3Fh1LBl-cIw9VdRLKX" alt="اسکرین‌شات از پروفایل حساب FreeWtr در توییتر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این‌جا نیز
+        <a href="https://github.com/Fidel-Willis/TwitterBot" target="_blank" rel="noopener">کد منبع کامل</a>
+        در GitHub قرار دارد.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «ساخت ربات توییتر با پایتون و Tweepy» (Create a Twitter Bot in Python Using
+        Tweepy) اثر «لوکاس کهورست (Lucas Kohorst)» است و در freeCodeCamp منتشر شده است. این صفحه فقط ترجمهٔ فارسی آن است
+        و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.freecodecamp.org/creating-a-twitter-bot-in-python-with-tweepy-ac524157a607" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

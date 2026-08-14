@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build A Cryptocurrency Trading Bot with R» (Brad Lindblad)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات معامله‌گر ارز دیجیتال با R</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات معامله‌گر ارز دیجیتال با R</span>
+      </div>
+      <h1>ساخت ربات معامله‌گر ارز دیجیتال با R</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: R</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://towardsdatascience.com/build-a-cryptocurrency-trading-bot-with-r-1445c429e1b1" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build A Cryptocurrency Trading Bot with R» نوشته «برد
+          لیندبلاد (Brad Lindblad)» است که در «Towards Data Science» منتشر شده. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://towardsdatascience.com/build-a-cryptocurrency-trading-bot-with-r-1445c429e1b1" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://cdn-images-1.medium.com/max/1600/0*CTqTslOUfk1D9vyz." alt="تصویر سرمقاله مقاله؛ عکسی از دنیای معاملات کریپتو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.82rem;opacity:0.75">تصویر: برانکو استانچویچ (Branko Stancevic) در Unsplash</p>
+        <p>ذهن معامله‌گر، حلقهٔ ضعیف هر استراتژی یا برنامهٔ معاملاتی است. اجرای مؤثر معاملات به ورودی‌های انسانی نیاز دارد که در
+        جهت مخالف غرایز ما حرکت می‌کنند. باید زمانی بخریم که مغز خزنده‌مان می‌خواهد بفروشد؛ باید زمانی بفروشیم که وجدانمان به ما
+        می‌گوید بیشتر بخریم. معاملهٔ ارزهای دیجیتال با چنان ذهنیتی حتی دشوارتر است. بازارهای جوان و نوظهور مملو از «گروه‌های پامپ»
+        (pump groups) هستند که ترس شدید از جا ماندن (FOMO — fear of missing out) را دامن می‌زنند و قیمت‌ها را تا آسمان بالا می‌برند
+        و سپس آن‌ها را با ضربه به زمین می‌کوبند. بسیاری از سرمایه‌گذاران تازه‌کار نیز در این بازارها معامله می‌کنند؛ سرمایه‌گذارانی
+        که شاید حتی هرگز معامله‌ای را در بورس نیویورک (NYSE) انجام نداده باشند. در هر معامله یک سازنده (maker) و یک گیرنده (taker)
+        وجود دارد و سرمایه‌گذاران باهوش کریپتو به‌راحتی می‌توانند از تازه‌کارانی که به این فضا هجوم آورده‌اند سوءاستفاده کنند.</p>
+        <p>برای اینکه احساساتم را از معامله‌گری کریپتو جدا کنم و از بازارهایی که ۲۴ ساعته و ۷ روز هفته باز هستند بهره ببرم، تصمیم
+        گرفتم یک ربات معامله‌گر ساده بسازم که از یک استراتژی ساده پیروی کند و در حالی که من خواب هستم معامله اجرا کند. بسیاری از
+        «معامله‌گران رباتی» (bot traders) همان‌طور که نامیده می‌شوند، از زبان برنامه‌نویسی پایتون برای اجرای این معاملات استفاده
+        می‌کنند. اگر «crypto trading bot» را جست‌وجو کنید، به کدهای پایتون در مخزن‌های مختلف گیت‌هاب (GitHub) برخواهید خورد.
+        من دانشمند داده هستم و R ابزار اصلی من است. برای یافتن یک آموزش خوب در مورد استفاده از زبان R برای ساخت ربات معامله‌گر
+        جست‌وجو کردم، اما چیزی پیدا نکردم. مصمم بودم پکیج شخصی خودم را برای ارتباط با
+        <a href="https://docs.gdax.com/" target="_blank" rel="noopener">API گدَکس (GDAX)</a> بسازم که پکیج
+        <a href="https://cran.r-project.org/web/packages/rgdax/index.html" target="_blank" rel="noopener">rgdax</a> را پیدا کردم؛
+        بسته‌ای که یک واسط R (wrapper) برای API گدکس است. در ادامه راهنمایی برای کنار هم چیدن یک ربات معامله‌گر خواهید دید که می‌توانید
+        از آن برای ساخت استراتژی‌های خودتان استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== استراتژی ==================== -->
+      <section>
+        <h2>استراتژی</h2>
+        <p>به زبان ساده، ما جفت ارز اتریوم — دلار آمریکا (Ethereum — USD) را در صرافی گدکس از طریق API آن و با کمک واسط rgdax معامله
+        خواهیم کرد. من معاملهٔ این جفت را دوست دارم، زیرا
+        <a href="https://www.ethereum.org/" target="_blank" rel="noopener">اتریوم (ETH)</a> معمولاً در وضعیت صعودی (bullish) قرار
+        دارد و این استراتژی در چنین وضعیتی می‌درخشد.</p>
+
+        <div class="callout note">
+          <strong>توجه:</strong> این یک استراتژی فوق‌العاده ساده‌شده است که در بازار صعودی فقط چند دلار سود به دست می‌آورد. در
+          هر صورت، آن را به‌عنوان پایه‌ای برای ساختن استراتژی خودتان به کار بگیرید.
+        </div>
+
+        <p>ما زمانی خرید خواهیم کرد که ترکیبی از اندیکاتورهای
+        <a href="https://www.investopedia.com/terms/r/rsi.asp" target="_blank" rel="noopener">شاخص قدرت نسبی (RSI — Relative Strength Index)</a>
+        به یک بازار موقتاً اشباع‌فروش (oversold) اشاره کنند؛ با این فرض که گاوها (bulls) بار دیگر قیمت‌ها را بالا خواهند راند و ما
+        می‌توانیم سود جمع کنیم. پس از خرید، ربات سه سفارش فروش محدود (limit sell order) ثبت می‌کند: یکی با ۱٪ سود، دیگری با ۴٪ سود و
+        آخرین مورد با ۷٪ سود. این کار به ما امکان می‌دهد با دو سفارش اول به‌سرعت سرمایه را برای ورود به معاملهٔ بعدی آزاد کنیم و
+        سفارش ۷٪ سودآوری کلی ما را تقویت می‌کند.</p>
+      </section>
+
+      <!-- ==================== نرم‌افزار ==================== -->
+      <section>
+        <h2>نرم‌افزار</h2>
+        <p>ما از <a href="https://www.rstudio.com/" target="_blank" rel="noopener">آر استودیو (Rstudio)</a> و زمان‌بند وظایف ویندوز
+        (Windows Task Scheduler) برای اجرای منظم کد R خود (هر ۱۰ دقیقه) استفاده خواهیم کرد. برای ارسال سفارش‌ها به یک حساب
+        <a href="https://www.gdax.com/" target="_blank" rel="noopener">گدکس (GDAX)</a> و برای دریافت اعلان‌های معاملات به یک حساب
+        جیمیل (Gmail) نیاز دارید.</p>
+        <img src="https://cdn-images-1.medium.com/max/1600/1*03grqNsG5H2EIIQvmE9DLw.png" alt="نمودار روند کار ما: ساخت توابع، ذخیره متغیرها، اجرای حلقه معاملاتی و زمان‌بندی با Task Scheduler" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.82rem;opacity:0.75">روند کار ما (Our Process)</p>
+      </section>
+
+      <!-- ==================== بخش ۱: فراخوانی کتابخانه‌ها و ساخت توابع ==================== -->
+      <section>
+        <h2>بخش ۱: فراخوانی کتابخانه‌ها و ساخت توابع</h2>
+        <p>ما با فراخوانی چند کتابخانه شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># برای جدا کردن ورودی‌ها در فایل‌های لاگ
+print("################## Start Log Entry ######################")
+
+library(rgdax)
+library(mailR)
+library(stringi)
+library(curl)
+library(xts)
+library(TTR)</code></pre>
+        <p>پکیج rgdax رابط ارتباط با API گدکس را فراهم می‌کند؛ mailR برای ارسال به‌روزرسانی‌های ایمیلی با حساب جیمیل استفاده
+        می‌شود؛ stringi به ما در تجزیهٔ اعداد از JSON کمک می‌کند و TTR امکان محاسبهٔ اندیکاتورهای تحلیل تکنیکال (technical
+        indicators) را می‌دهد.</p>
+
+        <h3>تابع <code class="inline">curr_bal_usd</code> و <code class="inline">curr_bal_eth</code></h3>
+        <p>شما از api key، secret و passphrase که از بخش API گدکس تولید می‌شوند استفاده خواهید کرد. این توابع، آخرین موجودی حساب
+        گدکس شما را پرس‌وجو می‌کنند که بارها در معامله‌گری‌مان استفاده خواهیم کرد:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># ساخت توابع
+curr_bal_usd <- function(x){
+  m <-  accounts(api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase")#[3,3]
+  m <-  subset(m$available, m$currency == 'USD')
+  m
+}
+curr_bal_eth <- function(x){
+  n <- accounts(api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase")
+  n <- subset(n$available, n$currency == 'ETH')
+  n
+}</code></pre>
+
+        <h3>تابع RSI</h3>
+        <p>ما از RSI یا همان شاخص قدرت نسبی به‌عنوان اندیکاتور اصلی این استراتژی استفاده خواهیم کرد. تابع
+        <code class="inline">curr_rsi14_api</code> مقدار آخرین RSI دورهٔ ۱۴ را با استفاده از کندل‌های ۱۵ دقیقه‌ای
+        (15 minute candles) دریافت می‌کند. توابع <code class="inline">rsi14_api_less_one</code> و بقیه نیز RSI دوره‌های قبلی را
+        دریافت می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left">curr_ema13_api <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  ema13_gdax <- tail(TTR::EMA(df[,5],
+                              n = 13),
+                     n = 1)
+  ema13_gdax
+}
+curr_ema34_api <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  ema34_gdax <- tail(TTR::EMA(df[,5],
+                              n = 34),
+                     n = 1)
+  ema34_gdax
+}
+curr_rsi14_api <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  rsi_gdax <- tail(TTR::RSI(df[,5],
+                            n = 14),
+                   n = 1)
+  rsi_gdax
+}
+# نسخهٔ ۲
+rsi14_api_less_one <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  rsi_gdax_less_one <- head(tail(TTR::RSI(df[,5],
+                                          n = 14),
+                                 n = 2),n=1)
+  rsi_gdax_less_one
+}
+rsi14_api_less_two <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  rsi_gdax_less_two <- head(tail(TTR::RSI(df[,5],
+                                          n = 14),
+                                 n = 3),n=1)
+  rsi_gdax_less_two
+}
+rsi14_api_less_three <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  rsi_gdax_less_three <- head(tail(TTR::RSI(df[,5],
+                                            n = 14),
+                                   n = 4),n=1)
+  rsi_gdax_less_three
+}
+rsi14_api_less_four <- function(x){
+  df <- rgdax::public_candles(product_id = "ETH-USD",
+                              granularity = 900)
+  rsi_gdax_less_four <- head(tail(TTR::RSI(df[,5],
+                                           n = 14),
+                                  n = 5),n=1)
+  rsi_gdax_less_four
+}</code></pre>
+
+        <h3>توابع <code class="inline">bid</code> و <code class="inline">ask</code></h3>
+        <p>در ادامه، برای استراتژی‌مان به قیمت‌های پیشنهادی خرید (bid) و فروش (ask) فعلی نیاز خواهیم داشت:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># نسخهٔ ۲
+bid <- function(x){
+  bid <- public_orderbook(product_id = "ETH-USD", level = 1)
+  bid <- bid$bids[1]
+  bid
+}
+ask <- function(x){
+  ask <- public_orderbook(product_id = "ETH-USD", level = 1)
+  ask <- ask$asks[1]
+  ask
+}</code></pre>
+
+        <h3>توابع <code class="inline">usd_hold</code>، <code class="inline">eth_hold</code> و <code class="inline">cancel_orders</code></h3>
+        <p>برای اینکه بتوانیم سفارش‌های محدود را به‌صورت تکراری (iterative) ثبت کنیم، باید بتوانیم وضعیت فعلی سفارش‌هایی را که
+        قبلاً ثبت کرده‌ایم دریافت کنیم و سفارش‌هایی را که در دفتر سفارش (order book) بیش از حد پایین رفته‌اند تا پر شوند، لغو کنیم.
+        برای مورد نخست از تابع <code class="inline">holds</code> پکیج rgdax و برای مورد دوم از
+        <code class="inline">cancel_order</code> استفاده خواهیم کرد:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left">usd_hold <- function(x){
+  holds(currency = "USD", "your_api_key", "your_secret", "your_passphrase")
+}  
+eth_hold <- function(x){
+  holds <- holds(currency = "ETH", "your_api_key", "your_secret", "your_passphrase")
+  holds
+}
+cancel_orders <- function(x){
+  cancel_orders <- cancel_order("your_api_key", "your_secret", "your_passphrase")
+  cancel_orders
+}</code></pre>
+
+        <h3>تابع <code class="inline">buy_exe</code></h3>
+        <p>این تابع اصلی‌ترین تابع (big-daddy) است که سفارش‌های محدود ما را واقعاً اجرا می‌کند. این تابع چند گام را طی می‌کند:</p>
+        <ol>
+          <li>تابع <code class="inline">order_size</code> محاسبه می‌کند چقدر اتریوم می‌توانیم بخریم؛ زیرا می‌خواهیم هر بار حداکثر
+          مقدار ممکن را بخریم، منهای ۰.۰۰۵ اتریوم برای در نظر گرفتن خطاهای گرد کردن (rounding errors).</li>
+          <li>تابع حلقهٔ <code class="inline">WHILE</code> ما در حالی که هنوز صفر اتریوم داریم، سفارش‌های محدود ثبت می‌کند.</li>
+          <li>یک سفارش با قیمت <code class="inline">bid()</code> اضافه می‌شود؛ سیستم ۱۷ ثانیه می‌خوابد تا سفارش پر شود و سپس بررسی
+          می‌کند که آیا سفارش پر شده است یا نه. اگر پر نشده باشد، فرایند تکرار می‌شود.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left">buy_exe <- function(x){
+  # دریافت اندازهٔ سفارش به‌صورت تکراری
+  order_size <- round(curr_bal_usd()/ask(),3)[1]-0.005
+  # ثبت سفارش اولیه
+  while(curr_bal_eth() == 0){
+    #order_size <- curr_bal_usd() / ask() - 0.009
+    add_order(product_id = "ETH-USD", api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase",
+              type="limit", price = bid(), side = "b",  size = order_size )
+    # خوابیدن برای اینکه ببینیم سفارش پر می‌شود یا نه
+    Sys.sleep(17)
+    # بررسی اینکه آیا موجودی اتریوم از مقدار سفارش بیشتر شده است
+    if(curr_bal_eth() > 0){"buysuccess"}else{
+      
+      cancel_orders()    # اگر موجودی اتریوم از صفر بیشتر نشد، سفارش را لغو کن و از نو شروع کن 
+    }
+  }
+}
+sell_exe <- function(x){
+  # ثبت سفارش اولیه
+  while(curr_bal_eth() > 0){
+    add_order("ETH-USD", api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase",
+              type="limit", price = ask(), side = "s",  size = curr_bal_eth())
+    # خوابیدن برای اینکه ببینیم سفارش پر می‌شود یا نه
+    Sys.sleep(17)
+    # بررسی اینکه آیا موجودی اتریوم صفر شده است
+    if(curr_bal_eth() == 0){"buysuccess"}else{
+      
+      cancel_orders()    # اگر موجودی اتریوم صفر نشد، سفارش را لغو کن و از نو شروع کن
+    }
+  }
+}
+position <- (read.csv("C:/R_Directory/position.csv", header = TRUE))[1,2]</code></pre>
+      </section>
+
+      <!-- ==================== بخش ۲: ذخیره متغیرها ==================== -->
+      <section>
+        <h2>بخش ۲: ذخیره متغیرها</h2>
+        <p>در گام بعدی، باید برخی از متغیرهای اندیکاتور RSI خود را به‌صورت آبجکت ذخیره کنیم تا حلقهٔ معاملاتی سریع‌تر اجرا شود و از
+        سقف نرخ درخواست (rate limit) API هم عبور نکنیم:</p>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># نسخهٔ ۲
+# ذخیره متغیرها تا از سقف نرخ درخواست API عبور نکنیم
+curr_rsi14_api <- curr_rsi14_api()
+Sys.sleep(2)
+rsi14_api_less_one <- rsi14_api_less_one()
+Sys.sleep(2)
+rsi14_api_less_two <- rsi14_api_less_two()
+Sys.sleep(2)
+rsi14_api_less_three <- rsi14_api_less_three()
+Sys.sleep(2)
+rsi14_api_less_four <- rsi14_api_less_four()
+
+order_price_tiered3 <- 99999
+order_price_tiered5 <- 99999
+order_price_tiered8 <- 99999
+# نسخهٔ ۲</code></pre>
+      </section>
+
+      <!-- ==================== بخش ۳: اجرای حلقهٔ معاملاتی ==================== -->
+      <section>
+        <h2>بخش ۳: اجرای حلقهٔ معاملاتی</h2>
+        <p>تا این‌جا، ما فقط توابع و متغیرهای خود را برای اجرای حلقهٔ معاملاتی آماده کرده‌ایم. در ادامه، شرح گفتاری (verbal walk
+        through) حلقهٔ معاملاتی واقعی آمده است:</p>
+        <ul>
+          <li>اگر موجودی فعلی حساب ما به دلار (USD) بیشتر از ۲۰ دلار باشد، حلقه را شروع می‌کنیم.</li>
+          <li>در گام بعدی، اگر RSI فعلی بزرگ‌تر یا مساوی ۳۰ باشد <b>و</b> RSI دورهٔ قبلی کوچک‌تر یا مساوی ۳۰ باشد <b>و</b> در ۳
+          دورهٔ قبلی، حداقل یک بار RSI کمتر از ۳۰ بوده باشد، آن‌گاه با موجودی دلاری فعلی، بیشترین مقدار اتریومی که می‌توانیم می‌خریم.</li>
+          <li>سپس این قیمت خرید را در یک فایل CSV ذخیره می‌کنیم.</li>
+          <li>بعد، برای اطلاع از عمل خرید، به خودمان ایمیل می‌فرستیم.</li>
+          <li>حلقه سپس «buy» را چاپ می‌کند تا بتوانیم آن را در فایل لاگ خود ردیابی کنیم.</li>
+          <li>سیستم سپس ۳ ثانیه می‌خوابد.</li>
+          <li>حالا برای برداشت سود، ۳ سفارش فروش محدود پلکانی ثبت می‌کنیم. سفارش فروش محدود اول با سود ۱٪، سفارش بعدی با سود ۴٪ و
+          آخرین سفارش با سود ۷٪:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># حلقهٔ معاملاتی واقعی
+if(curr_bal_usd() >= 20){    # اگر بیش از ۲۰ دلار داشتیم، حلقه را شروع کن
+  if(curr_rsi14_api >= 30 &    # و RSI فعلی بزرگ‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
+     rsi14_api_less_one <= 30 &    # RSI بسته‌شدهٔ قبلی کوچک‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
+     rsi14_api_less_two < 30 | rsi14_api_less_three < 30 | rsi14_api_less_four < 30) {    # RSI دوره‌های i-2، i-3 یا i-4 کمتر از ۳۰ باشد  # نسخهٔ ۲
+    
+    # ۱ خرید
+    buy_exe()
+    
+    Sys.sleep(180)
+    
+    # ۲ ذخیرهٔ قیمت خرید در یک فایل CSV روی دسکتاپ
+    position <- write.csv(bid(), file = "C:/R_Directory/position.csv")    
+    
+    # ۳ ارسال ایمیل
+    
+    send.mail(from = "your_username@gmail.com",
+              to = c("your_username@gmail.com"),
+              replyTo = c("Reply to someone else <your_username@gmail.com>"),
+              subject = "GDAX ETH Test - Buy",
+              body = paste("Your model says buy right now at price",bid()),
+              smtp = list(host.name = "smtp.gmail.com", port = 465, user.name = "your_username", passwd = "your_password", ssl = TRUE),
+              authenticate = TRUE,
+              send = TRUE)
+    # ۴ چاپ برای فایل‌های لاگ
+    print("buy")
+    Sys.sleep(3)
+    # نسخهٔ ۵
+    # ۵ ثبت سفارش‌های فروش محدود پلکانی
+    
+    # سفارش ۱: یک‌سوم سود را با ۱٪ سود برداشت کن
+    order_size_tiered3 <- round(curr_bal_eth()/3,3)
+    order_price_tiered3 <- round(bid() * 1.01,2)
+    Sys.sleep(1)
+    add_order(product_id = "ETH-USD", api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase",
+              type="limit", price = order_price_tiered3, side = "s",  size = order_size_tiered3 )
+    Sys.sleep(20)
+    # سفارش ۲: یک‌سوم سود را با ۴٪ سود برداشت کن
+    order_size_tiered5 <- round(curr_bal_eth()/2,3)
+    order_price_tiered5 <- round(bid() * 1.04,2)
+    add_order(product_id = "ETH-USD", api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase",
+              type="limit", price = order_price_tiered5, side = "s",  size = order_size_tiered5)
+    Sys.sleep(20)
+    # سفارش ۳: یک‌سوم سود را با ۷٪ سود برداشت کن
+    order_size_tiered8 <- round(curr_bal_eth(),3)
+    order_price_tiered8 <- round(bid() * 1.07,2)
+    add_order(product_id = "ETH-USD", api.key = "your_api_key", secret = "your_secret", passphrase = "your_passphrase",
+              type="limit", price = order_price_tiered8, side = "s",  size = order_size_tiered8 )
+    # نسخهٔ ۵
+  }else{"nobuy"}
+}else{"nobuy"}
+
+
+# چاپ زمان سیستم برای لاگ‌ها
+Sys.time()
+
+print("################## End Log Entry ######################")</code></pre>
+        <p>تمام شد؛ این کل اسکریپت است.</p>
+      </section>
+
+      <!-- ==================== بخش ۴: خودکارسازی اسکریپت با زمان‌بند وظایف ویندوز ==================== -->
+      <section>
+        <h2>بخش ۴: خودکارسازی اسکریپت با زمان‌بند وظایف ویندوز</h2>
+        <p>کل هدف این ربات، حذف خطای انسانی از معامله است و این امکان را به ما می‌دهد که بدون نیاز به حضور جلوی صفحه‌نمایش، وارد
+        معامله شویم. برای رسیدن به این هدف از زمان‌بند وظایف ویندوز (Windows Task Scheduler) استفاده خواهیم کرد.</p>
+
+        <h3>زمان‌بندی اسکریپت با افزونهٔ Rstudio</h3>
+        <p>از افزونهٔ کاربردی Rstudio برای زمان‌بندی آسان اسکریپت استفاده کنید:</p>
+        <img src="https://cdn-images-1.medium.com/max/1600/1*-6qpR6f4pgYh41F-4M-1PQ.png" alt="نمای افزونهٔ زمان‌بندی Rstudio برای اجرای منظم اسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>اصلاح وظیفهٔ زمان‌بندی‌شده با Task Scheduler</h3>
+        <p>به وظیفه‌ای که افزونهٔ Rstudio ساخته است بروید و محرک (trigger) را طوری تنظیم کنید که در بازهٔ زمانی موردنظر شما اجرا شود.
+        در مورد من، بازهٔ هر ۱۰ دقیقه را به‌صورت نامحدود انتخاب کردم.</p>
+        <img src="https://cdn-images-1.medium.com/max/1600/1*mA5H-7AEMnBZ2FgNpNer8Q.png" alt="تنظیم محرک اجرای وظیفه در پنجرهٔ Windows Task Scheduler" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>با فایل لاگ مراقب وظیفهٔ خود باشید</h3>
+        <p>هر بار که اسکریپت شما اجرا می‌شود، یک ورودی در فایل لاگ متنی ایجاد می‌کند که به شما امکان می‌دهد خطاهای اسکریپت خود را
+        رفع اشکال (troubleshoot) کنید:</p>
+        <img src="https://cdn-images-1.medium.com/max/1600/1*pwBC7z_dMU5sxa2AJbH29g.png" alt="نمای فایل لاگ متنی با ورودی‌های جداگانه مربوط به هر اجرای اسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌بینید که تابع چاپ «START LOG ENTRY» و «END LOG ENTRY» برای جدا کردن ورودی‌های ما چقدر به‌کار می‌آید.</p>
+      </section>
+
+      <!-- ==================== آن را مال خودتان کنید ==================== -->
+      <section>
+        <h2>آن را مال خودتان کنید</h2>
+        <p>می‌توانید این اسکریپت را هر چقدر که می‌خواهید ساده یا پیچیده کنید. من در حال بهبود این اسکریپت با افزودن شبکه‌های عصبی
+        (neural networks) از ماژول Keras متعلق به TensorFlow برای آر استودیو هستم. این شبکه‌های عصبی عنصری به‌طور نمایی پیچیده‌تر
+        به اسکریپت اضافه می‌کنند، اما برای یافتن الگوهای پنهان در داده‌ها فوق‌العاده قدرتمند هستند. علاوه بر این، پکیج TTR تعداد
+        زیادی توابع مالی و اندیکاتورهای تکنیکال در اختیار ما قرار می‌دهد که می‌توان از آن‌ها برای بهبود مدل‌تان استفاده کرد.</p>
+
+        <div class="callout warn">
+          <strong>هشدار:</strong> با تمام این توضیحات، با پولی بیش از آنچه توان از دست دادنش را دارید بازی نکنید. بازارها بازی
+          نیستند و شما می‌توانید و حتی تمام سرمایه‌تان را از دست خواهید داد.
+        </div>
+
+        <p>لینک کد منبع کامل روی گیت‌هاب:
+        <a href="https://github.com/beavertrapper07/GDAX_Trader/blob/master/GDAX_Trader.R" target="_blank" rel="noopener">
+        https://github.com/beavertrapper07/GDAX_Trader/blob/master/GDAX_Trader.R</a></p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Build A Cryptocurrency Trading Bot with R» اثر «برد لیندبلاد (Brad Lindblad)» است که
+        در «Towards Data Science» منتشر شده. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده
+        اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://towardsdatascience.com/build-a-cryptocurrency-trading-bot-with-r-1445c429e1b1" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

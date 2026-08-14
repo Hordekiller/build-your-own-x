@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Building A Simple AI Chatbot With Web Speech API
+  And Node.js» (Tomomi Imura — Smashing Magazine)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک چت‌بات هوش مصنوعی ساده با Web Speech API و Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت یک چت‌بات هوش مصنوعی ساده با Web Speech API و Node.js</span>
+      </div>
+      <h1>ساخت یک چت‌بات هوش مصنوعی ساده با Web Speech API و Node.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.smashingmagazine.com/2017/08/ai-chatbot-web-speech-api-node-js/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Building A Simple AI Chatbot With Web
+          Speech API And Node.js» نوشته «تومومی ایمورا (Tomomi Imura)» در «Smashing Magazine» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.smashingmagazine.com/2017/08/ai-chatbot-web-speech-api-node-js/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>با توجه به وضعیت فعلی برنامه‌های وب، می‌توانیم برای تعامل با کاربران روی عناصر رابط کاربری (user interface) مختلفی
+        تکیه کنیم. با API گفتار وب (Web Speech API) می‌توانیم برنامه‌های وب غنی‌ای با تعاملات طبیعی کاربر و رابط بصری
+        حداقلی بسازیم، فقط با استفاده از فرمان‌های صوتی (voice commands).</p>
+        <p>استفاده از فرمان‌های صوتی این روزها تقریباً همه‌گیر شده است؛ زیرا روزبه‌روز کاربران بیشتری از گوشی‌های موبایل برای
+        استفاده از دستیارهای صوتی (voice assistants) مانند سیری (Siri) و کورتانا (Cortana) استفاده می‌کنند و دستگاه‌هایی
+        مانند Amazon Echo و Google Home در حال هجوم به اتاق‌های نشیمن ما هستند. این سیستم‌ها با نرم‌افزار تشخیص گفتار
+        (speech recognition) ساخته شده‌اند که به کاربران‌شان اجازه می‌دهد فرمان‌های صوتی صادر کنند. حالا نوبت مرورگرهای وب
+        ماست که با Web Speech API آشنا شوند؛ APIای که به کاربران اجازه می‌دهد داده‌های صوتی را در برنامه‌های وب ادغام
+        کنند.</p>
+        <p>این API موارد استفادهٔ بی‌شماری برای برنامه‌های وب غنی‌تر فراهم می‌کند. افزون بر این، Web Speech API می‌تواند
+        برنامه‌های وب را در دسترس‌پذیر (accessible) کند و
+        <a href="https://www.smashingmagazine.com/2015/03/web-accessibility-with-accessibility-api/" target="_blank" rel="noopener">به افراد دارای محدودیت یا آسیب جسمی یا شناختی کمک کند</a>.
+        وب آینده گفتگو‌محورتر و در دسترس‌تر خواهد بود!</p>
+
+        <div class="callout tip">
+          <strong>ارتقای تجربهٔ کاربری:</strong> Web Speech API به وب‌سایت‌ها و برنامه‌های وب امکان می‌دهد
+          نه‌تنها با شما صحبت کنند، بلکه به شما گوش دهند. به چند نمونهٔ عالی از اینکه چگونه می‌توان از آن برای ارتقای
+          تجربهٔ کاربری (UX) استفاده کرد نگاهی بیندازید:
+          <a href="https://www.smashingmagazine.com/2014/12/enhancing-ux-with-the-web-speech-api/" target="_blank" rel="noopener">مقالهٔ مرتبط را بخوانید ←</a>
+        </div>
+
+        <p>در این آموزش، از API برای ساخت یک رابط چت صوتی هوش مصنوعی (AI) در مرورگر استفاده خواهیم کرد. برنامه به صدای
+        کاربر گوش می‌دهد و با یک صدای مصنوعی پاسخ می‌دهد. چون Web Speech API همچنان آزمایشی است، برنامه فقط در
+        <a href="https://caniuse.com" target="_blank" rel="noopener">مرورگرهای پشتیبانی‌کننده</a> کار می‌کند. امکانات
+        استفاده‌شده در این مقاله — هم تشخیص گفتار و هم تبدیل متن به گفتار (speech synthesis) — در حال حاضر فقط در
+        مرورگرهای مبتنی بر کرومیوم (Chromium) وجود دارند، از جمله کروم ۲۵ به بعد و اپرا ۲۷ به بعد؛ در حالی که فایرفاکس،
+        اج و سافاری فعلاً فقط از تبدیل متن به گفتار پشتیبانی می‌کنند.</p>
+
+        <a href="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/6cf5e24e-4348-4f8e-8e7c-499ca508665c/browser-webspeech-large-opt-1.png" target="_blank" rel="noopener">
+          <img src="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/b78f943a-ed5b-44ff-8259-fa3f88b48ca7/browser-webspeech-800w-opt-1.png" alt="جدول سازگاری مرورگرها با Web Speech API" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <p style="font-size:0.85rem;color:var(--muted)">(<a href="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/6cf5e24e-4348-4f8e-8e7c-499ca508665c/browser-webspeech-large-opt-1.png" target="_blank" rel="noopener">مشاهده نسخه بزرگ</a>)</p>
+
+        <p>این ویدیو دمو را در مرورگر کروم نشان می‌دهد و دقیقاً همین چیزی است که در این آموزش می‌سازیم!</p>
+        <div class="callout tip">
+          <strong>دموی ویدیویی:</strong> ویدیوی دموی چت‌بات روی
+          <a href="https://vimeo.com/215612852" target="_blank" rel="noopener">Vimeo — «A simple AI chat bot demo with Web Speech API»</a>
+          در دسترس است (ویدیو را خودمان میزبانی نمی‌کنیم؛ همان منبع اصلی).
+        </div>
+
+        <p>برای ساختن برنامهٔ وب، سه گام اصلی برمی‌داریم:</p>
+        <ol>
+          <li>از رابط <code class="inline">SpeechRecognition</code> موجود در Web Speech API برای گوش دادن به صدای کاربر استفاده می‌کنیم.</li>
+          <li>پیام کاربر را به‌صورت یک رشتهٔ متنی به یک API تجاری پردازش زبان طبیعی (natural-language-processing) ارسال می‌کنیم.</li>
+          <li>وقتی API.AI متن پاسخ را بازگرداند، از رابط <code class="inline">SpeechSynthesis</code> برای تبدیل آن به یک صدای مصنوعی استفاده می‌کنیم.</li>
+        </ol>
+
+        <img src="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/7624f2f7-a479-4b2c-b343-245af1e454c7/chatapp-with-web-speech-api-preview-opt-1.png" alt="نمودار جریان کار برنامهٔ چت صوتی: تشخیص گفتار، ارسال به API.AI و بازگشت پاسخ صوتی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p><a href="https://github.com/girliemac/web-speech-ai" target="_blank" rel="noopener">کد منبع کامل</a> استفاده‌شده در
+        این آموزش در GitHub در دسترس است.</p>
+      </section>
+
+      <!-- ==================== پیش‌نیازها ==================== -->
+      <section>
+        <h2>پیش‌نیازها</h2>
+        <p>این آموزش به Node.js وابسته است. باید با جاوااسکریپت راحت باشید و درک پایه‌ای از Node.js داشته باشید.</p>
+        <p>مطمئن شوید <a href="https://nodejs.org" target="_blank" rel="noopener">Node.js</a> روی دستگاه شما نصب است و
+        سپس شروع می‌کنیم!</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی برنامه نود.js ==================== -->
+      <section>
+        <h2>راه‌اندازی برنامهٔ Node.js</h2>
+        <p>اول، اجازه دهید یک چارچوب برنامهٔ وب (web app framework) با Node.js راه‌اندازی کنیم. پوشهٔ برنامهٔ خود را
+        بسازید و ساختار برنامه را این‌گونه بچینید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">.
+├── index.js
+├── public
+│   ├── css
+│   │   └── style.css
+│   └── js
+│       └── script.js
+└── views
+    └── index.html</code></pre>
+        <p>سپس، این دستور را برای مقداردهی اولیهٔ برنامهٔ Node.js اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ npm init -f</code></pre>
+        <p>پرچم <code class="inline">-f</code> تنظیمات پیش‌فرض را می‌پذیرد؛ یا بدون این پرچم می‌توانید برنامه را به‌صورت
+        دستی پیکربندی کنید. همچنین این کار یک فایل <code class="inline">package.json</code> تولید می‌کند که اطلاعات
+        پایهٔ برنامهٔ شما را در خود دارد.</p>
+        <p>حالا، همهٔ وابستگی‌های مورد نیاز برای ساخت این برنامه را نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ npm install express socket.io apiai --save</code></pre>
+        <p>با افزودن پرچم <code class="inline">--save</code>، فایل <code class="inline">package.json</code> شما به‌صورت
+        خودکار با وابستگی‌ها به‌روزرسانی می‌شود.</p>
+        <p>ما از <a href="https://expressjs.com/" target="_blank" rel="noopener">Express</a> — یک چارچوب سرور برنامهٔ وب
+        Node.js — برای اجرای سرور به‌صورت محلی استفاده خواهیم کرد. برای فعال‌کردن ارتباط دوسویهٔ بلادرنگ (real-time
+        bidirectional communication) بین سرور و مرورگر، از <a href="https://socket.io" target="_blank" rel="noopener">Socket.IO</a>
+        استفاده می‌کنیم. همچنین ابزار سرویس پردازش زبان طبیعی، یعنی
+        <a href="https://cloud.google.com/dialogflow/docs" target="_blank" rel="noopener">API.AI</a> را نصب خواهیم کرد تا
+        یک چت‌بات هوش مصنوعی بسازیم که بتواند یک گفتگوی مصنوعی داشته باشد.</p>
+        <p>Socket.IO یک کتابخانه است که به ما امکان می‌دهد به‌سادگی با Node.js از وب‌سوکت (WebSocket) استفاده کنیم. با
+        برقراری یک اتصال سوکت بین کلاینت و سرور، پیام‌های چت ما به محض بازگشت دادهٔ متنی از Web Speech API (پیام صوتی) یا
+        از API API.AI (پیام «هوش مصنوعی») بین مرورگر و سرور ما ردوبدل می‌شوند.</p>
+        <p>حالا، بیایید یک فایل <code class="inline">index.js</code> بسازیم، Express را نمونه‌سازی کنیم و به سرور گوش
+        دهیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const express = require('express');
+const app = express();
+
+app.use(express.static(__dirname + '/views')); // فایل‌های html
+app.use(express.static(__dirname + '/public')); // فایل‌های js، css و تصاویر
+
+const server = app.listen(5000);
+app.get('/', (req, res) => {
+  res.sendFile('index.html');
+});</code></pre>
+        <p>حالا بگذارید روی برنامهٔ خودمان کار کنیم! در گام بعدی، کد فرانت‌اند را با Web Speech API یکپارچه می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== دریافت گفتار با رابط SpeechRecognition ==================== -->
+      <section>
+        <h2>دریافت گفتار با رابط SpeechRecognition</h2>
+        <p>Web Speech API یک رابط کنترل‌کنندهٔ اصلی به نام
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition" target="_blank" rel="noopener">SpeechRecognition</a>
+        دارد تا گفتار کاربر را از میکروفون دریافت کند و بفهمد چه می‌گوید.</p>
+
+        <h3>ساخت رابط کاربری</h3>
+        <p>رابط کاربری این برنامه ساده است: فقط یک دکمه برای راه‌اندازی تشخیص صدا. بیایید فایل
+        <code class="inline">index.html</code> را آماده کنیم و فایل جاوااسکریپت فرانت‌اند خود
+        (<code class="inline">script.js</code>) و Socket.IO را — که بعداً برای فعال‌کردن ارتباط بلادرنگ از آن استفاده
+        می‌کنیم — به آن اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">html</span><code style="direction:ltr;text-align:left">&lt;html lang="en"&gt;
+  &lt;head&gt;…&lt;/head&gt;
+  &lt;body&gt;
+    …
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"&gt;&lt;/script&gt;
+    &lt;script src="js/script.js"&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        <p>سپس، یک رابط دکمه‌ای در بدنهٔ HTML اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">html</span><code style="direction:ltr;text-align:left">&lt;button&gt;Talk&lt;/button&gt;</code></pre>
+        <p>برای استایل‌دادن به دکمه همان‌طور که در دمو دیده می‌شود، به فایل <code class="inline">style.css</code> موجود در
+        <a href="https://github.com/girliemac/web-speech-ai" target="_blank" rel="noopener">کد منبع</a> مراجعه کنید.</p>
+
+        <h3>ثبت صدا با جاوااسکریپت</h3>
+        <p>در <code class="inline">script.js</code>، یک نمونه از
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition" target="_blank" rel="noopener">SpeechRecognition</a> —
+        رابط کنترل‌کنندهٔ Web Speech API برای تشخیص صدا — فراخوانی (invoke) کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();</code></pre>
+        <p>ما هر دو شیءِ دارای پیشوند (prefixed) و بدون پیشوند را قرار می‌دهیم، زیرا کروم در حال حاضر API را با ویژگی‌های
+        دارای پیشوند پشتیبانی می‌کند.</p>
+        <p>همچنین در این آموزش از بخشی از نحو (syntax) ECMAScript6 استفاده می‌کنیم؛ زیرا این نحو — از جمله
+        <code class="inline">const</code> و توابع پیکانی (arrow functions) — در مرورگرهایی در دسترس است که هر دو رابط
+        Speech API یعنی <code class="inline">SpeechRecognition</code> و <code class="inline">SpeechSynthesis</code> را
+        پشتیبانی می‌کنند.</p>
+        <p>به‌صورت اختیاری می‌توانید انواعی از
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition" target="_blank" rel="noopener">ویژگی‌ها</a>
+        را برای سفارشی‌سازی تشخیص گفتار تنظیم کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">recognition.lang = 'en-US';
+recognition.interimResults = false;</code></pre>
+        <p>سپس، ارجاع DOM به دکمهٔ رابط کاربری را بگیرید و برای راه‌اندازی تشخیص گفتار به رویداد کلیک گوش دهید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">document.querySelector('button').addEventListener('click', () =&gt; {
+  recognition.start();
+});</code></pre>
+        <p>وقتی تشخیص گفتار آغاز شد، از رویداد <code class="inline">result</code> برای بازیابی آنچه گفته شده به‌صورت متن
+        استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">recognition.addEventListener('result', (e) =&gt; {
+  let last = e.results.length - 1;
+  let text = e.results[last][0].transcript;
+
+  console.log('Confidence: ' + e.results[0][0].confidence);
+
+  // بعداً Socket.IO را در همین‌جا استفاده خواهیم کرد…
+});</code></pre>
+        <p>این کار یک شیء <code class="inline">SpeechRecognitionResultList</code> برمی‌گرداند که نتیجه را در خود دارد و
+        می‌توانید متن را از درون آرایه بازیابی کنید. همچنین همان‌طور که در نمونهٔ کد می‌بینید، این کار
+        <code class="inline">confidence</code> (ضریب اطمینان) ترانویسی (transcription) را هم برمی‌گرداند.</p>
+        <p>حالا، بیایید از Socket.IO برای انتقال نتیجه به کد سرورمان استفاده کنیم.</p>
+      </section>
+
+      <!-- ==================== ارتباط بلادرنگ با Socket.IO ==================== -->
+      <section>
+        <h2>ارتباط بلادرنگ با Socket.IO</h2>
+        <p><a href="https://socket.io/" target="_blank" rel="noopener">Socket.IO</a> یک کتابخانه برای برنامه‌های وب
+        بلادرنگ است. این کتابخانه ارتباط دوسویهٔ بلادرنگ بین کلاینت‌های وب و سرورها را فعال می‌کند. ما از آن برای انتقال
+        نتیجه از مرورگر به کد Node.js و سپس بازگرداندن پاسخ به مرورگر استفاده خواهیم کرد.</p>
+        <p>شاید از خود بپرسید چرا از HTTP ساده یا AJAX استفاده نمی‌کنیم. می‌توانید داده را از طریق <code class="inline">POST</code>
+        به سرور بفرستید. بااین‌حال، ما از طریق Socket.IO از وب‌سوکت استفاده می‌کنیم، زیرا سوکت‌ها بهترین راه‌حل برای ارتباط
+        دوسویه هستند — به‌ویژه وقتی بخواهیم رویدادی را از سرور به مرورگر push کنیم. با یک اتصال سوکت پیوسته، نیازی به
+        بارگذاری مجدد مرورگر یا ارسال مکرر درخواست AJAX در بازه‌های زمانی کوتاه نخواهیم داشت.</p>
+
+        <img src="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/ec29a4c6-cef1-4f99-bd1c-69bc75c6db4e/using-socketio-preview-opt-1.png" alt="نقش Socket.IO در ارتباط بین مرورگر و سرور برنامهٔ چت‌بات" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>Socket.IO را در <code class="inline">script.js</code> در جایی نمونه‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const socket = io();</code></pre>
+        <p>سپس، این کد را همان‌جا که به رویداد <code class="inline">result</code> از <code class="inline">SpeechRecognition</code>
+        گوش می‌دهید وارد کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">socket.emit('chat message', text);</code></pre>
+        <p>حالا، برگردیم به کد Node.js تا این متن را دریافت کنیم و با هوش مصنوعی به کاربر پاسخ دهیم.</p>
+      </section>
+
+      <!-- ==================== دریافت پاسخ از هوش مصنوعی ==================== -->
+      <section>
+        <h2>دریافت پاسخ از هوش مصنوعی</h2>
+        <p>پلتفرم‌ها و سرویس‌های متعددی به شما امکان می‌دهند برنامه‌ای را با یک سیستم هوش مصنوعی با استفاده از تبدیل گفتار
+        به متن و پردازش زبان طبیعی یکپارچه کنید — از جمله
+        <a href="https://www.ibm.com/watson/" target="_blank" rel="noopener">IBM Watson</a>،
+        <a href="https://www.luis.ai/" target="_blank" rel="noopener">Microsoft LUIS</a> و
+        <a href="https://wit.ai/" target="_blank" rel="noopener">Wit.ai</a>. برای ساخت یک رابط گفتگومحور سریع، از
+        <a href="https://cloud.google.com/dialogflow/docs" target="_blank" rel="noopener">API.AI</a> استفاده خواهیم کرد؛
+        زیرا یک حساب توسعه‌دهندهٔ رایگان فراهم می‌کند و به ما اجازه می‌دهد به‌سرعت و با رابط وب و کتابخانهٔ Node.js آن،
+        یک سیستم گفتگوی کوچک (small-talk) راه‌اندازی کنیم.</p>
+
+        <h3>راه‌اندازی API.AI</h3>
+        <p>وقتی حساب کاربری‌تان را ساختید، یک «عامل» (agent) ایجاد کنید. به راهنمای
+        «<a href="https://docs.api.ai/docs/get-started" target="_blank" rel="noopener">شروع کار</a>»، گام اول، مراجعه
+        کنید.</p>
+        <p>سپس، به‌جای طی کردن مسیر سفارشی‌سازی کامل با ساخت موجودیت‌ها (entities) و نیت‌ها (intents)، اول به‌سادگی از
+        منوی سمت چپ روی پیش‌تنظیم «Small Talk» کلیک کنید و دوم، کلید (toggle) را برای فعال‌کردن سرویس بچرخانید.</p>
+
+        <a href="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/30c73a76-90eb-43ab-9919-0511fb06a681/apiai-smalltalk-large-opt-1.png" target="_blank" rel="noopener">
+          <img src="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/a3689e77-0b09-4eac-b0f8-d92637ff5aec/apiai-smalltalk-800w-opt-1.png" alt="فعال‌سازی ویژگی Small Talk در داشبورد API.AI" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <p style="font-size:0.85rem;color:var(--muted)">(<a href="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/30c73a76-90eb-43ab-9919-0511fb06a681/apiai-smalltalk-large-opt-1.png" target="_blank" rel="noopener">مشاهده نسخه بزرگ</a>)</p>
+
+        <p>عامل Small Talk خود را با استفاده از رابط API.AI هر‌طور که دوست دارید سفارشی کنید.</p>
+        <p>با کلیک روی آیکون چرخ‌دندهٔ کنار نام عامل خود در منو، به صفحهٔ «تنظیمات عمومی» (General Settings) بروید و کلید
+        API خود را بگیرید. برای استفاده از SDK نود.js به «توکن دسترسی کلاینت» (client access token) نیاز خواهید داشت.</p>
+
+        <h3>استفاده از SDK نود.js API.AI</h3>
+        <p>بیایید برنامهٔ Node.js خود را با استفاده از SDK نود.js API.AI به آن وصل کنیم! به فایل
+        <code class="inline">index.js</code> برگردید و API.AI را با توکن دسترسی خود مقداردهی کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const apiai = require('apiai')(APIAI_TOKEN);</code></pre>
+        <p>اگر فقط می‌خواهید کد را به‌صورت محلی اجرا کنید، می‌توانید کلید API خود را همین‌جا به‌صورت سخت‌کدنویسی (hardcode)
+        کنید. راه‌های متعددی برای تنظیم متغیرهای محیطی (environment variables) وجود دارد، اما من معمولاً یک فایل
+        <code class="inline">.env</code> می‌سازم تا متغیرها را در آن قرار دهم.</p>
+        <p>حالا از Socket.IO سمت سرور برای دریافت نتیجه از مرورگر استفاده می‌کنیم.</p>
+        <p>وقتی اتصال برقرار شد و پیام دریافت شد، برای به‌دست‌آوردن پاسخی برای پیام کاربر از APIهای API.AI استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">io.on('connection', function(socket) {
+  socket.on('chat message', (text) =&gt; {
+
+    // دریافت پاسخ از API.AI
+
+    let apiaiReq = apiai.textRequest(text, {
+      sessionId: APIAI_SESSION_ID
+    });
+
+    apiaiReq.on('response', (response) =&gt; {
+      let aiText = response.result.fulfillment.speech;
+      socket.emit('bot reply', aiText); // ارسال نتیجه به مرورگر!
+    });
+
+    apiaiReq.on('error', (error) =&gt; {
+      console.log(error);
+    });
+
+    apiaiReq.end();
+
+  });
+});</code></pre>
+        <p>وقتی API.AI نتیجه را برمی‌گرداند، از <code class="inline">socket.emit()</code> موجود در Socket.IO برای ارسال آن
+        به مرورگر استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== دادن صدا به هوش مصنوعی با رابط SpeechSynthesis ==================== -->
+      <section>
+        <h2>دادن صدا به هوش مصنوعی با رابط SpeechSynthesis</h2>
+        <p>بار دیگر به <code class="inline">script.js</code> برگردیم تا برنامه را تکمیل کنیم!</p>
+        <p>یک تابع برای تولید صدای مصنوعی بسازید. این بار از رابط کنترل‌کنندهٔ <code class="inline">SpeechSynthesis</code>
+        موجود در Web Speech API استفاده می‌کنیم.</p>
+        <p>این تابع یک رشته را به‌عنوان آرگومان می‌گیرد و مرورگر را قادر می‌سازد متن را بخواند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">function synthVoice(text) {
+  const synth = window.speechSynthesis;
+  const utterance = new SpeechSynthesisUtterance();
+  utterance.text = text;
+  synth.speak(utterance);
+}</code></pre>
+        <p>در این تابع، اول یک ارجاع به نقطهٔ ورود API یعنی <code class="inline">window.speechSynthesis</code> بسازید.
+        شاید متوجه شده باشید که این بار هیچ ویژگی دارای پیشوندی وجود ندارد: این API پشتیبانی گسترده‌تری نسبت به
+        <code class="inline">SpeechRecognition</code> دارد و همهٔ مرورگرهایی که از آن پشتیبانی می‌کنند، پیشوند را برای
+        <code class="inline">SpeechSynthesis</code> حذف کرده‌اند.</p>
+        <p>سپس، با استفاده از سازندهٔ آن، یک نمونهٔ جدید
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance" target="_blank" rel="noopener">SpeechSynthesisUtterance()</a>
+        بسازید و متنی را تنظیم کنید که هنگام بیان گفتار، سنتز (synthesise) شود. می‌توانید
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance" target="_blank" rel="noopener">ویژگی‌های</a>
+        دیگری مانند <code class="inline">voice</code> را تنظیم کنید تا نوع صداهایی را که مرورگر و سیستم‌عامل باید
+        پشتیبانی کنند انتخاب کنید.</p>
+        <p>در نهایت، از <code class="inline">SpeechSynthesis.speak()</code> استفاده کنید تا آن را به حرف درآورید!</p>
+        <p>حالا، بار دیگر با Socket.IO پاسخ را از سرور بگیرید. به محض دریافت پیام، تابع را صدا بزنید.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">socket.on('bot reply', function(replyText) {
+  synthVoice(replyText);
+});</code></pre>
+        <p>تمام شد! بیایید یک گفتگوی خودمانی با چت‌بات هوش مصنوعی‌مان امتحان کنیم!</p>
+
+        <img src="https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/2c81ace2-f1b9-4de7-9722-93d655db2644/webspeech-api-demo.gif" alt="دموی متحرک گفتگو با چت‌بات صوتی در مرورگر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <div class="callout note">
+          <strong>نکته:</strong> توجه کنید که مرورگر اولین بار از شما اجازهٔ استفاده از میکروفون را می‌خواهد. مانند سایر
+          APIهای وب — مانند API موقعیت‌یابی جغرافیایی (Geolocation API) و API اعلان (Notification API) — مرورگر هرگز به
+          اطلاعات حساس شما دسترسی پیدا نمی‌کند مگر اینکه شما اجازه دهید؛ بنابراین صدای شما بدون اطلاع شما به‌صورت مخفیانه
+          ضبط نخواهد شد.
+        </div>
+        <p>به‌زودی از گفتگو خسته خواهید شد، چون هوش مصنوعی بیش از حد ساده است. بااین‌حال، API.AI قابل پیکربندی و آموزش‌پذیر
+        است. برای هوشمندتر کردن آن، <a href="https://docs.api.ai/" target="_blank" rel="noopener">مستندات API.AI</a> را
+        بخوانید.</p>
+        <p>امیدوارم از آموزش لذت برده باشید و یک چت‌بات سرگرم‌کننده ساخته باشید!</p>
+      </section>
+
+      <!-- ==================== وب را به آینده سوق دهید ==================== -->
+      <section>
+        <h2>وب را به آینده سوق دهید!</h2>
+        <p>تعامل صوتی نحوهٔ کنترل کامپیوترها و دستگاه‌های متصل توسط کاربران را دگرگون کرده است. حالا با Web Speech API،
+        تجربهٔ کاربری روی وب نیز در حال دگرگونی است. در ترکیب با هوش مصنوعی و یادگیری عمیق (deep learning)، برنامه‌های
+        وب شما هوشمندتر می‌شوند و تجربه‌های بهتری برای کاربران فراهم می‌کنند!</p>
+
+        <h3>مراجع</h3>
+        <p>این آموزش فقط ویژگی‌های اصلی API را پوشش داده است؛ اما API در واقع کاملاً منعطف و قابل سفارشی‌سازی است. می‌توانید
+        زبان تشخیص و سنتز گفتار، صدای مصنوعی — از جمله لهجه (مانند انگلیسی آمریکایی یا بریتانیایی) — زیروبمی گفتار
+        (speech pitch) و سرعت گفتار (speech rate) را تغییر دهید. در این‌جا می‌توانید دربارهٔ API بیشتر بیاموزید:</p>
+        <ul>
+          <li>«<a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener">Web Speech API</a>» — شبکهٔ توسعه‌دهندگان موزیلا (Mozilla Developer Network)</li>
+          <li>«<a href="https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html" target="_blank" rel="noopener">Web Speech API Specification</a>» — W3C</li>
+          <li>«<a href="https://docs.microsoft.com/en-us/microsoft-edge/dev-guide/multimedia/web-speech-api" target="_blank" rel="noopener">Web Speech API: Speech Synthesis</a>» (مستندات مایکروسافت اج) — مایکروسافت</li>
+        </ul>
+        <p>همچنین، برای یادگیری Node.js و کتابخانه‌های استفاده‌شده در این آموزش، موارد زیر را بررسی کنید:</p>
+        <ul>
+          <li><a href="https://nodejs.org/en/docs/guides/" target="_blank" rel="noopener">راهنما</a> — Node.js</li>
+          <li><a href="https://docs.npmjs.com/" target="_blank" rel="noopener">مستندات</a> — npm</li>
+          <li>«<a href="https://expressjs.com/en/starter/hello-world.html" target="_blank" rel="noopener">مثال Hello world</a>» — Express</li>
+          <li>«<a href="https://socket.io/get-started/" target="_blank" rel="noopener">شروع کار</a>» — Socket.IO</li>
+        </ul>
+        <p>در نهایت، ابزارهای مختلف پردازش زبان طبیعی و پلتفرم‌های گفتگومحور را بررسی کنید:</p>
+        <ul>
+          <li><a href="https://cloud.google.com/dialogflow/docs" target="_blank" rel="noopener">API.AI</a> — گوگل</li>
+          <li><a href="https://wit.ai/" target="_blank" rel="noopener">Wit.ai</a> — فیسبوک</li>
+          <li><a href="https://www.luis.ai/" target="_blank" rel="noopener">LUIS</a> — مایکروسافت</li>
+          <li><a href="https://www.ibm.com/watson/" target="_blank" rel="noopener">Watson</a> — IBM</li>
+          <li><a href="https://aws.amazon.com/lex/" target="_blank" rel="noopener">Lex</a> — آمازون</li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building A Simple AI Chatbot With Web Speech API And Node.js» اثر «تومومی
+        ایمورا (Tomomi Imura)» در سایت «Smashing Magazine» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://www.smashingmagazine.com/2017/08/ai-chatbot-web-speech-api-node-js/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
