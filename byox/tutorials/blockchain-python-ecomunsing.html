@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build Your Own Blockchain: A Python Tutorial» (Eric Munsing / ecomunsing.com)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بلاک‌چین خودت را بساز: آموزش پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بلاک‌چین خودت را بساز: آموزش پایتون</span>
+      </div>
+      <h1>بلاک‌چین خودت را بساز: آموزش پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://ecomunsing.com/build-your-own-blockchain" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build Your Own Blockchain: A Python Tutorial» نوشته «اریک
+          مونسینگ (Eric Munsing)» از سایت EcoMunsing است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://ecomunsing.com/build-your-own-blockchain" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== اصول پایه ==================== -->
+      <section>
+        <h2>بلاک‌چین خودت را بساز — اصول پایه</h2>
+        <p>این آموزش شما را با اصول ساخت یک بلاک‌چین از صفر آشنا می‌کند. تمرکز بر جزئیات یک مثال عینی، درک عمیق‌تری از
+        نقاط قوت و محدودیت‌های بلاک‌چین‌ها به شما می‌دهد. برای یک مرور سطح‌بالاتر،
+        <a href="https://bitsonblocks.net/2015/09/09/a-gentle-introduction-to-blockchain-technology/" target="_blank" rel="noopener">این مقالهٔ عالی از BitsOnBlocks</a>
+        را پیشنهاد می‌کنم.</p>
+        <div class="callout note">
+          <strong>نسخهٔ کامل نوت‌بوک:</strong> نسخه کامل نوت‌بوک Jupyter/iPython این آموزش را می‌توانید از
+          <a href="https://github.com/emunsing/tutorials/blob/master/BuildYourOwnBlockchain.ipynb" target="_blank" rel="noopener">اینجا در GitHub</a>
+          دانلود کنید.
+        </div>
+      </section>
+
+      <!-- ==================== تراکنش‌ها، اعتبارسنجی و وضعیت سیستم ==================== -->
+      <section>
+        <h2>تراکنش‌ها، اعتبارسنجی و به‌روزرسانی وضعیت سیستم</h2>
+        <p>بلاک‌چین در هستهٔ خود یک پایگاه‌دادهٔ توزیع‌شده (distributed database) است که مجموعه‌ای از قوانین برای تأیید
+        افزوده‌های جدید به پایگاه‌داده دارد. ما کار را با پیگیری حساب‌های دو شخص خیالی شروع می‌کنیم: آلیس (Alice) و باب
+        (Bob)، که قرار است با یکدیگر پول مجازی مبادله کنند.</p>
+        <p>ما باید یک استخر تراکنش (transaction pool) از تراکنش‌های ورودی بسازیم، آن تراکنش‌ها را اعتبارسنجی کنیم و آن‌ها
+        را به یک بلاک تبدیل کنیم.</p>
+        <p>ما از یک
+        <a href="https://en.wikipedia.org/wiki/SHA-2" target="_blank" rel="noopener">تابع هش (hash function)</a>
+        برای ایجاد یک «اثر انگشت» برای هر یک از تراکنش‌هایمان استفاده خواهیم کرد — این تابع هش هر یک از بلاک‌های ما را به
+        یکدیگر پیوند می‌دهد. برای آسان‌تر کردن استفاده از آن، یک تابع کمکی تعریف می‌کنیم تا
+        <a href="https://docs.python.org/2/library/hashlib.html" target="_blank" rel="noopener">تابع هش پایتونی</a>
+        که استفاده می‌کنیم را بپوشاند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import hashlib, json, sys
+
+def hashMe(msg=""):
+    # برای راحتی، این یک تابع کمکی است که الگوریتم هش ما را در بر می‌گیرد
+    if type(msg)!=str:
+        msg = json.dumps(msg,sort_keys=True)  # اگر کلیدها را مرتب نکنیم، تکرارپذیری تضمین نمی‌شود!
+
+    if sys.version_info.major == 2:
+        return unicode(hashlib.sha256(msg).hexdigest(),'utf-8')
+    else:
+        return hashlib.sha256(str(msg).encode('utf-8')).hexdigest()</code></pre>
+        <p>در قدم بعد، می‌خواهیم تابعی برای تولید مبادلات بین آلیس و باب بسازیم. برداشت‌ها را با اعداد منفی و واریزها را
+        با اعداد مثبت نشان می‌دهیم. تراکنش‌هایمان را طوری می‌سازیم که همیشه بین دو کاربر سیستم باشند و مطمئن می‌شویم
+        واریز همان قدر با برداشت برابر است — یعنی نه پول می‌سازیم و نه پول را از بین می‌بریم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import random
+random.seed(0)
+
+def makeTransaction(maxValue=3):
+    # این تابع تراکنش‌های معتبری در بازهٔ (1,maxValue) می‌سازد
+    sign      = int(random.getrandbits(1))*2 - 1   # این به‌طور تصادفی 1- یا 1 را انتخاب می‌کند
+    amount    = random.randint(1,maxValue)
+    alicePays = sign * amount
+    bobPays   = -1 * alicePays
+    # با این ساختار، این تابع همیشه تراکنش‌هایی برمی‌گرداند که به اصل پایستگی توکن‌ها احترام می‌گذارند.
+    # با این حال توجه کنید که ما هیچ‌کاری برای بررسی برداشتِ بیش از موجودی حساب انجام نداده‌ایم
+    return {u'Alice':alicePays,u'Bob':bobPays}</code></pre>
+        <p>حالا بیایید یک مجموعهٔ بزرگ از تراکنش‌ها بسازیم و سپس آن‌ها را به بلاک‌ها تقسیم کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">txnBuffer = [makeTransaction() for i in range(30)]</code></pre>
+        <p>قدم بعدی: ساخت بلاک‌های مخصوص خودمان! اولین <em>k</em> تراکنش را از بافر تراکنش برمی‌داریم و آن‌ها را به یک
+        بلاک تبدیل می‌کنیم. قبل از انجام این کار، باید روشی برای بررسی اعتبار تراکنش‌هایی که به داخل بلاک آورده‌ایم
+        تعریف کنیم.</p>
+        <p>برای بیت‌کوین، تابع اعتبارسنجی بررسی می‌کند که مقادیر ورودی، خروجی‌های تراکنشِ خرج‌نشدهٔ معتبر (UTXO) باشند،
+        خروجی‌های تراکنش از ورودی بزرگ‌تر نباشند و کلیدهای استفاده‌شده برای امضاها معتبر باشند. در اتریوم (Ethereum)،
+        تابع اعتبارسنجی بررسی می‌کند که قراردادهای هوشمند به‌درستی اجرا شده‌اند و به محدودیت‌های گاز (gas) احترام
+        می‌گذارند.</p>
+        <p>با این حال نگران نباشید — لازم نیست سیستمی به این پیچیدگی بسازیم. ما مجموعه‌قوانین بسیار سادهٔ خودمان را تعریف
+        می‌کنیم که برای یک سیستم توکن پایه منطقی است:</p>
+        <ul>
+          <li>مجموع واریزها و برداشت‌ها باید صفر باشد (توکن‌ها نه ساخته می‌شوند و نه از بین می‌روند)</li>
+          <li>حساب یک کاربر باید وجوه کافی برای پوشش هر برداشتی داشته باشد</li>
+        </ul>
+        <p>اگر هر یک از این شرایط نقض شود، تراکنش را رد می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def updateState(txn, state):
+    # ورودی‌ها: txn, state: دیکشنری‌هایی که با نام حساب‌ها کلید خورده‌اند و مقادیر عددی
+    # مبلغ انتقال (txn) یا موجودی حساب (state) را نگه می‌دارند
+    # خروجی: وضعیت به‌روزشده، با افزوده‌شدن کاربران جدید به state در صورت نیاز
+    # توجه: این تابع تراکنش را اعتبارسنجی نمی‌کند — فقط وضعیت را به‌روز می‌کند!
+
+    # اگر تراکنش معتبر باشد، وضعیت به‌روز می‌شود
+    state = state.copy() # چون دیکشنری‌ها تغییرپذیرند، برای جلوگیری از هر ابهامی یک نسخهٔ کاری از داده‌ها می‌سازیم
+    for key in txn:
+        if key in state.keys():
+            state[key] += txn[key]
+        else:
+            state[key] = txn[key]
+    return state</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def isValidTxn(txn,state):
+    # فرض کنید که تراکنش یک دیکشنری است که با نام حساب‌ها کلید خورده است
+
+    # بررسی اینکه مجموع واریزها و برداشت‌ها صفر باشد
+    if sum(txn.values()) is not 0:
+        return False
+
+    # بررسی اینکه تراکنش باعث برداشتِ بیش از موجودی (overdraft) نشود
+    for key in txn.keys():
+        if key in state.keys():
+            acctBalance = state[key]
+        else:
+            acctBalance = 0
+        if (acctBalance + txn[key]) &lt; 0:
+            return False
+
+    return True</code></pre>
+        <p>در اینجا مجموعه‌ای از تراکنش‌های نمونه آورده شده است که برخی از آن‌ها جعلی‌اند — اما حالا می‌توانیم اعتبار
+        آن‌ها را بررسی کنیم!</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">state = {u'Alice':5,u'Bob':5}
+
+print(isValidTxn({u'Alice': -3, u'Bob': 3},state))  # تراکنش پایه — این عالی کار می‌کند!
+print(isValidTxn({u'Alice': -4, u'Bob': 3},state))  # اما نمی‌توانیم توکن بسازیم یا از بین ببریم!
+print(isValidTxn({u'Alice': -6, u'Bob': 6},state))  # همچنین نمی‌توانیم از حساب بیش از موجودی برداشت کنیم
+print(isValidTxn({u'Alice': -4, u'Bob': 2,'Lisa':2},state)) # ایجاد کاربران جدید معتبر است
+print(isValidTxn({u'Alice': -4, u'Bob': 3,'Lisa':2},state)) # اما همان قوانین همچنان اعمال می‌شوند!</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">True
+False
+False
+True
+False</code></pre>
+        <p>هر بلاک شامل یک دسته از تراکنش‌ها، یک ارجاع به هش بلاک قبلی (اگر شمارهٔ بلاک بزرگ‌تر از ۱ باشد) و یک هش از
+        محتوای آن و سربرگ (header) است.</p>
+      </section>
+
+      <!-- ==================== ساخت بلاک‌چین ==================== -->
+      <section>
+        <h2>ساخت بلاک‌چین: از تراکنش‌ها تا بلاک‌ها</h2>
+        <p>ما آماده‌ایم ساخت بلاک‌چین‌مان را شروع کنیم! در حال حاضر، هیچ‌چیز روی بلاک‌چین نیست، اما می‌توانیم با تعریف
+        «بلاک مبدأ» (genesis block) — نخستین بلاک در سیستم — کار را راه بیندازیم. چون بلاک مبدأ به هیچ بلاک قبلی پیوند
+        نخورده است، کمی متفاوت با آن برخورد می‌شود و می‌توانیم وضعیت سیستم را به دلخواه تعیین کنیم. در مورد ما، برای دو
+        کاربرمان (آلیس و باب) حساب ایجاد می‌کنیم و به هر یک ۵۰ سکه می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">state = {u'Alice':50, u'Bob':50}  # تعریف وضعیت اولیه
+genesisBlockTxns = [state]
+genesisBlockContents = {u'blockNumber':0,u'parentHash':None,u'txnCount':1,u'txns':genesisBlockTxns}
+genesisHash = hashMe( genesisBlockContents )
+genesisBlock = {u'hash':genesisHash,u'contents':genesisBlockContents}
+genesisBlockStr = json.dumps(genesisBlock, sort_keys=True)</code></pre>
+        <p>عالی! این نخستین عنصری می‌شود که همه‌چیز دیگر از آن پیوند می‌خورد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">chain = [genesisBlock]</code></pre>
+        <p>برای هر بلاک، می‌خواهیم مجموعه‌ای از تراکنش‌ها را جمع کنیم، یک سربرگ بسازیم، آن را هش کنیم و به زنجیره اضافه
+        کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def makeBlock(txns,chain):
+    parentBlock = chain[-1]
+    parentHash  = parentBlock[u'hash']
+    blockNumber = parentBlock[u'contents'][u'blockNumber'] + 1
+    txnCount    = len(txns)
+    blockContents = {u'blockNumber':blockNumber,u'parentHash':parentHash,
+                     u'txnCount':len(txns),'txns':txns}
+    blockHash = hashMe( blockContents )
+    block = {u'hash':blockHash,u'contents':blockContents}
+
+    return block</code></pre>
+        <p>بیایید از این تابع برای پردازش بافر تراکنش‌هایمان به مجموعه‌ای از بلاک‌ها استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">blockSizeLimit = 5  # تعداد دلخواه تراکنش در هر بلاک —
+                     # این مقدار توسط ماینرِ بلاک انتخاب می‌شود و می‌تواند بین بلاک‌ها متفاوت باشد!
+
+while len(txnBuffer) &gt; 0:
+    bufferStartSize = len(txnBuffer)
+
+    ## جمع‌آوری مجموعه‌ای از تراکنش‌های معتبر برای قرار گرفتن در بلاک
+    txnList = []
+    while (len(txnBuffer) &gt; 0) &amp; (len(txnList) &lt; blockSizeLimit):
+        newTxn = txnBuffer.pop()
+        validTxn = isValidTxn(newTxn,state) # اگر تراکنش نامعتبر باشد False برمی‌گرداند
+
+        if validTxn:           # اگر وضعیت معتبری گرفتیم، نه 'False'
+            txnList.append(newTxn)
+            state = updateState(newTxn,state)
+        else:
+            print("ignored transaction")
+            sys.stdout.flush()
+            continue  # این یک تراکنش نامعتبر بود؛ آن را نادیده بگیر و ادامه بده
+
+    ## ساخت یک بلاک
+    myBlock = makeBlock(txnList,chain)
+    chain.append(myBlock)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">chain[0]</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{'contents': {'blockNumber': 0,
+  'parentHash': None,
+  'txnCount': 1,
+  'txns': [{'Alice': 50, 'Bob': 50}]},
+ 'hash': '7c88a4312054f89a2b73b04989cd9b9e1ae437e1048f89fbb4e18a08479de507'}</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">chain[1]</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{'contents': {'blockNumber': 1,
+  'parentHash': '7c88a4312054f89a2b73b04989cd9b9e1ae437e1048f89fbb4e18a08479de507',
+  'txnCount': 5,
+  'txns': [{'Alice': 3, 'Bob': -3},
+   {'Alice': -1, 'Bob': 1},
+   {'Alice': 3, 'Bob': -3},
+   {'Alice': -2, 'Bob': 2},
+   {'Alice': 3, 'Bob': -3}]},
+ 'hash': '7a91fc8206c5351293fd11200b33b7192e87fad6545504068a51aba868bc6f72'}</code></pre>
+        <p>همان‌طور که انتظار می‌رود، بلاک مبدأ شامل یک تراکنش نامعتبر است که موجودی حساب‌ها را ایجاد می‌کند (سکه‌هایی
+        که از هیچ ساخته می‌شوند). هش بلاک والد در بلاک فرزند ارجاع داده شده است که مجموعه‌ای از تراکنش‌های جدید را در بر
+        دارد و بر وضعیت سیستم اثر می‌گذارد. حالا می‌توانیم وضعیت سیستم را ببینیم که با در نظر گرفتن تراکنش‌ها به‌روز
+        شده است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">state</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{'Alice': 72, 'Bob': 28}</code></pre>
+      </section>
+
+      <!-- ==================== بررسی اعتبار زنجیره ==================== -->
+      <section>
+        <h2>بررسی اعتبار زنجیره</h2>
+        <p>حالا که می‌دانیم چگونه بلاک‌های جدید بسازیم و آن‌ها را به‌صورت یک زنجیره به یکدیگر پیوند دهیم، بیایید توابعی
+        تعریف کنیم تا بررسی کنند بلاک‌های جدید معتبرند — و کل زنجیره معتبر است.</p>
+        <p>در یک شبکهٔ بلاک‌چین، این موضوع به دو شکل اهمیت پیدا می‌کند:</p>
+        <ul>
+          <li>هنگامی که در ابتدا گره (node) خود را راه‌اندازی می‌کنیم، تاریخچهٔ کامل بلاک‌چین را دانلود خواهیم کرد. پس
+          از دانلود زنجیره، باید از میان بلاک‌چین عبور کنیم تا وضعیت سیستم را محاسبه کنیم. برای محافظت در برابر کسی که
+          تراکنش‌های نامعتبری در زنجیرهٔ اولیه جاسازی می‌کند، باید در همین دانلود اولیه اعتبار کل زنجیره را بررسی کنیم.</li>
+          <li>هنگامی که گرهٔ ما با شبکه همگام شد (نسخهٔ به‌روزی از بلاک‌چین و نمایشی از وضعیت سیستم دارد)، باید اعتبار
+          بلاک‌های جدیدی را که به شبکه پخش می‌شوند بررسی کند.</li>
+        </ul>
+        <p>برای انجام این کار به سه تابع نیاز خواهیم داشت:</p>
+        <ul>
+          <li><b>checkBlockHash</b>: یک تابع کمکی ساده که مطمئن می‌شود محتوای بلاک با هش آن مطابقت دارد</li>
+          <li><b>checkBlockValidity</b>: اعتبار یک بلاک را با در نظر گرفتن بلاک والد و وضعیت فعلی سیستم بررسی می‌کند.
+          می‌خواهیم این تابع در صورت معتبر بودن بلاک، وضعیت به‌روزشده را برگرداند و در غیر این صورت یک خطا پرتاب کند.</li>
+          <li><b>checkChain</b>: اعتبار کل زنجیره را بررسی می‌کند و وضعیت سیستم را از بلاک مبدأ محاسبه می‌کند. اگر زنجیره
+          معتبر باشد وضعیت سیستم را برمی‌گرداند و در غیر این صورت یک خطا پرتاب می‌کند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def checkBlockHash(block):
+    # اگر هش با محتوای بلاک مطابقت نداشت یک استثنا پرتاب می‌کنیم
+    expectedHash = hashMe( block['contents'] )
+    if block['hash']!=expectedHash:
+        raise Exception('Hash does not match contents of block %s'%
+                        block['contents']['blockNumber'])
+    return</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def checkBlockValidity(block,parent,state):
+    # می‌خواهیم شرایط زیر را بررسی کنیم:
+    # - هر یک از تراکنش‌ها به‌روزرسانی‌های معتبری برای وضعیت سیستم باشند
+    # - هش بلاک برای محتوای بلاک معتبر باشد
+    # - شمارهٔ بلاک، شمارهٔ بلاک والد را یک واحد افزایش دهد
+    # - به‌طور دقیق به هش بلاک والد ارجاع دهد
+    parentNumber = parent['contents']['blockNumber']
+    parentHash   = parent['hash']
+    blockNumber  = block['contents']['blockNumber']
+
+    # بررسی اعتبار تراکنش؛ اگر تراکنش نامعتبری پیدا شود یک خطا پرتاب می‌کنیم
+    for txn in block['contents']['txns']:
+        if isValidTxn(txn,state):
+            state = updateState(txn,state)
+        else:
+            raise Exception('Invalid transaction in block %s: %s'%(blockNumber,txn))
+
+    checkBlockHash(block) # بررسی یکپارچگی هش؛ در صورت عدم دقت خطا پرتاب می‌کند
+
+    if blockNumber!=(parentNumber+1):
+        raise Exception('Hash does not match contents of block %s'%blockNumber)
+
+    if block['contents']['parentHash'] != parentHash:
+        raise Exception('Parent hash not accurate at block %s'%blockNumber)
+
+    return state</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def checkChain(chain):
+    # از بلاک مبدأ (که رفتار ویژه‌ای دارد) به جلو از میان زنجیره کار می‌کنیم،
+    #   و بررسی می‌کنیم که همهٔ تراکنش‌ها به‌طور داخلی معتبر باشند،
+    #    تراکنش‌ها باعث برداشتِ بیش از موجودی نشوند،
+    #    و بلاک‌ها توسط هش‌هایشان به یکدیگر مرتبط باشند.
+    # این تابع وضعیت را به‌صورت یک دیکشنری از حساب‌ها و موجودی‌ها برمی‌گرداند،
+    #   یا اگر خطایی تشخیص داده شود False برمی‌گرداند
+
+    ## پردازش ورودی داده: مطمئن شوید که زنجیرهٔ ما یک لیست از دیکشنری‌هاست
+    if type(chain)==str:
+        try:
+            chain = json.loads(chain)
+            assert( type(chain)==list)
+        except:  # این یک تور محافظت فراگیر است، هرچند ابتدایی
+            return False
+    elif type(chain)!=list:
+        return False
+
+    state = {}
+    ## با بررسی بلاک مبدأ پمپ را راه بیندازید
+    # می‌خواهیم شرایط زیر را بررسی کنیم:
+    # - هر یک از تراکنش‌ها به‌روزرسانی‌های معتبری برای وضعیت سیستم باشند
+    # - هش بلاک برای محتوای بلاک معتبر باشد
+
+    for txn in chain[0]['contents']['txns']:
+        state = updateState(txn,state)
+    checkBlockHash(chain[0])
+    parent = chain[0]
+
+    ## بررسی بلاک‌های بعدی: این‌ها به‌طور اضافه باید بررسی کنند
+    #    - ارجاع به هش بلاک والد
+    #    - اعتبار شمارهٔ بلاک
+    for block in chain[1:]:
+        state = checkBlockValidity(block,parent,state)
+        parent = block
+
+    return state</code></pre>
+        <p>حالا می‌توانیم اعتبار وضعیت را بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">checkChain(chain)</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{'Alice': 72, 'Bob': 28}</code></pre>
+        <p>و حتی اگر زنجیره را از یک فایل متنی بارگذاری کنیم — مثلاً از پشتیبان‌گیری یا بارگذاری اولیه — می‌توانیم
+        یکپارچگی زنجیره را بررسی کنیم و وضعیت فعلی را بسازیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">chainAsText = json.dumps(chain,sort_keys=True)
+checkChain(chainAsText)</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{'Alice': 72, 'Bob': 28}</code></pre>
+      </section>
+
+      <!-- ==================== معماری نهایی ==================== -->
+      <section>
+        <h2>کنار هم گذاشتن قطعات: معماری نهایی بلاک‌چین</h2>
+        <p>در یک شبکهٔ واقعی بلاک‌چین، گره‌های جدید یک نسخه از بلاک‌چین را دانلود و آن را تأیید می‌کنند (همان‌طور که
+        بالا انجام دادیم)، سپس حضور خود را در شبکهٔ همتا‌به‌همتا (peer-to-peer) اعلام می‌کنند و گوش دادن به تراکنش‌ها را
+        آغاز می‌کنند. آن‌ها تراکنش‌ها را در یک بلاک بسته‌بندی می‌کنند و سپس بلاک پیشنهادی خود را به گره‌های دیگر منتقل
+        می‌کنند.</p>
+        <p>ما دیده‌ایم که چگونه یک نسخه از بلاک‌چین را تأیید کنیم و چگونه تراکنش‌ها را در یک بلاک بسته‌بندی کنیم. اگر
+        بلاکی را از جایی دیگر دریافت کنیم، تأیید آن و افزودنش به بلاک‌چین خودمان آسان است.</p>
+        <p>فرض کنید کد زیر روی گرهٔ A اجرا می‌شود که بلاک را استخراج می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import copy
+nodeBchain = copy.copy(chain)
+nodeBtxns  = [makeTransaction() for i in range(5)]
+newBlock   = makeBlock(nodeBtxns,nodeBchain)</code></pre>
+        <p>حالا فرض کنید که <code class="inline">newBlock</code> به گرهٔ ما منتقل شده است و می‌خواهیم آن را بررسی کنیم و
+        اگر بلاک معتبری بود وضعیت خود را به‌روز کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">print("Blockchain on Node A is currently %s blocks long"%len(chain))
+
+try:
+    print("New Block Received; checking validity...")
+    state = checkBlockValidity(newBlock,chain[-1],state) # وضعیت را به‌روز می‌کند — اگر بلاک نامعتبر باشد خطا پرتاب می‌کند!
+    chain.append(newBlock)
+except:
+    print("Invalid block; ignoring and waiting for the next block...")
+
+print("Blockchain on Node A is now %s blocks long"%len(chain))</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Blockchain on Node A is currently 7 blocks long
+New Block Received; checking validity...
+Blockchain on Node A is now 8 blocks long</code></pre>
+      </section>
+
+      <!-- ==================== نتیجه‌گیری و بسط‌ها ==================== -->
+      <section>
+        <h2>نتیجه‌گیری و بسط‌ها</h2>
+        <p>ما تمام معماری پایهٔ یک بلاک‌چین را ایجاد کرده‌ایم؛ از مجموعه‌ای از قوانین انتقال حالت (state transition)
+        تا روشی برای ایجاد بلاک‌ها و مکانیزم‌هایی برای بررسی اعتبار تراکنش‌ها، بلاک‌ها و کل زنجیره. می‌توانیم وضعیت سیستم
+        را از یک نسخهٔ دانلودشدهٔ بلاک‌چین استخراج کنیم، بلاک‌های جدیدی را که از شبکه دریافت می‌کنیم اعتبارسنجی کنیم و
+        بلاک‌های خودمان را بسازیم.</p>
+        <p>وضعیت سیستمی که ایجاد کرده‌ایم در واقع یک دفتر کل توزیع‌شده (distributed ledger) یا پایگاه‌داده است — هستهٔ
+        بسیاری از بلاک‌چین‌ها. می‌توانیم این را بسط دهیم تا انواع خاصی از تراکنش‌ها یا قراردادهای هوشمند (smart
+        contracts) کامل را در بر بگیرد.</p>
+        <p>ما معماری شبکه، گام اعتبارسنجی اثبات کار (proof-of-work) یا اثبات سهام (proof-of-stake) و مکانیزم اجماع
+        (consensus) را که امنیت بلاک‌چین‌ها را در برابر حمله فراهم می‌کند، بررسی نکرده‌ایم. همچنین دربارهٔ رمزنگاری کلید
+        عمومی (public key cryptography)، حریم خصوصی و مراحل تأیید صحبت نکرده‌ایم. در آینده بیشتر دربارهٔ این‌ها خواهیم
+        گفت!</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build Your Own Blockchain: A Python Tutorial» اثر «اریک مونسینگ (Eric
+        Munsing)» و سایت EcoMunsing است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://ecomunsing.com/build-your-own-blockchain" target="_blank" rel="noopener">سایت اصلی</a> مراجعه
+        کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

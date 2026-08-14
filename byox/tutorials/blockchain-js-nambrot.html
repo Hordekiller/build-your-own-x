@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build your own Blockchain in Javascript» (Nambrot)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بلاک‌چین خودتان را در جاوااسکریپت بسازید</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بلاک‌چین خودتان را در جاوااسکریپت بسازید</span>
+      </div>
+      <h1>بلاک‌چین خودتان را در جاوااسکریپت بسازید</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/nambrot/blockchain-in-js" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مخزن «Build your own Blockchain in Javascript» نوشته «نامبروت
+          (Nambrot)» است — یک راهنمای قدم‌به‌قدم برای ساخت یک بلاک‌چین ساده از اصول اولیه در جاوااسکریپت، به‌همراه نسخه کامل و نهایی
+          کد مندرج در خود مخزن. نسخه کامل و به‌روز را از مخزن اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/nambrot/blockchain-in-js" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>با تمام هیاهویی که پیرامون بلاک‌چین‌ها (blockchains) و ارزهای دیجیتال (cryptocurrencies) وجود دارد، تصمیم گرفتم
+        کمی بیشتر دربارهٔ آن‌ها یاد بگیرم. و چه راهی بهتر از این که خودتان تلاش کنید آن‌ها را بسازید؟ در ادامه، توضیحی
+        قدم‌به‌قدم از نحوهٔ کار یک بلاک‌چین و چگونگی ساخت آن از اصول اولیه خواهید یافت. در هر قدم از مراحل زیر، می‌توانید نسخهٔ
+        معادل دمو را در آدرس <code class="inline">blockchain-step${N}.nambrot.com</code> ببینید و نسخهٔ نهایی در
+        <a href="https://blockchain.nambrot.com" target="_blank" rel="noopener">blockchain.nambrot.com</a> در دسترس است.</p>
+        <div class="callout note">
+          <strong>سلب مسئولیت (disclaimer):</strong> نویسنده از برخی جنبه‌ها که این بلاک‌چین برای اهداف آموزشی از واقعیت
+          فاصله می‌گیرد، آزادانه چشم‌پوشی کرده است.
+        </div>
+      </section>
+
+      <!-- ==================== معماری مخزن ==================== -->
+      <section>
+        <h2>نگاهی به ساختار و معماری مخزن</h2>
+        <p>پروژه بر پایهٔ <code class="inline">create-react-app</code> ساخته شده است (واکنش ۱۶ / React 16). وابستگی‌های اصلی
+        پروژه در <code class="inline">package.json</code> عبارت‌اند از: <code class="inline">react</code> و
+        <code class="inline">react-dom</code> برای رابط کاربری، <code class="inline">ramda</code> برای توابع کاربردی،
+        <code class="inline">crypto-js</code> برای هش <code class="inline">sha256</code>، کتابخانهٔ
+        <code class="inline">elliptic</code> برای امضای دیجیتال روی منحنی بیضوی (ECDSA)، و
+        <code class="inline">socket.io</code> / <code class="inline">socket.io-client</code> برای لایهٔ شبکه بین نودها.
+        رابط کاربری با قابلیت‌های بصری Blueprint های blueprintjs ساخته شده است. ساختار پوشه‌ها و نقش هر کدام:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>helm-chart/            ← چارت هلم (helm) برای استقرار در کوبرنتیز (kubernetes)
+public/                ← فایل‌های استاتیک عمومی
+src/
+  components/          ← کامپوننت‌های React: ساخت بلاک، ساخت تراکنش، امضا، جداول UTXO و راهنمای تعاملی (walkthrough)
+  models/              ← مدل‌های دامنه: Block.js، Blockchain.js، Transaction.js، UTXO.js، UTXOPool.js
+  App.js               ← کامپوننت اصلی: نوار ناوبری، انتخاب/ساخت بلاک‌چین، خوش‌آمدگویی
+  crypto.js            ← تولید کلید عمومی/خصوصی، امضا و تأیید امضا (ECDSA با منحنی secp256k1)
+  index.js             ← نقطهٔ ورود برنامه و راه‌اندازی ارتباطات شبکه
+  network.js           ← لایهٔ انتشار/اشتراک (publish/subscribe) روی socket.io
+  server.js            ← سرور کوچک socket.io (پیام‌رسان مرکزی ساده)
+  store.js             ← حالت سراسری (state) برنامه و تابع action
+Dockerfile.client / Dockerfile.server
+docker-compose.yml
+nginx.conf
+package.json</code></pre>
+        <p>فرایند پیام‌رسانی بین نودها (نودها همان تب‌های باز برنامه در مرورگرهای مختلف هستند) از طریق یک سرور
+        <code class="inline">socket.io</code> ساده انجام می‌شود: هر نود پیام‌های نوع «پخش بلاک‌ها»
+        (<code class="inline">BLOCKS_BROADCAST</code>)، «پخش تراکنش» (<code class="inline">TRANSACTION_BROADCAST</code>) و
+        «درخواست بلاک‌ها» (<code class="inline">REQUEST_BLOCKS</code>) را ردوبدال می‌کنند؛ جزئیات آن در بخش «لایهٔ شبکه»
+        آمده است. سپس تمام قطعه‌کدهای کلیدی این مسیر گام‌به‌گام، همراه با کد نهایی هر فایل، ترجمه و ارائه می‌شوند.</p>
+      </section>
+
+      <!-- ==================== گام ۱ ==================== -->
+      <section>
+        <h2>گام ۱: زنجیره‌ای از بلاک‌ها؟</h2>
+        <p>برای درک نحوهٔ کار بلاک‌چین‌ها، از خودِ نام شروع می‌کنیم. بلاک‌چین؟ زنجیره‌ای از بلاک‌ها؟</p>
+        <p>یک تصور غلط رایج این است که بلاک‌چین یک زنجیرهٔ منفرد از بلاک‌هاست؛ در حالی که در واقعیت، بیشتر شبیه به یک
+        <b>درخت</b> از بلاک‌هاست. بنابراین در هر لحظه، زنجیره‌های متعددی از بلاک‌ها وجود دارند که هر کدام با اشاره به
+        والد (parent) خود ساخته می‌شوند. این اشاره‌کردن از طریق هش‌ها (hashes) انجام می‌شود که بر اساس داده‌های درون بلاک
+        محاسبه می‌شوند (یعنی هش والد، داده‌های تراکنش و سایر موارد مهم).</p>
+        <p>با اشاره‌کردن از طریق هش بلاک‌ها، می‌توانیم ترتیب خاصی برای بلاک‌ها اعمال کنیم. یعنی با فرض یک زنجیره از بلاک‌ها،
+        نمی‌توانید بلاکی را در وسط زنجیره بردارید و داده‌هایش را تغییر دهید؛ زیرا این کار هش آن را تغییر می‌دهد و به‌تبع آن،
+        هش همهٔ بلاک‌هایی که از آن بلاک منشعب شده‌اند نیز تغییر می‌کند.</p>
+        <p>این قطعه‌کد برگرفته از بخش گام ۱ فایل <code class="inline">README.md</code> مخزن است (نسخهٔ آموزشی ساده‌شده):</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+  constructor(blockchain, parentHash, nonce = sha256(new Date().getTime().toString()).toString()) {
+    this.blockchain = blockchain;
+    this.nonce = nonce;
+    this.parentHash = parentHash;
+    this.hash = sha256(this.nonce + this.parentHash).toString()
+  }</code></pre>
+        <p>اگر به کد نگاه کنید، می‌بینید که جنبهٔ همتا‌به‌همتا (P2P) بلاک‌چین‌ها چگونه وارد بازی می‌شود: به محض اینکه یک نود
+        تصمیم بگیرد بلاکی را «استخراج» کرده، می‌تواند آن بلاک را به همهٔ نودهای دیگر پخش (broadcast) کند؛ آن‌ها می‌توانند آن
+        را تأیید کنند و سپس آن را به درخت خودشان نیز اضافه کنند.</p>
+        <img src="https://user-images.githubusercontent.com/571810/32704273-37b7b07a-c7d0-11e7-900c-851031c81ad4.gif" alt="انیمیشن پخش یک بلاک استخراج‌شده بین نودهای شبکه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== گام ۲ ==================== -->
+      <section>
+        <h2>گام ۲: خب پس «بلاک‌چینِ» اصلی چیست؟</h2>
+        <p><a href="https://blockchain-step2.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۲</a></p>
+        <p>در گام ۱ دیدیم که در یک زنجیره از بلاک‌ها، بلاک آخر عملاً همهٔ داده‌های زنجیرهٔ اجداد خود را معتبر می‌سازد؛ زیرا هر
+        تغییری در داده‌های بالادست زنجیره، ناگزیر هش بلاک آخر را تغییر می‌دهد. همهٔ این‌ها عالی است؛ اما منظور مردم از «بلاک‌چینِ»
+        اصلی چیست؟</p>
+        <p>طبق تعریف، «بلاک‌چینِ» اصلی فقط <b>بلندترین زنجیرهٔ موجود در درخت</b> است. بنابراین ممکن است زنجیره‌ای در برهه‌ای از
+        زمان بلندترین باشد و سپس زنجیرهٔ دیگری جای آن را بگیرد. بیایید بلندترین زنجیره را در درخت بصری‌سازی کنیم. این
+        قطعه‌کد برگرفته از بخش گام ۲ فایل <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+  longestChain() {
+    const blocks = values(this.blocks)
+    const maxByHeight = maxBy(prop('height'))
+    const maxHeightBlock = reduce(maxByHeight, blocks[0], blocks)
+    const getParent = (x) => {
+      if (x === undefined) {
+        return false
+      }
+
+      return [x, this.blocks[x.parentHash]]
+    }
+    return reverse(unfold(getParent, maxHeightBlock))
+  }
+}</code></pre>
+        <img src="https://user-images.githubusercontent.com/571810/33043509-b40cb21c-ce13-11e7-8fb2-20f3932e85d1.gif" alt="انیمیشن نمایش بلندترین زنجیره در درخت بلاک‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بنابراین با توجه به یک درخت، بلندترین زنجیره نمایانگر دید فعلی ما از این است که کدام تاریخچه از بلاک‌ها — و در نتیجه
+        کدام بازنمایی از داده‌ها — را معتبر می‌دانیم.</p>
+        <p>نسخهٔ کامل و نهایی این متد در فایل <code class="inline">src/models/Blockchain.js</code> با نام
+        <code class="inline">longestChain()</code> پیاده‌سازی شده است؛ دو متد کمکی
+        <code class="inline">maxHeightBlock()</code> و <code class="inline">createGenesisBlock()</code> نیز در کنار آن
+        قرار دارند (کد نهایی این فایل را در بخش «کد نهایی مدل‌ها» ببینید).</p>
+      </section>
+
+      <!-- ==================== گام ۳ ==================== -->
+      <section>
+        <h2>گام ۳: هرج‌ومرجِ آزاد ممنوع</h2>
+        <p><a href="https://blockchain-step3.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۳</a></p>
+        <p>اگر بلاک‌چین‌های واقعی مثل گام ۲ کار می‌کردند، به هرج‌ومرجی آزاد بدل می‌شدند؛ جایی که نودها می‌توانند خودسرانه از
+        زنجیرهٔ بلاک‌ها ایجاد انشعاب (fork) کنند و عملاً تعداد بی‌نهایت بلاک به آن اضافه کنند تا بلندترین زنجیره شده و در
+        نتیجه «بلاک‌چینِ اصلی» شوند (همان‌طور که در GIF بالا دیدید). این به آن معناست که هر کسی می‌تواند تاریخچه را تغییر
+        دهد و عملاً داده‌های گذشته را دستکاری کند. چگونه از این وضعیت جلوگیری کنیم؟</p>
+        <p>با سخت‌کردن افزودن بلاک از طریق یک <b>معمای محاسباتی</b>. به‌جای پذیرفتن هر بلاک دلخواه، بخشی از قوانین اجماع
+        (consensus) یک بلاک‌چین تعیین می‌کند کدام بلاک‌ها معتبرند و کدام‌ها معتبر نیستند. در این مورد، می‌خواهیم افزودن بلاک را
+        پرهزینه (resource-intensive) کنیم. رایج‌ترین راه برای این کار — و احتمالاً قابل‌تحسین‌ترین بخش مقالهٔ اصلی بیت‌کوین —
+        ترکیب آن با <b>اثبات کار</b> (proof-of-work / POW) است. اثبات کار به ما اطمینان می‌دهد که نودهایی که می‌خواهند بلاک‌هایی
+        به درخت اضافه کنند، باید ثابت کنند تلاش قابل‌توجهی صرف کرده‌اند. چون هش SHA256 یک بلاک (امیدواریم) واقعاً تصادفی
+        باشد، می‌توانیم مقرر کنیم که هش باید به تعداد معینی «0» ختم شود (در بیت‌کوین، شرط این است که هش با تعداد معینی «0»
+        آغاز شود). این قطعه‌کد از بخش گام ۳ فایل <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+  isValid() {
+    return this.parentHash === 'root' ||
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+      this.hash === sha256(this.nonce + this.parentHash).toString())
+  }
+
+  setNonce(nonce) {
+    this.nonce = nonce
+    this._setHash()
+  }
+
+  _setHash() {
+    this.hash = sha256(this.nonce + this.parentHash).toString()
+  }
+}</code></pre>
+        <p>تعداد واقعی «0»ها در بلاک‌چین‌های دنیای واقعی به‌صورت پویا و بر اساس سرعتی که اخیراً بلاک‌ها به آن اضافه شده‌اند
+        محاسبه می‌شود. یک ماینر (استخراج‌کننده) باید نانس‌های (nonces) متعددی را امتحان کند به این امید که سرانجام یکی از آن‌ها
+        هشی تولید کند که به {DIFFICULTY} عدد «0» ختم می‌شود.</p>
+        <img src="https://user-images.githubusercontent.com/571810/33279514-cdae5fd2-d36c-11e7-97c5-94e61d4e9bce.gif" alt="انیمیشن امتحان نانس‌های متعدد برای یافتن هش معتبر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اثبات کار همان چیزی است که بلاک‌چین را «امن» می‌کند، آن را غیرمتمرکز (decentralized) می‌سازد و منشأ حملهٔ بدنام
+        <b>خرجِ دوبارهٔ ۵۱٪</b> (51% double-spend attack) است. زمانی که بلاکی روی بلاک‌چین (بلندترین زنجیرهٔ بلاک‌ها) جای
+        می‌گیرد، مهاجم باید اثبات کار آن بلاک و همهٔ بلاک‌های پس از آن را دوباره انجام دهد. مثال آن خرجِ دوباره است: یک
+        تراکنش به بلاکی اضافه کنید، اما سپس با استخراج زنجیرهٔ جایگزینی از والد همان بلاک، آن را «نامعتبر» کنید. با این حال،
+        بدون داشتن ۵۱٪ از قدرت محاسباتی شبکه، مهاجم همیشه از سایر نودهای شبکه که می‌خواهند بلاک‌هایی را از بلاک‌چین مشروع فعلی
+        اضافه کنند، عقب خواهد ماند. بنابراین امنیت بلاک‌چین متکی بر این است که قدرت محاسباتی میان اشخاص منفرد متمرکز نشود.</p>
+      </section>
+
+      <!-- ==================== گام ۴ ==================== -->
+      <section>
+        <h2>گام ۴: چه چیزی را استخراج کنم؟</h2>
+        <p><a href="https://blockchain-step4.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۴</a></p>
+        <p>پس این سؤال مطرح می‌شود که چرا ماینرها باید همهٔ این تلاش را برای افزودن یک بلاک صرف کنند؟ مگر این که بازی
+        سرگرم‌کننده‌ای برایشان باشد؛ معمولاً این‌جا صحبت از <b>انگیزه‌های اقتصادی</b> به میان می‌آید. برای این که بلاک‌چین
+        توسط ماینرها امن بماند، پروتکل به ماینرها <b>پاداش استخراج</b> (mining reward) می‌دهد که در حال حاضر معادل ۱۲.۵
+        بیت‌کوین است. سایر نودها بلاک ماینر با این پاداش به خودش را می‌پذیرند؛ به شرطی که سایر قوانین پروتکلی که در بالا بحث
+        کردیم را بگذراند. بیایید دربارهٔ مکانیک خاصِ اینکه ماینر چگونه پاداش را به خودش می‌دهد صحبت کنیم؛ چیزی که به مفهومی
+        از <b>مالکیت</b> (ownership) و راهی برای گنجاندن چنین مالکیتی در یک بلاک نیاز دارد.</p>
+        <p>برای درک مالکیت، به درک سطح بالایی از رمزنگاری کلید عمومی (public-key encryption) نیاز دارید که فراتر از حیطهٔ این
+        آموزش است (<a href="https://www.youtube.com/watch?v=3QnD2c4Xovk" target="_blank" rel="noopener">این ویدیو</a>
+        به‌نظر توضیح غیرفنی خوبی است). تنها چیزی که برای این‌جا باید بدانید این است که موارد زیر ممکن هستند:</p>
+        <ol>
+          <li>راهی برای تولید دو چیز وجود دارد: یک <b>کلید عمومی</b> (public key) و یک <b>کلید خصوصی</b> (private key). کلید
+          خصوصی را محرمانه نگه دارید.</li>
+          <li>همان‌طور که از نامش برمی‌آید، کلید عمومی چیزی است که می‌توانید به‌طور عمومی به سایر طرف‌ها اعلام کنید.</li>
+          <li>برای اثبات این که شما کسی بوده‌اید که کلید عمومی را تولید کرده‌اید، می‌توانید یک پیام (یا دادهٔ دلخواه) مشخص را
+          با کلید خصوصی خود امضا کنید. دیگران می‌توانند امضای شما (که مختص همان پیام است)، خود پیام و کلید عمومی شما را
+          بگیرند و تأیید کنند که امضا واقعاً از سوی کسی است که بر کلید خصوصی تسلط دارد (زیرا بدون کلید خصوصی هیچ راهی برای
+          امضای رضایت‌بخش پیام وجود ندارد).</li>
+          <li>با کلید عمومی می‌توانید یک پیام (داده) را رمزگذاری کنید به‌طوری که فقط صاحب کلید خصوصی بتواند آن را رمزگشایی
+          کند.</li>
+        </ol>
+        <p>به‌طور خلاصه، مالکیت مفهوم تسلط بر چیزی است؛ در این مورد، شما کلید عمومی را «مالک» هستید و می‌توانید چنین مالکیتی
+        را با امضای داده‌ها با کلید خصوصی خود اثبات کنید. بنابراین، برای دریافت پاداش استخراج — یعنی اعلام مالکیت بر آن — کافی
+        است ماینر کلید عمومی خود را در بلاک قرار دهد. آن کلید عمومی در بیت‌کوین با نام <b>آدرس کیف پول</b> (wallet address)
+        نیز شناخته می‌شود (ساده‌سازی مفرط).</p>
+        <p>پس بیایید فقط یک فیلد به نام <code class="inline">coinbaseBeneficiary</code> به بلاک اضافه کنیم که کلید عمومی
+        ماینر را در خود دارد و آن را به محتوای محاسبهٔ هش اضافه کنیم. این قطعه‌کد از بخش گام ۴ فایل
+        <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+  isValid() {
+    return this.parentHash === 'root' ||
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+      this.hash === this._calculateHash())
+  }
+
+  createChild(coinbaseBeneficiary) {
+    return new Block({
+      blockchain: this.blockchain,
+      parentHash: this.hash,
+      height: this.height + 1,
+      coinbaseBeneficiary
+    })
+  }
+
+  _calculateHash() {
+    return sha256(this.nonce + this.parentHash + this.coinbaseBeneficiary).toString()
+  }
+}</code></pre>
+        <p>بنابراین، یک سکه فقط «مالکیت بر یک کلید عمومی است که با کلید خصوصی همراه است». با پیمایش در طول یک زنجیره از
+        بلاک‌ها، می‌توانید جمع کنید که هر کلید عمومی چند سکه مالک است. در واقعیت، این‌ها با نام
+        <b>خروجی‌های تراکنش خرج‌نشده</b> (Unspent Transaction Outputs / UTXOs) شناخته می‌شوند؛ بخش تراکنش‌ها به‌زودی
+        خواهد آمد. برای این که هر بار که می‌خواهیم بفهمیم یک آدرس چند سکه در اختیار دارد، مجبور نباشیم زنجیرهٔ بلاک‌ها را
+        پیمایش کنیم، آن دانش را با هر بلاک در یک <b>استخر UTXO</b> (UTXO pool) «کش» می‌کنیم. هر وقت بلاکی به والدش اضافه
+        می‌کنیم، استخر UTXO والد را برمی‌داریم و سکه‌های ذی‌نفع کوین‌بیس (coinbase beneficiary) را به آن اضافه می‌کنیم.
+        این قطعه‌کدها از بخش گام ۴ فایل <code class="inline">README.md</code> هستند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class UTXOPool {
+  constructor(utxos = {}) {
+    this.utxos = utxos
+  }
+
+  addUTXO(publicKey, amount) {
+    if (this.utxos[publicKey]) {
+      this.utxos[publicKey].amount += amount
+    } else {
+      const utxo = new UTXO(publicKey, amount)
+      this.utxos[publicKey] = utxo
+    }
+  }
+
+  clone() {
+    return new UTXOPool(clone(this.utxos))
+  }
+}
+
+class Blockchain {
+  _addBlock(block) {
+    if (!block.isValid())
+      return
+    if (this.containsBlock(block))
+      return
+
+    // بررسی اینکه والد عملاً وجود دارد و ارتفاع اعلام‌شده درست است
+    const parent = this.blocks[block.parentHash];
+    if (parent === undefined && parent.height + 1 !== block.height )
+      return
+
+    // اضافه‌کردن سکهٔ کوین‌بیس به استخر والد
+    const newUtxoPool = parent.utxoPool.clone();
+    newUtxoPool.addUTXO(block.coinbaseBeneficiary, 12.5)
+    block.utxoPool = newUtxoPool;
+
+    this.blocks[block.hash] = block;
+    rerender()
+  }
+}</code></pre>
+        <p>همان‌طور که می‌بینید، اگر به استخراج بلاک‌های بیشتری ادامه دهیم، به جمع‌کردن سکه ادامه می‌دهیم.</p>
+        <img src="https://user-images.githubusercontent.com/571810/33613173-ec3851de-d9a1-11e7-8a2d-90adce353ac5.gif" alt="انیمیشن انباشته‌شدن سکه‌ها در استخر UTXO با استخراج بلاک‌های بیشتر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>از این طریق، شما باید شروع به دیدن این نکته نیز کنید که بلاک‌چین چگونه به‌عنوان یک دفتر کل (ledger) عمل می‌کند؛ اما
+        همچنین چگونه ذاتاً بی‌ثبات است. یک انشعاب در بلاک‌چین، استخرهای UTXO متفاوتی و در نتیجه ادعاهای متفاوتی بر روی سکه‌ها
+        را به وجود می‌آورد (به همین دلیل است که ایمن‌سازی اجماع تا این اندازه مهم است) — همان‌طور که در GIF زیر می‌بینید. به همین
+        دلیل است که معمولاً توصیه می‌شود تعداد معینی بلاک صبر کنید تا بتوانید تراکنشی را «تسویه‌شده» (settled) فرض کنید؛ در غیر
+        این صورت، یک انشعاب می‌تواند چیزی را که شما فرض می‌کردید وضعیت دفتر کل است، باطل کند.</p>
+        <img src="https://user-images.githubusercontent.com/571810/33613179-f1c861c0-d9a1-11e7-8366-4064cec2e95b.gif" alt="انیمیشن حملهٔ ۵۱٪ و باطل‌شدن وضعیت دفتر کل با انشعاب" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== گام ۵ ==================== -->
+      <section>
+        <h2>گام ۵: یک سکه به تو! یک سکه به تو!</h2>
+        <p><a href="https://blockchain-step5.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۵</a></p>
+        <p>داریم خیلی نزدیک می‌شویم به این که این یک بلاک‌چین قابل‌استفاده باشد. تنها چیزی که واقعاً کم داریم، توانایی
+        فرستادن یک سکه به کسی است. بالاخره به تراکنش‌ها (transactions) می‌رسیم. و در واقع ساده است:</p>
+        <p>این قطعه‌کد از بخش گام ۵ فایل <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Transaction {
+  constructor(inputPublicKey, outputPublicKey, amount) {
+    this.inputPublicKey = inputPublicKey
+    this.outputPublicKey = outputPublicKey
+    this.amount = amount
+    this._setHash()
+  }
+
+  _setHash() {
+    this.hash = this._calculateHash()
+  }
+
+  _calculateHash() {
+    return sha256(this.inputPublicKey + this.outputPublicKey + this.amount).toString()
+  }
+}</code></pre>
+        <p>یک تراکنش صرفاً <b>اعلامیه‌ای برای انتقال مالکیت</b> از یک کلید عمومی به کلید عمومی دیگر است؛ بنابراین تنها چیزی که
+        باید در یک تراکنش ثبت کنیم، کلید عمومی‌ای است که سکه دارد، کلید عمومی مقصد و مقدار سکه‌ای است که می‌خواهیم انتقال
+        دهیم. (در بیت‌کوین واقعی، UTXOها باید به‌طور کامل مصرف شوند و می‌توانند ورودی‌ها و خروجی‌های متعددی داشته باشند.)
+        واضح است که باید مطمئن شویم افراد فقط سکه‌هایی را خرج می‌کنند که وجود دارند. این کار را با استخر UTXO انجام
+        می‌دهیم که «موجودی‌ها» را پیگیری می‌کند. این قطعه‌کد از بخش گام ۵ فایل <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class UTXOPool {
+  handleTransaction(transaction) {
+    if (!this.isValidTransaction(transaction.inputPublicKey, transaction.amount))
+      return
+    const inputUTXO = this.utxos[transaction.inputPublicKey];
+    inputUTXO.amount -= transaction.amount
+    if (inputUTXO.amount === 0)
+      delete this.utxos[transaction.inputPublicKey]
+    this.addUTXO(transaction.outputPublicKey, transaction.amount)
+  }
+
+  isValidTransaction(inputPublicKey, amount) {
+    const utxo = this.utxos[inputPublicKey]
+    return utxo !== undefined && utxo.amount >= amount && amount > 0
+  }
+}</code></pre>
+        <p>از آنجا که هشِ تراکنش‌ها را به محاسبهٔ هش بلاک اضافه می‌کنیم، سایر نودهای شبکه به‌راحتی می‌توانند تأیید کنند که
+        تراکنش‌ها (۱) با توجه به اجداد یک بلاک معتبرند و (۲) از نودی آمده‌اند که باید «اثبات کار» انجام می‌داده است. این
+        قطعه‌کد از بخش گام ۵ فایل <code class="inline">README.md</code> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+  _addBlock(block) {
+    // ...
+    const newUtxoPool = parent.utxoPool.clone();
+    block.utxoPool = newUtxoPool;
+
+    // افزودن سکهٔ کوین‌بیس به استخر
+    block.utxoPool.addUTXO(block.coinbaseBeneficiary, 12.5)
+
+    // اعمال‌مجدد تراکنش‌ها برای اعتبارسنجی آن‌ها
+    const transactions = block.transactions
+    block.transactions = {}
+    let containsInvalidTransactions = false;
+
+    Object.values(transactions).forEach(transaction => {
+      if (block.isValidTransaction(transaction.inputPublicKey, transaction.amount)) {
+        block.addTransaction(transaction.inputPublicKey, transaction.outputPublicKey, transaction.amount)
+      } else {
+        containsInvalidTransactions = true
+      }
+    })
+
+    // اگر تراکنش‌های نامعتبری پیدا کردیم، بلاک را اضافه نکن
+    if (containsInvalidTransactions)
+      return
+    // ...
+  }
+}</code></pre>
+        <p>باید روش دیگری را برای «صادق‌نگه‌داشتن» ماینرها بشناسید: اگر ماینرها تراکنش‌های نامعتبری را در بلاک قرار دهند، نودهای
+        همتا آن بلاک را رد می‌کنند و در نتیجه آن را بخشی از بلندترین زنجیره به‌حساب نمی‌آورند. به این ترتیب بر سر تراکنش‌های
+        معتبر اجماع حفظ می‌شود. این‌جا همه‌چیز در قالب GIF:</p>
+        <img src="https://user-images.githubusercontent.com/571810/33800311-3746ef66-dd0b-11e7-9427-64c0053a4d5e.gif" alt="انیمیشن افزودن و اعتبارسنجی تراکنش‌ها در یک بلاک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== گام ۶ ==================== -->
+      <section>
+        <h2>گام ۶: من با ریاضی‌جات سر و کاری ندارم</h2>
+        <p><a href="https://blockchain-step6.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۶</a></p>
+        <p>اگر شما (یا به‌طور خاص، رایانه‌هایتان) در ریاضی ضعیف باشید، آیا یعنی نمی‌توانید تراکنش‌هایتان را به بلاک‌چین اضافه
+        کنید؟ این وحشتناک می‌شد! در عوض، به‌عنوان یک نودِ غیرماینر، بیایید توانایی <b>پخش یک تراکنش</b> را اضافه کنیم؛ یعنی
+        نود ماینرِ دیگری بتواند آن را به بلاک خود اضافه کند. این قطعه‌کد از بخش گام ۶ فایل <code class="inline">README.md</code>
+        است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+  constructor() {
+    // ...
+    subscribeTo("TRANSACTION_BROADCAST", ({ transaction, blockchainName }) => {
+      if (blockchainName === this.name) {
+        this.pendingTransactions[transaction.hash] = new Transaction(
+          transaction.inputPublicKey,
+          transaction.outputPublicKey,
+          transaction.amount
+        );
+      }
+    });
+  }
+}</code></pre>
+        <img src="https://user-images.githubusercontent.com/571810/33802204-a2f0ed8c-dd3f-11e7-8fa7-3ba84f01e97d.gif" alt="انیمیشن پخش یک تراکنش بین نودهای غیرماینر و ماینر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تراکنش‌های پخش‌شده اما هنوز در بلاک نیفتاده، در این پیاده‌سازی در مجموعهٔ
+        <code class="inline">pendingTransactions</code> (تراکنش‌های در انتظار) نگهداری می‌شوند؛ به محض این که چنین تراکنشی در
+        یک بلاک استخراج‌شده جا بگیرد و بلاک به بلندترین زنجیره اضافه شود، از مجموعهٔ در انتظار حذف می‌شود (کد نهایی این رفتار
+        را در فایل <code class="inline">src/models/Blockchain.js</code> در بخش «کد نهایی مدل‌ها» مشاهده کنید).</p>
+      </section>
+
+      <!-- ==================== گام ۷ ==================== -->
+      <section>
+        <h2>گام ۷: ناهار رایگان وجود ندارد</h2>
+        <p><a href="https://blockchain-step7.nambrot.com/" target="_blank" rel="noopener">لینک دموی گام ۷</a></p>
+        <p>مگر این که تفسیر خیرخواهانه‌ای از «همسایه‌ات را دوست بدار» داشته باشید؛ مردم معمولاً دوست ندارند کارها را برای
+        دیگران رایگان انجام دهند. پس چرا یک نود ماینر باید تراکنش یک نود غیرماینر را به بلاکش اضافه کند؟ حق با شماست؛
+        نمی‌کند. پس بیایید برایشان انگیزه‌ای با <b>کارمزد تراکنش</b> (transaction fee) اضافه کنیم؛ کارمزدی که به‌عنوان
+        نویسندهٔ تراکنش می‌توانید تعیین کنید تا شانس این را افزایش دهید که برخی نودهای ماینر تراکنش شما را به بلاکشان اضافه
+        کنند. این قطعه‌کدها از بخش گام ۷ فایل <code class="inline">README.md</code> هستند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+  addTransaction(inputPublicKey, outputPublicKey, amount, fee) {
+    if (!this.isValidTransaction(inputPublicKey, amount, fee))
+      return
+    const transaction = new Transaction(inputPublicKey, outputPublicKey, amount, fee)
+    this.transactions[transaction.hash] = transaction
+    this.utxoPool.handleTransaction(transaction, this.coinbaseBeneficiary)
+    this._setHash();
+  }
+}
+
+class UTXOPool {
+  handleTransaction(transaction, feeReceiver) {
+    if (!this.isValidTransaction(transaction.inputPublicKey, transaction.amount, transaction.fee))
+      return
+    const inputUTXO = this.utxos[transaction.inputPublicKey];
+    inputUTXO.amount -= transaction.amount
+    inputUTXO.amount -= transaction.fee
+    if (inputUTXO.amount === 0)
+      delete this.utxos[transaction.inputPublicKey]
+    this.addUTXO(transaction.outputPublicKey, transaction.amount)
+    this.addUTXO(feeReceiver, transaction.fee)
+  }
+}</code></pre>
+        <p>کارمزد از موجودی ورودی کسر می‌شود و به دریافت‌کنندهٔ مشخص‌شده — در این پیاده‌سازی، ذی‌نفع کوین‌بیسِ همان بلاک
+        (یعنی ماینر) — تعلق می‌گیرد. به‌عبارت دیگر، کارمزد صرفاً یک UTXO اضافی برای ماینر است.</p>
+      </section>
+
+      <!-- ==================== گام ۸ ==================== -->
+      <section>
+        <h2>گام ۸: به پول من دست نزن</h2>
+        <p><a href="https://blockchain.nambrot.com/" target="_blank" rel="noopener">لینک دموی نهایی</a></p>
+        <p>اگر دقت کرده باشید، متوجه شده‌اید که در مراحل قبل، هر نودی می‌توانست هر UTXO موجود را خرج کند. اگر در واقعیت
+        چنین بود، دیوانگی محض بود! بیایید این را با تکمیلِ روایتِ مالکیت اصلاح کنیم. همان‌طور که در بالا گفتیم، مالکیت در
+        واقع فقط توانایی اثباتِ تولیدِ کلید خصوصی است. پس برای این که بدانیم تراکنشی واقعاً قصدِ مالک بوده، تنها کاری که
+        باید بکنیم این است که <b>امضای هش تراکنش با کلید خصوصی</b> را درخواست کنیم. سپس نودها وقتی تراکنش‌های بلاک‌های دریافتی
+        را اعتبارسنجی می‌کنند، می‌توانند تأیید کنند که امضا واقعاً برای آن تراکنش معتبر است. این قطعه‌کدها از بخش گام ۸ فایل
+        <code class="inline">README.md</code> هستند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Transaction {
+  constructor(inputPublicKey, outputPublicKey, amount, fee, signature) {
+    this.inputPublicKey = inputPublicKey;
+    this.outputPublicKey = outputPublicKey;
+    this.amount = amount;
+    this.fee = fee;
+    this.signature = signature;
+    this._setHash();
+  }
+
+  hasValidSignature() {
+    return (
+      this.signature !== undefined &&
+      verifySignature(this.hash, this.signature, this.inputPublicKey)
+    );
+  }
+}
+
+class Block {
+  isValidTransaction(transaction) {
+    return (
+      this.utxoPool.isValidTransaction(transaction) &&
+      transaction.hasValidSignature()
+    );
+  }
+}</code></pre>
+        <p>همان‌طور که در GIF زیر می‌بینید، این کار با گره‌زدنِ کنترل UTXOها به مالک متناظر کلید عمومی — از طریق امضاهای
+        صادرشده از کلید خصوصی آن‌ها — بلاک‌چین ما را کامل می‌کند.</p>
+        <img src="https://user-images.githubusercontent.com/571810/33810869-ab96ec7c-ddd8-11e7-81bd-2435de149d83.gif" alt="انیمیشن امضای تراکنش با کلید خصوصی و تأیید آن با کلید عمومی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و تمام! همان‌طور که امیدوارم با من موافق باشید، بلاک‌چین‌ها در واقع بسیار ساده‌اند. به‌قدری ساده که
+        <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">مقالهٔ اصلی بیت‌کوین</a> فقط ۸ صفحه است.
+        همان‌طور که در این مرور آموختیم، تنها چیزی که واقعاً باید بدانید، مقداری دانشِ رمزنگاریِ کلید عمومی و این واقعیت است که
+        برخی توابع هش وارونه‌کردن‌شان بسیار دشوار است.</p>
+      </section>
+
+      <!-- ==================== بیشتر ==================== -->
+      <section>
+        <h2>صبر کن، چیز بیشتری هم هست</h2>
+        <p>شوخی کردم؛ فعلاً چیز بیشتری نیست. نویسنده ممکن است در آینده درخت‌های مرکل (merkle trees) و سگویت (segwit) را هم
+        اضافه کند؛ اما فعلاً، امیدوارم این مرور دید خوبی از نحوهٔ کار بلاک‌چین‌هایی مانند بیت‌کوین به شما داده باشد.</p>
+      </section>
+
+      <!-- ==================== رمزنگاری ==================== -->
+      <section>
+        <h2>رمزنگاری: تولید کلید، امضا و تأیید امضا</h2>
+        <p>هستهٔ رمزنگاری پروژه در فایل <code class="inline">src/crypto.js</code> قرار دارد. این فایل از کتابخانهٔ
+        <code class="inline">elliptic</code> با منحنی بیضوی <code class="inline">secp256k1</code> (همان منحنی‌ای که
+        بیت‌کوین استفاده می‌کند) برای امضای دیجیتال (ECDSA) استفاده می‌کند. سه تابع اصلی را صادر می‌کند:
+        <code class="inline">generatePair()</code> برای تولید جفت‌کلید، <code class="inline">sign(message, privateKey)</code>
+        برای امضای یک پیام با کلید خصوصی، و <code class="inline">verifySignature(message, signature, publicKey)</code>
+        برای تأیید امضا با کلید عمومی. کد کامل و دقیق این فایل:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import elliptic from "elliptic";
+const ec = new elliptic.ec("secp256k1");
+
+export function generatePair() {
+  const keypair = ec.genKeyPair();
+  window.keypair = keypair;
+  return {
+    publicKey: keypair.getPublic("hex"),
+    privateKey: keypair.getPrivate("hex")
+  };
+}
+
+export function sign(message, privateKey) {
+  try {
+    const keypair = ec.keyFromPrivate(privateKey, "hex");
+    return keypair.sign(message).toDER("hex");
+  } catch (error) {
+    return "invalid signature";
+  }
+}
+
+export function verifySignature(message, signature, publicKey) {
+  try {
+    const keypair = ec.keyFromPublic(publicKey, "hex");
+    return ec.verify(message, signature, keypair);
+  } catch (error) {
+    return false;
+  }
+}</code></pre>
+        <p>همان‌طور که در خروجی مشاهده می‌شود، امضاها در قالب DER هگزادسیمال تولید می‌شوند و تأیید امضا با همان کلید عمومیِ
+        ورودیِ تراکنش انجام می‌شود. این فایل همان چیزی است که <code class="inline">Transaction.hasValidSignature()</code>
+        در فایل <code class="inline">src/models/Transaction.js</code> از آن استفاده می‌کند. در رابط کاربری، کامپوننت
+        <code class="inline">src/components/Signature.js</code> جریان امضاکردن را شبیه‌سازی می‌کند: کاربر کلید خصوصیِ
+        متناظر با کلید عمومیِ فرستنده را انتخاب می‌کند، امضا روی پیامِ «هش تراکنش» محاسبه می‌شود و صحت آن بلافاصله با
+        <code class="inline">verifySignature</code> بررسی می‌شود.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> در دنیای واقعی، امضای هش تراکنش همان چیزی است که «اثبات مالکیت» سکه‌ها را ممکن می‌کند؛ هیچ‌کس
+          بدون کلید خصوصی نمی‌تواند امضای معتبری تولید کند و هر تغییری در دادهٔ تراکنش، امضای قبلی را باطل می‌کند.
+        </div>
+      </section>
+
+      <!-- ==================== لایه شبکه ==================== -->
+      <section>
+        <h2>لایهٔ شبکه: پیام‌رسانی بین نودها</h2>
+        <p>جنبهٔ همتا‌به‌همتای پروژه در دو فایل پیاده‌سازی شده است: <code class="inline">src/network.js</code> (کلاینت) و
+        <code class="inline">src/server.js</code> (سرور). الگوی پیام‌رسانی، انتشار/اشتراک (publish/subscribe) روی یک
+        کانال واحد است: هر نود پیامی را با یک «نوع» روی کانال منتشر می‌کند (publish) و سرور آن را به همهٔ نودهای دیگر بازپخش
+        می‌کند؛ نودها بر اساس نوع پیام تصمیم می‌گیرند به آن گوش دهند (subscribe) یا نه. کد کامل و دقیق این دو فایل:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// src/network.js — لایهٔ انتشار/اشتراک کلاینت
+import io from 'socket.io-client';
+const socket = io();
+
+export const subscribeTo = (type, callback) => {
+  socket.on('channel', function(data){
+    if (data.type === type) {
+      callback(data.payload)
+    }
+  })
+}
+
+export const publish = (type, payload) => {
+  socket.emit('channel', { type, payload })
+}</code></pre>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// src/server.js — سرور socket.io (پیام‌رسان ساده)
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+// app.get('/', function(req, res){
+//   res.sendFile(__dirname + '/index.html');
+// });
+
+io.on('connection', function(socket){
+  socket.on('channel', function(msg){
+    io.emit('channel', msg);
+  });
+});
+
+http.listen(4000, function(){
+  console.log('listening on *:4000');
+});</code></pre>
+        <p>سرور یک پیام‌رسان متمرکزِ نسبتاً ساده است: هر پیامی که روی کانال <code class="inline">channel</code> دریافت کند،
+        به همهٔ کلاینت‌های متصل بازپخش می‌کند. این یعنی عملاً یک گذرگاه (pub/sub) کوچک است که نودها را به هم وصل می‌کند
+        (در نسخهٔ مرورگریِ دمو، هر تب باز برنامه یک نود است؛ با بازکردن چند تب، چند نود شبیه‌سازی می‌شوند).</p>
+        <p>در سطح مدل‌ها، پیام‌های شبکه‌ای زیر ردوبدل می‌شوند:</p>
+        <ul>
+          <li><b>BLOCKS_BROADCAST</b> — پخش بلاک‌های یک بلاک‌چین مشخص؛ نودهای دیگر بلاک را پس از اعتبارسنجی به درخت خود
+          اضافه می‌کنند.</li>
+          <li><b>TRANSACTION_BROADCAST</b> — پخش یک تراکنش؛ نودهای دیگر آن را در
+          <code class="inline">pendingTransactions</code> خود ثبت می‌کنند.</li>
+          <li><b>REQUEST_BLOCKS</b> — درخواست دریافت بلاک‌های یک بلاک‌چین؛ نودِ تازه‌وارد در هنگام ساخت بلاک‌چین آن را می‌فرستد
+          و پاسخ آن نیز خودِ یک پیام <code class="inline">BLOCKS_BROADCAST</code> است.</li>
+          <li><b>BLOCKCHAIN_BROADCAST / BLOCKCHAIN_BROADCAST_REQUEST</b> — اعلامِ وجود بلاک‌چین‌ها بین نودها.</li>
+        </ul>
+        <p>به‌عنوان نمونه، بخشی از سازندهٔ کلاس <code class="inline">Blockchain</code> در فایل
+        <code class="inline">src/models/Blockchain.js</code> نشان می‌دهد که چگونه بلاک‌چین به این پیام‌ها گوش می‌دهد و
+        بلافاصله درخواست بلاک‌ها را منتشر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">constructor(name) {
+  this.name = name;
+  this.genesis = null;
+  this.blocks = {};
+
+  this.pendingTransactions = {};
+
+  this.createGenesisBlock();
+
+  subscribeTo("BLOCKS_BROADCAST", ({ blocks, blockchainName }) => {
+    if (blockchainName === this.name) {
+      blocks.forEach(block => this._addBlock(blockFromJSON(this, block)));
+    }
+  });
+
+  subscribeTo("TRANSACTION_BROADCAST", ({ transaction, blockchainName }) => {
+    if (blockchainName === this.name) {
+      this.pendingTransactions[transaction.hash] = transactionFromJSON(transaction);
+    }
+  });
+
+  publish("REQUEST_BLOCKS", { blockchainName: this.name });
+  subscribeTo("REQUEST_BLOCKS", ({ blockchainName }) => {
+    if (blockchainName === this.name)
+      publish("BLOCKS_BROADCAST", {
+        blockchainName,
+        blocks: Object.values(this.blocks).map(b => b.toJSON())
+      });
+  });
+}</code></pre>
+        <p>همچنین نقطهٔ ورود برنامه یعنی <code class="inline">src/index.js</code>، پیام‌های مربوط به فهرست بلاک‌چین‌ها را
+        مدیریت می‌کند (پخش نام بلاک‌چین‌ها پس از درخواست، و ثبت‌نام برای دریافت بلاک‌چین‌های تازه):</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import {action, state} from './store';
+import {subscribeTo, publish} from './network'
+action({})
+
+subscribeTo('BLOCKCHAIN_BROADCAST', (names) => {
+  action({ type: 'BLOCKCHAIN_BROADCAST', names })
+})
+
+subscribeTo('BLOCKCHAIN_BROADCAST_REQUEST', () => {
+  publish('BLOCKCHAIN_BROADCAST', state.blockchains.map((b) => b.name))
+})
+
+publish('BLOCKCHAIN_BROADCAST_REQUEST', {})</code></pre>
+      </section>
+
+      <!-- ==================== کد نهایی مدلها ==================== -->
+      <section>
+        <h2>کد نهایی مدل‌ها</h2>
+        <p>در این بخش، نسخهٔ کامل و نهایی فایل‌های پوشهٔ <code class="inline">src/models/</code> را می‌بینید. تفاوت‌های آن با
+        قطعه‌کدهای ساده‌شدهٔ README: هش هر بلاک علاوه بر نانس، کلید عمومیِ ذی‌نفع کوین‌بیس و هش ترکیبی همهٔ تراکنش‌ها را
+        نیز در محاسبه شامل می‌شود (<code class="inline">combinedTransactionsHash()</code>)؛ سختی (DIFFICULTY) برابر ۲ است؛
+        و اعتبارسنجی تراکنش‌ها همواره شامل بررسی امضا نیز هست.</p>
+
+        <h3>src/models/Block.js</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import sha256 from "crypto-js/sha256";
+import UTXOPool from "./UTXOPool";
+import { map } from "ramda";
+import { transactionFromJSON } from "./Transaction";
+
+const DIFFICULTY = 2;
+
+class Block {
+  constructor(opts) {
+    const {
+      blockchain,
+      parentHash,
+      height,
+      coinbaseBeneficiary,
+      nonce,
+      utxoPool,
+      transactions
+    } = {
+      coinbaseBeneficiary: "root",
+      nonce: "",
+      utxoPool: new UTXOPool(),
+      transactions: {},
+      ...opts
+    };
+    this.blockchain = blockchain;
+    this.nonce = nonce;
+    this.parentHash = parentHash;
+    this.height = height;
+    this.coinbaseBeneficiary = coinbaseBeneficiary;
+    this.utxoPool = utxoPool;
+    this.transactions = map(transactionFromJSON)(transactions);
+    this._setHash();
+    // فقط برای اهداف نمایش بصری
+    this.expanded = true;
+  }
+
+  isRoot() {
+    return this.parentHash === "root";
+  }
+  isValid() {
+    return (
+      this.isRoot() ||
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+        this.hash === this._calculateHash())
+    );
+  }
+
+  createChild(coinbaseBeneficiary) {
+    const block = new Block({
+      blockchain: this.blockchain,
+      parentHash: this.hash,
+      height: this.height + 1,
+      utxoPool: this.utxoPool.clone(),
+      coinbaseBeneficiary
+    });
+
+    // برای سهولت کار، به ماینر اجازه می‌دهیم بلافاصله سکه‌های کوین‌بیس را خرج کند
+    block.utxoPool.addUTXO(coinbaseBeneficiary, 12.5);
+
+    return block;
+  }
+
+  addTransaction(transaction) {
+    if (!this.isValidTransaction(transaction)) return;
+    this.transactions[transaction.hash] = transaction;
+    this.utxoPool.handleTransaction(transaction, this.coinbaseBeneficiary);
+    this._setHash();
+  }
+
+  isValidTransaction(transaction) {
+    return (
+      this.utxoPool.isValidTransaction(transaction) &&
+      transaction.hasValidSignature()
+    );
+  }
+
+  addingTransactionErrorMessage(transaction) {
+    if (!transaction.hasValidSignature()) return "Signature is not valid";
+    return this.utxoPool.addingTransactionErrorMessage(transaction);
+  }
+
+  setNonce(nonce) {
+    this.nonce = nonce;
+    this._setHash();
+  }
+
+  combinedTransactionsHash() {
+    if (Object.values(this.transactions).length === 0)
+      return "No Transactions in Block";
+    return sha256(
+      Object.values(this.transactions)
+        .map(tx => tx.hash)
+        .join("")
+    );
+  }
+
+  toJSON() {
+    return {
+      hash: this.hash,
+      nonce: this.nonce,
+      parentHash: this.parentHash,
+      height: this.height,
+      coinbaseBeneficiary: this.coinbaseBeneficiary,
+      transactions: map(transaction => transaction.toJSON(), this.transactions)
+    };
+  }
+
+  _setHash() {
+    this.hash = this._calculateHash();
+  }
+
+  _calculateHash() {
+    return sha256(
+      this.nonce +
+        this.parentHash +
+        this.coinbaseBeneficiary +
+        this.combinedTransactionsHash()
+    ).toString();
+  }
+}
+
+export default Block;
+
+export function blockFromJSON(blockchain, data) {
+  return new Block({
+    ...data,
+    blockchain
+  });
+}</code></pre>
+
+        <h3>src/models/Blockchain.js</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import Block from "./Block";
+import { blockFromJSON } from "./Block";
+import { transactionFromJSON } from "./Transaction";
+import { rerender } from "../store";
+import { publish, subscribeTo } from "../network";
+import { maxBy, reduce, unfold, reverse, values, prop } from "ramda";
+
+class Blockchain {
+  constructor(name) {
+    this.name = name;
+    this.genesis = null;
+    this.blocks = {};
+
+    this.pendingTransactions = {};
+
+    this.createGenesisBlock();
+
+    subscribeTo("BLOCKS_BROADCAST", ({ blocks, blockchainName }) => {
+      if (blockchainName === this.name) {
+        blocks.forEach(block => this._addBlock(blockFromJSON(this, block)));
+      }
+    });
+
+    subscribeTo("TRANSACTION_BROADCAST", ({ transaction, blockchainName }) => {
+      if (blockchainName === this.name) {
+        this.pendingTransactions[transaction.hash] = transactionFromJSON(transaction);
+      }
+    });
+
+    publish("REQUEST_BLOCKS", { blockchainName: this.name });
+    subscribeTo("REQUEST_BLOCKS", ({ blockchainName }) => {
+      if (blockchainName === this.name)
+        publish("BLOCKS_BROADCAST", {
+          blockchainName,
+          blocks: Object.values(this.blocks).map(b => b.toJSON())
+        });
+    });
+  }
+
+  maxHeightBlock() {
+    const blocks = values(this.blocks);
+    const maxByHeight = maxBy(prop("height"));
+    const maxHeightBlock = reduce(maxByHeight, blocks[0], blocks);
+    return maxHeightBlock;
+  }
+
+  longestChain() {
+    const getParent = x => {
+      if (x === undefined) {
+        return false;
+      }
+
+      return [x, this.blocks[x.parentHash]];
+    };
+    return reverse(unfold(getParent, this.maxHeightBlock()));
+  }
+
+  createGenesisBlock() {
+    const block = new Block({
+      blockchain: this,
+      parentHash: "root",
+      height: 1,
+      nonce: this.name
+    });
+    this.blocks[block.hash] = block;
+    this.genesis = block;
+  }
+
+  containsBlock(block) {
+    return this.blocks[block.hash] !== undefined;
+  }
+
+  addBlock(newBlock) {
+    this._addBlock(newBlock);
+    publish("BLOCKS_BROADCAST", {
+      blocks: [newBlock.toJSON()],
+      blockchainName: this.name
+    });
+  }
+
+  _addBlock(block) {
+    if (!block.isValid()) return;
+    if (this.containsBlock(block)) return;
+
+    // بررسی اینکه والد عملاً وجود دارد و ارتفاع اعلام‌شده درست است
+    const parent = this.blocks[block.parentHash];
+    if (parent === undefined && parent.height + 1 !== block.height) return;
+
+    const isParentMaxHeight = this.maxHeightBlock().hash === parent.hash;
+
+    // کلون‌کردن استخر UTXO والد و هم‌زمان‌سازی آن با بلاک
+    const newUtxoPool = parent.utxoPool.clone();
+    block.utxoPool = newUtxoPool;
+
+    // افزودن سکهٔ کوین‌بیس به استخر
+    block.utxoPool.addUTXO(block.coinbaseBeneficiary, 12.5);
+
+    // اعمال‌مجدد تراکنش‌ها برای اعتبارسنجی آن‌ها
+    const transactions = block.transactions;
+    block.transactions = {};
+    let containsInvalidTransactions = false;
+
+    Object.values(transactions).forEach(transaction => {
+      if (block.isValidTransaction(transaction)) {
+        block.addTransaction(transaction);
+
+        // اگر تراکنش در لیست در انتظار بلاک‌چین داشتیم و در بلندترین ارتفاع هستیم، آن را حذف کن
+        if (isParentMaxHeight && this.pendingTransactions[transaction.hash])
+          delete this.pendingTransactions[transaction.hash];
+      } else {
+        containsInvalidTransactions = true;
+      }
+    });
+
+    // اگر تراکنش‌های نامعتبری پیدا کردیم، بلاک را اضافه نکن
+    if (containsInvalidTransactions) return;
+
+    this.blocks[block.hash] = block;
+    rerender();
+  }
+}
+export default Blockchain;</code></pre>
+
+        <h3>src/models/Transaction.js</h3>
+        <p>توجه کنید که در نسخهٔ نهایی، هش تراکنش شامل کارمزد (<code class="inline">fee</code>) نیز می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import sha256 from "crypto-js/sha256";
+import { verifySignature } from "../crypto";
+
+export default class Transaction {
+  constructor(inputPublicKey, outputPublicKey, amount, fee, signature) {
+    this.inputPublicKey = inputPublicKey;
+    this.outputPublicKey = outputPublicKey;
+    this.amount = amount;
+    this.fee = fee;
+    this.signature = signature;
+    this._setHash();
+  }
+
+  hasValidSignature() {
+    return (
+      this.signature !== undefined &&
+      verifySignature(this.hash, this.signature, this.inputPublicKey)
+    );
+  }
+
+  toJSON() {
+    return {
+      inputPublicKey: this.inputPublicKey,
+      outputPublicKey: this.outputPublicKey,
+      amount: this.amount,
+      fee: this.fee,
+      hash: this.hash,
+      signature: this.signature
+    };
+  }
+
+  _setHash() {
+    this.hash = this._calculateHash();
+  }
+
+  _calculateHash() {
+    return sha256(
+      this.inputPublicKey + this.outputPublicKey + this.amount + this.fee
+    ).toString();
+  }
+}
+
+export function transactionFromJSON(transaction) {
+  return new Transaction(
+    transaction.inputPublicKey,
+    transaction.outputPublicKey,
+    transaction.amount,
+    transaction.fee,
+    transaction.signature
+  );
+}</code></pre>
+
+        <h3>src/models/UTXO.js و src/models/UTXOPool.js</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// src/models/UTXO.js — یک خروجی تراکنش خرج‌نشدهٔ منفرد
+export default class UTXO {
+  constructor(publicKey, amount) {
+    this.publicKey = publicKey
+    this.amount = amount
+  }
+}</code></pre>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// src/models/UTXOPool.js — استخر خروجی‌های تراکنش خرج‌نشده
+import { clone } from 'ramda';
+import UTXO from './UTXO';
+
+export default class UTXOPool {
+  constructor(utxos = {}) {
+    this.utxos = utxos
+  }
+
+  addUTXO(publicKey, amount) {
+    if (this.utxos[publicKey]) {
+      this.utxos[publicKey].amount += amount
+    } else {
+      const utxo = new UTXO(publicKey, amount)
+      this.utxos[publicKey] = utxo
+    }
+  }
+
+  handleTransaction(transaction, feeReceiver) {
+    if (!this.isValidTransaction(transaction))
+      return
+    const inputUTXO = this.utxos[transaction.inputPublicKey];
+    inputUTXO.amount -= transaction.amount
+    inputUTXO.amount -= transaction.fee
+    if (inputUTXO.amount === 0)
+      delete this.utxos[transaction.inputPublicKey]
+    this.addUTXO(transaction.outputPublicKey, transaction.amount)
+    this.addUTXO(feeReceiver, transaction.fee)
+  }
+
+  isValidTransaction(transaction) {
+    const { inputPublicKey, amount, fee } = transaction
+    const utxo = this.utxos[inputPublicKey]
+    return utxo !== undefined && utxo.amount >= (amount + fee) && amount > 0
+  }
+
+  addingTransactionErrorMessage(transaction) {
+    const { inputPublicKey, amount, fee } = transaction
+    const utxo = this.utxos[inputPublicKey]
+    if (utxo === undefined)
+      return "No UTXO was associated with this public key"
+    if (amount <= 0)
+      return "Amount has to be at least 0"
+    if (utxo.amount < amount + fee)
+      return `UTXO associated with this public key (${utxo.amount}) does not cover desired amount (${amount}) and fee (${fee})`
+  }
+
+  clone() {
+    return new UTXOPool(clone(this.utxos))
+  }
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> در این پیاده‌سازی، برای سادگی هر «کلید عمومی» فقط یک UTXO دارد و تراکنش‌ها همیشه یک ورودی و
+          یک خروجی دارند؛ در بیت‌کوین واقعی، UTXOها به‌طور کامل مصرف می‌شوند و تراکنش‌ها می‌توانند ورودی‌ها و خروجی‌های
+          متعددی داشته باشند (مطابق همان سلب مسئولیت ابتدای README).
+        </div>
+      </section>
+
+      <!-- ==================== حالت سراسری ==================== -->
+      <section>
+        <h2>حالت سراسری برنامه: src/index.js و src/store.js</h2>
+        <p>هر نود (تب مرورگر) در هنگام راه‌اندازیِ برنامه یک هویت می‌سازد که از یک جفت‌کلید عمومی/خصوصی تشکیل شده
+        (<code class="inline">generatePair()</code> از <code class="inline">src/crypto.js</code>) و نام آن از ۱۰ کاراکتر
+        اول کلید عمومی مشتق می‌شود. این هویت در حالت سراسری (<code class="inline">store.js</code>) ذخیره می‌شود. تابع
+        <code class="inline">action()</code> در <code class="inline">store.js</code> یک reducer سادهٔ سراسری است که
+        رویدادهایی مانند انتخاب بلاک‌چین، ساخت بلاک‌چین جدید، افزودن هویت جدید و پیشروی در راهنمای تعاملی (walkthrough) را
+        پردازش می‌کند و پس از هر تغییر، برنامه را دوباره رندر (render) می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">import "./index.css";
+import "@blueprintjs/core/dist/blueprint.css";
+
+import App from "./App";
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import { any, find } from "ramda";
+import Blockchain from "./models/Blockchain";
+import { generatePair } from "./crypto";
+
+const defaultBlockchain = new Blockchain("Bitcoin");
+
+function createIdentity() {
+  const pair = generatePair();
+
+  return {
+    name: "Node " + pair.publicKey.substr(0, 10),
+    ...pair
+  };
+}
+
+const identity = createIdentity();
+
+const identities = {};
+identities[identity.publicKey] = identity;
+
+let state = {
+  walkthrough: {
+    show: true,
+    step: 0,
+    enabled: window.localStorage.getItem("walkthroughEnabled") === null
+  },
+  blockchains: [defaultBlockchain],
+  selectedBlockchain: defaultBlockchain,
+  identities: identities,
+  node: identity
+};
+
+window.state = state;
+
+// اگر کارفرمایان آینده این را ببینند، می‌دانم که تغییر حالت سراسری به‌جای خودش رایج نیست؛ اما برای اهداف آموزشی این‌گونه انجام شده است
+const action = function(actionPayload) {
+  console.log(actionPayload);
+  switch (actionPayload.type) {
+    case "PICK_BLOCKCHAIN":
+      if (actionPayload.name === "") break;
+      let blockchain = find(bc => bc.name === actionPayload.name)(
+        state.blockchains
+      );
+      if (blockchain === undefined) {
+        blockchain = new Blockchain(actionPayload.name);
+        state.blockchains.push(blockchain);
+      }
+      state.selectedBlockchain = blockchain;
+      break;
+    case "BLOCKCHAIN_BROADCAST":
+      actionPayload.names.forEach(name => {
+        if (!any(b => b.name === name)(state.blockchains)) {
+          const blockchain = new Blockchain(name);
+          state.blockchains.push(blockchain);
+        }
+      });
+      break;
+    case "ADD_IDENTITY": {
+      const identity = createIdentity();
+      state.identities[identity.publicKey] = identity;
+      break;
+    }
+    case "CHANGE_IDENTITY_NAME": {
+      const identity = state.identities[actionPayload.publicKey];
+      if (identity === undefined) break;
+      identity.name = actionPayload.name;
+      break;
+    }
+    case "HIDE_WALKTHROUGH": {
+      state.walkthrough = { ...state.walkthrough, show: false };
+      break;
+    }
+    case "ADVANCE_WALKTHROUGH": {
+      if (actionPayload.step !== undefined) {
+        if (state.walkthrough.step > actionPayload.step) break;
+        state.walkthrough.step = actionPayload.step;
+      } else state.walkthrough.step += 1;
+      state.walkthrough.show = true;
+      break;
+    }
+    case "DISABLE_WALKTHROUGH": {
+      state.walkthrough = { ...state.walkthrough, enabled: false };
+      window.localStorage.setItem("walkthroughEnabled", false);
+      break;
+    }
+    case "RERENDER":
+      // واقعاً هیچ کاری انجام نمی‌دهد
+      break;
+    default:
+      break;
+  }
+  const component = ReactDOM.render(
+    &lt;App appState={state} /&gt;,
+    document.getElementById("root")
+  );
+  component.forceUpdate();
+};
+
+export function rerender() {
+  action({ type: "RERENDER" });
+}
+
+export { action, state };</code></pre>
+      </section>
+
+      <!-- ==================== ماینینگ در UI ==================== -->
+      <section>
+        <h2>استخراج در رابط کاربری</h2>
+        <p>در رابط کاربری، کامپوننت <code class="inline">src/components/NewBlockHeader.js</code> بخش «ماینینگ» را نشان
+        می‌دهد: برای این که اجازهٔ افزودن بلاکی به زنجیره را داشته باشید، باید معیارهای خاصی تأمین شود. برای دستیابی به اجماع
+        بر سر تاریخچهٔ بلاک‌ها، باید انجام این کار را دشوار کنیم؛ و در سیستم‌های اثبات کار، با حل‌کردن معماهای محاسباتی توسط
+        ماینرها تضمین می‌شود. در این‌جا، انتظار داریم هش بلاک‌ها با امتحانِ نانس‌های متعدد، به تعداد معینی «0» ختم شود.
+        سایر نودها به‌راحتی می‌توانند یکپارچگی بلاک را با محاسبهٔ مجدد هش تأیید کنند. متدهای کلیدی آن (کد دقیق از همان
+        فایل):</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">changeNonce = evt => {
+  this.props.block.setNonce(evt.target.value);
+  this.props.rerender();
+};
+tryUntilFound = () => {
+  if (!this.props.block.isValid()) {
+    this.props.block.setNonce(
+      sha256(new Date().getTime().toString()).toString()
+    );
+    this.props.rerender();
+
+    if (!this.props.block.isValid()) {
+      setTimeout(this.tryUntilFound, 2);
+    } else {
+      advanceTo(4)
+    }
+  } else {
+    advanceTo(4)
+  }
+};</code></pre>
+        <p>کاربر می‌تواند نانس را دستی تغییر دهد (<code class="inline">changeNonce</code>) یا با دکمهٔ
+        «brute-force» (حملهٔ فراگیر) نانس‌ها را پشت‌سرهم با <code class="inline">setTimeout</code> امتحان کند
+        (<code class="inline">tryUntilFound</code>) تا هش معتبر (ختم‌شونده به {DIFFICULTY = 2} صفر) پیدا شود. سپس کامپوننت
+        <code class="inline">src/components/NewBlock.js</code> با دکمهٔ «Add Block» بلاک معتبر را به والدش اضافه و به شبکه
+        پخش می‌کند (کد دقیق):</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">addBlock = evt => {
+  if (this.props.block.isValid()) {
+    this.props.block.blockchain.addBlock(this.props.block);
+    this.props.onCancel();
+    advanceTo(5);
+  }
+};</code></pre>
+        <p>اگر بلاک شما بخشی از بلندترین زنجیرهٔ بلاک‌ها باشد و سایر نودها نیز روی همین زنجیره به کار خود ادامه دهند، آنگاه
+        شما واقعاً صاحب پاداش استخراج خواهید بود. کامپوننت <code class="inline">src/components/NewTransaction.js</code>
+        نیز فرم ساخت تراکنش است: کلید عمومیِ فرستنده (با امکان انتخاب از UTXOهای قابل‌خرج)، کلید عمومیِ گیرنده (با امکان
+        انتخاب از هویت‌های موجود)، مبلغ، کارمزد و امضا.</p>
+      </section>
+
+      <!-- ==================== نحوه اجرا ==================== -->
+      <section>
+        <h2>نحوهٔ اجرا (To run)</h2>
+        <p>این پروژه بر پایهٔ <code class="inline">create-react-app</code> ساخته شده است، بنابراین یک
+        <code class="inline">yarn start</code> ساده تقریباً همه‌چیز را راه می‌اندازد. فقط باید یک سرور سادهٔ
+        <code class="inline">socket.io</code> را با <code class="inline">node src/server.js</code> راه‌اندازی کنید
+        (این سرور روی پورت <code class="inline">4000</code> گوش می‌دهد). اگر ترجیح می‌دهید، می‌توانید آن را با
+        <code class="inline">docker-compose</code> نیز اجرا کنید (فایل‌های <code class="inline">Dockerfile.client</code>
+        و <code class="inline">Dockerfile.server</code> در مخزن موجودند). یا جدیدترین نسخهٔ در حال اجرای آن را در
+        <a href="https://blockchain.nambrot.com" target="_blank" rel="noopener">blockchain.nambrot.com</a> ببینید.
+        برای شبیه‌سازی چند نود، کافی است چند تب از برنامه را باز کنید؛ چون این یک دموی توزیع‌شده است، نودهای مختلف از طریق
+        سرور socket.io پیام‌های یکدیگر را دریافت می‌کنند.</p>
+      </section>
+
+      <!-- ==================== جمعبندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>خوشحال هستیم که با هم از اصول اولیه ساخت یک بلاک‌چین ساده در جاوااسکریپت گذر کردیم: از درخت بلاک‌ها و بلندترین
+        زنجیره، تا اثبات کار با هش SHA256، پاداش استخراج و استخر UTXO، تراکنش‌ها با کارمزد و در نهایت امضای دیجیتال برای
+        اثبات مالکیت. همان‌طور که نویسنده می‌گوید، بلاک‌چین به‌قدری ساده است که مقالهٔ اصلی بیت‌کوین فقط ۸ صفحه است؛ تنها
+        دانش لازم، مقداری رمزنگاری کلید عمومی و این واقعیت است که برخی توابعِ هش عملاً وارونه‌شدنی نیستند.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build your own Blockchain in Javascript» و تمام کدهای آن اثر «نامبروت (Nambrot)»
+        (همراه با دمو در <a href="https://blockchain.nambrot.com" target="_blank" rel="noopener">blockchain.nambrot.com</a>)
+        است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="https://github.com/nambrot/blockchain-in-js" target="_blank" rel="noopener">مخزن GitHub
+        (github.com/nambrot/blockchain-in-js)</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

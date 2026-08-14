@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مخزن «Naivecoin — a cryptocurrency implementation
+  in less than 1500 lines of code» (Conrado Gouvea / conradoqg)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی و کد دقیق از رپو | تصاویر با آدرس مستقیم رپو
+  | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نایوکوین — پیاده‌سازی یک ارز دیجیتال در کمتر از ۱۵۰۰ خط کد</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاکچین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>نایوکوین — پیاده‌سازی یک ارز دیجیتال در کمتر از ۱۵۰۰ خط کد</span>
+      </div>
+      <h1>نایوکوین — پیاده‌سازی یک ارز دیجیتال در کمتر از ۱۵۰۰ خط کد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">📁 دسته: بلاکچین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/conradoqg/naivecoin" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مخزن «Naivecoin — a cryptocurrency implementation in
+          less than 1500 lines of code» نوشته «کنرادو گووِئا (Conrado Gouvea)» است. تمام بخش‌های
+          README، معماری ماژول‌ها و کدهای کلیدی رپو با کد دقیق از مخزن اصلی آورده شده است.
+          نسخه کامل و به‌روز را از مخزن اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/conradoqg/naivecoin" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>انگیزه (Motivation)</h2>
+        <p>ارزهای دیجیتال و قراردادهای هوشمند (smart-contracts) روی بستر بلاک‌چین، ساده‌ترین مفاهیم برای
+        درک نیستند؛ چیزهایی مانند کیف پول‌ها (wallets)، آدرس‌ها، اثبات کار بلاک‌ها (block proof-of-work)،
+        تراکنش‌ها و امضاهای آن‌ها، وقتی در یک بافت وسیع‌تر قرار بگیرند معنادارتر می‌شوند. این پروژه که از
+        <a href="https://github.com/lhartikk/naivechain" target="_blank" rel="noopener">naivechain</a> الهام
+        گرفته شده است، تلاشی است برای ارائهٔ هرچه موجزتر و ساده‌تر یک پیاده‌سازی از ارز دیجیتال.</p>
+
+        <h3>ارز دیجیتال چیست؟</h3>
+        <p><a href="https://en.wikipedia.org/wiki/Cryptocurrency" target="_blank" rel="noopener">از ویکی‌پدیا</a>:
+        ارز دیجیتال (cryptocurrency) یک دارایی دیجیتال است که به‌عنوان واسطهٔ مبادله طراحی شده است؛ با استفاده
+        از رمزنگاری، تراکنش‌ها امن می‌شوند و ایجاد واحدهای اضافی ارز کنترل می‌شود.</p>
+      </section>
+
+      <!-- ==================== مفاهیم کلیدی ==================== -->
+      <section>
+        <h2>مفاهیم کلیدی نایوکوین (Key concepts)</h2>
+        <ul>
+          <li><b>مؤلفه‌ها (Components):</b>
+            <ul>
+              <li>سرور HTTP</li>
+              <li>نود (Node)</li>
+              <li>بلاک‌چین</li>
+              <li>اپراتور (Operator)</li>
+              <li>ماینر (Miner)</li>
+            </ul>
+          </li>
+          <li>رابط API مبتنی بر HTTP برای کنترل همه‌چیز</li>
+          <li>همگام‌سازی بلاک‌چین و تراکنش‌ها</li>
+          <li>اثبات کار ساده (سختی هر ۵ بلاک افزایش می‌یابد)</li>
+          <li>ایجاد آدرس‌ها با رویکرد قطعی (deterministic) با استفاده از
+            <a href="https://en.wikipedia.org/wiki/EdDSA" target="_blank" rel="noopener">EdDSA</a></li>
+          <li>پایستگی (persist) داده‌ها در یک پوشه</li>
+        </ul>
+
+        <div class="callout note">
+          <strong>توجه:</strong> naivechain از websocket برای ارتباط p2p استفاده می‌کند، اما در این
+          پیاده‌سازی برای ساده‌کردن درک تبادل پیام‌ها، آن را کنار گذاشته‌ایم و فقط به ارتباط REST
+          اتکا می‌کنیم.
+        </div>
+
+        <h3>ساختار مخزن</h3>
+        <p>مخزن از پوشه‌ها و فایل‌های اصلی زیر تشکیل شده است:</p>
+        <ul>
+          <li><code class="inline">bin/naivecoin.js</code> — نقطهٔ ورود خط فرمان و تجزیهٔ آرگومان‌ها</li>
+          <li><code class="inline">lib/naivecoin.js</code> — اتصال همهٔ مؤلفه‌ها و راه‌اندازی نود</li>
+          <li><code class="inline">lib/config.js</code> — پیکربندی (پاداش ماینینگ، کارمزد، بلاک جنسیس، دشواری)</li>
+          <li><code class="inline">lib/blockchain/</code> — <code class="inline">index.js</code> (کلاس Blockchain)،
+            <code class="inline">block.js</code>، <code class="inline">blocks.js</code>،
+            <code class="inline">transaction.js</code>، <code class="inline">transactions.js</code> و کلاس‌های خطا</li>
+          <li><code class="inline">lib/operator/</code> — <code class="inline">index.js</code>،
+            <code class="inline">wallet.js</code>، <code class="inline">wallets.js</code>،
+            <code class="inline">transactionBuilder.js</code></li>
+          <li><code class="inline">lib/miner/index.js</code> — ماینر و الگوریتم اثبات کار</li>
+          <li><code class="inline">lib/node/index.js</code> — ارتباط همتاها (p2p) و همگام‌سازی داده‌ها</li>
+          <li><code class="inline">lib/httpServer/</code> — روتر API (express)، مستندات
+            <code class="inline">swagger.json</code> و قالب‌های رابط کاربری (pug)</li>
+          <li><code class="inline">lib/util/</code> — <code class="inline">cryptoUtil.js</code>،
+            <code class="inline">cryptoEdDSAUtil.js</code>، <code class="inline">db.js</code>،
+            <code class="inline">consoleWrapper.js</code> و کلاس‌های خطای کمکی</li>
+          <li><code class="inline">test/integrationTest.js</code> — تست‌های یکپارچه‌سازی با mocha</li>
+          <li><code class="inline">doc/</code> — نمودارهای معماری (components.png، blockchain.png، ui.png)</li>
+        </ul>
+      </section>
+
+      <!-- ==================== ارتباط بین مؤلفه‌ها ==================== -->
+      <section>
+        <h2>ارتباط بین مؤلفه‌ها (Components communication)</h2>
+        <p>نمودار زیر نحوهٔ ارتباط مؤلفه‌ها با یکدیگر را نشان می‌دهد:</p>
+        <img src="https://raw.githubusercontent.com/conradoqg/naivecoin/master/doc/components.png" alt="نمودار ارتباط بین مؤلفه‌های نایوکوین: سرور HTTP، نود، بلاک‌چین، اپراتور و ماینر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همهٔ مؤلفه‌های این پیاده‌سازی از فهرست کامل نیازمندی‌های یک ارز دیجیتال امن و مقیاس‌پذیر پیروی
+        نمی‌کنند. در داخل کد منبع، کامنت‌هایی با پیشوند <code class="inline">INFO:</code> پیدا می‌کنید که
+        توصیف می‌کنند کدام بخش‌ها قابل بهبود هستند (و چگونه) و چه تکنیک‌هایی برای حل آن چالش خاص به‌کار
+        رفته است. به‌عنوان نمونه، در <code class="inline">lib/blockchain/index.js</code> دربارهٔ پایگاه
+        دادهٔ فایلی آمده است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// INFO: در این پیاده‌سازی پایگاه داده یک فایل است و هر بار داده ذخیره می‌شود
+// فایل بازنویسی می‌شود؛ احتمالاً برای کارایی بهتر باید پایگاه داده محکم‌تری استفاده شود
+this.blocks = this.blocksDb.read(Blocks);</code></pre>
+
+        <h3>نقطهٔ ورود: lib/naivecoin.js</h3>
+        <p>تابع <code class="inline">naivecoin</code> همهٔ مؤلفه‌ها را می‌سازد و به هم مرتبط می‌کند؛ بلاک‌چین،
+        اپراتور، ماینر، نود و سرور HTTP — و در نهایت سرور را راه‌اندازی می‌کند. مقادیر پورت، همتاها، سطح
+        لاگ و نام نود را می‌توان با متغیرهای محیطی (<code class="inline">HOST</code>،
+        <code class="inline">PORT</code>، <code class="inline">PEERS</code>،
+        <code class="inline">LOG_LEVEL</code>، <code class="inline">NAME</code>) یا آرگومان‌های خط فرمان
+        تنظیم کرد. کد کامل فایل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/naivecoin.js" target="_blank" rel="noopener">lib/naivecoin.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const HttpServer = require('./httpServer');
+const Blockchain = require('./blockchain');
+const Operator = require('./operator');
+const Miner = require('./miner');
+const Node = require('./node');
+
+module.exports = function naivecoin(host, port, peers, logLevel, name) {
+    host = process.env.HOST || host || 'localhost';
+    port = process.env.PORT || process.env.HTTP_PORT || port || 3001;
+    peers = (process.env.PEERS ? process.env.PEERS.split(',') : peers || []);
+    peers = peers.map((peer) => { return { url: peer }; });
+    logLevel = (process.env.LOG_LEVEL ? process.env.LOG_LEVEL : logLevel || 6);    
+    name = process.env.NAME || name || '1';
+
+    require('./util/consoleWrapper.js')(name, logLevel);
+
+    console.info(`Starting node ${name}`);
+
+    let blockchain = new Blockchain(name);
+    let operator = new Operator(name, blockchain);
+    let miner = new Miner(blockchain, logLevel);
+    let node = new Node(host, port, peers, blockchain);
+    let httpServer = new HttpServer(node, blockchain, operator, miner);
+
+    httpServer.listen(host, port);
+};</code></pre>
+        <p>نقطهٔ ورود خط فرمان (<code class="inline">bin/naivecoin.js</code>) هم با
+        <code class="inline">yargs</code> آرگومان‌ها را تجزیه کرده و همین تابع را صدا می‌زند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/bin/naivecoin.js" target="_blank" rel="noopener">bin/naivecoin.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const naivecoin = require('./../lib/naivecoin');
+
+const argv = require('yargs')
+    .usage('Usage: $0 [options]')
+    .alias('a', 'host')
+    .describe('a', 'Host address. (localhost by default)')
+    .alias('p', 'port')
+    .describe('p', 'HTTP port. (3001 by default)')
+    .alias('l', 'log-level')
+    .describe('l', 'Log level (7=dir, debug, time and trace; 6=log and info; 4=warn; 3=error, assert; 6 by default).')
+    .describe('peers', 'Peers list.')
+    .describe('name', 'Node name/identifier.')
+    .array('peers')
+    .help('h')
+    .alias('h', 'help')
+    .argv;
+
+naivecoin(argv.host, argv.port, argv.peers, argv.logLevel, argv.name);</code></pre>
+      </section>
+
+      <!-- ==================== سرور HTTP ==================== -->
+      <section>
+        <h2>سرور HTTP</h2>
+        <p>سرور HTTP یک API برای مدیریت بلاک‌چین، کیف پول‌ها، آدرس‌ها، ایجاد تراکنش، درخواست ماینینگ و
+        اتصال همتاها فراهم می‌کند.</p>
+        <p>این سرور نقطهٔ شروعِ تعامل با نایوکوین است و هر نود یک API سواگر (swagger) ارائه می‌دهد تا این
+        تعامل آسان‌تر شود. در ادامه، پایان‌نقطه‌های (endpoints) موجود آمده است:</p>
+
+        <h3>بلاک‌چین (Blockchain)</h3>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">متد</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">URL</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت همهٔ بلاک‌ها</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks/{index}</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت بلاک با ایندکس</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks/{hash}</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت بلاک با هش</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks/latest</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت آخرین بلاک</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">PUT</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks/latest</code></td><td style="border:1px solid var(--line);padding:8px 12px">به‌روزرسانی آخرین بلاک</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/blocks/transactions/{transactionId}</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت یک تراکنش از یک بلاک</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/transactions</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت تراکنش‌های تأییدنشده</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/transactions</code></td><td style="border:1px solid var(--line);padding:8px 12px">ایجاد یک تراکنش</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/blockchain/transactions/unspent</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت تراکنش‌های خرج‌نشده</td></tr>
+          </tbody>
+        </table>
+
+        <h3>اپراتور (Operator)</h3>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">متد</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">URL</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت همهٔ کیف پول‌ها</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets</code></td><td style="border:1px solid var(--line);padding:8px 12px">ایجاد کیف پول از روی یک رمز عبور</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets/{walletId}</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت کیف پول با شناسه</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets/{walletId}/addresses</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت همهٔ آدرس‌های یک کیف پول</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets/{walletId}/transactions</code></td><td style="border:1px solid var(--line);padding:8px 12px">ایجاد یک تراکنش جدید</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/wallets/{walletId}/addresses</code></td><td style="border:1px solid var(--line);padding:8px 12px">ایجاد یک آدرس جدید</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/operator/{addressId}/balance</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت موجودی یک آدرس مشخص</td></tr>
+          </tbody>
+        </table>
+
+        <h3>نود (Node)</h3>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">متد</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">URL</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/node/peers</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت همهٔ همتاهای متصل به نود</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/node/peers</code></td><td style="border:1px solid var(--line);padding:8px 12px">اتصال یک همتای جدید به نود</td></tr>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">GET</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/node/transactions/{transactionId}/confirmations</code></td><td style="border:1px solid var(--line);padding:8px 12px">دریافت تعداد تأییدهای (confirmations) یک تراکنش</td></tr>
+          </tbody>
+        </table>
+
+        <h3>ماینر (Miner)</h3>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">متد</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">URL</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">POST</td><td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">/miner/mine</code></td><td style="border:1px solid var(--line);padding:8px 12px">استخراج (ماین) یک بلاک جدید</td></tr>
+          </tbody>
+        </table>
+
+        <p>از طریق رابط کاربری سواگر (Swagger UI) می‌توان به یک رابط کاربری ساده برای مشاهدهٔ بلاک‌چین و
+        تراکنش‌های تأییدنشده دسترسی داشت:</p>
+        <img src="https://raw.githubusercontent.com/conradoqg/naivecoin/master/doc/ui.png" alt="رابط کاربری سواگر برای مشاهدهٔ بلاک‌چین و تراکنش‌های تأییدنشده در نایوکوین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>روتر API: lib/httpServer/index.js</h3>
+        <p>روتر با <code class="inline">express</code> و <code class="inline">body-parser</code> پیاده‌سازی
+        شده است؛ مستندات سواگر در مسیر <code class="inline">/api-docs</code> ارائه می‌شود و هر خطا در
+        میان‌افزار (middleware) انتهایی به یک پاسخ HTTP مناسب تبدیل می‌شود. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/httpServer/index.js" target="_blank" rel="noopener">lib/httpServer/index.js</a>.
+        به‌عنوان نمونه، تعریف مسیر ماینینگ به این صورت است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">this.app.post('/miner/mine', (req, res, next) => {
+    miner.mine(req.body.rewardAddress, req.body['feeAddress'] || req.body.rewardAddress)
+        .then((newBlock) => {
+            newBlock = Block.fromJson(newBlock);
+            blockchain.addBlock(newBlock);
+            res.status(201).send(newBlock);
+        })
+        .catch((ex) => {
+            if (ex instanceof BlockAssertionError &amp;&amp; ex.message.includes('Invalid index')) next(new HTTPError(409, 'A new block were added before we were able to mine one'), null, ex);
+            else next(ex);
+        });
+});</code></pre>
+        <p>و متد <code class="inline">listen</code> که سرور را روی پورت مشخص‌شده راه‌اندازی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">listen(host, port) {
+    return new Promise((resolve, reject) => {
+        this.server = this.app.listen(port, host, (err) => {
+            if (err) reject(err);
+            console.info(`Listening http on port: ${this.server.address().port}, to access the API documentation go to http://${host}:${this.server.address().port}/api-docs/`);
+            resolve(this);
+        });
+    });
+}</code></pre>
+      </section>
+
+      <!-- ==================== بلاک‌چین ==================== -->
+      <section>
+        <h2>بلاک‌چین</h2>
+        <p>بلاک‌چین دو نوع اطلاعات را نگه می‌دارد: فهرست بلاک‌ها (یک لیست پیوندی / linked list) و فهرست
+        تراکنش‌ها (یک هش‌مپ / hash map).</p>
+        <p>بلاک‌چین مسئول این کارهاست:</p>
+        <ul>
+          <li>تأیید بلاک‌های رسیده؛</li>
+          <li>تأیید تراکنش‌های رسیده؛</li>
+          <li>همگام‌سازی فهرست تراکنش‌ها؛</li>
+          <li>همگام‌سازی فهرست بلاک‌ها.</li>
+        </ul>
+        <p>بلاک‌چین یک لیست پیوندی است که در آن، هش بلاک بعدی بر اساس هش بلاک قبلی به‌علاوهٔ داده‌های داخل
+        خودِ بلاک محاسبه می‌شود:</p>
+        <img src="https://raw.githubusercontent.com/conradoqg/naivecoin/master/doc/blockchain.png" alt="نمودار لیست پیوندی بلاک‌ها — هش هر بلاک بر اساس هش بلاک قبلی و داده‌های داخل بلاک محاسبه می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>یک بلاک تنها در صورتی به فهرست بلاک‌ها اضافه می‌شود که:</p>
+        <ol>
+          <li>بلاک، آخرین بلاک باشد (ایندکس قبلی + ۱)؛</li>
+          <li>بلاک قبلی درست باشد (هش قبلی == <code class="inline">block.previousHash</code>)؛</li>
+          <li>هش درست باشد (هش محاسبه‌شدهٔ بلاک == <code class="inline">block.hash</code>)؛</li>
+          <li>سطح دشواری چالش اثبات کار درست باشد (دشواریِ ایندکسِ <em>n</em> بلاک‌چین &lt; دشواری بلاک)؛</li>
+          <li>همهٔ تراکنش‌های داخل بلاک معتبر باشند؛</li>
+          <li>مجموع تراکنش‌های خروجی برابر مجموع تراکنش‌های ورودی + ۵۰ سکه باشد که پاداش ماینر بلاک است؛</li>
+          <li>بررسی شود که در آن بلاک خرجِ دوباره (double spending) وجود نداشته باشد؛</li>
+          <li>فقط ۱ تراکنش کارمزد (fee) و ۱ تراکنش پاداش (reward) وجود داشته باشد.</li>
+        </ol>
+
+        <p>یک تراکنش داخل بلاک در صورتی معتبر است که:</p>
+        <ol>
+          <li>هش تراکنش درست باشد (هش محاسبه‌شدهٔ تراکنش == <code class="inline">transaction.hash</code>)؛</li>
+          <li>امضای همهٔ تراکنش‌های ورودی درست باشد (امضای دادهٔ تراکنش را می‌توان با کلید عمومی آدرس تأیید کرد)؛</li>
+          <li>مجموع تراکنش‌های ورودی بزرگ‌تر از تراکنش‌های خروجی باشد تا جایی برای کارمزد تراکنش باقی بماند؛</li>
+          <li>تراکنش از قبل در بلاک‌چین نباشد؛</li>
+          <li>همهٔ تراکنش‌های ورودی در بلاک‌چین خرج‌نشده (unspent) باشند.</li>
+        </ol>
+
+        <p>برای جزئیات بیشتر دربارهٔ نحوهٔ کار بلاک‌چین می‌توانید این
+        <a href="https://medium.com/@lhartikk/a-blockchain-in-200-lines-of-code-963cc1cc0e54#.dttbm9afr5" target="_blank" rel="noopener">پست</a>
+        را از پروژهٔ
+        <a href="https://github.com/lhartikk/naivechain" target="_blank" rel="noopener">naivechain</a>
+        بخوانید.</p>
+
+        <p>«تراکنش‌ها» فهرستی از تراکنش‌های تأییدنشده است و هیچ چیز خاصی دربارهٔ آن وجود ندارد. در این
+        پیاده‌سازی، فهرست تراکنش‌ها فقط تراکنش‌های تأییدنشده را در خود دارد؛ به محض اینکه یک تراکنش تأیید
+        شود، بلاک‌چین آن را از این فهرست حذف می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[
+    transaction 1,
+    transaction 2,
+    transaction 3
+]</code></pre>
+
+        <p>یک تراکنش تنها در صورتی به فهرست تراکنش‌ها اضافه می‌شود که:</p>
+        <ol>
+          <li>از قبل در فهرست تراکنش‌ها نباشد؛</li>
+          <li>هش تراکنش درست باشد (هش محاسبه‌شدهٔ تراکنش == <code class="inline">transaction.hash</code>)؛</li>
+          <li>امضای همهٔ تراکنش‌های ورودی درست باشد (امضای دادهٔ تراکنش را می‌توان با کلید عمومی آدرس تأیید کرد)؛</li>
+          <li>مجموع تراکنش‌های ورودی بزرگ‌تر از تراکنش‌های خروجی باشد تا جایی برای کارمزد تراکنش باقی بماند؛</li>
+          <li>تراکنش از قبل در بلاک‌چین نباشد؛</li>
+          <li>همهٔ تراکنش‌های ورودی در بلاک‌چین خرج‌نشده باشند.</li>
+        </ol>
+
+        <h3>ماژول Blockchain: lib/blockchain/index.js</h3>
+        <p>کلاس <code class="inline">Blockchain</code> دو «پایگاه داده» (فایل‌های JSON) باز می‌کند:
+        <code class="inline">blocks.json</code> برای بلاک‌ها و <code class="inline">transactions.json</code>
+        برای تراکنش‌های تأییدنشده؛ از یک <code class="inline">EventEmitter</code> نیز استفاده می‌کند تا
+        بقیهٔ مؤلفه‌ها (مثلاً نود برای پخش همگانی) پس از تغییر داده‌ها مطلع شوند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/blockchain/index.js" target="_blank" rel="noopener">lib/blockchain/index.js</a>.
+        سازندهٔ کلاس، متد <code class="inline">init</code> و متد <code class="inline">addBlock</code>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+    constructor(dbName) {
+        this.blocksDb = new Db('data/' + dbName + '/' + BLOCKCHAIN_FILE, new Blocks());
+        this.transactionsDb = new Db('data/' + dbName + '/' + TRANSACTIONS_FILE, new Transactions());
+
+        // INFO: در این پیاده‌سازی پایگاه داده یک فایل است و هر بار داده ذخیره می‌شود
+        // فایل بازنویسی می‌شود؛ احتمالاً برای کارایی بهتر باید پایگاه داده محکم‌تری استفاده شود
+        this.blocks = this.blocksDb.read(Blocks);
+        this.transactions = this.transactionsDb.read(Transactions);
+
+        // برخی بخش‌ها از emitter استفاده می‌کنند تا پس از تغییر داده‌ها عمل کنند
+        this.emitter = new EventEmitter();
+        this.init();
+    }
+
+    init() {
+        // اگر بلاک‌چین خالی بود، بلاک جنسیس ساخته می‌شود
+        if (this.blocks.length == 0) {
+            console.info('Blockchain empty, adding genesis block');
+            this.blocks.push(Block.genesis);
+            this.blocksDb.write(this.blocks);
+        }
+
+        // حذف تراکنش‌هایی که در بلاک‌چین هستند
+        console.info('Removing transactions that are in the blockchain');
+        R.forEach(this.removeBlockTransactionsFromTransactions.bind(this), this.blocks);
+    }
+
+    addBlock(newBlock, emit = true) {
+        // فقط در صورتی بلاک اضافه می‌شود که معتبر باشد (باید با بلاک قبلی مقایسه شود)
+        if (this.checkBlock(newBlock, this.getLastBlock())) {
+            this.blocks.push(newBlock);
+            this.blocksDb.write(this.blocks);
+
+            // پس از افزودن بلاک، تراکنش‌های این بلاک از فهرست تراکنش‌های در انتظار حذف می‌شوند
+            this.removeBlockTransactionsFromTransactions(newBlock);
+
+            console.info(`Block added: ${newBlock.hash}`);
+            console.debug(`Block added: ${JSON.stringify(newBlock)}`);
+            if (emit) this.emitter.emit('blockAdded', newBlock);
+
+            return newBlock;
+        }
+    }</code></pre>
+        <p>متدهای <code class="inline">checkBlock</code> و <code class="inline">checkTransaction</code>
+        دقیقاً همان قوانین هشت‌گانه و شش‌گانهٔ بالا را پیاده می‌کنند و در صورت نقض هر کدام، به‌ترتیب خطاهای
+        <code class="inline">BlockAssertionError</code> یا <code class="inline">TransactionAssertionError</code>
+        پرتاب می‌کنند. همچنین با <code class="inline">replaceChain</code> امکان جایگزینی کل زنجیره (زمانی که
+        زنجیرهٔ بلندتری از یک همتا دریافت شود) فراهم شده است؛ ابتدا صحت زنجیرهٔ جدید با
+        <code class="inline">checkChain</code> بررسی و سپس بلاک‌های جدید یکی‌یکی اضافه می‌شوند.</p>
+
+        <h3>تراکنش‌های خرج‌نشده (UTXO)</h3>
+        <p>مفهوم UTXO (خروجی تراکنش خرج‌نشده) در نایوکوین یک فایل جدا ندارد؛ محاسبهٔ آن متد
+        <code class="inline">getUnspentTransactionsForAddress</code> در همان
+        <code class="inline">lib/blockchain/index.js</code> است. این متد خروجی‌های همهٔ تراکنش‌های
+        (تأییدشده و تأییدنشده) را لیست می‌کند، سپس خروجی‌هایی را که به‌عنوان ورودیِ یک تراکنش دیگر
+        خرج شده‌اند حذف می‌کند؛ به این ترتیب امکان «زنجیرهٔ تراکنش» (transaction chain) فراهم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">getUnspentTransactionsForAddress(address) {
+    const selectTxs = (transaction) => {
+        let index = 0;
+        // ساخت فهرستی از همهٔ خروجی‌های تراکنش که برای یک آدرس پیدا شده‌اند (یا همه)
+        R.forEach((txOutput) => {
+            if (address &amp;&amp; txOutput.address == address) {
+                txOutputs.push({
+                    transaction: transaction.id,
+                    index: index,
+                    amount: txOutput.amount,
+                    address: txOutput.address
+                });
+            }
+            index++;
+        }, transaction.data.outputs);
+
+        // ساخت فهرستی از همهٔ ورودی‌های تراکنش که برای یک آدرس پیدا شده‌اند (یا همه)            
+        R.forEach((txInput) => {
+            if (address &amp;&amp; txInput.address != address) return;
+
+            txInputs.push({
+                transaction: txInput.transaction,
+                index: txInput.index,
+                amount: txInput.amount,
+                address: txInput.address
+            });
+        }, transaction.data.inputs);
+    };
+
+    // هم تراکنش‌های داخل بلاک و هم تراکنش‌های تأییدنشده را در نظر می‌گیرد (امکان‌پذیری زنجیره تراکنش)
+    let txOutputs = [];
+    let txInputs = [];
+    R.forEach(R.pipe(R.prop('transactions'), R.forEach(selectTxs)), this.blocks);
+    R.forEach(selectTxs, this.transactions);
+
+    // هر دو فهرست را بررسی و خروجی‌هایی را می‌یابیم که ورودی متناظر ندارند
+    let unspentTransactionOutput = [];
+    R.forEach((txOutput) => {
+        if (!R.any((txInput) => txInput.transaction == txOutput.transaction &amp;&amp; txInput.index == txOutput.index, txInputs)) {
+            unspentTransactionOutput.push(txOutput);
+        }
+    }, txOutputs);
+
+    return unspentTransactionOutput;
+}</code></pre>
+      </section>
+
+      <!-- ==================== ساختار بلاک ==================== -->
+      <section>
+        <h2>ساختار بلاک (Block structure)</h2>
+        <p>یک بلاک، گروهی از تراکنش‌ها را نمایندگی می‌کند و اطلاعاتی دارد که آن را به بلاک قبلی پیوند
+        می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">{ // بلاک
+    "index": 0, // (اولین بلاک: 0)
+    "previousHash": "0", // (هش بلاک قبلی، برای اولین بلاک 0 است) (64 بایت)
+    "timestamp": 1465154705, // تعداد ثانیه‌ها از اول ژانویه 1970
+    "nonce": 0, // nonce برای شناسایی مرحله اثبات کار
+    "transactions": [ // فهرست تراکنش‌های داخل بلاک
+        { // تراکنش 0
+            "id": "63ec3ac02f...8d5ebc6dba", // شناسه تصادفی (64 بایت)
+            "hash": "563b8aa350...3eecfbd26b", // هش گرفته‌شده از محتوای تراکنش: sha256 (id + data) (64 بایت)
+            "type": "regular", // نوع تراکنش (regular, fee, reward)
+            "data": {
+                "inputs": [], // فهرست تراکنش‌های ورودی
+                "outputs": [] // فهرست تراکنش‌های خروجی
+            }
+        }
+    ],
+    "hash": "c4e0b8df46...199754d1ed" // هش گرفته‌شده از محتوای بلاک: sha256 (index + previousHash + timestamp + nonce + transactions) (64 بایت)
+}</code></pre>
+        <p>جزئیات مربوط به nonce و الگوریتم اثبات کار که برای تولید بلاک استفاده می‌شود، در بخش ماینر
+        توصیف خواهد شد.</p>
+
+        <h3>ماژول Block: lib/blockchain/block.js</h3>
+        <p>کلاس <code class="inline">Block</code> متدهای <code class="inline">toHash</code> و
+        <code class="inline">getDifficulty</code> (که پایهٔ اثبات کار است) و بلاک جنسیس ثابت را
+        پیاده‌سازی می‌کند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/blockchain/block.js" target="_blank" rel="noopener">lib/blockchain/block.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+    toHash() {
+        // INFO: پیاده‌سازی‌های متفاوتی از الگوریتم هش وجود دارد، برای مثال: https://en.bitcoin.it/wiki/Hashcash
+        return CryptoUtil.hash(this.index + this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce);
+    }
+
+    getDifficulty() {
+        // 14 حداکثر طول دقت پشتیبانی‌شده در جاوااسکریپت است
+        return parseInt(this.hash.substring(0, 14), 16);
+    }
+
+    static get genesis() {
+        // بلاک جنسیس ثابت است
+        return Block.fromJson(Config.genesisBlock);
+    }
+
+    static fromJson(data) {
+        let block = new Block();
+        R.forEachObjIndexed((value, key) => {
+            if (key == 'transactions' &amp;&amp; value) {
+                block[key] = Transactions.fromJson(value);
+            } else {
+                block[key] = value;
+            }
+        }, data);
+
+        block.hash = block.toHash();
+        return block;
+    }
+
+}</code></pre>
+        <p>بلاک جنسیس و مقادیر اولیهٔ دشواری در <code class="inline">lib/config.js</code> تعریف شده‌اند.
+        کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/config.js" target="_blank" rel="noopener">lib/config.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بعد از راه‌اندازی بلاک‌چین این تنظیمات را تغییر ندهید
+module.exports = {
+    // INFO: پاداش ماینینگ می‌تواند به مرور زمان مثل بیت‌کوین کاهش یابد. https://en.bitcoin.it/wiki/Mining#Reward
+    MINING_REWARD: 5000000000,
+    // INFO: معمولاً کارمزد بر اساس اندازه تراکنش است (نه تعداد)
+    FEE_PER_TRANSACTION: 1,
+    // INFO: معمولاً محدودیت بر اساس اندازه بلاک تعیین می‌شود (نه تعداد)
+    TRANSACTIONS_PER_BLOCK: 2,
+    genesisBlock: {
+        index: 0,
+        previousHash: '0',
+        timestamp: 1465154705,
+        nonce: 0,
+        transactions: [
+            {
+                id: '63ec3ac02f822450039df13ddf7c3c0f19bab4acd4dc928c62fcd78d5ebc6dba',
+                hash: null,
+                type: 'regular',
+                data: {
+                    inputs: [],
+                    outputs: []
+                }
+            }
+        ]
+    },
+    pow: {
+        getDifficulty: (blocks, index) => {
+            // تنظیمات دشواری اثبات کار
+            const BASE_DIFFICULTY = Number.MAX_SAFE_INTEGER;
+            const EVERY_X_BLOCKS = 5;
+            const POW_CURVE = 5;
+
+            // INFO: دشواری، فرمولی است که نایوکوین برای بررسی اثبات کار انتخاب کرده؛
+            // این عدد بعداً به مبنای 16 تبدیل می‌شود تا مقدار حداقل ابتدایی هش مورد انتظار را نمایش دهد.
+            // INFO: این می‌تواند فرمولی بر پایه زمان باشد؛ مثلاً بررسی کنید استخراج X بلاک
+            // در یک بازه زمانی چقدر طول کشیده و سپس دشواری را بر اساس آن کم/زیاد کنید. https://en.bitcoin.it/wiki/Difficulty
+            return Math.max(
+                Math.floor(
+                    BASE_DIFFICULTY / Math.pow(
+                        Math.floor(((index || blocks.length) + 1) / EVERY_X_BLOCKS) + 1
+                        , POW_CURVE)
+                )
+                , 0);
+        }
+    }
+};</code></pre>
+        <p>جمع‌کنندهٔ <code class="inline">Blocks</code> در
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/blockchain/blocks.js" target="_blank" rel="noopener">lib/blockchain/blocks.js</a>
+        فقط یک آرایهٔ سفارشی است که لیست بلاک‌ها را از JSON می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blocks extends Array {
+    static fromJson(data) {
+        let blocks = new Blocks();
+        R.forEach((block) => { blocks.push(Block.fromJson(block)); }, data);
+        return blocks;
+    }
+}</code></pre>
+      </section>
+
+      <!-- ==================== ساختار تراکنش ==================== -->
+      <section>
+        <h2>ساختار تراکنش (Transaction structure)</h2>
+        <p>یک تراکنش فهرستی از ورودی‌ها و خروجی‌ها دارد که انتقال سکه‌ها بین مالک سکه و یک آدرس را
+        نمایندگی می‌کند. فهرست ورودی‌ها شامل تراکنش‌های خروجیِ خرج‌نشدهٔ موجود است و توسط مالک آدرس
+        امضا می‌شود. فهرست خروجی‌ها شامل مبالغی است که به آدرس‌های دیگر (و در صورت نیاز، مبلغ باقی‌مانده /
+        change به آدرس خود مالک) ارسال می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">{ // تراکنش
+    "id": "84286bba8d...7477efdae1", // شناسه تصادفی (64 بایت)
+    "hash": "f697d4ae63...c1e85f0ac3", // هش گرفته‌شده از محتوای تراکنش: sha256 (id + data) (64 بایت)
+    "type": "regular", // نوع تراکنش (regular, fee, reward)
+    "data": {
+        "inputs": [ // ورودی‌های تراکنش
+            {
+                "transaction": "9e765ad30c...e908b32f0c", // هش تراکنش گرفته‌شده از یک خروجی تراکنش خرج‌نشده قبلی (64 بایت)
+                "index": "0", // ایندکس تراکنش گرفته‌شده از یک خروجی تراکنش خرج‌نشده قبلی
+                "amount": 5000000000, // مقدار به ساتوشی
+                "address": "dda3ce5aa5...b409bf3fdc", // آدرس مبدأ (64 بایت)
+                "signature": "27d911cac0...6486adbf05" // هش ورودی تراکنش: sha256 (transaction + index + amount + address) امضا شده با کلید خصوصی آدرس مالک (128 بایت)
+            }
+        ],
+        "outputs": [ // خروجی‌های تراکنش
+            {
+                "amount": 10000, // مقدار به ساتوشی
+                "address": "4f8293356d...b53e8c5b25" // آدرس مقصد (64 بایت)
+            },
+            {
+                "amount": 4999989999, // مقدار به ساتوشی
+                "address": "dda3ce5aa5...b409bf3fdc" // آدرس باقی‌مانده (change address) (64 بایت)
+            }
+        ]
+    }
+}</code></pre>
+
+        <h3>ماژول Transaction: lib/blockchain/transaction.js</h3>
+        <p>کلاس <code class="inline">Transaction</code> متد اصلی
+        <code class="inline">check()</code> را دارد که قوانین اعتبارسنجی تراکنش (هش، امضای ورودی‌ها،
+        موازنهٔ ورودی/خروجی و کارمزد) را اجرا می‌کند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/blockchain/transaction.js" target="_blank" rel="noopener">lib/blockchain/transaction.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Transaction {
+    construct() {
+        this.id = null;
+        this.hash = null;
+        this.type = null;
+        this.data = {
+            inputs: [],
+            outputs: []
+        };
+    }
+
+    toHash() {
+        // INFO: پیاده‌سازی‌های متفاوتی از الگوریتم هش وجود دارد، برای مثال: https://en.bitcoin.it/wiki/Hashcash
+        return CryptoUtil.hash(this.id + this.type + JSON.stringify(this.data));
+    }
+
+    check() {
+        // بررسی اینکه هش تراکنش درست است
+        let isTransactionHashValid = this.hash == this.toHash();
+
+        if (!isTransactionHashValid) {
+            console.error(`Invalid transaction hash '${this.hash}'`);
+            throw new TransactionAssertionError(`Invalid transaction hash '${this.hash}'`, this);
+        }
+
+        // بررسی اینکه امضای همهٔ تراکنش‌های ورودی درست است (داده تراکنش با کلید عمومی آدرس امضا شده است)
+        R.map((txInput) => {
+            let txInputHash = CryptoUtil.hash({
+                transaction: txInput.transaction,
+                index: txInput.index,
+                address: txInput.address
+            });
+            let isValidSignature = CryptoEdDSAUtil.verifySignature(txInput.address, txInput.signature, txInputHash);
+
+            if (!isValidSignature) {
+                console.error(`Invalid transaction input signature '${JSON.stringify(txInput)}'`);
+                throw new TransactionAssertionError(`Invalid transaction input signature '${JSON.stringify(txInput)}'`, txInput);
+            }
+        }, this.data.inputs);
+
+
+        if (this.type == 'regular') {
+            // بررسی اینکه مجموع تراکنش‌های ورودی بزرگ‌تر از خروجی‌هاست تا جایی برای کارمزد تراکنش باقی بماند
+            let sumOfInputsAmount = R.sum(R.map(R.prop('amount'), this.data.inputs));
+            let sumOfOutputsAmount = R.sum(R.map(R.prop('amount'), this.data.outputs));
+
+            let negativeOutputsFound = 0;
+            let i = 0;
+            let outputsLen = this.data.outputs.length;
+
+            // بررسی خروجی‌های منفی
+            for (i = 0; i &lt; outputsLen; i++) {
+                if (this.data.outputs[i].amount &lt; 0) {
+                    negativeOutputsFound++;
+                }
+            }
+
+            let isInputsAmountGreaterOrEqualThanOutputsAmount = R.gte(sumOfInputsAmount, sumOfOutputsAmount);
+
+            if (!isInputsAmountGreaterOrEqualThanOutputsAmount) {
+                console.error(`Invalid transaction balance: inputs sum '${sumOfInputsAmount}', outputs sum '${sumOfOutputsAmount}'`);
+                throw new TransactionAssertionError(`Invalid transaction balance: inputs sum '${sumOfInputsAmount}', outputs sum '${sumOfOutputsAmount}'`, { sumOfInputsAmount, sumOfOutputsAmount });
+            }
+
+            let isEnoughFee = (sumOfInputsAmount - sumOfOutputsAmount) >= Config.FEE_PER_TRANSACTION; // 1 چون کارمزد 1 ساتوشی به ازای هر تراکنش است
+
+            if (!isEnoughFee) {
+                console.error(`Not enough fee: expected '${Config.FEE_PER_TRANSACTION}' got '${(sumOfInputsAmount - sumOfOutputsAmount)}'`);
+                throw new TransactionAssertionError(`Not enough fee: expected '${Config.FEE_PER_TRANSACTION}' got '${(sumOfInputsAmount - sumOfOutputsAmount)}'`, { sumOfInputsAmount, sumOfOutputsAmount, FEE_PER_TRANSACTION: Config.FEE_PER_TRANSACTION });
+            }
+            if (negativeOutputsFound &gt; 0) {
+                console.error(`Transaction is either empty or negative, output(s) caught: '${negativeOutputsFound}'`);
+                throw new TransactionAssertionError(`Transaction is either empty or negative, output(s) caught: '${negativeOutputsFound}'`);
+            }
+        }
+
+        return true;
+    }
+
+    static fromJson(data) {
+        let transaction = new Transaction();
+        R.forEachObjIndexed((value, key) => { transaction[key] = value; }, data);
+        transaction.hash = transaction.toHash();
+        return transaction;
+    }
+}</code></pre>
+        <p>جمع‌کنندهٔ <code class="inline">Transactions</code> در
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/blockchain/transactions.js" target="_blank" rel="noopener">lib/blockchain/transactions.js</a>
+        نقش «استخر تراکنش‌های تأییدنشده» را دارد — همان فهرستی که کلاس
+        <code class="inline">Blockchain</code> در حافظه نگه می‌دارد و ماینر از آن بلاک بعدی را می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Transactions extends Array {
+    static fromJson(data) {
+        let transactions = new Transactions();
+        R.forEach((transaction) => { transactions.push(Transaction.fromJson(transaction)); }, data);
+        return transactions;
+    }
+}</code></pre>
+      </section>
+
+      <!-- ==================== ابزارها ==================== -->
+      <section>
+        <h2>ابزارهای رمزنگاری و پایستگی داده (lib/util)</h2>
+
+        <h3>CryptoUtil: lib/util/cryptoUtil.js</h3>
+        <p>هش SHA-256 و تولید شناسهٔ تصادفی. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/util/cryptoUtil.js" target="_blank" rel="noopener">lib/util/cryptoUtil.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const crypto = require('crypto');
+
+class CryptoUtil {
+    static hash(any) {
+        let anyString = typeof (any) == 'object' ? JSON.stringify(any) : any.toString();
+        let anyHash = crypto.createHash('sha256').update(anyString).digest('hex');
+        return anyHash;
+    }
+
+    static randomId(size = 64) {
+        return crypto.randomBytes(Math.floor(size / 2)).toString('hex');
+    }
+}
+
+module.exports = CryptoUtil;</code></pre>
+
+        <h3>CryptoEdDSAUtil: lib/util/cryptoEdDSAUtil.js</h3>
+        <p>تولید secret از رمز عبور (با PBKDF2)، ساخت جفت‌کلید با الگوریتم EdDSA (ed25519)، امضا و
+        تأیید امضا. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/util/cryptoEdDSAUtil.js" target="_blank" rel="noopener">lib/util/cryptoEdDSAUtil.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const crypto = require('crypto');
+const elliptic = require('elliptic');
+const EdDSA = elliptic.eddsa;
+const ec = new EdDSA('ed25519');
+const SALT = '0ffaa74d206930aaece253f090c88dbe6685b9e66ec49ad988d84fd7dff230d1';
+
+class CryptoEdDSAUtil {
+    static generateSecret(password) {
+        let secret = crypto.pbkdf2Sync(password, SALT, 10000, 512, 'sha512').toString('hex');
+        console.debug(`Secret: \n${secret}`);
+        return secret;
+    }
+
+    static generateKeyPairFromSecret(secret) {
+        // ساخت جفت‌کلید از secret
+        let keyPair = ec.keyFromSecret(secret); // رشته hex، آرایه یا Buffer        
+        console.debug(`Public key: \n${elliptic.utils.toHex(keyPair.getPublic())}`);
+        return keyPair;
+    }
+
+    static signHash(keyPair, messageHash) {
+        let signature = keyPair.sign(messageHash).toHex().toLowerCase();
+        console.debug(`Signature: \n${signature}`);
+        return signature;
+    }
+
+    static verifySignature(publicKey, signature, messageHash) {
+        let key = ec.keyFromPublic(publicKey, 'hex');
+        let verified = key.verify(messageHash, signature);
+        console.debug(`Verified: ${verified}`);
+        return verified;
+    }
+
+    static toHex(data) {
+        return elliptic.utils.toHex(data);
+    }
+}
+
+module.exports = CryptoEdDSAUtil;</code></pre>
+
+        <h3>Db: lib/util/db.js</h3>
+        <p>پایستگی داده‌ها با فایل‌های JSON: اگر فایل وجود نداشته باشد یا خالی باشد، دادهٔ پیش‌فرض
+        برگردانده می‌شود. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/util/db.js" target="_blank" rel="noopener">lib/util/db.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const fs = require('fs-extra');
+const path = require('path');
+
+class Db {
+    constructor(filePath, defaultData) {
+        this.filePath = filePath;
+        this.defaultData = defaultData;
+    }
+
+    read(prototype) {
+        if (!fs.existsSync(this.filePath)) return this.defaultData;
+
+        var fileContent = fs.readFileSync(this.filePath);
+        if (fileContent.length == 0) return this.defaultData;
+
+        return (prototype) ? prototype.fromJson(JSON.parse(fileContent)) : JSON.parse(fileContent);        
+    }
+
+    write(data) {
+        fs.ensureDirSync(path.dirname(this.filePath));
+        fs.writeFileSync(this.filePath, JSON.stringify(data));
+    }
+}
+
+module.exports = Db;</code></pre>
+      </section>
+
+      <!-- ==================== اپراتور ==================== -->
+      <section>
+        <h2>اپراتور (Operator)</h2>
+        <p>اپراتور کیف پول‌ها (wallets) و آدرس‌ها را مدیریت می‌کند و تراکنش‌ها را ایجاد می‌کند. بیشتر
+        عملیات آن از جنس CRUD است. هر اپراتور فهرست کیف پول‌ها و آدرس‌های خودش را دارد؛ یعنی این
+        فهرست‌ها بین نودها همگام‌سازی نمی‌شوند.</p>
+
+        <h3>ساختار کیف پول (Wallet structure)</h3>
+        <p>یک کیف پول شامل یک شناسهٔ تصادفی، هش رمز عبور و secret تولیدشده از آن رمز عبور است. همچنین
+        فهرستی از جفت‌کلیدها دارد که هر کدام نمایانگر یک آدرس است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">[
+    { // کیف پول
+        "id": "884d3e0407...f29af094fd", // شناسه تصادفی (64 بایت)
+        "passwordHash": "5ba9151d1c...1424be8e2c", // هش گرفته‌شده از رمز عبور: sha256 (password) (64 بایت)
+        "secret": "6acb83e364...c1a04b6ee6", // secret از جنس pbkdf2 گرفته‌شده از هش رمز عبور: sha512 (salt + passwordHash + random factor)
+        "keyPairs": [
+            {
+                "index": 1,
+                "secretKey": "6acb83e364...ee6bcdbc73", // کلید خصوصی EdDSA تولیدشده از secret (1024 بایت)
+                "publicKey": "dda3ce5aa5...b409bf3fdc" // کلید عمومی EdDSA تولیدشده از secret (64 بایت) (همان آدرس)
+            },
+            {
+                "index": 2,
+                "secretKey": "072ab010ed...246ed16d26", // کلید خصوصی EdDSA تولیدشده از pbkdf2 (sha512 (salt + passwordHash + random factor)) روی کلید خصوصی آخرین آدرس (1024 بایت)
+                "publicKey": "4f8293356d...b53e8c5b25"  // کلید عمومی EdDSA تولیدشده از secret (64 بایت) (همان آدرس)
+            }     
+        ]
+    }
+]</code></pre>
+
+        <h3>ساختار آدرس (Address structure)</h3>
+        <p>آدرس به‌صورت قطعی (deterministic) ساخته می‌شود؛ یعنی برای یک رمز عبور مشخص، آدرس بعدی بر اساس
+        آدرس قبلی (یا در مورد اولین آدرس، secret رمز عبور) ساخته می‌شود.</p>
+        <p>برای تولید جفت‌کلید از الگوریتم EdDSA استفاده می‌شود؛ seed می‌تواند از یک مقدار تصادفیِ
+        تولیدشده از هش رمز عبور (همچنان به‌صورت قطعی) یا از آخرین کلید خصوصی بیاید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">{ // آدرس
+    "index": 1,
+    "secretKey": "6acb83e364...ee6bcdbc73", // کلید خصوصی EdDSA تولیدشده از secret (1024 بایت)
+    "publicKey": "dda3ce5aa5...b409bf3fdc" // کلید عمومی EdDSA تولیدشده از secret (64 بایت) (همان آدرس)
+},</code></pre>
+        <p>فقط کلید عمومی به‌عنوان آدرس کاربر در معرض دید قرار می‌گیرد.</p>
+
+        <h3>ماژول Wallet: lib/operator/wallet.js</h3>
+        <p>متد <code class="inline">generateAddress</code> آدرس‌ها را به‌صورت قطعی — بر اساس secret یا
+        آخرین کلید خصوصی — تولید می‌کند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/operator/wallet.js" target="_blank" rel="noopener">lib/operator/wallet.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Wallet {
+    constructor() {
+        this.id = null;
+        this.passwordHash = null;
+        this.secret = null;
+        this.keyPairs = [];
+    }
+
+    generateAddress() {
+        // اگر secret برابر null باشد یعنی کیف پول تازه ساخته شده است
+        if (this.secret == null) {
+            this.generateSecret();
+        }
+
+        let lastKeyPair = R.last(this.keyPairs);
+        
+        // تولید seed بعدی بر اساس اولین secret یا یک secret جدید از آخرین جفت‌کلید
+        let seed = (lastKeyPair == null ?  this.secret : CryptoEdDSAUtil.generateSecret(R.propOr(null, 'secretKey', lastKeyPair)));
+        let keyPairRaw = CryptoEdDSAUtil.generateKeyPairFromSecret(seed);
+        let newKeyPair = {
+            index: this.keyPairs.length + 1,
+            secretKey: CryptoEdDSAUtil.toHex(keyPairRaw.getSecret()),
+            publicKey: CryptoEdDSAUtil.toHex(keyPairRaw.getPublic())
+        };
+        this.keyPairs.push(newKeyPair);
+        return newKeyPair.publicKey;
+    }
+
+    generateSecret() {
+        this.secret = CryptoEdDSAUtil.generateSecret(this.passwordHash);
+        return this.secret;
+    }
+
+    static fromPassword(password) {
+        let wallet = new Wallet();
+        wallet.id = CryptoUtil.randomId();
+        wallet.passwordHash = CryptoUtil.hash(password);
+        return wallet;
+    }
+}</code></pre>
+
+        <h3>ماژول Operator: lib/operator/index.js</h3>
+        <p>کلاس <code class="inline">Operator</code> کیف پول‌ها را در فایل
+        <code class="inline">wallets.json</code> نگه می‌دارد و متد
+        <code class="inline">createTransaction</code> با کمک <code class="inline">TransactionBuilder</code>
+        تراکنش را می‌سازد و با کلید خصوصی آدرس مبدأ امضا می‌کند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/operator/index.js" target="_blank" rel="noopener">lib/operator/index.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Operator {
+    constructor(dbName, blockchain) {
+        this.db = new Db('data/' + dbName + '/' + OPERATOR_FILE, new Wallets());
+
+        // INFO: در این پیاده‌سازی پایگاه داده یک فایل است و هر بار داده ذخیره می‌شود
+        // فایل بازنویسی می‌شود؛ احتمالاً برای کارایی بهتر باید پایگاه داده محکم‌تری استفاده شود
+        this.wallets = this.db.read(Wallets);
+        this.blockchain = blockchain;
+    }
+
+    createTransaction(walletId, fromAddressId, toAddressId, amount, changeAddressId) {
+        let utxo = this.blockchain.getUnspentTransactionsForAddress(fromAddressId);
+        let wallet = this.getWalletById(walletId);
+
+        if (wallet == null) throw new ArgumentError(`Wallet not found with id '${walletId}'`);
+
+        let secretKey = wallet.getSecretKeyByAddress(fromAddressId);
+
+        if (secretKey == null) throw new ArgumentError(`Secret key not found with Wallet id '${walletId}' and address '${fromAddressId}'`);
+
+        let tx = new TransactionBuilder();
+        tx.from(utxo);
+        tx.to(toAddressId, amount);
+        tx.change(changeAddressId || fromAddressId);
+        tx.fee(Config.FEE_PER_TRANSACTION);
+        tx.sign(secretKey);        
+
+        return Transaction.fromJson(tx.build());
+    }
+}</code></pre>
+
+        <h3>TransactionBuilder: lib/operator/transactionBuilder.js</h3>
+        <p>این کلاس زنجیره‌ای (fluent) ورودی‌های UTXO، آدرس مقصد، مبلغ باقی‌مانده و کارمزد را می‌گیرد و در
+        متد <code class="inline">build()</code> ورودی‌ها را امضا کرده و خروجی‌ها (مقصد + باقی‌مانده) را
+        می‌سازد. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/operator/transactionBuilder.js" target="_blank" rel="noopener">lib/operator/transactionBuilder.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">    from(listOfUTXO) {
+        this.listOfUTXO = listOfUTXO;
+        return this;
+    }
+
+    to(address, amount) {
+        this.outputAddress = address;
+        this.totalAmount = amount;
+        return this;
+    }
+
+    change(changeAddress) {
+        this.changeAddress = changeAddress;
+        return this;
+    }
+
+    fee(amount) {
+        this.feeAmount = amount;
+        return this;
+    }
+
+    sign(secretKey) {
+        this.secretKey = secretKey;
+        return this;
+    }
+
+    build() {
+        // بررسی اطلاعات لازم
+        if (this.listOfUTXO == null) throw new ArgumentError('It\'s necessary to inform a list of unspent output transactions.');
+        if (this.outputAddress == null) throw new ArgumentError('It\'s necessary to inform the destination address.');
+        if (this.totalAmount == null) throw new ArgumentError('It\'s necessary to inform the transaction value.');
+
+        // محاسبه مبلغ باقی‌مانده
+        let totalAmountOfUTXO = R.sum(R.pluck('amount', this.listOfUTXO));
+        let changeAmount = totalAmountOfUTXO - this.totalAmount - this.feeAmount;
+
+        // برای هر ورودی تراکنش، هش ورودی محاسبه و داده امضا می‌شود
+        let self = this;
+        let inputs = R.map((utxo) => {
+            let txiHash = CryptoUtil.hash({
+                transaction: utxo.transaction,
+                index: utxo.index,
+                address: utxo.address
+            });
+            utxo.signature = CryptoEdDSAUtil.signHash(CryptoEdDSAUtil.generateKeyPairFromSecret(self.secretKey), txiHash);
+            return utxo;
+        }, this.listOfUTXO);
+
+        let outputs = [];
+
+        // افزودن گیرنده هدف
+        outputs.push({
+            amount: this.totalAmount,
+            address: this.outputAddress
+        });
+
+        // افزودن مبلغ باقی‌مانده
+        if (changeAmount &gt; 0) {
+            outputs.push({
+                amount: changeAmount,
+                address: this.changeAddress
+            });
+        } else {
+            throw new ArgumentError('The sender does not have enough to pay for the transaction.');
+        }        
+
+        // مقدار باقی‌مانده، کارمزدی است که خالق بلاک جمع می‌کند        
+
+        return Transaction.fromJson({
+            id: CryptoUtil.randomId(64),
+            hash: null,
+            type: this.type,
+            data: {
+                inputs: inputs,
+                outputs: outputs
+            }
+        });
+    }</code></pre>
+      </section>
+
+      <!-- ==================== ماینر ==================== -->
+      <section>
+        <h2>ماینر (Miner)</h2>
+        <p>ماینر فهرست تراکنش‌های در انتظار (pending) را می‌گیرد و یک بلاک جدید شامل آن تراکنش‌ها
+        می‌سازد. طبق پیکربندی، هر بلاک حداکثر ۲ تراکنش دارد.</p>
+        <p>مراحل مونتاژ یک بلاک جدید:</p>
+        <ol>
+          <li>از فهرست تراکنش‌های تأییدنشده، تراکنش‌های کاندیدایی انتخاب می‌شوند که نه هنوز در بلاک‌چین
+          هستند و نه قبلاً انتخاب شده‌اند؛</li>
+          <li>دو تراکنش اول از فهرست تراکنش‌های کاندیدا گرفته می‌شود؛</li>
+          <li>یک تراکنش جدید شامل کارمزد (به آدرس ماینر، ۱ ساتوشی به ازای هر تراکنش) اضافه می‌شود؛</li>
+          <li>یک تراکنش پاداش شامل ۵۰ سکه به آدرس ماینر اضافه می‌شود؛</li>
+          <li>برای این بلاک اثبات کار انجام می‌شود.</li>
+        </ol>
+
+        <h3>ماژول Miner: lib/miner/index.js</h3>
+        <p>متد <code class="inline">mine()</code> ابتدا با متد استاتیک
+        <code class="inline">generateNextBlock</code> بلاک پایه را می‌سازد و سپس محاسبهٔ سنگین اثبات کار
+        را در یک thread جداگانه (کتابخانهٔ <code class="inline">threads</code>) اجرا می‌کند تا سرور در
+        حین ماینینگ مسدود نشود. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/miner/index.js" target="_blank" rel="noopener">lib/miner/index.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Miner {
+    constructor(blockchain, logLevel) {
+        this.blockchain = blockchain;
+        this.logLevel = logLevel;
+    }
+
+    mine(rewardAddress, feeAddress) {
+        let baseBlock = Miner.generateNextBlock(rewardAddress, feeAddress, this.blockchain);
+        process.execArgv = R.reject((item) => item.includes('debug'), process.execArgv);
+
+        /* istanbul ignore next */
+        const thread = spawn(function (input, done) {
+            /*eslint-disable */
+            require(input.__dirname + '/../util/consoleWrapper.js')('mine-worker', input.logLevel);
+            const Block = require(input.__dirname + '/../blockchain/block');
+            const Miner = require(input.__dirname);
+            /*eslint-enable */
+
+            done(Miner.proveWorkFor(Block.fromJson(input.jsonBlock), input.difficulty));
+        });
+
+        const transactionList = R.pipe(
+            R.countBy(R.prop('type')),
+            R.toString,
+            R.replace('{', ''),
+            R.replace('}', ''),
+            R.replace(/"/g, '')
+        )(baseBlock.transactions);
+
+        console.info(`Mining a new block with ${baseBlock.transactions.length} (${transactionList}) transactions`);
+
+        const promise = thread.promise().then((result) => {
+            thread.kill();
+            return result;
+        });
+
+        thread.send({
+            __dirname: __dirname,
+            logLevel: this.logLevel,
+            jsonBlock: baseBlock,
+            difficulty: this.blockchain.getDifficulty()
+        });
+
+        return promise;
+    }</code></pre>
+
+        <h3>اثبات کار (Proof-of-work)</h3>
+        <p>اثبات کار با محاسبهٔ ۱۴ مقدار hex اول برای یک هش تراکنش مشخص انجام می‌شود و nonce افزایش
+        می‌یابد تا به حداقل سطح دشواری مورد نیاز برسد. دشواری هر ۵ بلاک، با یک مقدار نمایی (توان ۵)
+        افزایش می‌یابد. در حدود بلاک هفتادم، با این پیکربندی، تولید یک بلاک جدید حدود ۵۰ ثانیه طول
+        می‌کشد. همهٔ این مقادیر قابل تنظیم‌اند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const difficulty = this.blockchain.getDifficulty();
+do {
+    block.timestamp = new Date().getTime() / 1000;
+    block.nonce++;
+    block.hash = block.toHash();
+    blockDifficulty = block.getDifficulty();
+} while (blockDifficulty >= difficulty);</code></pre>
+        <p><code class="inline">this.blockchain.getDifficulty()</code> مقدار hex دشواری ایندکس فعلی
+        بلاک‌چین را برمی‌گرداند. این مقدار با توان رساندن دشواری اولیه به ۵، هر ۵ بلاک محاسبه می‌شود.</p>
+        <p><code class="inline">block.getDifficulty()</code> مقدار hexِ ۱۴ بایت اول هش بلاک را
+        برمی‌گرداند و آن را با دشواریِ پذیرفته‌شدهٔ فعلی مقایسه می‌کند.</p>
+        <p>وقتی هش تولیدشده به سطح دشواری مورد نظر برسد، بلاک همان‌گونه که هست برگردانده می‌شود. حلقهٔ
+        اثبات کار در <code class="inline">proveWorkFor</code> پیاده‌سازی شده است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">    /* istanbul ignore next */
+    static proveWorkFor(jsonBlock, difficulty) {
+        let blockDifficulty = null;
+        let start = process.hrtime();
+        let block = Block.fromJson(jsonBlock);
+
+        // INFO: هر ارز دیجیتال روش متفاوتی برای اثبات کار دارد، این یک دنباله هش ساده است
+
+        // حلقه‌ای که nonce را افزایش می‌دهد تا هش با دشواری مورد نظر پیدا شود
+        do {
+            block.timestamp = new Date().getTime() / 1000;
+            block.nonce++;
+            block.hash = block.toHash();
+            blockDifficulty = block.getDifficulty();
+        } while (blockDifficulty >= difficulty);
+        console.info(`Block found: time '${process.hrtime(start)[0]} sec' dif '${difficulty}' hash '${block.hash}' nonce '${block.nonce}'`);
+        return block;
+    }</code></pre>
+      </section>
+
+      <!-- ==================== نود ==================== -->
+      <section>
+        <h2>نود (Node)</h2>
+        <p>نود فهرستی از همتاهای متصل را نگه می‌دارد و همهٔ تبادل داده‌ها بین نودها را انجام می‌دهد،
+        شامل:</p>
+        <ol>
+          <li>دریافت همتایان جدید و بررسی اینکه با آن‌ها چه کند؛</li>
+          <li>دریافت بلاک‌های جدید و بررسی اینکه با آن‌ها چه کند؛</li>
+          <li>دریافت تراکنش‌های جدید و بررسی اینکه با آن‌ها چه کند.</li>
+        </ol>
+        <p>نود همهٔ اطلاعات دریافتی را دوباره پخش (rebroadcast) می‌کند، مگر اینکه با آن کاری انجام
+        نداده باشد؛ مثلاً اگر همتا/تراکنش/بلاک‌چین را از قبل داشته باشد.</p>
+        <p>یک مسئولیت اضافه، گرفتن تعداد تأییدها (confirmations) برای یک تراکنش مشخص است. این کار را با
+        پرسیدن از هر نود دربارهٔ وجود داشتن یا نداشتن آن تراکنش در بلاک‌چین خودش انجام می‌دهد.</p>
+
+        <h3>ماژول Node: lib/node/index.js</h3>
+        <p>کلاس <code class="inline">Node</code> با <code class="inline">superagent</code> درخواست‌های
+        HTTP/REST به همتاها می‌فرستد و با اتصال به رویدادهای بلاک‌چین، بلاک‌ها و تراکنش‌های جدید را بین
+        همتاها پخش می‌کند. کد کامل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/lib/node/index.js" target="_blank" rel="noopener">lib/node/index.js</a>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Node {
+    constructor(host, port, peers, blockchain) {
+        this.host = host;
+        this.port = port;
+        this.peers = [];
+        this.blockchain = blockchain;
+        this.hookBlockchain();
+        this.connectToPeers(peers);
+    }
+
+    hookBlockchain() {
+        // اتصال به بلاک‌چین تا بتواند تغییرات بلاک‌ها یا تراکنش‌ها را پخش کند
+        this.blockchain.emitter.on('blockAdded', (block) => {
+            this.broadcast(this.sendLatestBlock, block);
+        });
+
+        this.blockchain.emitter.on('transactionAdded', (newTransaction) => {
+            this.broadcast(this.sendTransaction, newTransaction);
+        });
+
+        this.blockchain.emitter.on('blockchainReplaced', (blocks) => {
+            this.broadcast(this.sendLatestBlock, R.last(blocks));
+        });
+    }</code></pre>
+        <p>متد <code class="inline">checkReceivedBlocks</code> منطق همگام‌سازی زنجیره را دارد: اگر بلاک
+        دریافتی بلافاصله ادامهٔ زنجیرهٔ ما باشد، الحاق می‌شود؛ اگر فقط یک بلاک است و با زنجیرهٔ ما پیوند
+        ندارد، کل زنجیره از همتا پرسیده می‌شود؛ و اگر زنجیرهٔ دریافتی طولانی‌تر است، کل زنجیره جایگزین
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">    checkReceivedBlocks(blocks) {
+        const receivedBlocks = blocks.sort((b1, b2) => (b1.index - b2.index));
+        const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+        const latestBlockHeld = this.blockchain.getLastBlock();
+
+        // اگر بلاک‌چین دریافتی از بلاک‌چین ما بلندتر نباشد، کاری نکن
+        if (latestBlockReceived.index &lt;= latestBlockHeld.index) {
+            console.info('Received blockchain is not longer than blockchain. Do nothing');
+            return false;
+        }
+
+        console.info(`Blockchain possibly behind. We got: ${latestBlockHeld.index}, Peer got: ${latestBlockReceived.index}`);
+        if (latestBlockHeld.hash === latestBlockReceived.previousHash) { // می‌توانیم بلاک دریافتی را به زنجیره‌مان الحاق کنیم
+            console.info('Appending received block to our chain');
+            this.blockchain.addBlock(latestBlockReceived);
+            return true;
+        } else if (receivedBlocks.length === 1) { // باید زنجیره را از همتایمان بپرسیم
+            console.info('Querying chain from our peers');
+            this.broadcast(this.getBlocks);
+            return null;
+        } else { // بلاک‌چین دریافتی از بلاک‌چین فعلی طولانی‌تر است
+            console.info('Received blockchain is longer than current blockchain');
+            this.blockchain.replaceChain(receivedBlocks);
+            return true;
+        }
+    }</code></pre>
+      </section>
+
+      <!-- ==================== راه‌اندازی سریع ==================== -->
+      <section>
+        <h2>راه‌اندازی سریع (Quick start)</h2>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left"># اجرای یک نود
+$ node bin/naivecoin.js
+
+# اجرای دو نود
+$ node bin/naivecoin.js -p 3001 --name 1
+$ node bin/naivecoin.js -p 3002 --name 2 --peers http://localhost:3001
+
+# دسترسی به API سواگر
+http://localhost:3001/api-docs/</code></pre>
+      </section>
+
+      <!-- ==================== مثال کامل ==================== -->
+      <section>
+        <h2>مثال: کیف پول، آدرس، تراکنش و ماینینگ</h2>
+
+        <h3>ایجاد کیف پول با رمز عبور «t t t t t» (۵ کلمه)</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X POST --header 'Content-Type: application/json' -d '{ "password": "t t t t t" }' 'http://localhost:3001/operator/wallets'
+{"id":"a2fb4d3f93ea3d4624243c03f507295c0c7cb5b78291a651e5575dcd03dfeeeb","addresses":[]}</code></pre>
+
+        <h3>ایجاد دو آدرس برای کیف پول ساخته‌شده (به‌جای walletId قرار دهید)</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X POST --header 'Content-Type: application/json' --header 'password: t t t t t' 'http://localhost:3001/operator/wallets/a2fb4d3f93ea3d4624243c03f507295c0c7cb5b78291a651e5575dcd03dfeeeb/addresses'
+{"address":"e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"}
+
+$ curl -X POST --header 'Content-Type: application/json' --header 'password: t t t t t' 'http://localhost:3001/operator/wallets/a2fb4d3f93ea3d4624243c03f507295c0c7cb5b78291a651e5575dcd03dfeeeb/addresses'
+{"address":"c3c96504e432e35caa94c30034e70994663988ab80f94e4b526829c99958afa8"}</code></pre>
+
+        <h3>استخراج یک بلاک برای آدرس ۱ تا سکه داشته باشیم</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X POST --header 'Content-Type: application/json' -d '{ "rewardAddress": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c" }' 'http://localhost:3001/miner/mine'</code></pre>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+    "index": 1,
+    "nonce": 1,
+    "previousHash": "c4e0b8df46ce5cb2bcb0379ab0840228536cf4cd489783532a7c9d199754d1ed",
+    "timestamp": 1493475731.692,
+    "transactions": [
+        {
+            "id": "ab872b412afe62a087f3a8c354a27377f5fda33d7c98a1db3b1b0985801a6784",
+            "hash": "423bae0bd2f4782f34c770df5be21f856b468a45bf88bb146da8ec2fe0fd3d21",
+            "type": "reward",
+            "data": {
+                "inputs": [],
+                "outputs": [
+                    {
+                        "amount": 5000000000,
+                        "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+                    }
+                ]
+            }
+        }
+    ],
+    "hash": "0311a3a89198ccf888c76337cc190e2db238b67a7db0d5062aac97d14fb679b4"
+}</code></pre>
+
+        <h3>ایجاد تراکنش انتقال ۱۰۰۰۰۰۰۰۰۰ ساتوشی از آدرس ۱ به آدرس ۲</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X POST --header 'Content-Type: application/json' --header 'password: t t t t t' -d '{ "fromAddress": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c", "toAddress": "c3c96504e432e35caa94c30034e70994663988ab80f94e4b526829c99958afa8", "amount": 1000000000, "changeAddress": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c" }' 'http://localhost:3001/operator/wallets/a2fb4d3f93ea3d4624243c03f507295c0c7cb5b78291a651e5575dcd03dfeeeb/transactions'</code></pre>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "id": "c3c1e6fbff949042b065dc9e22d065a54ab826595fd8877d2be8ddb8cbb0e27f",
+  "hash": "3b5bbf698031e437787fe7b31f098e214a1eeff01fee9b95c22bccf20146982c",
+  "type": "regular",
+  "data": {
+    "inputs": [
+      {
+        "transaction": "ab872b412afe62a087f3a8c354a27377f5fda33d7c98a1db3b1b0985801a6784",
+        "index": "0",
+        "amount": 5000000000,
+        "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c",
+        "signature": "4500f432d6b400811d83364224ce62bccd042ad92299118c0672bc5bc1390ffdfdbef135f36927d8bd77843f3a0b868d9ed3a5346dcbeda6c06f33876cfae00d"
+      }
+    ],
+    "outputs": [
+      {
+        "amount": 1000000000,
+        "address": "c3c96504e432e35caa94c30034e70994663988ab80f94e4b526829c99958afa8"
+      },
+      {
+        "amount": 3999999999,
+        "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h3>استخراج بلاک جدید حاوی آن تراکنش</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X POST --header 'Content-Type: application/json' -d '{ "rewardAddress": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c" }' 'http://localhost:3001/miner/mine'</code></pre>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "index": 2,
+  "nonce": 6,
+  "previousHash": "0311a3a89198ccf888c76337cc190e2db238b67a7db0d5062aac97d14fb679b4",
+  "timestamp": 1493475953.226,
+  "transactions": [
+    {
+      "id": "c3c1e6fbff949042b065dc9e22d065a54ab826595fd8877d2be8ddb8cbb0e27f",
+      "hash": "3b5bbf698031e437787fe7b31f098e214a1eeff01fee9b95c22bccf20146982c",
+      "type": "regular",
+      "data": {
+        "inputs": [
+          {
+            "transaction": "ab872b412afe62a087f3a8c354a27377f5fda33d7c98a1db3b1b0985801a6784",
+            "index": "0",
+            "amount": 5000000000,
+            "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c",
+            "signature": "4500f432d6b400811d83364224ce62bccd042ad92299118c0672bc5bc1390ffdfdbef135f36927d8bd77843f3a0b868d9ed3a5346dcbeda6c06f33876cfae00d"
+          }
+        ],
+        "outputs": [
+          {
+            "amount": 1000000000,
+            "address": "c3c96504e432e35caa94c30034e70994663988ab80f94e4b526829c99958afa8"
+          },
+          {
+            "amount": 3999999999,
+            "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+          }
+        ]
+      }
+    },
+    {
+      "id": "6b55b1e85369743f360edd5bedc3467eba81b35c2b88490686eee90946231dd6",
+      "hash": "86f5b4a40c027e1ef7e060dd9b9ab7ae48258f3a43dfc19d9d8111c396463b8c",
+      "type": "fee",
+      "data": {
+        "inputs": [],
+        "outputs": [
+          {
+            "amount": 1,
+            "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+          }
+        ]
+      }
+    },
+    {
+      "id": "0f6f6c04602ac1bea15157a1a86978d46488a7865fa3db3bfc581a1407950599",
+      "hash": "f9fa281fbf9ffd3d63dd0c3503588fe3010dd6740a4a960b98d1be4aa1fa7a05",
+      "type": "reward",
+      "data": {
+        "inputs": [],
+        "outputs": [
+          {
+            "amount": 5000000000,
+            "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+          }
+        ]
+      }
+    }
+  ],
+  "hash": "08861fc4864ba0bf7a899db9ffaaa39376ad3857b1115951db074e3d06f93a5f"
+}</code></pre>
+
+        <h3>بررسی تعداد تأییدهای آن تراکنش</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X GET --header 'Content-Type: application/json' 'http://localhost:3001/node/transactions/c3c1e6fbff949042b065dc9e22d065a54ab826595fd8877d2be8ddb8cbb0e27f/confirmations'
+{"confirmations":1}</code></pre>
+
+        <h3>دریافت موجودی آدرس ۱ و آدرس ۲</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X GET --header 'Content-Type: application/json' 'http://localhost:3001/operator/e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c/balance'
+{"balance":9000000000}
+
+$ curl -X GET --header 'Content-Type: application/json' 'http://localhost:3001/operator/c574de33acfd82f2146d2f45f37ce95b7bdca133b8ad310adbd46938c75992c8/balance'
+{"balance":1000000000}</code></pre>
+
+        <h3>دریافت تراکنش‌های خرج‌نشده برای آدرس ۱</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ curl -X GET --header 'Content-Type: application/json' 'http://localhost:3001/blockchain/transactions/unspent?address=e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c'</code></pre>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">[
+  {
+    "transaction": "c3c1e6fbff949042b065dc9e22d065a54ab826595fd8877d2be8ddb8cbb0e27f",
+    "index": "1",
+    "amount": 3999999999,
+    "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+  },
+  {
+    "transaction": "6b55b1e85369743f360edd5bedc3467eba81b35c2b88490686eee90946231dd6",
+    "index": "0",
+    "amount": 1,
+    "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+  },
+  {
+    "transaction": "0f6f6c04602ac1bea15157a1a86978d46488a7865fa3db3bfc581a1407950599",
+    "index": "0",
+    "amount": 5000000000,
+    "address": "e155df3a1bac05f88321b73931b48b54ea4300be9d1225e0b62638f537e5544c"
+  }
+]</code></pre>
+      </section>
+
+      <!-- ==================== Docker ==================== -->
+      <section>
+        <h2>اجرا با Docker</h2>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left"># ساخت تصویر
+$ docker build . -t naivecoin
+
+# اجرای نایوکوین در داکر
+$ ./dockerExec.sh
+
+# اجرای نایوکوین در داکر با پورت 3002
+$ ./dockerExec.sh -p 3002
+
+# گزینه‌های اجرای نایوکوین در داکر
+$ ./dockerExec.sh -h
+Usage: ./dockerExec.sh -a HOST -p PORT -l LOG_LEVEL -e PEERS -n NAME
+
+# اجرای docker-compose با 3 نود
+$ docker-compose up</code></pre>
+      </section>
+
+      <!-- ==================== کلاینت ==================== -->
+      <section>
+        <h2>کلاینت (گزینه‌های خط فرمان)</h2>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">$ node bin/naivecoin.js -h
+Usage: bin\naivecoin.js [options]
+
+Options:
+  -a, --host       Host address. (localhost by default)
+  -p, --port       HTTP port. (3001 by default)
+  -l, --log-level  Log level (7=dir, debug, time and trace, 6=log and info,
+                   4=warn, 3=error, assert, 6 by default).
+  --peers          Peers list.                                           [array]
+  --name           Node name/identifier.
+  -h, --help       Show help                                           [boolean]</code></pre>
+      </section>
+
+      <!-- ==================== توسعه و تست ==================== -->
+      <section>
+        <h2>توسعه و تست‌ها (Development)</h2>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left"># کلون کردن مخزن
+$ git clone git@github.com:conradoqg/naivecoin.git
+$ cd naivecoin
+$ npm install
+
+# اجرای تست‌ها
+$ npm test</code></pre>
+        <p>تست‌ها با <b>mocha</b> (و ضمیمهٔ <code class="inline">mocha-steps</code>) و
+        <code class="inline">supertest</code> نوشته شده‌اند؛ اسکریپت تست در
+        <code class="inline">package.json</code> به این صورت تعریف شده است:
+        <code class="inline">"test": "_mocha -u bdd --colors test/"</code>. فایل
+        <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/test/integrationTest.js" target="_blank" rel="noopener">test/integrationTest.js</a>
+        یک تست یکپارچه‌سازی سرتاسری است: دو نود را راه‌اندازی می‌کند، کیف پول و آدرس می‌سازد، بلاک
+        ماین می‌کند، تراکنش ایجاد می‌کند، تأییدها و موجودی‌ها را بررسی می‌کند، همگام‌سازی نودها را
+        می‌سنجد و در انتها خطاهای پیش‌بینی‌شده (رمز عبور غلط، موجودی ناکافی و...) را نیز می‌آزماید.
+        ابتدای این فایل — ساخت مؤلفه‌ها و اولین گام‌ها — به این شکل است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">require('mocha-steps');
+const supertest = require('supertest');
+const assert = require('assert');
+const HttpServer = require('../lib/httpServer');
+const Blockchain = require('../lib/blockchain');
+const Operator = require('../lib/operator');
+const Miner = require('../lib/miner');
+const Node = require('../lib/node');
+const fs = require('fs-extra');
+
+const logLevel = 0;
+
+require('../lib/util/consoleWrapper.js')('integrationTest', logLevel);
+
+describe('Integration Test', () => {
+    const name1 = 'integrationTest1';
+    const name2 = 'integrationTest2';
+
+    const createNaivecoin = (name, host, port, peers, removeData = true) => {
+        if (removeData) fs.removeSync('data/' + name + '/');
+        let blockchain = new Blockchain(name);
+        let operator = new Operator(name, blockchain);
+        let miner = new Miner(blockchain, logLevel);
+        let node = new Node(host, port, peers, blockchain);
+        let httpServer = new HttpServer(node, blockchain, operator, miner);
+        return httpServer.listen(host, port);
+    };
+
+    const walletPassword = 't t t t t';
+    let context = {};
+
+    step('start server 1', () => {
+        return createNaivecoin(name1, 'localhost', 3001, [])
+            .then((httpServer) => {
+                context.httpServer1 = httpServer;
+            });
+    });
+
+    step('create wallet', () => {
+        return Promise.resolve()
+            .then(() => {
+                return supertest(context.httpServer1.app)
+                    .post('/operator/wallets')
+                    .send({ password: walletPassword })
+                    .expect(201);
+            }).then((res) => {
+                context.walletId = res.body.id;
+            });
+    });</code></pre>
+        <p>تست‌ها داده‌های خود را در پوشهٔ <code class="inline">data/</code> می‌سازند و پس از پایان،
+        آن‌ها را پاک می‌کنند.</p>
+      </section>
+
+      <!-- ==================== مشارکت و مجوز ==================== -->
+      <section>
+        <h2>مشارکت و توافق‌نامهٔ مجوز (Contribution and License Agreement)</h2>
+        <p>اگر این پیاده‌سازی کار اشتباهی انجام می‌دهد، لطفاً با باز کردن یک issue یا فرستادن یک PR
+        آزادانه مشارکت کنید. هدف اصلی این پروژه ساخت یک ارز دیجیتال کامل‌الامکانات نیست، بلکه ارائهٔ یک
+        مثال خوب از نحوهٔ کار آن است.</p>
+        <p>اگر کدی به این پروژه مشارکت دهید، به‌صورت ضمنی اجازهٔ توزیع کد خود را تحت مجوز
+        <b>Apache 2.0</b> می‌دهید و همچنین به‌صورت ضمنی تأیید می‌کنید که همهٔ کدها کار اصلی خود شماست.</p>
+        <div class="callout note">
+          <strong>مجوز:</strong> کل مخزن نایوکوین تحت مجوز
+          <a href="https://raw.githubusercontent.com/conradoqg/naivecoin/master/LICENSE" target="_blank" rel="noopener">Apache 2.0</a>
+          منتشر شده است.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مخزن «Naivecoin — a cryptocurrency implementation in less than 1500
+        lines of code» اثر «کنرادو گووِئا (Conrado Gouvea)» است و تحت مجوز Apache 2.0 منتشر شده است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/conradoqg/naivecoin" target="_blank" rel="noopener">مخزن اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

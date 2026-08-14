@@ -310,34 +310,34 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-java-first.html"
 },
 {
-"id": "",
+"id": "naivecoin-js",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "پیاده‌سازی یک ارز دیجیتال در کمتر از ۱۵۰۰ خط کد",
 "url": "https://github.com/conradoqg/naivecoin",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/naivecoin-js.html"
 },
 {
-"id": "",
+"id": "blockchain-js-nambrot",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "بلاکچین خودت را در JavaScript بساز",
 "url": "https://github.com/nambrot/blockchain-in-js",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-js-nambrot.html"
 },
 {
-"id": "",
+"id": "blockchain-js-learn-build",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "بلاکچین JavaScript را یاد بگیر و بساز",
 "url": "https://medium.com/digital-alchemy-holdings/learn-build-a-javascript-blockchain-part-1-ca61c285821e",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-js-learn-build.html"
 },
 {
 "id": "savjeecoin-js",
@@ -380,24 +380,24 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-kotlin.html"
 },
 {
-"id": "",
+"id": "blockchain-python-learn",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Python",
 "title": "بلاکچین را با ساختن یکی یاد بگیر",
 "url": "https://hackernoon.com/learn-blockchains-by-building-one-117428612f46",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-python-learn.html"
 },
 {
-"id": "",
+"id": "blockchain-python-ecomunsing",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Python",
 "title": "بلاکچین خودت را بساز: آموزش پایتون",
 "url": "http://ecomunsing.com/build-your-own-blockchain",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-python-ecomunsing.html"
 },
 {
 "id": "",
@@ -410,14 +410,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "blockchain-python-tiniest",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Python",
 "title": "کوچک‌ترین بلاکچین را بسازیم",
 "url": "https://medium.com/crypto-currently/lets-build-the-tiniest-blockchain-e70965a248b",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-python-tiniest.html"
 },
 {
 "id": "blockchain-ruby-book",

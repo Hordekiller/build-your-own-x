@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Learn Blockchains by Building One» (Daniel van Flymen)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یادگیری بلاک‌چین‌ها با ساختن یکی از آن‌ها</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>یادگیری بلاک‌چین‌ها با ساختن یکی از آن‌ها</span>
+      </div>
+      <h1>یادگیری بلاک‌چین‌ها با ساختن یکی از آن‌ها</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://hackernoon.com/learn-blockchains-by-building-one-117428612f46" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Learn Blockchains by Building One» از «دنیل ون
+          فلایمن (Daniel van Flymen)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://hackernoon.com/learn-blockchains-by-building-one-117428612f46" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://hackernoon.imgix.net/hn-images/1*zutLn_-fZZhy7Ari-x-JWQ.jpeg?auto=format%2Ccompress&w=3840" alt="تصویر شاخص مقاله — یادگیری بلاک‌چین‌ها با ساختن یکی از آن‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>سریع‌ترین راه یادگیری نحوهٔ کار بلاک‌چین‌ها، ساختن یکی از آن‌هاست.</p>
+        <p>شما اینجا هستید چون مثل من از ظهور ارزهای رمزنگاری‌شده (Cryptocurrencies) هیجان‌زده‌اید و می‌خواهید
+        بدانید بلاک‌چین‌ها (Blockchains) — فناوری بنیادین پشت آن‌ها — چگونه کار می‌کنند.</p>
+        <p>اما درک بلاک‌چین‌ها آسان نیست — یا دست‌کم برای من آسان نبود. من ویدیوهای فشرده و متراکم را به سختی دنبال
+        کردم، از آموزش‌های ناقصی که به‌جا می‌گذاشتند گذشتم و با ناامیدیِ فزایندهٔ ناشی از کم بودنِ بیش از حدِ مثال‌ها
+        دست‌وپنجه نرم کردم.</p>
+        <p>من یادگیری با عمل (learning by doing) را دوست دارم. این روش مرا وادار می‌کند در سطح کد با موضوع درگیر
+        شوم و همین باعث می‌شود مطالب در ذهنم بماند. اگر شما هم همین رویکرد را دارید، در پایان این راهنما یک
+        بلاک‌چین کارا خواهید داشت و درک درستی از نحوهٔ کار آن‌ها به دست خواهید آورد.</p>
+      </section>
+
+      <!-- ==================== قبل از شروع ==================== -->
+      <section>
+        <h2>قبل از اینکه شروع کنید…</h2>
+        <p>به یاد داشته باشید که بلاک‌چین یک زنجیرهٔ <em>تغییرناپذیر (immutable) و ترتیبی</em> از رکوردهایی است که
+        «بلاک» (Block) نامیده می‌شوند. آن‌ها می‌توانند تراکنش‌ها، فایل‌ها یا هر دادهٔ دلخواه دیگری را در خود داشته
+        باشند. اما نکتهٔ مهم این است که آن‌ها با استفاده از <em>هش‌ها (hashes)</em> به هم <em>زنجیر</em> شده‌اند.</p>
+        <p>اگر مطمئن نیستید هش چیست،
+        <a href="https://learncryptography.com/hash-functions/what-are-hash-functions" target="_blank" rel="noopener">این‌جا توضیحی برای آن آمده است</a>.</p>
+        <p><strong>این راهنما برای چه کسانی است؟</strong> باید در خواندن و نوشتن پایتون پایه راحت باشید و همچنین
+        درکی از نحوهٔ کار درخواست‌های HTTP داشته باشید؛ زیرا قرار است از طریق HTTP با بلاک‌چین خود صحبت کنیم.</p>
+        <p><strong>به چه چیزهایی نیاز دارم؟</strong> مطمئن شوید که
+        <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">پایتون 3.6</a> یا بالاتر (به‌همراه
+        pip) نصب است. همچنین باید Flask و کتابخانهٔ فوق‌العادهٔ Requests را نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>pip install Flask==0.12.2 requests==2.18.4</code></pre>
+        <p>آه، همچنین به یک کلاینت HTTP مانند <a href="https://www.getpostman.com/" target="_blank" rel="noopener">پست‌من (Postman)</a>
+        یا cURL نیاز دارید. اما هر ابزاری جواب می‌دهد.</p>
+        <p><strong>کد نهایی کجاست؟</strong> کد منبع
+        <a href="https://github.com/dvf/blockchain" target="_blank" rel="noopener">اینجا در دسترس است</a>.</p>
+      </section>
+
+      <!-- ==================== گام ۱ ==================== -->
+      <section>
+        <h2>گام ۱: ساختن یک بلاک‌چین</h2>
+        <p>ویرایشگر متن یا IDE موردعلاقهٔ خود را باز کنید؛ من شخصاً
+        <a href="https://www.jetbrains.com/pycharm/" target="_blank" rel="noopener">PyCharm</a> را دوست دارم. یک
+        فایل جدید به نام <code class="inline">blockchain.py</code> بسازید. ما فقط از یک فایل استفاده خواهیم کرد؛ اما
+        اگر گم شدید، همیشه می‌توانید به <a href="https://github.com/dvf/blockchain" target="_blank" rel="noopener">کد منبع</a>
+        مراجعه کنید.</p>
+
+        <h3>نمایش یک بلاک‌چین (Representing a Blockchain)</h3>
+        <p>یک کلاس <code class="inline">Blockchain</code> می‌سازیم که سازندهٔ (constructor) آن یک لیست خالی اولیه (برای
+        ذخیرهٔ بلاک‌چین ما) و لیستی دیگر برای ذخیرهٔ تراکنش‌ها ایجاد می‌کند. در این‌جا طرح کلی کلاس ما آمده است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>class Blockchain(object):
+    def __init__(self):
+        self.chain = []
+        self.current_transactions = []
+        
+    def new_block(self):
+        # یک بلاک جدید ایجاد می‌کند و به زنجیره اضافه می‌کند
+        pass
+    
+    def new_transaction(self):
+        # یک تراکنش جدید به فهرست تراکنش‌ها اضافه می‌کند
+        pass
+    
+    @staticmethod
+    def hash(block):
+        # یک بلاک را هش می‌کند
+        pass
+
+    @property
+    def last_block(self):
+        # آخرین بلاک زنجیره را برمی‌گرداند
+        pass</code></pre>
+        <p><em>(طرح کلی کلاس بلاک‌چین ما)</em></p>
+        <p>کلاس <code class="inline">Blockchain</code> ما مسئول مدیریت زنجیره است. تراکنش‌ها را ذخیره می‌کند و چند متد
+        کمکی برای افزودن بلاک‌های جدید به زنجیره دارد. بیایید شروع به کامل‌کردن برخی از متدها کنیم.</p>
+
+        <h3>یک بلاک چه شکلی است؟ (What does a Block look like?)</h3>
+        <p>هر بلاک یک <em>ایندکس (index)</em>، یک <em>مهر زمانی (timestamp)</em> (به زمان یونیکس)، یک <em>فهرست از
+        تراکنش‌ها</em>، یک <em>اثبات (proof)</em> (بعداً بیشتر دربارهٔ آن صحبت می‌کنیم) و <em>هش بلاک قبلی</em> دارد.</p>
+        <p>در این‌جا نمونه‌ای از شکل یک بلاک منفرد آمده است:</p>
+        <pre class="code"><span class="lang-tag">json</span><code>block = {
+    'index': 1,
+    'timestamp': 1506057125.900785,
+    'transactions': [
+        {
+            'sender': "8527147fe1f5426f9dd545de4b27ee00",
+            'recipient': "a77f5cdfa2934df3954a5c7c7da5df1f",
+            'amount': 5,
+        }
+    ],
+    'proof': 324984774000,
+    'previous_hash': "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+}</code></pre>
+        <p><em>(نمونه‌ای از یک بلاک در بلاک‌چین ما)</em></p>
+        <p>در این مرحله، ایدهٔ «زنجیره» باید روشن شده باشد — هر بلاک جدید، هش بلاک قبلی را در درون خود دارد.
+        <strong>این نکته حیاتی است، زیرا همین ویژگی است که به بلاک‌چین‌ها تغییرناپذیری (immutability) می‌بخشد:</strong>
+        اگر مهاجمی بلاک اولیهٔ زنجیره را دستکاری کند، آنگاه <em>همهٔ</em> بلاک‌های بعدی هش‌های نادرستی خواهند داشت.</p>
+        <p><em>آیا این موضوع منطقی است؟ اگر نه، کمی وقت بگذارید تا کاملاً جا بیفتد — این ایدهٔ مرکزی پشت بلاک‌چین‌هاست.</em></p>
+
+        <h3>افزودن تراکنش‌ها به یک بلاک (Adding Transactions to a Block)</h3>
+        <p>به راهی برای افزودن تراکنش‌ها به یک بلاک نیاز داریم. متد <code class="inline">new_transaction()</code> ما مسئول
+        این کار است و کاملاً سرراست است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>class Blockchain(object):
+    ...
+    
+    def new_transaction(self, sender, recipient, amount):
+        """
+        یک تراکنش جدید برای قرار گرفتن در بلاک بعدی که استخراج می‌شود ایجاد می‌کند
+        :param sender: &lt;str&gt; آدرس فرستنده
+        :param recipient: &lt;str&gt; آدرس گیرنده
+        :param amount: &lt;int&gt; مقدار
+        :return: &lt;int&gt; ایندکس بلاکی که این تراکنش را در خود نگه می‌دارد
+        """
+
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount,
+        })
+
+        return self.last_block['index'] + 1</code></pre>
+        <p>بعد از اینکه <code class="inline">new_transaction()</code> تراکنش را به فهرست اضافه کرد، <em>ایندکس</em> بلاکی
+        را برمی‌گرداند که تراکنش به آن اضافه خواهد شد — <em>بلاک بعدی که قرار است استخراج شود.</em> این موضوع بعداً برای
+        کاربری که تراکنش را ارسال می‌کند مفید خواهد بود.</p>
+
+        <h3>ایجاد بلاک‌های جدید (Creating new Blocks)</h3>
+        <p>وقتی <code class="inline">Blockchain</code> ما نمونه‌سازی (instantiate) می‌شود، باید آن را با یک بلاک
+        <em>پیدایش (genesis)</em> آغاز کنیم — بلاکی بدون پیشینیان. همچنین باید یک «اثبات» (proof) به بلاک پیدایش خود اضافه
+        کنیم که نتیجهٔ استخراج (mining) یا اثبات کار است. بعداً دربارهٔ استخراج بیشتر صحبت خواهیم کرد.</p>
+        <p>علاوه بر ایجاد بلاک پیدایش در سازندهٔ خود، متدهای <code class="inline">new_block()</code>،
+        <code class="inline">new_transaction()</code> و <code class="inline">hash()</code> را نیز کامل می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>import hashlib
+import json
+from time import time
+
+
+class Blockchain(object):
+    def __init__(self):
+        self.current_transactions = []
+        self.chain = []
+
+        # ایجاد بلاک پیدایش
+        self.new_block(previous_hash=1, proof=100)
+
+    def new_block(self, proof, previous_hash=None):
+        """
+        یک بلاک جدید در بلاک‌چین ایجاد می‌کند
+        :param proof: &lt;int&gt; اثباتی که توسط الگوریتم اثبات کار ارائه شده است
+        :param previous_hash: (اختیاری) &lt;str&gt; هش بلاک قبلی
+        :return: &lt;dict&gt; بلاک جدید
+        """
+
+        block = {
+            'index': len(self.chain) + 1,
+            'timestamp': time(),
+            'transactions': self.current_transactions,
+            'proof': proof,
+            'previous_hash': previous_hash or self.hash(self.chain[-1]),
+        }
+
+        # بازنشانی فهرست فعلی تراکنش‌ها
+        self.current_transactions = []
+
+        self.chain.append(block)
+        return block
+
+    def new_transaction(self, sender, recipient, amount):
+        """
+        یک تراکنش جدید برای قرار گرفتن در بلاک بعدی که استخراج می‌شود ایجاد می‌کند
+        :param sender: &lt;str&gt; آدرس فرستنده
+        :param recipient: &lt;str&gt; آدرس گیرنده
+        :param amount: &lt;int&gt; مقدار
+        :return: &lt;int&gt; ایندکس بلاکی که این تراکنش را در خود نگه می‌دارد
+        """
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount,
+        })
+
+        return self.last_block['index'] + 1
+
+    @property
+    def last_block(self):
+        return self.chain[-1]
+
+    @staticmethod
+    def hash(block):
+        """
+        هش SHA-256 از یک بلاک ایجاد می‌کند
+        :param block: &lt;dict&gt; بلاک
+        :return: &lt;str&gt;
+        """
+
+        # باید مطمئن شویم دیکشنری مرتب (Ordered) است، وگرنه هش‌های ناسازگاری خواهیم داشت
+        block_string = json.dumps(block, sort_keys=True).encode()
+        return hashlib.sha256(block_string).hexdigest()</code></pre>
+        <p>کد بالا باید سرراست باشد — برای شفافیت، چند کامنت و مستندسازی (docstring) اضافه کرده‌ام. ما تقریباً با نمایش
+        بلاک‌چین خود کارمان تمام شده است. اما در این مرحله حتماً از خود می‌پرسید بلاک‌های جدید چگونه ایجاد، جعل یا
+        استخراج می‌شوند.</p>
+
+        <h3>آشنایی با اثبات کار (Understanding Proof of Work)</h3>
+        <p>الگوریتم اثبات کار (Proof of Work) همان چیزی است که به‌واسطهٔ آن بلاک‌های جدید در بلاک‌چین ایجاد یا
+        <em>استخراج (mined)</em> می‌شوند. هدف PoW کشف عددی است که مسئله‌ای را حل کند. این عدد باید — از نظر محاسباتی —
+        <strong>یافتنش دشوار اما بررسیش آسان</strong> باشد، برای هر کسی در شبکه. این ایدهٔ اصلی پشت اثبات کار است.</p>
+        <p>برای اینکه این مفهوم کاملاً جا بیفتد، به یک مثال بسیار ساده نگاه می‌کنیم.</p>
+        <p>تصمیم می‌گیریم که هشِ حاصل‌ضربِ عدد صحیح x در عدد صحیح دیگر y باید به صفر ختم شود. یعنی
+        <code class="inline">hash(x * y) = ac23dc...0</code>. و برای این مثال ساده‌شده، فرض می‌کنیم
+        <code class="inline">x = 5</code>. پیاده‌سازی این مثال در پایتون:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>from hashlib import sha256
+x = 5
+y = 0  # هنوز نمی‌دانیم y باید چه باشد...
+while sha256(f'{x*y}'.encode()).hexdigest()[-1] != "0":
+    y += 1
+print(f'The solution is y = {y}')</code></pre>
+        <p>جواب این‌جا <code class="inline">y = 21</code> است؛ زیرا هش تولیدشده به صفر ختم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>hash(5 * 21) = 1253e9373e...5e3600155e860</code></pre>
+        <p>در بیت‌کوین، الگوریتم اثبات کار
+        <a href="https://en.wikipedia.org/wiki/Hashcash" target="_blank" rel="noopener">هش‌کش (Hashcash)</a> نام دارد و
+        تفاوت چندانی با مثال پایهٔ بالا ندارد. این الگوریتمی است که ماینرها (miners) برای ایجاد یک بلاک جدید در حل
+        کردنش مسابقه می‌دهند. به‌طور کلی، سختی کار با تعداد کاراکترهایی که در یک رشته جست‌وجو می‌شود تعیین می‌گردد.
+        سپس به ماینرها برای راه‌حلشان پاداش داده می‌شود — دریافت یک سکه در قالب یک تراکنش.</p>
+        <p>شبکه قادر است راه‌حل آن‌ها را <em>به‌آسانی</em> بررسی کند.</p>
+
+        <h3>پیاده‌سازی اثبات کار پایه (Implementing basic Proof of Work)</h3>
+        <p>بیایید الگوریتم مشابهی برای بلاک‌چین خود پیاده‌سازی کنیم. قانون ما شبیه مثال بالا خواهد بود:</p>
+        <div class="callout note">
+          <strong>قانون:</strong> عددی مانند p بیابید که وقتی با راه‌حل بلاک قبلی هش می‌شود، هشی با ۴ صفر پیشرو
+          (leading zeros) تولید کند.
+        </div>
+        <pre class="code"><span class="lang-tag">py</span><code>import hashlib
+import json
+
+from time import time
+from uuid import uuid4
+
+
+class Blockchain(object):
+    ...
+        
+    def proof_of_work(self, last_proof):
+        """
+        الگوریتم سادهٔ اثبات کار:
+         - عددی مانند p' بیابید که hash(pp') شامل 4 صفر پیشرو باشد؛ که در آن p اثبات قبلی و p' اثبات جدید است
+         - p اثبات قبلی است و p' اثبات جدید
+        :param last_proof: &lt;int&gt;
+        :return: &lt;int&gt;
+        """
+
+        proof = 0
+        while self.valid_proof(last_proof, proof) is False:
+            proof += 1
+
+        return proof
+
+    @staticmethod
+    def valid_proof(last_proof, proof):
+        """
+        اثبات را اعتبارسنجی می‌کند: آیا hash(last_proof, proof) شامل 4 صفر پیشرو است؟
+        :param last_proof: &lt;int&gt; اثبات قبلی
+        :param proof: &lt;int&gt; اثبات فعلی
+        :return: &lt;bool&gt; اگر درست باشد True و اگر نادرست باشد False
+        """
+
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "0000"</code></pre>
+        <p>برای تنظیم سختی الگوریتم، می‌توانیم تعداد صفرهای پیشرو را تغییر دهیم. اما ۴ کافی است. خواهید دید که افزودن
+        تنها یک صفر پیشرویِ اضافه، تفاوتی عظیم در زمان لازم برای یافتن راه‌حل ایجاد می‌کند.</p>
+        <p>کلاس ما تقریباً کامل است و ما آماده‌ایم تعامل با آن را از طریق درخواست‌های HTTP آغاز کنیم.</p>
+      </section>
+
+      <!-- ==================== گام ۲ ==================== -->
+      <section>
+        <h2>گام ۲: بلاک‌چین ما به‌عنوان یک API</h2>
+        <p>ما از چارچوب (framework) فلاسک (Flask) پایتون استفاده خواهیم کرد. فلاسک یک میکروچارچوب است و نگاشت
+        اندپوینت‌ها (endpoints) به توابع پایتون را آسان می‌کند. این قابلیت به ما امکان می‌دهد از طریق وب و با استفاده
+        از درخواست‌های HTTP با بلاک‌چین خود صحبت کنیم.</p>
+        <p>سه متد ایجاد می‌کنیم:</p>
+        <ul>
+          <li><code class="inline">/transactions/new</code> برای ایجاد یک تراکنش جدید در یک بلاک</li>
+          <li><code class="inline">/mine</code> برای گفتن این‌که سرور یک بلاک جدید استخراج کند</li>
+          <li><code class="inline">/chain</code> برای برگرداندن کامل بلاک‌چین</li>
+        </ul>
+
+        <h3>راه‌اندازی فلاسک (Setting up Flask)</h3>
+        <p>«سرور» ما یک نود (node) منفرد در شبکهٔ بلاک‌چین ما را تشکیل می‌دهد. بیایید کمی کد قالبی (boilerplate) بسازیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>import hashlib
+import json
+from textwrap import dedent
+from time import time
+from uuid import uuid4
+
+from flask import Flask
+
+
+class Blockchain(object):
+    ...
+
+
+# نمونه‌سازی نود ما
+app = Flask(__name__)
+
+# تولید یک آدرس یکتا و سراسری برای این نود
+node_identifier = str(uuid4()).replace('-', '')
+
+# نمونه‌سازی بلاک‌چین
+blockchain = Blockchain()
+
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    return "We'll mine a new Block"
+  
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    return "We'll add a new transaction"
+
+@app.route('/chain', methods=['GET'])
+def full_chain():
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain),
+    }
+    return jsonify(response), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)</code></pre>
+        <p>توضیح کوتاهی از آنچه در بالا اضافه کردیم:</p>
+        <ul>
+          <li><strong>خط ۱۵:</strong> نود ما را نمونه‌سازی می‌کند. دربارهٔ فلاسک
+          <a href="http://flask.pocoo.org/docs/0.12/quickstart/" target="_blank" rel="noopener">در این‌جا</a> بیشتر بخوانید.</li>
+          <li><strong>خط ۱۸:</strong> یک نام تصادفی برای نود ما ایجاد می‌کند.</li>
+          <li><strong>خط ۲۱:</strong> کلاس <code class="inline">Blockchain</code> ما را نمونه‌سازی می‌کند.</li>
+          <li><strong>خط ۲۴–۲۶:</strong> اندپوینت <code class="inline">/mine</code> را می‌سازد؛ که یک درخواست
+          <code class="inline">GET</code> است.</li>
+          <li><strong>خط ۲۸–۳۰:</strong> اندپوینت <code class="inline">/transactions/new</code> را می‌سازد؛ که یک درخواست
+          <code class="inline">POST</code> است، زیرا قرار است داده به آن ارسال کنیم.</li>
+          <li><strong>خط ۳۲–۳۸:</strong> اندپوینت <code class="inline">/chain</code> را می‌سازد؛ که کل بلاک‌چین را برمی‌گرداند.</li>
+          <li><strong>خط ۴۰–۴۱:</strong> سرور را روی پورت ۵۰۰۰ اجرا می‌کند.</li>
+        </ul>
+
+        <h3>اندپوینت تراکنش‌ها (The Transactions Endpoint)</h3>
+        <p>درخواست یک تراکنش این‌گونه خواهد بود. این همان چیزی است که کاربر به سرور می‌فرستد:</p>
+        <pre class="code"><span class="lang-tag">json</span><code>{
+ "sender": "my address",
+ "recipient": "someone else's address",
+ "amount": 5
+}</code></pre>
+        <p>چون از قبل متد کلاسی خود را برای افزودن تراکنش‌ها به یک بلاک داریم، بقیهٔ کار آسان است. بیایید تابع افزودن
+        تراکنش‌ها را بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>import hashlib
+import json
+from textwrap import dedent
+from time import time
+from uuid import uuid4
+
+from flask import Flask, jsonify, request
+
+...
+
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    values = request.get_json()
+
+    # بررسی اینکه فیلدهای لازم در داده‌های POST شده وجود دارند
+    required = ['sender', 'recipient', 'amount']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    # ایجاد یک تراکنش جدید
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+
+    response = {'message': f'Transaction will be added to Block {index}'}
+    return jsonify(response), 201</code></pre>
+        <p><em>(متدی برای ایجاد تراکنش‌ها)</em></p>
+
+        <h3>اندپوینت استخراج (The Mining Endpoint)</h3>
+        <p>اندپوینت استخراج ما همان‌جایی است که جادو اتفاق می‌افتد و کارش آسان است. باید سه کار انجام دهد:</p>
+        <ul>
+          <li>محاسبهٔ اثبات کار (Proof of Work)</li>
+          <li>پاداش دادن به ماینر (یعنی ما) با افزودن تراکنشی که ۱ سکه به ما اعطا می‌کند</li>
+          <li>جعل (forge) بلاک جدید با افزودن آن به زنجیره</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">py</span><code>import hashlib
+import json
+
+from time import time
+from uuid import uuid4
+
+from flask import Flask, jsonify, request
+
+...
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    # الگوریتم اثبات کار را برای دریافت اثبات بعدی اجرا می‌کنیم...
+    last_block = blockchain.last_block
+    last_proof = last_block['proof']
+    proof = blockchain.proof_of_work(last_proof)
+
+    # باید برای یافتن اثبات پاداش بگیریم.
+    # فرستنده "0" است تا نشان دهد این نود یک سکه جدید استخراج کرده است.
+    blockchain.new_transaction(
+        sender="0",
+        recipient=node_identifier,
+        amount=1,
+    )
+
+    # جعل بلاک جدید با افزودن آن به زنجیره
+    previous_hash = blockchain.hash(last_block)
+    block = blockchain.new_block(proof, previous_hash)
+
+    response = {
+        'message': "New Block Forged",
+        'index': block['index'],
+        'transactions': block['transactions'],
+        'proof': block['proof'],
+        'previous_hash': block['previous_hash'],
+    }
+    return jsonify(response), 200</code></pre>
+        <p>توجه کنید که گیرندهٔ بلاک استخراج‌شده، آدرس نود ماست. و بیشترِ کارهایی که این‌جا انجام دادیم، صرفاً تعامل با
+        متدهای کلاس <code class="inline">Blockchain</code> ماست. در این مرحله کارمان تمام شده است و می‌توانیم تعامل با
+        بلاک‌چین خود را آغاز کنیم.</p>
+      </section>
+
+      <!-- ==================== گام ۳ ==================== -->
+      <section>
+        <h2>گام ۳: تعامل با بلاک‌چین ما</h2>
+        <p>می‌توانید از cURL ساده یا پست‌من برای تعامل با API خود از طریق شبکه استفاده کنید.</p>
+        <p>سرور را روشن کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ python blockchain.py
+* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)</code></pre>
+        <p>بیایید با ارسال یک درخواست <code class="inline">GET</code> به
+        <code class="inline">http://localhost:5000/mine</code> استخراج یک بلاک را امتحان کنیم:</p>
+        <img src="https://hackernoon.imgix.net/images/JTw2M3rQabaxNg3EFoNIxjmC1ZB3-dk232gk.jpg?auto=format%2Ccompress&w=3840" alt="استفاده از پست‌من برای ارسال یک درخواست GET به اندپوینت استخراج" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>(استفاده از پست‌من برای ارسال یک درخواست GET)</em></p>
+        <p>بیایید با ارسال یک درخواست <code class="inline">POST</code> به
+        <code class="inline">http://localhost:5000/transactions/new</code> و بدنی شامل ساختار تراکنش خود، یک تراکنش جدید
+        ایجاد کنیم:</p>
+        <img src="https://hackernoon.imgix.net/images/JTw2M3rQabaxNg3EFoNIxjmC1ZB3-p31b132c2.jpg?auto=format%2Ccompress&w=3840" alt="استفاده از پست‌من برای ارسال یک درخواست POST به اندپوینت ایجاد تراکنش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>(استفاده از پست‌من برای ارسال یک درخواست POST)</em></p>
+        <p>اگر از پست‌من استفاده نمی‌کنید، می‌توانید درخواست معادل را با cURL ارسال کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ curl -X POST -H "Content-Type: application/json" -d '{
+ "sender": "d4ee26eee15148ee92c6cd394edd974e",
+ "recipient": "someone-other-address",
+ "amount": 5
+}' "http://localhost:5000/transactions/new"</code></pre>
+        <p>من سرور خود را از نو راه‌اندازی کردم و دو بلاک استخراج کردم تا در مجموع ۳ بلاک داشته باشیم. بیایید با درخواست
+        به <code class="inline">http://localhost:5000/chain</code> کل زنجیره را بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">json</span><code>{
+  "chain": [
+    {
+      "index": 1,
+      "previous_hash": 1,
+      "proof": 100,
+      "timestamp": 1506280650.770839,
+      "transactions": []
+    },
+    {
+      "index": 2,
+      "previous_hash": "c099bc...bfb7",
+      "proof": 35293,
+      "timestamp": 1506280664.717925,
+      "transactions": [
+        {
+          "amount": 1,
+          "recipient": "8bbcb347e0634905b0cac7955bae152b",
+          "sender": "0"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "previous_hash": "eff91a...10f2",
+      "proof": 35089,
+      "timestamp": 1506280666.1086972,
+      "transactions": [
+        {
+          "amount": 1,
+          "recipient": "8bbcb347e0634905b0cac7955bae152b",
+          "sender": "0"
+        }
+      ]
+    }
+  ],
+  "length": 3
+}</code></pre>
+      </section>
+
+      <!-- ==================== گام ۴ ==================== -->
+      <section>
+        <h2>گام ۴: اجماع (Consensus)</h2>
+        <p>این خیلی جالب است. ما یک بلاک‌چین پایه داریم که تراکنش‌ها را می‌پذیرد و به ما اجازهٔ استخراج بلاک‌های جدید را
+        می‌دهد. اما نکتهٔ اصلی بلاک‌چین‌ها این است که باید <em>غیرمتمرکز (decentralized)</em> باشند. و اگر غیرمتمرکز
+        باشند، اصلاً چطور تضمین می‌کنیم همهٔ آن‌ها همان زنجیره را بازتاب دهند؟ به این مسئله «مسئلهٔ <em>اجماع</em>
+        (Consensus)» گفته می‌شود؛ و اگر بخواهیم بیش از یک نود در شبکهٔ خود داشته باشیم، باید یک «الگوریتم اجماع»
+        (Consensus Algorithm) پیاده‌سازی کنیم.</p>
+
+        <h3>ثبت نودهای جدید (Registering new Nodes)</h3>
+        <p>پیش از پیاده‌سازی الگوریتم اجماع، به راهی نیاز داریم که به یک نود اجازه دهد از نودهای همسایه در شبکه باخبر
+        شود. هر نود در شبکهٔ ما باید فهرستی از نودهای دیگر شبکه نگهداری کند. بنابراین به چند اندپوینت بیشتر نیاز
+        داریم:</p>
+        <ul>
+          <li><code class="inline">/nodes/register</code> برای پذیرش فهرستی از نودهای جدید در قالب URLها.</li>
+          <li><code class="inline">/nodes/resolve</code> برای پیاده‌سازی الگوریتم اجماع ما که هر تعارضی را حل می‌کند —
+          تا اطمینان یابد نود زنجیرهٔ درست را دارد.</li>
+        </ul>
+        <p>باید سازندهٔ بلاک‌چین خود را اصلاح کنیم و متدی برای ثبت نودها فراهم کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>...
+from urllib.parse import urlparse
+...
+
+
+class Blockchain(object):
+    def __init__(self):
+        ...
+        self.nodes = set()
+        ...
+
+    def register_node(self, address):
+        """
+        یک نود جدید به فهرست نودها اضافه می‌کند
+        :param address: &lt;str&gt; آدرس نود. مانند 'http://192.168.0.5:5000'
+        :return: None
+        """
+
+        parsed_url = urlparse(address)
+        self.nodes.add(parsed_url.netloc)</code></pre>
+        <p><em>(متدی برای افزودن نودهای همسایه به شبکهٔ ما)</em></p>
+        <p>توجه کنید که برای نگه‌داری فهرست نودها از <code class="inline">set()</code> استفاده کرده‌ایم. این راهی ارزان
+        برای اطمینان از «ناتأثیرپذیری» (idempotent) افزودن نودهای جدید است — یعنی مهم نیست چند بار یک نود مشخص را اضافه
+        کنیم، دقیقاً یک بار ظاهر می‌شود.</p>
+
+        <h3>پیاده‌سازی الگوریتم اجماع (Implementing the Consensus Algorithm)</h3>
+        <p>همان‌طور که اشاره شد، تعارض (conflict) زمانی است که یک نود زنجیره‌ای متفاوت از نود دیگر داشته باشد. برای حل این
+        مسئله، این قانون را می‌گذاریم که <em>طولانی‌ترین زنجیرهٔ معتبر، مرجع (authoritative) است.</em> به عبارت دیگر،
+        بلندترین زنجیره در شبکه، زنجیرهٔ بالفعل (de-facto) محسوب می‌شود. با استفاده از این الگوریتم، به <em>اجماع</em>
+        میان نودهای شبکهٔ خود می‌رسیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code>...
+import requests
+
+
+class Blockchain(object)
+    ...
+    
+    def valid_chain(self, chain):
+        """
+        تعیین می‌کند که آیا یک بلاک‌چین مشخص معتبر است یا نه
+        :param chain: &lt;list&gt; یک بلاک‌چین
+        :return: &lt;bool&gt; اگر معتبر باشد True و اگر نه False
+        """
+
+        last_block = chain[0]
+        current_index = 1
+
+        while current_index &lt; len(chain):
+            block = chain[current_index]
+            print(f'{last_block}')
+            print(f'{block}')
+            print("\n-----------\n")
+            # بررسی اینکه هش بلاک درست است
+            if block['previous_hash'] != self.hash(last_block):
+                return False
+
+            # بررسی اینکه اثبات کار درست است
+            if not self.valid_proof(last_block['proof'], block['proof']):
+                return False
+
+            last_block = block
+            current_index += 1
+
+        return True
+
+    def resolve_conflicts(self):
+        """
+        این الگوریتم اجماع ماست؛ تعارض‌ها را با جایگزینی
+        زنجیرهٔ ما با طولانی‌ترین زنجیره در شبکه حل می‌کند.
+        :return: &lt;bool&gt; اگر زنجیرهٔ ما جایگزین شده باشد True و اگر نه False
+        """
+
+        neighbours = self.nodes
+        new_chain = None
+
+        # ما فقط به دنبال زنجیره‌هایی بلندتر از زنجیرهٔ خود هستیم
+        max_length = len(self.chain)
+
+        # دریافت و بررسی زنجیره‌های همهٔ نودهای شبکهٔ ما
+        for node in neighbours:
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                # بررسی اینکه طول بلندتر و زنجیره معتبر باشد
+                if length &gt; max_length and self.valid_chain(chain):
+                    max_length = length
+                    new_chain = chain
+
+        # جایگزینی زنجیرهٔ خود در صورت کشف زنجیرهٔ معتبر جدیدی بلندتر از زنجیرهٔ ما
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False</code></pre>
+        <p>متد نخست، یعنی <code class="inline">valid_chain()</code>، مسئول بررسی معتبر بودن یک زنجیره است؛ با حلقه زدن روی
+        هر بلاک و بررسی هم هش و هم اثبات.</p>
+        <p><code class="inline">resolve_conflicts()</code> متدی است که در تمام نودهای همسایهٔ ما حلقه می‌زند، زنجیره‌هایشان
+        را «دانلود» می‌کند و با استفاده از متد بالا آن‌ها را بررسی می‌کند. <strong>اگر زنجیرهٔ معتبری یافت شود که طولش
+        از زنجیرهٔ ما بیشتر است، زنجیرهٔ خود را با آن جایگزین می‌کنیم.</strong></p>
+        <p>بیایید دو اندپوینت را به API خود ثبت کنیم؛ یکی برای افزودن نودهای همسایه و دیگری برای حل تعارض‌ها:</p>
+        <pre class="code"><span class="lang-tag">py</span><code>@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+    values = request.get_json()
+
+    nodes = values.get('nodes')
+    if nodes is None:
+        return "Error: Please supply a valid list of nodes", 400
+
+    for node in nodes:
+        blockchain.register_node(node)
+
+    response = {
+        'message': 'New nodes have been added',
+        'total_nodes': list(blockchain.nodes),
+    }
+    return jsonify(response), 201
+
+
+@app.route('/nodes/resolve', methods=['GET'])
+def consensus():
+    replaced = blockchain.resolve_conflicts()
+
+    if replaced:
+        response = {
+            'message': 'Our chain was replaced',
+            'new_chain': blockchain.chain
+        }
+    else:
+        response = {
+            'message': 'Our chain is authoritative',
+            'chain': blockchain.chain
+        }
+
+    return jsonify(response), 200</code></pre>
+        <p>در این مرحله می‌توانید در صورت تمایل یک ماشین دیگر بردارید و نودهای مختلفی در شبکهٔ خود راه‌اندازی کنید؛ یا
+        روی همان ماشین، فرایندهایی با پورت‌های مختلف اجرا کنید. من یک نود دیگر روی ماشین خودم، روی یک پورت متفاوت،
+        راه‌اندازی کردم و آن را نزد نود فعلی‌ام ثبت کردم. به این ترتیب دو نود دارم:
+        <code class="inline">http://localhost:5000</code> و <code class="inline">http://localhost:5001</code>.</p>
+        <img src="https://hackernoon.imgix.net/images/JTw2M3rQabaxNg3EFoNIxjmC1ZB3-5x1ff32rt.jpg?auto=format%2Ccompress&w=3840" alt="ثبت یک نود جدید در شبکهٔ بلاک‌چین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>(ثبت یک نود جدید)</em></p>
+        <p>سپس برای اطمینان از بلندتر بودن زنجیره، چند بلاک جدید روی نود ۲ استخراج کردم. پس از آن، در نود ۱ درخواست
+        <code class="inline">GET /nodes/resolve</code> صادر کردم؛ جایی که زنجیره توسط الگوریتم اجماع جایگزین شد:</p>
+        <img src="https://hackernoon.imgix.net/images/JTw2M3rQabaxNg3EFoNIxjmC1ZB3-ij1y532mf.jpg?auto=format%2Ccompress&w=3840" alt="الگوریتم اجماع در عمل — جایگزینی زنجیره با طولانی‌ترین زنجیرهٔ معتبر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>(الگوریتم اجماع در عمل)</em></p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>و این هم پایان کار... چند دوست را جمع کنید تا در آزمایش بلاک‌چین شما کمک کنند.</p>
+        <p>امیدوارم این مقاله الهام‌بخش شما برای خلق چیز جدیدی بوده باشد. من دربارهٔ ارزهای رمزنگاری‌شده بسیار
+        خوش‌بینم، زیرا باور دارم بلاک‌چین‌ها به‌سرعت طرز فکر ما دربارهٔ اقتصادها، دولت‌ها و ثبت‌و‌نگهداری رکوردها
+        (record-keeping) را تغییر خواهند داد.</p>
+        <div class="callout note">
+          <strong>به‌روزرسانی:</strong> قصد دارم با یک «بخش ۲» دنبالهٔ این مقاله را بنویسم؛ جایی که بلاک‌چین خود را به
+          «مکانیزم اعتبارسنجی تراکنش» (Transaction Validation Mechanism) مجهز می‌کنیم و همچنین دربارهٔ برخی روش‌های
+          آماده‌سازی بلاک‌چین برای محیط تولید (productionize) صحبت خواهیم کرد.
+        </div>
+        <div class="callout tip">
+          <strong>اگر از این راهنما لذت بردید یا پیشنهاد یا سؤالی دارید، در بخش نظرات به من اطلاع دهید. و اگر خطایی
+          مشاهده کردید، آزادانه در
+          <a href="https://github.com/dvf/blockchain" target="_blank" rel="noopener">کد</a> مشارکت کنید!</strong>
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Learn Blockchains by Building One» اثر «دنیل ون فلایمن (Daniel van Flymen)»
+        است که نخستین‌بار در HackerNoon منتشر شده و کد کامل آن در
+        <a href="https://github.com/dvf/blockchain" target="_blank" rel="noopener">مخزن GitHub پروژه</a> موجود است. این
+        صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به <a href="https://hackernoon.com/learn-blockchains-by-building-one-117428612f46" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

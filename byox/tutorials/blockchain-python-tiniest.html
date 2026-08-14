@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Let's Build the Tiniest Blockchain» (Gerald Nash / Crypto Currently)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید کوچک‌ترین بلاک‌چین را بسازیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بیایید کوچک‌ترین بلاک‌چین را بسازیم</span>
+      </div>
+      <h1>بیایید کوچک‌ترین بلاک‌چین را بسازیم</h1>
+      <p style="margin-top:-10px;color:var(--muted);font-size:0.95rem">در کمتر از ۵۰ خط پایتون <span dir="ltr">(In Less Than 50 Lines of Python)</span></p>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/crypto-currently/lets-build-the-tiniest-blockchain-e70965a248b" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Let's Build the Tiniest Blockchain» نوشته «جرالد نش
+          (Gerald Nash)» در انتشارات «Crypto Currently» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/crypto-currently/lets-build-the-tiniest-blockchain-e70965a248b" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== بلاک‌چین ==================== -->
+      <section>
+        <div class="callout note">
+          <strong>توجه:</strong> بخش دوم این مقاله را می‌توانید
+          <a href="https://medium.com/crypto-currently/lets-make-the-tiniest-blockchain-bigger-ac360a328f4d" target="_blank" rel="noopener">اینجا</a>
+          بیابید.
+        </div>
+        <img src="https://miro.medium.com/max/2048/1*v5Ra8k9iLKDWT-fTtoZ4Rg.jpeg" alt="تصویر جلد مقالهٔ ساخت کوچک‌ترین بلاک‌چین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگرچه برخی بر این باورند که بلاک‌چین راه‌حلی است که هنوز در انتظار یک مشکل به سر می‌برد، شکی نیست که این
+        فناوری نوین یکی از شگفتی‌های محاسبات به شمار می‌رود. اما بلاک‌چین دقیقاً چیست؟</p>
+
+        <h2>بلاک‌چین (Blockchain)</h2>
+        <blockquote>
+          <a href="https://www.google.com/search?q=blockchain+definition" target="_blank" rel="noopener">دفتر کل دیجیتالی
+          (digital ledger) که در آن تراکنش‌های انجام‌شده در بیت‌کوین یا هر ارز دیجیتال دیگری به‌صورت زمانی و عمومی ثبت
+          می‌شوند.</a>
+        </blockquote>
+        <p>به عبارت کلی‌تر، بلاک‌چین یک پایگاه‌دادهٔ عمومی است که داده‌های جدید در ظرفی به نام بلاک (block) ذخیره می‌شوند
+        و به زنجیره‌ای تغییرناپذیر (immutable chain) — از این رو «بلاک‌چین» — افزوده می‌شوند که داده‌های افزوده‌شده در
+        گذشته را نیز در خود دارد. در مورد بیت‌کوین و دیگر ارزهای دیجیتال، این داده‌ها گروه‌هایی از تراکنش‌ها
+        (transactions) هستند. اما طبیعتاً داده می‌تواند از هر نوعی باشد.</p>
+        <p>فناوری بلاک‌چین ارزهای دیجیتالی تماماً نوینی مانند بیت‌کوین و لایت‌کوین را پدید آورده است که هیچ مرجع مرکزی
+        آن‌ها را منتشر یا مدیریت نمی‌کند. این امر آزادی تازه‌ای برای افرادی به ارمغان آورده است که بر این باورند
+        سیستم‌های بانکی امروز کلاهبرداری‌اند یا در معرض شکست قرار دارند. بلاک‌چین همچنین محاسبات توزیع‌شده (distributed
+        computing) را در قالب فناوری‌هایی مانند اتریوم متحول کرده است؛ فناوری‌هایی که مفاهیم جالبی چون
+        <a href="https://blockgeeks.com/guides/smart-contracts/" target="_blank" rel="noopener">قراردادهای هوشمند (smart contracts)</a>
+        را معرفی کرده‌اند.</p>
+        <p>در این مقاله، یک بلاک‌چین ساده در کمتر از ۵۰ خط کد پایتون ۲ می‌سازم. نامش را SnakeCoin می‌گذارم.</p>
+      </section>
+
+      <!-- ==================== ساختار بلاک‌ها ==================== -->
+      <section>
+        <h2>ساختار بلاک‌ها</h2>
+        <p>ابتدا تعریف می‌کنیم که بلاک‌های ما چه شکلی خواهند داشت. در بلاک‌چین، هر بلاک همراه با یک مهر زمان
+        (timestamp) و به‌صورت اختیاری یک ایندکس (index) ذخیره می‌شود. در SnakeCoin، هر دو را ذخیره می‌کنیم. و برای کمک
+        به تضمین یکپارچگی (integrity) در سراسر بلاک‌چین، هر بلاک یک هش (hash) خودشناسا خواهد داشت. مانند بیت‌کوین، هش
+        هر بلاک، هش رمزنگارانهٔ (cryptographic hash) ایندکس، مهر زمان، داده و هشِ بلاکِ پیشینِ همان بلاک است. آه، و
+        داده می‌تواند هر چیزی باشد که می‌خواهید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import hashlib as hasher
+import datetime as date
+
+# تعریف اینکه یک بلاک SnakeCoin چیست
+class Block:
+  def __init__(self, index, timestamp, data, previous_hash):
+    self.index = index
+    self.timestamp = timestamp
+    self.data = data
+    self.previous_hash = previous_hash
+    self.hash = self.hash_block()
+
+  def hash_block(self):
+    sha = hasher.sha256()
+    sha.update(str(self.index) + str(self.timestamp) + str(self.data) + str(self.previous_hash))
+    return sha.hexdigest()</code></pre>
+      </section>
+
+      <!-- ==================== بلاک پیدایش ==================== -->
+      <section>
+        <h2>بلاک پیدایش (Genesis Block)</h2>
+        <p>عالی! ساختار بلاک را داریم، اما ما در حال ساختن یک بلاک‌چین هستیم و باید افزودن بلاک‌ها به زنجیرهٔ واقعی را
+        آغاز کنیم. همان‌گونه که پیش‌تر اشاره کردم، هر بلاک به اطلاعاتی از بلاک قبلی نیاز دارد. اما با این حال، پرسشی
+        پیش می‌آید: <strong>نخستین بلاک در بلاک‌چین چگونه به آن‌جا می‌رسد؟</strong> خب، اولین بلاک یا بلاک پیدایش
+        (genesis block)، بلاکی ویژه است. در بسیاری از موارد، به‌صورت دستی اضافه می‌شود یا منطقی یکتا دارد که
+        افزوده‌شدنش را ممکن می‌سازد.</p>
+        <p>برای آسان‌سازی کار، تابعی می‌سازیم که صرفاً یک بلاک پیدایش برمی‌گرداند. این بلاک ایندکس ۰ دارد، مقدار
+        داده‌ای دلخواه و مقداری دلخواه در پارامتر «هش قبلی» دارد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># تولید بلاک پیدایش
+def create_genesis_block():
+  # ساخت دستی یک بلاک با
+  # ایندکس صفر و هش قبلی دلخواه
+  return Block(0, date.datetime.now(), "Genesis Block", "0")</code></pre>
+      </section>
+
+      <!-- ==================== تولید بلاک‌های بعدی ==================== -->
+      <section>
+        <h2>تولید بلاک‌های بعدی</h2>
+        <p>حالا که می‌توانیم بلاک پیدایش را بسازیم، به تابعی نیاز داریم که بلاک‌های پس از آن را در بلاک‌چین تولید کند.
+        این تابع بلاک قبلی زنجیره را به‌عنوان پارامتر می‌گیرد، دادهٔ بلاکی را که باید تولید شود می‌سازد و بلاک تازه را
+        با دادهٔ مناسب خود بازمی‌گرداند. وقتی بلاک‌های جدید اطلاعات هشِ بلاک‌های قبلی را در خود درهم‌می‌ریزند (hash
+        می‌کنند)، با هر بلاک جدید بر یکپارچگی بلاک‌چین افزوده می‌شود. اگر این کار را نمی‌کردیم، برای یک طرف خارجی
+        «تغییر دادن گذشته» و جایگزین‌کردن زنجیرهٔ ما با زنجیره‌ای کاملاً تازه از آنِ خودش آسان‌تر می‌شد. این زنجیرهٔ
+        هش‌ها به‌مثابهٔ اثباتی رمزنگارانه عمل می‌کند و تضمین می‌کند که به محض افزوده‌شدن بلاکی به بلاک‌چین، دیگر
+        نمی‌توان آن را جایگزین یا حذف کرد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># تولید همهٔ بلاک‌های بعدی در بلاک‌چین
+def next_block(last_block):
+  this_index = last_block.index + 1
+  this_timestamp = date.datetime.now()
+  this_data = "Hey! I'm block " + str(this_index)
+  this_hash = last_block.hash
+  return Block(this_index, this_timestamp, this_data, this_hash)</code></pre>
+      </section>
+
+      <!-- ==================== ساخت بلاک‌چین ==================== -->
+      <section>
+        <h2>ساخت بلاک‌چین</h2>
+        <p>این بخش عمدهٔ کار سخت بود. حالا می‌توانیم بلاک‌چین خود را بسازیم! در مورد ما، خودِ بلاک‌چین یک لیست سادهٔ
+        پایتونی است. نخستین عضو لیست، بلاک پیدایش است. و البته باید بلاک‌های پسین را نیز اضافه کنیم. چون SnakeCoin
+        کوچک‌ترین بلاک‌چین است، فقط ۲۰ بلاک تازه اضافه می‌کنیم. این کار را می‌توانیم با یک حلقهٔ for انجام دهیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># ساخت بلاک‌چین و افزودن بلاک پیدایش
+blockchain = [create_genesis_block()]
+previous_block = blockchain[0]
+
+# تعداد بلاک‌هایی که باید به زنجیره اضافه شوند
+# (پس از بلاک پیدایش)
+num_of_blocks_to_add = 20
+
+# افزودن بلاک‌ها به زنجیره
+for i in range(0, num_of_blocks_to_add):
+  block_to_add = next_block(previous_block)
+  blockchain.append(block_to_add)
+  previous_block = block_to_add
+
+  # به همه خبرش بده!
+  print "Block #{} has been added to the blockchain!".format(block_to_add.index)
+  print "Hash: {}\n".format(block_to_add.hash)</code></pre>
+      </section>
+
+      <!-- ==================== آزمایش بلاک‌چین ==================== -->
+      <section>
+        <h2>آزمایش بلاک‌چین</h2>
+        <p>بیایید آنچه را تاکنون ساخته‌ایم آزمایش کنیم.</p>
+        <img src="https://miro.medium.com/max/2040/1*njl6-UdLUWTLRFsHc4D-tA.png" alt="خروجی کنسول: هر بلاک با ایندکس و هش خود به بلاک‌چین اضافه می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>نگران نباشید؛ تا ۲۰ ادامه دارد.</p>
+        <p>همین شد! بلاک‌چین ما کار می‌کند. اگر می‌خواهید اطلاعات بیشتری در کنسول ببینید، می‌توانید
+        <a href="https://gist.github.com/aunyks/8f2c2fd51cc17f342737917e1c2582e2" target="_blank" rel="noopener">فایل
+        منبع کامل را ویرایش کنید</a> و مهر زمان یا دادهٔ هر بلاک را چاپ کنید.</p>
+      </section>
+
+      <!-- ==================== محدودیت‌ها و گام‌های بعدی ==================== -->
+      <section>
+        <h2>محدودیت‌ها و گام‌های بعدی</h2>
+        <p>این تقریباً تمام چیزی است که SnakeCoin ارائه می‌دهد. برای اینکه SnakeCoin تا اندازهٔ بلاک‌چین‌های تولیدی
+        امروز مقیاس‌پذیر شود، باید ویژگی‌های بیشتری اضافه کنیم؛ مانند یک لایهٔ سرور (server layer) برای پیگیری تغییرات
+        زنجیره روی چندین ماشین و یک
+        <a href="https://en.bitcoin.it/wiki/Proof_of_work" target="_blank" rel="noopener">الگوریتم اثبات کار
+        (proof-of-work)</a> برای محدودکردن تعداد بلاک‌هایی که در یک بازهٔ زمانی معین اضافه می‌شوند.</p>
+        <p>اگر می‌خواهید فنی‌تر پیش بروید، می‌توانید
+        <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">سند اصلی بیت‌کوین (Bitcoin whitepaper)</a>
+        را اینجا ببینید. بهترین آرزوها را برایتان دارم و کدنویسی مبارک!</p>
+      </section>
+
+      <!-- ==================== پایان ==================== -->
+      <section>
+        <div class="callout note">
+          <strong>توجه:</strong> بخش دوم این مقاله را می‌توانید
+          <a href="https://medium.com/crypto-currently/lets-make-the-tiniest-blockchain-bigger-ac360a328f4d" target="_blank" rel="noopener">اینجا</a>
+          بیابید.
+        </div>
+        <p>بسیار سپاسگزارم که این مقاله را خواندید!</p>
+        <img src="https://media.giphy.com/media/3otPoUkg3hBxQKRJ7y/giphy.gif" alt="تصویر متحرک تشکر از خوانندگان مقاله" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          <a href="https://twitter.com/aunyks" target="_blank" rel="noopener">توییتر</a>،
+          <a href="https://github.com/aunyks" target="_blank" rel="noopener">گیت‌هاب</a>،
+          <a href="https://snapchat.com/add/aunyks" target="_blank" rel="noopener">اسنپ‌چت</a>،
+          <a href="https://instagram.com/aunyks" target="_blank" rel="noopener">اینستاگرام</a>
+        </p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Let's Build the Tiniest Blockchain» اثر «جرالد نش (Gerald Nash)» — انتشارات
+        «Crypto Currently» — است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/crypto-currently/lets-build-the-tiniest-blockchain-e70965a248b" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

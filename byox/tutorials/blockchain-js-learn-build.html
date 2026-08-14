@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Learn & Build a Javascript Blockchain (Part 1)»
+  (Spenser Huang — Digital Alchemy Holdings — Medium)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یادگیری و ساخت یک بلاک‌چین جاوااسکریپت (بخش ۱)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>یادگیری و ساخت یک بلاک‌چین جاوااسکریپت</span>
+      </div>
+      <h1>یادگیری و ساخت یک بلاک‌چین جاوااسکریپت (بخش ۱)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/digital-alchemy-holdings/learn-build-a-javascript-blockchain-part-1-ca61c285821e" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقاله «Learn &amp; Build a Javascript Blockchain (Part 1)» نوشتهٔ
+          «اسپنسر هوانگ (Spenser Huang)» در نشریهٔ «Digital Alchemy Holdings» است. نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/digital-alchemy-holdings/learn-build-a-javascript-blockchain-part-1-ca61c285821e" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p><em>بهترین راه برای درک بلاک‌چین، ساختن یکی از آن است.</em></p>
+        <div class="callout note">
+          <strong>دربارهٔ این بخش:</strong> در این بخش ۱ از مجموعهٔ «بلاک‌چین جاوااسکریپت» (Javascript Blockchain
+          Series)، شیء بلوک (block object) و شیء بلاک‌چین (blockchain object) را پوشش می‌دهیم و دربارهٔ ساختار و
+          پیامدهای آن‌ها بحث خواهیم کرد.
+        </div>
+        <p>من به این باور ایمان دارم که بهترین راه یادگیری هر فناوری، ساختن آن است. به‌طور طبیعی، علاقه‌ام به فناوری
+        بلاک‌چین مرا به تلاش برای ساختن یک بلاک‌چینِ مخصوصِ خودم کشاند. به‌عنوان هم‌مسیری که به بلاک‌چین علاقه دارد،
+        شما را قدم‌به‌قدم در مسیر ساخت یک بلاک‌چین پایه (basic blockchain) با یک سیستم گواه کار (proof of work) یکپارچه
+        همراهی می‌کنم و در طول مسیر دربارهٔ پیامدهای قابلیت‌های مختلف بحث خواهیم کرد.</p>
+        <ul>
+          <li><b>چه چیزی نیاز دارید:</b> آخرین نسخهٔ <a href="https://nodejs.org/en/" target="_blank" rel="noopener">Node.js</a>
+          (من از نسخهٔ v8.7.0 استفاده می‌کنم) و
+          <a href="https://www.npmjs.com/" target="_blank" rel="noopener">npm (مدیر بسته‌های نود)</a>
+          (من از نسخهٔ v5.6.0 استفاده می‌کنم).</li>
+          <li><b>این آموزش برای چه کسانی است:</b> هر کسی که به یادگیری بلاک‌چین علاقه‌مند است و درک پایه‌ای از
+          جاوااسکریپت دارد.</li>
+          <li><b>مخزن کد کجاست:</b> کد را می‌توانید
+          <a href="https://github.com/spenserhuang/js-blockchain-pt1" target="_blank" rel="noopener">اینجا</a> بیابید.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== بخش ۱: ساخت بلوک‌ها ==================== -->
+      <section>
+        <h2>بخش ۱: ساخت بلوک‌ها (Building Blocks)</h2>
+        <p>یک پوشه به نام <code class="inline">js-blockchain</code> بسازید و داخل آن فایلی به نام
+        <code class="inline">main.js</code> ایجاد کنید. در این راهنما فقط از یک فایل استفاده می‌کنیم تا هر وقت با مشکلی
+        مواجه شدید همیشه بتوانید به کد منبع مراجعه کنید.</p>
+
+        <h3>ساختار بلاک‌چین (Blockchain Structure)</h3>
+        <p>بلاک‌چین‌ها از ترکیب
+        <a href="http://chimera.labs.oreilly.com/books/1234000001802/ch07.html#merkle_trees+" target="_blank" rel="noopener">فهرست‌های
+        پیوندی و درخت‌های مرکل (linked lists and merkle trees)</a> ساخته می‌شوند. ساختار فهرست پیوندی به زنجیره اجازه
+        می‌دهد پیوسته بر روی خودش ساخته شود و نام «بلاک‌چین» نیز از همین‌جا گرفته شده است. بلاک‌چین به معنای واقعی کلمه
+        زنجیره‌ای از بلوک‌هاست که از طریق ساختار فهرست پیوندی به یکدیگر متصل شده‌اند. با این حال، یک نکتهٔ قابل توجه
+        این است که برای ارجاع به بلوک قبلی، یک اشاره‌گر (pointer) سنتی نگهداری نمی‌کند؛ بلکه از هش (hash) بلوک قبلی برای
+        ارجاع به آن استفاده می‌کند.</p>
+        <p>اگر با مفهوم هش آشنا نیستید،
+        <a href="https://learncryptography.com/hash-functions/what-are-hash-functions" target="_blank" rel="noopener">اینجا
+        یک مقدمهٔ کوتاه</a> داریم. هش‌ها به زبان ساده توابع قطعی (deterministic functions) هستند که برای هر ورودی،
+        خروجی مشخصی تولید می‌کنند و معمولاً برگشت‌ناپذیرند؛ یعنی استخراج ورودی از روی خروجی بسیار دشوار است. هش‌ها برای
+        بلاک‌چین حیاتی هستند، زیرا کلید تغییرناپذیر کردن زنجیره و حفظ یکپارچگی (integrity) داده‌ها هستند.</p>
+        <p>برای اینکه کار را بیش از حد پیچیده نکنیم، در این راهنما درخت مرکل تراکنش‌ها را پیاده‌سازی نخواهیم کرد.</p>
+        <figure>
+          <img src="https://miro.medium.com/v2/resize:fit:700/1*rmSrZwu5Guhv5Adwxrc8Ow.png"
+               alt="نمایش زنجیره‌ای از بلوک‌های متصل به یکدیگر در یک بلاک‌چین"
+               style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+          <figcaption style="font-size:0.85rem;opacity:0.8;margin-top:6px">منبع تصویر:
+          <a href="http://learningspot.altervista.org/bitcoin-blocks/" target="_blank" rel="noopener">learningspot.altervista.org</a></figcaption>
+        </figure>
+
+        <h3>شیء بلوک (Block Object)</h3>
+        <p>ابتدا یک کلاس <code class="inline">Block</code> می‌سازیم که شامل یک تابع سازنده
+        (<code class="inline">constructor</code>)، یک تابع <code class="inline">calculateHash</code> و یک تابع
+        <code class="inline">mineBlock</code> خواهد بود. کار را با تابع سازنده شروع می‌کنیم که اشیاء Block را
+        نمونه‌سازی (instantiate) می‌کند و ویژگی‌های آن را فراهم می‌سازد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+    constructor(timestamp, data) {
+        this.index = 0;
+        this.timestamp = timestamp;
+        this.data = data;
+        this.previousHash = "0";
+        this.hash = this.calculateHash();
+        this.nonce = 0;
+    }
+
+    calculateHash() {
+
+    }
+
+    mineBlock(difficulty) {
+
+    }
+}</code></pre>
+
+        <h3>ورودی‌های بلوک (Block Inputs)</h3>
+        <p>هر شیء بلوک یک برچسب زمانی (timestamp) و دادهٔ بلوک (block data) دریافت می‌کند. برچسب زمانی نشان می‌دهد بلوک
+        چه زمانی ایجاد شده است. این موضوع مثلاً در بیت‌کوین (BTC) مفید است؛ زیرا بیت‌کوین با سطح دشواری (difficulty)ای
+        طراحی شده که میانگین زمان استخراج هر بلوک ۱۰ دقیقه باشد. بنابراین سیستم می‌تواند از دادهٔ برچسب زمانی برای
+        متعادل‌سازی دوبارهٔ دشواری استخراج هر ماه استفاده کند. دادهٔ بلوک، اطلاعات ذخیره‌شده در زنجیره را نگه می‌دارد.
+        در بسیاری از ارزها مانند بیت‌کوین، داده‌های تراکنش‌ها به شکل درخت‌های مرکل در همین بخش ذخیره می‌شوند.</p>
+
+        <h3>دادهٔ بلوک (Block Data)</h3>
+        <p>همان‌طور که می‌بینید، علاوه بر سه فیلد ورودی داده، شیء <code class="inline">Block</code> ما یک
+        <code class="inline">index</code>، یک <code class="inline">previousHash</code>، یک <code class="inline">hash</code>
+        و یک <code class="inline">nonce</code> نیز دارد. ایندکس مشخص می‌کند بلوک در کجای زنجیره قرار دارد. هش بلوک قبلی
+        چیزی است که یکپارچگی زنجیره را حفظ می‌کند. فیلد <code class="inline">hash</code> صرفاً هش خودِ بلوک را نگه
+        می‌دارد که از تابع <code class="inline">calculateHash</code> به دست می‌آید. nonce قطعهٔ مهم دیگری از بلوک است
+        که برای تعبیه‌کردن یک مکانیزم استخراج (mining) در بلاک‌چین ما حیاتی است؛ در بخش ۲ این مجموعه دربارهٔ آن بحث
+        خواهیم کرد. فعلاً متغیر <code class="inline">nonce</code> خود را روی ۰ قرار می‌دهیم.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> هش بلوک قبلی همان چیزی است که یکپارچگی زنجیره را حفظ می‌کند. برای بررسی یکپارچگی
+          زنجیره، کل زنجیره را پیمایش می‌کنیم، هش هر بلوک را محاسبه و آن را با دادهٔ <code class="inline">previousHash</code>
+          مطابقت می‌دهیم. اگر حتی یک بخش از اطلاعات بلوک دستکاری (tampered) شود، هش کاملاً متفاوتی تولید می‌کند و هنگام
+          مقایسه با دادهٔ <code class="inline">previousHash</code> ذخیره‌شده در بلوکِ پس از بلوکِ دستکاری‌شده، بلافاصله
+          قابل تشخیص خواهد بود. بعداً تابع <code class="inline">checkValid</code> را می‌سازیم که این موضوع را نشان می‌دهد.
+        </div>
+
+        <h3>کتابخانهٔ Crypto-JS</h3>
+        <p>حالا یک تابع <code class="inline">calculateHash</code> به بلوک خود اضافه می‌کنیم. برای تابع هش خود از
+        <a href="https://www.npmjs.com/package/crypto-js" target="_blank" rel="noopener">کتابخانهٔ crypto-js</a> وام
+        می‌گیریم و از تابع هش
+        <a href="https://www.movable-type.co.uk/scripts/sha256.html" target="_blank" rel="noopener">SHA256</a> آن استفاده
+        می‌کنیم. تابع هش SHA256 توسط آژانس امنیت ملی آمریکا (NSA) توسعه یافته است و یک تابع هش برگشت‌ناپذیر است. این
+        تابع در واقع به‌لطف امنیتش، هم در استخراج بیت‌کوین به‌عنوان الگوریتم گواه کار و هم در ساخت آدرس‌های بیت‌کوین
+        استفاده می‌شود.</p>
+        <p>برای نصب کتابخانهٔ crypto-js، به ترمینال خود بروید، وارد پوشهٔ
+        <code class="inline">js-blockchain</code> شوید و کتابخانه را با npm و با دستور زیر نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">npm install --save crypto-js</code></pre>
+        <p>سپس خروجی زیر را خواهید دید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">npm WARN saveError ENOENT: no such file or directory, open '/Users/spenserhuang/Desktop/js-blockchain/package.json'
+
+npm WARN enoent ENOENT: no such file or directory, open '/Users/spenserhuang/Desktop/js-blockchain/package.json'
+
+npm WARN js-blockchain No description
+
+npm WARN js-blockchain No repository field.
+
+npm WARN js-blockchain No README data
+
+npm WARN js-blockchain No license field.</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">+ crypto-js@3.1.9-1
+updated 1 package in 1.75s</code></pre>
+        <p>فعلاً نگران هشدار (warning) نباشید؛ در چارچوب این پروژه تأثیری بر ما نخواهد داشت. این خطا وجود دارد، زیرا
+        پوشه‌ای که ساخته‌ایم بسیار خالی (barebones) است و فایل‌های اضافی مانند <code class="inline">package.json</code>
+        یا سایر فایل‌های نود و مخزن را ندارد.</p>
+
+        <h3>محاسبهٔ هش (Calculate Hash)</h3>
+        <p>به‌هرحال، حالا که کتابخانه را نصب کرده‌اید، می‌توانید یک ثابت SHA256 بسازید و اطلاعات را مستقیماً با یک عبارت
+        <code class="inline">require</code> دریافت کنید. از آن برای ایجاد تابع <code class="inline">calculateHash</code>
+        خود استفاده خواهیم کرد.</p>
+        <p>تابع اختصاصی خود را با نام <code class="inline">calculateHash</code> می‌سازیم و از آن برای دادن هش اختصاصی به
+        هر بلوک استفاده می‌کنیم. همان‌طور که در تابع می‌بینید، هش همهٔ اجزای شیء بلوک را دریافت می‌کند، آن‌ها را به تابع
+        SHA256 می‌سپارد و خروجی را به یک رشته (string) تبدیل می‌کند. در این پروژه، نتیجهٔ SHA256 را به رشته تبدیل
+        می‌کنیم، زیرا پردازش و مقایسهٔ رشته‌ها آسان‌تر است.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const SHA256 = require('crypto-js/sha256')
+
+class Block {
+    constructor(timestamp, data) {
+        this.index = 0;
+        this.timestamp = timestamp;
+        this.data = data;
+        this.previousHash = "0";
+        this.hash = this.calculateHash();
+        this.nonce = 0;
+    }
+
+    calculateHash() {
+        return SHA256(this.index + this.previousHash + this.timestamp + this.data + this.nonce).toString();
+    }
+
+    mineBlock(difficulty) {
+
+    }
+}</code></pre>
+        <div class="callout tip">
+          <strong>نکتهٔ امنیتی:</strong> تابع <code class="inline">calculateHash</code> هر جزء از داده‌های بلوک را دریافت
+          می‌کند. در نتیجه، اگر حتی یک جزء از داده دستکاری شود — حتی یک رقم اعشار — هش بلوک بلافاصله متفاوت خواهد بود.
+          این ویژگی بسیار خوبی برای امنیت بلاک‌چین است.
+          <a href="https://unwttng.com/what-is-a-blockchain" target="_blank" rel="noopener">اینجا یک راهنمای عالی</a> برای
+          آشنایی بیشتر با این قابلیت بلاک‌چین داریم!
+        </div>
+      </section>
+
+      <!-- ==================== بخش ۲: ساخت بلاک‌چین ==================== -->
+      <section>
+        <h2>بخش ۲: ساخت بلاک‌چین (Building the Blockchain)</h2>
+        <p>حالا که ساختار تک‌بلوک را ایجاد کرده‌ایم، باید ساختاری — یک شیء کلاس
+        <code class="inline">Blockchain</code> — بسازیم تا بلوک‌ها را به یکدیگر پیوند دهد و قابلیت‌های پایه‌ای را که
+        همراه بلاک‌چین‌های معمولی است فراهم کند. برای ساده نگه‌داشتن کار تا حد امکان، بلاک‌چین ما فقط یک تابع
+        <code class="inline">constructor</code>، یک تابع <code class="inline">createGenesis</code>، یک تابع
+        <code class="inline">latestBlock</code>، یک تابع <code class="inline">addBlock</code> و یک تابع
+        <code class="inline">checkValid</code> خواهد داشت.</p>
+
+        <h3>شیء بلاک‌چین (Blockchain Object)</h3>
+        <p>کلاس <code class="inline">Blockchain</code> ما به چند قابلیت کلیدی نیاز دارد: امکان نمونه‌سازی، شروع، دسترسی
+        به اطلاعات آخرین بلوک، و گسترش خودش با افزودن یک بلوک جدید به آن.</p>
+
+        <h3>تابع سازنده (Constructor Function)</h3>
+        <p>ابتدا به یک تابع <code class="inline">constructor</code> نیاز داریم تا بلاک‌چین ما نمونه‌سازی شود. این تابع
+        ساده‌ای خواهد بود که صرفاً یک شیء بلاک‌چین با ویژگی <code class="inline">chain</code> در یک ساختار فهرستی ایجاد
+        می‌کند. به همین دلیل است که اشیاء <code class="inline">Block</code> ما ایندکس داشتند؛ ویژگی
+        <code class="inline">index</code> بلوک‌های ما برای یافتن جایگاه‌شان در فهرست زنجیره استفاده می‌شود.</p>
+
+        <h3>تابع ایجاد جنسیس (Create Genesis Function)</h3>
+        <p>دوم، بلاک‌چین ما به یک تابع <code class="inline">createGenesis</code> نیاز دارد که نخستین بلوک زنجیره را
+        ایجاد می‌کند. طبق قرارداد بلاک‌چین، نخستین بلوک هر زنجیره با نام «بلوک جنسیس» (Genesis block) نیز شناخته
+        می‌شود؛ از همین رو نام <code class="inline">createGenesis</code> است. اطلاعات این بلوک معمولاً به‌صورت دستی وارد
+        می‌شود. چون نخستین بلوک زنجیره است، مقدار ایندکس آن ۰ است. برای فیلدهای <code class="inline">timestamp</code>
+        و <code class="inline">data</code> می‌توانیم فقط تاریخ امروز و عبارت «Genesis block» یا هر چیز دیگری که دوست
+        دارید قرار دهیم. و برای فیلد <code class="inline">previousHash</code> فعلاً می‌توانیم به‌سادگی «0» بگذاریم، زیرا
+        هیچ هشی پیش از بلوک جنسیس وجود ندارد.</p>
+
+        <h3>تابع دریافت آخرین بلوک (Get Latest Block Function)</h3>
+        <p>سوم، زنجیرهٔ ما به یک تابع <code class="inline">latestBlock</code> نیاز دارد. از این تابع برای دریافت اطلاعات
+        جدیدترین بلوک استفاده می‌شود و در پیاده‌سازی تابع <code class="inline">addBlock</code> به‌کار خواهد رفت.</p>
+
+        <h3>تابع افزودن بلوک جدید (Add New Block Function)</h3>
+        <p>چهارم، برای گسترش پیوستهٔ زنجیره به یک تابع <code class="inline">addBlock</code> نیاز داریم. بلاک‌چین‌ها چنین
+        قابلیتی دارند، زیرا با ورود اطلاعات بیشتر باید بلندتر و بلندتر شوند. مثلاً در مورد بیت‌کوین، تقریباً هر ۱۰ دقیقه
+        یک بلوک جدید ایجاد می‌شود و هر یک از این بلوک‌های جدید، تمام اطلاعات تراکنش‌هایی را که در آن بازهٔ ۱۰ دقیقه‌ای
+        رخ داده‌اند در خود نگه می‌دارد.</p>
+        <p>پیاده‌سازی تابع <code class="inline">addBlock</code> ساده است. تابع ما یک شیء
+        <code class="inline">Block</code> را به‌عنوان ورودی دریافت می‌کند که از قبل برچسب زمانی و داده دارد. سپس تابع
+        <code class="inline">addBlock</code> با استفاده از تابع <code class="inline">latestBlock</code> به بلوک جدید ما
+        یک <code class="inline">index</code> و یک فیلد <code class="inline">previousHash</code> می‌دهد. پس از آن، با
+        استفاده از تابع <code class="inline">calculateHash</code> که قبلاً نوشتیم، هش اختصاصی بلوک جدید را می‌سازیم. در
+        نهایت بلوک جدید را به زنجیره push می‌کنیم و حالا بلاک‌چین ما یک بلوک جدید دارد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+    constructor() {
+        this.chain = [this.createGenesis()];
+    }
+
+    createGenesis() {
+        return new Block(0, "01/01/2017", "Genesis block", "0")
+    }
+
+    latestBlock() {
+        return this.chain[this.chain.length - 1]
+    }
+
+    addBlock(newBlock) {
+        newBlock.previousHash = this.latestBlock().hash;
+        newBlock.hash = newBlock.calculateHash();
+        this.chain.push(newBlock);
+    }
+
+    checkValid() {
+        for (let i = 1; i &lt; this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+
+            if (currentBlock.hash !== currentBlock.calculateHash()) {
+                return false;
+            }
+
+            if (currentBlock.previousHash !== previousBlock.hash) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}</code></pre>
+
+        <h3>تابع بررسی اعتبار (Check Validity Function)</h3>
+        <p>آخرین تابعی که پیاده‌سازی می‌کنیم تابع <code class="inline">checkValid</code> است. از آن برای بررسی یکپارچگی
+        بلاک‌چین و تشخیص اینکه آیا چیزی دستکاری شده است یا نه استفاده می‌شود.</p>
+        <p>همان‌طور که قبلاً گفته شد، هش‌ها برای تشخیص تغییرات در بلاک‌چین حیاتی‌اند، زیرا حتی کوچک‌ترین تغییر در شیء به
+        یک هش کاملاً متفاوت منجر می‌شود. بنابراین برای تابع <code class="inline">checkValid</code> از یک حلقهٔ
+        <code class="inline">for</code> استفاده می‌کنیم که بلاک‌چین را پیمایش کرده و هش‌های آن را برای تشخیص تغییرات
+        مطابقت می‌دهد.</p>
+        <p>حلقهٔ ما دو بخش دارد: بخش اول مطابقت <code class="inline">currentBlock.hash</code> با
+        <code class="inline">currentBlock.calculateHash()</code> و بخش دیگر مطابقت
+        <code class="inline">currentBlock.previousHash</code> با <code class="inline">previousBlock.hash</code> است.
+        بخش اول برای بررسی این است که آیا اطلاعات <code class="inline">currentBlock</code> بدون به‌روزرسانی
+        <code class="inline">currentBlock.hash</code> دستکاری شده است یا نه؛ و بخش دوم برای بررسی اینکه آیا
+        <code class="inline">previousBlock</code> دستکاری شده است یا نه.</p>
+        <p>شاید این سؤال برایتان پیش بیاید که آیا می‌توانید از شرط <code class="inline">if</code> زیر استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">if (currentBlock.previousHash !== previousBlock.calculateHash()) {
+    return false;
+}</code></pre>
+        <p>از نظر تئوری به نظر می‌رسد که باید کار کند. با این حال، <code class="inline">previousBlock</code> در واقع
+        شیءِ کمی متفاوتی نسبت به خودِ بلوکِ واقعیِ زنجیره است، حتی اگر اساساً همان اطلاعات بلوک واقعی را داشته باشد. در
+        نتیجه، هش‌های متفاوتی تولید می‌کنند. برای مثال، در اجرای آزمایشی من، هش بلوکِ واقعی
+        <code class="inline" style="direction:ltr">0c27196c36691e915fb2a2f83e63867ec5042abfda4832b02383a6ab40aa075c</code>
+        بود، در حالی که هش <code class="inline">previousBlock</code> برابر
+        <code class="inline" style="direction:ltr">e6a312951e9e4ed6e4b2ef049246b282f71144599939ff6a5b97b0c53c941295</code>
+        بود. این نشان می‌دهد هش‌ها چقدر حساس هستند.</p>
+
+        <h3>کنار هم گذاشتن همهٔ قطعات (Putting it All Together)</h3>
+        <p>حالا برنامهٔ کلی شما باید به این شکل باشد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const SHA256 = require('crypto-js/sha256')
+
+class Block {
+    constructor(timestamp, data) {
+        this.index = 0;
+        this.timestamp = timestamp;
+        this.data = data;
+        this.previousHash = "0";
+        this.hash = this.calculateHash();
+        this.nonce = 0;
+    }
+
+    calculateHash() {
+        return SHA256(this.index + this.previousHash + this.timestamp + this.data + this.nonce).toString();
+    }
+
+    mineBlock(difficulty) {
+
+    }
+}
+
+class Blockchain {
+    constructor() {
+        this.chain = [this.createGenesis()];
+    }
+
+    createGenesis() {
+        return new Block(0, "01/01/2017", "Genesis block", "0")
+    }
+
+    latestBlock() {
+        return this.chain[this.chain.length - 1]
+    }
+
+    addBlock(newBlock) {
+        newBlock.previousHash = this.latestBlock().hash;
+        newBlock.hash = newBlock.calculateHash();
+        this.chain.push(newBlock);
+    }
+
+    checkValid() {
+        for (let i = 1; i &lt; this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+
+            if (currentBlock.hash !== currentBlock.calculateHash()) {
+                return false;
+            }
+
+            if (currentBlock.previousHash !== previousBlock.hash) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+let jsChain = new Blockchain();
+jsChain.addBlock(new Block("12/25/2017", {amount: 5}));
+jsChain.addBlock(new Block("12/26/2017", {amount: 10}));
+
+console.log(JSON.stringify(jsChain, null, 4));
+console.log("Is blockchain valid? " + jsChain.checkValid());</code></pre>
+        <p>می‌توانید بلاک‌چین خود را با افزودن خطوط زیر در انتهای فایل آزمایش کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">let jsChain = new Blockchain();
+jsChain.addBlock(new Block("12/25/2017", {amount: 5}));
+jsChain.addBlock(new Block("12/26/2017", {amount: 10}));
+
+console.log(JSON.stringify(jsChain, null, 4));
+console.log("Is blockchain valid? " + jsChain.checkValid());</code></pre>
+        <p>سپس به ترمینال خود بروید و این دستور را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">node main.js</code></pre>
+        <p>حالا باید خروجی زیر را ببینید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">{
+    "chain": [
+        {
+            "index": 0,
+            "timestamp": 0,
+            "data": "01/01/2017",
+            "previousHash": "Genesis block",
+            "hash": "8163cbd8feafd38a96cd193f2b44940473c22b21ddbb7445bd99ee310dac28ae",
+            "nonce": 0
+        },
+        {
+            "index": 1,
+            "timestamp": "12/25/2017",
+            "data": {
+                "amount": 5
+            },
+            "previousHash": "8163cbd8feafd38a96cd193f2b44940473c22b21ddbb7445bd99ee310dac28ae",
+            "hash": "744ce201216f78bba5b87e371579898b97e473ac644d6a13ddda9cdbe05100f6",
+            "nonce": 0
+        },
+        {
+            "index": 2,
+            "timestamp": "12/26/2017",
+            "data": {
+                "amount": 10
+            },
+            "previousHash": "744ce201216f78bba5b87e371579898b97e473ac644d6a13ddda9cdbe05100f6",
+            "hash": "9e3cf69ee7a3f3f651b33500ea3f32ccf1a13590115c6739dda74920d54702c8",
+            "nonce": 0
+        }
+    ]
+}
+
+Is blockchain valid? true</code></pre>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی (Summing Up)</h2>
+        <p>حالا نسخهٔ ۱ یک بلاک‌چین کارآمد دارید! با این حال، یک مشکل امنیتی کوچک در این بلاک‌چین وجود دارد. به شما
+        پیشنهاد می‌کنم بلاک‌چینی مانند این بسازید و آن را آزمایش کنید. سعی کنید با دستکاری داده‌ها، محل ضعف امنیتی را
+        شناسایی کنید.</p>
+        <div class="callout tip">
+          <strong>راهنمایی:</strong> این ضعف امنیتی مستقیماً به پیاده‌سازی تابع استخراج (mining function) مرتبط است که
+          در بخش ۲ این آموزش پوشش خواهیم داد.
+        </div>
+        <p>کدنویسی و کاوش خوشی داشته باشید!</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Learn &amp; Build a Javascript Blockchain (Part 1)» اثر «اسپنسر هوانگ
+        (Spenser Huang)» از نشریهٔ «Digital Alchemy Holdings» در Medium است. این صفحه فقط ترجمهٔ فارسی آن است و تمام
+        حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/digital-alchemy-holdings/learn-build-a-javascript-blockchain-part-1-ca61c285821e" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
