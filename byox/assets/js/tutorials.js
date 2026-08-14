@@ -260,14 +260,14 @@ window.TUTORIALS = [
 "file": "tutorials/bittorrent-python.html"
 },
 {
-"id": "",
+"id": "functional-blockchain-ats",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "ATS",
 "title": "بلاکچین تابعی (Functional)",
 "url": "https://beta.observablehq.com/@galletti94/functional-blockchain",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/functional-blockchain-ats.html"
 },
 {
 "id": "blockchain-crystal-pow",
@@ -400,14 +400,14 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-python-ecomunsing.html"
 },
 {
-"id": "",
+"id": "blockchain-python-adilmoujahid",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Python",
 "title": "مقدمه‌ای عملی بر بلاکچین با پایتون",
 "url": "http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-python-adilmoujahid.html"
 },
 {
 "id": "blockchain-python-tiniest",
@@ -430,14 +430,14 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-ruby-book.html"
 },
 {
-"id": "",
+"id": "blockchain-scala-actor",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Scala",
 "title": "چگونه یک بلاکچین ساده مبتنی بر actor بسازیم",
 "url": "https://medium.freecodecamp.org/how-to-build-a-simple-actor-based-blockchain-aac1e996c177",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-scala-actor.html"
 },
 {
 "id": "naivecoin-ts",
@@ -460,14 +460,14 @@ window.TUTORIALS = [
 "file": "tutorials/naivecoinstake-ts.html"
 },
 {
-"id": "",
+"id": "blockchain-rust-substrate",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Rust",
 "title": "ساخت بلاکچین در Rust و Substrate",
 "url": "https://hackernoon.com/building-a-blockchain-in-rust-and-substrate-a-step-by-step-guide-for-developers-kc223ybp",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-rust-substrate.html"
 },
 {
 "id": "",

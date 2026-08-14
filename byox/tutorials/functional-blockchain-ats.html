@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی نوتبوک «Functional Blockchain» (Lance Galletti)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بلاک‌چین تابعی — بلاک‌چین و قراردادهای هوشمند از صفر در ATS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بلاک‌چین تابعی</span>
+      </div>
+      <h1>بلاک‌چین تابعی (Functional Blockchain)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: ATS</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://observablehq.com/@galletti94/functional-blockchain" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی نوتبوک «Functional Blockchain» نوشته «لنس گالتی (Lance
+          Galletti)» در پلتفرم Observable است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://observablehq.com/@galletti94/functional-blockchain" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>اگر با بلاک‌چین (blockchain) آشنایی ندارید، ابتدا این
+        <a href="https://anders.com/blockchain/" target="_blank" rel="noopener">ویدیو</a> را تماشا کنید.</p>
+        <p>این مقاله قصد دارد شما را گام‌به‌گام با پیاده‌سازی یک بلاک‌چین و یک زبان قرارداد هوشمند (smart
+        contract language) همراه کند؛ از صفر و به سبک برنامه‌نویسی تابعی (functional programming).</p>
+        <img src="https://raw.githubusercontent.com/galletti94/ATS-blockchain/master/gif/gif1.gif"
+             alt="انیمیشن آغازین نوتبوک بلاک‌چین تابعی از مخزن ATS-blockchain"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>قراردادهای هوشمند (smart contracts) جایگزینی برای نهادهای ثالث در اختیار کاربران قرار می‌دهند؛
+        نهادهایی که نقششان تضمین اجرا/رعایت قراردادهاست. برای مثال، کاربر A را در نظر بگیرید که می‌خواهد روی
+        بلاک‌چین یک ماشین شانس (slot machine) بسازد تا کاربران بتوانند با ارز دیجیتال (cryptocurrency) خود
+        قمار کنند. بدون قراردادهای هوشمند، شرکت در این قمار فراتر از شانس‌های تعیین‌شده توسط ماشین، پرریسک
+        است. در نظر بگیرید که یک ماشین شانس صرفاً یک مولد عدد تصادفی (RNG) است. کاربر B باید اعتماد کند که
+        فرستادن یک سکه به سمت A منجر به این می‌شود که A یک مولد عدد تصادفی خوب‌کالیبره‌شده (یعنی کالیبره‌شده
+        دقیقاً همان‌طور که در قرارداد نانوشته‌ای که با بازی کردن، برقرار شده مشخص است) اجرا کند. و اگر B برنده
+        شد، پاداش مناسب (در صورت وجود) برایش ارسال شود.</p>
+        <p>کاربر A می‌تواند چیزی به نام قرارداد هوشمند بنویسد تا کالیبراسیون و معناشناسی ماشین شانس را مشخص
+        کند تا کاربر B پیش از تصمیم‌گیری برای شرکت در بازی، آن را بررسی کند. برای تضمین اجرای این قراردادها،
+        آن‌ها به زبانی نوشته می‌شوند که استخراج‌کننده‌های (miners) بلاک‌چین آن را اجرا می‌کنند. اثر و نتیجهٔ
+        این کد در بلاک‌چین باقی می‌ماند (دقیقاً مانند تراکنش‌های معمولی) تا همه آن را ببینند و راستی‌آزمایی
+        (verify) کنند. در این حالت، دیگر لازم نیست کاربر B به هیچ نهاد ثالثی اعتماد کند؛ او می‌تواند به سادگی
+        قرارداد هوشمند را بخواند (همان‌طور که هر کسی یک قرارداد معمولی را می‌خواند) تا شرایط و ضوابط آن را
+        بفهمد.</p>
+        <p>برای اطلاعات بیشتر، به این
+        <a href="http://solidity.readthedocs.io/en/develop/introduction-to-smart-contracts.html" target="_blank" rel="noopener">مستندات</a>
+        دربارهٔ ساخت قراردادهای هوشمند با زبانی به نام سالیدیتی (Solidity) در اتریوم (Ethereum) نگاهی
+        بیندازید.</p>
+      </section>
+
+      <!-- ==================== درباره ==================== -->
+      <section>
+        <h2>درباره</h2>
+        <p>هدف این است که یک بلاک‌چین و یک زبان قرارداد هوشمند به سبک تابعی پیاده‌سازی کنیم که بتوان از طریق
+        یک رابط خط فرمان (CLI) با آن تعامل کرد. در ادامه، این مقاله برخی از ویژگی‌های کلیدی سطح‌بالای
+        پیاده‌سازی را مرور می‌کند، از جمله:</p>
+        <ul>
+          <li>تعریف بلاک‌چین (Blockchain Definition)</li>
+          <li>رابط خط فرمان (CLI)</li>
+          <li>استخراج (Mining)</li>
+          <li>زبان قرارداد هوشمند (Smart Contract Language)</li>
+        </ul>
+        <p>به این ترتیب، امیدوارم برخی از ویژگی‌های تابعی جذاب زبان برنامه‌نویسی
+        <a href="http://ats-lang.org/" target="_blank" rel="noopener">ATS</a> را نشان دهم و در عین حال برخی
+        از جزئیات پیاده‌سازی را کنار بگذارم تا خواننده دربارهٔ آن‌ها فکر کند و برای خودش بسازد. همچنین امیدوارم
+        این مقاله مشارکت در مخزن را آسان‌تر کند.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> برای بهره‌مندی کامل از این آموزش، لطفاً زمان لازم را صرف خواندن کدهای نمایش
+          داده‌شده بگذارید و در صورت امکان، از طریق رابط‌های داده‌شده با کد تعامل کنید. چیزها را امتحان کنید،
+          تغییر دهید، کنجکاو باشید!
+        </div>
+        <div class="callout tip">
+          <strong>دربارهٔ سلول‌های تعاملی نوتبوک:</strong> سلول‌های کد در نوتبوک اصلی، به‌صورت iframe از
+          سرویس glot.io تعبیه شده‌اند و قابلیت اجرا در مرورگر را داشتند. این سرویس در حال حاضر در دسترس نیست
+          (لینک‌ها به 404 برمی‌خورند)؛ بنابراین کدهای این صفحهٔ ترجمه، دقیقاً از مخزن رسمی پروژه گرفته شده‌اند
+          که خود نویسنده آن را «کد کامل این مقاله» معرفی کرده است:
+          <a href="https://github.com/galletti94/ATS-blockchain" target="_blank" rel="noopener">مخزن GitHub پروژه</a>.
+        </div>
+      </section>
+
+      <!-- ==================== نصب و اجرا ==================== -->
+      <section>
+        <h2>نصب و اجرا</h2>
+        <p>این پروژه در حال حاضر فقط روی لینوکس پشتیبانی می‌شود. پس از نصب
+        <a href="http://www.ats-lang.org/" target="_blank" rel="noopener">ATS</a> و کلون کردن مخزن، کافی
+        است دستورهای زیر را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">cd ATS-blockchain
+git clone https://github.com/ashalkhakov/colorado.git
+make regress</code></pre>
+        <p>رابط خط فرمان (CLI) در حال حاضر به این شکل استفاده می‌شود:</p>
+        <ol>
+          <li>تعریف استخراج‌کننده‌ها/کاربران</li>
+          <li>انجام تراکنش‌ها (معتبر یا نامعتبر)</li>
+          <li>نوشتن/اجرای قرارداد هوشمند</li>
+          <li>نوشتن/اجرای پرس‌وجوها (queries)</li>
+          <li>تصمیم‌گیری دربارهٔ اینکه چه کسی بلاک بعدی را استخراج کند</li>
+          <li>مشاهدهٔ موجودی کاربران</li>
+          <li>مشاهدهٔ بلاک‌چین و/یا تکرار از مرحلهٔ ۱/۲</li>
+        </ol>
+        <p>گزارش کامل این پروژه به‌صورت آنلاین است. بخش ۱
+        <a href="https://observablehq.com/@galletti94/functional-blockchain" target="_blank" rel="noopener">اینجا</a>
+        و بخش ۲
+        <a href="https://observablehq.com/@galletti94/functional-blockchain-part-2" target="_blank" rel="noopener">اینجا</a>
+        است.</p>
+      </section>
+
+      <!-- ==================== تعریف بلاک‌چین ==================== -->
+      <section>
+        <h2>تعریف بلاک‌چین (Blockchain Definition)</h2>
+
+        <h3>تعریف</h3>
+        <p>نوع دادهٔ بلاک‌چین را به این صورت تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(* ****** ****** *)
+//
+// LG 2018-04-03
+//
+(* ****** ****** *)
+
+typedef header = ( (* ایندکس *) int, (* نانس *) int, (* دادهٔ تراکنش *) data, (* نتیجهٔ کد *) result, (* پرس‌وجوها *) queries, (* پیش‌هش *) hash)
+typedef block = ( header, (* هش جاری *) hash, (* زمان‌بند *) string)
+typedef chain = list0(block)
+
+(* ****** ****** *)
+
+(* پایان [block.dats] *)</code></pre>
+        <p>به‌عنوان یک تمرین و برای آشنایی با typechecker (بررسی‌کنندهٔ نوع) ATS، سعی کنید در تابع
+        <code class="inline">main</code> بلاک و بلاک‌چین خودتان را بسازید. همان‌طور که از خواندن کد بالا
+        می‌بینید، یک بلاک منفرد این رابط ساده را دارد:</p>
+        <img src="https://raw.githubusercontent.com/galletti94/ATS-blockchain/master/gif/block.jpg"
+             alt="رابط سادهٔ یک بلاک: هدر شامل ایندکس، نانس، دادهٔ تراکنش‌ها، نتیجهٔ کد، پرس‌وجوها و پیش‌هش، به‌همراه هش جاری و زمان‌بند"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تاپل‌ها (tuples) در ATS تغییرناپذیر (immutable) هستند و به‌صورت ایستا (statically) با توجه به
+        اندازه‌شان تعریف می‌شوند. به این ترتیب، اگر بخواهیم نوع دادهٔ بلاک‌چین‌مان را گسترش دهیم (با افزودن
+        برخی عناصر به تاپل)، بررسی‌کنندهٔ نوع به‌راحتی توابعی را که فراموش کرده‌ایم به‌روزرسانی کنیم، پیدا
+        می‌کند. این موضوع توسعه‌های آیندهٔ کد ما را بسیار پربازده می‌کند!</p>
+      </section>
+
+      <!-- ==================== تابع هش ==================== -->
+      <section>
+        <h2>تابع هش (Hash function)</h2>
+        <p>ATS قابلیت‌های فرا-برنامه‌نویسی (meta-programming) متعددی دارد و تزریق کد از زبان دیگری به ATS
+        بسیار آسان شده است. در این‌جا از کتابخانهٔ C به نام
+        <a href="https://github.com/openssl/openssl" target="_blank" rel="noopener">openssl</a> استفاده
+        می‌کنیم و تابع هش را به این صورت تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(* ****** ****** *)
+//
+// LG 2018-04-03
+//
+(* ****** ****** *)
+
+extern
+fun
+sha256(s: string): string = "mac#"
+
+extern
+fun
+hash0(): string
+
+extern
+fun
+valid_hash(h: hash): bool
+
+(* ****** ****** *)
+
+%{
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;openssl/sha.h&gt;
+
+char * sha256(char *s) {
+  unsigned char * h = SHA256(s, strlen(s), 0);
+  char *temp = malloc(4 * SHA256_DIGEST_LENGTH * sizeof(char));
+  int i;
+  
+  for (i = 0; i &lt; 2 * SHA256_DIGEST_LENGTH; i++)
+    sprintf(temp+(i * 2), "%02x", h[i]);
+  temp[i] = '\0';
+  
+  return temp;
+}
+%}
+
+implement
+hash0() =
+let
+  fun aux(res: string, n: int): string =
+    if n = 0 then res
+    else aux(res + "0", n - 1)
+in
+  aux("", 64)
+end
+
+implement
+valid_hash(h) =
+  if h &lt;= "0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  then true
+  else false
+
+(* ****** ****** *)
+
+(* پایان [hash_ops.dats] *)</code></pre>
+        <p>توجه کنید که هرچیزی بین <code class="inline">%{</code> و <code class="inline">%}</code> کد C
+        خالص است. تابع <code class="inline">sha256_c</code> در ATS از طریق نماد
+        <code class="inline">mac#</code> قابل استفاده است و پیاده‌سازی C را به تابع خارجی ATS یعنی
+        <code class="inline">sha256</code> پیوند می‌زند. نوع <code class="inline">char*</code> در C و نوع
+        <code class="inline">string</code> در ATS معادل یکدیگرند. این روش راحتِ هم‌برنامه‌نویسی در ATS و C
+        به ما اجازه می‌دهد سیستم نوع قدرتمند ATS را با توابع کتابخانه‌ای گستردهٔ C ترکیب کنیم.</p>
+      </section>
+
+      <!-- ==================== CLI ==================== -->
+      <section>
+        <h2>رابط خط فرمان (CLI)</h2>
+        <p>ما می‌خواهیم رابط خط فرمان‌مان به‌راحتی قابل توسعه باشد تا بتواند توابع جدید و بهبود توابع قدیمی
+        را در خود جای دهد. بنابراین رابط خط فرمان را به این صورت پیاده‌سازی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(* ****** ****** *)
+//
+// LG 2018-04-03
+//
+(* ****** ****** *)
+
+extern
+fun
+cli_start(lines: stream_vt(string)): void
+
+extern
+fun
+cli_do(args: list0(string)): void
+
+extern
+fun
+cli_stop(): void
+
+extern
+fun
+read_loop(lines: stream_vt(string)): void
+
+(* ****** ****** *)
+
+implement
+cli_start(lines) = let
+  val () = println!()
+  val () = println!(fg(reset(), YELLOW), "               Welcome to my blockchain in ATS!                                ", reset())
+  val () = println!("                                                                               ")
+  val () = println!(" Commands:                                                                     ")
+  val () = println!("    blockchain &lt;from block&gt; &lt;to block&gt;        View current state of blockchain ")
+  val () = println!("    balance &lt;miner&gt;                           Get balance of miner             ")
+  val () = println!("    code &lt;-l/q&gt; &lt;lisp code&gt;                   Code a smart contract            ")
+  val () = println!("    define &lt;miner&gt;                            Defines a new miner              ")
+  val () = println!("    execute &lt;-l/q&gt; &lt;path/to/filename.txt&gt;     Execute a new smart contract     ")
+  val () = println!("    exit                                      Exits the application            ")
+  val () = println!("    mine &lt;miner&gt;                              Specified miner mines a new block")
+  val () = println!("    transact &lt;from&gt; &lt;to&gt; &lt;ammount&gt;            Create a new transaction         ")
+  val () = println!("                                                                               ")
+  val () = println!("                                                                               ")
+  val err = $extfcall(int, "mkdir", "./BDB", 0700)
+  val () = assertloc(err = 0)
+
+  
+in
+  read_loop(lines)
+end
+
+implement
+read_loop(lines) = let
+  val () = fprint!(stdout_ref, fg(reset(), YELLOW), "blockchain", reset(), "&gt; ")
+  val-~stream_vt_cons(l, lines) = !lines
+  val args = parse_args(l)
+in
+  case+ args of
+  | list0_nil() =&gt; read_loop(lines)
+  | list0_cons(a, _) =&gt;
+      case+ a of
+      | "exit" =&gt; (~lines; ())
+      | _ =&gt; (cli_do(args); read_loop(lines))
+end
+
+implement
+cli_stop() = let
+  val () = println!()
+in
+  ()
+end
+
+implement
+cli_do(args) = 
+  case+ args of
+  | list0_nil() =&gt; ()
+  | list0_cons(a, args) =&gt;
+      case+ a of
+      | "balance" =&gt; do_balance(args)
+      | "blockchain" =&gt; do_blockchain(args)
+      | "code" =&gt; do_code(args)
+      | "define" =&gt; do_define(args)
+      | "execute" =&gt; do_execute(args)
+      | "mine" =&gt; do_mine(args)
+      | "transact" =&gt; do_transact(args)
+      | _ =&gt; ()
+
+(* ****** ****** *)
+
+(* پایان [cli.dats] *)</code></pre>
+        <p>بلاک‌چین ما به این شکل کار می‌کند:</p>
+        <ol>
+          <li>تعریف استخراج‌کننده‌ها/کاربران</li>
+          <li>انجام تراکنش‌ها (معتبر یا نامعتبر)</li>
+          <li>نوشتن/اجرای قرارداد هوشمند</li>
+          <li>الف) تصمیم‌گیری دربارهٔ اینکه چه کسی بلاک بعدی را استخراج کند<br />ب) استخراج مطلب بالا (که
+          تراکنش‌ها و کد را اجرا می‌کند)</li>
+          <li>مشاهدهٔ موجودی کاربران</li>
+          <li>مشاهدهٔ بلاک‌چین و/یا تکرار از مرحلهٔ ۱/۲</li>
+        </ol>
+        <p>ورودی کاربر به‌صورت یک جریان خطی (linear stream) در نظر گرفته می‌شود؛ در نتیجه رابط خط فرمان ما
+        از نظر حافظه بسیار کارآمد است و تضمین می‌کند پس از پایان رابط خط فرمان، هیچ ورودی کاربر نشت نکند.
+        می‌توانید دربارهٔ جریان‌های خطی
+        <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/HTML/INT2PROGINATS-BOOK-onechunk.html#programming-with-linear-views-and-types" target="_blank" rel="noopener">اینجا</a>
+        بیشتر بخوانید.</p>
+        <p>با مرور کد می‌بینیم که بخش عمدهٔ کار در تابع <code class="inline">read_loop</code> انجام می‌شود.
+        اگر اولین کلمهٔ ورودی «exit» باشد، <code class="inline">cli_stop()</code> را صدا می‌زنیم و منبعی را
+        که جریان ورودی است از حافظه آزاد می‌کنیم. در غیر این صورت، <code class="inline">cli_do()</code> و
+        سپس یک فراخوانی بازگشتی به <code class="inline">read_loop()</code> انجام می‌شود. تابع
+        <code class="inline">cli_do()</code> عمداً ساده نگه داشته شده است — می‌خواهیم افزودن قابلیت‌ها تا
+        حد ممکن آسان باشد. از هر یک از این توابع do (در src/cli.dats) انتظار می‌رود یا به‌صورت محلی بنویسد
+        یا پیامی به یک همتا (peer) بفرستد.</p>
+        <p>برای نمونه، تابع <code class="inline">do_mine()</code> که مسئول استخراج است، به این صورت
+        پیاده‌سازی شده است:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">implement
+do_mine(args) = 
+case+ args of
+| nil0() =&gt; (println!("must provide &lt;miner&gt; argument"); ())
+| cons0(a, _) =&gt; let
+  val test_miner = is_miner(a)
+  val test_transact = list0_length(list0_filter(get_data(), lam(t) =&gt; is_valid_transact(t))) &gt; 0
+  val test_code = list0_length(get_result()) &gt; 0
+  val test_query = list0_length(get_queries()) &gt; 0
+  val test = test_miner andalso test_transact andalso test_code
+in
+  ifcase
+  | test =&gt; (chain_add(); reward(a); clear_transact())
+  | ~test_miner =&gt; (println!("unrecognized miner - please define miner first"); ())
+  | ~test_transact =&gt; (println!("must have at least one valid transaction per block"); ())
+  | ~test_code =&gt; (println!("must have at least one smart contract per block"); ())
+  | ~test_query =&gt; (println!("must have at least one query per block"); ())
+  | _ =&gt; (println!("True = False?"); ())
+end</code></pre>
+        <p>همهٔ توابع <code class="inline">do_*</code> (مانند <code class="inline">do_balance</code>،
+        <code class="inline">do_transact</code>، <code class="inline">do_execute</code>،
+        <code class="inline">do_blockchain</code> و ...) در فایل
+        <a href="https://github.com/galletti94/ATS-blockchain/blob/master/src/cli.dats" target="_blank" rel="noopener">src/cli.dats</a>
+        قرار دارند.</p>
+      </section>
+
+      <!-- ==================== استخراج ==================== -->
+      <section>
+        <h2>استخراج (Mining)</h2>
+        <p>بدون نگرانی دربارهٔ اعتبار تراکنش‌ها، استخراج صرفاً یافتن نانسی (nonce) است که هش هدر را معتبر
+        می‌کند. توجه کنید که پیش از هش کردن، هدر را به یک رشته رمزگذاری می‌کنیم. اگرچه پیاده‌سازی آن را
+        این‌جا حذف کرده‌ایم، رمزگذار باید برای سازگاری، صرف‌نظر از استخراج‌کننده، یکسان باشد.</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">extern
+fun
+mine(hd: header): block
+
+extern
+fun
+file_write_block(e: block): void
+
+(* ****** ****** *)
+
+implement
+mine(hd) = let 
+  val (ind, nonce, trns, code, qry, h) = hd
+  val temp = list0_filter(trns, lam(t) =&gt; is_valid_transact(t))
+  val theValids = list0_filter(temp, lam(t) =&gt; make_transact(t))
+  
+  fun aux(hd: header): block = let
+      val currh = sha256(encode_header(hd))
+    in
+      if valid_hash(currh) then (hd, currh, get_time())
+      else let
+        val (ind, nonce, data, res, qry, prevh) = hd
+      in
+        aux((ind, nonce + 1, data, res, qry, prevh))
+      end
+    end
+in
+  aux((ind, nonce, theValids, code, qry, h))
+end</code></pre>
+        <p>توجه کنید که قبل از استخراج بازگشتی بلاک، تراکنش‌های نامعتبر را با
+        <code class="inline">list0_filter</code> فیلتر می‌کنیم. تابع
+        <code class="inline">is_valid_transact()</code> اثر جانبی (side effect) عمدیِ اجرای تراکنش‌ها را
+        هنگام اعتبارسنجی آن‌ها دارد. این موضوع برای سناریوی زیر ضروری است:</p>
+        <p>کاربر A دو دلار دارد و دو تراکنش انجام می‌دهد:</p>
+        <ol>
+          <li>A یک دلار به B می‌فرستد</li>
+          <li>A دو دلار به C می‌فرستد</li>
+        </ol>
+        <p>هر تراکنش به‌تنهایی معتبر است؛ اما هر دو تراکنش با هم قابل اجرا نیستند — در غیر این صورت موجودی
+        حساب A منفی می‌شد. اثر جانبی <code class="inline">is_valid_transact()</code> این امکان را فراهم
+        می‌کند که پس از اجرای تراکنش ۱، تراکنش ۲ نامعتبر شود. ما به‌راحتی می‌توانیم ترتیب اجرای این تراکنش‌ها
+        را تغییر دهیم تا یک کمیت دلخواه را کمینه یا بیشینه کنیم. برای مثال، یک استخراج‌کننده می‌تواند تصمیم
+        بگیرد تعداد تراکنش‌های نامعتبر را کمینه کند، یا مقدار کل انتقال‌یافته را بیشینه کند، یا حتی مجموع
+        کارمزدهای تراکنش‌ها را بیشینه کند.</p>
+        <p>پیاده‌سازی
+        <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/HTML/INT2PROGINATS-BOOK-onechunk.html#tail-call-and-tail-recursion" target="_blank" rel="noopener">بازگشتی انتهایی</a>
+        (tail-recursive) تابع <code class="inline">mine()</code> با کارایی حافظهٔ رابط خط فرمان هماهنگ است.
+        همچنین توجه کنید که هش هدفی که استخراج‌کننده‌ها باید به آن برسند، در این‌جا هشی است که با ۴ صفر شروع
+        می‌شود؛ اما به‌راحتی قابل تنظیم است. در نهایت، بار دیگر در تابع <code class="inline">get_time()</code>
+        که زمان‌بند (timestamp) استخراج بلاک را برمی‌گرداند، از هم‌برنامه‌نویسی ATS-C استفاده می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== زبان قرارداد هوشمند ==================== -->
+      <section>
+        <h2>زبان قرارداد هوشمند (Smart Contract Language)</h2>
+
+        <h3>لامبدا کالکولوس (Lambda Calculus)</h3>
+        <p>زبانی که برای ساخت قراردادهای هوشمند طراحی می‌کنیم، بر پایهٔ
+        <a href="http://www.cs.bu.edu/~hwxi/academic/courses/CS520/Spring18/notes/utlc.pdf" target="_blank" rel="noopener">لامبدا کالکولوس بدون نوع</a>
+        (untyped lambda calculus) خواهد بود. به این ترتیب، زبان ما تورینگ‌کامل (Turing complete) خواهد بود
+        اما، همان‌طور که خواهید دید، به‌شدت غیرعملی خواهد بود؛ زیرا تعریف توابع پیچیده خسته‌کننده خواهد بود.</p>
+        <p>برای شروع، یک نوع داده به نام «term» تعریف می‌کنیم تا عبارت‌های لامبدا کالکولوس را نشان دهد:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">datatype term =
+//
+  | TMint of (int)
+  | TMstr of string
+//
+  | TMtup of termlst
+  | TMproj of (term, int)
+//
+  | TMvar of string
+//
+  | TMlam of (string, term(* بدنه *))
+  | TMapp of (term(* تابع *), term(* آرگومان *))
+  | TMfix of (string(* نام تابع *), string(* نام متغیر *), term)
+//
+  | TMopr of (string(* عملگر *), termlst)
+  | TMifnz of (term(* شرط *), term(* سپس *), term(* در غیر این صورت *))
+  | TMseq of (term, term)
+  
+where termlst = list0(term)</code></pre>
+
+        <h3>نحو زبان (Syntax)</h3>
+        <p>برای تسهیل تجزیهٔ زبان‌مان، تصمیم گرفته‌ایم نحو شبه‌لیسپی (lisp-like) زیر را به آن بدهیم:</p>
+        <ul>
+          <li><b>اعداد صحیح:</b> عدد ۱ به‌صورت <code class="inline">(TMint 1)</code>، عدد ۲ به‌صورت
+          <code class="inline">(TMint 2)</code> و ... نمایش داده می‌شود.</li>
+          <li><b>بولی:</b> درست (True) برابر <code class="inline">(TMint 1)</code> و نادرست (False) برابر
+          <code class="inline">(TMint 0)</code> است.</li>
+          <li><b>رشته:</b> «hello, world!» به‌صورت <code class="inline">(TMstr hello, world!)</code>
+          تعریف می‌شود.</li>
+          <li><b>متغیر:</b> متغیر x به‌صورت <code class="inline">(TMvar x)</code> اعلان می‌شود.</li>
+          <li><b>تاپل:</b> برای مثال تاپل (t0, t1, t2) به‌صورت <code class="inline">(TMtup t0 t1 t2)</code>
+          تعریف می‌شود.</li>
+          <li><b>عملیات:</b> عبارت 2 + 3 + 4 به‌صورت
+          <code class="inline">(TMopr + (TMint 2) (TMint 3) (TMint 4))</code> تعریف می‌شود.</li>
+          <li><b>تابع لامبدا:</b> تابع λx.x + x را می‌توان به‌صورت
+          <code class="inline">(TMlam x (TMopr + (TMvar x) (TMvar x)))</code> تعریف کرد.</li>
+          <li><b>کاربرد تابع (function application):</b> اعمال تابع لامبدای بالا به عدد ۱ به این شکل انجام
+          می‌شود: <code class="inline">(TMapp (TMlam x (TMopr + (TMvar x) (TMvar x))) (TMint 1))</code></li>
+          <li><b>نقطهٔ ثابت (fixed point):</b> تابع فیبوناچی را می‌توان این‌گونه نوشت:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(TMfix f x
+  (TMifnz (TMvar x)
+    (TMifnz (TMopr - (TMvar x) (TMint 1))
+      (TMopr +
+        (TMapp (TMvar f) (TMopr - (TMvar x) (TMint 1)))
+        (TMapp (TMvar f) (TMopr - (TMvar x) (TMint 2)))
+        )
+      (TMint 1))
+    (TMint 0))
+)</code></pre>
+        <ul>
+          <li><b>عملیات ترتیبی:</b> عبارت <code class="inline">let val () = println!("hello, world!") in add(2, 3) end</code>
+          را می‌توان این‌گونه رمزگذاری کرد:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(TMseq
+  (TMopr println (TMstr hello, world!))
+  (TMapp
+    (TMapp
+      (TMlam y
+        (TMlam x
+          (TMopr + (TMvar x) (TMvar y))
+        )
+      )
+      (TMint 2))
+    (TMint 3))
+)</code></pre>
+
+        <h3>بازنویسی نمادها (Symbol Overloading)</h3>
+        <p>همان‌طور که می‌بینید، این زبان برای رمزگذاری توابع پیچیده مناسب نیست — اگرچه به دلیل تورینگ‌کامل
+        بودن ممکن است. بنابراین نوشتن مستقیم به این زبان توصیه نمی‌شود؛ در عوض پیشنهاد می‌کنیم کد لامبدا را
+        از ATS تولید کنیم. این کار به ما اجازه می‌دهد زبان لامبدا را گسترش دهیم تا بیان مختصرتری داشته باشد؛
+        علاوه بر این، می‌توانیم از بررسی‌کنندهٔ نوع و کامپایلر ATS برای اشکال‌زدایی استاتیک نحوی استفاده
+        کنیم. برای مثال، در این‌جا چند تابع را می‌بینید که برای بازنویسی نمادها (overload) و کاربردی‌تر کردن
+        نحو استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">fun
+sub_term_term
+(t1: term, i2: term): term =
+TMopr
+( "-"
+, list0_tuple(t1, i2))
+
+fun
+add_term_term
+(t1: term, t2: term): term =
+TMopr("+", list0_tuple(t1, t2))
+
+fun
+mul_term_term
+(t1: term, t2: term): term =
+TMopr("*", list0_tuple(t1, t2))
+
+fun
+div_term_term
+(t1: term, t2: term): term =
+TMopr("/", list0_tuple(t1, t2))
+
+fun
+gte_term_term
+(t1: term, t2: term): term =
+TMopr("&gt;=", list0_tuple(t1, t2))
+
+fun
+gt_term_term
+(t1: term, t2: term): term =
+TMopr("&gt;", list0_tuple(t1, t2))
+
+fun
+lte_term_term
+(t1: term, t2: term): term =
+TMopr("&lt;=", list0_tuple(t1, t2))
+
+fun
+lt_term_term
+(t1: term, t2: term): term =
+TMopr("&lt;", list0_tuple(t1, t2))
+
+fun
+eq_term_term
+(t1: term, t2: term): term =
+TMopr("=", list0_tuple(t1, t2))
+
+fun
+neq_term_term
+(t1: term, t2: term): term =
+TMopr("!=", list0_tuple(t1, t2))
+
+fun
+mod_term_term
+(t1: term, t2: term): term =
+TMopr("%", list0_tuple(t1, t2))
+
+fun
+abs_term
+(t1: term): term =
+TMopr("abs", cons0(t1, nil0()))
+
+overload - with sub_term_term
+overload + with add_term_term
+overload * with mul_term_term
+overload % with mod_term_term
+overload &gt;= with gte_term_term
+overload &gt; with gt_term_term
+overload &lt;= with lte_term_term
+overload &lt; with lt_term_term
+overload / with div_term_term
+overload = with eq_term_term
+overload != with neq_term_term</code></pre>
+        <p>حالا در ATS می‌توانیم بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">TMint(1) + TMint(1)</code></pre>
+        <p>به‌جای:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">TMopr("+", TMint(1), TMint(1))</code></pre>
+        <p>البته هنگام تولید کد لامبدای خالص، هر دو به یک چیز ترجمه می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">(TMopr + (TMint 1) (TMint 1))</code></pre>
+        <p>اما حالت اول نوشتن و اشکال‌زدایی دیداری آسان‌تری دارد؛ همین موضوع برنامه‌نویسی مؤثر در زبان لامبدای
+        ما را بسیار پربازده‌تر می‌کند. به همین دلیل این روش ترجیح داده می‌شود.</p>
+
+        <h3>تجزیه‌گر (Parser)</h3>
+        <p>تجزیهٔ یک فایل با نحو بالا به این شکل انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">implement
+parse_lisp(f) = let
+  val myfile = fileref_open_opt(f, file_mode_r)
+in
+  case- myfile of
+  | ~Some_vt(code_ref) =&gt; let
+      val code = streamize_fileref_char(code_ref)
+      val alltokens = tokenize(code)
+      val-Some(t) = parse_tokens(alltokens)
+    in
+      t
+    end
+end
+
+(* ****** ****** *)
+
+implement
+tokenize(xs) = let
+  fun get_token(xs: stream_vt(char), s: string): (stream_vt(char), string) =
+    case+ !xs of
+    | ~stream_vt_nil() =&gt; ($ldelay(stream_vt_nil()), "")
+    | ~stream_vt_cons(x, xs1) =&gt; 
+        case+ x of
+        | '\(' =&gt;  (xs1, "(")
+        | ' ' =&gt;  (xs1, s)
+        | ')' =&gt;  if s = "" then (xs1, ")") else ($ldelay(stream_vt_cons(x, xs1), ~xs1), s)
+        | _ =&gt;  get_token(xs1, s + string_implode(list0_sing(x)))
+in
+    case+ !xs of
+    | ~stream_vt_nil() =&gt; $ldelay( stream_vt_nil() )
+    | ~stream_vt_cons(x, xs1) =&gt; let
+          val ys = $ldelay( stream_vt_cons(x, xs1), ~xs1 )
+          val (zs, tok) = get_token(ys, "")
+        in
+          $ldelay( stream_vt_cons(tok, tokenize(zs)), ~zs )
+        end
+end
+
+(* ****** ****** *)
+
+implement
+parse_tokens(xs) = 
+  case+ !xs of
+  | ~stream_vt_nil() =&gt; None()
+  | ~stream_vt_cons(x, xs) =&gt; 
+      case+ x of
+      | "TMint"  =&gt;  Some(TMint(parse_TMint(xs)))
+      | "TMstr"  =&gt;  Some(TMstr(parse_TMstr(xs)))
+      | "TMtup"  =&gt;  Some(TMtup(parse_TMtup(xs)))
+      | "TMproj" =&gt;  let val tup = parse_TMproj(xs) in Some(TMproj(tup.0, tup.1)) end
+      | "TMvar"  =&gt;  Some(TMvar(parse_TMvar(xs)))
+      | "TMlam"  =&gt;  let val lmd = parse_TMlam(xs)  in Some(TMlam(lmd.0, lmd.1)) end
+      | "TMapp"  =&gt;  let val app = parse_TMapp(xs)  in Some(TMapp(app.0, app.1)) end
+      | "TMfix"  =&gt;  let val fxp = parse_TMfix(xs)  in Some(TMfix(fxp.0, fxp.1, fxp.2)) end
+      | "TMopr"  =&gt;  let val opr = parse_TMopr(xs)  in Some(TMopr(opr.0, opr.1)) end
+      | "TMifnz" =&gt;  let val ifz = parse_TMifnz(xs) in Some(TMifnz(ifz.0, ifz.1, ifz.2)) end
+      | "TMseq"  =&gt;  let val seq = parse_TMseq(xs)  in Some(TMseq(seq.0, seq.1)) end
+      | "(" =&gt; parse_tokens(xs)
+      | ")" =&gt; parse_tokens(xs)
+      | _ =&gt; (~xs; None())</code></pre>
+        <p>تجزیه‌گر ما نیز از نظر حافظه بسیار کارآمد است؛ زیرا محتوای فایلِ در حال تجزیه را به‌صورت یک جریان
+        خطی از کاراکترها در نظر می‌گیرد. تابع <code class="inline">tokenize()</code> جریان کاراکترها را به
+        جریانی از رشته‌ها نگاشت می‌کند که آن‌ها نیز به نوبهٔ خود می‌توانند (از طریق تابع
+        <code class="inline">parse_tokens()</code> ما) به یک term نگاشت شوند؛ termی که سپس توسط تابع
+        <code class="inline">interp</code> (که بعداً تعریف می‌کنیم) به یک مقدار (value) تفسیر می‌شود.</p>
+        <p>می‌توانید پیاده‌سازی کامل تجزیه را
+        <a href="https://github.com/galletti94/ATS-blockchain/blob/master/lambda/lisp_parser.dats" target="_blank" rel="noopener">اینجا</a>
+        مشاهده کنید.</p>
+
+        <h3>تفسیرگر (Interpreter)</h3>
+        <p>پیش از طراحی تفسیرگر برای زبان لامبدای خود، باید یک نوع دادهٔ مقدار (value) تعریف کنیم — یعنی
+        مقدارِ term تفسیرشده:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">datatype value =
+  | VALunit of ()
+  | VALint of int
+  | VALstr of string
+  | VALtup of valuelst
+  | VALfix of (term, envir)
+  | VALlam of (term, envir)
+
+where
+
+envir =
+list0($tup(string, value))
+
+and valuelst = list0(value)</code></pre>
+        <p>مطلب بالا باید شهودی باشد: انتظار داریم یک term عدد صحیح به یک مقدار عدد صحیح ارزیابی شود و غیره.
+        تفسیرگر خود را به این صورت تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">ats</span><code style="direction:ltr;text-align:left">extern
+fun
+interp1 : term -&gt; value
+extern
+fun
+interp2 : (term, envir) -&gt; value
+
+overload interp with interp1
+overload interp with interp2
+
+(* ****** ****** *)
+
+implement
+interp1(src) =
+interp2(src, list0_nil())
+
+(* ****** ****** *)
+
+extern
+fun
+envir_find :
+(envir, string) -&gt; value
+implement
+envir_find(env, x0) =
+(
+case- env of
+| list0_cons(xv, env) =&gt;
+  if x0 = xv.0
+    then xv.1 else envir_find(env, x0)
+  // پایان [if]
+)
+
+fun
+interp2_list
+(ts: termlst, env: envir): valuelst =
+list0_map&lt;term&gt;&lt;value&gt;(ts, lam(t) =&gt; interp2(t, env))
+
+implement
+interp2(t0, env) =
+(
+case t0 of
+//
+| TMint(i) =&gt; VALint(i)
+| TMstr(s) =&gt; VALstr(s)
+//
+| TMvar(x) =&gt; envir_find(env, x)
+//
+| TMlam _ =&gt; VALlam(t0, env)
+| TMfix _ =&gt; VALfix(t0, env)
+//
+| TMtup(ts) =&gt;
+  VALtup(interp2_list(ts, env))
+//
+| TMproj
+    (t_tup, i) =&gt; let
+    val v_tup = interp2(t_tup, env)
+  in
+    case- v_tup of
+    | VALtup(vs) =&gt; vs[i] // معادل: list0_get_at_exn(vs, i)
+  end
+//
+| TMapp(t1, t2) =&gt; let
+    val v1 = interp2(t1, env)
+  in
+    case- v1 of
+    | VALlam
+      (t_lam, env_lam) =&gt; let
+        val v2 = interp2(t2, env)
+        val-TMlam(x, t_body) = t_lam
+        val env_lam = list0_cons($tup(x, v2), env_lam)
+      in
+        interp2(t_body, env_lam)
+      end
+    | VALfix
+      (t_fix, env_fix) =&gt; let
+        val v2 = interp2(t2, env)
+        val-TMfix(f, x, t_body) = t_fix
+        val env_fix = list0_cons($tup(x, v2), env_fix)
+        val env_fix = list0_cons($tup(f, v1), env_fix)
+      in
+        interp2(t_body, env_fix)
+      end
+  end // پایان [TMapp]
+//
+
+| TMopr _ =&gt; interp2_opr(t0, env)
+//
+| TMifnz
+    (t1, t2, t3) =&gt; let
+    val v1 = interp2(t1, env)
+  in
+    case- v1 of
+    | VALint(i) =&gt;
+      interp2(if i != 0 then t2 else t3, env)
+  end
+| TMseq(t1, t2) =&gt; let val _ = interp2(t1, env) in interp2(t2, env) end
+) where
+{
+//
+
+fun
+interp2_opr
+( t0: term
+, env: envir): value = let
+//
+#define :: list0_cons
+#define nil list0_nil
+//
+val-TMopr(opr, ts) = t0
+//
+val vs =
+list0_map&lt;term&gt;&lt;value&gt;(ts, lam(t) =&gt; interp2(t, env))
+//
+in
+case- opr of
+| "+" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; VALint(i1+i2)
+  )
+| "-" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; VALint(i1-i2)
+  )
+| "*" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; VALint(i1*i2)
+  )
+| "%" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; VALint(i1%i2)
+  )
+| "/" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; VALint(i1/i2)
+  )
+| "~" =&gt;
+  (
+    case- vs of VALint(i1)::nil() =&gt; VALint(~i1)
+  )
+| "abs" =&gt;
+  (
+    case- vs of VALint(i1)::nil() =&gt; VALint(abs(i1))
+  )
+| "&gt;=" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 &gt;= i2 then VALint(1) else VALint(0)
+  )
+| "&gt;" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 &gt; i2 then VALint(1) else VALint(0)
+  )
+| "&lt;=" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 &lt;= i2 then VALint(1) else VALint(0)
+  )
+| "&lt;" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 &lt; i2 then VALint(1) else VALint(0)
+  )
+| "=" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 = i2 then VALint(1) else VALint(0)
+  )
+| "!=" =&gt;
+  (
+    case- vs of
+    | VALint(i1)::VALint(i2)::nil() =&gt; if i1 != i2 then VALint(1) else VALint(0)
+  )
+| "print" =&gt;
+  (
+    case- vs of v0::nil() =&gt;
+      (
+      let val () =
+        case+ v0 of
+        | VALunit() =&gt; print("")
+        | VALint(i) =&gt; print(i)
+        | VALstr(s) =&gt; print(s)
+        | VALtup(vs) =&gt; print("VALtup(...)")
+        | VALlam(_,_) =&gt; print("VALlam(...)")
+        | VALfix(_,_) =&gt; print("VALfix(...)")
+      in
+        VALunit()
+      end
+      )
+  )
+| "println" =&gt;
+  (
+    case- vs of v0::nil() =&gt;
+      (
+      let val () =
+        case+ v0 of
+        | VALunit() =&gt; println!("")
+        | VALint(i) =&gt; println!(i)
+        | VALstr(s) =&gt; println!(s)
+        | VALtup(vs) =&gt; println!("VALtup(...)")
+        | VALlam(_,_) =&gt; println!("VALlam(...)")
+        | VALfix(_,_) =&gt; println!("VALfix(...)")
+      in
+        VALunit()
+      end
+      )
+  )
+
+end // پایان [interp2_opr]
+
+} (* پایان [interp2] *)</code></pre>
+        <p>توجه کنید که تفسیرگر ما برای term های <code class="inline">TMopr</code> به‌راحتی قابل گسترش است؛
+        برای مثال به‌گونه‌ای که عملیات تراکنشی روی بلاک‌چین را شامل شود یا نوشتن کد به این زبان را تسهیل
+        کند.</p>
+        <p>قدم بعدی برای این تابع <code class="inline">interp</code> این است که term ها را به یک
+        <code class="inline">Option(value)</code> تفسیر کنیم؛ جایی که <code class="inline">Option</code>
+        نوع داده‌ای با دو سازندهٔ <code class="inline">None()</code> و
+        <code class="inline">Some(value)</code> است. به این ترتیب می‌توانیم پیام‌های خطا را برای زبان لامبدای
+        خود پیاده‌سازی کنیم. یعنی اگر term ارائه‌شده نتواند به یک مقدار تفسیر شود، بدون نوع دادهٔ
+        <code class="inline">Option</code>، برنامه یک خطای نوع زمان اجرا (runtime type error) گزارش می‌کرد
+        (زیرا تابعی که انتظار یک مقدار را دارد، یک term دریافت می‌کند). در این حالت، اگر انتظار یک نوع
+        <code class="inline">Option</code> داشته باشیم، می‌توانیم از تطبیق الگو (pattern matching) برای
+        مدیریت حالتی استفاده کنیم که نوع <code class="inline">Option</code> برابر
+        <code class="inline">None()</code> است (یعنی زمانی که تفسیرگر نتوانسته term را به مقدار تبدیل کند).</p>
+        <p>اگر فکر می‌کنید برای این کار می‌توانید از مدیریت استثنا (exception handling) هم استفاده کنید،
+        درست است. اما در این مورد توصیه نمی‌شود؛ زیرا یک خطای یکسان در ATS می‌تواند از خطاهای لامبدایی
+        مختلفی ناشی شود. این یعنی یا پیچیدگی کد افزایش می‌یابد، یا کیفیت پیام‌های خطای دریافتی از زبان لامبدا
+        کاهش می‌یابد.</p>
+
+        <h3>تولید کد (Code Generation)</h3>
+        <p>برای سرگرمی، توابع مختلفی مانند فیبوناچی، فاکتوریل، ۸ وزیر (8-queen) و ... را در این زبان لامبدا
+        پیاده‌سازی کرده‌ایم. هر یک از فایل‌های .dats
+        <a href="https://github.com/galletti94/ATS-blockchain/tree/master/lambda/example" target="_blank" rel="noopener">اینجا</a>
+        یک فایل .txt حاوی کد نوشته‌شده به زبان لامبدای ما تولید می‌کند که می‌تواند تجزیه و تفسیر شود تا یک
+        مقدار تولید کند. از طریق تابع <code class="inline">do_execute()</code> می‌توان به این فایل‌ها در رابط
+        خط فرمان دسترسی داشت. در حال حاضر، فقط مقادیر بازگشتی فایل‌های اجراشده توسط
+        <code class="inline">do_execute()</code> روی بلاک‌چین ذخیره می‌شوند. در آینده می‌خواهیم بایت‌کد
+        کامپایل‌شده را همراه با نتیجه روی بلاک‌چین ذخیره کنیم تا راستی‌آزمایی (validation) ممکن شود.</p>
+      </section>
+
+      <!-- ==================== یادداشت پایانی ==================== -->
+      <section>
+        <h2>یادداشت پایانی (Closing Note)</h2>
+        <p>تحقیقات بسیار جالبی در حال حاضر دربارهٔ زبان‌های برنامه‌نویسی برای بلاک‌چین در جریان است. به‌طور
+        کلی، اما به‌ویژه در کاربردهای بلاک‌چین، می‌خواهیم کاملاً مطمئن باشیم که کد دقیقاً همان کاری را انجام
+        می‌دهد که انتظارش را داریم — و آن هم در اولین باری که اجرا می‌شود. این به دو دلیل است:</p>
+        <ol>
+          <li>تغییرناپذیری (immutability) بلاک‌چین و در نتیجه ماندگاری بی‌پایان کد شما (و باگ‌های بالقوه‌اش)</li>
+          <li>دشواری انجام تست‌های زمان اجرا (runtime tests) روی یک شبکهٔ کاملاً غیرمتمرکز</li>
+        </ol>
+        <p>اگر ماشین شانس خود را اشتباه کالیبره کنید، کاری از دستتان برنمی‌آید جز اینکه برای سکه‌های ازدست‌رفتهٔ
+        خود اشک بریزید — باگ برای همیشه روی بلاک‌چین باقی می‌ماند تا کاربران آزادانه از آن بهره‌برداری کنند.
+        برای حل این مسئله، تعدادی از زبان‌ها سعی می‌کنند اثبات قضیه (theorem proving) را با برنامه‌نویسی
+        ترکیب کنند. <a href="http://www.ats-lang.org/" target="_blank" rel="noopener">ATS</a>، برای مثال، از
+        انواع (به‌طور دقیق‌تر،
+        <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/HTML/INT2PROGINATS-BOOK-onechunk.html#programming-with-dependent-types" target="_blank" rel="noopener">انواع وابسته</a>
+        (dependent types)) استفاده می‌کند تا باگ‌های بالقوه را هنگام کامپایل (یعنی قبل از اجرای کد) بیرون
+        بریزد. این موضوع با قابلیتی تقویت می‌شود که از طریق توابع داینامیک ویژه‌ای که فقط به‌عنوان کمک‌کنندهٔ
+        زمان کامپایل وجود دارند، می‌تواند اثبات‌های ریاضی دربارهٔ کد شما بسازد. به این ترتیب، بدون نیاز به
+        تست زمان اجرا و بدون تأثیر بر کارایی زمان اجرا، تضمین‌های قابل‌اثبات (provable guarantees) ارائه
+        می‌شود. چند مثال مقدماتی دربارهٔ انواع وابسته در ATS را
+        <a href="https://github.com/galletti94/magnificATS/tree/master/INTRO/DepTypesIntro" target="_blank" rel="noopener">اینجا</a>
+        و دربارهٔ اثبات قضیه در ATS را
+        <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/HTML/INT2PROGINATS-BOOK-onechunk.html#theorem-proving_in_ats_lf" target="_blank" rel="noopener">اینجا</a>
+        بیابید.</p>
+        <p>کد کامل این مقاله به‌صورت آنلاین
+        <a href="https://github.com/galletti94/ATS-blockchain" target="_blank" rel="noopener">اینجا</a> است.
+        من قصد دارم زبان لامبدا را تکامل دهم و رابط خط فرمان را برای شامل‌شدن توزیع بلاک‌چین با استفاده از
+        <a href="https://beta.observablehq.com/@steinwaywhw/selected-topic-in-programming-languages-session-types/2" target="_blank" rel="noopener">انواع جلسه (session types)</a>
+        ارتقا دهم. درخواست‌های کشش (Pull Requests) در GitHub پذیرفته و تشویق می‌شوند (به‌خصوص اگر می‌خواهید
+        مثال‌های کد لامبدای بیشتری مشارکت کنید). تشکر ویژه از
+        <a href="https://www.cs.bu.edu/~hwxi/" target="_blank" rel="noopener">هنگ‌وی شی (Hongwei Xi)</a> و
+        <a href="http://steinwaywu.com/" target="_blank" rel="noopener">هان‌ون وو (Hanwen Wu)</a> برای
+        پشتیبانی مربوط به ATS.</p>
+        <p>با ستاره دادن به
+        <a href="https://github.com/galletti94/ATS-blockchain" target="_blank" rel="noopener">مخزن</a>
+        حمایت خود را نشان دهید!</p>
+        <p>بخش ۲ این مقاله
+        <a href="https://observablehq.com/@galletti94/functional-blockchain-part-2" target="_blank" rel="noopener">اینجا</a>
+        است!</p>
+      </section>
+
+      <!-- ==================== بلاک کپیرایت ==================== -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوتبوک «Functional Blockchain» اثر «لنس گالتی (Lance Galletti)» است. این
+        صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده
+        اصل مطلب به
+        <a href="https://observablehq.com/@galletti94/functional-blockchain" target="_blank" rel="noopener">نوتبوک اصلی</a>
+        یا
+        <a href="https://github.com/galletti94/ATS-blockchain" target="_blank" rel="noopener">مخزن GitHub</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

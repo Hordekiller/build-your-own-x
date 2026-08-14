@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to build a simple actor-based blockchain» (Luca Florio / freeCodeCamp)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک بلاک‌چین ساده مبتنی بر مدل بازیگر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>ساخت یک بلاک‌چین ساده مبتنی بر مدل بازیگر</span>
+      </div>
+      <h1>چگونه یک بلاک‌چین ساده مبتنی بر مدل بازیگر بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Scala</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.freecodecamp.org/how-to-build-a-simple-actor-based-blockchain-aac1e996c177" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to build a simple actor-based blockchain» نوشته «لوکا
+          فلوریو (Luca Florio)» و منتشرشده در freeCodeCamp است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.freecodecamp.org/how-to-build-a-simple-actor-based-blockchain-aac1e996c177" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>مقالۀ «Scalachain» یک بلاک‌چین است که با زبان برنامه‌نویسی اسکالا (Scala) و مدل بازیگر (Actor Model) و با
+        استفاده از <a href="https://akka.io/" target="_blank" rel="noopener">چارچوب Akka</a> ساخته شده است.</p>
+        <p>در این مقاله، فرایند توسعه‌ای را نشان خواهم داد که با آن این نمونهٔ اولیهٔ ساده از یک بلاک‌چین ساخته شد. این یعنی
+        پروژه کامل و بی‌نقص نیست و ممکن است پیاده‌سازی‌های بهتری هم وجود داشته باشد. به همین دلیل هرگونه مشارکت — چه یک
+        پیشنهاد باشد، چه یک درخواست Pull Request روی <a href="https://github.com/elleFlorio/scalachain" target="_blank" rel="noopener">مخزن گیت‌هاب</a> — بسیار خوش‌آمد است! :-)</p>
+        <p>بیایید با یک معرفی کوتاه از بلاک‌چین شروع کنیم. پس از آن، مدل ساده‌شده‌ای را تعریف می‌کنیم که پیاده‌سازی
+        خواهیم کرد.</p>
+      </section>
+
+      <!-- ==================== معرفی سریع بلاک‌چین ==================== -->
+      <section>
+        <h2>معرفی سریع بلاک‌چین</h2>
+        <p>مقالات خوب زیادی وجود دارند که نحوهٔ کار بلاک‌چین را توضیح می‌دهند؛ بنابراین من فقط یک معرفی سطح بالا انجام
+        می‌دهم تا بستری برای این پروژه فراهم شود.</p>
+        <p>بلاک‌چین یک <b>دفتر کل توزیع‌شده</b> (distributed ledger) است: انتقال برخی ارزش‌ها (مثل سکه‌ها) را بین یک
+        فرستنده و یک گیرنده ثبت می‌کند. چیزی که بلاک‌چین را از یک پایگاه دادهٔ سنتی متمایز می‌کند، ماهیت غیرمتمرکز آن
+        است: بلاک‌چین میان چندین گره (node) ارتباطی توزیع شده است که اعتبار تراکنش‌های ثبت‌شده را تضمین می‌کنند.</p>
+        <p>بلاک‌چین تراکنش‌ها را در بلاک‌هایی ذخیره می‌کند که توسط گره‌ها و با سرمایه‌گذاری توان محاسباتی ساخته می‌شوند
+        — می‌گوییم <b>استخراج می‌شوند</b> (mined). هر بلاک با حل کردن یک معما‌ی رمزنگاری ساخته می‌شود که حل کردن آن سخت اما
+        راستی‌آزمایی آن آسان است. به این ترتیب، هر بلاک بیانگر کار لازم برای حل چنین معمایی است. به همین دلیل است که این
+        معما‌ی رمزنگاری <b>اثبات کار</b> (Proof of Work) نامیده می‌شود: راه‌حل معما، اثباتی است بر اینکه یک گره مقدار مشخصی
+        کار صرف حل آن و استخراج بلاک کرده است.</p>
+        <p>چرا گره‌ها توان محاسباتی برای استخراج یک بلاک سرمایه‌گذاری می‌کنند؟ چون ساخت یک بلاک جدید با مقدار ازپیش‌تعیین‌شده‌ای
+        از سکه پاداش داده می‌شود. به این ترتیب گره‌ها تشویق می‌شوند بلاک‌های جدیدی استخراج کنند و به رشد و استحکام بلاک‌چین
+        کمک کنند.</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/1*IV05CUizMrIQCIXjqjaRKA.png" alt="نمودار یک بلاک‌چین ساده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">بلاک‌چین ساده</p>
+        <p>راه‌حل اثبات کار به مقادیر ذخیره‌شده در آخرین بلاکِ استخراج‌شده وابسته است. به این ترتیب، هر بلاک به بلاک قبلی
+        زنجیر می‌شود. این یعنی برای تغییر یک بلاکِ استخراج‌شده، یک گره باید همهٔ بلاک‌های بالای بلاکِ تغییرداده‌شده را دوباره
+        استخراج کند. ازآنجاکه هر بلاک مقدار مشخصی کار را نشان می‌دهد، این عملیات زمانی که چند بلاک روی بلاکِ تغییرداده‌شده
+        استخراج شده باشند، غیرعملی خواهد بود. این بنیان <b>اجماع توزیع‌شده</b> (distributed consensus) است؛ یعنی توافق همهٔ گره‌ها بر
+        اعتبار بلاک‌های (یعنی تراکنش‌های) ذخیره‌شده در بلاک‌چین.</p>
+        <p>ممکن است گره‌های مختلف هم‌زمان یک بلاک را استخراج کنند و «شاخه‌های» متفاوتی از همان بلاک‌چین ایجاد کنند — به این
+        وضعیت در بلاک‌چین <b>انشعاب</b> (fork) می‌گویند. این وضعیت وقتی حل می‌شود که یک شاخه از بقیه بلندتر شود: زنجیرهٔ
+        بلندتر همیشه برنده است؛ پس شاخهٔ برنده به بلاک‌چین جدید تبدیل می‌شود.</p>
+      </section>
+
+      <!-- ==================== مدل بلاک‌چین ==================== -->
+      <section>
+        <h2>مدل بلاک‌چین</h2>
+        <p>Scalachain بر پایهٔ مدلی از بلاک‌چین است که ساده‌سازی مدل بیت‌کوین است.</p>
+        <p>اجزای اصلی مدل بلاک‌چین ما عبارت‌اند از: تراکنش (Transaction)، زنجیره (Chain)، الگوریتم اثبات کار (PoW) و گره
+        (Node). تراکنش‌ها داخل بلاک‌های زنجیره ذخیره می‌شوند و با استفاده از PoW استخراج می‌گردند. گره، سروری است که
+        بلاک‌چین را اجرا می‌کند.</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/1*jh1BNavGEHnHm0AWi2O-gA.png" alt="نمودار مدل Scalachain" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">مدل Scalachain</p>
+
+        <h3>تراکنش (Transaction)</h3>
+        <p>تراکنش‌ها جابه‌جایی سکه‌ها را بین دو نهاد ثبت می‌کنند. هر تراکنش از یک فرستنده، یک گیرنده و مقدار سکه تشکیل
+        شده است. تراکنش‌ها داخل بلاک‌های بلاک‌چین ما ثبت خواهند شد.</p>
+
+        <h3>زنجیره (Chain)</h3>
+        <p>زنجیره یک لیست پیوندی از بلاک‌هاست که فهرستی از تراکنش‌ها را در خود دارد. هر بلاک از زنجیره دارای یک ایندکس
+        (index)، اثباتِ اعتباردهنده (بعداً بیشتر در این باره)، فهرست تراکنش‌ها، هش بلاک قبلی، فهرست بلاک‌های قبلی و یک
+        برچسب زمانی (timestamp) است. هر بلاک با هش خودش به بلاک قبلی زنجیر می‌شود؛ هش با تبدیل بلاک به یک رشتهٔ
+        <code class="inline">JSON</code> و سپس هش کردن آن با تابع هش <code class="inline">SHA-256</code> محاسبه می‌شود.</p>
+
+        <h3>اثبات کار (PoW)</h3>
+        <p>الگوریتم PoW برای استخراج بلاک‌های تشکیل‌دهندهٔ بلاک‌چین لازم است. ایده این است که معما‌ی رمزنگاری‌ای حل شود که
+        حل آن سخت، اما راستی‌آزمایی آن با داشتنِ اثبات، آسان باشد. الگوریتم PoW پیاده‌سازی‌شده در Scalachain مشابه الگوریتم
+        بیت‌کوین است (مبتنی بر <a href="https://en.wikipedia.org/wiki/Hashcash" target="_blank" rel="noopener">Hashcash</a>). این
+        الگوریتم عبارت است از یافتن هشی با N صفرِ ابتدایی که از هش آخرین بلاک و یک عدد — که همان اثبات الگوریتم ماست —
+        محاسبه می‌شود.</p>
+        <p>می‌توانیم آن را این‌گونه صورتبندی کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>NzerosHash = SHA-256(previousNodeHash + proof)</code></pre>
+        <p>هرچه N بزرگ‌تر باشد، یافتن اثبات سخت‌تر است. در Scalachain مقدار N برابر ۴ است (در نهایت قابل تنظیم خواهد
+        بود).</p>
+
+        <h3>گره (Node)</h3>
+        <p>گره، سروری است که بلاک‌چین ما را اجرا می‌کند. گره تعدادی REST API در اختیار می‌گذارد تا با آن تعامل کنیم و
+        عملیات پایه‌ای مانند ارسال تراکنش جدید، دریافت فهرست تراکنش‌های معلق، استخراج یک بلاک و دریافت وضعیت فعلی
+        بلاک‌چین را انجام دهیم.</p>
+      </section>
+
+      <!-- ==================== پیاده‌سازی بلاک‌چین در اسکالا ==================== -->
+      <section>
+        <h2>پیاده‌سازی بلاک‌چین در اسکالا</h2>
+        <p>قصد داریم مدل تعریف‌شده را با زبان برنامه‌نویسی اسکالا پیاده‌سازی کنیم. از دیدگاهی سطح بالا، چیزهایی که برای
+        پیاده‌سازی یک بلاک‌چین لازم داریم عبارت‌اند از:</p>
+        <ul>
+          <li>تراکنش‌ها</li>
+          <li>زنجیره‌ای از بلاک‌ها شامل فهرست‌هایی از تراکنش‌ها</li>
+          <li>الگوریتم PoW برای استخراج بلاک‌های جدید</li>
+        </ul>
+        <p>این اجزا بخش‌های ضروری یک بلاک‌چین هستند.</p>
+
+        <h3>تراکنش</h3>
+        <p>تراکنش یک شیء بسیار ساده است: یک فرستنده، یک گیرنده و یک مقدار دارد. می‌توانیم آن را به‌صورت یک
+        <code class="inline">case class</code> ساده پیاده‌سازی کنیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>case class Transaction(sender: String, recipient: String, value: Long)</code></pre>
+
+        <h3>زنجیره</h3>
+        <p>زنجیره قلب بلاک‌چین ماست: یک لیست پیوندی از بلاک‌هاست که تراکنش‌ها را در خود دارد.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>sealed trait Chain {
+
+  val index: Int
+  val hash: String
+  val values: List[Transaction]
+  val proof: Long
+  val timestamp: Long
+}</code></pre>
+        <p>ما با ایجاد یک <code class="inline">sealed trait</code> شروع می‌کنیم که بلاک زنجیرهٔ ما را نشان می‌دهد.
+        <code class="inline">Chain</code> می‌تواند دو نوع داشته باشد: یک <code class="inline">EmptyChain</code> یا یک
+        <code class="inline">ChainLink</code>. نوع اول، بلاک صفرِ ما (بلاک آغازین یا <em>genesis block</em>) است و به‌صورت یک
+        تابع‌مفرد (singleton) پیاده‌سازی می‌شود (یک <code class="inline">case object</code>)، در حالی که نوع دوم یک بلاک
+        معمولی استخراج‌شده است.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>case class ChainLink(index: Int, proof: Long, values: List[Transaction], previousHash: String = "", tail: Chain = EmptyChain, timestamp: Long = System.currentTimeMillis()) extends Chain {
+  val hash = Crypto.sha256Hash(this.toJson.toString)
+}
+
+case object EmptyChain extends Chain {
+  val index = 0
+  val hash = "1"
+  val values = Nil
+  val proof = 100L
+  val timestamp = System.currentTimeMillis()
+}</code></pre>
+        <p>بیایید دقیق‌تر به زنجیرهٔ خود نگاه کنیم. این زنجیره یک ایندکس فراهم می‌کند که ارتفاع فعلی بلاک‌چین است. فهرست
+        <code class="inline">Transaction</code>، اثباتِ اعتباردهندهٔ بلاک و برچسب زمانی ساخت بلاک وجود دارد. مقدار هش در
+        <code class="inline">EmptyChain</code> روی یک مقدار پیش‌فرض قرار می‌گیرد، در حالی که در
+        <code class="inline">ChainLink</code> با تبدیل شیء به نمایش <code class="inline">JSON</code> آن و هش کردنش با یک تابع
+        کمکی محاسبه می‌شود (پکیج <code class="inline">crypto</code> را در
+        <a href="https://github.com/elleFlorio/scalachain" target="_blank" rel="noopener">مخزن</a> ببینید).
+        <code class="inline">ChainLink</code> همچنین هش بلاک قبلی در زنجیره (حلقهٔ اتصال ما بین بلاک‌ها) را فراهم می‌کند.
+        فیلد tail ارجاعی به بلاک‌های قبلی‌استخراج‌شده است. این شاید کارآمدترین راه‌حل نباشد، اما برای دیدن اینکه بلاک‌چین در
+        پیاده‌سازی ساده‌شدهٔ ما چگونه رشد می‌کند مفید است.</p>
+        <p>می‌توانیم <code class="inline">Chain</code> خود را با چند ابزار بهبود دهیم. می‌توانیم یک <em>شیء همراه</em>
+        (companion object) به آن اضافه کنیم که یک متد <code class="inline">apply</code> برای ساخت یک زنجیرهٔ جدید با
+        دریافت فهرستی از بلاک‌ها تعریف می‌کند. شیء همراه مثل یک «مجموعه متدهای استاتیک» است — برای تشبیه با جاوا — که به
+        میدان‌ها و متدهای کلاس/صفت دسترسی کامل دارد.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Chain {
+  def apply[T](b: Chain*): Chain = {
+    if (b.isEmpty) EmptyChain
+    else {
+      val link = b.head.asInstanceOf[ChainLink]
+      ChainLink(link.index, link.proof, link.values, link.previousHash, apply(b.tail: _*))
+    }
+  }
+}</code></pre>
+        <p>اگر فهرست بلاک‌ها خالی باشد، به‌سادگی بلاک‌چین خود را با یک <code class="inline">EmptyChain</code> مقداردهی
+        می‌کنیم. در غیر این صورت یک <code class="inline">ChainLink</code> جدید می‌سازیم و نتیجهٔ متد
+        <code class="inline">apply</code> روی بلاک‌های باقی‌ماندهٔ فهرست را به‌عنوان tail اضافه می‌کنیم. به این ترتیب فهرست
+        بلاک‌ها به ترتیب خود فهرست اضافه می‌شود.</p>
+        <p>خوب است که امکان اضافه‌کردن یک بلاک جدید به زنجیره را با یک عملگر جمع سادهٔ الحاقی داشته باشیم، مثل عملگری که روی
+        <code class="inline">List</code> داریم. می‌توانیم عملگر الحاقی خودمان یعنی <code class="inline">::</code> را داخل
+        صفت <code class="inline">Chain</code> تعریف کنیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>sealed trait Chain {
+
+  val index: Int
+  val hash: String
+  val values: List[Transaction]
+  val proof: Long
+  val timestamp: Long
+
+  def ::(link: Chain): Chain = link match {
+    case l:ChainLink => ChainLink(l.index, l.proof, l.values, this.hash, this)
+    case _ => throw new InvalidParameterException("Cannot add invalid link to chain")
+  }
+}</code></pre>
+        <p>روی بلاکی که به‌عنوان آرگومان داده می‌شود تطبیق الگو (pattern match) انجام می‌دهیم: اگر یک شیء معتبر
+        <code class="inline">ChainLink</code> باشد، آن را به‌عنوان سر زنجیرهٔ خود اضافه می‌کنیم و زنجیره را به‌عنوان tail
+        بلاک جدید قرار می‌دهیم؛ در غیر این صورت یک استثنا پرتاب می‌کنیم.</p>
+
+        <h3>اثبات کار (PoW)</h3>
+        <p>الگوریتم PoW برای استخراج بلاک‌های جدید اساسی است. آن را به‌صورت یک الگوریتم ساده پیاده‌سازی می‌کنیم:</p>
+        <ol>
+          <li>هش آخرین بلاک و عددی را که نمایانگر اثبات است بردار.</li>
+          <li>هش و اثبات را در یک رشته با هم ادغام کن.</li>
+          <li>رشتهٔ حاصل را با الگوریتم <code class="inline">SHA-256</code> هش کن.</li>
+          <li>۴ کاراکتر ابتدایی هش را بررسی کن: اگر چهار صفر بودند، اثبات را برگردان.</li>
+          <li>در غیر این صورت الگوریتم را با افزایش اثبات به‌اندازهٔ یک تکرار کن.</li>
+        </ol>
+        <p>این ساده‌سازی الگوریتم
+        <a href="https://en.wikipedia.org/wiki/Hashcash" target="_blank" rel="noopener">HashCash</a> است که در بلاک‌چین
+        بیت‌کوین استفاده می‌شود.</p>
+        <p>ازآنجاکه یک تابع بازگشتی است، می‌توانیم آن را به‌صورت یک تابع بازگشتی دُمی (tail recursive) پیاده‌سازی کنیم تا
+        استفاده از منابع را بهبود دهیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object ProofOfWork {
+
+  def proofOfWork(lastHash: String): Long = {
+    @tailrec
+    def powHelper(lastHash: String, proof: Long): Long = {
+      if (validProof(lastHash, proof))
+        proof
+      else
+        powHelper(lastHash, proof + 1)
+    }
+
+    val proof = 0
+    powHelper(lastHash, proof)
+  }
+
+  def validProof(lastHash: String, proof: Long): Boolean = {
+    val guess = (lastHash ++ proof.toString).toJson.toString
+    val guessHash = Crypto.sha256Hash(guess)
+    (guessHash take 4) == "0000"
+  }
+}</code></pre>
+        <p>تابع <code class="inline">validProof</code> برای بررسی اینکه اثباتِ در حال آزمون، اثبات درست است یا نه به کار
+        می‌رود. تابع <code class="inline">powHelper</code> یک تابع کمکی است که حلقهٔ ما را با استفاده از بازگشت دُمی اجرا
+        می‌کند و در هر گام اثبات را افزایش می‌دهد. تابع <code class="inline">proofOfWork</code> همه‌چیز را در بر می‌گیرد و
+        توسط شیء <code class="inline">ProofOfWork</code> در معرض دید قرار می‌گیرد.</p>
+      </section>
+
+      <!-- ==================== مدل بازیگر ==================== -->
+      <section>
+        <h2>مدل بازیگر</h2>
+        <p>مدل بازیگر یک مدل برنامه‌نویسی است که برای <b>پردازش هم‌روند</b> (concurrent processing)، <b>مقیاس‌پذیری</b>
+        (scalability) و <b>تحمل خطا</b> (fault tolerance) طراحی شده است. این مدل عناصر اتمیِ سازندهٔ سیستم‌های نرم‌افزاری
+        — یعنی <b>بازیگرها</b> (actors) — و نحوهٔ تعامل این عناصر با یکدیگر را تعریف می‌کند. در این پروژه از مدل بازیگری
+        استفاده می‌کنیم که توسط چارچوب Akka در اسکالا پیاده‌سازی شده است.</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/1*6jDNPwSi80yxej_swJ5kfg.png" alt="نمودار مدل بازیگر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">مدل بازیگر</p>
+
+        <h3>بازیگر (Actor)</h3>
+        <p>بازیگر واحد اتمی مدل بازیگر است. این یک واحد محاسباتی است که می‌تواند پیام ارسال و دریافت کند. هر بازیگر یک
+        وضعیت داخلی <b>خصوصی</b> و یک صندوق پیام (mailbox) دارد. وقتی یک بازیگر پیامی دریافت و پردازش می‌کند، می‌تواند به سه
+        شکل واکنش نشان دهد:</p>
+        <ul>
+          <li>پیامی به بازیگر دیگری بفرستد.</li>
+          <li>وضعیت داخلی خود را تغییر دهد.</li>
+          <li>بازیگر دیگری بسازد.</li>
+        </ul>
+        <p>ارتباطات <b>ناهمگام</b> (asynchronous) است و پیام‌ها از صندوق پیام خارج و به‌صورت متوالی پردازش می‌شوند. برای
+        امکان‌پذیر کردن محاسبهٔ موازی پیام‌ها باید چندین بازیگر بسازید. بسیاری از بازیگرها با هم یک <b>سیستم بازیگر</b>
+        (actor system) تشکیل می‌دهند. رفتار برنامه از تعامل بین بازیگرهایی که قابلیت‌های متفاوتی فراهم می‌کنند، پدید
+        می‌آید.</p>
+
+        <h3>بازیگرها مستقل هستند</h3>
+        <p>بازیگرها مستقل از یکدیگرند و وضعیت داخلی خود را به اشتراک نمی‌گذارند. این واقعیت دو پیامد مهم دارد:</p>
+        <ol>
+          <li>بازیگرها می‌توانند پیام‌ها را <b>بدون اثر جانبی</b> (side-effect) نسبت به یکدیگر پردازش کنند.</li>
+          <li>مهم نیست بازیگر کجاست — روی لپ‌تاپ شما باشد، روی یک سرور یا در ابر — تا زمانی که آدرس آن را بدانیم، با فرستادن
+          یک پیام می‌توانیم از سرویسش درخواست کنیم.</li>
+        </ol>
+        <p>نکتهٔ اول محاسبهٔ هم‌روند را بسیار آسان می‌کند. می‌توانیم مطمئن باشیم پردازش یک پیام در پردازش پیام دیگری دخالت
+        نمی‌کند. برای دستیابی به <b>پردازش هم‌روند</b> می‌توانیم چندین بازیگر مستقر کنیم که قادر به پردازش همان نوع پیام
+        هستند.</p>
+        <p>نکتهٔ دوم کاملاً دربارهٔ <b>مقیاس‌پذیری</b> است: توان محاسباتی بیشتری لازم داریم؟ مشکلی نیست: می‌توانیم یک
+        ماشین جدید راه بیندازیم و بازیگرهای جدیدی مستقر کنیم که به سیستم بازیگر موجود ملحق می‌شوند. آدرس صندوق پیام آن‌ها
+        توسط بازیگرهای موجود قابل کشف خواهد بود و آن‌ها شروع به ارتباط با بازیگرهای جدید می‌کنند.</p>
+
+        <h3>بازیگرها تحت نظارت هستند</h3>
+        <p>همان‌طور که در توصیف بازیگر گفتیم، یکی از واکنش‌های ممکن به یک پیام، ایجاد بازیگرهای دیگر است. در این حالت،
+        والد، <b>ناظر</b> (supervisor) فرزندانش می‌شود. اگر یک فرزند از کار بیفتد، ناظر می‌تواند تصمیم بگیرد چه
+        اقدامی انجام دهد؛ چه بسا ایجاد یک بازیگر جدید، نادیده‌گرفتن خطا، یا انتقال آن به ناظر خودش. به این ترتیب سیستم
+        بازیگر به یک درخت سلسله‌مراتبی تبدیل می‌شود که هر گره بر فرزندانش نظارت می‌کند. این همان راهی است که مدل بازیگر
+        <b>تحمل خطا</b> فراهم می‌کند.</p>
+        <img src="https://cdn-media-1.freecodecamp.org/images/1*GMV9z5B_00Kwjx8b2Kolxg.png" alt="نمودار سلسله‌مراتب بازیگرها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">سلسله‌مراتب بازیگرها</p>
+      </section>
+
+      <!-- ==================== بروکر، یک بازیگر ساده ==================== -->
+      <section>
+        <h2>کارگزار (Broker)، یک بازیگر ساده</h2>
+        <p>اولین بازیگری که پیاده‌سازی می‌کنیم بازیگر کارگزار (Broker Actor) است: این بازیگر مدیر تراکنش‌های بلاک‌چین ما
+        است. مسئولیت‌هایش عبارت‌اند از افزودن تراکنش‌های جدید و بازیابی تراکنش‌های معلق (pending).</p>
+        <p>بازیگر کارگزار به سه نوع پیام واکنش نشان می‌دهد که در <em>شیء همراه</em> (companion object) کلاس Broker تعریف
+        شده‌اند:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Broker {
+  sealed trait BrokerMessage
+  case class AddTransaction(transaction: Transaction) extends BrokerMessage
+  case object GetTransactions extends BrokerMessage
+  case object Clear extends BrokerMessage
+
+  val props: Props = Props(new Broker)
+}</code></pre>
+        <p>یک صفت <code class="inline">BrokerMessage</code> می‌سازیم تا پیام‌های بازیگر کارگزار را شناسایی کنیم. همهٔ
+        پیام‌های دیگر این صفت را گسترش می‌دهند. <code class="inline">AddTransaction</code> یک تراکنش جدید به فهرست
+        تراکنش‌های معلق اضافه می‌کند، <code class="inline">GetTransactions</code> تراکنش‌های معلق را بازیابی می‌کند و
+        <code class="inline">Clear</code> فهرست را خالی می‌کند. مقدار <code class="inline">props</code> برای مقداردهی
+        اولیهٔ بازیگر هنگام ایجاد شدن استفاده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>class Broker extends Actor with ActorLogging {
+  import Broker._
+
+  var pending: List[Transaction] = List()
+
+  override def receive: Receive = {
+    case AddTransaction(transaction) => {
+      pending = transaction :: pending
+      log.info(s"Added $transaction to pending Transaction")
+    }
+    case GetTransactions => {
+      log.info(s"Getting pending transactions")
+      sender() ! pending
+    }
+    case Clear => {
+      pending = List()
+      log.info("Clear pending transaction List")
+    }
+  }
+}</code></pre>
+        <p>کلاس <code class="inline">Broker</code> شامل منطق تجاری واکنش به پیام‌های مختلف است. وارد جزئیات نمی‌شوم چون
+        پیش‌پاافتاده است. جالب‌ترین نکته نحوهٔ پاسخ‌دادن به درخواست تراکنش‌های معلق است. آن‌ها را با استفاده از عملگر
+        <em>tell</em> (<code class="inline">!</code>) به <code class="inline">sender()</code> پیام
+        <code class="inline">GetTransactions</code> می‌فرستیم. این عملگر به معنای «پیام را بفرست و منتظر پاسخ نمان» است —
+        به اصطلاح شلیک‌وفراموش (fire-and-forget).</p>
+      </section>
+
+      <!-- ==================== استخراج‌کننده، بازیگری با حالت‌های متفاوت ==================== -->
+      <section>
+        <h2>استخراج‌کننده (Miner)، بازیگری با حالت‌های متفاوت</h2>
+        <p>بازیگر استخراج‌کننده همان بازیگری است که بلاک‌های جدید را برای بلاک‌چین ما استخراج می‌کند. چون نمی‌خواهیم
+        هم‌زمان با استخراج یک بلاک، بلاک دیگری استخراج کنیم، بازیگر استخراج‌کننده دو حالت خواهد داشت: <code class="inline">ready</code>
+        (آماده)، وقتی آمادهٔ استخراج یک بلاک جدید است، و <code class="inline">busy</code> (مشغول)، وقتی در حال استخراج یک
+        بلاک است.</p>
+        <p>بیایید با تعریفِ <em>شیء همراه</em> و پیام‌های بازیگر استخراج‌کننده شروع کنیم. الگو همان است: یک صفت مهروموم
+        — <code class="inline">MinerMessage</code> — برای تعریف نوع پیام‌هایی که این بازیگر به آن‌ها واکنش نشان
+        می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Miner {
+  sealed trait MinerMessage
+  case class Validate(hash: String, proof: Long) extends MinerMessage
+  case class Mine(hash: String) extends MinerMessage
+  case object Ready extends MinerMessage
+
+  val props: Props = Props(new Miner)
+}</code></pre>
+        <p>پیام <code class="inline">Validate</code> درخواست اعتبارسنجی یک اثبات را دارد و هش و اثبات مورد بررسی را به
+        استخراج‌کننده می‌دهد. ازآنجاکه این مؤلفه همان مؤلفه‌ای است که با الگوریتم PoW تعامل دارد، انجام این بررسی بر عهدهٔ
+        آن است. پیام <code class="inline">Mine</code> درخواست استخراج با شروع از یک هش مشخص را دارد. آخرین پیام، یعنی
+        <code class="inline">Ready</code>، یک گذار حالت (state transition) را فعال می‌کند.</p>
+
+        <h3>همان بازیگر، حالت‌های متفاوت</h3>
+        <p>ویژگی این بازیگر این است که بسته به حالتش — <code class="inline">busy</code> یا <code class="inline">ready</code>
+        — به پیام‌ها واکنش نشان می‌دهد. بیایید تفاوت رفتار را تحلیل کنیم:</p>
+        <ul>
+          <li><b>busy:</b> استخراج‌کننده مشغول استخراج یک بلاک است. اگر درخواست استخراج جدیدی بیاید، باید آن را رد کند.
+          اگر از آن خواسته شود آماده شود، باید حالتش را به حالت آماده تغییر دهد.</li>
+          <li><b>ready:</b> استخراج‌کننده بیکار است. اگر درخواست استخراج بیاید، باید استخراج یک بلاک جدید را شروع کند.
+          اگر از آن خواسته شود آماده باشد، باید بگوید: «باشه، من آماده‌ام!»</li>
+          <li><b>هر دو حالت:</b> استخراج‌کننده باید همیشه برای راستی‌آزمایی درستی یک اثبات در دسترس باشد، چه در حالت آماده
+          چه در حالت مشغول.</li>
+        </ul>
+        <p>وقت آن رسیده ببینیم چگونه می‌توانیم این منطق را در کدمان پیاده‌سازی کنیم. با تعریف رفتار مشترک، یعنی اعتبارسنجی
+        یک اثبات، شروع می‌کنیم.</p>
+        <p>تابعی به نام <code class="inline">validate</code> تعریف می‌کنیم که به پیام <code class="inline">Validate</code>
+        واکنش نشان می‌دهد: اگر اثبات معتبر باشد، با موفقیت و در غیر این صورت با شکست به فرستنده پاسخ می‌دهیم. حالت‌های
+        <code class="inline">ready</code> و <code class="inline">busy</code> به‌صورت توابعی تعریف می‌شوند که تابع
+        <code class="inline">validate</code> را «گسترش» می‌دهند، چون رفتاری است که در هر دو حالت می‌خواهیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>def validate: Receive = {
+    case Validate(hash, proof) => {
+      log.info(s"Validating proof $proof")
+      if (ProofOfWork.validProof(hash, proof)){
+        log.info("proof is valid!")
+        sender() ! Success
+      }
+      else{
+        log.info("proof is not valid")
+        sender() ! Failure(new InvalidProofException(hash, proof))
+      }
+    }
+  }</code></pre>
+        <p>چند نکته برای برجسته‌کردن این‌جا هست:</p>
+        <ol>
+          <li>گذار حالت با استفاده از تابع <code class="inline">become</code> فعال می‌شود که توسط چارچوب Akka فراهم شده
+          است. این تابع یک تابع را به‌عنوان آرگومان می‌گیرد که یک شیء <code class="inline">Receive</code> برمی‌گرداند،
+          مثل همان‌هایی که برای حالت‌های <code class="inline">validate</code>، <code class="inline">busy</code> و
+          <code class="inline">ready</code> تعریف کردیم.</li>
+          <li>وقتی استخراج‌کننده درخواست استخراج دریافت می‌کند، با یک <code class="inline">Future</code> حاوی اجرای
+          الگوریتم PoW پاسخ می‌دهد. به این ترتیب می‌توانیم به‌صورت ناهمگام کار کنیم و استخراج‌کننده را برای انجام کارهای دیگر،
+          مانند اعتبارسنجی، آزاد بگذاریم.</li>
+          <li><b>ناظر</b> (supervisor) این بازیگر گذار حالت را کنترل می‌کند. دلیل این انتخاب این است که استخراج‌کننده نسبت به
+          وضعیت سیستم آگاهی ندارد. نمی‌داند محاسبهٔ استخراج داخل <code class="inline">Future</code> چه زمانی کامل می‌شود و
+          نمی‌تواند بداند آیا بلاکی که در حال استخراجش است قبلاً توسط گرهٔ دیگری استخراج شده است یا نه. این امر مستلزم توقف
+          استخراج هش فعلی و شروع استخراج هش بلاک جدید است.</li>
+        </ol>
+        <p>آخرین کار فراهم‌کردن یک حالت اولیه با بازنویسی تابع <code class="inline">receive</code> است.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    case Ready => become(ready)
+  }</code></pre>
+        <p>ما منتظر پیام <code class="inline">Ready</code> می‌مانیم. وقتی رسید، استخراج‌کنندهٔ خود را شروع می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== بلاک‌چین، یک بازیگر مان‌دگار ==================== -->
+      <section>
+        <h2>بلاک‌چین، یک بازیگر ماندگار</h2>
+        <p>بازیگر بلاک‌چین با منطق تجاری بلاک‌چین تعامل دارد. می‌تواند یک بلاک جدید به بلاک‌چین اضافه کند و اطلاعاتی دربارهٔ
+        وضعیت بلاک‌چین بازیابی کند. این بازیگر یک ابرقدرت دیگر هم دارد: می‌تواند وضعیت بلاک‌چین را <b>ماندگار کند (persist) و
+        بازیابی کند</b>. این کار با پیاده‌سازی صفت <code class="inline">PersistentActor</code> که توسط چارچوب Akka فراهم
+        شده امکان‌پذیر است.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Blockchain {
+  sealed trait BlockchainEvent
+  case class AddBlockEvent(transactions: List[Transaction], proof: Long) extends BlockchainEvent
+
+  sealed trait BlockchainCommand
+  case class AddBlockCommand(transactions: List[Transaction], proof: Long) extends BlockchainCommand
+  case object GetChain extends BlockchainCommand
+  case object GetLastHash extends BlockchainCommand
+  case object GetLastIndex extends BlockchainCommand
+
+  case class State(chain: Chain)
+
+  def props(chain: Chain, nodeId: String): Props = Props(new Blockchain(chain, nodeId))
+}</code></pre>
+        <p>می‌بینیم که <em>شیء همراه</em> این بازیگر عناصر بیشتری نسبت به بقیه دارد. کلاس <code class="inline">State</code>
+        جایی است که وضعیت بلاک‌چین خود، یعنی <code class="inline">Chain</code> آن را ذخیره می‌کنیم. ایده این است که هر بار
+        بلاک جدیدی ساخته می‌شود، وضعیت را به‌روز کنیم.</p>
+        <p>برای این منظور، دو صفت متفاوت وجود دارد: <code class="inline">BlockchainEvent</code> و
+        <code class="inline">BlockchainCommand</code>. اولی برای مدیریت رویدادهایی است که منطق ماندگاری را فعال می‌کنند و
+        دومی برای فرستادن دستورهای مستقیم به بازیگر استفاده می‌شود. پیام <code class="inline">AddBlockEvent</code> رویدادی
+        است که وضعیت ما را به‌روز می‌کند. دستورهای <code class="inline">AddBlockCommand</code>،
+        <code class="inline">GetChain</code>، <code class="inline">GetLastHash</code> و
+        <code class="inline">GetLastIndex</code> همان‌هایی هستند که برای تعامل با بلاک‌چین زیرین استفاده می‌شوند.</p>
+        <p>تابع معمول <code class="inline">props</code> بازیگر بلاک‌چین را با <code class="inline">Chain</code> اولیه و
+        <code class="inline">nodeId</code> گرهٔ Scalachain مقداردهی اولیه می‌کند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>class Blockchain(chain: Chain, nodeId: String) extends PersistentActor with ActorLogging{
+  import Blockchain._
+
+  var state = State(chain)
+
+  override def persistenceId: String = s"chainer-$nodeId"
+
+  //Code...
+}</code></pre>
+        <p>بازیگر بلاک‌چین صفت <code class="inline">PersistentActor</code> فراهم‌شده توسط چارچوب Akka را گسترش می‌دهد. به
+        این ترتیب همهٔ منطق لازم برای ماندگارکردن و بازیابی وضعیت را بیرون‌ازجعبه (out-of-the-box) در اختیار داریم.</p>
+        <p>وضعیت را با استفاده از <code class="inline">Chain</code> ارائه‌شده به‌عنوان آرگومان هنگام ایجاد، مقداردهی
+        می‌کنیم. <code class="inline">nodeId</code> بخشی از <code class="inline">persistenceId</code> است که آن را
+        بازنویسی می‌کنیم. منطق ماندگاری برای شناسایی وضعیت ماندگارشده از آن استفاده می‌کند. ازآنجاکه ممکن است چندین گرهٔ
+        Scalachain روی همان ماشین اجرا شوند، برای ماندگارسازی و بازیابی صحیح وضعیت هر گره به این مقدار نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>def updateState(event: BlockchainEvent) = event match {
+    case AddBlockEvent(transactions, proof) =>
+      {
+        state = State(ChainLink(state.chain.index + 1, proof, transactions) :: state.chain)
+        log.info(s"Added block ${state.chain.index} containing ${transactions.size} transactions")
+      }
+  }</code></pre>
+        <p>تابع <code class="inline">updateState</code> وقتی پیام <code class="inline">AddBlockEvent</code> دریافت شود،
+        به‌روزرسانی وضعیت بازیگر را اجرا می‌کند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receiveRecover: Receive = {
+    case SnapshotOffer(metadata, snapshot: State) => {
+      log.info(s"Recovering from snapshot ${metadata.sequenceNr} at block ${snapshot.chain.index}")
+      state = snapshot
+    }
+    case RecoveryCompleted => log.info("Recovery completed")
+    case evt: AddBlockEvent => updateState(evt)
+  }</code></pre>
+        <p>تابع <code class="inline">receiveRecover</code> به پیام‌های بازیابی ارسال‌شده توسط منطق ماندگاری واکنش نشان
+        می‌دهد. هنگام ایجاد یک بازیگر ممکن است با پیام <code class="inline">SnapshotOffer</code> یک وضعیت ماندگارشده
+        (عکس فوری یا <em>snapshot</em>) به آن پیشنهاد شود. در این صورت وضعیت فعلی همان وضعیت ارائه‌شده توسط عکس فوری
+        می‌شود.</p>
+        <p>پیام <code class="inline">RecoveryCompleted</code> به ما اطلاع می‌دهد که فرایند بازیابی با موفقیت کامل شده است.
+        <code class="inline">AddBlockEvent</code> با پاس‌دادن خود رویداد، تابع <code class="inline">updateState</code> را
+        فعال می‌کند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receiveCommand: Receive = {
+    case SaveSnapshotSuccess(metadata) => log.info(s"Snapshot ${metadata.sequenceNr} saved successfully")
+    case SaveSnapshotFailure(metadata, reason) => log.error(s"Error saving snapshot ${metadata.sequenceNr}: ${reason.getMessage}")
+    case AddBlockCommand(transactions : List[Transaction], proof: Long) => {
+      persist(AddBlockEvent(transactions, proof)) {event =>
+        updateState(event)
+      }
+
+      // This is a workaround to wait until the state is persisted
+      deferAsync(Nil) { _ =>
+        saveSnapshot(state)
+        sender() ! state.chain.index
+      }
+    }
+    case AddBlockCommand(_, _) => log.error("invalid add block command")
+    case GetChain => sender() ! state.chain
+    case GetLastHash => sender() ! state.chain.hash
+    case GetLastIndex => sender() ! state.chain.index
+  }</code></pre>
+        <p>تابع <code class="inline">receiveCommand</code> برای واکنش به دستورهای مستقیم ارسال‌شده به بازیگر استفاده
+        می‌شود. دستورهای <code class="inline">GetChain</code>، <code class="inline">GetLastHash</code> و
+        <code class="inline">GetLastIndex</code> را رد می‌کنیم، چون پیش‌پاافتاده‌اند. بخش جالب
+        <code class="inline">AddBlockCommand</code> است: یک رویداد <code class="inline">AddBlockEvent</code> می‌سازد و
+        فعال می‌کند که در ژورنال رویدادها (event journal) بازیگر ماندگار می‌شود. به این ترتیب در صورت بازیابی، رویدادها
+        قابل پخش مجدد (replay) هستند.</p>
+        <p>تابع <code class="inline">deferAsync</code> منتظر می‌ماند تا وضعیت پس از پردازش رویداد به‌روز شود. پس از اجرای
+        رویداد، بازیگر می‌تواند عکس فوری از وضعیت را ذخیره کند و آخرین ایندکس به‌روزشدهٔ <code class="inline">Chain</code>
+        را به فرستندهٔ پیام اطلاع دهد. پیام‌های <code class="inline">SaveSnapshotSuccess</code> و
+        <code class="inline">SaveSnapshotFailure</code> به ما کمک می‌کنند خطاهای احتمالی را پیگیری کنیم.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> کامنت «<code dir="ltr">// This is a workaround to wait until the state is persisted</code>»
+          داخل کد، توضیح نویسنده است مبنی بر اینکه این یک راه‌حل موقت برای صبرکردن تا ماندگارشدن وضعیت است.
+        </div>
+      </section>
+
+      <!-- ==================== گره، بازیگری برای ادارهٔ همه ==================== -->
+      <section>
+        <h2>گره (Node)، بازیگری برای ادارهٔ همه</h2>
+        <p>بازیگر گره، ستون فقرات گرهٔ Scalachain ماست. این بازیگر <b>ناظر</b> همهٔ بازیگرهای دیگر (Broker، Miner و
+        Blockchain) و همان بازیگری است که از طریق REST API با دنیای بیرون ارتباط برقرار می‌کند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Node {
+
+  sealed trait NodeMessage
+
+  case class AddTransaction(transaction: Transaction) extends NodeMessage
+
+  case class CheckPowSolution(solution: Long) extends NodeMessage
+
+  case class AddBlock(proof: Long) extends NodeMessage
+
+  case object GetTransactions extends NodeMessage
+
+  case object Mine extends NodeMessage
+
+  case object StopMining extends NodeMessage
+
+  case object GetStatus extends NodeMessage
+
+  case object GetLastBlockIndex extends NodeMessage
+
+  case object GetLastBlockHash extends NodeMessage
+
+  def props(nodeId: String): Props = Props(new Node(nodeId))
+
+  def createCoinbaseTransaction(nodeId: String) = Transaction("coinbase", nodeId, 100)
+}</code></pre>
+        <p>بازیگر گره باید همهٔ پیام‌های سطح بالایی که از REST API می‌آیند را مدیریت کند. به همین دلیل است که در
+        <em>شیء همراه</em> کم‌وبیش همان پیام‌هایی را می‌بینیم که در بازیگرهای فرزند پیاده‌سازی کردیم. تابع
+        <code class="inline">props</code> یک <code class="inline">nodeId</code> را به‌عنوان آرگومان می‌گیرد تا بازیگر گره
+        ساخته شود. این همان مقداری است که برای مقداردهی اولیهٔ بازیگر بلاک‌چین استفاده خواهد شد. تابع
+        <code class="inline">createCoinbaseTransaction</code> به‌سادگی یک تراکنش ایجاد می‌کند که مقدار ازپیش‌تعیین‌شده‌ای
+        سکه را به خود گره اختصاص می‌دهد. این همان <b>پاداش</b> استخراج موفق یک بلاک جدید از بلاک‌چین خواهد بود.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>class Node(nodeId: String) extends Actor with ActorLogging {
+
+  import Node._
+
+  implicit lazy val timeout = Timeout(5.seconds)
+
+  val broker = context.actorOf(Broker.props)
+  val miner = context.actorOf(Miner.props)
+  val blockchain = context.actorOf(Blockchain.props(EmptyChain, nodeId))
+
+  miner ! Ready
+
+  //Code...
+}</code></pre>
+        <p>بیایید به مقداردهی اولیهٔ بازیگر گره نگاه کنیم. مقدار timeout توسط عملگر <em>ask</em> (<code class="inline">?</code>)
+        استفاده می‌شود (به‌زودی توضیح داده خواهد شد). همهٔ بازیگرهای ما در <code class="inline">context</code> بازیگر، با
+        استفاده از تابع <code class="inline">props</code> که در هر بازیگر تعریف کردیم، ایجاد می‌شوند.</p>
+        <p>بازیگر بلاک‌چین با <code class="inline">EmptyChain</code> و <code class="inline">nodeId</code> گره مقداردهی
+        می‌شود. وقتی همه‌چیز ساخته شد، با ارسال پیام <code class="inline">Ready</code> به بازیگر استخراج‌کننده اطلاع
+        می‌دهیم که برای استخراج آماده باشد. خب، حالا آماده‌ایم پیام‌هایی دریافت کنیم و به آن‌ها واکنش نشان دهیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    case AddTransaction(transaction) => {
+      //Code...
+    }
+    case CheckPowSolution(solution) => {
+      //Code...
+    }
+    case AddBlock(proof) => {
+      //Code...
+    }
+    case Mine => {
+      //Code...
+    }
+    case GetTransactions => broker forward Broker.GetTransactions
+    case GetStatus => blockchain forward GetChain
+    case GetLastBlockIndex => blockchain forward GetLastIndex
+    case GetLastBlockHash => blockchain forward GetLastHash
+  }</code></pre>
+        <p>این نمای کلی تابع معمول <code class="inline">receive</code> است که باید بازنویسی کنیم. منطق پیچیده‌ترین
+        <code class="inline">case</code>ها را بعداً تحلیل می‌کنم؛ حالا بگذارید به چهار مورد آخر نگاه کنیم. این‌جا پیام‌ها را
+        به بازیگر بلاک‌چین ارسالِ رو‌به‌جلو (forward) می‌کنیم، چون پردازش خاصی لازم نیست. با استفاده از عملگر
+        <code class="inline">forward</code>، <code class="inline">sender()</code> پیام فرستندهٔ اصلی پیام خواهد بود نه
+        بازیگر گره. به این ترتیب بازیگر بلاک‌چین به فرستندهٔ اصلی پیام (لایهٔ REST API) پاسخ می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    case AddTransaction(transaction) => {
+      val node = sender()
+      broker ! Broker.AddTransaction(transaction)
+      (blockchain ? GetLastIndex).mapTo[Int] onComplete {
+        case Success(index) => node ! (index + 1)
+        case Failure(e) => node ! akka.actor.Status.Failure(e)
+      }
+    }
+
+  //Code...
+}</code></pre>
+        <p>پیام <code class="inline">AddTransaction</code> منطق ذخیره‌سازی یک تراکنش جدید در فهرست تراکنش‌های معلق
+        بلاک‌چین ما را فعال می‌کند. بازیگر گره با <code class="inline">index</code> بلاکی که تراکنش را در خود خواهد داشت
+        پاسخ می‌دهد.</p>
+        <p>اول از همه «آدرس» <code class="inline">sender()</code> پیام را در یک مقدار <code class="inline">node</code>
+        ذخیره می‌کنیم تا بعداً از آن استفاده کنیم. پیامی برای افزودن یک تراکنش جدید به بازیگر کارگزار می‌فرستیم؛ سپس با
+        <em>ask</em> آخرین ایندکس زنجیره را از بازیگر بلاک‌چین می‌پرسیم. عملگر <em>ask</em> — که با
+        <code class="inline">?</code> بیان می‌شود — برای فرستادن یک پیام به یک بازیگر و انتظار برای پاسخ استفاده می‌شود. پاسخ
+        (نگاشت‌شده به یک مقدار <code class="inline">Int</code>) می‌تواند یک <code class="inline">Success</code> یا یک
+        <code class="inline">Failure</code> باشد.</p>
+        <p>در حالت اول، <code class="inline">index+1</code> را به فرستنده (<code class="inline">node</code>) برمی‌گردانیم،
+        چون ایندکس بلاک استخراج‌شدهٔ بعدی خواهد بود. در صورت خطا، با یک <code class="inline">Failure</code> حاوی دلیل خطا به
+        فرستنده پاسخ می‌دهیم. این الگو را به خاطر بسپارید:</p>
+        <p style="text-align:center;direction:ltr"><code class="inline">ask → منتظر پاسخ بمان → موفقیت/شکست را مدیریت کن</code></p>
+        <p>چون دوباره با آن مواجه خواهیم شد.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    //Code...
+
+    case CheckPowSolution(solution) => {
+      val node = sender()
+      (blockchain ? GetLastHash).mapTo[String] onComplete {
+        case Success(hash: String) => miner.tell(Validate(hash, solution), node)
+        case Failure(e) => node ! akka.actor.Status.Failure(e)
+      }
+    }
+
+  //Code...
+}</code></pre>
+        <p>این بار باید بررسی کنیم که راه‌حلی برای الگوریتم PoW درست است یا نه. هش آخرین بلاک را از بازیگر بلاک‌چین
+        می‌پرسیم و به بازیگر استخراج‌کننده می‌گوییم راه‌حل را در برابر هش اعتبارسنجی کند. در تابع
+        <code class="inline">tell</code> پیام <code class="inline">Validate</code> را همراه با آدرس فرستنده به
+        استخراج‌کننده می‌دهیم تا استخراج‌کننده بتواند مستقیماً به آن پاسخ دهد. این رویکرد دیگری است، مثل رویکرد
+        <code class="inline">forward</code> که قبلاً دیدیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    //Code...
+
+    case AddBlock(proof) => {
+      val node = sender()
+      (self ? CheckPowSolution(proof)) onComplete {
+        case Success(_) => {
+          (broker ? Broker.GetTransactions).mapTo[List[Transaction]] onComplete {
+            case Success(transactions) => blockchain.tell(AddBlockCommand(transactions, proof), node)
+            case Failure(e) => node ! akka.actor.Status.Failure(e)
+          }
+          broker ! Clear
+        }
+        case Failure(e) => node ! akka.actor.Status.Failure(e)
+      }
+    }
+
+    //Code...
+}</code></pre>
+        <p>گره‌های دیگر هم می‌توانند بلاک استخراج کنند؛ پس ممکن است درخواستی برای افزودن بلاکی دریافت کنیم که خودمان
+        استخراج نکرده‌ایم. اثبات برای افزودن بلاک جدید کافی است، چون فرض می‌کنیم همهٔ گره‌ها همان فهرست تراکنش‌های معلق را
+        به اشتراک می‌گذارند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>override def receive: Receive = {
+    //Code...
+
+    case Mine => {
+      val node = sender()
+      (blockchain ? GetLastHash).mapTo[String] onComplete {
+        case Success(hash) => (miner ? Miner.Mine(hash)).mapTo[Future[Long]] onComplete {
+          case Success(solution) => waitForSolution(solution)
+          case Failure(e) => log.error(s"Error finding PoW solution: ${e.getMessage}")
+        }
+        case Failure(e) => node ! akka.actor.Status.Failure(e)
+      }
+    }
+
+    //Code...
+  }
+
+  def waitForSolution(solution: Future[Long]) = Future {
+    solution onComplete {
+      case Success(proof) => {
+        broker ! Broker.AddTransaction(createCoinbaseTransaction(nodeId))
+        self ! AddBlock(proof)
+        miner ! Ready
+      }
+      case Failure(e) => log.error(s"Error finding PoW solution: ${e.getMessage}")
+    }
+  }</code></pre>
+        <p>این یک ساده‌سازی است؛ در شبکهٔ بیت‌کوین چنین فرضی‌ای نمی‌تواند وجود داشته باشد. اول از همه باید بررسی کنیم که
+        راه‌حل معتبر است. این کار را با فرستادن پیامی به خود گره انجام می‌دهیم: <code class="inline">self ? CheckPowSolution(proof)</code>.
+        اگر اثبات معتبر باشد، فهرست تراکنش‌های معلق را از بازیگر کارگزار می‌گیریم و سپس به بازیگر بلاک‌چین
+        <em>tell</em> می‌کنیم بلاک جدیدی حاوی تراکنش‌ها و اثبات اعتبارسنجی‌شده به زنجیره اضافه کند. آخرین کار دستور دادن به
+        بازیگر کارگزار برای خالی‌کردن فهرست تراکنش‌های معلق است.</p>
+        <p>آخرین پیام درخواست شروع استخراج یک بلاک جدید است. به هش آخرین بلاک زنجیره نیاز داریم؛ پس آن را از بازیگر
+        بلاک‌چین درخواست می‌کنیم. وقتی هش را داشتیم، می‌توانیم استخراج یک بلاک جدید را شروع کنیم.</p>
+        <p>الگوریتم PoW یک عملیات طولانی است؛ بنابراین بازیگر استخراج‌کننده بلافاصله با یک <code class="inline">Future</code>
+        حاوی محاسبه پاسخ می‌دهد. تابع <code class="inline">waitForSolution</code> منتظر کامل‌شدن محاسبه است، در حالی که
+        بازیگر گره به کار خود ادامه می‌دهد.</p>
+        <p>وقتی راه‌حلی داریم، با افزودن <b>تراکنش کوین‌بیس</b> (coinbase transaction) به فهرست تراکنش‌های معلق، به خود
+        پاداش می‌دهیم. سپس بلاک جدید را به زنجیره اضافه می‌کنیم و به بازیگر استخراج‌کننده می‌گوییم برای استخراج بلاک بعدی
+        آماده شود.</p>
+      </section>
+
+      <!-- ==================== REST API با Akka HTTP ==================== -->
+      <section>
+        <h2>REST API با Akka HTTP</h2>
+        <p>این بخش آخر سرور و REST API را توصیف می‌کند. این «بیرونی‌ترین» بخش برنامهٔ ماست؛ بخشی که دنیای بیرون را به گرهٔ
+        Scalachain متصل می‌کند. از کتابخانهٔ Akka HTTP که بخشی از چارچوب Akka است استفاده خواهیم کرد. بیایید با سرور، یعنی
+        نقطهٔ ورود برنامه شروع کنیم.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object Server extends App with NodeRoutes {
+
+  val address = if (args.length > 0) args(0) else "localhost"
+  val port = if (args.length > 1) args(1).toInt else 8080
+
+  implicit val system: ActorSystem = ActorSystem("scalachain")
+
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+
+  val node: ActorRef = system.actorOf(Node.props("scalaChainNode0"))
+
+  lazy val routes: Route = statusRoutes ~ transactionRoutes ~ mineRoutes
+
+  Http().bindAndHandle(routes, address, port)
+
+  println(s"Server online at http://$address:$port/")
+
+  Await.result(system.whenTerminated, Duration.Inf)
+
+}</code></pre>
+        <p>ازآنجاکه <code class="inline">Server</code> نقطهٔ ورود ماست، باید صفت <code class="inline">App</code> را گسترش
+        دهد. همچنین <code class="inline">NodeRoutes</code> را گسترش می‌دهد؛ صفتی که همهٔ مسیرهای (routes) http به
+        نقطه‌های پایانی مختلف گره را در خود دارد.</p>
+        <p>مقدار <code class="inline">system</code> جایی است که <code class="inline">ActorSystem</code> خود را ذخیره
+        می‌کنیم. هر بازیگری که در این سیستم ساخته شود می‌تواند با سایر بازیگرهای داخل همان سیستم صحبت کند. Akka HTTP
+        همچنین تعریف مقدار دیگری به نام <code class="inline">ActorMaterializer</code> را لازم دارد. این مقدار به ماژول
+        Akka Streams مربوط است، اما چون Akka HTTP روی آن ساخته شده، همچنان برای راه‌اندازی سرور به این شیء نیاز داریم
+        (اگر می‌خواهید در رابطه با جریان‌ها عمیق شوید،
+        <a href="https://doc.akka.io/docs/akka-http/current/implications-of-streaming-http-entity.html" target="_blank" rel="noopener">اینجا</a>
+        را ببینید).</p>
+        <p>بازیگر گره همراه با مسیرهای http گره ساخته می‌شود که با عملگر <code class="inline">~</code> به یکدیگر زنجیر
+        می‌شوند. الان نگران مسیرها نباشید؛ کمی بعد به آن‌ها برمی‌گردیم.</p>
+        <p>آخرین کار شروع سرور با استفاده از تابع <code class="inline">Http().bindAndHandle</code> است که مسیرهای ارسال‌شده
+        به آن را به‌عنوان آرگومان هم متصل (bind) می‌کند. تابع <code class="inline">Await.result</code> منتظر سیگنال خاتمه
+        می‌ماند تا سرور متوقف شود.</p>
+        <p>سرور بدون مسیرهایی که منطق تجاری برنامه را فعال کنند بی‌فایده خواهد بود. مسیرها را در صفت
+        <code class="inline">NodeRoutes</code> تعریف می‌کنیم و آن‌ها را بر اساس منطق متفاوتی که فعال می‌کنند متمایز می‌سازیم:</p>
+        <ul>
+          <li><code class="inline">statusRoutes</code> حاوی نقطه‌های پایانی برای پرسیدن وضعیت گرهٔ Scalachain است.</li>
+          <li><code class="inline">transactionRoutes</code> همه‌چیز مربوط به تراکنش‌ها را مدیریت می‌کند.</li>
+          <li><code class="inline">mineRoutes</code> نقطهٔ پایانی شروع فرایند استخراج را دارد.</li>
+        </ul>
+        <p>توجه کنید که این تفکیک صرفاً منطقی است تا امور مرتب و خوانا بمانند. سه مسیر پس از مقداردهی اولیه در سرور، در یک
+        مسیر واحد زنجیر می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>//Imports...
+import com.elleflorio.scalachain.utils.JsonSupport._
+// Imports...
+
+trait NodeRoutes extends SprayJsonSupport {
+
+  implicit def system: ActorSystem
+
+  def node: ActorRef
+
+  implicit lazy val timeout = Timeout(5.seconds)
+
+  //Code...
+}</code></pre>
+        <p>صفت <code class="inline">NodeRoutes</code> صفت <code class="inline">SprayJsonSupport</code> را گسترش می‌دهد تا
+        سریال‌سازی/ضدسریال‌سازی <code class="inline">JSON</code> اضافه شود.
+        <a href="https://github.com/spray/spray-json" target="_blank" rel="noopener">SprayJson</a> یک کتابخانهٔ اسکالا
+        است و مشابه Jackson در جاواست؛ همراه با Akka HTTP به‌صورت رایگان ارائه می‌شود.</p>
+        <p>برای تبدیل اشیای خود به یک رشتهٔ JSON، کلاس <code class="inline">JsonSupport</code> تعریف‌شده در پکیج
+        <code class="inline">utils</code> را import می‌کنیم که برای هر شیء یک reader/writer سفارشی دارد. وارد جزئیات
+        نمی‌شوم؛ اگر می‌خواهید پیاده‌سازی را ببینید می‌توانید
+        <a href="https://github.com/elleFlorio/scalachain/blob/master/src/main/scala/com/elleflorio/scalachain/utils/JsonSupport.scala" target="_blank" rel="noopener">کلاس</a>
+        را در مخزن پیدا کنید.</p>
+        <p>چند مقدار implicitly (ضمنی) داریم. از <code class="inline">ActorSystem</code> برای تعریف سیستم بازیگرها استفاده
+        می‌شود، در حالی که <code class="inline">Timeout</code> توسط تابع <code class="inline">onSuccess</code> که منتظر
+        پاسخ از بازیگرها می‌ماند استفاده می‌شود. <code class="inline">ActorRef</code> با بازنویسی در پیاده‌سازی سرور تعریف
+        می‌شود.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>//Code...
+
+lazy val statusRoutes: Route = pathPrefix("status") {
+    concat(
+      pathEnd {
+        concat(
+          get {
+            val statusFuture: Future[Chain] = (node ? GetStatus).mapTo[Chain]
+            onSuccess(statusFuture) { status =>
+              complete(StatusCodes.OK, status)
+            }
+          }
+        )
+      }
+    )
+  }
+
+//Code...</code></pre>
+        <p>نقطهٔ پایانی دریافت وضعیت بلاک‌چین در statusRoutes تعریف شده است. pathPrefix را به‌صورت «status» تعریف می‌کنیم تا
+        گره به مسیر <code class="inline">http://&lt;address&gt;:&lt;port&gt;/status</code> پاسخ دهد. پس از آن، تعریف
+        کنش‌های HTTP که می‌خواهیم روی این مسیر فعال کنیم آمده است. این‌جا می‌خواهیم وضعیت بلاک‌چین را بگیریم، پس فقط کنش
+        get را تعریف می‌کنیم. داخل آن، درخواست دریافت <code class="inline">Chain</code> فعلی را به بازیگر گره می‌فرستیم.
+        وقتی بازیگر پاسخ داد، <code class="inline">Chain</code> به‌صورت JSON همراه با وضعیت ok در متد
+        <code class="inline">complete</code> ارسال می‌شود.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>//Code...
+
+lazy val transactionRoutes: Route = pathPrefix("transactions") {
+    concat(
+      pathEnd {
+        concat(
+          get {
+            val transactionsRetrieved: Future[List[Transaction]] =
+              (node ? GetTransactions).mapTo[List[Transaction]]
+            onSuccess(transactionsRetrieved) { transactions =>
+              complete(transactions.toList)
+            }
+          },
+          post {
+            entity(as[Transaction]) { transaction =>
+              val transactionCreated: Future[Int] =
+                (node ? AddTransaction(transaction)).mapTo[Int]
+              onSuccess(transactionCreated) { done =>
+                complete((StatusCodes.Created, done.toString))
+              }
+            }
+          }
+        )
+      }
+    )
+  }
+
+//Code...</code></pre>
+        <p><code class="inline">transactionRoutes</code> تعامل با تراکنش‌های معلق گره را امکان‌پذیر می‌کند. کنش HTTP
+        <code class="inline">get</code> را برای بازیابی فهرست تراکنش‌های معلق تعریف می‌کنیم. این بار هم کنش HTTP
+        <code class="inline">post</code> را تعریف می‌کنیم تا تراکنش جدیدی به فهرست تراکنش‌های معلق اضافه شود. تابع
+        <code class="inline">entity(as[Transaction])</code> برای ضدسریال‌سازی بدنهٔ <code class="inline">JSON</code> به
+        یک شیء <code class="inline">Transaction</code> استفاده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>//Code...
+lazy val mineRoutes: Route = pathPrefix("mine") {
+    concat(
+      pathEnd {
+        concat(
+          get {
+            node ! Mine
+            complete(StatusCodes.OK)
+          }
+        )
+      }
+    )
+  }
+
+//Code...</code></pre>
+        <p>آخرین مسیر <code class="inline">mineRoutes</code> است. این مسیر بسیار ساده است و فقط برای درخواست شروع استخراج
+        یک بلاک جدید از گرهٔ Scalachain استفاده می‌شود. کنش <code class="inline">get</code> را تعریف می‌کنیم چون برای شروع
+        فرایند استخراج نیازی به فرستادن چیزی نداریم. لازم نیست منتظر پاسخ بمانیم، چون ممکن است مدتی طول بکشد؛ پس بلافاصله
+        با وضعیت <code class="inline">OK</code> پاسخ می‌دهیم.</p>
+        <p>API تعامل با گرهٔ Scalachain
+        <a href="https://documenter.getpostman.com/view/4636741/RWaHw8yx" target="_blank" rel="noopener">اینجا</a> مستند شده است.</p>
+      </section>
+
+      <!-- ==================== نتیجه‌گیری ==================== -->
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>با بخش آخر، تور خود را داخل Scalachain به پایان رساندیم. این نمونهٔ اولیهٔ بلاک‌چین با یک پیاده‌سازی واقعی فاصلهٔ
+        زیادی دارد، اما چیزهای جالب زیادی یاد گرفتیم:</p>
+        <ul>
+          <li>بلاک‌چین چگونه کار می‌کند، حداقل از دیدگاه سطح بالا.</li>
+          <li>چگونه از برنامه‌نویسی تابعی (اسکالا) برای ساخت یک بلاک‌چین استفاده کنیم.</li>
+          <li>مدل بازیگر چگونه کار می‌کند و کاربرد آن در مورد کاربرد ما با استفاده از چارچوب Akka.</li>
+          <li>چگونه از کتابخانهٔ Akka HTTP برای ساخت سروری جهت اجرای بلاک‌چین مان، همراه با APIهای تعامل با آن، استفاده
+          کنیم.</li>
+        </ul>
+        <p>کد کامل و بی‌نقص نیست و برخی چیزها را می‌توان بهتر پیاده‌سازی کرد. به همین دلیل، <b>در مشارکت در پروژه کاملاً
+        آزاد باشید!</b> ;-)</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این مقاله بخشی از برنامهٔ درسی متن‌باز freeCodeCamp است که بیش از ۴۰٫۰۰۰ نفر را در مسیر
+          شغلی توسعه‌دهندگان نرم‌افزار کمک کرده است. برای شروع، به
+          <a href="https://www.freecodecamp.org/learn" target="_blank" rel="noopener">freecodecamp.org/learn</a> مراجعه
+          کنید.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to build a simple actor-based blockchain» اثر «لوکا فلوریو (Luca Florio)»
+        است و در freeCodeCamp منتشر شده است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.freecodecamp.org/how-to-build-a-simple-actor-based-blockchain-aac1e996c177" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

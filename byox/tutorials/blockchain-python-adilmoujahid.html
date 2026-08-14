@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «A Practical Introduction to Blockchain with Python» (Adil Moujahid)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مقدمه‌ای عملی بر بلاک‌چین با پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>مقدمه‌ای عملی بر بلاک‌چین با پایتون</span>
+      </div>
+      <h1>مقدمه‌ای عملی بر بلاک‌چین با پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «A Practical Introduction to Blockchain with Python» نوشته «عادل
+          مجاهد (Adil Moujahid)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>بلاک‌چین (Blockchain) بدون اغراق یکی از مهم‌ترین و دگرگون‌سازترین فناوری‌هایی است که از زمان پیدایش اینترنت به
+        وجود آمده است. این فناوری، فناوری اصلی پشت بیت‌کوین و سایر ارزهای دیجیتال (crypto-currencies) است که در چند سال
+        اخیر توجه زیادی را به خود جلب کرده‌اند.</p>
+        <p>در هستهٔ خود، بلاک‌چین یک پایگاه دادهٔ توزیع‌شده (distributed database) است که امکان انجام مستقیم تراکنش‌ها
+        (transactions) بین دو طرف را بدون نیاز به یک مرجع مرکزی فراهم می‌کند. این مفهوم ساده و در عین حال قدرتمند، پیامدهای
+        بزرگی برای نهادهای مختلفی مانند بانک‌ها، دولت‌ها و بازارها دارد — تنها چند مورد را نام بردیم. هر کسب‌وکار یا سازمانی
+        که به یک پایگاه دادهٔ متمرکز به‌عنوان مزیت رقابتی اصلی خود تکیه کند، به‌طور بالقوه می‌تواند توسط فناوری بلاک‌چین
+        دگرگون شود.</p>
+        <p>با کنار گذاشتن تمام هیاهوی پیرامون قیمت بیت‌کوین و سایر ارزهای دیجیتال، هدف این پست وبلاگ ارائهٔ یک مقدمهٔ عملی
+        بر فناوری بلاک‌چین است. بخش‌های ۱ و ۲ برخی مفاهیم اصلی پشت بلاک‌چین را پوشش می‌دهند، در حالی که بخش ۳ نشان می‌دهد
+        که چگونه یک بلاک‌چین را با پایتون پیاده‌سازی کنیم. همچنین ۲ برنامهٔ وب را برای آسان‌کردن تعامل کاربران نهایی با
+        بلاک‌چین خودمان پیاده‌سازی خواهیم کرد.</p>
+        <p>لطفاً توجه کنید که من در این‌جا از بیت‌کوین به‌عنوان رسانه‌ای برای توضیح فناوری عمومی‌تر «بلاک‌چین» استفاده
+        می‌کنم و بیشتر مفاهیم توصیف‌شده در این پست برای سایر موارد استفادهٔ بلاک‌چین و ارزهای دیجیتال نیز کاربرد دارند.</p>
+        <p>در زیر یک تصویر متحرک (gif) از دو برنامهٔ وب که در بخش ۳ خواهیم ساخت آمده است:</p>
+        <img src="https://adilmoujahid.com/images/blockchain-simulation.gif" alt="تصویر متحرک از دو برنامهٔ وب بلاک‌چین که راه‌اندازی می‌شوند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>۱. مروری سریع بر بلاک‌چین (A Crash Course in Blockchain)</h2>
+        <p>همه‌چیز با یک مقالهٔ سفید (white paper) آغاز شد که در سال ۲۰۰۸ توسط یک شخص یا نهاد ناشناس با نام «ساتوشی ناکاموتو»
+        (Satoshi Nakamoto) منتشر شد. عنوان مقالهٔ سفید
+        <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">«بیت‌کوین: یک سیستم پول نقد الکترونیکی
+        همتا‌به‌همتا»</a> بود و پایه‌های چیزی را بنا نهاد که بعدها به‌عنوان بلاک‌چین شناخته شد. ناکاموتو در مقالهٔ سفید
+        اصلی بیت‌کوین، توصیف کرد که چگونه یک سیستم پول نقد الکترونیکی همتا‌به‌همتا (peer-to-peer) بسازیم که به پرداخت‌های
+        آنلاین امکان می‌دهد مستقیماً از یک طرف به طرف دیگر ارسال شوند، بدون اینکه از یک نهاد متمرکز عبور کنند. این سیستم
+        مسئلهٔ مهمی در پول دیجیتال به نام «هزینه‌کردن دوباره» (double-spending) را حل می‌کند.</p>
+
+        <h3>۱.۱. هزینه‌کردن دوباره (Double-Spending) چیست؟</h3>
+        <p>فرض کنید آلیس (Alice) می‌خواهد ۱ دلار به باب (Bob) بپردازد. اگر آلیس و باب از پول نقد فیزیکی استفاده کنند، پس از
+        اجرای تراکنش آلیس دیگر آن ۱ دلار را نخواهد داشت. اگر آلیس و باب از پول دیجیتال استفاده کنند، مسئله پیچیده‌تر می‌شود.
+        پول دیجیتال به شکل دیجیتال است و به‌راحتی قابل کپی‌شدن است. اگر آلیس برای مثال از طریق ایمیل یک فایل دیجیتال به ارزش
+        ۱ دلار برای باب بفرستد، باب نمی‌تواند با اطمینان بداند که آیا آلیس نسخهٔ خودش از فایل را حذف کرده است یا نه. اگر آلیس
+        هنوز فایل دیجیتال ۱ دلاری را داشته باشد، می‌تواند انتخاب کند که همان فایل را برای کارول (Carol) بفرستد. این مسئله
+        «هزینه‌کردن دوباره» (double-spending) نامیده می‌شود.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-double-spending.png" alt="نمودار مسئلهٔ هزینه‌کردن دوباره: آلیس همان فایل دیجیتال ۱ دلاری را با ایمیل برای باب و کارول می‌فرستد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یکی از راه‌های حل مسئلهٔ هزینه‌کردن دوباره این است که یک طرف سوم قابل اعتماد (مثلاً یک بانک) بین آلیس، باب و همهٔ
+        سایر شرکت‌کنندگان در شبکه وجود داشته باشد. این طرف سوم مسئول مدیریت یک دفتر کل متمرکز (centralized ledger) است که
+        همهٔ تراکنش‌های شبکه را پیگیری و اعتبارسنجی می‌کند. نقطهٔ ضعف این راه‌حل این است که برای عملکرد سیستم، به اعتماد به
+        یک طرف سوم متمرکز نیاز است.</p>
+
+        <h3>۱.۲. بیت‌کوین: راه‌حلی غیرمتمرکز برای مسئلهٔ هزینه‌کردن دوباره</h3>
+        <p>برای حل مسئلهٔ هزینه‌کردن دوباره، ناکاموتو یک دفتر کل عمومی (public ledger) — یعنی بلاک‌چین بیت‌کوین — را برای
+        پیگیری همهٔ تراکنش‌های شبکه پیشنهاد کرد. بلاک‌چین بیت‌کوین ویژگی‌های زیر را دارد:</p>
+        <ul>
+          <li><b>توزیع‌شده (Distributed):</b> دفتر کل در میان تعدادی از رایانه‌ها تکرار می‌شود، به‌جای اینکه روی یک سرور
+          مرکزی ذخیره شود. هر رایانه‌ای با اتصال به اینترنت می‌تواند یک نسخهٔ کامل از بلاک‌چین را دانلود کند.</li>
+          <li><b>رمزنگاری‌شده (Cryptographic):</b> از رمزنگاری استفاده می‌شود تا مطمئن شویم که فرستنده مالک بیت‌کوینی است
+          که می‌خواهد بفرستد، و برای این که تعیین کنیم تراکنش‌ها چگونه به بلاک‌چین اضافه می‌شوند.</li>
+          <li><b>تغییرناپذیر (Immutable):</b> بلاک‌چین فقط به‌صورت «افزودنی» (append only) قابل تغییر است. به عبارت دیگر،
+          تراکنش‌ها فقط می‌توانند به بلاک‌چین اضافه شوند اما نمی‌توانند حذف یا اصلاح شوند.</li>
+          <li><b>استفاده از اثبات کار (Proof of Work یا PoW):</b> نوع خاصی از شرکت‌کنندگان در شبکه به نام ماینرها (miners)
+          برای یافتن راه‌حل یک معمای رمزنگاری (cryptographic puzzle) رقابت می‌کنند که به آن‌ها اجازه می‌دهد یک بلاک از
+          تراکنش‌ها را به بلاک‌چین بیت‌کوین اضافه کنند. این فرآیند «اثبات کار» نامیده می‌شود و به سیستم امکان می‌دهد
+          امن باشد (در ادامه در این باره بیشتر صحبت خواهیم کرد).</li>
+        </ul>
+        <img src="https://adilmoujahid.com/images/blockchain-cash-bitcoin.png" alt="نمودار ارسال پول بیت‌کوین: از کیف پول آلیس به شبکهٔ بیت‌کوین و تأیید توسط ماینر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ارسال پول بیت‌کوین به این صورت انجام می‌شود:</p>
+        <ul>
+          <li><b>مرحلهٔ ۱ (تلاش یک‌باره):</b> ساخت کیف پول بیت‌کوین (bitcoin wallet). برای آن‌که یک شخص بتواند بیت‌کوین
+          بفرستد یا دریافت کند، باید یک کیف پول بیت‌کوین بسازد. یک کیف پول بیت‌کوین دو تکه اطلاعات را ذخیره می‌کند: یک کلید
+          خصوصی (private key) و یک کلید عمومی (public key). کلید خصوصی یک عدد محرمانه است که به مالک اجازه می‌دهد بیت‌کوین
+          را برای کاربر دیگری بفرستد یا آن را برای خدماتی که بیت‌کوین را به‌عنوان روش پرداخت می‌پذیرند خرج کند. کلید عمومی
+          عددی است که برای دریافت بیت‌کوین مورد نیاز است. به کلید عمومی «آدرس بیت‌کوین» (bitcoin address) نیز گفته می‌شود
+          (این کاملاً دقیق نیست، اما برای سادگی فرض می‌کنیم که کلید عمومی و آدرس بیت‌کوین یکی هستند). توجه کنید که کیف پول
+          خود بیت‌کوین‌ها را ذخیره نمی‌کند. اطلاعات مربوط به موجودی بیت‌کوین‌ها روی بلاک‌چین بیت‌کوین ذخیره می‌شود.</li>
+          <li><b>مرحلهٔ ۲:</b> ساخت یک تراکنش بیت‌کوین. اگر آلیس بخواهد ۱ بیت‌کوین (BTC) به باب بفرستد، آلیس باید با استفاده
+          از کلید خصوصی خود به کیف پول بیت‌کوینش متصل شود و تراکنشی بسازد که شامل مبلغ بیت‌کوینی است که می‌خواهد بفرستد و
+          آدرسی که می‌خواهد آن را به آن بفرستد (در این مورد، آدرس عمومی باب) باشد.</li>
+          <li><b>مرحلهٔ ۳:</b> پخش تراکنش در شبکهٔ بیت‌کوین. پس از آن‌که آلیس تراکنش بیت‌کوین را ساخت، باید این تراکنش را
+          به کل شبکهٔ بیت‌کوین پخش کند.</li>
+          <li><b>مرحلهٔ ۴:</b> تأیید تراکنش. یک ماینر که به شبکهٔ بیت‌کوین گوش می‌دهد، تراکنش را با استفاده از کلید عمومی
+          آلیس احراز هویت می‌کند، تأیید می‌کند که آلیس بیت‌کوین کافی در کیف پول خود دارد (در این مورد حداقل ۱ بیت‌کوین)، و
+          یک رکورد جدید حاوی جزئیات تراکنش به بلاک‌چین بیت‌کوین اضافه می‌کند.</li>
+          <li><b>مرحلهٔ ۵:</b> پخش تغییر بلاک‌چین برای همهٔ ماینرها. پس از تأیید تراکنش، ماینر باید تغییر بلاک‌چین را برای
+          همهٔ ماینرها پخش کند تا مطمئن شود که نسخه‌های آن‌ها از بلاک‌چین همگی همگام (sync) هستند.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== بخش ۲ ==================== -->
+      <section>
+        <h2>۲. غواصی فنی در بلاک‌چین (A Technical Deep Dive on Blockchain)</h2>
+        <p>هدف این بخش آن است که به عمق اجزای فنی سازندهٔ بلاک‌چین برویم. ما رمزنگاری کلید عمومی، توابع هش، استخراج (mining)
+        و امنیت بلاک‌چین را پوشش خواهیم داد.</p>
+
+        <h3>۲.۱. رمزنگاری کلید عمومی (Public Key Cryptography)</h3>
+        <p>رمزنگاری کلید عمومی، یا رمزنگاری نامتقارن (asymmetrical cryptography)، هر سیستم رمزنگاری است که از جفت‌های
+        کلید استفاده می‌کند: کلیدهای عمومی که ممکن است به‌طور گسترده توزیع شوند، و کلیدهای خصوصی که فقط برای مالک شناخته
+        شده‌اند. این کار دو عملکرد را انجام می‌دهد: احراز هویت، که در آن کلید عمومی تأیید می‌کند که دارندهٔ کلید خصوصیِ
+        جفت‌شده پیام را فرستاده است؛ و رمزگذاری، که در آن فقط دارندهٔ کلید خصوصیِ جفت‌شده می‌تواند پیام رمزگذاری‌شده با کلید
+        عمومی را رمزگشایی کند. [1]</p>
+        <p><a href="https://en.wikipedia.org/wiki/RSA_(cryptosystem)" target="_blank" rel="noopener">آر‌اس‌ای (RSA)</a> و
+        <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm" target="_blank" rel="noopener">الگوریتم
+        امضای دیجیتال منحنی بیضوی (ECDSA)</a> محبوب‌ترین الگوریتم‌های رمزنگاری کلید عمومی هستند.</p>
+        <p>در مورد بیت‌کوین، از الگوریتم ECDSA برای تولید کیف پول‌های بیت‌کوین استفاده می‌شود. بیت‌کوین از انواع کلیدها و
+        آدرس‌ها استفاده می‌کند، اما برای سادگی، در این پست وبلاگ فرض می‌کنیم که هر کیف پول بیت‌کوین یک جفت کلید
+        خصوصی/عمومی دارد و آدرس بیت‌کوین همان کلید عمومی کیف پول است. اگر به جزئیات کامل فنی کیف پول‌های بیت‌کوین علاقه‌مند
+        هستید، این
+        <a href="https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses" target="_blank" rel="noopener">مقاله</a>
+        را توصیه می‌کنم.</p>
+        <p>برای فرستادن یا دریافت بیت‌کوین، یک کاربر ابتدا کیف پولی تولید می‌کند که حاوی یک جفت کلید خصوصی و عمومی است. اگر
+        آلیس بخواهد مقداری بیت‌کوین برای باب بفرستد، تراکنشی می‌سازد که در آن هم کلید عمومی خودش و هم کلید عمومی باب را
+        وارد می‌کند، همراه با مبلغ بیت‌کوینی که می‌خواهد بفرستد. سپس تراکنش را با کلید خصوصی خود امضا (sign) می‌کند. یک
+        رایانه در بلاک‌چین با استفاده از کلید عمومی آلیس تأیید می‌کند که تراکنش معتبر است و تراکنش را به بلاکی اضافه
+        می‌کند که بعداً به بلاک‌چین افزوده خواهد شد.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-public-crypto.png" alt="نمودار رمزنگاری کلید عمومی: امضای تراکنش با کلید خصوصی و تأیید آن با کلید عمومی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>۲.۲. توابع هش و استخراج (Hashing Functions and Mining)</h3>
+        <p>همهٔ تراکنش‌های بیت‌کوین در فایل‌هایی به نام بلاک (block) گروه‌بندی می‌شوند. بیت‌کوین هر ۱۰ دقیقه یک بلاک جدید
+        از تراکنش‌ها اضافه می‌کند. به محض این‌که یک بلاک جدید به بلاک‌چین اضافه شود، تغییرناپذیر می‌شود و نمی‌توان آن را
+        حذف یا اصلاح کرد. گروه خاصی از شرکت‌کنندگان شبکه به نام ماینرها (رایانه‌های متصل به بلاک‌چین) مسئول ایجاد بلاک‌های
+        جدید از تراکنش‌ها هستند. یک ماینر باید هر تراکنش را با استفاده از کلید عمومی فرستنده احراز هویت کند، تأیید کند که
+        فرستنده موجودی کافی برای تراکنش درخواستی دارد، و تراکنش را به بلاک اضافه کند. ماینرها کاملاً آزادند که انتخاب کنند
+        کدام تراکنش‌ها را در بلاک‌ها بگنجانند؛ بنابراین فرستنده‌ها باید یک کارمزد تراکنش (transaction fee) لحاظ کنند تا
+        ماینرها را برای افزودن تراکنش‌هایشان به بلاک‌ها ترغیب کنند.</p>
+        <p>برای این‌که یک بلاک مورد پذیرش بلاک‌چین قرار گیرد، باید «استخراج» (mined) شود. برای استخراج یک بلاک، ماینرها باید
+        راه‌حلی فوق‌العاده کمیاب برای یک معمای رمزنگاری بیابند. اگر یک بلاک استخراج‌شده توسط بلاک‌چین پذیرفته شود، ماینر
+        پاداشی به بیت‌کوین دریافت می‌کند که انگیزه‌ای اضافه بر کارمزد تراکنش‌هاست. فرآیند استخراج همچنین «اثبات کار»
+        (Proof of Work) نامیده می‌شود و مکانیسم اصلی‌ای است که بلاک‌چین را بدون نیاز به اعتماد (trustless) و امن می‌کند
+        (در ادامه در مورد امنیت بلاک‌چین بیشتر صحبت خواهیم کرد).</p>
+
+        <h3>هش و معمای رمزنگاری بلاک‌چین</h3>
+        <p>برای درک معمای رمزنگاری بلاک‌چین، باید با توابع هش (hash functions) شروع کنیم. تابع هش هر تابعی است که می‌توان
+        از آن برای نگاشت داده‌هایی با اندازهٔ دلخواه به داده‌هایی با اندازهٔ ثابت استفاده کرد. مقادیر بازگشتی تابع هش «هش»
+        (hash) نامیده می‌شوند. توابع هش معمولاً برای تسریع جست‌وجو در پایگاه داده با تشخیص رکوردهای تکراری استفاده
+        می‌شوند و همچنین به‌طور گسترده در رمزنگاری به کار می‌روند. یک تابع هش رمزنگاری‌شده به فرد اجازه می‌دهد به‌راحتی
+        تأیید کند که برخی داده‌های ورودی به یک مقدار هش مشخص نگاشت می‌شوند؛ اما اگر دادهٔ ورودی ناشناخته باشد، بازسازی آن
+        از روی مقدار هش ذخیره‌شده عمداً دشوار است. [2]</p>
+        <p>بیت‌کوین از یک تابع هش رمزنگاری به نام SHA-256 استفاده می‌کند. SHA-256 بر روی ترکیبی از دادهٔ بلاک (تراکنش‌های
+        بیت‌کوین) و عددی به نام نانس (nonce) اعمال می‌شود. با تغییر دادهٔ بلاک یا نانس، هش‌های کاملاً متفاوتی به دست
+        می‌آید. برای این‌که یک بلاک معتبر یا «استخراج‌شده» در نظر گرفته شود، مقدار هش بلاک و نانس باید شرایط خاصی را برآورده
+        کند. برای مثال، چهار رقم ابتدایی هش باید برابر «0000» باشد. می‌توانیم پیچیدگی استخراج را با پیچیده‌ترکردن شرط افزایش
+        دهیم؛ مثلاً می‌توانیم تعداد صفرهایی را که مقدار هش باید با آن‌ها شروع شود افزایش دهیم.</p>
+        <p>معمای رمزنگاری که ماینرها باید حل کنند، یافتن مقداری برای نانس است که مقدار هش را وادار کند شرط استخراج را
+        برآورده کند. می‌توانید از برنامهٔ زیر برای شبیه‌سازی استخراج بلاک استفاده کنید. وقتی در کادر متنی «Data» تایپ
+        می‌کنید یا مقدار نانس را تغییر می‌دهید، می‌توانید تغییر مقدار هش را مشاهده کنید. وقتی دکمهٔ «Mine» را کلیک می‌کنید،
+        برنامه با نانسی برابر صفر شروع می‌کند، مقدار هش را محاسبه می‌کند و بررسی می‌کند که آیا چهار رقم ابتدایی مقدار هش
+        برابر «0000» است یا نه. اگر چهار رقم ابتدایی برابر «0000» نبودند، نانس را یکی افزایش می‌دهد و کل فرآیند را تکرار
+        می‌کند تا زمانی که مقداری برای نانس بیابد که شرط را برآورده کند. اگر بلاک استخراج‌شده در نظر گرفته شود، رنگ پس‌زمینه
+        سبز می‌شود.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> ابزارهای شبیه‌ساز استخراج و بلاک‌چین (کادرهای Nonce و Data و دکمهٔ Mine) در این بخش‌ها در
+          نسخهٔ اصلی مقاله به‌صورت تعاملی قابل استفاده هستند؛ برای آزمایش آن‌ها به
+          <a href="http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/" target="_blank" rel="noopener">صفحهٔ
+          اصلی مقاله</a> مراجعه کنید.
+        </div>
+
+        <h3>۲.۳. از بلاک‌ها تا بلاک‌چین (From Blocks to Blockchain)</h3>
+        <p>همان‌طور که در بخش قبل بحث شد، تراکنش‌ها در بلاک‌ها گروه‌بندی می‌شوند و بلاک‌ها به بلاک‌چین اضافه می‌شوند. برای
+        ایجاد یک زنجیره از بلاک‌ها، هر بلاک جدید از هش بلاک قبلی به‌عنوان بخشی از داده‌های خود استفاده می‌کند. برای ساخت
+        یک بلاک جدید، یک ماینر مجموعه‌ای از تراکنش‌ها را انتخاب می‌کند، هش بلاک قبلی را اضافه می‌کند و بلاک را به شیوه‌ای
+        مشابه آنچه در بالا توصیف شد استخراج می‌کند.</p>
+        <p>هر تغییری در داده‌های هر بلاک، روی همهٔ مقادیر هش بلاک‌هایی که بعد از آن می‌آیند تأثیر خواهد گذاشت و آن‌ها
+        نامعتبر خواهند شد. این موضوع ویژگی تغییرناپذیری را به بلاک‌چین می‌دهد.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-from-blocks.png" alt="نمودار زنجیره‌شدن بلاک‌ها: هر بلاک با هش خود دادهٔ بلاک بعدی را به هم پیوند می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانید از برنامهٔ زیر برای شبیه‌سازی یک بلاک‌چین با ۳ بلاک استفاده کنید. وقتی در کادر متنی «Data» تایپ
+        می‌کنید یا مقدار نانس را تغییر می‌دهید، می‌توانید تغییر مقدار هش و مقدار «Prev» (هش قبلی) بلاک بعدی را مشاهده کنید.
+        می‌توانید فرآیند استخراج را با کلیک‌کردن روی دکمهٔ «Mine» هر بلاک شبیه‌سازی کنید. پس از استخراج ۳ بلاک، سعی کنید
+        دادهٔ بلاک ۱ یا ۲ را تغییر دهید؛ متوجه خواهید شد که همهٔ بلاک‌هایی که بعد از آن می‌آیند نامعتبر می‌شوند.</p>
+        <p>هر دو شبیه‌ساز استخراج بالا از دموی عالی بلاک‌چین «آندرس براون‌ورث» (Anders Brownworth) در
+        <a href="https://anders.com/blockchain/blockchain.html" target="_blank" rel="noopener">Blockchain Demo</a> اقتباس
+        شده‌اند.</p>
+
+        <h3>۲.۴. افزودن بلاک‌ها به بلاک‌چین (Adding Blocks to the Blockchain)</h3>
+        <p>همهٔ ماینرهای شبکهٔ بیت‌کوین با یکدیگر رقابت می‌کنند تا بلاکی معتبر بیابند که به بلاک‌چین اضافه شود و پاداش را از
+        شبکه دریافت کنند. یافتن نانسی که یک بلاک را معتبر کند کمیاب است، اما به دلیل تعداد ماینرها، احتمال این‌که ماینری در
+        شبکه بلاک را معتبر کند فوق‌العاده بالا است. اولین ماینری که بلاک معتبری ارائه دهد، بلاکش به بلاک‌چین اضافه می‌شود و
+        پاداش را به بیت‌کوین دریافت می‌کند. اما اگر دو ماینر یا بیشتر بلاک‌هایشان را هم‌زمان ارائه دهند چه اتفاقی
+        می‌افتد؟</p>
+
+        <h4>حل تعارض‌ها (Resolving Conflicts)</h4>
+        <p>اگر ۲ ماینر تقریباً هم‌زمان یک بلاک را حل کنند، در شبکه ۲ بلاک‌چین متفاوت خواهیم داشت و باید برای حل تعارض منتظر
+        بلاک بعدی بمانیم. برخی ماینرها تصمیم می‌گیرند روی بلاک‌چین ۱ استخراج کنند و برخی دیگر روی بلاک‌چین ۲. اولین ماینری
+        که بلاک جدیدی بیابد تعارض را حل می‌کند. اگر بلاک جدید روی بلاک‌چین ۱ استخراج شده باشد، بلاک‌چین ۲ نامعتبر می‌شود،
+        پاداش بلاک قبلی به ماینر مربوط به بلاک‌چین ۱ می‌رسد و تراکنش‌هایی که بخشی از بلاک‌چین ۲ بودند و به بلاک‌چین اضافه
+        نشده‌اند، به استخر تراکنش‌ها (transactions pool) برمی‌گردند و به بلاک‌های بعدی اضافه می‌شوند. به‌طور خلاصه، اگر
+        تعارضی در بلاک‌چین وجود داشته باشد، طولانی‌ترین زنجیره (the longest chain) برنده است.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-the-longest-chain-wins.png" alt="نمودار حل تعارض: طولانی‌ترین زنجیره در شبکه برنده می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>۲.۵. بلاک‌چین و هزینه‌کردن دوباره (Blockchain and Double-Spending)</h3>
+        <p>در این بخش، رایج‌ترین روش‌های انجام حملات هزینه‌کردن دوباره روی بلاک‌چین و اقداماتی که کاربران باید برای جلوگیری
+        از خسارت ناشی از آن‌ها انجام دهند را پوشش خواهیم داد.</p>
+
+        <h4>حملهٔ مسابقه‌ای (Race Attack)</h4>
+        <p>یک مهاجم همان سکه را با فاصلهٔ زمانی اندک به دو آدرس متفاوت می‌فرستد. برای جلوگیری از این حمله، توصیه می‌شود قبل
+        از پذیرش پرداخت حداقل منتظر یک تأییدیهٔ بلاک (block confirmation) بمانید. [3]</p>
+
+        <h4>حملهٔ فینی (Finney Attack)</h4>
+        <p>یک مهاجم بلاکی را با یک تراکنش از قبل استخراج (pre-mine) می‌کند و همان سکه‌ها را در یک تراکنش دوم، قبل از
+        انتشار بلاک، خرج می‌کند. در این سناریو، تراکنش دوم معتبر نخواهد شد. برای جلوگیری از این حمله، توصیه می‌شود قبل از
+        پذیرش پرداخت حداقل منتظر ۶ تأییدیهٔ بلاک بمانید. [3]</p>
+
+        <h4>حملهٔ اکثریت (Majority Attack) که «حملهٔ ۵۱٪» نیز نامیده می‌شود</h4>
+        <p>در این حمله، مهاجم ۵۱٪ از توان محاسباتی شبکه را در اختیار دارد. مهاجم با ساختن تراکنشی شروع می‌کند که به کل شبکه
+        پخش می‌شود، و سپس یک بلاک‌چین خصوصی استخراج می‌کند که در آن سکه‌های تراکنش قبلی را دوباره خرج (double-spend)
+        می‌کند. از آن‌جا که مهاجم مالک اکثریت توان محاسباتی است، تضمین شده است که در برخی نقطهٔ زمانی زنجیره‌ای بلندتر از
+        شبکهٔ «صادق» (honest) خواهد داشت. سپس می‌تواند بلاک‌چین بلندتر خود را منتشر کند که جایگزین بلاک‌چین «صادق» خواهد
+        شد و تراکنش اصلی را لغو می‌کند. این حمله بسیار بعید است، زیرا در شبکه‌های بلاک‌چینی مانند بیت‌کوین بسیار پرهزینه
+        است. [4]</p>
+      </section>
+
+      <!-- ==================== بخش ۳ ==================== -->
+      <section>
+        <h2>۳. پیاده‌سازی بلاک‌چین با پایتون (A Blockchain Implementation in Python)</h2>
+        <p>در این بخش، یک بلاک‌چین پایه و یک کلاینت بلاک‌چین را با پایتون پیاده‌سازی خواهیم کرد. بلاک‌چین ما ویژگی‌های زیر
+        را خواهد داشت:</p>
+        <ul>
+          <li>امکان افزودن چند نود (node) به بلاک‌چین</li>
+          <li>اثبات کار (Proof of Work یا PoW)</li>
+          <li>حل سادهٔ تعارض بین نودها</li>
+          <li>تراکنش‌ها با رمزگذاری RSA</li>
+        </ul>
+        <p>کلاینت بلاک‌چین ما ویژگی‌های زیر را خواهد داشت:</p>
+        <ul>
+          <li>تولید کیف پول با رمزگذاری کلید عمومی/خصوصی (بر پایهٔ الگوریتم RSA)</li>
+          <li>تولید تراکنش‌ها با رمزگذاری RSA</li>
+        </ul>
+        <p>همچنین ۲ داشبورد پیاده‌سازی خواهیم کرد:</p>
+        <ul>
+          <li>«رابط کاربری بلاک‌چین» (Blockchain Frontend) برای ماینرها</li>
+          <li>«کلاینت بلاک‌چین» (Blockchain Client) برای کاربران تا کیف پول تولید کنند و سکه بفرستند</li>
+        </ul>
+        <p>پیاده‌سازی بلاک‌چین عمدتاً بر پایهٔ این
+        <a href="https://github.com/dvf/blockchain" target="_blank" rel="noopener">پروژهٔ گیت‌هاب</a> است. من چند تغییر در
+        کد اصلی ایجاد کردم تا رمزگذاری RSA را به تراکنش‌ها اضافه کنم. تولید کیف پول و رمزگذاری تراکنش بر پایهٔ این
+        <a href="https://github.com/julienr/ipynb_playground/blob/master/bitcoin/dumbcoin/dumbcoin.ipynb" target="_blank" rel="noopener">نوت‌بوک
+        Jupyter</a> است. دو داشبورد هم از ابتدا با HTML/CSS/JS پیاده‌سازی شده‌اند.</p>
+        <p>می‌توانید کد منبع کامل را از
+        <a href="https://github.com/adilmoujahid/blockchain-python-tutorial" target="_blank" rel="noopener">https://github.com/adilmoujahid/blockchain-python-tutorial</a>
+        دانلود کنید.</p>
+        <div class="callout warn">
+          <strong>هشدار:</strong> لطفاً توجه کنید که این پیاده‌سازی فقط برای اهداف آموزشی است و نباید در محیط تولید
+          (production) استفاده شود، زیرا امنیت خوبی ندارد، مقیاس‌پذیری خوبی ندارد و فاقد بسیاری از ویژگی‌های مهم است.
+        </div>
+
+        <h3>۳.۱. پیاده‌سازی کلاینت بلاک‌چین (Blockchain Client)</h3>
+        <p>می‌توانید کلاینت بلاک‌چین را از ترمینال و با رفتن به پوشهٔ <code class="inline">blockchain_client</code> و
+        تایپ <code class="inline">python blockchain_client.py</code> راه‌اندازی کنید. در مرورگر خود به آدرس
+        <code class="inline">http://localhost:8080</code> بروید و داشبورد زیر را خواهید دید.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-client.png" alt="داشبورد کلاینت بلاک‌چین با سه زبانهٔ تولید کیف پول، ساخت تراکنش و مشاهده تراکنش‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>داشبورد ۳ زبانه در نوار ناوبری دارد:</p>
+        <ul>
+          <li><b>تولید کیف پول (Wallet Generator):</b> برای تولید کیف پول (جفت کلیدهای عمومی/خصوصی) با استفاده از الگوریتم
+          رمزگذاری RSA</li>
+          <li><b>ساخت تراکنش (Make Transaction):</b> برای تولید تراکنش‌ها و ارسال آن‌ها به یک نود بلاک‌چین</li>
+          <li><b>مشاهدهٔ تراکنش‌ها (View Transactions):</b> برای مشاهدهٔ تراکنش‌هایی که روی بلاک‌چین هستند</li>
+        </ul>
+        <p>برای ساختن یا مشاهدهٔ تراکنش‌ها، حداقل به یک نود بلاک‌چین در حال اجرا نیاز دارید (در بخش بعد پوشش داده می‌شود).</p>
+        <p>در ادامه توضیحاتی دربارهٔ مهم‌ترین بخش‌های کد <code class="inline">blockchain_client.py</code> آمده است.</p>
+        <p>ما یک کلاس پایتون به نام <code class="inline">Transaction</code> تعریف می‌کنیم که ۴ ویژگی دارد:
+        <code class="inline">sender_address</code> (آدرس فرستنده)، <code class="inline">sender_private_key</code> (کلید
+        خصوصی فرستنده)، <code class="inline">recipient_address</code> (آدرس گیرنده) و <code class="inline">value</code>
+        (مبلغ). این ۴ تکه اطلاعاتی است که یک فرستنده برای ایجاد یک تراکنش به آن نیاز دارد.</p>
+        <p>متد <code class="inline">to_dict()</code> اطلاعات تراکنش را در قالب یک دیکشنری پایتون برمی‌گرداند (بدون کلید
+        خصوصی فرستنده). متد <code class="inline">sign_transaction()</code> اطلاعات تراکنش (بدون کلید خصوصی فرستنده) را
+        می‌گیرد و آن را با استفاده از کلید خصوصی فرستنده امضا می‌کند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Transaction:
+
+    def __init__(self, sender_address, sender_private_key, recipient_address, value):
+        self.sender_address = sender_address
+        self.sender_private_key = sender_private_key
+        self.recipient_address = recipient_address
+        self.value = value
+
+    def __getattr__(self, attr):
+        return self.data[attr]
+
+    def to_dict(self):
+        return OrderedDict({'sender_address': self.sender_address,
+                            'recipient_address': self.recipient_address,
+                            'value': self.value})
+
+    def sign_transaction(self):
+        """
+        تراکنش را با کلید خصوصی امضا می‌کند
+        """
+        private_key = RSA.importKey(binascii.unhexlify(self.sender_private_key))
+        signer = PKCS1_v1_5.new(private_key)
+        h = SHA.new(str(self.to_dict()).encode('utf8'))
+        return binascii.hexlify(signer.sign(h)).decode('ascii')</code></pre>
+        <p>خط زیر یک برنامهٔ «شعلهٔ پایتون» (Python Flask) را آغاز می‌کند که از آن برای ایجاد APIهای مختلف برای تعامل با
+        بلاک‌چین و کلاینت آن استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">app = Flask(__name__)</code></pre>
+        <p>در زیر ۳ مسیر (route) «شعله» را تعریف می‌کنیم که صفحات html را برمی‌گردانند. برای هر زبانه یک صفحهٔ html.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/')
+def index():
+  return render_template('./index.html')
+
+@app.route('/make/transaction')
+def make_transaction():
+    return render_template('./make_transaction.html')
+
+@app.route('/view/transactions')
+def view_transaction():
+    return render_template('./view_transactions.html')</code></pre>
+        <p>در زیر یک API تعریف می‌کنیم که کیف پول‌ها (جفت کلیدهای خصوصی/عمومی) را تولید می‌کند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/wallet/new', methods=['GET'])
+def new_wallet():
+  random_gen = Crypto.Random.new().read
+  private_key = RSA.generate(1024, random_gen)
+  public_key = private_key.publickey()
+  response = {
+    'private_key': binascii.hexlify(private_key.exportKey(format='DER')).decode('ascii'),
+    'public_key': binascii.hexlify(public_key.exportKey(format='DER')).decode('ascii')
+  }
+
+  return jsonify(response), 200</code></pre>
+        <img src="https://adilmoujahid.com/images/blockchain-generate-wallet.gif" alt="تصویر متحرک تولید کیف پول: با کلیک روی دکمه، جفت کلید خصوصی و عمومی ساخته می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در زیر یک API تعریف می‌کنیم که مقادیر <code class="inline">sender_address</code> (آدرس فرستنده)،
+        <code class="inline">sender_private_key</code> (کلید خصوصی فرستنده)، <code class="inline">recipient_address</code>
+        (آدرس گیرنده) و <code class="inline">value</code> (مبلغ) را به‌عنوان ورودی می‌گیرد و تراکنش (بدون کلید خصوصی) و
+        امضا را برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/generate/transaction', methods=['POST'])
+def generate_transaction():
+   sender_address = request.form['sender_address']
+  sender_private_key = request.form['sender_private_key']
+  recipient_address = request.form['recipient_address']
+  value = request.form['amount']
+
+  transaction = Transaction(sender_address, sender_private_key, recipient_address, value)
+
+  response = {'transaction': transaction.to_dict(), 'signature': transaction.sign_transaction()}
+
+  return jsonify(response), 200</code></pre>
+        <img src="https://adilmoujahid.com/images/blockchain-generate-transaction.gif" alt="تصویر متحرک ساخت تراکنش: واردکردن آدرس‌ها و مبلغ و تولید امضای تراکنش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>۳.۲. پیاده‌سازی بلاک‌چین (Blockchain)</h3>
+        <p>می‌توانید یک نود بلاک‌چین را از ترمینال و با رفتن به پوشهٔ <code class="inline">blockchain</code> و تایپ
+        <code class="inline">python blockchain_client.py</code> یا <code class="inline">python blockchain_client.py -p &lt;PORT NUMBER&gt;</code>
+        راه‌اندازی کنید. اگر شمارهٔ پورت را مشخص نکنید، به‌طور پیش‌فرض 5000 خواهد بود. در مرورگر خود به آدرس
+        <code class="inline">http://localhost:&lt;PORT NUMBER&gt;</code> بروید تا داشبورد رابط کاربری بلاک‌چین را ببینید.</p>
+        <img src="https://adilmoujahid.com/images/blockchain-frontend.png" alt="داشبورد رابط کاربری بلاک‌چین با دو زبانهٔ استخراج و پیکربندی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>داشبورد ۲ زبانه در نوار ناوبری دارد:</p>
+        <ul>
+          <li><b>استخراج (Mine):</b> برای مشاهدهٔ تراکنش‌ها و داده‌های بلاک‌چین و برای استخراج بلاک‌های جدید از تراکنش‌ها</li>
+          <li><b>پیکربندی (Configure):</b> برای پیکربندی اتصال‌های بین نودهای مختلف بلاک‌چین</li>
+        </ul>
+        <p>در ادامه توضیحاتی دربارهٔ مهم‌ترین بخش‌های کد <code class="inline">blockchain.py</code> آمده است.</p>
+        <p>ما با تعریف یک کلاس <code class="inline">Blockchain</code> شروع می‌کنیم که ویژگی‌های زیر را دارد:</p>
+        <ul>
+          <li><code class="inline">transactions</code>: فهرست تراکنش‌هایی که به بلاک بعدی اضافه خواهند شد.</li>
+          <li><code class="inline">chain</code>: خود بلاک‌چین که آرایه‌ای از بلاک‌هاست.</li>
+          <li><code class="inline">nodes</code>: یک مجموعه (set) شامل آدرس‌های URL نودها. بلاک‌چین از این نودها برای
+          بازیابی داده‌های بلاک‌چین از نودهای دیگر و به‌روزرسانی بلاک‌چین خود در صورت عدم همگام‌بودن آن‌ها استفاده
+          می‌کند.</li>
+          <li><code class="inline">node_id</code>: یک رشتهٔ تصادفی برای شناسایی نود بلاک‌چین.</li>
+        </ul>
+        <p>کلاس <code class="inline">Blockchain</code> همچنین متدهای زیر را پیاده‌سازی می‌کند:</p>
+        <ul>
+          <li><code class="inline">register_node(node_url)</code>: یک نود بلاک‌چین جدید به فهرست نودها اضافه می‌کند.</li>
+          <li><code class="inline">verify_transaction_signature(sender_address, signature, transaction)</code>: بررسی
+          می‌کند که امضای ارائه‌شده با تراکنشی که توسط کلید عمومی (sender_address) امضا شده مطابقت دارد.</li>
+          <li><code class="inline">submit_transaction(sender_address, recipient_address, value, signature)</code>: اگر
+          امضا تأیید شود، تراکنشی به فهرست تراکنش‌ها اضافه می‌کند.</li>
+          <li><code class="inline">create_block(nonce, previous_hash)</code>: یک بلاک از تراکنش‌ها به بلاک‌چین اضافه
+          می‌کند.</li>
+          <li><code class="inline">hash(block)</code>: یک هش SHA-256 از یک بلاک می‌سازد.</li>
+          <li><code class="inline">proof_of_work()</code>: الگوریتم اثبات کار. به دنبال نانسی می‌گردد که شرط استخراج را
+          برآورده کند.</li>
+          <li><code class="inline">valid_proof(transactions, last_hash, nonce, difficulty=MINING_DIFFICULTY)</code>:
+          بررسی می‌کند که آیا یک مقدار هش شرایط استخراج را برآورده می‌کند. این تابع درون تابع proof_of_work استفاده
+          می‌شود.</li>
+          <li><code class="inline">valid_chain(chain)</code>: بررسی می‌کند که یک بلاک‌چین معتبر است.</li>
+          <li><code class="inline">resolve_conflicts()</code>: تعارض‌های بین نودهای بلاک‌چین را با جایگزین‌کردن زنجیره با
+          طولانی‌ترین زنجیره در شبکه حل می‌کند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Blockchain:
+
+    def __init__(self):
+        self.transactions = []
+        self.chain = []
+        self.nodes = set()
+        # تولید یک عدد تصادفی برای استفاده به‌عنوان node_id
+        self.node_id = str(uuid4()).replace('-', '')
+        # ساخت بلاک پیدایش (genesis block)
+        self.create_block(0, '00')
+
+    def register_node(self, node_url):
+        """
+        یک نود جدید به فهرست نودها اضافه می‌کند
+        """
+        ...
+
+    def verify_transaction_signature(self, sender_address, signature, transaction):
+        """
+        بررسی می‌کند که امضای ارائه‌شده با تراکنشی که با کلید عمومی
+        (sender_address) امضا شده مطابقت دارد
+        """
+        ...
+
+    def submit_transaction(self, sender_address, recipient_address, value, signature):
+        """
+        اگر امضا تأیید شود، تراکنشی به آرایهٔ transactions اضافه می‌کند
+        """
+        ...
+
+    def create_block(self, nonce, previous_hash):
+        """
+        یک بلاک از تراکنش‌ها به بلاک‌چین اضافه می‌کند
+        """
+        ...
+
+    def hash(self, block):
+        """
+        یک هش SHA-256 از یک بلاک می‌سازد
+        """
+        ...
+
+    def proof_of_work(self):
+        """
+        الگوریتم اثبات کار
+        """
+        ...
+
+    def valid_proof(self, transactions, last_hash, nonce, difficulty=MINING_DIFFICULTY):
+        """
+        بررسی می‌کند که آیا مقدار هش شرایط استخراج را برآورده می‌کند.
+        این تابع درون تابع proof_of_work استفاده می‌شود.
+        """
+        ...
+
+    def valid_chain(self, chain):
+        """
+        بررسی می‌کند که آیا یک بلاک‌چین معتبر است
+        """
+        ...
+
+    def resolve_conflicts(self):
+        """
+        تعارض‌های بین نودهای بلاک‌چین را با جایگزین‌کردن زنجیرهٔ ما
+        با طولانی‌ترین زنجیره در شبکه حل می‌کند
+        """
+        ...</code></pre>
+        <p>خط زیر یک برنامهٔ «شعلهٔ پایتون» (Python Flask) را آغاز می‌کند که از آن برای ایجاد APIهای مختلف برای تعامل با
+        بلاک‌چین استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">app = Flask(__name__)
+CORS(app)</code></pre>
+        <p>در ادامه، یک نمونهٔ (instance) از Blockchain آغاز می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">blockchain = Blockchain()</code></pre>
+        <p>در زیر ۲ مسیر (route) «شعله» را تعریف می‌کنیم که صفحات html را برای داشبورد رابط کاربری بلاک‌چین ما
+        برمی‌گردانند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/')
+def index():
+    return render_template('./index.html')
+
+@app.route('/configure')
+def configure():
+    return render_template('./configure.html')</code></pre>
+        <p>در زیر APIهای «شعله» را برای مدیریت تراکنش‌ها و استخراج بلاک‌چین تعریف می‌کنیم.</p>
+        <ul>
+          <li><code class="inline">'/transactions/new'</code>: این API مقادیر <code class="inline">'sender_address'</code>،
+          <code class="inline">'recipient_address'</code>، <code class="inline">'amount'</code> و
+          <code class="inline">'signature'</code> را به‌عنوان ورودی می‌گیرد و اگر امضا معتبر باشد، تراکنش را به فهرست
+          تراکنش‌هایی اضافه می‌کند که به بلاک بعدی اضافه خواهند شد.</li>
+          <li><code class="inline">'/transactions/get'</code>: این API همهٔ تراکنش‌هایی را که به بلاک بعدی اضافه خواهند شد
+          برمی‌گرداند.</li>
+          <li><code class="inline">'/chain'</code>: این API همهٔ داده‌های بلاک‌چین را برمی‌گرداند.</li>
+          <li><code class="inline">'/mine'</code>: این API الگوریتم اثبات کار را اجرا می‌کند و بلاک جدیدی از تراکنش‌ها را
+          به بلاک‌چین اضافه می‌کند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    values = request.form
+
+    # بررسی اینکه فیلدهای موردنیاز در داده‌های ارسال‌شده با POST وجود دارند
+    required = ['sender_address', 'recipient_address', 'amount', 'signature']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    # ساخت یک تراکنش جدید
+    transaction_result = blockchain.submit_transaction(values['sender_address'], values['recipient_address'], values['amount'], values['signature'])
+
+    if transaction_result == False:
+        response = {'message': 'Invalid Transaction!'}
+        return jsonify(response), 406
+    else:
+        response = {'message': 'Transaction will be added to Block '+ str(transaction_result)}
+        return jsonify(response), 201
+
+@app.route('/transactions/get', methods=['GET'])
+def get_transactions():
+    # دریافت تراکنش‌ها از استخر تراکنش‌ها
+    transactions = blockchain.transactions
+
+    response = {'transactions': transactions}
+    return jsonify(response), 200
+
+@app.route('/chain', methods=['GET'])
+def full_chain():
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain),
+    }
+    return jsonify(response), 200
+
+@app.route('/mine', methods=['GET'])
+def mine():
+    # الگوریتم اثبات کار را اجرا می‌کنیم تا اثبات بعدی را به‌دست آوریم...
+    last_block = blockchain.chain[-1]
+    nonce = blockchain.proof_of_work()
+
+    # برای یافتن اثبات باید پاداش دریافت کنیم.
+    blockchain.submit_transaction(sender_address=MINING_SENDER, recipient_address=blockchain.node_id, value=MINING_REWARD, signature="")
+
+    # با افزودن بلاک جدید به زنجیره، آن را می‌سازیم
+    previous_hash = blockchain.hash(last_block)
+    block = blockchain.create_block(nonce, previous_hash)
+
+    response = {
+        'message': "New Block Forged",
+        'block_number': block['block_number'],
+        'transactions': block['transactions'],
+        'nonce': block['nonce'],
+        'previous_hash': block['previous_hash'],
+    }
+    return jsonify(response), 200</code></pre>
+        <img src="https://adilmoujahid.com/images/blockchain-mine.gif" alt="تصویر متحرک استخراج بلاک: ماینر بلاک جدیدی با تراکنش‌های تأییدشده می‌سازد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در زیر APIهای «شعله» را برای مدیریت نودهای بلاک‌چین تعریف می‌کنیم.</p>
+        <ul>
+          <li><code class="inline">'/nodes/register'</code>: این API فهرستی از آدرس‌های URL نودها را به‌عنوان ورودی می‌گیرد
+          و آن‌ها را به فهرست نودها اضافه می‌کند.</li>
+          <li><code class="inline">'/nodes/resolve'</code>: این API تعارض‌های بین نودهای بلاک‌چین را با جایگزین‌کردن زنجیرهٔ
+          محلی با طولانی‌ترین زنجیرهٔ موجود در شبکه حل می‌کند.</li>
+          <li><code class="inline">'/nodes/get'</code>: این API فهرست نودها را برمی‌گرداند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+    values = request.form
+    nodes = values.get('nodes').replace(" ", "").split(',')
+
+    if nodes is None:
+        return "Error: Please supply a valid list of nodes", 400
+
+    for node in nodes:
+        blockchain.register_node(node)
+
+    response = {
+        'message': 'New nodes have been added',
+        'total_nodes': [node for node in blockchain.nodes],
+    }
+    return jsonify(response), 201
+
+@app.route('/nodes/resolve', methods=['GET'])
+def consensus():
+    replaced = blockchain.resolve_conflicts()
+
+    if replaced:
+        response = {
+            'message': 'Our chain was replaced',
+            'new_chain': blockchain.chain
+        }
+    else:
+        response = {
+            'message': 'Our chain is authoritative',
+            'chain': blockchain.chain
+        }
+    return jsonify(response), 200
+
+@app.route('/nodes/get', methods=['GET'])
+def get_nodes():
+    nodes = list(blockchain.nodes)
+    response = {'nodes': nodes}
+    return jsonify(response), 200</code></pre>
+        <img src="https://adilmoujahid.com/images/blockchain-manage-nodes.gif" alt="تصویر متحرک مدیریت نودها: ثبت نودهای دیگر و حل تعارض با جایگزین‌کردن زنجیره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی (Conclusion)</h2>
+        <p>در این پست وبلاگ، برخی مفاهیم اصلی پشت بلاک‌چین را پوشش دادیم و یاد گرفتیم که چگونه آن را با پایتون
+        پیاده‌سازی کنیم. برای سادگی، برخی جزئیات فنی را پوشش ندادم؛ برای مثال آدرس‌های کیف پول (wallet addresses) و درختان
+        مرکل (Merkel trees). اگر می‌خواهید در مورد این موضوع بیشتر بیاموزید، خواندن مقالهٔ سفید اصلی بیت‌کوین و پیگیری با
+        <a href="https://en.bitcoin.it/wiki/Main_Page" target="_blank" rel="noopener">ویکی‌پدیای بیت‌کوین</a> و کتاب عالی
+        آندریاس آنتونوپولوس: <a href="https://www.amazon.com/gp/product/1491954388/ref=as_li_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=1491954388&linkCode=as2&tag=adilmoujahid-20&linkId=bd776f9224715e8a022d4984909d6a69" target="_blank" rel="noopener">Mastering Bitcoin: Programming the Open Blockchain</a>
+        را توصیه می‌کنم.</p>
+      </section>
+
+      <!-- ==================== مراجع ==================== -->
+      <section>
+        <h2>مراجع (References)</h2>
+        <ol>
+          <li><a href="https://en.wikipedia.org/wiki/Public-key_cryptography" target="_blank" rel="noopener">ویکی‌پدیا — رمزنگاری کلید عمومی (Public-key cryptography)</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Hash_function" target="_blank" rel="noopener">ویکی‌پدیا — تابع هش (Hash function)</a></li>
+          <li><a href="https://bitcoin.stackexchange.com/questions/58687/what-happens-to-a-transaction-once-generated" target="_blank" rel="noopener">Bitcoin Stackexchange — پس از تولید یک تراکنش چه اتفاقی برای آن می‌افتد؟</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Majority_attack" target="_blank" rel="noopener">ویکی بیت‌کوین — حملهٔ اکثریت (Majority attack)</a></li>
+        </ol>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «A Practical Introduction to Blockchain with Python» اثر «عادل مجاهد (Adil
+        Moujahid)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="http://adilmoujahid.com/posts/2018/03/intro-blockchain-bitcoin-python/" target="_blank" rel="noopener">سایت
+        اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Building A Blockchain in Rust & Substrate:
+  [A Step-by-Step Guide for Developers]» (Nicole Zhu / HackerNoon)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک بلاک‌چین در Rust و Substrate — راهنمای گام‌به‌گام برای توسعه‌دهندگان</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>ساخت یک بلاک‌چین در Rust و Substrate</span>
+      </div>
+      <h1>ساخت یک بلاک‌چین در Rust و Substrate</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://hackernoon.com/building-a-blockchain-in-rust-and-substrate-a-step-by-step-guide-for-developers-kc223ybp" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Building A Blockchain in Rust &amp; Substrate:
+          [A Step-by-Step Guide for Developers]» نوشته «نیکول ژو (Nicole Zhu)» است که در
+          HackerNoon منتشر شده است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://hackernoon.com/building-a-blockchain-in-rust-and-substrate-a-step-by-step-guide-for-developers-kc223ybp" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>آموزشی دوستانه برای مبتدیان دربارهٔ چگونگی ساخت زیرساخت‌های جدی و سخت‌کورانهٔ بلاک‌چین در
+        ساب‌ستریت (Substrate)، چارچوبی منبع‌باز.</p>
+        <p>در این آموزش خودراهبر، از صفر یک بلاک‌چین شبه‌بیت‌کوین و بدون گاز (gas-less) می‌سازید و یاد می‌گیرید که
+        بلاک‌چین بسیار قدرتمندتر از صرفاً قراردادهای هوشمند است.</p>
+        <p><em>آزاد باشید که هر بخش از این محتوا را برای برگزاری کارگاه‌های آموزشی خودتان بازسازی کنید!</em></p>
+        <p><b>آنچه یاد خواهید گرفت:</b></p>
+        <ul>
+          <li>پیاده‌سازی مدل دفتر کل UTXO، سازوکار حسابداری بیت‌کوین</li>
+          <li>تغییر منطق استخر تراکنش (transaction pool) شبکه</li>
+          <li>پیکربندی یک بلاک مبدأ (genesis block) و نوشتن چند آزمون</li>
+          <li>استقرار زنجیرهٔ خود و تعامل با گرهٔ زنده با استفاده از یک کلاینت وب</li>
+        </ul>
+        <p><b>پیش‌نیازها:</b></p>
+        <ul>
+          <li>به هیچ دانشی از بلاک‌چین و Rust نیاز نیست</li>
+          <li>آشنایی مقدماتی با برنامه‌نویسی</li>
+          <li>زمان تخمینی: ۳ ساعت</li>
+        </ul>
+        <p>برای یک راهنمای جزئی‌تر که در آن به‌طور کامل توضیح می‌دهم چرا هر گام را برمی‌داریم و در آن وقت
+        می‌گذاریم تا دربارهٔ ویژگی‌ها (traits) زبان راست بحث کنیم، این ویدیوی همراه آموزش را ببینید:</p>
+        <div class="callout tip">
+          <strong>ویدیوی همراه:</strong> توضیحات خط‌به‌خط و گام‌به‌گام همین آموزش به‌همراه بحث دربارهٔ مفاهیم
+          Rust و Substrate در یوتیوب در دسترس است. تماشای آن برای درک عمیق‌تر «چرایی» هر مرحله پیشنهاد می‌شود.
+          <br /><br />
+          <a class="btn solid" href="https://www.youtube.com/watch?v=qaykNPHJcyw" target="_blank" rel="noopener">▶ تماشای ویدیوی همراه در یوتیوب</a>
+        </div>
+        <p>بیایید شروع کنیم!</p>
+      </section>
+
+      <!-- ==================== نصب ==================== -->
+      <section>
+        <h2>نصب (Installation)</h2>
+        <p>۱. جدیدترین نسخهٔ پایدار Rust و ابزارهای وب‌اسمبلی (WebAssembly) را دریافت کنید. در ترمینال خود،
+        دستورهای زیر را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left"># در ویندوز، به‌جای آن rustup-init.exe را از https://rustup.rs دانلود و اجرا کنید
+
+# در مک:
+curl https://sh.rustup.rs -sSf | sh
+rustup update nightly
+rustup target add wasm32-unknown-unknown —toolchain nightly
+rustup update stable
+cargo install —git https://github.com/alexcrichton/wasm-gc</code></pre>
+        <p>اگر با هر مشکلی مواجه شدید یا از سیستم‌عامل متفاوتی استفاده می‌کنید، این
+        <a href="https://substrate.dev/docs/en/overview/getting-started" target="_blank" rel="noopener">راهنمای نصب مفصل</a>
+        را بررسی کنید.</p>
+        <p>۲. در یک ترمینال جدید، همچنین کپی خودتان از کدهای اولیهٔ (boilerplate) این آموزش را کلون کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">git clone https://github.com/substrate-developer-hub/utxo-workshop.git
+git fetch origin workshop:workshop
+git checkout workshop
+# [اختیاری] پس از تکمیل نصب‌های مرحلهٔ ۱
+# دستورهای زیر را برای کوتاه‌کردن زمان ساخت‌های آینده اجرا کنید
+cd /project_base_directory
+cargo test -p utxo-runtime</code></pre>
+        <p>این مخزن همچنین شامل یک پیاده‌سازی کامل و به‌روزرسانی‌شدهٔ بیت‌کوین در شاخهٔ
+        <code class="inline">master</code> است (به‌عنوان یک برگهٔ تقلب)؛ پس حتماً شاخهٔ
+        <code class="inline">workshop</code> را انتخاب کنید تا از صفر شروع کنید!</p>
+        <p>بسته به پردازندهٔ شما، اولین نصب‌های Rust ممکن است ۱۰ تا ۲۰ دقیقه طول بکشد. بیایید از این زمان
+        برای یک دورهٔ فشرده دربارهٔ نحوهٔ کار بیت‌کوین و همچنین کاوش در این کیت توسعهٔ نرم‌افزار (SDK) که
+        استفاده می‌کنیم، بهره ببریم!</p>
+      </section>
+
+      <!-- ==================== راهنمای سریع UTXO ==================== -->
+      <section>
+        <h2>دورهٔ فشردهٔ مدل دفتر کل UTXO</h2>
+        <p>اگر حساب بانکی دارید، از قبل با مدل دفتر کل «مبتنی بر حساب» (accounts based) آشنا هستید. در این مدل،
+        حساب بانکی شما یک ماندهٔ کلی دارد که در هر تراکنش به آن اعتبار یا از آن بدهکار می‌شود.</p>
+        <p>بیت‌کوین یک مدل دفتر کل کاملاً متفاوت به نام UTXO یا خروجی‌های تراکنش هزینه‌نشده
+        (Unspent Transaction Outputs) ارائه می‌دهد.</p>
+        <p>UTXO مانند چک‌های مسافرتی کار می‌کند، از این جهت که:</p>
+        <ol>
+          <li>هر کسی که چک را به‌طور فیزیکی در دست داشته باشد می‌تواند پول را خرج کند. به عبارت دیگر، مجوز
+          خرج‌کردن به خود پول گره خورده است، نه به شمارهٔ حساب.</li>
+          <li>نمی‌توانید یک چک را پاره کنید و بخش‌هایی از آن را خرج کنید. باید کل چک را خرج کنید و هر
+          باقی‌مانده (change) را در قالب یک چک جدید دریافت کنید.</li>
+        </ol>
+        <p>در مثال زیر، باب یک UTXO به ارزش ۵۰ دلار دارد. او می‌خواهد ۰.۵ دلار به آلیس بدهد؛ پس UTXOهای
+        ۵۰ دلاری خود را نابود می‌کند و دو UTXO جدید به ارزش‌های ۰.۵ دلار (برای آلیس) و ۴۹.۵ دلار (به‌عنوان
+        باقی‌مانده) ایجاد می‌کند.</p>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hackernoon-app.appspot.com/o/images%2Fnull-7q573z0n.png?alt=media&amp;token=fb49575e-4d6d-41b6-a681-6e1093f46abe&amp;auto=format%2Ccompress&amp;w=3840" alt="نمودار UTXO: باب UTXO پنجاه دلاری خود را نابود می‌کند و دو UTXO جدید به ارزش ۰.۵ دلار (برای آلیس) و ۴۹.۵ دلار (به‌عنوان باقی‌مانده) می‌سازد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)">منبع تصویر: https://freedomnode.com/</p>
+        <p><b>رمزنگاری سازوکار بنیادینی است که تنها به باب و نه هیچ‌کس دیگر اجازه می‌دهد UTXOهای خود را خرج کند.</b></p>
+        <p>این اطلاعات در یکی از ۳ فیلد هر UTXO ذخیره می‌شود:</p>
+        <ol>
+          <li><b>یک هش ارجاعی (reference hash)</b> از جایی که UTXO در آن وجود دارد؛ چیزی شبیه یک اشاره‌گر
+          آدرس در پایگاه‌داده</li>
+          <li><b>ارزش پولی</b> UTXO، به‌عنوان مثال ۵۰ دلار</li>
+          <li><b>کلید عمومیِ «مالک» آن</b></li>
+        </ol>
+        <p>کلید عمومی با یک «کلید خصوصی» (private key) محرمانه در ارتباط است که فقط مالک آن را دارد. بنابراین
+        برای خرج‌کردن UTXO، مالک باید یک تراکنش را با کلید خصوصی متناظرش به‌صورت رمزنگاری‌شده «امضا» کند. می‌توان
+        امضا را بعداً در برابر «کلید عمومی» بررسی کرد تا اعتبار آن تأیید شود.</p>
+        <p>برای مثال، وقتی آلیس UTXO خود را خرج می‌کند، به این شکل خواهد بود:</p>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hackernoon-app.appspot.com/o/images%2Fnull-6g5o3ztu.png?alt=media&amp;token=fa9a0700-fddc-46dc-bdee-75aefa53caa3&amp;auto=format%2Ccompress&amp;w=3840" alt="نمودار خرج‌کردن UTXO توسط آلیس: ایجاد یک تراکنش جدید که UTXO را به‌عنوان ورودی مصرف می‌کند و امضای او در فیلد sigscript قرار می‌گیرد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>او یک تراکنش جدید (با زمینهٔ خاکستری) ایجاد می‌کند، UTXO خود را به‌عنوان ورودی برای خرج‌شدن فراهم
+        می‌کند و در فیلد <code class="inline">sigscript</code> امضای خود را قرار می‌دهد.</p>
+        <p>توجه: آلیس جزئیات <em>کل تراکنش</em> را «امضا می‌کند». این کار این مزیت را دارد که جزئیات خروجی
+        تراکنش قفل می‌شود تا از دستکاری در سطح شبکه جلوگیری شود. بعداً بلاک‌چین تأیید خواهد کرد که آلیس واقعاً
+        تمام جزئیات این تراکنش را مجاز کرده است.</p>
+        <p>پیامدهای امنیتی را در بخش ۲ با جزئیات بیشتری پوشش می‌دهیم، آن‌جا که بلاک‌چین خود را در برابر حملات
+        خرابکارانه (malicious attacks) ایمن می‌کنید.</p>
+      </section>
+
+      <!-- ==================== راهنمای سریع Substrate ==================== -->
+      <section>
+        <h2>دورهٔ فشردهٔ چارچوب ساب‌ستریت (Substrate)</h2>
+        <p>شما از یک چارچوب بلاک‌چین منبع‌باز به نام
+        <a href="https://substrate.dev/" target="_blank" rel="noopener">Substrate</a> استفاده می‌کنید. Substrate
+        <a href="https://www.rust-lang.org/" target="_blank" rel="noopener">مبتنی بر Rust</a> است و به یک فرمت
+        دستورالعمل‌های باینری به نام وب‌اسمبلی (WebAssembly یا به اختصار Wasm) کامپایل می‌شود.</p>
+        <p>از همان ابتدا، اجزای اصلی بلاک‌چین مانند یک پایگاه‌دادهٔ توزیع‌شده، یک لایهٔ شبکهٔ همتا‌به‌همتا
+        (peer-to-peer) و سازوکارهای اجماع مختلفی که می‌توانیم از بین آن‌ها انتخاب کنیم را دریافت می‌کنید.</p>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hackernoon-app.appspot.com/o/images%2Fnull-ww2u3zjf.png?alt=media&amp;token=d7fed79d-aefb-4e33-abe9-d5bea27a1685&amp;auto=format%2Ccompress&amp;w=1920" alt="نمودار لایه‌های Substrate: پایگاه‌دادهٔ توزیع‌شده، لایهٔ شبکه‌سازی و لایه‌های زمان اجرا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)">در این آموزش با صف تراکنش و لایه‌های ماژول زمان اجرا (runtime) بسیار آشنا خواهیم شد</p>
+        <p>بیایید کدنویسی را شروع کنیم!</p>
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>بخش ۱: ساخت لایهٔ منطقی بلاک‌چین</h2>
+        <p>۱. در ترمینال، یک بررسی سریع کامپایلر Rust انجام دهید تا مطمئن شوید همه‌چیز به‌درستی دانلود شده است:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">cargo check -p utxo-runtime
+# نگران نباشید اگر این کار مدتی طول بکشد؛ فقط بگذارید اجرا شود!
+# باید چند هشدار ببینید اما هیچ خطای ازکاراندازی نبینید</code></pre>
+        <p>۲. پروژه را در IDE سازگار با Rust موردعلاقهٔ خود باز کنید. برای هایلایت نحوی Rust، IntelliJ یا
+        VSCode را پیشنهاد می‌کنم.</p>
+        <p>۳. زیرپوشهٔ <code class="inline">Runtime</code> را باز کنید که زمان اجرای بلاک‌چین را در خود جای
+        داده است. سپس فایل <code class="inline">utxo.rs</code> را باز کنید؛ جایی که بیشتر منطق UTXO بیت‌کوین
+        خود را خواهید ساخت.</p>
+        <p><em>یک قالب آغازین استاندارد Substrate می‌بینید، با کامنت‌های درون‌خطی که توضیح می‌دهند چگونه از
+        SDK استفاده کنید. پایین‌تر، همچنین باید ببینید کجا می‌توانید آزمون‌های واحد بنویسید.</em></p>
+        <p>۴. درست بعد از خطوط import وابستگی‌ها، ساختارهای داده‌ای را ایجاد کنید که برای نمایش UTXOها و یک
+        تراکنش UTXO لازم‌اند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">/// تراکنش منفردی که باید توزیع شود
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug)]
+pub struct Transaction {
+    /// UTXOهایی که باید به‌عنوان ورودی برای تراکنش جاری استفاده شوند
+    pub inputs: Vec&lt;TransactionInput&gt;,
+    
+    /// UTXOهایی که در نتیجهٔ توزیع تراکنش جاری باید ایجاد شوند
+    pub outputs: Vec&lt;TransactionOutput&gt;,
+}
+
+/// ورودی تراکنش منفرد که به یک UTXO ارجاع می‌دهد
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug)]
+pub struct TransactionInput {
+    /// ارجاع به یک UTXO که باید خرج شود
+    pub outpoint: H256,
+    
+    /// اثبات اینکه مالک تراکنش مجاز به خرج‌کردن UTXO ارجاع‌شده است و
+    /// اینکه کل تراکنش دست‌کاری نشده است
+    pub sigscript: H512,
+}
+
+/// خروجی تراکنش منفردی که باید پس از توزیع تراکنش ایجاد شود
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Clone, Encode, Decode, Hash, Debug)]
+pub struct TransactionOutput {
+    /// ارزش مرتبط با این خروجی
+    pub value: Value,
+
+    /// کلید عمومی مرتبط با این خروجی. برای خرج‌کردن این خروجی،
+    /// مالک باید با هش‌کردنِ کل «Transaction» و امضای آن
+    /// با کلید خصوصی متناظر، اثبات ارائه کند.
+    pub pubkey: H256,
+}</code></pre>
+        <p><em>برای یک راهنمایی دقیق‌تر و توضیح خط‌به‌خط موارد بالا،
+        <a href="https://www.youtube.com/watch?v=qaykNPHJcyw" target="_blank" rel="noopener">این ویدیوی همراه</a> را
+        بررسی کنید.</em></p>
+        <p>۵. تعیین کنید چه چیزی روی وضعیت زنجیره (chain-state) بلاک‌چین ذخیره شود. این کار درون یک ماکروی
+        Rust به نام <code class="inline">decl_storage</code> انجام می‌شود. یک هش‌مپ (hashmap) از اشاره‌گرهای
+        ۲۵۶ بیتی به UTXOها به‌عنوان کلید و خود ساختار UTXO به‌عنوان مقدار ذخیره خواهید کرد. موارد زیر را
+        پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">decl_storage! {
+    trait Store for Module&lt;T: Trait&gt; as Utxo {
+        /// همهٔ خروجی‌های تراکنش هزینه‌نشدهٔ معتبر در این نقشه ذخیره می‌شوند.
+        /// مجموعهٔ اولیهٔ UTXO از فهرست ذخیره‌شده در genesis پر می‌شود.
+        UtxoStore build(|config: &amp;GenesisConfig| {
+            config.genesis_utxos
+                .iter()
+                .cloned()
+                .map(|u| (BlakeTwo256::hash_of(&amp;u), u))
+                .collect::&lt;Vec&lt;_&gt;&gt;()
+        }): map H256 =&gt; Option&lt;TransactionOutput&gt;;
+
+        /// ارزش کل پاداشی که باید میان مراجع تأیید توزیع شود.
+        /// این ارزش در طول اجرای بلاک از تراکنش‌ها انباشته می‌شود
+        /// و سپس هنگام نهایی‌سازی بلاک میان اعتبارسنج‌ها توزیع می‌شود.
+        pub RewardTotal get(reward_total): Value;
+    }
+
+    add_extra_genesis {
+        config(genesis_utxos): Vec&lt;TransactionOutput&gt;;
+    }
+}</code></pre>
+        <p>توجه کنید که علاوه‌بر پیکربندی ذخیره‌سازی، همچنین پیکربندی کردیم که این ذخیره‌سازی در بلاک مبدأ
+        (genesis block) چگونه پر شود. در بلاک ۰، می‌توانید بلاک‌چین خود را با یک بردار موجود از UTXOها
+        بذرپاشی (seed) کنید تا خرج شوند!</p>
+        <p>۶. امضاهای تراکنش را ایجاد کنید که به کاربران بلاک‌چین بیت‌کوینی شما اجازه می‌دهند UTXOها را خرج
+        کنند. بیایید تابع <code class="inline">spend</code> را پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// توابع خارجی: قابل فراخوانی توسط کاربر نهایی
+decl_module! {
+    pub struct Module&lt;T: Trait&gt; for enum Call where origin: T::Origin {
+        fn deposit_event() = default;
+
+        /// یک تراکنش منفرد را توزیع کن و مجموعهٔ UTXO را بر همین اساس به‌روزرسانی کن
+        pub fn spend(_origin, transaction: Transaction) -&gt; DispatchResult {
+                                    // TransactionValidity{}
+            let transaction_validity = Self::validate_transaction(&amp;transaction)?;
+            
+            Self::update_storage(&amp;transaction, transaction_validity.priority as u128)?;
+
+            Self::deposit_event(Event::TransactionSuccess(transaction));
+
+            Ok(())
+        }
+}</code></pre>
+        <p>توجه کنید، به‌زودی چند تابع کمکی برای این منطق تراکنش spend پیاده‌سازی خواهیم کرد.</p>
+        <p>۷. بلاک‌چین‌ها همچنین می‌توانند هر زمان که تراکنش‌هایی درون‌زنجیره (on-chain) رخ می‌دهد، رویداد
+        (event) منتشر کنند. بلاک‌چین خود را طوری تنظیم کنید که یک نوع رویداد
+        <code class="inline">TransactionSuccess</code> را شناسایی کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">decl_event!(
+    pub enum Event {
+        /// تراکنش با موفقیت اجرا شد
+        TransactionSuccess(Transaction),
+    }
+);</code></pre>
+        <p>توجه کنید، در گام ۲، شما از قبل این رویداد را پس از هر تراکنش موفق spend منتشر می‌کنید.</p>
+        <p><em>برای توضیح بیشتر خط‌به‌خط موارد بالا،
+        <a href="https://www.youtube.com/watch?v=qaykNPHJcyw" target="_blank" rel="noopener">این ویدیوی همراه</a> را
+        بررسی کنید.</em></p>
+      </section>
+
+      <!-- ==================== بخش ۲ ==================== -->
+      <section>
+        <h2>بخش ۲: ایمن‌سازی زنجیره در برابر حملات خرابکارانه</h2>
+        <p>در بخش ۱، بستر اصلی ساخت UTXOها را فراهم کردیم. در این بخش، وارد امنیت رمزنگاری زنجیرهٔ خود
+        می‌شویم و منطق تراکنش UTXO را پیاده‌سازی می‌کنیم.</p>
+        <p>در واقع، آسیب‌پذیری‌های بسیاری وجود دارد که بلاک‌چین بیت‌کوین در برابر آن‌ها دفاع می‌کند:</p>
+        <ul>
+          <li>ورودی‌ها و خروجی‌ها خالی نیستند</li>
+          <li>هر ورودی وجود دارد و دقیقاً یک‌بار استفاده می‌شود</li>
+          <li>هر خروجی دقیقاً یک‌بار تعریف می‌شود و ارزش غیرصفر دارد</li>
+          <li>ارزش کل خروجی‌ها نباید از ارزش کل ورودی‌ها تجاوز کند</li>
+          <li>خروجی‌های جدید با خروجی‌های موجود برخورد (collide) نمی‌کنند</li>
+          <li>حملات تکرار (replay attacks) ممکن نیستند</li>
+          <li>امضاهای ورودی ارائه‌شده معتبرند</li>
+          <li>UTXO ورودی واقعاً توسط مالک امضا شده است</li>
+          <li>تراکنش‌ها در برابر دست‌کاری مقاوم‌اند (tamperproof)</li>
+        </ul>
+        <p>۱. حالا بیایید تابع <code class="inline">validate_transaction</code> را برای تضمین این بررسی‌های
+        امنیتی پیاده‌سازی کنیم.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// توابع «داخلی»، قابل فراخوانی توسط کد.
+impl&lt;T: Trait&gt; Module&lt;T&gt; {
+    pub fn validate_transaction(transaction: &amp;Transaction) -&gt; Result&lt;ValidTransaction, &amp;'static str&gt; {
+        // بررسی الزامات پایه
+        ensure!(!transaction.inputs.is_empty(), "no inputs");
+        ensure!(!transaction.outputs.is_empty(), "no outputs");
+
+        {
+            let input_set: BTreeMap&lt;_, ()&gt; =transaction.inputs.iter().map(|input| (input, ())).collect();
+            ensure!(input_set.len() == transaction.inputs.len(), "each input must only be used once");
+        }
+        {
+            let output_set: BTreeMap&lt;_, ()&gt; = transaction.outputs.iter().map(|output| (output, ())).collect();
+            ensure!(output_set.len() == transaction.outputs.len(), "each output must be defined only once");
+        }
+
+        let mut total_input: Value = 0;
+        let mut total_output: Value = 0;
+        let mut output_index: u64 = 0;
+        let simple_transaction = Self::get_simple_transaction(transaction);
+
+        // متغیرهایی که به استخر تراکنش فرستاده می‌شوند
+        let mut missing_utxos = Vec::new();
+        let mut new_utxos = Vec::new();
+        let mut reward = 0;
+
+        // بررسی اینکه ورودی‌ها معتبرند
+        for input in transaction.inputs.iter() {
+            if let Some(input_utxo) = &lt;UtxoStore&gt;::get(&amp;input.outpoint) {
+                ensure!(sp_io::crypto::sr25519_verify(
+                    &amp;Signature::from_raw(*input.sigscript.as_fixed_bytes()),
+                    &amp;simple_transaction,
+                    &amp;Public::from_h256(input_utxo.pubkey)
+                ), "signature must be valid" );
+                total_input = total_input.checked_add(input_utxo.value).ok_or("input value overflow")?;
+            } else {
+                missing_utxos.push(input.outpoint.clone().as_fixed_bytes().to_vec());
+            }
+        }
+
+        // بررسی اینکه خروجی‌ها معتبرند
+        for output in transaction.outputs.iter() {
+            ensure!(output.value &gt; 0, "output value must be nonzero");
+            let hash = BlakeTwo256::hash_of(&amp;(&amp;transaction.encode(), output_index));
+            output_index = output_index.checked_add(1).ok_or("output index overflow")?;
+            ensure!(!&lt;UtxoStore&gt;::exists(hash), "output already exists");
+            total_output = total_output.checked_add(output.value).ok_or("output value overflow")?;
+            new_utxos.push(hash.as_fixed_bytes().to_vec());
+        }
+        
+        // اگر وضعیت رقابتی وجود نداشت، حساب‌وکتاب را بررسی کن
+        if missing_utxos.is_empty() {
+            ensure!( total_input &gt;= total_output, "output value must not exceed input value");
+            reward = total_input.checked_sub(total_output).ok_or("reward underflow")?;
+        }
+
+        // جزئیات تراکنش را برمی‌گرداند
+        Ok(ValidTransaction {
+            requires: missing_utxos,
+            provides: new_utxos,
+            priority: reward as u64,
+            longevity: TransactionLongevity::max_value(),
+            propagate: true,
+        })
+    }
+}</code></pre>
+        <p><em>اوف، کد زیادی بود! برای دریافت توضیح خط‌به‌خط این‌که چه اتفاقی دارد می‌افتد،
+        <a href="https://www.youtube.com/watch?v=kfCe4dSVXrE" target="_blank" rel="noopener">بخش ۲ ویدیوی همراه</a> را
+        ببینید.</em></p>
+        <p>۲. در بخش ۱، استفاده از چند تابع کمکی داخلی را فرض کردیم؛ به‌طور مشخص مرحله‌ای که وقتی تراکنش‌هایمان
+        اعتبارسنجی می‌شوند، ذخیره‌سازی بلاک‌چین را به‌روزرسانی می‌کنیم. در همان محدودهٔ
+        <code class="inline">impl&lt;T: Trait&gt; Module&lt;T&gt;</code> موارد زیر را انجام دهید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">/// ذخیره‌سازی را به‌روزرسانی کن تا تغییرات اعمال‌شده توسط تراکنش را منعکس کند
+    /// که در آن هر کلید utxo هشی از کل تراکنش و ترتیب آن در بردار TransactionOutputs است
+    fn update_storage(transaction: &amp;Transaction, reward: Value) -&gt; DispatchResult {
+        // محاسبهٔ مجموع پاداش جدید
+        let new_total = &lt;RewardTotal&gt;::get()
+            .checked_add(reward)
+            .ok_or("Reward overflow")?;
+        &lt;RewardTotal&gt;::put(new_total);
+
+        // حذف UTXOهای خرج‌شده
+        for input in &amp;transaction.inputs {
+            &lt;UtxoStore&gt;::remove(input.outpoint);
+        }
+
+        let mut index: u64 = 0;
+        for output in &amp;transaction.outputs {
+            let hash = BlakeTwo256::hash_of(&amp;(&amp;transaction.encode(), index));
+            index = index.checked_add(1).ok_or("output index overflow")?;
+            &lt;UtxoStore&gt;::insert(hash, output);
+        }
+
+        Ok(())
+    }</code></pre>
+        <p>و همچنین <code class="inline">get_simple_transaction</code>:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    // تراکنش را از فیلدهای امضایش خالی کن؛ با جایگزین‌کردن مقدار
+    // با هش ثابتِ صفرشده (ZERO-initialized fixed hash)
+    pub fn get_simple_transaction(transaction: &amp;Transaction) -&gt; Vec&lt;u8&gt; {//&amp;'a [u8] {
+        let mut trx = transaction.clone();
+        for input in trx.inputs.iter_mut() {
+            input.sigscript = H512::zero();
+        }
+
+        trx.encode()
+    }</code></pre>
+      </section>
+
+      <!-- ==================== بخش ۳ ==================== -->
+      <section>
+        <h2>بخش ۳: کد خود را آزمایش کنید</h2>
+        <p>در این بخش کوتاه، یاد می‌گیرید چگونه یک محیط آزمایش بلاک‌چین بسازید، پیش از هر آزمون مقداری حالت
+        اولیه بسازید و همچنین از برخی توابع کمکی مفیدی که برای آزمایش در Substrate/Rust در دسترس‌اند استفاده
+        کنید.</p>
+        <p>۱. محیط آزمایش خود را بسازید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// این تابع اساساً یک فروشگاه کلید/مقدار ذخیره‌سازی genesis را مطابق ساختار
+    // آزمایشی دلخواه ما می‌سازد.
+    // هر آزمون را با دادن ۱۰۰ utxo به آلیس برای شروع کار آغاز می‌کنیم.
+    fn new_test_ext() -&gt; sp_io::TestExternalities {
+    
+        let keystore = KeyStore::new(); // یک ذخیره‌گاه کلید برای نگهداری جفت‌کلیدهای جدید در طول آزمایش
+        let alice_pub_key = keystore.write().sr25519_generate_new(SR25519, Some(ALICE_PHRASE)).unwrap();
+
+        let mut t = system::GenesisConfig::default()
+            .build_storage::&lt;Test&gt;()
+            .unwrap();
+
+        t.top.extend(
+            GenesisConfig {
+                genesis_utxos: vec![
+                    TransactionOutput {
+                        value: 100,
+                        pubkey: H256::from(alice_pub_key),
+                    }
+                ],
+                ..Default::default()
+            }
+            .build_storage()
+            .unwrap()
+            .top,
+        );
+        
+        // مقادیر را چاپ کنید تا GENESIS_UTXO به دست آید
+        let mut ext = sp_io::TestExternalities::from(t);
+        ext.register_extension(KeystoreExt(keystore));
+        ext
+    }</code></pre>
+        <p>این تابع یک فروشگاه کلید/مقدار ذخیره‌سازی genesis را مطابق کدی می‌سازد که در بخش ۱ و هنگام
+        <code class="inline">decl_storage</code> نوشتیم. فقط کافی است هر آزمون را با دادن یک UTXO به ارزش ۱۰۰
+        به آلیس شروع کنیم تا خرج‌کردن را آغاز کند.</p>
+        <p>۲. یک آزمون واحد ساده بنویسید که یک تراکنش ساده را آزمایش می‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    #[test]
+    fn test_simple_transaction() {
+        new_test_ext().execute_with(|| {
+            let alice_pub_key = sp_io::crypto::sr25519_public_keys(SR25519)[0];
+
+            // آلیس می‌خواهد یک utxo جدید به ارزش ۵۰ را برای خودش بفرستد.
+            let mut transaction = Transaction {
+                inputs: vec![TransactionInput {
+                    outpoint: H256::from(GENESIS_UTXO),
+                    sigscript: H512::zero(),
+                }],
+                outputs: vec![TransactionOutput {
+                    value: 50,
+                    pubkey: H256::from(alice_pub_key),
+                }],
+            };
+            
+            let alice_signature = sp_io::crypto::sr25519_sign(SR25519, &amp;alice_pub_key, &amp;transaction.encode()).unwrap();
+            transaction.inputs[0].sigscript = H512::from(alice_signature);
+            let new_utxo_hash = BlakeTwo256::hash_of(&amp;(&amp;transaction.encode(), 0 as u64)); 
+            
+            assert_ok!(Utxo::spend(Origin::signed(0), transaction));
+            assert!(!UtxoStore::exists(H256::from(GENESIS_UTXO)));
+            assert!(UtxoStore::exists(new_utxo_hash));
+            assert_eq!(50, UtxoStore::get(new_utxo_hash).unwrap().value);
+        });
+    }</code></pre>
+        <p>۳. ثابت‌های مفید را فراموش نکنید!</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    // باید این کریت (crate) را به‌صورت دستی import کنیم، چون به‌طور پیش‌فرض شامل نمی‌شود
+    use hex_literal::hex;
+
+    const ALICE_PHRASE: &amp;str = "news slush supreme milk chapter athlete soap sausage put clutch what kitten";
+    const GENESIS_UTXO: [u8; 32] = hex!("79eabcbd5ef6e958c6a7851b36da07691c19bda1835a08f875aa286911800999");
+    </code></pre>
+        <p>۴. آزمون خود را در کنسول با <code class="inline">cargo test -p utxo-runtime</code> اجرا کنید؛ و
+        آزمون شما باید پاس شود؛ یعنی بلاک‌چین پایهٔ UTXO شما آماده است!</p>
+        <p><b>در این مرحله گیر کردید؟</b>
+        <a href="https://github.com/substrate-developer-hub/utxo-workshop/blob/2d7697ccfa4e7a5922db957d8fb1ef5529b600fc/runtime/src/utxo.rs" target="_blank" rel="noopener">این مخزن</a>
+        را بررسی کنید تا ببینید پیاده‌سازی فعلی شما ممکن است به چه شکل باشد.</p>
+      </section>
+
+      <!-- ==================== بخش ۴ ==================== -->
+      <section>
+        <h2>بخش ۴: پیکربندی منطق استخر تراکنش</h2>
+        <p>در این بخش، تغییر می‌دهید که شبکهٔ شما چگونه تراکنش‌های ورودی را اولویت‌بندی می‌کند و چگونه با یک
+        وضعیت رقابتی (race condition) آزاردهندهٔ UTXO که بیت‌کوین نیز تجربه می‌کند کنار می‌آید. به‌طور خاص،
+        یاد می‌گیرید که <b>بدون کدنویسی زیاد، منطق صف‌بندی تراکنش‌های بلاک‌چین را تغییر دهید</b>.</p>
+        <p>وضعیت رقابتی زیر را در نظر بگیرید که در آن آلیس UTXO آ (A) خود را برای باب می‌فرستد و UTXO جدیدی
+        به نام ب (B) متعلق به باب ایجاد می‌کند.</p>
+        <p>آنچه در پشت صحنه رخ می‌دهد این است که تراکنش آلیس شروع به انتشار در میان گره‌های شبکه می‌کند:</p>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hackernoon-app.appspot.com/o/images%2Fnull-tyfb3zez.png?alt=media&amp;token=8fe6337b-fde2-4bdc-b020-d530359a3cbf&amp;auto=format%2Ccompress&amp;w=2048" alt="وضعیت رقابتی: تراکنش آلیس در میان گره‌های شبکه در حال انتشار است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بلافاصله، باب تصمیم می‌گیرد این UTXO ب (B) را خرج کند و UTXO ج (C) ایجاد می‌کند.</p>
+        <p>بنابراین تراکنش او شروع به انتشار در شبکه به سمت گره‌هایی می‌کند که هنوز اخباری از آلیس نشنیده‌اند!
+        این می‌تواند به‌دلیل تأخیر معمول شبکه و سایر محدودیت‌های دنیای واقعی رایج باشد.</p>
+        <img src="https://firebasestorage.googleapis.com/v0/b/hackernoon-app.appspot.com/o/images%2Fnull-luen3zd9.png?alt=media&amp;token=9351cae0-408a-4067-99f5-0fcafa24e80a&amp;auto=format%2Ccompress&amp;w=2048" alt="وضعیت رقابتی: تراکنش باب به گره‌هایی می‌رسد که هنوز خبر تراکنش آلیس را نشنیده‌اند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><b>گره‌هایی که از باب شنیده‌اند اما هنوز از آلیس نشنیده‌اند، تراکنش او را رد خواهند کرد</b>، زیرا
+        UTXO ب (B) هنوز در وضعیت بلاک‌چین آن‌ها وجود ندارد. اما تراکنش باب <em>معتبر</em> است؛ بنابراین این
+        خطای ناشی از وضعیت رقابتی ایدئال نیست.</p>
+        <p>در حالت ایده‌آل، می‌توانیم تراکنش‌های معتبر را در یک استخر شبکه صف‌بندی کنیم و منتظر بمانیم تا
+        شرایط پیش‌نیاز برآورده شوند.</p>
+        <p>۱. خوشبختانه Substrate یک فراخوانی API واحد در اختیار شما می‌گذارد تا منطق ترتیب‌بندی تراکنش را
+        تغییر دهید. تریت (trait) مربوط به <code class="inline">runtime_api::TaggedTransactionQueue</code> را
+        به‌صورت زیر پیکربندی کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    impl sp_transaction_pool::runtime_api::TaggedTransactionQueue&lt;Block&gt; for Runtime {
+        fn validate_transaction(tx: &lt;Block as BlockT&gt;::Extrinsic) -&gt; TransactionValidity {            
+            // برون‌گزاره‌هایی (extrinsics) که تراکنش UTXO را نشان می‌دهند به رسیدگی ویژه‌ای نیاز دارند
+            if let Some(&amp;utxo::Call::spend(ref transaction)) = IsSubType::&lt;utxo::Module&lt;Runtime&gt;, Runtime&gt;::is_sub_type(&amp;tx.function) {
+                match &lt;utxo::Module&lt;Runtime&gt;&gt;::validate_transaction(&amp;transaction) {
+                    // اعتبارسنجی تراکنش ناموفق بود
+                    Err(e) =&gt; {
+                        sp_runtime::print(e);
+                        return Err(TransactionValidityError::Invalid(InvalidTransaction::Custom(1)));
+                    }
+                    // وضعیت رقابتی، یا تراکنش آمادهٔ اجراست
+                    Ok(tv) =&gt; { return Ok(tv); }
+                }                
+            }
+
+            // برای برون‌گزاره‌های غیر utxo::execute به منطق پیش‌فرض برگرد
+            Executive::validate_transaction(tx)
+        }
+    }</code></pre>
+        <p>به‌طور مؤثر، به صف تراکنش می‌گوییم که پیش از پردازش تراکنش جدیدی که این UTXO را خرج می‌کند، منتظر
+        وجود داشتنِ هشِ UTXO موردنیاز بماند. استخر تراکنش، UTXOهای رقابتی را تا زمانی که این شرط برای یک
+        بازهٔ زمانی مشخص برآورده شود، در دست نگه می‌دارد.</p>
+        <p>برای توضیح دقیق آنچه رخ می‌دهد،
+        <a href="https://www.youtube.com/watch?v=zoy8LUTbnrQ" target="_blank" rel="noopener">بخش ۴ ویدیوی همراه</a> را
+        بررسی کنید.</p>
+      </section>
+
+      <!-- ==================== بخش ۵ ==================== -->
+      <section>
+        <h2>بخش ۵: پایان کار و استقرار!</h2>
+        <p>در این بخش پایانی، آماده‌ایم مشخصات استقرار بلاک‌چین خود را پیکربندی کنیم، تعیین کنیم چه چیزی در
+        بلاک مبدأ گنجانده شود و استقرار دهیم!</p>
+        <p>۱. حالا وارد زیرپوشهٔ <code class="inline">src</code> شوید و فایل <code class="inline">chain_spec.rs</code>
+        را پیدا کنید.</p>
+        <p>۲. در تابع <code class="inline">testnet_genesis</code>، پیکربندی زیر را اضافه کنید تا شبکهٔ
+        آزمایشی خود را با داده‌های اولیه / UTXOها راه‌اندازی کنید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// راه‌اندازی genesis در حالت توسعه (Dev mode)
+fn testnet_genesis(
+    initial_authorities: Vec&lt;(AuraId, GrandpaId)&gt;,
+    root_key: AccountId,
+    endowed_accounts: Vec&lt;AccountId&gt;,
+    endowed_utxos: Vec&lt;sr25519::Public&gt;,
+    _enable_println: bool) -&gt; GenesisConfig 
+{
+    GenesisConfig {
+      system: Some(SystemConfig {
+        code: WASM_BINARY.to_vec(),
+        changes_trie_config: Default::default(),
+      }),
+      ...
+      utxo: Some(utxo::GenesisConfig {
+        genesis_utxos: endowed_utxos
+                      .iter()
+                      .map(|x|
+                        utxo::TransactionOutput {
+                          value: 100 as utxo::Value,
+                          pubkey: H256::from_slice(x.as_slice()),
+                      })
+                      .collect()
+      }),
+    }
+}</code></pre>
+        <p>۳. در <code class="inline">fn load</code>، مطمئن شوید همچنین مجموعهٔ genesis کلیدهای عمومی‌ای که
+        باید مالک این UTXOها باشند را شامل کنید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// مجموعهٔ genesis کلیدهای عمومی که مالک UTXOها هستند
+                vec![
+                    get_from_seed::&lt;sr25519::Public&gt;("Alice"),
+                    get_from_seed::&lt;sr25519::Public&gt;("Bob"),
+                ],</code></pre>
+        <p>۴. در ترمینال خود، در حالت توسعه‌دهنده یک نسخهٔ release از بلاک‌چین خود کامپایل و بسازید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left"># محیط ساخت Wasm خود را مقداردهی کنید:
+./scripts/init.sh
+
+# کد Wasm و کد بومی (native) را بسازید:
+cargo build --release</code></pre>
+        <p>۵. گرهٔ خود را اجرا کنید و بلاک‌چین شما شروع به تولید بلاک خواهد کرد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">./target/release/utxo-workshop --dev
+
+# اگر قبلاً وضعیت را تغییر داده‌اید، برای پاک‌سازی زنجیره این را اجرا کنید
+./target/release/utxo-workshop purge-chain --dev</code></pre>
+        <p>برای یک راهنمایی دقیق‌تر و توضیح خط‌به‌خط موارد بالا،
+        <a href="https://www.youtube.com/watch?v=N75TjdG3fho" target="_blank" rel="noopener">بخش پایانی ویدیوی همراه</a>
+        را بررسی کنید.</p>
+      </section>
+
+      <!-- ==================== تبریک و نمای راهبردی ==================== -->
+      <section>
+        <h2>تبریک! شما اکنون یک بلاک‌چین شبه‌بیت‌کوین را از صفر ساخته‌اید و مستقر کرده‌اید.</h2>
+        <h3>نمایش سریع رابط کاربری (Quick UI Demo)</h3>
+        <p>در این آموزش، یاد گرفتید چگونه مدل دفتر کل زیربنایی را تغییر دهید و یک زنجیرهٔ بیت‌کوینی روی
+        Substrate بسازید. در واقع، می‌توانید هر مدل توکن بنیادینی را روی زنجیرهٔ خود پیاده‌سازی کنید. می‌توانید
+        تغییر دهید که شبکهٔ شما چگونه تراکنش‌های مختلف را اولویت‌بندی می‌کند — یعنی بدون کدنویسی زیاد لایهٔ
+        شبکه را دست‌کاری کنید. حتی می‌توانید با استفاده از ارزش‌های باقی‌مانده برای پاداش‌دادن به اعتبارسنج‌های
+        خود، ساختارهای اقتصاد اعتبارسنج را تغییر دهید. به‌راحتی می‌توانید بلاک مبدأ خود را پیکربندی کنید.</p>
+        <p>امیدوارم این آموزش شما را ترغیب کرده باشد که ساخت زیرساخت‌های بلاک‌چین را امتحان کنید و سری به
+        <a href="https://substrate.dev/" target="_blank" rel="noopener">Substrate</a> بزنید!</p>
+      </section>
+
+      <!-- ==================== سؤالات ==================== -->
+      <section>
+        <h2>سؤالات؟</h2>
+        <ul>
+          <li>در چت Riot به ما پیام دهید: <code class="inline" dir="ltr">https://riot.im/app/#/room/#substrate-technical:matrix.org</code></li>
+          <li>در توییتر به ما DM بدهید: <code class="inline" dir="ltr">https://twitter.com/nczhu</code></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building A Blockchain in Rust &amp; Substrate: [A Step-by-Step Guide
+        for Developers]» اثر «نیکول ژو (Nicole Zhu)» است و در HackerNoon منتشر شده است. این صفحه فقط ترجمهٔ
+        فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://hackernoon.com/building-a-blockchain-in-rust-and-substrate-a-step-by-step-guide-for-developers-kc223ybp" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
