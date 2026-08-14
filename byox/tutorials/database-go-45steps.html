@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی آموزش «Code a database in 45 steps (Go)» (trialofcode.org)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کدنویسی یک پایگاه داده در ۴۵ گام (Go)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>کدنویسی یک پایگاه داده در ۴۵ گام (Go)</span>
+      </div>
+      <h1>کدنویسی یک پایگاه داده در ۴۵ گام (Go)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://trialofcode.org/database/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «کدنویسی یک پایگاه داده در ۴۵ گام» (Code a database in 45 steps)
+          از سایت «Trial of Code» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://trialofcode.org/database/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه: کدنویسی یک پایگاه داده در ۴۵ گام</h2>
+        <p>این مجموعه از <b>معماهای کوچک کدنویسی تست‌محور</b> (test-driven) به شما امکان می‌دهد یک پایگاه داده را
+        <b>از صفر</b> (بدون هیچ وابستگی) کدنویسی کنید. از خلال این پروژه می‌توانید:</p>
+        <ul>
+          <li><b>داخل‌مایه‌های پایگاه داده</b> (database internals) و مبانی علوم رایانه را یاد بگیرید.</li>
+          <li>مهارت‌های خود را با کار چالش‌برانگیز <b>ارتقا دهید</b>.</li>
+          <li>یک <b>پروژهٔ شخصی چشمگیر</b> برای رزومه‌تان بسازید.</li>
+        </ul>
+
+        <h3>محتوای پروژه</h3>
+        <p>این پروژه چند بخش کلیدی را پیاده‌سازی می‌کند:</p>
+        <ul>
+          <li>موتور ذخیره‌سازی (storage engine) کلید-مقدار (KV).</li>
+          <li>SQL و پایگاه داده‌های رابطه‌ای.</li>
+          <li>ایندکس‌ها و ساختارهای داده.</li>
+        </ul>
+        <p>دامنهٔ کار گسترده است، اما به گام‌های بسیار کوچک تقسیم شده است. <b>هر گام ساده است و حداکثر چند ده خط کد
+        دارد</b>. خواهید دید که ایده‌های پیچیده چگونه از ایده‌های ساده رشد می‌کنند. از این نظر، شما یک پایگاه داده را
+        از صفر اختراع می‌کنید.</p>
+
+        <h3>پیش‌نیازها</h3>
+        <ul>
+          <li>با هر زبان برنامه‌نویسی آشنا باشید.</li>
+          <li>بتوانید از خط فرمان (Linux یا Windows) استفاده کنید.</li>
+        </ul>
+
+        <h3>زبان Go</h3>
+        <ul>
+          <li>یادگیری Go آسان است، بنابراین هیچ تجربهٔ قبلی لازم نیست.</li>
+          <li>می‌توانید از هر زبانی استفاده کنید، چون ایده‌های اصلی به زبان خاصی وابسته نیستند.</li>
+          <li>همچنین می‌تواند به‌عنوان پروژهٔ تمرینی برای یادگیری زبان‌های دیگر استفاده شود.</li>
+        </ul>
+
+        <h3>کد اولیه و تست‌ها</h3>
+        <p>دانلود: <a href="https://trialofcode.org/database/db_project+solution.zip" target="_blank" rel="noopener">https://trialofcode.org/database/db_project+solution.zip</a></p>
+        <p>هر گام در یک پوشهٔ جداگانه قرار دارد. برای گام ۱، وارد پوشهٔ <code class="inline">db_project/0001</code> شوید و
+        تست‌ها را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">go test .</code></pre>
+        <p>ساخت (build) ناموفق خواهد بود. شما باید توابع جاافتاده را بنویسید. اگر مشکلی داشتید:</p>
+        <ul>
+          <li>برای کسب بینش، موارد تست را بررسی کنید.</li>
+          <li>راه‌حل نویسنده را در پوشهٔ <code class="inline">db_solution</code> ببینید.</li>
+          <li>با نویسنده از طریق ایمیل گفت‌وگو کنید.</li>
+        </ul>
+
+        <h3>پروژه‌های مشابه دیگر</h3>
+        <p>این اولین پروژهٔ «Trial of Code» است؛ برنامه این است که معماهای بیشتری منتشر شود که به نرم‌افزارهای پیچیده و
+        پیشرفته ختم شوند. وب‌سایت نویسنده را ببینید و برای به‌روزرسانی‌ها مشترک شوید:
+        <a href="https://trialofcode.org" target="_blank" rel="noopener">https://trialofcode.org</a></p>
+        <div class="callout note">
+          <strong>مطالعهٔ بیشتر:</strong> کتاب همراه با توضیحات دقیق و اطلاعات زمینه‌ای در
+          <a href="https://trialofcode.org/database/9000_end/" target="_blank" rel="noopener">صفحهٔ کتاب</a> در دسترس
+          است تا مسیر یادگیری شما را هموار کند، به شما امکان دهد عمیق‌تر بروید، یا بدون متعهد شدن به کل پروژه، موضوع را
+          یاد بگیرید.
+        </div>
+      </section>
+
+      <!-- ==================== شروع سریع Go ==================== -->
+      <section>
+        <h2>شروع سریع با زبان Go</h2>
+        <p>با ویژگی‌های اصلی زبان Go آشنا شوید. اگر از قبل Go می‌دانید، این بخش را رد کنید. هرچند برای این پروژه
+        استفاده از Go الزامی نیست.</p>
+
+        <h3>دستور زبان (Syntax)</h3>
+        <h4>متغیرها</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// اعلام نوع متغیر
+var a int       // مقدار پیش‌فرض ۰ است
+var b string    // مقدار پیش‌فرض "" است
+// مقداردهی
+a = 123
+b = "hi"
+// اعلام و مقداردهی هم‌زمان
+var c int = 123
+d := "hi"       // نوع به‌صورت خودکار استنباط می‌شود
+// تخصیص چند متغیر هم‌زمان
+a, c = c, a</code></pre>
+        <p>مقدار یک متغیر مقداردهی‌نشده تضمین شده است که یک <b>مقدار صفر</b> (zero value) باشد
+        (<code class="inline">0</code>، <code class="inline">false</code>، <code class="inline">""</code>،
+        <code class="inline">nil</code> و مانند آن).</p>
+
+        <h4>عبارت‌ها (Statements)</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// if-else پرانتز ندارد
+if a != c {
+    // ...
+} else {
+    // ...
+}
+// switch مانند C به case بعدی نمی‌افتد
+switch a {
+case 123:
+    // ...
+case 456:
+    // ...
+default:
+    // ...
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// اعلام و استفاده از متغیر داخل if
+if err := f(); err != nil {
+    // ...
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// حلقه‌ها
+for i := 0; i &lt; N; i++ {
+    // ...
+}
+for zzz {
+    // ...
+}
+for {
+    if xxx {
+        break
+    }
+    if yyy {
+        continue
+    }
+}</code></pre>
+
+        <h4>توابع</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func f(a int, b string) error {
+    return nil
+}
+// چند مقدار بازگشتی
+func g() (string, bool) {
+    return "hi", false
+}
+// تخصیص چند مقدار بازگشتی
+s, b := g()
+// مقادیر بازگشتی نام‌دار
+func h() (s string, b bool) {
+    s = "hi"
+    b = false
+    return
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// اگر تابعی خطا برمی‌گرداند، خطا را آخر قرار دهید
+func foo() (string, error) {
+    // ...
+}
+
+result, err := foo()
+if err != nil {
+    // مدیریت خطا
+} else {
+    // استفاده از نتیجه
+}</code></pre>
+
+        <h3>انواع داده</h3>
+        <h4>انواع عددی</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// اندازه ثابت
+bool, byte
+int8, int16, int32, int64
+uint8, uint16, uint32, uint64
+float32, float64
+// اندازه وابسته به سیستم: ۳۲ بیتی یا ۶۴ بیتی
+int, uint
+// تبدیل نوع
+a := 1  // int
+var b int64
+b = a           // خطای کامپایل
+b = int64(a)    // تبدیل</code></pre>
+        <ul>
+          <li>سرریز عدد صحیح (integer overflow) و تبدیل، از <b>مکمل دو</b> (two's complement) پیروی می‌کنند؛ برخلاف C
+          رفتار تعریف‌نشده (UB) ندارند.</li>
+          <li>تبدیل نوع باید صریح باشد.</li>
+        </ul>
+
+        <h4>اشاره‌گرها/مرجع‌ها</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">a := 1
+var ptr *int    // اعلام اشاره‌گر
+ptr = &amp;a        // گرفتن آدرس
+b := *ptr       // ارجاع‌زدایی (dereference)</code></pre>
+        <p>Go بازیاب زباله (GC) دارد، بنابراین استفاده از اشاره‌گر محدود است؛ از جمله محاسبات دلخواه اشاره‌گر یا
+        ذخیرهٔ اشاره‌گرها به‌عنوان نوع‌های دیگر. اگر از <code class="inline">unsafe</code> اجتناب کنید، به این مسائل
+        برنمی‌خورید.</p>
+
+        <h4>ساختار (struct) و متد</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type C struct {
+    foo string,
+    bar int,
+}
+// مقداردهی struct
+c := C{foo: "hi", bar: 123}
+// دسترسی به فیلدها
+c.bar = 456
+bar1 := c.bar
+// اشاره‌گر
+pc := &amp;c
+bar2 := (*pc).bar   // قبل از استفاده از فیلد باید ارجاع‌زدایی کرد
+bar3 := pc.bar      // نیازی به ارجاع‌زدایی صریح نیست</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// تابع معمولی
+func foo1(c *C) {
+    c.foo = "hi"
+}
+// متد با گیرندهٔ اشاره‌گری
+func (c *C) foo2() {
+    c.foo = "hi"
+}
+// متد با گیرندهٔ مقداری
+func (c C) bar() {
+    println(c.bar)
+}
+// فراخوانی تابع
+foo1(&amp;c)
+// فراخوانی متدها
+c.foo2()    // اشاره‌گری
+c.bar()     // مقداری</code></pre>
+
+        <h4>آرایه‌های اندازه‌ثابت</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var a [2]byte       // ۲ عنصر، مقداردهی اولیه با ۰
+var b [2][4]byte    // ۲ عنصر، هر عنصر از نوع [4]byte
+// مقداردهی
+b = [2][4]byte{{0, 0, 0, 0}, {0, 0, 0, 0}}
+b[1][3] = 123</code></pre>
+
+        <h4>رشته‌ها</h4>
+        <p>یک رشته فقط دنباله‌ای از بایت‌ها بدون رمزگذاری متنی است. می‌توان آن را به
+        <code class="inline">[]byte</code> تبدیل کرد و بالعکس.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type string struct {
+    ptr *byte   // داده
+    len int     // طول
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">s := "asdf"     // {ptr: "asdf", len: 4}
+len(s)          // 4
+// رشته‌ها تغییرناپذیرند
+s[0] = 'b'      // خطای کامپایل
+// برش بدون کپی
+s[2:4]          // {ptr: "df", len: 2}
+// الحاق یک رشتهٔ جدید می‌سازد
+s = "hi" + s</code></pre>
+
+        <h3>برش (slice)</h3>
+        <p>در Go، slice در واقع دو کاربرد بی‌ارتباط دارد که نمایش یکسانی دارند:</p>
+        <ol>
+          <li>نمایی از یک آرایه، با یک اشاره‌گر و طول.</li>
+          <li>یک آرایهٔ پویای رشدپذیر، مانند vector در C++ یا list در پایتون.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type sliceT struct {
+    ptr *T
+    len int
+    cap int
+}</code></pre>
+        <ul>
+          <li><code class="inline">len()</code> و <code class="inline">cap()</code> طول و ظرفیت را برمی‌گردانند.</li>
+          <li>یک slice صفر (nil) برابر <code class="inline">{ptr: nil, len: 0, cap: 0}</code> است.</li>
+        </ul>
+        <p>این دو کاربرد اغلب با هم اشتباه گرفته می‌شوند، بنابراین جداگانه توضیح داده می‌شوند.</p>
+
+        <h4>الف) slice به‌عنوان نمای آرایه</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// یک آرایه
+var arr [8]byte = [8]byte{0, 1, 2, 3, 4, 5, 6, 7}
+// برش از آرایه
+s1 := arr[1:5]      // {ptr: &amp;arr[1], len: 4, cap: 7}
+// پیمایش
+for i := 0; i &lt; len(s1); i++ {
+    println(s1[i])  // 1 2 3 4
+}
+// به‌جای آن از `range` استفاده کنید
+for i := range s1 {
+    println(s1[i])
+}
+for i, v := range s1 {
+    println(v)
+}
+// خروج از محدوده باعث panic می‌شود
+v := s1[4]
+
+// برش مجدد، یک slice جدید برمی‌گرداند
+s2 := s1[2:3]       // {ptr: &amp;arr[3], len: 1, cap: 5}
+for _, v := range s2 {
+    println(v)      // 3
+}</code></pre>
+        <p>بررسی مرزها:</p>
+        <ul>
+          <li><code class="inline">s[i]</code>: شرط <code class="inline">i &lt; len</code></li>
+          <li><code class="inline">s[i:j]</code>: شرط <code class="inline">j &lt;= cap</code></li>
+        </ul>
+        <p>معمولاً برش مجدد (reslicing) <code class="inline">len</code> را کوچک می‌کند، هرچند بزرگ‌شدن آن نیز مجاز است.
+        <b>وقتی یک slice نمای آرایه است، فقط <code class="inline">len</code> مهم است و
+        <code class="inline">cap</code> را می‌توان نادیده گرفت.</b></p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// شکل‌های کوتاه‌شده
+s[:]    // s[0:len(s)]
+s[:j]   // s[0:j]
+s[i:]   // s[i:len(s)]</code></pre>
+
+        <h4>ب) slice به‌عنوان آرایهٔ پویا</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// تخصیص آرایه با طول ۲
+arr1 := make([]byte, 2)     // {ptr: 0x100, len: 2, cap: 2}
+// تخصیص آرایه با ظرفیت ۲ و طول ۰
+arr2 := make([]byte, 0, 2)  // {ptr: 0x200, len: 0, cap: 2}
+// افزودن عنصر
+arr2 = append(arr2, 123)    // {ptr: 0x200, len: 1, cap: 2}
+arr2 = append(arr2, 123)    // {ptr: 0x200, len: 2, cap: 2}
+// وقتی ظرفیت پر شود، تخصیص مجدد
+arr2 = append(arr2, 123)    // {ptr: 0x300, len: 3, cap: 8}
+// افزودن چند عنصر
+arr2 = append(arr2, 2, 3)   // {ptr: 0x300, len: 5, cap: 8}</code></pre>
+        <p>فقط به sliceهای پویا می‌توان عنصر اضافه کرد. <b>به sliceای که نمای آرایه است نباید عنصر اضافه کرد</b>، زیرا
+        آرایه را تغییر می‌دهد.</p>
+
+        <h4>عملیات رایج slice</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">copy(dst, src)                      // کپی داده
+s1 = slices.Clone(s)                // تخصیص و کپی
+s = slices.Concat(s1, s2, s2)       // به‌هم الحاق کن
+s = slices.Delete(s, i, j)          // حذف s[i:j]
+s = slices.Insert(s, i, e1, e2)     // درج در i
+idx = slices.Index(s, v)            // یافتن ایندکس
+slices.Sort(s)                      // مرتب‌سازی درجا</code></pre>
+        <p>slice به‌عنوان <b>نمای آرایه</b> فقط یک مرجع است و نباید به آن عنصر اضافه کرد. slice به‌عنوان
+        <b>آرایهٔ پویا</b> صاحب آرایه است و هر عملیاتی می‌تواند انجام دهد. یک slice پویا می‌تواند به‌عنوان نمای آرایه
+        استفاده شود، اما عکس آن ممکن نیست.</p>
+
+        <h3>واسط (interface)</h3>
+        <p>یک interface مجموعه‌ای از قواعد متد است. هر نوعی که این متدها را پیاده‌سازی کند می‌تواند به‌عنوان آن
+        interface استفاده شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+// نوعی که interface را پیاده‌سازی می‌کند
+type T struct { /* ... */ }
+func (s *T) Read(p []byte) (n int, err error) { /* ... */ }
+// تابعی که interface را به‌عنوان آرگومان می‌گیرد
+func useReader(r Reader) { /* ... */ }
+
+obj := &amp;T{}         // نوع مشخص (concrete)
+useReader(obj)      // تبدیل به interface</code></pre>
+        <p>فراخوانی متدها از طریق interface به نوع مشخص وابسته نیست؛ مشابه کلاس‌های انتزاعی در برنامه‌نویسی شیءگرا.
+        یک interface دو اشاره‌گر دارد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type interfaceFoo struct {
+    object   uintptr    // اشاره‌گر داده
+    typeInfo uintptr    // اطلاعات نوع
+}</code></pre>
+        <p>تبدیل یک مقدار به interface، اشاره‌گر به مقدار و اطلاعات نوع آن را ذخیره می‌کند. فراخوانی متدها از
+        اطلاعات نوع برای یافتن پیاده‌سازی استفاده می‌کند.</p>
+        <p>یک interface مقداردهی‌نشده، هر دو اشاره‌گرش <code class="inline">nil</code> است. این با تبدیل یک اشاره‌گر
+        nil به interface متفاوت است.</p>
+
+        <h4>بازیابی نوع اصلی</h4>
+        <ul>
+          <li>با <code class="inline">iface.(T)</code> می‌توان نوع <code class="inline">T</code> را آزمود و استخراج کرد.</li>
+          <li><code class="inline">interface{}</code> صفر متد دارد. هر نوعی می‌تواند به آن تبدیل شود.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var anything interface{}
+anything = 1
+anything = "asdf"
+
+// تبدیل به نوع مشخص
+integer, ok := anything.(int)   // ok = false
+str, ok := anything.(string)    // ok = true
+// switch روی نوع
+switch origin := anything.(type) {
+case int:
+    integer = origin
+case string:
+    str = origin
+}</code></pre>
+
+        <h3>تست‌ها</h3>
+        <p>نام فایل تست به <code class="inline">_test.go</code> ختم می‌شود؛ مثلاً
+        <code class="inline">foo_test.go</code>. نام توابع تست با <code class="inline">Test</code> شروع می‌شود و آرگومان
+        <code class="inline">*testing.T</code> می‌گیرند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package foo
+
+import "testing"
+
+func TestSomething(t *testing.T) {
+    if 1 + 2 != 3 {
+        t.Fail()
+    }
+}</code></pre>
+        <p>همهٔ موارد تست را با این دستور اجرا کنید: <code class="inline">go test .</code></p>
+      </section>
+
+      <!-- ==================== فصل ۰۱: KV مبتنی بر لاگ ==================== -->
+      <section>
+        <h2>۰۱ — KV مبتنی بر لاگ</h2>
+
+        <!-- 0101 -->
+        <h3>۰۱۰۱: رابط‌های KV</h3>
+        <h4>حافظه در برابر دیسک</h4>
+        <p>نرم‌افزارهایی که پایگاه داده نامیده می‌شوند اشکال گوناگونی دارند. برخی صرفاً درون‌حافظه‌ای هستند؛ مانند Redis
+        و Memcached. برخی مبتنی بر دیسک هستند؛ مانند MySQL و SQLite.</p>
+        <p>پایگاه داده‌های درون‌حافظه‌ای به اندازهٔ RAM محدودند، بنابراین پایگاه داده‌های سنتی مبتنی بر دیسک هستند.
+        اما حتی پایگاه داده‌های مبتنی بر دیسک نیز اغلب ساختارهای دادهٔ درون‌حافظه‌ای دارند. پس انواع مختلف پایگاه
+        داده بی‌ارتباط نیستند. می‌توانیم از یک KV درون‌حافظه‌ای شروع کنیم و با افزودن کد گام‌به‌گام پروژه را بسازیم.</p>
+        <p>یک پایگاه داده کاربرد ساختارهای داده است. اینکه داده در حافظه ذخیره شود یا روی دیسک، در اصل فرقی ندارد؛ اما
+        مسائل بسیاری در پیاده‌سازی ظاهر می‌شوند. این موضوعات را به‌ندرت در کتاب‌ها می‌بینید، اما در یک پروژه می‌توانید
+        آن‌ها را یاد بگیرید.</p>
+
+        <h4>کلید-مقدار در برابر جدول</h4>
+        <p>پایگاه داده‌ها را می‌توان بر اساس رابط‌هایشان دسته‌بندی کرد: کلید-مقدار (KV)، رابطه‌ای (relational) و
+        انواع خاص دیگر. KV مانند map یا dict در زبان‌های برنامه‌نویسی است، با عملیاتی مانند get و set و del. پایگاه
+        داده‌های رابطه‌ای از جدول‌ها (ردیف‌ها و ستون‌ها) استفاده می‌کنند و معمولاً با SQL کار می‌کنند.</p>
+        <p>از نظر امکانات، به‌نظر می‌رسد پایگاه داده‌های رابطه‌ای کار بیشتری انجام می‌دهند. با این حال، پایگاه داده‌های
+        رابطه‌ای پیچیده‌تر بر روی سیستم‌های KV ساده‌تری ساخته می‌شوند که اغلب موتور ذخیره‌سازی (storage engine) نامیده
+        می‌شوند. مثلاً LevelDB و RocksDB می‌توانند به‌صورت مستقل به‌عنوان فروشگاه KV استفاده شوند و پایگاه داده‌های SQL
+        نیز روی آن‌ها ساخته می‌شوند. بنابراین پیاده‌سازی پایگاه داده از KV شروع می‌شود.</p>
+
+        <h4>OLAP در برابر OLTP</h4>
+        <p>پایگاه داده‌ها را می‌توان بر اساس کاربرد به ۲ نوع تقسیم کرد: <b>پردازش تحلیلی برخط</b> (OLAP —
+        Online Analytical Processing) و <b>پردازش تراکنشی برخط</b> (OLTP — Online Transaction Processing). این واژه‌ها
+        فقط نام هستند؛ «تحلیلی» و «تراکنشی» معنای دقیقی ندارند. OLAP بر تحلیل حجم زیادی از داده متمرکز است، در حالی‌که
+        OLTP بر بازگرداندن نتایج در زمان واقعی با استفاده از ایندکس‌ها تمرکز دارد. برای مثال:</p>
+        <ul>
+          <li>OLAP: برای شمارش کاربران فعال، باب (Bob) یک پرس‌وجوی SQL اجرا می‌کند و کاربران منطبق را
+          <code class="inline">COUNT()</code> می‌کند.</li>
+          <li>OLTP: برای نمایش تعداد کاربران به‌صورت واقعی‌زمان در یک اپ. اما کاربران زیاد هستند؛ بنابراین یک شمارندهٔ
+          اضافی نگهداری می‌شود.</li>
+        </ul>
+        <p>OLTP به نتایج واقعی‌زمان نیاز دارد، بنابراین هر عملیات برای مصرف منابع (CPU، IO، حافظه) سقف بالایی دارد.
+        اگر ساختارهای داده را بدانید، این سقف معمولاً <em>O</em>(log <em>N</em>) است. یک ایندکس از اطلاعات اضافی برای
+        پشتیبانی از پرس‌وجوهای واقعی‌زمان استفاده می‌کند؛ یعنی مبادلهٔ فضا با زمان. در کاربردها، «ایندکس» همیشه به
+        معنی قابلیت ایندکس پایگاه داده نیست. در مثال بالا، اپ ایندکس اضافی خودش را برای شمارش نگهداری می‌کند.</p>
+        <p>بار کاری OLAP ممکن است منابع زیادی مصرف کند، بنابراین اغلب جدا از OLTP ذخیره می‌شود. پایگاه داده‌های سنتی
+        مانند MySQL و PG از نوع OLTP هستند. پس از ظهور «داده‌های بزرگ» (big data)، پایگاه داده‌های متخصص در OLAP محبوب
+        شدند.</p>
+        <p>اگرچه هر دو پایگاه دادهٔ رابطه‌ای نامیده می‌شوند، OLAP معمولاً داده را ستون‌محور ذخیره می‌کند، در حالی‌که
+        OLTP ردیف‌محور ذخیره می‌کند. فناوری پایه و موارد استفادهٔ آن‌ها متفاوت است. این پروژه فقط OLTP را در نظر
+        می‌گیرد. هنگام یادگیری آن‌ها را با هم اشتباه نگیرید.</p>
+
+        <h4>KV درون‌حافظه‌ای</h4>
+        <p>یک KV درون‌حافظه‌ای از ساده‌ترین map شروع می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    mem map[string][]byte
+}
+
+func (kv *KV) Open() error {
+    kv.mem = map[string][]byte{} // خالی
+    return nil
+}
+
+func (kv *KV) Close() error { return nil }
+
+func (kv *KV) Get(key []byte) (val []byte, ok bool, err error)
+func (kv *KV) Set(key []byte, val []byte) (updated bool, err error)
+func (kv *KV) Del(key []byte) (deleted bool, err error)</code></pre>
+        <ul>
+          <li>کلیدها و مقادیر <code class="inline">[]byte</code> هستند، بنابراین می‌توانند هر دادهٔ باینری را در خود
+          نگه دارند.</li>
+          <li>از آنجا که mapهای Go نمی‌توانند <code class="inline">[]byte</code> را به‌عنوان کلید داشته باشند، از
+          string استفاده می‌شود.</li>
+          <li>ورودی/خروجی دیسک بعداً اضافه خواهد شد، بنابراین این رابط‌ها <code class="inline">error</code> برمی‌گردانند.</li>
+          <li><code class="inline">Set</code> و <code class="inline">Del</code> باید گزارش دهند که وضعیت پایگاه داده
+          تغییر کرده است یا نه.</li>
+        </ul>
+        <p>وارد پوشهٔ <code class="inline">db_project/0101</code> شوید. <code class="inline">Get</code> و
+        <code class="inline">Set</code> و <code class="inline">Del</code> را پیاده‌سازی کنید. تست‌ها را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">go test .</code></pre>
+
+        <h4>ACID</h4>
+        <p>اتمی بودن (Atomicity)، سازگاری (Consistency)، ایزوله بودن (Isolation) و ماندگاری (Durability) — اصطلاحاً
+        ACID — اغلب برای توصیف پایگاه داده‌ها به‌کار می‌روند، گویی ۴ خاصیت پایگاه داده هستند. خیلی‌ها فکر می‌کنند
+        فهمیدن آن‌ها سخت است. دلیلش این است که این‌ها ایده‌های مبهمی بدون تعریف روشن هستند و اغلب معانی متفاوتی دارند.</p>
+        <p>اتمی بودن در لغت یعنی تقسیم‌ناپذیر. مثلاً نوشتن n بایت در یک فایل:</p>
+        <ol>
+          <li>با خواندن همزمان (concurrent reads)، یک خواننده ممکن است دادهٔ نیمه‌نوشته‌شده را ببیند.</li>
+          <li>اگر در میانهٔ نوشتن برق قطع شود، پس از بازیابی ممکن است فقط نیمی از داده موجود باشد.</li>
+        </ol>
+        <p>هر دو را می‌توان فقدان اتمی بودن توصیف کرد و پایگاه داده باید به آن‌ها بپردازد. اما یکی دربارهٔ همزمانی
+        (concurrency) و دیگری دربارهٔ ماندگاری است. آن‌ها مسائل بی‌ربطی هستند.</p>
+        <p>سازگاری برای توصیف منطق داخلی پایگاه داده، منطق کسب‌وکار، یا سیستم‌های توزیع‌شده استفاده می‌شود، بدون اینکه
+        حتی تعریف مبهمی داشته باشد.</p>
+        <p>ایزوله بودن به این اشاره دارد که آیا یک تراکنش تحت تأثیر تراکنش‌های همزمان دیگر قرار می‌گیرد یا نه.</p>
+        <p>ماندگاری یعنی وقتی پایگاه داده موفقیت را گزارش کرد، می‌توان به ناپدید نشدن داده اعتماد کرد. در پیاده‌سازی،
+        این را نمی‌توان به‌تنهایی بررسی کرد؛ زیرا اتمی بودن نیز درگیر است.</p>
+        <p>رفتار پایگاه داده پیچیده است و ACID آن را به‌طور کامل توصیف نمی‌کند. در عمل، باید رفتار خاص هر پایگاه داده را
+        یاد بگیرید. وقتی خودتان پایگاه داده پیاده‌سازی می‌کنید، مستقیماً با مسائل واقعی‌ای که پایگاه داده‌ها باید حل
+        کنند و راه‌حل‌هایشان روبه‌رو خواهید شد.</p>
+
+        <!-- 0102 -->
+        <h3>۰۱۰۲: سریال‌سازی باینری</h3>
+        <h4>سریال‌سازی</h4>
+        <p>برای ذخیرهٔ انواع دادهٔ یک زبان برنامه‌نویسی روی دیسک یا ارسال آن‌ها از طریق شبکه، باید به دنباله‌ای از
+        بایت‌ها تبدیل شوند. این را سریال‌سازی (serialization) می‌نامند.</p>
+        <p>مثلاً یک جفت KV:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Entry struct {
+    key []byte
+    val []byte
+}
+
+func (ent *Entry) Encode() []byte</code></pre>
+        <p><code class="inline">Encode()</code> را با استفاده از قالب زیر پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">| key size | val size | key data | val data |
+| 4 bytes  | 4 bytes  |   ...    |   ...    |</code></pre>
+        <p>مثلاً برای key=a و val=bb خروجی
+        <code class="inline">[]byte(1, 0, 0, 0, 2, 0, 0, 0, 'a', 'b', 'b')</code> است.</p>
+        <p>برای sliceها، رشته‌ها و سایر انواع طول‌متغیر، اندازه باید اول بیاید. در این‌جا اندازه به‌صورت
+        uint32 با ترتیب بایت کوچک (little-endian) ذخیره می‌شود. برای تبدیل اعداد صحیح به ۴ بایت از
+        <code class="inline">binary.LittleEndian.PutUint32()</code> استفاده کنید.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (ent *Entry) Encode() []byte {
+    data := make([]byte, 4+4+len(ent.key)+len(ent.val))
+    binary.LittleEndian.PutUint32(data[0:4], uint32(len(ent.key)))
+    binary.LittleEndian.PutUint32(data[4:8], uint32(len(ent.val)))
+    copy(data[8:], ent.key)
+    copy(data[8+len(ent.key):], ent.val)
+    return data
+}</code></pre>
+
+        <h4>سریال‌زدایی</h4>
+        <p>سریال‌زدایی (deserialization) دنبالهٔ بایت‌ها را دوباره به داده تبدیل می‌کند. سپس این را پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (ent *Entry) Decode(r io.Reader) error</code></pre>
+        <p>هنگام فراخوانی <code class="inline">Decode()</code>، فراخواننده نمی‌داند چند بایت لازم است، بنابراین
+        نمی‌توان یک slice پاس داد. به‌جای آن از واسط کتابخانهٔ استاندارد
+        <code class="inline">io.Reader</code> استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Reader interface {
+    Read(p []byte) (n int, err error)
+}</code></pre>
+        <p>داخل <code class="inline">Decode()</code>، برای خواندن داده مانند خواندن از یک فایل،
+        <code class="inline">r.Read()</code> را صدا می‌زنید. اما چون این یک واسط است، پیاده‌سازی زیرین لزوماً فایل نیست.</p>
+        <p>وارد پوشهٔ <code class="inline">db_project/0102</code> شوید. <code class="inline">Entry.Decode()</code> را
+        پیاده‌سازی کنید. تست‌ها را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">go test .</code></pre>
+
+        <h4>io.Reader و io.Writer</h4>
+        <p><code class="inline">io.Reader</code> برای ورودی استفاده می‌شود و واسط متناظر خروجی
+        <code class="inline">io.Writer</code> است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Writer interface {
+    Write(p []byte) (n int, err error)
+}</code></pre>
+        <p>هر نوعی که <code class="inline">Read()</code> یا <code class="inline">Write()</code> را پیاده‌سازی کند
+        می‌تواند به‌عنوان <code class="inline">io.Reader</code> یا <code class="inline">io.Writer</code> استفاده شود.
+        مزیت این واسط‌ها انعطاف‌پذیری است. مثلاً پارامتر <code class="inline">Decode()</code> یک نوع مشخص نیست. در گام
+        بعد، از یک فایل لاگ می‌خواند، در حالی‌که در این گام موارد تست از حافظه می‌خوانند. برای یادگیری نحوهٔ کار
+        <code class="inline">bytes.Buffer</code> می‌توانید موارد تست را بررسی کنید.</p>
+        <p>در واقع <code class="inline">Encode()</code> هم می‌توانست به‌جای بازگرداندن slice از
+        <code class="inline">io.Writer</code> استفاده کند، هرچند لازم نیست.</p>
+        <p>فراخوانی‌های سیستمی یونیکس <code class="inline">read</code> و <code class="inline">write</code> طراحی مشابهی
+        دارند. آن‌ها می‌توانند روی منابع بسیار متفاوتی کار کنند: فایل‌ها، سوکت‌های شبکه، لوله‌ها (pipes) و IPC. وجه
+        مشترک آن‌ها ورودی و خروجی است.</p>
+
+        <h4>روش‌های سریال‌سازی</h4>
+        <p>همهٔ روش‌های سریال‌سازی مشابه‌اند و فقط در جزئیات تفاوت دارند. برای سریال‌سازی دادهٔ طول‌متغیر مانند رشته،
+        ساده‌ترین راه این است که اول طول بیاید و بعد داده. طول یک عدد صحیح است و روش‌های بسیاری برای رمزگذاری آن وجود
+        دارد. برخی فرمت‌ها از ۲ بایت، برخی از ۴ بایت، برخی از varint طول‌متغیر و برخی مانند Redis از ارقام دهدهی
+        استفاده می‌کنند.</p>
+        <p>جدای از این <b>فرمت باینری</b>، <b>فرمت‌های متنی</b> مانند JSON و XML نیز وجود دارند. «باینری» هیچ ربطی به
+        مبناهای عددی ندارد؛ فقط متضاد «متن» است. بیشتر فرمت‌های متنی طول رشته را رمزگذاری نمی‌کنند، بلکه از
+        <b>جداکننده‌ها</b> (delimiters) برای علامت‌گذاری پایان داده استفاده می‌کنند. JSON از علامت نقل‌قول و XML از تگ
+        استفاده می‌کند.</p>
+        <p>فرمت‌های متنی شهودی به‌نظر می‌رسند اما پیاده‌سازی آن‌ها سخت است. چون دادهٔ رمزگذاری‌شده نمی‌تواند شامل
+        جداکننده باشد، فرمت‌های متنی به <b>فرار کردن</b> (escaping) پیچیده نیاز دارند. حتی JSON ساده در پیاده‌سازی‌های
+        مختلف باگ‌های زیادی دارد. فرمت‌های متنی در مقایسه با سریال‌سازی باینری ساده، CPU هم بیشتر هدر می‌دهند.</p>
+        <p>فراتر از پیچیدگی، فرمت‌های متنی اغلب محدودیت‌های خودسرانه‌ای دارند. مثلاً JSON نمی‌تواند دادهٔ باینری دلخواه
+        را پشتیبانی کند، بنابراین از base64 استفاده می‌شود که هدرروی بیشتری دارد. بسیاری از کتابخانه‌های JSON اعداد
+        صحیح ۶۴ بیتی را پشتیبانی نمی‌کنند. پس مگر در صورت ضرورت، از فرمت‌های متنی استفاده نکنید.</p>
+        <p>برای سریال‌سازی باینری، پیاده‌سازی‌هایی مانند Protobuf و MsgPack وجود دارند، اما به اندازهٔ JSON پرکاربرد
+        نیستند. بسیاری از پروژه‌های سطح‌پایین فرمت خودشان را اختراع می‌کنند. دلیلش این است که سریال‌سازی باینری ساده
+        است و ارزش افزودن وابستگی کتابخانه را ندارد. فرمت‌های متنی به دلیل پیچیدگی‌شان بهتر است توسط یک کتابخانه
+        مدیریت شوند.</p>
+
+        <!-- 0103 -->
+        <h3>۰۱۰۳: ذخیره‌سازی لاگ</h3>
+        <h4>لاگ‌های فقط‌الحاقی (Append-only)</h4>
+        <p>مانند لاگ‌های متنی، یک لاگ پایگاه داده <b>فقط ورودی‌ها را به انتهای فایل اضافه می‌کند و هرگز ورودی‌های
+        موجود را تغییر نمی‌دهد یا حذف نمی‌کند</b>. ورودی‌های لاگ هر به‌روزرسانی پایگاه داده را ثبت می‌کنند. مثلاً یک
+        لاگ با ۴ رکورد:</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">عملیات</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">0</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">{}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">1 set k1=x</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">{k1=x}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">2 set k2=y</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">{k1=x, k2=y}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">3 set k1=z</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">{k1=z, k2=y}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">4 del k2</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">{k1=z}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>وقتی پایگاه داده شروع به کار می‌کند، لاگ را می‌خواند و به‌ترتیب به‌روزرسانی‌ها را اعمال می‌کند و وضعیت
+        نهایی <code class="inline">{k1=z}</code> را تولید می‌کند. این <b>به‌روزرسانی افزایشی</b> (incremental updates)
+        را پیاده‌سازی می‌کند. این یکی از دلایل استفاده از لاگ است. کاربردهای دیگر بعداً ظاهر می‌شوند.</p>
+        <p>شاید بپرسید: <b>رکوردهای قدیمی لاگ چگونه حذف می‌شوند؟</b> این بعداً حل می‌شود: وقتی لاگ به اندازهٔ معینی
+        رسید، در ساختار دادهٔ اصلی (درخت LSM یا درخت B+) ادغام می‌شود.</p>
+        <p>لاگ هر <b>تغییر وضعیت</b> را ثبت می‌کند. حتی با تراکنش‌های همزمان، تا وقتی سیستم توزیع‌شده نباشد، تغییرات
+        وضعیت را می‌توان در لاگ سری‌سازی کرد. بنابراین لاگ‌ها می‌توانند برای تکرار (replication) و بازگردانی
+        (rollback) استفاده شوند. اما یک لاگ نمی‌تواند بی‌نهایت رشد کند، بنابراین نمی‌تواند ذخیره‌گاه اصلی باشد و فقط
+        کمکی است. لاگ به‌طور سخت‌گیرانه الزامی نیست؛ یک پایگاه داده را می‌توان بر ساختارهای دادهٔ کپی-هنگام-نوشتن
+        (copy-on-write) با رفتاری لاگ‌مانند نیز بنا کرد.</p>
+
+        <h4>رکوردهای لاگ</h4>
+        <p>از مثال بالا، لاگ ۲ نوع رکورد دارد: به‌روزرسانی و حذف. بنابراین یک پرچم به
+        <code class="inline">Entry</code> اضافه می‌شود تا آن‌ها را متمایز کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Entry struct {
+    key     []byte
+    val     []byte
+    deleted bool
+}</code></pre>
+        <p>فرمت سریال‌سازی به این شکل در می‌آید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">| key size | val size | deleted | key data | val data |
+| 4 bytes  | 4 bytes  | 1 byte  |   ...    |   ...    |</code></pre>
+        <p>این ۲ تابع را تغییر دهید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (ent *Entry) Encode() []byte
+func (ent *Entry) Decode(r io.Reader) error</code></pre>
+
+        <h4>خواندن و نوشتن فایل لاگ</h4>
+        <p>تعریف ساختار:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Log struct {
+    FileName string
+    fp       *os.File
+}
+
+func (log *Log) Open() (err error) {
+    log.fp, err = os.OpenFile(log.FileName, os.O_RDWR|os.O_CREATE, 0o644)
+    return err
+}
+
+func (log *Log) Close() error {
+    return log.fp.Close()
+}</code></pre>
+        <p>رابط‌های ورودی/خروجی لاگ:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (log *Log) Write(ent *Entry) error {
+    _, err := log.fp.Write(ent.Encode())
+    return err
+}
+
+func (log *Log) Read(ent *Entry) (eof bool, err error) {
+    err = ent.Decode(log.fp)
+    if err == io.EOF {
+        return true, nil
+    } else if err != nil {
+        return false, err
+    } else {
+        return false, nil
+    }
+}</code></pre>
+        <p>وقتی پایگاه داده شروع می‌کند، مکرراً <code class="inline">Log.Read()</code> را تا پایان فایل صدا می‌زند.
+        پس از آن، هر به‌روزرسانی <code class="inline">Log.Write()</code> را برای افزودن به انتهای فایل صدا می‌زند.</p>
+        <p><code class="inline">Log.Read()</code> پایان فایل را با <code class="inline">io.EOF</code> (پایان فایل — End
+        Of File) تشخیص می‌دهد. پس <code class="inline">Entry.Decode()</code> باید خطاهای برگشتی
+        <code class="inline">io.Reader</code> را منتشر کند.</p>
+
+        <h4>خواندن لاگ</h4>
+        <p>این ساختار را به <code class="inline">KV</code> اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    log Log
+    mem map[string][]byte
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Open() error {
+    if err := kv.log.Open(); err != nil {
+        return err
+    }
+    kv.mem = map[string][]byte{}
+    // TODO
+}
+
+func (kv *KV) Close() error { return kv.log.Close() }</code></pre>
+        <p><code class="inline">KV.Open()</code> را پیاده‌سازی کنید تا لاگ را در
+        <code class="inline">KV.mem</code> بارگذاری کند. الزام: ورودی‌های بعدی باید بر ورودی‌های قبلی غلبه کنند.</p>
+
+        <h4>نوشتن لاگ</h4>
+        <p>set و del را تغییر دهید تا نوشتن لاگ را اضافه کنند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Set(key []byte, val []byte) (updated bool, err error)
+func (kv *KV) Del(key []byte) (deleted bool, err error)</code></pre>
+        <p>وارد پوشهٔ <code class="inline">db_project/0102</code> شوید. تست‌ها را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">go test .</code></pre>
+
+        <h4>خلاصه</h4>
+        <p>لاگ به‌روزرسانی‌های افزایشی را روی دیسک ماندگار می‌کند. اما این لاگ همچنان مشکلاتی دارد. اگر در حین کار
+        برق پایگاه داده قطع شود چه اتفاقی می‌افتد؟ این مسئلهٔ بعدی است.</p>
+
+        <!-- 0104 -->
+        <h3>۰۱۰۴: fsync</h3>
+        <div class="callout warn">
+          <strong>هشدار:</strong> نسخهٔ وب از فصل ۰۴ به بعد فقط دستورالعمل‌های ساده دارد؛ توضیحات مفصل و اطلاعات زمینه‌ای
+          در <a href="https://trialofcode.org/database/9000_end/" target="_blank" rel="noopener">کتاب کامل</a> آمده است.
+        </div>
+        <h4>اطمینان از رسیدن نوشته‌ها به دیسک</h4>
+        <p>از آنجا که داده روی دیسک ذخیره می‌شود، باید مطمئن شویم واقعاً روی دیسک نوشته شده است. اگر فقط در یک فایل
+        بنویسیم، قطع برق می‌تواند باعث ناپدید شدن فایل یا پر شدن آن از 0x00 شود. این‌ها مشکلاتی هستند که یک پایگاه
+        داده باید حل کند.</p>
+        <p>یک پایگاه داده تضمین می‌کند دادهٔ نوشته‌شده از بین نمی‌رود. این معمولاً <b>ماندگاری</b> (durability)
+        نامیده می‌شود. این تضمین با بازگشت موفق به فراخواننده تعریف می‌شود. اگر پایگاه داده قبل از بازگشت خراب شود،
+        وضعیت برای فراخواننده نامعلوم است. اما اگر فراخواننده موفقیت دریافت کند، می‌تواند به ناپدید نشدن نوشته اعتماد
+        کند.</p>
+
+        <h4>کش و fsync</h4>
+        <p>هر نوشتن فایل مستقیماً به نوشتن دیسک نگاشت نمی‌شود. سیستم‌عامل یک کش حافظه دارد. نوشته‌ها اول به کش می‌روند
+        و بعداً به دیسک همگام می‌شوند. این امکان ادغام نوشته‌های تکراری را می‌دهد و توان عملیاتی (throughput) را
+        بهبود می‌بخشد. خواندن‌های تکراری نیز سود می‌برند.</p>
+        <p>این کش، <b>کش صفحه</b> (page cache) نامیده می‌شود. «صفحه» در این‌جا با صفحهٔ حافظهٔ مجازی CPU هم‌خوانی دارد.
+        یک صفحه کوچک‌ترین واحد ورودی/خروجی است و اندازهٔ ثابتی دارد (معمولاً 4K یا 16K). شاید بپرسید کش ورودی/خروجی
+        دیسک چه ربطی به حافظهٔ مجازی دارد. به <code class="inline">mmap</code> نگاه کنید. همچنین توجه کنید که مستندات
+        پایگاه داده اغلب گره‌های درخت B را «صفحه» می‌نامند. آن‌ها را با هم اشتباه نگیرید.</p>
+        <p>علاوه بر کش صفحه، دیسک‌ها ممکن است کش RAM خودشان را هم داشته باشند. برای اطمینان از رسیدن داده به دیسک، یک
+        عملیات باید همهٔ لایه‌های کش را تخلیه کند و <b>منتظر تکمیل</b> بماند. این همان فراخوانی سیستمی
+        <code class="inline">fsync</code> در لینوکس است. در Go، آن را از طریق <code class="inline">Sync()</code> روی
+        <code class="inline">*os.File</code> صدا می‌زنید.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (log *Log) Write(ent *Entry) error {
+    if _, err := log.fp.Write(ent.Encode()); err != nil {
+        return err
+    }
+    return log.fp.Sync() // فراخوانی fsync
+}</code></pre>
+        <p>ویندوز عملیات متناظری دارد، بنابراین <code class="inline">Sync()</code> در آنجا هم کار می‌کند.</p>
+        <p>برخی رابط‌های فایل نیز کش‌هایی دارند که باید تخلیه شوند؛ مانند <code class="inline">fflush()</code> در C.
+        ورودی/خروجی فایل Go مستقیماً به رابط‌های سیستم‌عامل نگاشت می‌شود و کش اضافی ندارد.</p>
+
+        <h4>fsync روی پوشهٔ والد</h4>
+        <p>در لینوکس، <code class="inline">fsync</code> نوشته‌شدن دادهٔ فایل را تضمین می‌کند، اما وجود خود فایل را
+        تضمین نمی‌کند. این به این دلیل است که یک فایل توسط پوشهٔ والدش ثبت می‌شود. اگر ورودی دایرکتوری (ایجاد فایل)
+        اضافه شود اما قبل از قطع برق روی دیسک نوشته نشود، حتی اگر دادهٔ آن روی دیسک باشد، نمی‌توان به فایل دسترسی
+        یافت. برای رفع این مشکل، <code class="inline">fsync</code> را روی پوشه صدا بزنید.</p>
+        <p>یعنی: ایجاد فایل، تغییر نام فایل و حذف فایل — همه به <code class="inline">fsync</code> روی پوشهٔ حاوی
+        آن‌ها نیاز دارند.</p>
+        <p>این مخصوص یونیکس است. ویندوز به آن نیاز ندارد. کتابخانهٔ استاندارد Go متدی برای
+        <code class="inline">fsync</code> کردن یک پوشه ندارد، بنابراین باید مستقیماً فراخوانی‌های سیستمی را صدا بزنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func createFileSync(file string) (*os.File, error) {
+    fp, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, 0o644)
+    if err != nil {
+        return nil, err
+    }
+    if err = syncDir(path.Base(file)); err != nil {
+        _ = fp.Close()
+        return nil, err
+    }
+    return fp, err
+}
+
+func syncDir(file string) error {
+    flags := os.O_RDONLY | syscall.O_DIRECTORY
+    dirfd, err := syscall.Open(path.Dir(file), flags, 0o644)
+    if err != nil {
+        return err
+    }
+    defer syscall.Close(dirfd)
+    return syscall.Fsync(dirfd)
+}</code></pre>
+        <p><code class="inline">os.OpenFile()</code> را با این تابع جایگزین کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (log *Log) Open() (err error) {
+    log.fp, err = createFileSync(log.FileName)
+    return err
+}</code></pre>
+
+        <h4>مبانی یونیکس</h4>
+        <p><code class="inline">open</code> یک فایل را باز یا ایجاد می‌کند و در صورت موفقیت یک عدد برمی‌گرداند. این عدد
+        فایل را شناسایی می‌کند و برای عملیات بعدی مانند <code class="inline">fsync</code> استفاده می‌شود. این عدد
+        <b>توصیفگر فایل</b> (file descriptor یا fd) نامیده می‌شود.</p>
+        <p>توصیفگر فایل فقط به فایل‌ها محدود نیست. می‌تواند به منابع دیگر سیستم‌عامل اشاره کند، مانند سوکت‌های شبکه یا
+        پوشه‌ها. در یونیکس، <code class="inline">open</code> می‌تواند پوشه‌ها را باز کند، هرچند fd برگشتی را نمی‌توان
+        مانند یک فایل خواند یا نوشت. همهٔ fdها باید بسته شوند.</p>
+        <p>می‌توانید کد منبع <code class="inline">os.File</code> را در کتابخانهٔ استاندارد بخوانید. عمدتاً فراخوانی‌های
+        سیستمی مختلف را در خود می‌پیچد.</p>
+
+        <h4>خلاصه</h4>
+        <p>ماندگاری از طریق <code class="inline">fsync</code> به دست می‌آید. اما این هنوز برای موارد قطع برق کافی نیست:
+        ممکن است یک رکورد لاگ قبل از خرابی فقط نیمه‌نوشته باشد (مسئلهٔ اتمی بودن). این را در گام بعدی حل می‌کنیم.</p>
+
+        <!-- 0105 -->
+        <h3>۰۱۰۵: جمع کنترلی (Checksum)</h3>
+        <div class="callout warn">
+          <strong>هشدار:</strong> نسخهٔ وب از فصل ۰۴ به بعد فقط دستورالعمل‌های ساده دارد؛ توضیحات مفصل و اطلاعات زمینه‌ای
+          در <a href="https://trialofcode.org/database/9000_end/" target="_blank" rel="noopener">کتاب کامل</a> آمده است.
+        </div>
+        <h4>نوشتن‌های ناقص</h4>
+        <p>هنگام افزودن یک رکورد به لاگ، می‌خواهیم یا کاملاً نوشته شود یا اصلاً نوشته نشود. این را می‌توان
+        <b>اتمی بودن</b> (atomicity) نامید. نوشتن‌های ناقص به نام torn writes (نوشتن‌های پاره‌پاره) شناخته می‌شوند.
+        اما نوشتن فایل در صورت قطع برق اتمی بودن را تضمین نمی‌کند. نه‌تنها دادهٔ افزوده‌شده اتمی نیست، بلکه حتی اندازهٔ
+        فایل هم ممکن است نادرست باشد. مثلاً افزودن یک رکورد ۱۰۰۰ بایتی ممکن است به یکی از وضعیت‌های زیر منجر شود:</p>
+        <ol>
+          <li>اندازهٔ فایل ۱۰۰۰ افزایش می‌یابد، اما داده کاملاً نوشته نشده است.</li>
+          <li>اندازهٔ فایل ۱۰۰۰ افزایش می‌یابد، اما هیچ داده‌ای نوشته نمی‌شود و فضای جدید با ۰ها یا زباله پر می‌شود.</li>
+          <li>اندازهٔ فایل ۵۰۰ افزایش می‌یابد.</li>
+        </ol>
+        <p>در هر صورت، فقط آخرین رکورد تحت تأثیر قرار می‌گیرد، در حالی‌که رکوردهایی که قبلاً
+        <code class="inline">fsync</code> شده‌اند دست‌نخورده می‌مانند. این دلیل دیگری برای استفاده از لاگ در پایگاه
+        داده‌هاست.</p>
+
+        <h4>اتمی بودن نوشتن دیسک</h4>
+        <p>CPU عملیات اتمی خواندن/نوشتن حافظه را فراهم می‌کند که داده‌ای به اندازهٔ یک عدد صحیح را مدیریت می‌کند.
+        در حالی‌که عملیات اتمی CPU بر همزمانی تمرکز دارد، ما اتمی بودن برای ماندگاری در صورت قطع برق را در نظر
+        می‌گیریم. در سطح سخت‌افزار، نوشتن یک سکتور واحد <a href="https://stackoverflow.com/a/61832882/13057409" target="_blank" rel="noopener">به احتمال زیاد اتمی است</a>.
+        سکتور کوچک‌ترین واحد خواندن/نوشتن دیسک است که معمولاً 512B یا 4K است.</p>
+        <p>بسیاری از سیستم‌های نرم‌افزاری برای رسیدن به اتمی بودن در مقیاس بزرگ‌تر به اتمی بودن در سطح سکتور تکیه
+        می‌کنند. مثلاً هنگام نوشتن لاگ، می‌توان یک سکتور در ابتدای لاگ رزرو کرد تا موقعیت آخرین ورودی لاگ را ذخیره کند.
+        پس از اینکه لاگ با موفقیت fsync شد، سکتور به‌روزرسانی می‌شود (از جمله fsync کردن همین سکتور). این اتمی بودن
+        کل لاگ را تضمین می‌کند.</p>
+        <p>حتی بدون اتمی بودن در سطح سخت‌افزار، نرم‌افزار می‌تواند بدون نیاز به ۲ بار fsync به اتمی بودن برسد.</p>
+
+        <h4>جمع کنترلی</h4>
+        <p>فرض کنید نوشتن‌های لاگ اتمی نیستند، اما اگر بتوانیم نوشتن ناقص را تشخیص دهیم، به‌سادگی آن را نادیده می‌گیریم.
+        آخرین رکوردِ آسیب‌دیده، رکوردِ قبل از آخرین <code class="inline">fsync</code> موفق خواهد بود. یک جمع کنترلی
+        (checksum) این‌جا کمک می‌کند. جمع کنترلی یک هش است و داده‌های مختلف تقریباً به‌طور قطع جمع کنترلی‌های متفاوتی
+        دارند. با ذخیرهٔ جمع کنترلی برای هر رکورد، می‌توانیم نوشتن‌های ناقص را شناسایی کنیم.</p>
+        <p>برای محاسبهٔ جمع کنترلی رکوردهای لاگ از <code class="inline">crc32.ChecksumIEEE()</code> کتابخانهٔ استاندارد
+        استفاده کنید و آن را به ابتدای رکورد بچسبانید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">|  crc32  | key size | val size | deleted | key data | val data |
+| 4 bytes | 4 bytes  | 4 bytes  | 1 byte  |   ...    |   ...    |</code></pre>
+        <p>این توابع را تغییر دهید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (ent *Entry) Encode() []byte
+func (ent *Entry) Decode(r io.Reader) error
+
+var ErrBadSum = errors.New("bad checksum")</code></pre>
+        <p><code class="inline">Entry.Decode()</code> باید خطاهای مناسب را برگرداند:</p>
+        <ul>
+          <li><code class="inline">ErrBadSum</code>: عدم تطابق جمع کنترلی (داده کامل نوشته نشده است).</li>
+          <li><code class="inline">io.EOF</code>: به پایان فایل رسیدیم (همهٔ رکوردها معتبرند).</li>
+          <li><code class="inline">io.ErrUnexpectedEOF</code>: فایل زودتر از موعد تمام شد (اندازهٔ فایل نادرست است،
+          داده کامل نوشته نشده است).</li>
+        </ul>
+
+        <h4>io.ReadFull()</h4>
+        <p>واسط <code class="inline">io.Reader</code> اجازه می‌دهد بایت‌های کمتری از طول خواسته‌شدهٔ
+        <code class="inline">buf</code> برگردد. مثلاً درخواست ۴ بایت ممکن است فقط ۳ بایت برگرداند، اما این به معنی پایان
+        داده (eof) نیست. هرچند هنگام خواندن از فایل معمولاً این اتفاق نمی‌افتد، در منابعی مانند سوکت‌های TCP رایج است.
+        پس هنگام استفاده از <code class="inline">io.Reader</code> باید حلقه بزنید تا تعداد بایت‌های برگشتی اندازهٔ
+        بافر را پر کند. <code class="inline">io.ReadFull()</code> کتابخانهٔ استاندارد می‌تواند جای این حلقه را بگیرد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func ReadFull(r Reader, buf []byte) (n int, err error)</code></pre>
+        <p>اگر بافر فقط تا حدی پر شود و به <code class="inline">eof</code> برسیم،
+        <code class="inline">io.ReadFull()</code> <code class="inline">io.ErrUnexpectedEOF</code> برمی‌گرداند. این
+        دقیقاً با الزام‌های تابع <code class="inline">Decode()</code> هم‌خوانی دارد.</p>
+
+        <h4>مدیریت رکوردهای ناقص لاگ</h4>
+        <p>خطای برگشتی از <code class="inline">Entry.Decode()</code> را بررسی کنید تا آخرین رکورد ناقص لاگ را نادیده
+        بگیرید؛ یعنی <code class="inline">eof=true</code>.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (log *Log) Read(ent *Entry) (eof bool, err error)</code></pre>
+        <p>مورد تست این گام، بازیابی از آخرین نوشتن ناقص لاگ را شبیه‌سازی می‌کند.</p>
+        <p>شاید بپرسید: از کجا بدانیم جمع کنترلی ناموفق مربوط به آخرین ورودی لاگ است؟ هیچ راهی برای دانستن نیست، زیرا
+        سربرگ اندازهٔ رکورد ممکن است نادرست باشد.</p>
+
+        <h4>کاربرد جمع کنترلی</h4>
+        <p>علاوه بر نوشتن‌های ناقص، جمع کنترلی‌ها می‌توانند خرابی دادهٔ ناشی از نقص سخت‌افزار را هم تشخیص دهند؛ مانند
+        بیت‌های برگشته (flipped bits) به دلیل خطای دیسک یا حافظه. این اتفاق با سخت‌افزار معمولی نادر است. با این حال،
+        <b>این هدف جمع کنترلی در پایگاه داده نیست</b>، زیرا پایگاه داده نمی‌تواند از چنین تلفات خاموش داده‌ای بازیابی
+        کند. اگر رکوردی در میانهٔ لاگ خراب شود، دانستن اینکه رکوردهای بعدی وجود دارند یا نه غیرممکن است.</p>
+        <p>توابع هش رمزنگاری (مانند sha256 یا md5) نیز می‌توانند به‌عنوان جمع کنترلی استفاده شوند. اما دلیلی برای
+        استفاده از آن‌ها وجود ندارد، زیرا توابع جمع کنترلی تخصصی کوچک‌تر و سریع‌ترند. حتی روش‌های سادهٔ جمع کنترلی،
+        مانند جمع ۱۶ بیتی عدد صحیحی که در TCP/IP استفاده می‌شود، کافی‌اند. اما باید مراقب حالت همه‌صفر بودن بایت‌ها
+        بود. در چنین حالتی، جمع کنترلی نباید ۰ باشد و <code class="inline">crc32</code> این مشکل را ندارد.</p>
+
+        <h4>خلاصه</h4>
+        <p>با لاگ + جمع کنترلی + fsync، پایگاه داده می‌تواند پس از قطع برق بازیابی کند و تضمین کند نوشته‌های موفق
+        قبلی از بین نمی‌روند. این هستهٔ عملکرد یک پایگاه داده است. به همین دلیل SQLite معمولاً برای ذخیره‌سازی دادهٔ
+        موبایل استفاده می‌شود، نه صرفاً نوشتن JSON در یک فایل. فقط برای سهولت پرس‌وجو نیست؛ بلکه به این دلیل است که
+        عملیات فایل پایه نمی‌توانند ماندگاری و اتمی بودن را تضمین کنند.</p>
+        <p>فعلاً فقط یک لاگ داریم. اگر در آینده ساختارهای داده اضافه شوند، اتمی بودن و ماندگاری (A و D در ACID) باید
+        از نو بررسی شوند.</p>
+      </section>
+
+      <!-- ==================== فصل ۰۲: جدول‌ها ==================== -->
+      <section>
+        <h2>۰۲ — جدول‌ها</h2>
+
+        <!-- 0201 -->
+        <h3>۰۲۰۱: انواع داده</h3>
+        <h4>یونیون (Union)</h4>
+        <p>این گام استفاده از KV برای ساخت یک پایگاه دادهٔ رابطه‌ای را شروع می‌کند. مانند اکسل، یک پایگاه داده می‌تواند
+        جدول‌های زیادی داشته باشد. یک جدول ردیف‌ها و ستون‌ها دارد. هر ستون می‌تواند یک نوع داده انتخاب کند، برخلاف KV
+        که فقط string/bytes دارد. ما ۲ نوع داده را پیاده‌سازی می‌کنیم: <code class="inline">int64</code> و
+        <code class="inline">[]byte</code>.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type CellType uint8
+
+const (
+    TypeI64 CellType = 1
+    TypeStr CellType = 2
+)
+
+type Cell struct {
+    Type CellType
+    I64  int64
+    Str  []byte
+}</code></pre>
+        <p><code class="inline">Cell</code> انواع دادهٔ مختلف را نشان می‌دهد. بر اساس <code class="inline">Type</code>
+        متمایز می‌شود و داده یا <code class="inline">I64</code> است یا <code class="inline">Str</code>. Go نوع یونیون
+        ندارد، بنابراین کمی فضا هدر می‌رود.</p>
+
+        <h4>سریال‌سازی</h4>
+        <p>این گام سریال‌سازی و سریال‌زدایی <code class="inline">Cell</code> را پیاده‌سازی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (cell *Cell) Encode(toAppend []byte) []byte {
+    switch cell.Type {
+    case TypeI64:
+        // TODO
+    case TypeStr:
+        // TODO
+    }
+}
+
+func (cell *Cell) Decode(data []byte) (rest []byte, err error)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li><code class="inline">Cell.Encode()</code> نتیجهٔ سریال‌شده را به slice ورودی می‌چسباند. وقتی بعداً یک
+          ردیف را سریال می‌کنیم، چند مقدار <code class="inline">Cell</code> به هم می‌چسبند. می‌توان از همان slice برای
+          جلوگیری از تخصیص حافظهٔ تکراری استفاده مجدد کرد.</li>
+          <li><code class="inline">Cell.Decode()</code> از slice ورودی سریال‌زدایی می‌کند و دادهٔ باقی‌مانده را
+          برمی‌گرداند.</li>
+          <li><code class="inline">int64</code> از <code class="inline">binary.LittleEndian</code> استفاده می‌کند.
+          <code class="inline">[]byte</code> از این قالب استفاده می‌کند:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">| length  | data |
+| 4 bytes | ...  |</code></pre>
+
+        <h4>ترتیب بایت‌ها (Endianness)</h4>
+        <p>یک CPU از اعداد دودویی اندازه‌ثابت استفاده می‌کند، معمولاً ۸، ۱۶، ۳۲ یا ۶۴ بیت. بیت ۰ کم‌ارزش‌ترین بیت است.
+        مثلاً 0b0101 = 4 + 1 = 5. از بیت ۰ تا بیت ۳، مقادیر ۱، ۰، ۱، ۰ هستند. وقتی عددی را روی کاغذ می‌نویسیم، ارقام
+        کم‌ارزش در سمت راست و ارقام پرارزش در سمت چپ قرار می‌گیرند. وقتی آرایه‌ای را می‌نویسیم، عنصر ۰ در سمت چپ است و
+        آدرس‌های حافظهٔ بالاتر در سمت راست. این تفاوت به <b>اندین بزرگ</b> (big endian) و <b>اندین کوچک</b> (little
+        endian) منجر می‌شود.</p>
+        <p>یک عدد صحیح ۳۲ بیتی در ثبات CPU فقط ۳۲ بیت است. وقتی در حافظه ذخیره می‌شود، به ۴ بایت گروه‌بندی می‌شود. اگر
+        بایت‌ها از <b>ترتیب طبیعی</b> پیروی کنند (بیت‌های کم‌ارزش در بایت ۰ و بیت‌های پرارزش در بایت ۳)، اندین کوچک
+        است. اگر از <b>ترتیب نوشتاری</b> پیروی کنند (بیت‌های کم‌ارزش در بایت ۳ و پرارزش در بایت ۰)، اندین بزرگ است.
+        مثلاً 0x11223344 در هگزادسیمال: اندین کوچک <code class="inline">44 33 22 11</code> و اندین بزرگ
+        <code class="inline">11 22 33 44</code> است.</p>
+        <p>از نظر تاریخی، برخی رایانه‌ها از اندین بزرگ استفاده می‌کردند. به همین دلیل بسیاری از پروتکل‌های شبکه مانند
+        TCP/IP از اندین بزرگ استفاده می‌کنند. امروزه اندین کوچک غالب است. یک CPU اندین کوچک باید دادهٔ اندین بزرگ را
+        تبدیل کند که کار اضافی است. فرمت‌ها و پروتکل‌های جدید داده بیشتر از اندین کوچک استفاده می‌کنند. اندین بزرگ
+        هنوز یک کاربرد خاص دارد (مرتب‌سازی) که بعداً ظاهر می‌شود.</p>
+
+        <h4>اعداد صحیح علامت‌دار و بی‌علامت</h4>
+        <p>شاید متوجه شوید که <code class="inline">binary.LittleEndian</code> فقط متدهایی با uint64 دارد و هیچ متدی
+        برای int64 ندارد. این به این دلیل است که اعداد صحیح علامت‌دار و بی‌علامت را می‌توان مستقیماً تبدیل کرد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">cell.I64 = int64(binary.LittleEndian.Uint64(data[0:8]))</code></pre>
+        <p>باید بدانید اعداد منفی چگونه رمزگذاری می‌شوند. با int64 به‌عنوان مثال:</p>
+        <ul>
+          <li>اعداد مثبت [0, 2<sup>63</sup>) از همان رمزگذاری uint64 استفاده می‌کنند.</li>
+          <li>اعداد منفی [−2<sup>63</sup>, 0) با [2<sup>63</sup>, 2<sup>64</sup>) در uint64 هم‌خوانی دارند.</li>
+        </ul>
+        <p>تبدیل بین uint64 و int64 یعنی هیچ کاری نکردن. اثر آن:</p>
+        <ul>
+          <li>محدودهٔ uint64 به دو نیم تقسیم می‌شود. اعداد مثبت int64 و ۰ به نیمهٔ اول نگاشت می‌شوند. اعداد منفی به
+          نیمهٔ دوم نگاشت می‌شوند.</li>
+          <li>برای اعداد مثبت کوچک، uint64 و int64 در بیت‌ها یکسان به‌نظر می‌رسند.</li>
+        </ul>
+        <p>تفاوت اعداد صحیح علامت‌دار و بی‌علامت فقط در نحوهٔ تفسیر بیت‌ها توسط CPU است. از آنجا که تبدیل واقعی وجود
+        ندارد، می‌توانیم آزادانه از تبدیل نوع استفاده کنیم.</p>
+        <h4>بیت علامت</h4>
+        <p>بالاترین بیت یک عدد صحیح علامت‌دار نشان می‌دهد که آیا منفی است. خیلی‌ها ساده‌لوحانه فرض می‌کنند رایانه‌ها
+        اعداد را به‌صورت علامت + قدر مطلق ذخیره می‌کنند. آن روش فقط توسط برخی ماشین‌های قدیمی استفاده می‌شد. رایانه‌های
+        مدرن از روش بالا استفاده می‌کنند که <b>مکمل دو</b> (two's complement) نامیده می‌شود. اگر علامت + قدر مطلق
+        استفاده می‌شد، هم +0 و هم -0 وجود داشت که فقط در اعداد اعشاری (floating point) وجود دارد، نه در اعداد صحیح.</p>
+
+        <!-- 0202 -->
+        <h3>۰۲۰۲: طرحوارهٔ جدول</h3>
+        <h4>ساختارها</h4>
+        <p>نام جدول، نام ستون‌ها، نوع ستون‌ها، کلید اصلی:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Schema struct {
+    Table string
+    Cols  []Column
+    PKey  []int // کدام ستون‌ها کلید اصلی هستند؟
+}
+type Column struct {
+    Name string
+    Type CellType
+}</code></pre>
+        <p>مثلاً این جدول:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">create table `link` (
+    `time` int64 not null,
+    `src` string not null,
+    `dst` string not null,
+    primary key (`src`, `dst`)
+);</code></pre>
+        <p>این‌گونه نمایش داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">    schema := &amp;Schema{
+        Table: "link",
+        Cols: []Column{
+            {Name: "time", Type: TypeI64},
+            {Name: "src", Type: TypeStr},
+            {Name: "dst", Type: TypeStr},
+        },
+        PKey: []int{1, 2}, // (src, dst)
+    }</code></pre>
+
+        <h4>کلید اصلی</h4>
+        <p>کلید اصلی (primary key) شناسهٔ یکتای یک ردیف است. از ۱ ستون یا بیشتر ساخته می‌شود. برای کار با یک ردیف،
+        ابتدا باید آن را با کلید اصلی پیدا کنید. بنابراین کلید اصلی همان K در KV است و ستون‌های غیرکلیداصلی در V
+        ذخیره می‌شوند. این به یک فروشگاه KV اجازه می‌دهد یک پایگاه دادهٔ رابطه‌ای (از نوع OLTP) پیاده‌سازی کند.</p>
+        <p>علاوه بر کلیدهای اصلی، ایندکس‌ها نیز با KV ساخته می‌شوند. یک ایندکس به شما اجازه می‌دهد کلید اصلی K را پیدا
+        کنید و سپس با آن به V برسید. مانند یک کتاب: شمارهٔ صفحه کلید اصلی است، در حالی‌که «فهرست مطالب» و «نمایه» (index)
+        ایندکس‌ها هستند. آن‌ها به شما کمک می‌کنند شمارهٔ صفحه را پیدا کنید و سپس محتوا را. در برخی موارد، یک ایندکس
+        از قبل دادهٔ کافی دارد، بنابراین لازم نیست V خوانده شود؛ مانند اینکه فقط فهرست مطالب را بخوانید.</p>
+        <p>هم کلیدهای اصلی و هم ایندکس‌ها KV هستند. تفاوت این است که کلید اصلی اجباری است. بنابراین ایندکس‌ها را
+        ایندکس ثانویه (secondary index) نیز می‌نامند و کلید اصلی را کلید اصلی می‌نامند. برخی پایگاه داده‌ها مانند SQLite
+        به جدول‌هایی بدون کلید اصلی تعریف‌شده توسط کاربر اجازه می‌دهند. این به این دلیل است که جدول‌های SQLite یک کلید
+        اصلی پنهان و خودکارتولیدشده دارند. کلیدهای اصلی قابل‌مشاهده برای کاربر فقط ایندکس‌های عادی هستند و تفاوت واقعی
+        بین اصلی و ثانویه وجود ندارد.</p>
+
+        <h4>رمزگذاری یک ردیف به‌صورت KV</h4>
+        <p>یک ردیف در پایگاه داده این‌گونه نمایش داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Row []Cell
+
+func (schema *Schema) NewRow() Row {
+    return make(Row, len(schema.Cols))
+}</code></pre>
+        <p><code class="inline">Schema.NewRow()</code> ردیفی با اندازهٔ درست برمی‌گرداند، بدون مقداردهی.</p>
+        <p>سپس سریال‌سازی و سریال‌زدایی را پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (row Row) EncodeKey(schema *Schema) (key []byte)
+func (row Row) EncodeVal(schema *Schema) (val []byte)
+func (row Row) DecodeKey(schema *Schema, key []byte) (err error)
+func (row Row) DecodeVal(schema *Schema, val []byte) (err error)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li>ردیف‌های ورودی یا خروجی باید با طرحواره (schema) مطابقت داشته باشند.</li>
+          <li>از <code class="inline">Cell.Encode()</code> و <code class="inline">Cell.Decode()</code> گام قبل
+          استفاده کنید.</li>
+          <li>ترتیب ستون‌های تعریف‌شده در طرحواره را دنبال کنید.</li>
+        </ul>
+
+        <h4>پیشوند کلید</h4>
+        <p>یک پایگاه داده جدول‌های زیادی دارد، بنابراین کلیدهای رمزگذاری‌شده به پیشوندی نیاز دارند تا جدول‌ها را از هم
+        متمایز کند. از نام جدول استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (row Row) EncodeKey(schema *Schema) (key []byte) {
+    key = append([]byte(schema.Table), 0x00)
+    // TODO
+}</code></pre>
+        <p>بعد از نام جدول یک جداکنندهٔ 0x00 اضافه می‌شود تا از تداخل کلیدهای ناشی از پیشوند نام‌ها جلوگیری شود. مثلاً
+        نام جدول‌های <code class="inline">ab</code> و <code class="inline">abc</code> پیشوندهای
+        <code class="inline">"ab\x00"</code> و <code class="inline">"abc\x00"</code> دارند.</p>
+        <p>در عمل، می‌توانید یک شناسهٔ عدد صحیح به‌عنوان پیشوند اختصاص دهید. این فضا را ذخیره می‌کند و به شما امکان
+        تغییر نام جدول‌ها را می‌دهد.</p>
+
+        <!-- 0203 -->
+        <h3>۰۲۰۳: حالت‌های به‌روزرسانی</h3>
+        <p>اکنون می‌توانیم عملیات SQL را به KV نگاشت کنیم. مثلاً select → get و delete → del.</p>
+        <p>اما عملیات set در KV به‌نظر هم درج (insert) است و هم به‌روزرسانی (update). در واقع همان
+        <code class="inline">insert ... on duplicate update</code> است. این یک مورد استفادهٔ رایج است. PostgreSQL یک
+        عبارت <code class="inline">upsert</code> اضافه می‌کند تا با عملیات set در KV هم‌خوانی داشته باشد.</p>
+        <p>ما باید رفتار <code class="inline">insert</code> و <code class="inline">update</code> را به KV اضافه کنیم.
+        <code class="inline">SetEx()</code> را اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type UpdateMode int
+
+const (
+    ModeUpsert UpdateMode = 0 // درج یا به‌روزرسانی
+    ModeInsert UpdateMode = 1 // درج جدید
+    ModeUpdate UpdateMode = 2 // به‌روزرسانی دادهٔ موجود
+)
+
+func (kv *KV) SetEx(key []byte, val []byte, mode UpdateMode) (bool, error)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li><code class="inline">ModeInsert</code>: اگر کلید از قبل وجود دارد، به‌روزرسانی نکنید و false برگردانید.</li>
+          <li><code class="inline">ModeUpdate</code>: فقط کلیدهای موجود را به‌روزرسانی کنید.</li>
+          <li><code class="inline">ModeUpsert</code>: مانند <code class="inline">Set()</code> قدیمی، درج یا بازنویسی:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Set(key []byte, val []byte) (updated bool, err error) {
+    return kv.SetEx(key, val, ModeUpsert)
+}</code></pre>
+
+        <!-- 0204 -->
+        <h3>۰۲۰۴: CRUD</h3>
+        <h4>افزودن رابط‌های CRUD</h4>
+        <p>این گام CRUD مبتنی بر کلید اصلی (create، read، update، delete) را پیاده‌سازی می‌کند که با insert و select و
+        update و delete هم‌خوانی دارد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type DB struct {
+    KV KV
+}
+
+func (db *DB) Open() error  { return db.KV.Open() }
+func (db *DB) Close() error { return db.KV.Close() }</code></pre>
+        <p>با استفاده از get، set و del در KV این‌ها را پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) Select(schema *Schema, row Row) (ok bool, err error)
+func (db *DB) Insert(schema *Schema, row Row) (updated bool, err error)
+func (db *DB) Upsert(schema *Schema, row Row) (updated bool, err error)
+func (db *DB) Update(schema *Schema, row Row) (updated bool, err error)
+func (db *DB) Delete(schema *Schema, row Row) (deleted bool, err error)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li>select و delete: ردیف ورودی شامل کلید اصلی است.</li>
+          <li>insert و upsert و update: ردیف ورودی کامل است.</li>
+        </ul>
+        <p>مثلاً insert:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) Insert(schema *Schema, row Row) (updated bool, err error) {
+    key := row.EncodeKey(schema)
+    val := row.EncodeVal(schema)
+    return db.KV.SetEx(key, val, ModeInsert)
+}</code></pre>
+        <p>برای جدول <code class="inline">create table t (a int64, b int64, primary key (b))</code>،
+        <code class="inline">Select()</code> یک <code class="inline">Row</code> به طول ۲ می‌گیرد. ستون ۲ کلید اصلی است.
+        ستون ۱ مقداری است که از KV برگشته است.</p>
+
+        <h4>ویژگی‌های اصلی پایگاه داده‌های رابطه‌ای</h4>
+        <p>علاوه بر دسترسی تک‌ردیفی با کلید اصلی، گام‌های بعدی ممکن است اضافه کنند:</p>
+        <ul>
+          <li>پیمایش کامل جدول (full table scan).</li>
+          <li>پرس‌وجو با ایندکس.</li>
+          <li>پرس‌وجوی بازه‌ای (range query) با ایندکس یا کلید اصلی.</li>
+          <li>فیلتر کردن نتایج پرس‌وجو.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== فصل ۰۳: SQL ساده ==================== -->
+      <section>
+        <h2>۰۳ — SQL ساده</h2>
+
+        <!-- 0301 -->
+        <h3>۰۳۰۱: توکنایزر</h3>
+        <h4>رشته ← توکن‌ها ← ساختار</h4>
+        <p>یک رشتهٔ SQL قبل از پردازش باید به دادهٔ برنامه تجزیه شود. مثلاً:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a,b from t where c=1;</code></pre>
+        <p>این‌گونه نمایش داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">StmtSelect{
+    table: "t",
+    cols:  []string{"a", "b"},
+    keys:  []NamedCell{{column: "c", value: Cell{Type: TypeI64, I64: 1}}},
+}</code></pre>
+        <p>SQL شبیه انگلیسی است و واژه‌ها و دستور زبان خودش را دارد. در زبان‌های برنامه‌نویسی، واژه‌ها
+        <b>توکن</b> (token) نامیده می‌شوند. قبل از تجزیهٔ دستور زبان، رشته به توکن‌ها تقسیم می‌شود. این گام
+        <b>توکنایز کردن</b> (tokenizing) یا <b>واژه‌گذاری</b> (lexing) نامیده می‌شود.</p>
+        <p>توکن‌های SQL را می‌توان گروه‌بندی کرد:</p>
+        <ul>
+          <li>کلمه‌های کلیدی (keywords): select، from و مانند آن.</li>
+          <li>نام‌ها (names): نام جدول‌ها، نام ستون‌ها و مانند آن.</li>
+          <li>نمادها (symbols): <code class="inline">=;</code> و کاما و مانند آن.</li>
+          <li>اعداد، رشته‌ها و مانند آن.</li>
+        </ul>
+        <p>هر نوع قواعد متفاوتی دارد و در توابع مختلف کدنویسی می‌شود.</p>
+
+        <h4>تجزیه‌گر دستور زبان (Syntax Parser)</h4>
+        <p>بیشتر تجزیه با مصرف توکن‌ها از چپ به راست و ساخت ساختارهای داده کار می‌کند. بنابراین باید موقعیت فعلی در
+        رشته را پیگیری کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Parser struct {
+    buf string
+    pos int
+}
+func NewParser(s string) Parser {
+    return Parser{buf: s, pos: 0}
+}</code></pre>
+
+        <h4>تجزیهٔ نام‌ها (نام جدول‌ها، نام ستون‌ها)</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) tryName() (string, bool)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li>از فاصله‌های ابتدایی عبور کند.</li>
+          <li>کاراکتر اول یک حرف یا <code class="inline">_</code> باشد؛ کاراکترهای بعدی حرف، رقم یا
+          <code class="inline">_</code> باشند.</li>
+          <li>در صورت موفقیت، true برگرداند و <code class="inline">pos</code> را جلو ببرد.</li>
+          <li>در صورت شکست، false برگرداند و <code class="inline">pos</code> را حفظ کند.</li>
+        </ul>
+        <p>مثلاً ورودی <code class="inline">Parser {buf: " hi ", pos: 0}</code>. بعد از
+        <code class="inline">tryName()</code>، مقدار <code class="inline">pos = 3</code> و خروجی
+        <code class="inline">"hi"</code> است.</p>
+        <p>از این توابع کمکی استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func isSpace(ch byte) bool {
+    switch ch {
+    case '\t', '\n', '\v', '\f', '\r', ' ':
+        return true
+    }
+    return false
+}
+func isAlpha(ch byte) bool {
+    return 'a' &lt;= (ch|32) &amp;&amp; (ch|32) &lt;= 'z'
+}
+func isDigit(ch byte) bool {
+    return '0' &lt;= ch &amp;&amp; ch &lt;= '9'
+}
+func isNameStart(ch byte) bool {
+    return isAlpha(ch) || ch == '_'
+}
+func isNameContinue(ch byte) bool {
+    return isAlpha(ch) || isDigit(ch) || ch == '_'
+}</code></pre>
+
+        <h4>تجزیهٔ کلمه‌های کلیدی</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) tryKeyword(kw string) bool</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li>از فاصله‌های ابتدایی عبور کند.</li>
+          <li>کلمهٔ کلیدی را بدون حساسیت به بزرگ/کوچک‌بودن حروف تطبیق دهد. در صورت موفقیت،
+          <code class="inline">pos</code> را جلو ببرد و true برگرداند.</li>
+          <li>در غیر این صورت false برگرداند.</li>
+          <li>کلمه‌های کلیدی باید با فاصله یا نشانهٔ نقطه‌گذاری جدا شوند.</li>
+        </ul>
+        <p>برای تشخیص جداکننده‌ها از این استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func isSeparator(ch byte) bool {
+    return ch &lt; 128 &amp;&amp; !isNameContinue(ch)
+}</code></pre>
+
+        <!-- 0302 -->
+        <h3>۰۳۰۲: تجزیهٔ مقادیر</h3>
+        <p>فعلاً فقط ۲ نوع داده پیاده‌سازی شده است: <code class="inline">int64</code> و رشته. آن‌ها با کاراکتر اول
+        متمایز می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseValue(out *Cell) error {
+    p.skipSpaces()
+    if p.pos &gt;= len(p.buf) {
+        return errors.New("expect value")
+    }
+    ch := p.buf[p.pos]
+    if ch == '"' || ch == '\'' {
+        return p.parseString(out)
+    } else if isDigit(ch) || ch == '-' || ch == '+' {
+        return p.parseInt(out)
+    } else {
+        return errors.New("expect value")
+    }
+}</code></pre>
+        <p>وقتی بعداً تجزیهٔ دستور زبان را پیاده‌سازی می‌کنید، خواهید دید که بسیاری از زبان‌ها می‌توانند بر اساس چند
+        توکن اول تصمیم بگیرند که بعدش چه چیزی را تجزیه کنند.</p>
+
+        <h4>تجزیهٔ int64</h4>
+        <p>قواعد <code class="inline">int64</code> ساده است: ممکن است با <code class="inline">-</code> یا
+        <code class="inline">+</code> شروع شود و بعد ارقام بیایند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseInt(out *Cell) error</code></pre>
+
+        <h4>تجزیهٔ رشته‌ها</h4>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseString(out *Cell) error</code></pre>
+        <p>قواعد پیچیده‌ترند:</p>
+        <ul>
+          <li>با نقل‌قول تکی یا دوتایی محصور می‌شود.</li>
+          <li>نقل‌قول‌های داخل رشته باید با اسلش فرار شوند (escape).</li>
+          <li>یک اسلش نیز باید با اسلش فرار شود.</li>
+        </ul>
+        <p>مثلاً <code class="inline">"isn\'t"</code> و <code class="inline">'isn\'t'</code> هر دو یعنی
+        <code class="inline">isn't</code>.</p>
+        <p>برای کاربردی‌کردن این، فرارهای بیشتری لازم است؛ مانند <code class="inline">\n</code>،
+        <code class="inline">\xFF</code> و <code class="inline">\u3412</code>. اما موضوعات مهم‌تری برای یادگیری داریم،
+        پس این‌جا متوقف می‌شویم.</p>
+
+        <!-- 0303 -->
+        <h3>۰۳۰۳: تجزیهٔ SELECT</h3>
+        <h4>ساختارها</h4>
+        <p>از آنجا که فقط مجموعهٔ کوچکی از قابلیت‌ها پیاده‌سازی شده، عبارت SELECT ما فقط یک شکل ثابت را پشتیبانی
+        می‌کند: پرس‌وجوی یک ردیف منفرد با کلید اصلی. مثلاً برای جدولی با کلید اصلی
+        <code class="inline">(c, d)</code>، تنها پرس‌وجوی پشتیبانی‌شده این است:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a,b from t where c=1 and d='e';</code></pre>
+        <p>که به‌صورت ساختارهای داده نمایش داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">StmtSelect{
+    table: "t",
+    cols: []string{"a", "b"},
+    keys: []NamedCell{
+        {column: "c", value: Cell{Type: TypeI64, I64: 1}},
+        {column: "d", value: Cell{Type: TypeStr, Str: []byte("e")}},
+    },
+}</code></pre>
+        <p>ساختارها فعلاً این‌گونه تعریف می‌شوند و بعداً گسترش می‌یابند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type StmtSelect struct {
+    table string
+    cols  []string
+    keys  []NamedCell
+}
+type NamedCell struct {
+    column string
+    value  Cell
+}</code></pre>
+
+        <h4>تجزیهٔ دستور زبان</h4>
+        <p>تجزیهٔ دستور زبان توکن‌ها را از چپ به راست مصرف می‌کند و هم‌زمان ساختارهای داده را می‌سازد. مثلاً تجزیهٔ
+        <code class="inline">a = 123</code> یک <code class="inline">NamedCell</code> تولید می‌کند. به‌ترتیب
+        <code class="inline">tryName()</code>، <code class="inline">tryPunctuation()</code> و
+        <code class="inline">parseValue()</code> را صدا می‌زند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseEqual(out *NamedCell) error {
+    var ok bool
+    out.column, ok = p.tryName()
+    if !ok {
+        return errors.New("expect column")
+    }
+    if !p.tryPunctuation("=") {
+        return errors.New("expect =")
+    }
+    return p.parseValue(&amp;out.value)
+}</code></pre>
+        <p>یک تابع جدید <code class="inline">tryPunctuation()</code> این‌جا اضافه می‌شود. مانند
+        <code class="inline">tryKeyword()</code> است، اما یک کاراکتر نقطه‌گذاری مصرف می‌کند. قواعد آن ساده‌تر از
+        کلمه‌های کلیدی است.</p>
+        <p>هنگام تجزیهٔ بخش <code class="inline">WHERE</code>، <code class="inline">parseEqual()</code> در یک حلقه صدا
+        زده می‌شود. حتی دستور زبان پیچیده هم پس از تقسیم به بخش‌ها آسان می‌شود.</p>
+
+        <h4>تجزیهٔ عبارت‌های SELECT</h4>
+        <p>کلمهٔ کلیدی آغازین <code class="inline">select</code> برای تمایز عبارت‌های SQL استفاده می‌شود، هرچند فعلاً
+        فقط یکی پشتیبانی می‌شود. سپس فهرستی از نام ستون‌ها می‌آید که با کاما جدا شده‌اند و به
+        <code class="inline">from</code> ختم می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseSelect(out *StmtSelect) error {
+    if !p.tryKeyword("SELECT") {
+        return errors.New("expect keyword")
+    }
+    for !p.tryKeyword("FROM") {
+        if len(out.cols) &gt; 0 &amp;&amp; !p.tryPunctuation(",") {
+            return errors.New("expect comma")
+        }
+        if name, ok := p.tryName(); ok {
+            out.cols = append(out.cols, name)
+        } else {
+            return errors.New("expect column")
+        }
+    }
+    if len(out.cols) == 0 {
+        return errors.New("expect column list")
+    }
+    var ok bool
+    if out.table, ok = p.tryName(); !ok {
+        return errors.New("expect table name")
+    }
+    return p.parseWhere(&amp;out.keys)
+}</code></pre>
+
+        <h4>تجزیهٔ WHERE</h4>
+        <p>این بخش فقط <code class="inline">a = 123</code> را با جداکنندهٔ <code class="inline">AND</code> پشتیبانی
+        می‌کند. مانند <code class="inline">SELECT a,b</code> است، با این تفاوت که کاما با
+        <code class="inline">AND</code> جایگزین می‌شود و <code class="inline">tryName()</code> با
+        <code class="inline">parseEqual()</code> جایگزین می‌شود. می‌توانید خودتان پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseWhere(out *[]NamedCell) error</code></pre>
+
+        <!-- 0304 -->
+        <h3>۰۳۰۴: عبارت‌ها (Statements)</h3>
+        <h4>سایر عبارت‌ها</h4>
+        <p>پیرو <code class="inline">parseSelect()</code> قبلی، عبارت‌های بیشتری اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">create table t (
+    a int64,
+    b string,
+    c string,
+    primary key (b, c)
+);
+insert into t values (1, 'x', 'y');
+update t set a = 1 where b = 'x' and c = 'y';
+delete from t where b = 'x' and c = 'y';</code></pre>
+        <p>انواع متناظر:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type StmtCreatTable struct {
+    table string
+    cols  []Column
+    pkey  []string
+}
+type StmtInsert struct {
+    table string
+    value []Cell
+}
+type StmtUpdate struct {
+    table string
+    keys  []NamedCell
+    value []NamedCell
+}
+type StmtDelete struct {
+    table string
+    keys  []NamedCell
+}</code></pre>
+        <p>فعلاً فقط عملیات تک‌ردیفی با کلید اصلی پشتیبانی می‌شود، بنابراین بخش <code class="inline">WHERE</code> به
+        <code class="inline">keys</code> نگاشت می‌شود. پرس‌وجوهای بازه‌ای و ایندکس‌ها بعداً با دستور زبان پیچیده‌تر
+        اضافه خواهند شد.</p>
+
+        <h4>شناسایی عبارت‌های SQL</h4>
+        <p><code class="inline">parseStmt()</code> را اضافه کنید که با <code class="inline">interface{}</code> انواع
+        عبارت متفاوت را برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseStmt() (out interface{}, err error) {
+    if p.tryKeyword("SELECT") {
+        stmt := &amp;StmtSelect{}
+        err = p.parseSelect(stmt)
+        out = stmt
+    } else if p.tryKeyword("CREATE", "TABLE") {
+        stmt := &amp;StmtCreatTable{}
+        err = p.parseCreateTable(stmt)
+        out = stmt
+    } else if p.tryKeyword("INSERT", "INTO") {
+        stmt := &amp;StmtInsert{}
+        err = p.parseInsert(stmt)
+        out = stmt
+    } else if p.tryKeyword("UPDATE") {
+        stmt := &amp;StmtUpdate{}
+        err = p.parseUpdate(stmt)
+        out = stmt
+    } else if p.tryKeyword("DELETE", "FROM") {
+        stmt := &amp;StmtDelete{}
+        err = p.parseDelete(stmt)
+        out = stmt
+    } else {
+        err = errors.New("unknown statement")
+    }
+    if err != nil {
+        return nil, err
+    }
+    return out, nil
+}</code></pre>
+        <p>تابع <code class="inline">tryKeyword()</code> به‌روزرسانی می‌شود تا چند توکن را به‌صورت متوالی تطبیق دهد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) tryKeyword(kws ...string) bool</code></pre>
+        <p>از آنجا که <code class="inline">parseStmt()</code> توکن‌های آغازین را مصرف می‌کند،
+        <code class="inline">parseSelect()</code> قبلی باید به‌روزرسانی شود.</p>
+        <p>این نشان می‌دهد که هنگام تجزیهٔ SQL، نگاه کردن به ۱ یا ۲ توکن بعدی برای تصمیم‌گیری کافی است. بسیاری از
+        زبان‌ها به همین سادگی قابل تجزیه هستند و به نظریهٔ ساخت کامپایلر نیاز ندارند. حتی با دستور زبانی مانند
+        <code class="inline">select a+b*c</code> هم بازگشت کافی است.</p>
+
+        <!-- 0305 -->
+        <h3>۰۳۰۵: اجرای SQL</h3>
+        <h4>اجرای SQL تجزیه‌شده</h4>
+        <p>برخی رابط‌های پایگاه دادهٔ رابطه‌ای قبلاً پیاده‌سازی شدند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) Select(schema *Schema, row Row) (ok bool, err error)
+func (db *DB) Insert(schema *Schema, row Row) (updated bool, err error)
+func (db *DB) Update(schema *Schema, row Row) (updated bool, err error)
+func (db *DB) Delete(schema *Schema, row Row) (deleted bool, err error)</code></pre>
+        <p>اکنون SQL به انواع <code class="inline">StmtXXX</code> تجزیه می‌شود، بنابراین این ۲ بخش می‌توانند به هم
+        متصل شوند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SQLResult struct {
+    Updated int
+    Header  []string
+    Values  []Row
+}
+
+func (db *DB) ExecStmt(stmt interface{}) (r SQLResult, err error) {
+    switch ptr := stmt.(type) {
+    case *StmtCreatTable:
+        err = db.execCreateTable(ptr)
+    case *StmtSelect:
+        r.Header = ptr.cols
+        r.Values, err = db.execSelect(ptr)
+    case *StmtInsert:
+        r.Updated, err = db.execInsert(ptr)
+    case *StmtUpdate:
+        r.Updated, err = db.execUpdate(ptr)
+    case *StmtDelete:
+        r.Updated, err = db.execDelete(ptr)
+    default:
+        panic("unreachable")
+    }
+    return
+}</code></pre>
+        <p><code class="inline">SQLResult</code> نتیجهٔ یک عبارت را برمی‌گرداند:</p>
+        <ul>
+          <li>SELECT، <code class="inline">Header</code> و <code class="inline">Values</code> را برمی‌گرداند. این یک
+          slice است چون بعداً چند ردیف برمی‌گرداند.</li>
+          <li>سایر عبارت‌های به‌روزرسانی، <code class="inline">Updated</code> یعنی تعداد ردیف‌های متأثر را برمی‌گردانند.
+          فعلاً فقط می‌تواند ۰ یا ۱ باشد.</li>
+        </ul>
+
+        <h4>ذخیرهٔ طرحواره‌های جدول</h4>
+        <p>همهٔ عملیات به طرحواره‌ها وابسته‌اند، بنابراین اول
+        <code class="inline">execCreateTable()</code> را پیاده‌سازی کنید. طرحوارهٔ جدول را سریال کنید و آن را زیر یک کلید
+        ذخیره کنید. <code class="inline">DB</code> یک کش map اضافه می‌کند که با نام جدول کلید می‌خورد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type DB struct {
+    KV     KV
+    tables map[string]Schema
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) GetSchema(table string) (Schema, error) {
+    schema, ok := db.tables[table]
+    if !ok {
+        val, ok, err := db.KV.Get([]byte("@schema_" + table))
+        if err == nil &amp;&amp; ok {
+            err = json.Unmarshal(val, &amp;schema)
+        }
+        if err != nil {
+            return Schema{}, err
+        }
+        if !ok {
+            return Schema{}, errors.New("table is not found")
+        }
+        db.tables[table] = schema
+    }
+    return schema, nil
+}</code></pre>
+        <p><code class="inline">execCreateTable()</code> را پیاده‌سازی کنید:</p>
+        <ol>
+          <li><code class="inline">StmtCreatTable</code> را به <code class="inline">Schema</code> تبدیل کنید.</li>
+          <li><code class="inline">Schema</code> را زیر کلید <code class="inline">@schema_</code> + نام جدول ذخیره کنید.</li>
+          <li>آن را به map <code class="inline">DB.tables</code> اضافه کنید.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execCreateTable(stmt *StmtCreatTable) (err error)</code></pre>
+
+        <h4>اجرای SELECT</h4>
+        <p>بهتر است این را به توابع کمکی کوچک تقسیم کنید که توسط سایر عبارت‌ها هم قابل استفاده مجدد باشند:</p>
+        <ol>
+          <li><code class="inline">lookupColumns()</code>: نام ستون‌ها (<code class="inline">select a,b</code>) را بررسی
+          می‌کند و ایندکس‌هایشان را در <code class="inline">schema.Cols</code> برمی‌گرداند.</li>
+          <li><code class="inline">makePKey()</code>: بررسی می‌کند <code class="inline">WHERE</code> با کلید اصلی
+          مطابقت دارد یا نه و یک <code class="inline">Row</code> با کلیدِ پر شده برمی‌گرداند.</li>
+          <li><code class="inline">subsetRow()</code>: فقط ستون‌های موجود در <code class="inline">select a,b</code>
+          را برمی‌گرداند.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execSelect(stmt *StmtSelect) ([]Row, error) {
+    schema, ok := db.tables[stmt.table]
+    if !ok {
+        return nil, errors.New("table is not found")
+    }
+    indices, err := lookupColumns(schema.Cols, stmt.cols)
+    if err != nil {
+        return nil, err
+    }
+
+    row, err := makePKey(&amp;schema, stmt.keys)
+    if err != nil {
+        return nil, err
+    }
+    if ok, err = db.Select(&amp;schema, row); err != nil {
+        return nil, err
+    }
+    if !ok {
+        return nil, nil
+    }
+
+    row = subsetRow(row, indices)
+    return []Row{row}, nil
+}</code></pre>
+
+        <h4>اجرای INSERT، UPDATE و DELETE</h4>
+        <p>سایر عبارت‌های SQL را با صدازدن <code class="inline">DB.Insert()</code>،
+        <code class="inline">DB.Update()</code> و <code class="inline">DB.Delete()</code> پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execInsert(stmt *StmtInsert) (count int, err error)
+func (db *DB) execUpdate(stmt *StmtUpdate) (count int, err error)
+func (db *DB) execDelete(stmt *StmtDelete) (count int, err error)</code></pre>
+        <p>الزام‌ها:</p>
+        <ul>
+          <li>اگر KV به‌روزرسانی شد، <code class="inline">count = 1</code> برگردانید؛ در غیر این صورت ۰.</li>
+          <li>بررسی کنید که <code class="inline">StmtXXX</code> با <code class="inline">Schema</code> مطابقت دارد.</li>
+        </ul>
+        <p>برای UPDATE، به‌روزرسانی کلیدهای اصلی را پشتیبانی نمی‌کنیم. UPDATE فقط بخش V از KV را تغییر می‌دهد.
+        به‌روزرسانی یک کلید اصلی یعنی حذف کلید قدیمی و درج یک کلید جدید، که به‌ندرت لازم است.</p>
+      </section>
+
+      <!-- ==================== فصل ۰۴: پرس‌وجوی بازه‌ای ==================== -->
+      <section>
+        <h2>۰۴ — پرس‌وجوی بازه‌ای</h2>
+
+        <!-- 0401 -->
+        <h3>۰۴۰۱: مرتب‌سازی و جست‌وجو</h3>
+        <h4>مرتب‌سازی و پرس‌وجوهای بازه‌ای</h4>
+        <p>SQL فعلی فقط می‌تواند روی یک ردیف منفرد با کلید اصلی کار کند. این توسط رابط‌های KV که فقط عملیات get و set و
+        del دارند محدود شده است. اکنون قابلیت‌ها را اضافه کنید:</p>
+        <ul>
+          <li>پیمایش یک جدول.</li>
+          <li>پرس‌وجوی بازهٔ کلید اصلی، مانند <code class="inline">a &gt; 123</code> یا
+          <code class="inline">123 &lt; a AND a &lt; 456</code>.</li>
+          <li>مرتب‌سازی نتایج (<code class="inline">ORDER BY</code>).</li>
+        </ul>
+        <p>این‌ها یک ایدهٔ مشترک دارند: <b>پیمایش به ترتیب مرتب</b>.</p>
+        <ul>
+          <li>پیمایش جدول: همان بازهٔ <code class="inline">-∞ &lt; a AND a &lt; +∞</code> است.</li>
+          <li>پرس‌وجوی بازه‌ای: مرزها را پیدا کن، سپس به‌ترتیب پیمایش کن.</li>
+          <li>مرتب‌سازی: <code class="inline">ORDER BY</code> فقط جهت را کنترل می‌کند.</li>
+        </ul>
+        <p>حالا map موجود در KV را با یک آرایهٔ ساده جایگزین کنید که بعداً به درخت LSM تبدیل خواهد شد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    log  Log
+    keys [][]byte
+    vals [][]byte
+}</code></pre>
+
+        <h4>جست‌وجوی دودویی</h4>
+        <p>کتابخانهٔ استاندارد جست‌وجوی دودویی (binary search) دارد، اما باید حداقل یک بار خودتان آن را پیاده‌سازی
+        کنید. ساده به‌نظر می‌رسد، اما خیلی‌ها برای کدنویسی آن مشکل دارند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func BinarySearchFunc(x S, target T, cmp func(E, T) int) (pos int, ok bool)</code></pre>
+        <p>اگر کلید پیدا شود، <code class="inline">ok=true</code> برگردانید.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Get(key []byte) (val []byte, ok bool, err error) {
+    if idx, ok := slices.BinarySearchFunc(kv.keys, key, bytes.Compare); ok {
+        return kv.vals[idx], true, nil
+    }
+    return nil, false, nil
+}</code></pre>
+        <p>اگر <code class="inline">ok=false</code> باشد، موقعیت برگشتی جایی است که کلید باید درج شود؛ می‌توان از آن در
+        <code class="inline">SetEx()</code> استفاده کرد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) SetEx(key []byte, val []byte, mode UpdateMode) (bool, error) {
+    idx, exist := slices.BinarySearchFunc(kv.keys, key, bytes.Compare)
+    // TODO
+}</code></pre>
+        <p>کتابخانهٔ استاندارد همچنین <code class="inline">slices.Insert()</code> و
+        <code class="inline">slices.Delete()</code> را فراهم می‌کند.</p>
+
+        <h4>مقداردهی پایگاه داده</h4>
+        <p><code class="inline">KV.Open()</code> را به‌روزرسانی کنید تا لاگ را در آرایه‌ها بخواند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Open() error</code></pre>
+        <p>تا زمانی که درخت LSM پیاده‌سازی نشود، همهٔ داده باید در حافظه بارگذاری شود.</p>
+
+        <!-- 0402 -->
+        <h3>۰۴۰۲: تکرارگرها</h3>
+        <h4>واسط تکرارگر</h4>
+        <p>برای پیمایش یک آرایه، فقط یک ایندکس را جابه‌جا می‌کنید. با ساختارهای دادهٔ دیگر، پیمایش به این سادگی نیست.
+        ساختارهای مختلف به روش‌های متفاوتی نیاز دارند. بنابراین به یک واسط مشترک برای پیمایش KV نیاز داریم که معمولاً
+        تکرارگر (iterator) نامیده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (*KVIterator, error)
+// آیا پیمایش پایان یافته است؟
+func (iter *KVIterator) Valid() bool
+// عنصر فعلی
+func (iter *KVIterator) Key() []byte
+func (iter *KVIterator) Val() []byte
+// حرکت به عنصر بعدی/قبلی
+func (iter *KVIterator) Next() error
+func (iter *KVIterator) Prev() error</code></pre>
+        <p>کاربرد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">for iter, err = kv.Seek(start); err == nil &amp;&amp; iter.Valid(); err = iter.Next() {
+    key, val := iter.Key(), iter.Val()
+    // ...
+}</code></pre>
+        <p>وقتی این بعداً مبتنی بر دیسک شود، ممکن است خطاهای ورودی/خروجی رخ دهند، بنابراین آن‌ها
+        <code class="inline">error</code> برمی‌گردانند.</p>
+
+        <h4>تعریف تکرارگر</h4>
+        <p><code class="inline">KVIterator</code> باید موقعیت فعلی را پیگیری کند. برای یک آرایه، این فقط یک ایندکس
+        است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KVIterator struct {
+    keys [][]byte
+    vals [][]byte
+    pos  int // موقعیت
+}</code></pre>
+        <p>همچنین ارجاع‌هایی به sliceها نگه می‌دارد. اگر ساختار داده بعداً تغییر کند، این پیاده‌سازی کاملاً تغییر
+        خواهد کرد.</p>
+
+        <h4>پیاده‌سازی تکرارگر</h4>
+        <p><code class="inline">KV.Seek()</code> تکرارگری برمی‌گرداند که در نتیجهٔ جست‌وجوی دودویی روی
+        <code class="inline">key</code> قرار گرفته است؛ یعنی اولین موقعیتی که در آن <code class="inline">key &gt;=
+        target</code> برقرار است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (*KVIterator, error) {
+    pos, _ := slices.BinarySearchFunc(kv.keys, key, bytes.Compare)
+    return &amp;KVIterator{keys: kv.keys, vals: kv.vals, pos: pos}, nil
+}</code></pre>
+        <p>این موقعیت ممکن است خارج از محدوده باشد، بنابراین قبل از استفاده با <code class="inline">Valid()</code>
+        بررسی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *KVIterator) Valid() bool {
+    return 0 &lt;= iter.pos &amp;&amp; iter.pos &lt; len(iter.keys)
+}
+func (iter *KVIterator) Key() []byte { return iter.keys[iter.pos] }
+func (iter *KVIterator) Val() []byte { return iter.vals[iter.pos] }</code></pre>
+        <p>موقعیت‌های <code class="inline">-1</code> و <code class="inline">len(keys)</code> یعنی خارج از محدوده. با
+        این طراحی، وقتی خارج از محدوده هستید، یک قدم به عقب می‌تواند به محدوده برگرداند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *KVIterator) Next() error {
+    if iter.pos &lt; len(iter.keys) {
+        iter.pos++
+    }
+    return nil
+}
+func (iter *KVIterator) Prev() error {
+    if iter.pos &gt;= 0 {
+        iter.pos--
+    }
+    return nil
+}</code></pre>
+
+        <!-- 0403 -->
+        <h3>۰۴۰۳: ترتیب مرتب</h3>
+        <h4>ترتیب کلید اصلی</h4>
+        <p>کلیدهای KV به‌صورت رشته با <code class="inline">bytes.Compare()</code> مقایسه می‌شوند. دادهٔ رابطه‌ای نوع
+        دارد و کلیدهای سریال‌شده ممکن است در ترتیب اشتباه مقایسه شوند.</p>
+        <p>یک راه‌حل این است که قبل از مقایسه، کلیدها را سریال‌زدایی کنیم و سپس بر اساس نوع داده مقایسه کنیم. اما این
+        باعث می‌شود KV به طرحواره وابسته شود که اتصال محکمی اضافه می‌کند. بنابراین برخی پایگاه داده‌ها راه دیگری را
+        انتخاب می‌کنند: <b>طراحی یک فرمت سریال‌سازی که ترتیب مرتب را حفظ کند</b>.</p>
+        <ul>
+          <li><code class="inline">Cell.Encode()</code> قدیمی را برای مقادیر KV به
+          <code class="inline">Cell.EncodeVal()</code> تغییر نام دهید.</li>
+          <li><code class="inline">Cell.EncodeKey()</code> را برای کلیدهای KV اضافه کنید که یک فرمت جدید پیاده‌سازی
+          می‌کند.</li>
+          <li><code class="inline">Cell.Decode()</code> را متناسباً به‌روزرسانی کنید.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// جدید
+func (cell *Cell) EncodeKey(toAppend []byte) []byte
+func (cell *Cell) DecodeKey(data []byte) (rest []byte, err error)
+// موجود
+func (cell *Cell) EncodeVal(toAppend []byte) []byte
+func (cell *Cell) DecodeVal(data []byte) (rest []byte, err error)</code></pre>
+        <p>متدهای <code class="inline">Row</code> را بازکاری کنید تا متدهای جدید
+        <code class="inline">Cell</code> را صدا بزنند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (row Row) EncodeKey(schema *Schema) (key []byte)
+func (row Row) DecodeKey(schema *Schema, key []byte) (err error)</code></pre>
+
+        <h4>سریال‌سازی حفظ‌کنندهٔ ترتیب</h4>
+        <p>روش سریال‌سازی زیر ترتیب مرتب int64 را حفظ می‌کند. توضیح آن در کتاب کامل است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (cell *Cell) EncodeKey(out []byte) []byte {
+    switch cell.Type {
+    case TypeI64:
+        return binary.BigEndian.AppendUint64(out, uint64(cell.I64)^(1&lt;&lt;63))
+    case TypeStr:
+        // TODO
+    }
+}</code></pre>
+        <p>اعداد اعشاری (floats) را نیز می‌توان این‌گونه سریال کرد، اما توجه کنید که اعداد اعشاری منفی با اعداد صحیح
+        متفاوت‌اند (گام ۰۲۰۱ را ببینید).</p>
+
+        <h4>رشته‌های ختم‌شده به null</h4>
+        <p>رشته‌ها را به‌صورت رشته‌های ختم‌شده به null رمزگذاری کنید و از طرح فرار زیر برای حذف بایت‌های null استفاده
+        کنید. توضیح آن در کتاب کامل است.</p>
+        <ul>
+          <li><code class="inline">0x00</code> ⇔ <code class="inline">0x01 0x01</code></li>
+          <li><code class="inline">0x01</code> ⇔ <code class="inline">0x01 0x02</code></li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func encodeStrKey(toAppend []byte, input []byte) []byte {
+    for _, ch := range input {
+        if ch == 0x00 || ch == 0x01 {
+            toAppend = append(toAppend, 0x01, ch+1)
+        } else {
+            toAppend = append(toAppend, ch)
+        }
+    }
+    return append(toAppend, 0x00)
+}</code></pre>
+        <p>تابع رمزگشایی را پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func decodeStrKey(data []byte) (out []byte, rest []byte, err error)</code></pre>
+
+        <h4>مقایسهٔ چندستونه</h4>
+        <p>یک کلید اصلی می‌تواند چند ستون داشته باشد. مقایسه مانند رشته‌ها ستون‌به‌ستون است، مثل
+        <code class="inline">tuple</code> در پایتون. برای <code class="inline">(a, b) &gt; (c, d)</code>، یعنی
+        <code class="inline">a &gt; c || (a == c &amp;&amp; b &gt; d)</code>. سؤال: اگر ستون‌ها را سریال کنید و به هم
+        بچسبانید، آیا این همچنان کار می‌کند؟ جواب بله است.</p>
+
+        <!-- 0404 -->
+        <h3>۰۴۰۴: تکرارگر ردیف</h3>
+        <h4>واسط تکرارگر</h4>
+        <p>حالا که ترتیب مرتب درست است، می‌توانیم پرس‌وجوهای بازه‌ای را روی
+        <code class="inline">KV.Seek()</code> بسازیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// اولین موقعیت را برمی‌گرداند: موقعیت &gt;= کلید اصلی
+func (db *DB) Seek(schema *Schema, row Row) (*RowIterator, error)
+
+// آیا پیمایش پایان یافته است؟
+func (iter *RowIterator) Valid() bool
+// ردیف فعلی
+func (iter *RowIterator) Row() Row
+// حرکت به جلو
+func (iter *RowIterator) Next() error</code></pre>
+        <p>این جفت‌های KV را از <code class="inline">KVIterator</code> به ردیف تبدیل می‌کند. یک مشکل وجود دارد: کلیدهای
+        جدول‌های مختلف با پیشوندها جدا می‌شوند، بنابراین در طول پیمایش باید بررسی کنیم که آیا کلیدی متعلق به جدول است
+        یا نه. <code class="inline">Row.DecodeKey()</code> را به‌روزرسانی کنید تا وقتی کلید به جدول تعلق ندارد،
+        <code class="inline">ErrOutOfRange</code> برگرداند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var ErrOutOfRange = errors.New("out of range")
+
+func (row Row) DecodeKey(schema *Schema, key []byte) (err error) {
+    if len(key) &lt; len(schema.Table)+1 {
+        return ErrOutOfRange
+    }
+    if string(key[:len(schema.Table)+1]) != schema.Table+"\x00" {
+        return ErrOutOfRange
+    }
+    // ...
+}</code></pre>
+
+        <h4>پیاده‌سازی تکرارگر</h4>
+        <p><code class="inline">RowIterator</code> یک پوستهٔ دور <code class="inline">KVIterator</code> است. بعد از
+        جابه‌جایی <code class="inline">KVIterator</code>، باید KV را رمزگشایی کنیم و
+        <code class="inline">ErrOutOfRange</code> را بررسی کنیم؛ بنابراین ردیفِ رمزگشایی‌شده باید جایی ذخیره شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type RowIterator struct {
+    schema *Schema
+    iter   *KVIterator
+    valid  bool // نتیجهٔ رمزگشایی (err != ErrOutOfRange)
+    row    Row  // نتیجهٔ رمزگشایی
+}</code></pre>
+        <p><code class="inline">Valid()</code> و <code class="inline">Row()</code> فقط نتایج ذخیره‌شده را برمی‌گردانند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *RowIterator) Valid() bool { return iter.valid }
+func (iter *RowIterator) Row() Row    { return iter.row }</code></pre>
+        <p>بعد از جابه‌جایی یا ایجاد تکرارگر، نتیجه را رمزگشایی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *RowIterator) Next() (err error) {
+    if err = iter.iter.Next(); err != nil {
+        return err
+    }
+    iter.valid, err = decodeKVIter(iter.schema, iter.iter, iter.row)
+    return err
+}</code></pre>
+        <p>توابع باقی‌مانده به خواننده واگذار می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func decodeKVIter(schema *Schema, iter *KVIterator, row Row) (bool, error)
+func (db *DB) Seek(schema *Schema, row Row) (*RowIterator, error)</code></pre>
+
+        <h4>خلاصه</h4>
+        <p>یکی دیگر از قابلیت‌های هستهٔ پایگاه داده تمام شد: پرس‌وجوی بازه‌ای. گام‌های بعدی:</p>
+        <ul>
+          <li>افزودن پشتیبانی SQL برای قابلیت جدید پرس‌وجوی بازه‌ای.</li>
+          <li>پیاده‌سازی یک ساختار دادهٔ واقعی (درخت LSM).</li>
+        </ul>
+
+        <!-- 0405 -->
+        <h3>۰۴۰۵: پرس‌وجوی بازه‌ای</h3>
+        <h4>پرس‌وجوی بازه‌ای KV</h4>
+        <p>تابع <code class="inline">Seek()</code> فقط پرس‌وجوهای بازهٔ باز را پشتیبانی می‌کند
+        (<code class="inline">key &gt;= 123</code>):</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (*KVIterator, error)</code></pre>
+        <p>حالا یک رابط پرس‌وجوی بازهٔ بسته اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Range(start, stop []byte, desc bool) (*RangedKVIter, error)</code></pre>
+        <p>پرچم <code class="inline">desc</code> ترتیب پیمایش را کنترل می‌کند و می‌تواند برای
+        <code class="inline">ORDER BY</code> استفاده شود:</p>
+        <ul>
+          <li><code class="inline">desc == false</code>: پرس‌وجو <code class="inline">start &lt;= key &amp;&amp; key
+          &lt;= stop</code>.</li>
+          <li><code class="inline">desc == true</code>: پرس‌وجو <code class="inline">start &gt;= key &amp;&amp; key
+          &gt;= stop</code>.</li>
+        </ul>
+        <p><code class="inline">RangedKVIter</code> فقط <code class="inline">KVIterator</code> اصلی را می‌پیچد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type RangedKVIter struct {
+    iter KVIterator
+    stop []byte
+    desc bool
+}
+
+func (iter *RangedKVIter) Key() []byte {
+    return iter.iter.Key()
+}
+
+func (iter *RangedKVIter) Val() []byte {
+    return iter.iter.Val()
+}</code></pre>
+        <p>با یک شرط توقف در طول پیمایش:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *RangedKVIter) Valid() bool {
+    if !iter.iter.Valid() {
+        return false
+    }
+
+    r := bytes.Compare(iter.iter.Key(), iter.stop)
+    if iter.desc &amp;&amp; r &lt; 0 {
+        return false
+    } else if !iter.desc &amp;&amp; r &gt; 0 {
+        return false
+    }
+    return true
+}</code></pre>
+        <p><code class="inline">Next()</code> باید ترتیب پیمایش را بررسی کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *RangedKVIter) Next() error {
+    if !iter.Valid() {
+        return nil
+    }
+    if iter.desc {
+        return iter.iter.Prev()
+    } else {
+        return iter.iter.Next()
+    }
+}</code></pre>
+        <p><code class="inline">Range()</code> هم <code class="inline">Seek()</code> را می‌پیچد. خودتان پیاده‌سازی
+        کنید. توجه کنید که ممکن است لازم باشد موقعیت اولیهٔ تکرارگر را تنظیم کنید، زیرا
+        <code class="inline">Seek()</code> شرط <code class="inline">&gt;=</code> دارد، در حالی‌که
+        <code class="inline">Range()</code> می‌تواند <code class="inline">&gt;=</code> یا <code class="inline">&lt;=</code>
+        باشد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Range(start, stop []byte, desc bool) (*RangedKVIter, error) {
+    iter, err := kv.Seek(start)
+    if err != nil {
+        return nil, err
+    }
+    // TODO
+}</code></pre>
+
+        <h4>مقایسهٔ پیشوندی</h4>
+        <p>حالا یک رابط <code class="inline">Range()</code> مشابه به <code class="inline">DB</code> اضافه کنید. یک
+        مسئلهٔ جدید ظاهر می‌شود: یک کلید اصلی یا ایندکس می‌تواند از چند ستون تشکیل شده باشد و یک پرس‌وجو ممکن است فقط
+        از یک پیشوند استفاده کند. مثلاً اگر کلید اصلی <em>(a</em>، <em>b</em>، <em>c)</em> باشد، این پرس‌وجوها
+        معتبرند:</p>
+        <ul>
+          <li><em>(a</em>، <em>b</em>، <em>c)</em> ≤ <em>(123</em>، <em>4</em>، <em>5)</em> — با کل کامل. مقایسهٔ
+          چندتایی در گام ۰۴۰۳ را ببینید.</li>
+          <li><em>(a</em>، <em>b)</em> ≤ <em>(123</em>، <em>4)</em> — با پیشوند <em>(a</em>، <em>b)</em> از
+          <em>(a</em>، <em>b</em>، <em>c)</em>، معادل <em>(a</em>، <em>b</em>، <em>c)</em> ≤ <em>(123</em>، <em>4</em>،
+          +∞).</li>
+          <li><em>a</em> ≤ 123 — با پیشوند <em>(a</em>، ) از <em>(a</em>، <em>b</em>، <em>c)</em>، معادل
+          <em>(a</em>، <em>b</em>، <em>c)</em> ≤ <em>(123</em>، +∞).</li>
+        </ul>
+        <p>اگر پیشوند <em>(123</em>، <em>4)</em> رمزگذاری شود و برای <em>K</em> ≤ <em>(123</em>، <em>4)</em> در KV
+        استفاده شود، نتیجهٔ واقعی <em>(a</em>، <em>b</em>، <em>c)</em> &lt; <em>(123</em>، <em>4)</em> است. بنابراین
+        بی‌نهایت (infinity) را معرفی می‌کنیم و پیشوند را به یک کل کامل می‌انباشیم. هر ۴ مقایسهٔ پیشوندی را می‌توان به
+        مقایسهٔ کل کامل تبدیل کرد:</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">پیشوند</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">کل کامل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b) &lt; (1, 2)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b, c) ≤ (1, 2, −∞)</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b) ≤ (1, 2)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b, c) ≤ (1, 2, +∞)</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b) &gt; (1, 2)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b, c) ≥ (1, 2, +∞)</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b) ≥ (1, 2)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px" dir="ltr">(a, b, c) ≥ (1, 2, −∞)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>اگر بی‌نهایت را در رمزگذاری کلید KV وارد کنیم، مقایسهٔ پیشوندی ممکن می‌شود. تابعی برای رمزگذاری پیشوندهای
+        کلید اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func EncodeKeyPrefix(schema *Schema, prefix []Cell, positive bool) []byte</code></pre>
+        <p>بی‌نهایت را این‌گونه رمزگذاری کنید:</p>
+        <ul>
+          <li>رشتهٔ خالی یعنی −∞، کوچک‌ترین رشته. این مستلزم آن است که دادهٔ سریال‌شده هرگز
+          <code class="inline">""</code> نباشد، که همین الان درست است.</li>
+          <li><code class="inline">"\xff"</code> یعنی +∞، حداکثر بایت. این مستلزم آن است که دادهٔ سریال‌شده هرگز با
+          <code class="inline">"\xff"</code> شروع نشود، که با پیشوند کردن ۱ بایت به هر ستون قابل اعمال است.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (row Row) EncodeKey(schema *Schema) []byte {
+    key := append([]byte(schema.Table), 0x00)
+    for _, idx := range schema.PKey {
+        cell := row[idx]
+        key = append(key, byte(cell.Type))  // اجتناب از 0xff
+        key = cell.EncodeKey(key)
+    }
+    return append(key, 0x00)                // &gt; منهای بی‌نهایت
+}</code></pre>
+        <p>از آنجا که −∞ به‌صورت یک رشتهٔ خالی رمزگذاری می‌شود، باید با افزودن یک بایت انتهایی 0x00 که بزرگ‌تر از −∞
+        است، از تداخل بین <em>(a</em>، <em>b)</em> و <em>(a</em>، <em>b</em>، −∞) جلوگیری کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func EncodeKeyPrefix(schema *Schema, prefix []Cell, positive bool) []byte {
+    key := append([]byte(schema.Table), 0x00)
+    for i, cell := range prefix {
+        key = append(key, byte(cell.Type))  // اجتناب از 0xff
+        key = cell.EncodeKey(key)
+    }
+    if positive {
+        key = append(key, 0xff)             // +بی‌نهایت
+    }                                       // -بی‌نهایت
+    return key
+}</code></pre>
+
+        <h4>پرس‌وجوی بازه‌ای DB</h4>
+        <p>یک رابط پرس‌وجوی بازهٔ بسته اضافه کنید که از ۴ عملگر مقایسه پشتیبانی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type ExprOp uint8
+
+const (
+    OP_LE ExprOp = 12 // &lt;=
+    OP_GE ExprOp = 13 // &gt;=
+    OP_LT ExprOp = 14 // &lt;
+    OP_GT ExprOp = 15 // &gt;
+)
+
+type RangeReq struct {
+    StartCmp ExprOp // &lt;= &gt;= &lt; &gt;
+    StopCmp  ExprOp
+    Start    []Cell
+    Stop     []Cell
+}
+
+func (db *DB) Range(schema *Schema, req *RangeReq) (*RowIterator, error)</code></pre>
+        <p>جهت پیمایش توسط <code class="inline">StartCmp</code> تعیین می‌شود: <code class="inline">&gt;=</code> و
+        <code class="inline">&gt;</code> یعنی صعودی و در غیر این صورت نزولی. <code class="inline">Start</code> و
+        <code class="inline">Stop</code> می‌توانند کلیدهای اصلی کامل یا پیشوند باشند و طول‌هایشان لازم نیست برابر
+        باشند.</p>
+        <p><code class="inline">KVIterator</code> داخل <code class="inline">RowIterator</code> را با
+        <code class="inline">RangedKVIter</code> جایگزین کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type RowIterator struct {
+    schema *Schema
+    iter   *RangedKVIter // جایگزین شده
+    valid  bool
+    row    Row
+}</code></pre>
+        <p>بقیه به خواننده واگذار می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) Range(schema *Schema, req *RangeReq) (*RowIterator, error) {
+    start := EncodeKeyPrefix(schema, req.Start, suffixPositive(req.StartCmp))
+    stop := EncodeKeyPrefix(schema, req.Stop, suffixPositive(req.StopCmp))
+    desc := isDescending(req.StartCmp)
+    iter, err := db.KV.Range(start, stop, desc)
+    if err != nil {
+        return nil, err
+    }
+    // TODO
+}</code></pre>
+      </section>
+
+      <!-- ==================== فصل ۰۵: SQL بیشتر ==================== -->
+      <section>
+        <h2>۰۵ — SQL بیشتر</h2>
+
+        <!-- 0501 -->
+        <h3>۰۵۰۱: عبارت‌های میانی (Infix)</h3>
+        <h4>نمایش عبارت‌ها به‌صورت درخت</h4>
+        <p>برای افزودن پرس‌وجوی بازه‌ای به SQL، باید دستور زبان پیچیده‌تری را تجزیه کنیم. قبلاً فقط می‌توانستیم این
+        شکل ثابت از <code class="inline">WHERE</code> را تجزیه کنیم:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a, b from t where a = 123 and b = 456;</code></pre>
+        <p>حالا باید این شکل‌ها را پشتیبانی کنیم:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a, b from t where a &gt; 123;
+select a, b from t where (a, b) &gt; (123, 0);</code></pre>
+        <p>برای نمایش عبارت‌های داخل <code class="inline">WHERE</code> به یک ساختار داده نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type ExprBinOp struct {
+    op    ExprOp
+    left  interface{}
+    right interface{}
+}</code></pre>
+        <p>مثلاً:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// a = 123 و b = 456
+ExprBinOp{op: OP_AND,
+    left:  &amp;ExprBinOp{op: OP_EQ,
+        left: "a",
+        right: &amp;Cell{Type: TypeI64, I64: 123}},
+    right: &amp;ExprBinOp{op: OP_EQ,
+        left: "b",
+        right: &amp;Cell{Type: TypeI64, I64: 456}}}
+// a &gt; 123
+ExprBinOp{op: OP_GT,
+    left:  "a",
+    right: &amp;Cell{Type: TypeI64, I64: 123}}</code></pre>
+        <p>استفاده از <code class="inline">interface{}</code> می‌تواند به هر نوع داده‌ای اشاره کند. مانند
+        <code class="inline">void *</code> در C/C++ است، اما اطلاعات نوع را حفظ می‌کند، بنابراین می‌توان آن را بررسی و
+        به نوع اولیه بازگرداند. این‌جا از ۳ نوع استفاده می‌کنیم:</p>
+        <ul>
+          <li>یک string نمایانگر نام ستون است.</li>
+          <li><code class="inline">&amp;Cell{}</code> نمایانگر یک ثابت (constant) است.</li>
+          <li><code class="inline">&amp;ExprBinOp{}</code> نمایانگر یک عبارت تو در تو است.</li>
+        </ul>
+
+        <h4>تجزیهٔ عبارت‌های میانی</h4>
+        <p>در این گام، اولویت عملگرها را نادیده می‌گیریم و فقط عبارت‌های + و - را تجزیه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// a
+"a"
+// a + b
+&amp;ExprBinOp{op: OP_ADD, left: "a", right: "b"}
+// a + b - 3
+&amp;ExprBinOp{op: OP_SUB,
+    left:  &amp;ExprBinOp{op: OP_ADD, left: "a", right: "b"},
+    right: &amp;Cell{Type: TypeI64, I64: 123}}</code></pre>
+        <p>عملوندها شامل نام ستون‌ها و ثابت‌ها هستند و <code class="inline">interface{}</code> برمی‌گردانند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseAtom() (interface{}, error) {
+    if name, ok := p.tryName(); ok {
+        return name, nil
+    }
+    cell := &amp;Cell{}
+    if err := p.parseValue(cell); err != nil {
+        return nil, err
+    }
+    return cell, nil
+}</code></pre>
+        <p>تابع <code class="inline">parseAdd()</code> را پیاده‌سازی کنید. حلقه می‌زند و
+        <code class="inline">parseAtom()</code> و <code class="inline">tryPunctuation()</code> را صدا می‌زند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseAdd() (interface{}, error)</code></pre>
+
+        <!-- 0502 -->
+        <h3>۰۵۰۲: ارزیابی عبارت</h3>
+        <h4>مفسر</h4>
+        <p>اکنون می‌توانیم محاسبه را به عبارت‌های SELECT و UPDATE اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a + b, c * d from t where a = 123;
+update t set x = x + 1 where a = 123;</code></pre>
+        <p>در گام قبل، عبارت‌ها به یک ساختار درختی تجزیه شدند. هنگام ارزیابی، باید ابتدا زیردرخت‌ها را محاسبه کنیم و
+        بعد گرهٔ فعلی را. پس این یک تابع بازگشتی است که درخت را می‌پیماید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func evalExpr(schema *Schema, row Row, expr interface{}) (*Cell, error) {
+    switch e := expr.(type) {
+    case string:
+        // TODO
+    case *Cell:
+        return e, nil
+    case *ExprBinOp:
+        left, err := evalExpr(schema, row, e.left)
+        if err != nil {
+            return nil, err
+        }
+        right, err := evalExpr(schema, row, e.right)
+        if err != nil {
+            return nil, err
+        }
+        // TODO
+    default:
+        panic("unreachable")
+    }
+}</code></pre>
+        <p>تابع <code class="inline">evalExpr()</code> دادهٔ ستون‌ها (<code class="inline">schema</code>،
+        <code class="inline">row</code>) را می‌گیرد، با <code class="inline">switch</code> نوع عبارت را بررسی می‌کند و
+        نتیجهٔ محاسبه‌شده (<code class="inline">*Cell</code>) را برمی‌گرداند.</p>
+
+        <!-- 0503 -->
+        <h3>۰۵۰۳: اولویت عملگرها</h3>
+        <h4>سطح‌های چندگانهٔ اولویت</h4>
+        <p>این گام * و / را اضافه می‌کند که اولویت بیشتری از + و - دارند. <b>فعلاً پرانتزها نادیده گرفته می‌شوند</b>.
+        در عبارتی که شامل + - * / است، جمع و تفریق باید در سطح بالایی (ریشه) درخت باشند. یعنی زیردرخت‌های + و - می‌توانند
+        * و / داشته باشند. اما بدون پرانتز، زیردرخت‌های * و / نمی‌توانند + یا - داشته باشند. آن‌ها فقط می‌توانند یک
+        مقدار یا نام ستون باشند؛ همان‌طور که قبلاً <code class="inline">parseAtom()</code> مدیریت می‌کرد. پس به ۲
+        تغییر نیاز داریم:</p>
+        <ol>
+          <li><code class="inline">parseAdd()</code> را کپی کنید و کمی تغییرش دهید تا
+          <code class="inline">parseMul()</code> ساخته شود؛ تابعی که عبارت‌های فقط با * و / را تجزیه می‌کند.</li>
+          <li>در <code class="inline">parseAdd()</code>، <code class="inline">parseAtom()</code> را با
+          <code class="inline">parseMul()</code> جایگزین کنید تا * و / زیردرخت‌های + و - شوند.</li>
+        </ol>
+        <p>برای تجزیهٔ یک عبارت میانی با چند سطح اولویت، از کم‌اولویت‌ترین شروع کنید. بالاترین اولویت در عمیق‌ترین سطح
+        زنجیرهٔ فراخوانی است. حالا <code class="inline">parseExpr()</code> را به‌عنوان نقطهٔ ورود تجزیهٔ عبارت اضافه
+        کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseExpr() (interface{}, error) {
+    return p.parseAdd()
+}
+func (p *Parser) parseAdd() (interface{}, error) {
+    // فراخوانی parseMul()
+}
+func (p *Parser) parseMul() (interface{}, error) {
+    // فراخوانی parseAtom()
+}</code></pre>
+        <p>اینجا فقط ۲ سطح اولویت هست. برای افزودن بیشتر، همان الگو را تکرار کنید.</p>
+
+        <h4>پرانتزها</h4>
+        <p>حالا پرانتزها را اضافه کنید تا ترتیب عملیات تغییر کند. پرانتز را می‌توان بالاترین اولویت در نظر گرفت، پس باید
+        در عمیق‌ترین فراخوانی یعنی <code class="inline">parseAtom()</code> مدیریت شود. وقتی پرانتز پیدا شد،
+        <code class="inline">parseExpr()</code> سطح بالا را صدا بزنید.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseAtom() (expr interface{}, err error)</code></pre>
+
+        <!-- 0504 -->
+        <h3>۰۵۰۴: تجزیه‌گر عبارت</h3>
+        <h4>عملگرهای SQL</h4>
+        <p>این گام عملگرهای SQL زیادی اضافه می‌کند، با اولویت از کم به زیاد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">a OR b
+a AND b
+NOT a
+a = b, a &lt;&gt; b, a &lt; b, a &gt; b, a &lt;= b, a &gt;= b
+a + b, a - b
+a * b, a / b
+-a</code></pre>
+        <p>مورد تست:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// f یا e و نه d = a + b * -c
+&amp;ExprBinOp{op: OP_OR,
+    left: "f", right: &amp;ExprBinOp{op: OP_AND,
+        left: "e", right: &amp;ExprUnOp{op: OP_NOT,
+            kid: &amp;ExprBinOp{op: OP_EQ,
+                left: "d", right: &amp;ExprBinOp{op: OP_ADD,
+                    left: "a", right: &amp;ExprBinOp{op: OP_MUL,
+                        left: "b", right: &amp;ExprUnOp{op: OP_NEG,
+                            kid: "c"}}}}}}}</code></pre>
+
+        <h4>استخراج توابع مشترک</h4>
+        <p>مانند <code class="inline">parseAdd()</code> گام قبل، هر سطح اولویت به یک تابع
+        <code class="inline">parseXXX()</code> نگاشت می‌شود که تابع بعدی <code class="inline">parseYYY()</code> را صدا
+        می‌زند. قبلاً <code class="inline">parseMul()</code> از <code class="inline">parseAdd()</code> کپی شده بود.
+        حالا با وجود توابع زیاد، می‌توانیم منطق مشترک را استخراج کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseOr() (interface{}, error) {
+    return p.parseBinop([]string{"OR"}, []ExprOp{OP_OR}, p.parseAnd)
+}
+func (p *Parser) parseAnd() (interface{}, error) {
+    return p.parseBinop([]string{"AND"}, []ExprOp{OP_AND}, p.parseNot)
+}
+func (p *Parser) parseNot() (expr interface{}, err error)
+func (p *Parser) parseCmp() (interface{}, error) {
+    return p.parseBinop(
+        []string{"=", "!=", "&lt;&gt;", "&lt;=", "&gt;=", "&lt;", "&gt;"},
+        []ExprOp{OP_EQ, OP_NE, OP_NE, OP_LE, OP_GE, OP_LT, OP_GT},
+        p.parseAdd)
+}
+func (p *Parser) parseAdd() (interface{}, error) {
+    return p.parseBinop([]string{"+", "-"}, []ExprOp{OP_ADD, OP_SUB}, p.parseMul)
+}
+func (p *Parser) parseMul() (interface{}, error) {
+    return p.parseBinop([]string{"*", "/"}, []ExprOp{OP_MUL, OP_DIV}, p.parseNeg)
+}
+func (p *Parser) parseNeg() (expr interface{}, err error)</code></pre>
+        <p>تفاوت‌های <code class="inline">parseAdd()</code> و <code class="inline">parseMul()</code> را به‌صورت
+        پارامتر استخراج کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseBinop(
+    tokens []string, ops []ExprOp, inner func() (interface{}, error),
+) (interface{}, error)</code></pre>
+
+        <h4>عملگرهای یک‌تایی</h4>
+        <p><code class="inline">NOT a</code> و <code class="inline">-a</code> فقط ۱ فرزند دارند، بنابراین یک ساختار
+        جدید اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type ExprUnOp struct {
+    op  ExprOp
+    kid interface{}
+}</code></pre>
+        <p>توجه کنید که فرزند می‌تواند عملگرهایی در همان سطح داشته باشد؛ مانند
+        <code class="inline">NOT NOT a</code>.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseNot() (expr interface{}, err error)</code></pre>
+        <p><code class="inline">evalExpr()</code> نیز باید برای مدیریت این گسترش یابد.</p>
+
+        <!-- 0505 -->
+        <h3>۰۵۰۵: عبارت SELECT</h3>
+        <h4>تغییر ساختارها</h4>
+        <p>در این گام، به عبارت‌ها در SELECT و UPDATE اجازه می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a * 4 - b, d + c from t where d = 123;
+update t set a = a - b, b = a, c = d + c where d = 123;</code></pre>
+        <p>در <code class="inline">StmtSelect</code>، <code class="inline">cols</code> از
+        <code class="inline">string</code> به <code class="inline">interface{}</code> تغییر می‌کند.
+        <code class="inline">StmtUpdate</code> نیز به‌روزرسانی می‌شود و <code class="inline">ExprAssign</code> اضافه
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type StmtSelect struct {
+    table string
+    // cols  []string
+    cols  []interface{} // ExprUnOp | ExprBinOp | string | *Cell
+    keys  []NamedCell
+}
+type StmtUpdate struct {
+    table string
+    keys  []NamedCell
+    // value []ExprEqual
+    value []ExprAssign
+}
+type ExprAssign struct {
+    column string
+    expr   interface{} // ExprUnOp | ExprBinOp | string | *Cell
+}</code></pre>
+
+        <h4>تغییر تجزیه‌گر</h4>
+        <ul>
+          <li>در <code class="inline">parseSelect()</code>، <code class="inline">tryName()</code> را با
+          <code class="inline">parseExpr()</code> جایگزین کنید.</li>
+          <li>در <code class="inline">parseUpdate()</code>، <code class="inline">parseEqual()</code> را با
+          <code class="inline">parseAssign()</code> جایگزین کنید.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseAssign(out *ExprAssign) (err error) {
+    var ok bool
+    out.column, ok = p.tryName()
+    if !ok {
+        return errors.New("expect column")
+    }
+    if !p.tryPunctuation("=") {
+        return errors.New("expect =")
+    }
+    out.expr, err = p.parseExpr()
+    return err
+}</code></pre>
+
+        <h4>تغییر اجرا</h4>
+        <p>select و update را به‌روزرسانی کنید تا برای تولید نتایج <code class="inline">evalExpr()</code> را صدا بزنند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execSelect(stmt *StmtSelect) ([]Row, error)
+func (db *DB) execUpdate(stmt *StmtUpdate) (count int, err error)</code></pre>
+
+        <!-- 0506 -->
+        <h3>۰۵۰۶: عبارت WHERE</h3>
+        <h4>تجزیهٔ WHERE</h4>
+        <p>این گام قابلیت جدیدی اضافه نمی‌کند. بخش <code class="inline">WHERE</code> را به یک عبارت بازسازی می‌کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type StmtSelect struct {
+    table string
+    cols  []interface{} // ExprUnOp | ExprBinOp | string | *Cell
+    // keys  []NamedCell
+    cond  interface{}
+}
+
+type StmtUpdate struct {
+    table string
+    // keys  []NamedCell
+    cond  interface{}
+    value []ExprAssign
+}
+
+type StmtDelete struct {
+    table string
+    // keys  []NamedCell
+    cond  interface{}
+}</code></pre>
+        <p>تجزیه‌گر را به‌روزرسانی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (p *Parser) parseSelect(out *StmtSelect) (err error) {
+    // ...
+    out.cond, err = p.parseWhere()
+    return err
+}
+
+func (p *Parser) parseWhere() (expr interface{}, err error)</code></pre>
+
+        <h4>تطبیق عبارت‌ها</h4>
+        <p>هنگام اجرا، مقادیر کلید اصلی را از عبارت استخراج کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execSelect(stmt *StmtSelect) ([]Row, error) {
+    // ...
+    row, err := matchPKey(&amp;schema, stmt.cond)
+    if err != nil {
+        return nil, err
+    }
+    if ok, err = db.Select(&amp;schema, row); err != nil {
+        return nil, err
+    }
+    // ...
+}
+func matchPKey(schema *Schema, cond interface{}) (Row, error) {
+    if keys, ok := matchAllEq(cond, nil); ok {
+        return makePKey(schema, keys)
+    }
+    return nil, errors.New("unimplemented WHERE")
+}</code></pre>
+        <p><code class="inline">matchAllEq()</code> عبارت‌هایی مانند
+        <code class="inline">a = 123 AND b = 456 AND ...</code> را تشخیص می‌دهد و نام ستون‌ها و مقادیر را خروجی می‌دهد.
+        به‌صورت بازگشتی در عبارت قدم می‌زند. این را پیاده‌سازی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func matchAllEq(cond interface{}, out []NamedCell) ([]NamedCell, bool)</code></pre>
+        <p>فعلاً فقط پرس‌وجوهای کلید اصلی که یک ردیف منفرد برمی‌گردانند پشتیبانی می‌شوند. برای افزودن انواع دیگر
+        پرس‌وجو، باید شکل‌های دیگر عبارت را بشناسید؛ مانند پرس‌وجوهای بازه‌ای در گام بعد.</p>
+
+        <!-- 0507 -->
+        <h3>۰۵۰۷: پرس‌وجوی بازه‌ای SQL</h3>
+        <h4>اتصال به DB.Range()</h4>
+        <p>بالاخره می‌توانیم پرس‌وجوهای بازه‌ای را به SQL اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">sql</span><code style="direction:ltr;text-align:left">select a, b from t where a &gt; 123;
+select a, b from t where (a, b) &gt; (123, 0);</code></pre>
+        <p>یعنی شرط <code class="inline">WHERE</code> را به <code class="inline">DB.Range()</code> موجود متصل کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type RangeReq struct {
+    StartCmp ExprOp // &lt;= &gt;= &lt; &gt;
+    StopCmp  ExprOp
+    Start    []Cell
+    Stop     []Cell
+}
+
+func (db *DB) Range(schema *Schema, req *RangeReq) (*RowIterator, error)</code></pre>
+        <p>SELECT و UPDATE و DELETE همگی به تغییر نیاز دارند. برای مدیریت
+        <code class="inline">WHERE</code> تابع <code class="inline">execCond()</code> را اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *DB) execCond(schema *Schema, cond interface{}) (*RowIterator, error) {
+    req, err := makeRange(schema, cond)
+    if err != nil {
+        return nil, err
+    }
+    return db.Range(schema, req)
+}
+
+func (db *DB) execSelect(stmt *StmtSelect) (output []Row, err error) {
+    // ...
+    iter, err := db.execCond(&amp;schema, stmt.cond)
+    for ; err == nil &amp;&amp; iter.Valid(); err = iter.Next() {
+        // ...
+    }
+    // ...
+}</code></pre>
+        <p>کار اصلی این گام <code class="inline">makeRange()</code> است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func makeRange(schema *Schema, cond interface{}) (*RangeReq, error)</code></pre>
+
+        <h4>تجزیهٔ چندتایی‌ها</h4>
+        <p>برای پشتیبانی از دستور زبانی مانند <code class="inline">(a, b) &lt; (1, 2)</code>، یک ساختار اضافه کنید و
+        مدیریت پرانتز را به‌روزرسانی کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type ExprTuple struct {
+    kids []interface{}
+}
+
+func (p *Parser) parseAtom() (expr interface{}, err error) {
+    if p.tryPunctuation("(") {
+        p.pos--
+        return p.parseTuple()
+    }
+    // ...
+}
+func (p *Parser) parseTuple() (expr interface{}, err error)</code></pre>
+
+        <h4>تشخیص پرس‌وجوهای بازه‌ای</h4>
+        <p>پرس‌وجوی <code class="inline">a = 123</code> همان <code class="inline">123 &lt;= a AND a &lt;= 123</code>
+        است، بنابراین پرس‌وجوهای تک‌کلیداصلی هم می‌توانند از پرس‌وجوی بازه‌ای استفاده کنند.
+        <code class="inline">DB.Select()</code> قدیمی می‌تواند از این میان‌بر استفاده کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func makeRange(schema *Schema, cond interface{}) (*RangeReq, error) {
+    if keys, ok := matchAllEq(cond, nil); ok {
+        if pkey, ok := extractPKey(schema, keys); ok {
+            return &amp;RangeReq{
+                StartCmp: OP_GE,
+                StopCmp:  OP_LE,
+                Start:    pkey,
+                Stop:     pkey,
+            }, nil
+        }
+    }
+    if req, ok := matchRange(schema, cond); ok {
+        return req, nil
+    }
+    return nil, errors.New("unimplemented WHERE")
+}</code></pre>
+        <p>تطبیق عبارت‌ها فقط مجموعه‌ای از حالت‌های if-else است که خواننده می‌تواند پیاده‌سازی کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func matchRange(schema *Schema, cond interface{}) (*RangeReq, bool) {
+    binop, ok := cond.(*ExprBinOp)
+    if ok &amp;&amp; binop.op == OP_AND {
+        // a &gt; 1 AND a &lt; 2
+    } else if ok {
+        // a &gt; 1
+    }
+    return nil, false
+}</code></pre>
+        <p>فعلاً فقط یک بازهٔ منفرد پشتیبانی می‌شود. برای پشتیبانی از <code class="inline">OR</code>، باید به چند
+        فراخوانی <code class="inline">DB.Range()</code> نگاشت شود و بهتر است اجتماع و اشتراک بازه‌ها ساده شود. ایده را
+        می‌فهمید، اما پیاده‌سازی پرکار است، پس این‌جا متوقف می‌شویم.</p>
+      </section>
+
+      <!-- ==================== فصل ۰۶: لاگ و داده ==================== -->
+      <section>
+        <h2>۰۶ — لاگ و داده</h2>
+
+        <!-- 0600 -->
+        <h3>۰۶۰۰: به‌روزرسانی‌های اتمی</h3>
+        <p>همین حالا پایگاه دادهٔ ما «لاگ + آرایهٔ درون‌حافظه» است. این یک پایگاه دادهٔ درون‌حافظه با ماندگاری است.
+        اندازهٔ داده به حافظه محدود است، بنابراین به ساختارهای دادهٔ مبتنی بر دیسک نیاز داریم. آرایه ساده‌ترین ساختار
+        است. فرمتی طراحی خواهیم کرد تا آرایهٔ مرتبِ درون‌حافظه را روی دیسک ذخیره کنیم.</p>
+        <p>اما آرایه یک ساختار دادهٔ کاربردی نیست، زیرا درج و حذف در آن <em>O</em>(<em>N</em>) است. فقط ۲ انتخاب
+        کاربردی وجود دارد: درخت B+ و درخت LSM. هر دو می‌توانند از آرایه‌های ساده تکامل یابند، بنابراین می‌توانیم در گام‌های
+        ریز پیش برویم و درک ایده‌های کامل را آسان‌تر کنیم.</p>
+        <p>چالش‌های به‌روزرسانی ساختارهای دادهٔ مبتنی بر دیسک و راه‌حل‌هایشان را بررسی خواهیم کرد؛ از جمله
+        کپی-هنگام-نوشتن (copy-on-write)، بافر دوگانه (double buffering)، لاگ فیزیکی و درخت LSM. این بخش در کتاب کامل
+        گنجانده شده است.</p>
+
+        <!-- 0601 -->
+        <h3>۰۶۰۱: ساخت SSTableها</h3>
+        <h4>قالب SSTable</h4>
+        <p>در این گام، آرایهٔ مرتبِ درون‌حافظه را در یک فایل ماندگار می‌کنیم. این فایل در ابتدا با تخلیهٔ ساختار دادهٔ
+        درون‌حافظه (آینهٔ لاگ) ایجاد می‌شود. بعداً، هر بار که لاگ به حد اندازه برسد، با فایل قدیمی در یک فایل جدید
+        ادغام می‌شود و سپس فایل قدیمی جایگزین می‌شود.</p>
+        <p>در درخت LSM، ساختار دادهٔ روی دیسک معمولاً SSTable (جدول رشتهٔ مرتب — sorted string table) نامیده می‌شود.
+        یک SSTable فقط جزئیات پیاده‌سازی است؛ حتی با همان ساختار داده هم می‌توان از قالب‌های متفاوت روی دیسک استفاده
+        کرد. ما این قالب را برمی‌گزینیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[ n keys | offset1 | offset2 | ... | offsetn | KV1 | KV2 | ... | KVn ]
+  8bytes   8bytes</code></pre>
+        <p>اول آرایه‌ای می‌آید که آفست هر کلید را در فایل ثبت می‌کند. اندازهٔ آرایه (n) در ابتدا ذخیره می‌شود. این
+        آرایه برای جست‌وجوی دودویی و پیمایش استفاده می‌شود. هر KV در قالب زیر ذخیره می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[ key length | val length | key data | val data ]
+    4bytes       4bytes</code></pre>
+
+        <h4>ساخت یک SSTable</h4>
+        <p>SSTable اولیه با تخلیهٔ ساختار دادهٔ درون‌حافظه (MemTable) ایجاد می‌شود. هنگام ساخت SSTable، دادهٔ ورودی از
+        طریق یک تکرارگر تغذیه می‌شود، بنابراین کد به نوع دادهٔ مشخص وابسته نیست.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedFile struct {
+    FileName string
+    fp       *os.File
+}
+
+func (file *SortedFile) CreateFromSorted(kv SortedKV) error
+
+type SortedKV interface {
+    Size() int
+    Iter() (SortedKVIter, error)
+}
+type SortedKVIter interface {
+    Valid() bool
+    Key() []byte
+    Val() []byte
+    Next() error
+    Prev() error
+}</code></pre>
+        <p>این تکرارگر یک واسط است و با <code class="inline">KVIterator</code> موجود مطابقت دارد. استفاده از واسط آن
+        را تست‌پذیرتر هم می‌کند؛ جزئیات را در موارد تست ببینید.</p>
+        <p>واسط ورودی همچنین تعداد کلیدها را فراهم می‌کند. با این، اندازهٔ آرایهٔ آفست‌ها و در نتیجه آفست اولین KV را
+        می‌دانیم. می‌توانیم هم آرایهٔ آفست‌ها و هم دادهٔ KV را در یک پاس بنویسیم. برای نوشتن در موقعیت مشخص از
+        <code class="inline">WriteAt()</code> استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (fp *os.File) WriteAt(b []byte, offset int64) (n int, err error)</code></pre>
+
+        <!-- 0602 -->
+        <h3>۰۶۰۲: پرس‌وجوی SSTable</h3>
+        <h4>خواندن یک SSTable</h4>
+        <p>گام قبل عملاً <code class="inline">[]struct{ key []byte; val []byte }</code> را روی دیسک سریال کرد. از این
+        قالب می‌توان مستقیماً بدون سریال‌زدایی استفاده کرد و نیازی به بارگذاری کامل در حافظه نیست. حالا خواندن n-اُمین
+        جفت KV از آرایه را پیاده‌سازی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedFile struct {
+    FileName string
+    fp       *os.File
+    nkeys    int // افزوده شده
+}
+
+func (file *SortedFile) index(pos int) (key []byte, val []byte, err error) {
+    var buf [8]byte
+    if _, err = file.fp.ReadAt(buf[:], int64(8+8*pos)); err != nil {
+        return nil, nil, err
+    }
+    // آفست KV
+    offset := int64(binary.LittleEndian.Uint64(buf[:]))
+    if int64(8+8*file.nkeys) &gt; offset {
+        return nil, nil, errors.New("corrupted file")
+    }
+    // خواندن KV
+    if _, err = file.fp.ReadAt(buf[:], offset); err != nil {
+        return nil, nil, err
+    }
+    // TODO
+}</code></pre>
+        <p><code class="inline">ReadAt()</code> داده را از یک آفست مشخص فایل می‌خواند؛ هم‌تایِ
+        <code class="inline">WriteAt()</code>.</p>
+
+        <h4>جست‌وجو و پیمایش</h4>
+        <p>با استفاده از <code class="inline">index()</code>، جست‌وجوی دودویی و تکرارگرها را پیاده‌سازی می‌کنیم. چون
+        داده روی دیسک است، ممکن است خطاهای ورودی/خروجی رخ دهند، بنابراین <code class="inline">error</code> برگردانده
+        می‌شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (file *SortedFile) Seek(key []byte) (SortedKVIter, error) {
+    // ...
+    iter := &amp;SortedFileIter{file: file, pos: pos}
+    // ...
+    return iter, nil
+}</code></pre>
+        <p>از این به بعد، به‌جای انواع مشخص، ترجیحاً واسط برگردانید؛ این از اتصال محکم جلوگیری می‌کند. پیاده‌سازی
+        تکرارگر شبیه <code class="inline">KVIterator</code> موجود است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedFileIter struct {
+    file *SortedFile
+    pos  int
+    key  []byte
+    val  []byte
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (iter *SortedFileIter) Valid() bool {
+    return 0 &lt;= iter.pos &amp;&amp; iter.pos &lt; iter.file.nkeys
+}
+func (iter *SortedFileIter) Key() []byte { return iter.key }
+func (iter *SortedFileIter) Val() []byte { return iter.val }
+func (iter *SortedFileIter) Next() error
+func (iter *SortedFileIter) Prev() error</code></pre>
+        <p>خطاهایی که هنگام خواندن KV رخ می‌دهند از طریق <code class="inline">Prev()</code> و
+        <code class="inline">Next()</code> برگردانده می‌شوند. بنابراین بعد از جابه‌جایی
+        <code class="inline">pos</code>، KV باید خوانده و در تکرارگر ذخیره شود.</p>
+
+        <!-- 0603 -->
+        <h3>۰۶۰۳: بازسازی کد</h3>
+        <p>اگر SSTableها به KV اضافه شوند، پرس‌وجوها باید هم ساختار درون‌حافظه (MemTable) و هم SSTableها را بخوانند و
+        سپس نتایج را ادغام کنند. ساختار درون‌حافظهٔ فعلی فقط ۲ آرایه است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    log  Log
+    keys [][]byte
+    vals [][]byte
+}</code></pre>
+        <p>این گام قابلیت جدیدی اضافه نمی‌کند. ساختار درون‌حافظه را به یک نوع جداگانه منتقل می‌کند تا برای گام بعد آماده
+        شود. همچنین جایگزینی ساختار داده را در آینده آسان‌تر می‌کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    log Log
+    mem SortedArray
+}
+type SortedArray struct {
+    keys [][]byte
+    vals [][]byte
+}</code></pre>
+        <p><code class="inline">SortedArray</code> استخراج‌شده، واسط <code class="inline">SortedKV</code> را
+        پیاده‌سازی می‌کند و می‌تواند به‌عنوان ورودی SSTableها استفاده شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (arr *SortedArray) Size() int { return len(arr.keys) }
+func (arr *SortedArray) Iter() (SortedKVIter, error) {
+    return &amp;SortedArrayIter{arr.keys, arr.vals, 0}, nil
+}</code></pre>
+        <p><code class="inline">KVIterator</code> را به نام مناسب‌تر تغییر نام دهید:
+        <code class="inline">SortedArrayIter</code>. <code class="inline">KV.Seek()</code> را تغییر دهید تا یک واسط
+        برگرداند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (SortedKVIter, error)</code></pre>
+        <p>به فیلدهای struct مستقیم دسترسی نزنید. به‌جای آن از متدها استفاده کنید. get و set و del اصلی را نیز به آنجا
+        منتقل کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (arr *SortedArray) Key(i int) []byte { return arr.keys[i] }
+func (arr *SortedArray) Clear()
+func (arr *SortedArray) Push(key []byte, val []byte)
+func (arr *SortedArray) Pop()
+func (arr *SortedArray) Get(key []byte) (val []byte, ok bool, err error)
+func (arr *SortedArray) Set(key []byte, val []byte) (updated bool, err error)
+func (arr *SortedArray) Del(key []byte) (deleted bool, err error)</code></pre>
+
+        <!-- 0604 -->
+        <h3>۰۶۰۴: ادغام دادهٔ مرتب</h3>
+        <h4>ادغام KV</h4>
+        <p>اگر SSTableها اضافه شوند، ۲ ساختار داده وجود خواهد داشت. کلیدها اول وارد MemTable می‌شوند و بعداً در
+        SSTableها ادغام می‌شوند، بنابراین پرس‌وجوها ممکن است نیاز به ادغام نتایج از هر دو داشته باشند.</p>
+        <p>یک کلید ممکن است هم در MemTable و هم در یک SSTable وجود داشته باشد؛ MemTable اولویت بالاتر دارد. در درخت
+        LSM که بعداً پیاده‌سازی می‌شود، می‌توان چند سطح SSTable وجود داشته باشد. SSTableهای سطح پایین‌تر از سطح‌های
+        بالاتر ادغام می‌شوند. هنگام پرس‌وجوی یک کلید منفرد، از بالا به پایین و سطح‌به‌سطح جست‌وجو کنید. به همین دلیل
+        اولین پایگاه دادهٔ محبوب LSM-Tree، LevelDB نامیده شد.</p>
+
+        <h4>ادغام بازه‌ها</h4>
+        <p>پرس‌وجوهای تک‌کلیدی می‌توانند هر سطح را به‌ترتیب بررسی کنند. پرس‌وجوهای بازه‌ای نمی‌توانند، زیرا کلید بعدی
+        ممکن است از هر سطحی بیاید. برای پیمایش صعودی، باید کوچک‌ترین کلید را بین همهٔ تکرارگرهای سطح انتخاب کنید. این
+        دقیقاً مرتب‌سازی ادغامی (merge sort) است.</p>
+        <p>ادغام k بازه را پیاده‌سازی می‌کنیم که بعداً برای درخت LSM قابل استفاده مجدد است. این از ادغام ۲ بازه
+        پیچیده‌تر نیست.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type MergedSortedKV []SortedKV
+
+func (m MergedSortedKV) Iter() (iter SortedKVIter, err error) {
+    levels := make([]SortedKVIter, len(m))
+    for i, sub := range m {
+        if levels[i], err = sub.Iter(); err != nil {
+            return nil, err
+        }
+    }
+    return &amp;MergedSortedKVIter{levels, levelsLowest(levels)}, nil
+}
+
+type MergedSortedKVIter struct {
+    levels []SortedKVIter
+    which  int
+}
+func (iter *MergedSortedKVIter) Valid() bool {
+    return iter.which &gt;= 0
+}
+func (iter *MergedSortedKVIter) Key() []byte {
+    return iter.levels[iter.which].Key()
+}
+func (iter *MergedSortedKVIter) Val() []byte {
+    return iter.levels[iter.which].Val()
+}
+func (iter *MergedSortedKVIter) Next() error
+func (iter *MergedSortedKVIter) Prev() error</code></pre>
+        <p><code class="inline">which</code> تکرارگری را ثبت می‌کند که کلید فعلیِ کوچک‌ترین یا بزرگ‌ترین را دارد.
+        الزام‌ها:</p>
+        <ul>
+          <li>سطح‌های بالاتر نسبت به سطح‌های پایین‌تر اولویت دارند.</li>
+          <li>کلیدهای تکراری خروجی داده نشوند.</li>
+          <li>جهت می‌تواند در میانه تغییر کند.</li>
+        </ul>
+
+        <!-- 0605 -->
+        <h3>۰۶۰۵: لاگ + SSTable</h3>
+        <p>SSTableها را در این گام اضافه می‌کنیم. پرس‌وجوها باید نتایج را از MemTable و SSTable ادغام کنند.
+        <code class="inline">KV.Compact()</code> را معرفی می‌کنیم که MemTable (آینهٔ لاگ) و SSTable را ادغام می‌کند تا
+        یک SSTable جدید تولید کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    log  Log
+    mem  SortedArray
+    main SortedFile // افزوده شده
+}
+
+func (file *SortedFile) Open() error
+func (kv *KV) Compact() error</code></pre>
+
+        <h4>پرچم حذف</h4>
+        <p>حالا که ۲ سطح ساختار داده وجود دارد، کلیدهای حذف‌شده باید در سطح بالاتر ثبت شوند؛ در غیر این صورت پرس‌وجوها
+        کلید را از سطح پایین‌تر برمی‌گردانند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedArray struct {
+    keys    [][]byte
+    vals    [][]byte
+    deleted []bool  // افزوده شده
+}
+
+type SortedArrayIter struct {
+    keys    [][]byte
+    vals    [][]byte
+    deleted []bool  // افزوده شده
+    pos     int
+}
+
+func (iter *SortedArrayIter) Deleted() bool { return iter.deleted[iter.pos] }</code></pre>
+        <p>این پرچم فعلاً فقط در MemTable سطح بالا وجود دارد؛ SSTable سطح پایین به آن نیاز ندارد. بعداً هنگام پیاده‌سازی
+        درخت LSM با چند سطح SSTable، سطح‌های میانی نیز به این پرچم نیاز خواهند داشت.</p>
+        <p>توابع مربوطه در <code class="inline">SortedArray</code> باید تغییر کنند، از جمله del و set.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (arr *SortedArray) Clear()
+func (arr *SortedArray) Push(key []byte, val []byte, deleted bool)
+func (arr *SortedArray) Pop()
+func (arr *SortedArray) Del(key []byte) (deleted bool, err error)
+func (arr *SortedArray) Set(key []byte, val []byte) (updated bool, err error)</code></pre>
+
+        <h4>ادغام پرس‌وجوهای بازه‌ای</h4>
+        <p>پیرو <code class="inline">MergedSortedKV.Scan()</code>، <code class="inline">MergedSortedKV.Seek()</code>
+        را اضافه کنید که تکرارگر را با <code class="inline">Seek()</code> هر سطح مقداردهی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (m MergedSortedKV) Seek(key []byte) (iter SortedKVIter, err error)</code></pre>
+        <p>پرس‌وجوی بازهٔ ادغامی:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (SortedKVIter, error) {
+    m := MergedSortedKV{&amp;kv.mem, &amp;kv.main}
+    iter, err := m.Seek(key)
+    if err != nil {
+        return nil, err
+    }
+    return filterDeleted(iter)
+}</code></pre>
+        <p>خروجی باید کلیدهای حذف‌شده را فیلتر کند. می‌توانیم تکرارگر را برای انجام این کار بپیچیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func filterDeleted(iter SortedKVIter) (SortedKVIter, error) {
+    for iter.Valid() &amp;&amp; iter.Deleted() {
+        if err := iter.Next(); err != nil {
+            return nil, err
+        }
+    }
+    return NoDeletedIter{iter}, nil
+}
+
+type NoDeletedIter struct {
+    SortedKVIter    // همهٔ متدها را به ارث می‌برد
+}
+
+// بازنویسی Next() و Prev()
+func (iter NoDeletedIter) Next() (err error)</code></pre>
+
+        <h4>تغییر قالب SSTable</h4>
+        <p>هنگام ساخت یک SSTable در یک پاس، برای تخصیص آرایهٔ آفست‌ها باید تعداد کلیدها را بدانیم. با این حال، پس از
+        ادغام، کلیدهای تکراری و حذف‌شده حذف می‌شوند، بنابراین تعداد نهایی کلیدها از مجموع تعداد کلیدهای همهٔ سطح‌ها
+        کوچک‌تر است. بنابراین اندازهٔ آرایهٔ آفست فقط یک تخمین است، اما همچنان کار می‌کند تا وقتی که تعداد واقعی کلیدها
+        را بعد از پیمایش بنویسیم. باید <code class="inline">SortedFile.CreateFromSorted()</code> را کمی تغییر دهیم.
+        همچنین <code class="inline">SortedKV.Size()</code> به نام مناسب‌تری تغییر نام می‌یابد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedKV interface {
+    EstimatedSize() int                     // تغییر نام یافته
+    Iter() (SortedKVIter, error)
+    Seek(key []byte) (SortedKVIter, error)  // افزوده شده
+}
+
+func (m MergedSortedKV) EstimatedSize() (total int) {
+    for _, sub := range m {
+        total += sub.EstimatedSize()
+    }
+    return total
+}</code></pre>
+        <p>تخصیص بیش از حد آرایهٔ آفست، یک شکاف بلااستفاده در فایل ایجاد می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[ n keys | offset1 | offset2 | ... | offsetn | gap | KV1 | KV2 | ... | KVn ]</code></pre>
+
+        <h4>انتقال لاگ به SSTable</h4>
+        <p><code class="inline">KV.Compact()</code> MemTable را در ۳ گام در SSTable ادغام می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Compact() error {
+    // ۱. ادغام MemTable و SSTable؛ خروجی به یک فایل موقت
+    path := randomTempPath()
+    defer os.Remove(path)
+    file := SortedFile{FileName: path}
+    m := MergedSortedKV{&amp;kv.mem, &amp;kv.main}
+    if err := file.CreateFromSorted(m); err != nil {
+        return err
+    }
+    // ۲. جایگزینی SSTable اصلی (عملیات اتمی)
+    if err := renameSync(file.FileName, kv.main.FileName); err != nil {
+        _ = file.Close()
+        return err
+    }
+    file.FileName = kv.main.FileName
+    _ = kv.main.Close()
+    kv.main = file
+    // ۳. پاک کردن MemTable و لاگ
+    kv.mem.Clear()
+    return kv.log.Truncate()
+}</code></pre>
+        <p>در صورت قطع برق، فراخوانی سیستمی <code class="inline">rename()</code> لینوکس اتمی بودن فایل مقصد را تضمین
+        می‌کند. اما برای ماندگار کردن آن، باید پوشهٔ والد را نیز <code class="inline">fsync</code> کنید (گام ۰۱۰۴ را
+        ببینید).</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func syncDir(file string) error
+
+func renameSync(src string, dst string) error {
+    if err := os.Rename(src, dst); err != nil {
+        return err
+    }
+    return syncDir(dst)
+}</code></pre>
+      </section>
+
+      <!-- ==================== فصل ۰۷: درخت LSM ==================== -->
+      <section>
+        <h2>۰۷ — درخت LSM</h2>
+
+        <!-- 0700 -->
+        <h3>۰۷۰۰: مقدمه‌ای بر درخت LSM</h3>
+        <h4>درخت LSM چیست؟</h4>
+        <p>درخت ادغام-ساختاریافتهٔ لاگ (Log-structured Merge Tree یا LSM-Tree) و درخت B+ تنها ۲ انتخاب برای ساخت یک
+        پایگاه دادهٔ همه‌منظوره هستند. LSM-Tree را می‌توان با B+Tree مقایسه کرد، اما یک ساختار دادهٔ عینی نیست. این یک
+        روش است که «به‌روزرسانی» ساختارهای داده را با «ادغام» جایگزین می‌کند. نامش گمراه‌کننده است، زیرا ایدهٔ آن هیچ
+        ربطی به درخت یا لاگ ندارد.</p>
+        <p>پایگاه دادهٔ ما ۲ سطح دارد: MemTable و SSTable. MemTable برای ماندگاری از یک لاگ استفاده می‌کند، در حالی‌که
+        SSTable هرگز تغییر نمی‌کند و فقط با فایل‌های جدید جایگزین می‌شود. برای پرس‌وجوها، نتایج ادغام می‌شوند و MemTable
+        بالایی اولویت بالاتر دارد. برای به‌روزرسانی‌ها، داده اول به سطح بالایی می‌رود و بعد به سطح‌های پایین‌تر.</p>
+        <p>این ساختار ۲ سطحی را می‌توان به k سطح گسترش داد؛ این همان LSM-Tree است. اینکه هر سطح چه چیزی دارد برای اصل
+        LSM-Tree بی‌ربط است. هر سطح فقط باید مجموعه‌ای از KV مرتب باشد، که می‌تواند آرایه یا درخت باشد. اگر ترتیب لازم
+        نباشد، حتی می‌تواند جدول هش باشد. بنابراین LSM-Tree مجموعه‌ای از ساختارهای داده است، نه یک ساختار واحد.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">level 1     [x=1, z=3]
+level 2     [a=8, y=2, z=(deleted)]
+...
+level k     [a=0, b=2, c=3, d=4, z=456]</code></pre>
+        <p>توضیح مفصل را در کتاب کامل ببینید.</p>
+
+        <!-- 0701 -->
+        <h3>۰۷۰۱: ذخیرهٔ اتمی</h3>
+        <h4>بافر دوگانه</h4>
+        <p>گام قبل فقط ۱ سطح SSTable داشت، با یک نام فایل ثابت که با <code class="inline">rename()</code> جایگزین
+        می‌شد. یک LSM-Tree چند سطح SSTable و چند فایل دارد، بنابراین نام‌های ثابت کار نمی‌کنند. فهرست نام فایل‌های
+        سطح‌ها باید توسط پایگاه داده ثبت شود.</p>
+        <p>از آنجا که تعداد سطح‌ها از log *N* تجاوز نمی‌کند، فهرست نام فایل‌ها به به‌روزرسانی افزایشی نیاز ندارد. می‌توانیم
+        از بافر دوگانهٔ ۰۶۰۰ برای دستیابی به به‌روزرسانی‌های اتمی استفاده کنیم. یعنی ۲ نسخه با نسخه (version) و جمع
+        کنترلی نگه داریم و آن‌ها را به‌نوبت به‌روزرسانی کنیم. پس از قطع برق، می‌توانیم به نسخهٔ سالم بازیابی کنیم.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">slot 0 -&gt; [ version 124 | data yyy | crc32 ]
+slot 1 -&gt; [ version 123 | data zzz | crc32 ]</code></pre>
+
+        <h4>متاداده</h4>
+        <p>این ۲ رکورد می‌توانند ۲ فایل باشند. ساختارها را این‌گونه تعریف کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KVMetaStore struct {
+    slots [2]KVMetaItem
+}
+type KVMetaItem struct {
+    FileName string
+    fp       *os.File
+    data     KVMetaData
+}
+type KVMetaData struct {
+    Version uint64
+    SSTable string  // نام فایل
+}
+func (meta *KVMetaStore) Open() error
+func (meta *KVMetaStore) Close() error
+func (meta *KVMetaStore) Get() KVMetaData
+func (meta *KVMetaStore) Set(data KVMetaData) error</code></pre>
+        <p><code class="inline">KVMetaData</code> داده‌ای است که باید ذخیره شود؛ دارای یک نسخهٔ یکنواخت (monotonic) و
+        یک نام فایل SSTable است. آن را با هر روش سریال‌سازی (JSON کافی است) در فایل بنویسید. الزام‌ها:</p>
+        <ul>
+          <li><code class="inline">Open()</code> نسخهٔ خراب را نادیده می‌گیرد؛ از جمله خطاهای سریال‌زدایی و عدم تطابق
+          جمع کنترلی.</li>
+          <li><code class="inline">Get()</code> نسخه‌ای را برمی‌گرداند که نسخهٔ بزرگ‌تری دارد.</li>
+          <li><code class="inline">Set()</code> نسخه‌ای را بازنویسی می‌کند که نسخهٔ کوچک‌تری دارد و
+          <code class="inline">fsync</code> را صدا می‌زند.</li>
+        </ul>
+
+        <!-- 0702 -->
+        <h3>۰۷۰۲: ذخیرهٔ متاداده</h3>
+        <h4>چیدمان پوشه</h4>
+        <p>از آنجا که پایگاه داده از چند فایل استفاده می‌کند، باید خودش آن‌ها را مدیریت کند. کاربر فقط یک پوشه مشخص
+        می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KVOptions struct {
+    Dirpath string
+}
+
+type KV struct {
+    Options KVOptions
+    meta    KVMetaStore
+    log     Log
+    main    SortedFile
+    // ...
+}</code></pre>
+        <p>نام فایل‌های SSTable به‌صورت پویا تولید و در <code class="inline">KVMetaData</code> ذخیره می‌شوند. در حالی‌که
+        <code class="inline">Log</code> و <code class="inline">KVMetaData</code> از نام فایل‌های ثابت استفاده می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">    kv.log.FileName = path.Join(kv.Options.Dirpath, "kv_log")
+    kv.meta.slots[0].FileName = path.Join(kv.Options.Dirpath, "meta0")
+    kv.meta.slots[1].FileName = path.Join(kv.Options.Dirpath, "meta1")</code></pre>
+
+        <h4>ثبت نام فایل‌های SSTable</h4>
+        <p><code class="inline">KV.Compact()</code> قبلاً فایل‌ها را با <code class="inline">rename()</code> جایگزین
+        می‌کرد. حالا از <code class="inline">KVMetaStore</code> برای ثبت نام فایل جدید استفاده می‌کند و پس از موفقیت،
+        فایل قدیمی را حذف می‌کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    version uint64
+    // ...
+}
+
+func (kv *KV) Compact() error {
+    kv.version++
+    sstable := fmt.Sprintf("sstable_%d", kv.version)
+    file := SortedFile{FileName: path.Join(kv.Options.Dirpath, sstable)}
+    // ...
+}</code></pre>
+        <p>نام فایل توسط یک شمارهٔ یکنواخت تولید می‌شود که همان نسخه در <code class="inline">KVMetaData</code> است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Open() error {
+    // ...
+    kv.version = kv.meta.Get().Version
+    // ...
+}</code></pre>
+
+        <!-- 0703 -->
+        <h3>۰۷۰۳: چند سطح</h3>
+        <p>این گام چند سطح SSTable اضافه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KV struct {
+    // ...
+    // main    SortedFile
+    main    []SortedFile
+}
+
+type KVMetaData struct {
+    Version  uint64
+    // SSTable string
+    SSTables []string
+}</code></pre>
+        <p>پرس‌وجو قبلاً ۲ سطح داشت. حالا فقط تغییرات کوچکی لازم است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Seek(key []byte) (SortedKVIter, error) {
+    levels := MergedSortedKV{&amp;kv.mem}
+    for i := range kv.main {
+        levels = append(levels, &amp;kv.main[i])
+    }
+    iter, err := levels.Seek(key)
+    // ...
+}</code></pre>
+        <p>SSTableها باید کلیدهای حذف‌شده را ثبت کنند (به‌جز آخرین سطح). قالب SSTable را تغییر دهید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[ key length | val length | deleted | key data | val data ]
+    4bytes       4bytes      1byte</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type SortedArray struct {
+    keys    [][]byte
+    vals    [][]byte
+    deleted []bool      // افزوده شده
+}</code></pre>
+        <p><code class="inline">KV.Compact()</code> لاگ را به یک SSTable تبدیل می‌کند و آن را در
+        <code class="inline">KV.main[0]</code> درج می‌کند، به‌جای اینکه SSTable را جایگزین کند. ادغام بین SSTableها در
+        گام بعد پیاده‌سازی خواهد شد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Compact() error</code></pre>
+
+        <!-- 0704 -->
+        <h3>۰۷۰۴: ادغام سطح‌ها</h3>
+        <h4>پارامترهای LSM-Tree</h4>
+        <p>در گام قبل، لاگ به SSTable سطح بالا تبدیل شد. حالا عملیات ادغام از ۰۷۰۰ را پیاده‌سازی کنید. ۲ پارامتر اضافه
+        کنید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type KVOptions struct {
+    Dirpath string
+    // LSM-Tree
+    LogShreshold int
+    GrowthFactor float32
+}</code></pre>
+        <ul>
+          <li><code class="inline">LogShreshold</code> حداکثر تعداد کلید در لاگ است. وقتی از آن تجاوز شد، به SSTable
+          تبدیل می‌شود.</li>
+          <li><code class="inline">GrowthFactor</code> نسبت اندازه (تعداد کلید) بین سطح‌های مجاور است.</li>
+        </ul>
+
+        <h4>ادغام SSTableها</h4>
+        <p>تابع <code class="inline">KV.Compact()</code> از این ۲ پارامتر برای تصمیم‌گیری دربارهٔ زمان ادغام SSTableها
+        استفاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) Compact() error {
+    if kv.mem.Size() &gt;= kv.Options.LogShreshold {
+        if err := kv.compactLog(); err != nil {
+            return err
+        }
+    }
+    for i := 0; i &lt; len(kv.main)-1; i++ {
+        if kv.shouldMerge(i) {
+            if err := kv.compactSSTable(i); err != nil {
+                return err
+            }
+            i--
+            continue
+        }
+    }
+    return nil
+}</code></pre>
+        <ul>
+          <li><code class="inline">KV.compactLog()</code> همان <code class="inline">KV.Compact()</code> گام قبل است.</li>
+          <li><code class="inline">KV.shouldMerge()</code> با قاعدهٔ رشد نمایی تصمیم می‌گیرد سطح <code class="inline">i</code>
+          با <code class="inline">i+1</code> ادغام شود یا نه.</li>
+          <li><code class="inline">KV.compactSSTable()</code> ۲ SSTable مجاور را ادغام می‌کند و نسخه‌های اصلی را جایگزین
+          می‌کند.</li>
+        </ul>
+        <p>توجه کنید که آخرین سطح باید کلیدهای حذف‌شده را دور بریزد. می‌توانید تکرارگر ورودی را بپیچید:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type NoDeletedSortedKV struct {
+    SortedKV
+}
+
+func (kv NoDeletedSortedKV) Iter() (iter SortedKVIter, err error) {
+    if iter, err = kv.SortedKV.Iter(); err != nil {
+        return nil, err
+    }
+    return NoDeletedIter{iter}, nil
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (kv *KV) compactSSTable(level int) error {
+    // ...
+    file := SortedFile{FileName: filename}
+    m := SortedKV(MergedSortedKV{&amp;kv.main[level], &amp;kv.main[level+1]})
+    if len(kv.main) == level+2 {
+        m = NoDeletedSortedKV{m}
+    }
+    err := file.CreateFromSorted(m)
+    // ...
+}</code></pre>
+        <p>برای کاربردی‌شدن پایگاه داده، <code class="inline">KV.Compact()</code> باید هنگام به‌روزرسانی به‌صورت خودکار
+        فعال شود که گامی آینده در کتاب کامل است.</p>
+      </section>
+
+      <!-- ==================== بخش‌های ۰۸ و ۰۹ و کتاب ==================== -->
+      <section>
+        <h2>۰۸ — ایندکس و ۰۹ — همزمانی (در کتاب کامل)</h2>
+        <p>محتویات بخش‌های ۰۸ (ایندکس‌ها) و ۰۹ (همزمانی) در نسخهٔ وب موجود نیستند و فقط در کتاب کامل موجودند.</p>
+        <div class="callout note">
+          <strong>کتاب کامل:</strong> نسخهٔ وب از فصل ۰۴ به بعد فقط دستورالعمل‌های ساده دارد، در حالی‌که
+          <a href="https://trialofcode.org/database/9000_end/" target="_blank" rel="noopener">کتاب کامل</a> توضیحات
+          مفصل و اطلاعات زمینه‌ای دارد. کتاب کامل همچنین <b>ایندکس‌های ثانویه، تراکنش‌ها و همزمانی</b> را پوشش می‌دهد.
+          می‌توانید کتاب را بخرید تا: مسیرتان را هموار کنید، در موضوعات مرتبط عمیق‌تر بروید، بدون متعهد شدن به کل پروژه
+          درون‌مایه‌های پایگاه داده را یاد بگیرید، و از نویسنده حمایت کنید.
+        </div>
+        <p>گزینه‌های خرید کتاب:</p>
+        <ul>
+          <li>PDF/EPUB: <a href="https://leanpub.com/db_in_45_steps_go/c/2025_1999" target="_blank" rel="noopener">لینک کوپن تخفیف</a></li>
+          <li>نسخهٔ کاغذی: <a href="https://amzn.to/3LbkvdK" target="_blank" rel="noopener">Amazon US</a></li>
+        </ul>
+        <p>برنامه این است که پروژه‌های بیشتری مانند این منتشر شود. <a href="https://stats.sender.net/forms/bmZPk0/view" target="_blank" rel="noopener">مشترک شوید</a> تا به‌روزرسانی‌ها را بگیرید.</p>
+        <p>برخی منابع مفید دیگر:</p>
+        <ul>
+          <li><a href="https://build-your-own.org/#section-database" target="_blank" rel="noopener">Build Your Own Database</a> — برای رویکرد مبتنی بر درخت B+.</li>
+          <li><a href="https://amzn.to/3KU67Xh" target="_blank" rel="noopener">Database Internals</a> — برای درون‌مایه‌های عمومی پایگاه داده.</li>
+          <li><a href="https://app.codecrafters.io/join?via=byo-books" target="_blank" rel="noopener">CodeCrafters.io</a> — دوره‌های Build-Your-Own-X در زبان‌های مختلف.</li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «کدنویسی یک پایگاه داده در ۴۵ گام» (Code a database in 45 steps) اثر
+        «Trial of Code» (trialofcode.org) است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق
+        به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://trialofcode.org/database/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

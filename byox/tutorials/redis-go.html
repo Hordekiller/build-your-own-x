@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مجموعه مقالات «Build Redis from scratch» (Ahmed Ashraf)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت Redis از صفر در Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>ساخت Redis از صفر در Go</span>
+      </div>
+      <h1>ساخت Redis از صفر در Go</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.build-redis-from-scratch.dev/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مجموعه مقالات «Build Redis from scratch» نوشته «احمد اشرف
+          (Ahmed Ashraf)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.build-redis-from-scratch.dev/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>در مجموعه مقالات پیشِ رو، گام‌به‌گام توضیح خواهیم داد که چگونه یک پایگاه دادهٔ درون‌حافظه‌ای
+        (in-memory database) مانند Redis بسازیم. هدف این است که جزئیات سطح پایینِ (low-level) دخیل در پایگاه‌های
+        داده، ساختمان داده‌ها و الگوریتم‌ها را ساده کنیم و توضیح دهیم. Redis را انتخاب کرده‌ایم؛ زیرا به‌عنوان یک ابزار
+        ساده است و درک آن آسان است.</p>
+
+        <h3>چه چیزی قرار است بسازیم؟</h3>
+        <p>هدف این مجموعه، راهنمایی شما در ساختن یک پایگاه دادهٔ درون‌حافظه‌ای شبیه به Redis است. منظور از «شبیه به
+        Redis» این است که برخی از دستورهای موجود در Redis را خواهد داشت. بخش مهم، نحوهٔ ذخیره‌سازی این داده‌ها روی
+        دیسک و خواندن دوبارهٔ آن‌ها به حافظه هنگام اجرای سرور است.</p>
+        <p>ما از زبان Go استفاده خواهیم کرد؛ زیرا کد آن ساده است و پیش از این نیز پایگاه‌های دادهٔ زیادی با Go نوشته
+        شده‌اند، مانند
+        <a href="https://github.com/boltdb/bolt" target="_blank" rel="noopener">boltdb</a> و
+        <a href="https://github.com/peterbourgon/diskv" target="_blank" rel="noopener">diskv</a>.</p>
+
+        <img src="https://www.build-redis-from-scratch.dev/images/diagram.svg"
+             alt="نمودار معماری پایگاه داده درون‌حافظه‌ای"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>کاری که انجام خواهیم داد این است:</p>
+        <ul>
+          <li>یک نسخهٔ مشابه Redis (Redis clone) می‌سازیم که به شما اجازه می‌دهد از
+          <a href="https://redis.io/docs/data-types/strings/" target="_blank" rel="noopener">رشته‌ها (strings)</a> و
+          <a href="https://redis.io/docs/data-types/hashes/" target="_blank" rel="noopener">هش‌ها (hashes)</a> استفاده کنید.</li>
+          <li>یک تجزیه‌گر (parser) برای فهمیدن
+          <a href="https://redis.io/docs/reference/protocol-spec/" target="_blank" rel="noopener">RESP</a> می‌نویسیم که
+          به سرور اجازه می‌دهد دستورها را دریافت کند و با پاسخ‌ها جواب بدهد.</li>
+          <li>برای مدیریت هم‌زمان چندین اتصال از گوروتین‌ها (goroutines) استفاده می‌کنیم.</li>
+          <li>با استفاده از
+          <a href="https://redis.io/docs/management/persistence/" target="_blank" rel="noopener">فایل فقط‌الحاقی
+          (Append Only File — AOF)</a>، که یکی از روش‌هایی است که Redis برای ماندگاری (persistence) استفاده می‌کند،
+          داده‌ها را روی دیسک می‌نویسیم. به این ترتیب، اگر سرور از کار بیفتد یا راه‌اندازی مجدد شود، می‌توانیم
+          داده‌ها را بازیابی کنیم.</li>
+        </ul>
+        <p>اگر الان بعضی از اصطلاح‌ها را نمی‌فهمید، نگران نباشید. در ادامه، هنگام عبور از هر بخش، آن‌ها را توضیح
+        خواهیم داد.</p>
+        <p>در پایان، کد ما از چهار فایل ساده که خواندن و فهمیدنشان آسان است تشکیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">.
+├── aof.go
+├── handler.go
+├── main.go
+└── resp.go</code></pre>
+
+        <h3>چرا باید این مقاله‌ها را بخوانید؟</h3>
+        <p>اگر توسعه‌دهندهٔ نرم‌افزار هستید، قطعاً در کار روزانهٔ خود با پایگاه‌های داده سروکار دارید. پایگاه‌های دادهٔ
+        خودشان می‌توانند پیچیده باشند و مفاهیم بسیاری دارند تا کار ذخیره‌سازی و دستکاری داده‌ها را برای شما به‌عنوان
+        کاربر نهایی آسان‌تر کنند؛ چه عملیات پیچیده انجام دهید و چه عملیات ساده. بیشتر مقاله‌ها و دوره‌هایی که پایگاه‌های
+        داده را توضیح می‌دهند، روی جزئیات سطح بالا و نحوهٔ استفاده از آن‌ها تمرکز می‌کنند؛ اما مقاله‌های کمی وجود دارند
+        که توضیح می‌دهند آن‌ها در داخل چگونه کار می‌کنند. مثلاً ایندکس‌ها (indexes) چگونه ساخته و ذخیره می‌شوند؟ پایگاه
+        داده بر اساس کوئری، چگونه تصمیم می‌گیرد از کدام ایندکس استفاده کند؟</p>
+        <p>پس از تحقیق و مطالعهٔ کتاب‌های گوناگون مانند
+        <a href="https://www.databass.dev/" target="_blank" rel="noopener">Database Internals</a> و مقاله‌هایی مانند
+        <a href="https://cstack.github.io/db_tutorial/" target="_blank" rel="noopener">«بیایید یک پایگاه دادهٔ ساده
+        بسازیم (نسخهٔ مشابه SQLite)»</a>، تصمیم گرفتم ساختن پایگاه دادهٔ خودم را شروع کنم و مفاهیمی را که به آن‌ها
+        علاقه دارم به کار بگیرم و از اصل «آنچه نمی‌توانم بسازم، درک نمی‌کنم» — ریچارد فاینمن (Richard Feynman) —
+        پیروی کنم.</p>
+        <p>می‌خواستم این تجربه را به زبان عربی به اشتراک بگذارم؛ زیرا محتوای کمی دربارهٔ این موضوع در دسترس است. چیزی
+        که در این مقاله‌ها می‌سازیم، پایهٔ مناسبی برای نوشتن مقاله‌های بیشتر دربارهٔ پایگاه‌های دادهٔ پیچیده مانند
+        SQLite، MySQL، PostgreSQL و MongoDB خواهد بود.</p>
+
+        <h3>آیا این مقاله‌ها برای من مناسب‌اند و آیا می‌توانم آن‌ها را درک کنم؟</h3>
+        <p>هنگام نوشتن این مقاله‌ها سعی کرده‌ام زبان را ساده و مستقیم نگه دارم. کد به بخش‌هایی تقسیم شده است تا بتوانید
+        بفهمید هر بخش چه کاری انجام می‌دهد و کد آن چگونه است؛ پیش از آنکه همهٔ کدها را کنار هم بگذاریم و به‌صورت یک
+        چیز واحد اجرا کنیم. بااین‌حال، خواننده باید دانش زمینه‌ای زیر را داشته باشد:</p>
+        <ul>
+          <li>✅ آشنایی با خواندن و درک کد Go، حتی در سطح پایه.</li>
+          <li>✅ تجربهٔ قبلی با Redis و آشنایی با دستورهای آن.</li>
+        </ul>
+        <p>حتی اگر Go یا Redis را نمی‌دانید، باز هم می‌توانید مقاله‌ها را بخوانید و اطلاعات مفیدی بیابید.</p>
+      </section>
+
+      <!-- ==================== اولین قدم‌ها ==================== -->
+      <section>
+        <h2>اولین قدم‌ها (First Steps)</h2>
+
+        <h3>نوشتن main.go</h3>
+        <p>در طول پروژه از هیچ کتابخانهٔ خارجی استفاده نخواهیم کرد؛ زیرا هر چیزی که نیاز داریم در خودِ Go موجود است.
+        پس تنها کاری که باید بکنید، شروع یک پروژهٔ جدید Go و آماده کردن فایل main.go است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    fmt.Println("Hello World")
+}</code></pre>
+
+        <h3>راه‌اندازی کلاینت</h3>
+        <p>پایگاه دادهٔ درون‌حافظه‌ای که قرار است بنویسیم، همیشه با عنوان «سرور» (Server) شناخته می‌شود؛ زیرا یک سرور
+        پایگاه داده است، مشابه MySQL یا سرور Redis.</p>
+        <p>و چون سرور همیشه برای ارتباط به یک «کلاینت» (Client) نیاز دارد، ما هم به یک کلاینت نیاز خواهیم داشت تا کدی
+        را که می‌نویسیم آزمایش کنیم و ببینیم چگونه کار می‌کند. ساده‌ترین گزینه برای امتحان، یک کلاینت Redis است؛ هم
+        به‌دلیل آسانی استفاده از آن و هم به‌دلیل اینکه سروری که قرار است بنویسیم با Redis سازگار (compatible) خواهد
+        بود.</p>
+        <p>منظور از سازگاری این است که هر کلاینتی که بتواند با Redis ارتباط برقرار کند، بتواند با سرور ما هم ارتباط
+        برقرار کند.</p>
+        <p>می‌توانید Redis و کلاینت آن را از
+        <a href="https://redis.io/docs/getting-started/installation/" target="_blank" rel="noopener">وب‌سایت رسمی
+        Redis</a> نصب کنید.</p>
+        <p>پس از آن، بلافاصله اجرای دستور زیر را امتحان کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ redis-cli ping
+
+PONG</code></pre>
+        <p>آخرین قدمی که باید بعد از آن بردارید، خاموش کردن سرور Redis است؛ زیرا کد ما و سرور ما از همان پورت استفاده
+        خواهند کرد.</p>
+        <ul>
+          <li>اگر از macOS استفاده می‌کنید:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ brew services stop redis</code></pre>
+        <ul>
+          <li>اگر از لینوکس استفاده می‌کنید:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ sudo systemctl stop redis</code></pre>
+
+        <h3>Redis چگونه کار می‌کند؟</h3>
+        <p>اول با چند مثال توضیح دهیم که Redis چگونه کار می‌کند. برای مثال، می‌توانید جفت‌های کلید-مقدار
+        (key-value) را با استفاده از رشته‌ها ذخیره کنید.</p>
+        <p>کلید یک رشته خواهد بود و مقدار می‌تواند یک شیء سریال‌شده از هر نوعی باشد؛ مانند آرایه، عدد صحیح یا
+        بولی.</p>
+        <p><code class="inline">SET admin ahmed</code></p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">&gt; GET admin
+
+"ahmed"</code></pre>
+        <p>Redis این دستورها را از طریق یک پروتکل سریال‌سازی (serialization protocol) به نام
+        <a href="https://redis.io/docs/reference/protocol-spec/" target="_blank" rel="noopener">RESP (پروتکل
+        سریال‌سازی Redis — Redis Serialization Protocol)</a> دریافت می‌کند.</p>
+        <p>پس اگر نگاه کنیم که <code class="inline">SET admin ahmed</code> به‌صورت یک پیام سریال‌شده چگونه به Redis
+        ارسال می‌شود، این‌گونه خواهد بود:</p>
+        <p><code class="inline">*3\r\n$3\r\nset\r\n$5\r\nadmin\r\n$5\r\nahmed</code></p>
+        <p>و برای ساده‌تر شدن هرچه بیشتر:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">*3
+$3
+set
+$5
+admin
+$5
+ahmed</code></pre>
+        <p>اگر به RESP نگاه کنیم، معنای هر نماد را به ما می‌گوید:</p>
+        <ul>
+          <li>'*' نشان می‌دهد که یک آرایه (array) با اندازهٔ ۳ داریم. بنابراین ۶ خط خواهیم خواند. هر جفت خط، نوع و
+          اندازهٔ شیء را نشان می‌دهد و خط دوم حاوی مقدار آن شیء است.</li>
+          <li>'$' نشان می‌دهد که یک رشته با طول ۵ داریم. پس خط بعدی دقیقاً ۵ کاراکتر خواهد داشت.</li>
+        </ul>
+        <p>به‌طور مشابه، وقتی <code class="inline">GET admin</code> را می‌گوییم، همان ساختار شیء را با مقادیر متفاوت
+        برمی‌گرداند:</p>
+        <p><code class="inline">$5\r\nahmed\r\n</code></p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">$5
+ahmed</code></pre>
+        <p>کاری که قرار است بکنیم، ساختن همین سریال‌ساز است؛ و به کمک آن، با هر کلاینتی از Redis و با ارسال دستورها
+        دقیقاً مانند Redis، می‌توانیم با سرور خودمان ارتباط برقرار کنیم.</p>
+        <p>و با این کار، آمادهٔ شروع ساختن پایگاه دادهٔ خودمان هستیم.</p>
+      </section>
+
+      <!-- ==================== ساخت سرور ==================== -->
+      <section>
+        <h2>ساخت سرور (Building Server)</h2>
+        <p>اولین قدم، شروع یک شنوندهٔ TCP (TCP listener) است تا هر
+        <a href="https://www.build-redis-from-scratch.dev/en/first-steps" target="_blank" rel="noopener">کلاینت</a>
+        بتواند با آن ارتباط برقرار کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">l, err := net.Listen("tcp", ":6379")
+if err != nil {
+    fmt.Println(err)
+    return
+}</code></pre>
+        <p>سپس شروع به دریافت درخواست‌ها می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">conn, err := l.Accept()
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+defer conn.Close() // پس از پایان، اتصال را ببند</code></pre>
+        <p>بعد از آن، یک حلقهٔ بی‌نهایت می‌سازیم و دستورها را از کلاینت‌ها دریافت می‌کنیم و به آن‌ها پاسخ می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">for {
+    buf := make([]byte, 1024)
+
+    // خواندن پیام از کلاینت
+    _, err = conn.Read(buf)
+    if err != nil {
+        if err == io.EOF {
+            break
+        }
+        fmt.Println("error reading from client: ", err.Error())
+        os.Exit(1)
+    }
+
+    // نادیده گرفتن درخواست و فرستادن یک PONG
+    conn.Write([]byte("+OK\r\n"))
+}</code></pre>
+        <p>توجه کنید که در خط آخر، بدون توجه به دستوری که از کلاینت دریافت کرده‌ایم، با «OK» پاسخ می‌دهیم.</p>
+        <p>بنابراین کد کامل به‌صورت زیر خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+	"fmt"
+	"io"
+	"net"
+	"os"
+)
+
+func main() {
+	fmt.Println("Listening on port :6379")
+
+	// ساخت یک سرور جدید
+	l, err := net.Listen("tcp", ":6379")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// گوش دادن برای اتصال‌ها
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer conn.Close()
+
+	for {
+		buf := make([]byte, 1024)
+
+		// خواندن پیام از کلاینت
+		_, err = conn.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("error reading from client: ", err.Error())
+			os.Exit(1)
+		}
+
+		// نادیده گرفتن درخواست و فرستادن یک PONG
+		conn.Write([]byte("+OK\r\n"))
+	}
+}</code></pre>
+        <p>اگر سعی کنیم سرور را اجرا کنیم و با redis-cli با آن ارتباط برقرار کنیم، پاسخ مورد انتظار را می‌بینیم.</p>
+        <p>توجه کنید که شمارهٔ پورت همان پورت Redis است.</p>
+        <img src="https://www.build-redis-from-scratch.dev/images/build-redis-from-scratch/part-1/cli-output.png"
+             alt="خروجی CLI هنگام ارتباط redis-cli با سرور"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>جمع‌بندی</h3>
+        <p>همین است برای بخش اول. در این بخش، سروری ساختیم که هر کلاینت Redis بتواند با آن ارتباط برقرار کند و از آن
+        پاسخ بگیرد.</p>
+        <p>در حال حاضر، پاسخ فقط «OK» است. اما در بخش‌های پیشِ رو، شروع به تغییر این پاسخ می‌کنیم تا به دستورهایی
+        مانند set، get، hset و hget پاسخ دهیم.</p>
+      </section>
+      <!-- ==================== خواندن RESP ==================== -->
+      <section>
+        <h2>خواندن RESP (Reading RESP)</h2>
+        <p>در بخش
+        <a href="https://www.build-redis-from-scratch.dev/en/first-steps" target="_blank" rel="noopener">اولین
+        قدم‌ها</a> بحث کردیم که سرور چگونه دستورها را از کلاینت دریافت می‌کند و درخواست چگونه ساختاربندی شده است.
+        حالا توضیح می‌دهیم که چگونه RESP را بخوانیم و آن را تجزیه (parse) کنیم.</p>
+
+        <h3>چگونه با ورودی/خروجی (IO) کار کنیم</h3>
+        <p>برای نوشتن تجزیه‌گر، باید قالب ورودی‌ای را که دریافت خواهیم کرد بفهمیم تا بتوانیم آن را تجزیه کنیم. در
+        GoLang کتابخانه‌های متعددی وجود دارند که به ما در مدیریت ورودی/خروجی کمک می‌کنند؛ اما ما از
+        <a href="https://golang.org/pkg/bufio/" target="_blank" rel="noopener">Bufio</a> استفاده خواهیم کرد؛ زیرا
+        متدهایی دارد که کار با داده‌ها را سریع‌تر می‌کند؛ مانند ReadLine و ReadByte.</p>
+        <p>برای مثال، اگر داده‌ای به‌صورت یک رشتهٔ RESP مانند این از کلاینت دریافت کنیم:</p>
+        <p><code class="inline">$5\r\nAhmed\r\n</code></p>
+        <p>کاری که باید بکنیم این است که اولین بایت را بخوانیم که '$' است تا نوع داده‌ای را که شروع به خواندنش
+        می‌کنیم تعیین کنیم. سپس عدد را می‌خوانیم تا تعداد بایت‌هایی را که باید بخوانیم مشخص کنیم؛ یعنی ۵ به‌علاوهٔ ۲
+        بایت اضافی، '\r\n'.</p>
+        <p>«\r\n» <a href="https://developer.mozilla.org/en-US/docs/Glossary/CRLF" target="_blank" rel="noopener">CRLF</a>
+        نامیده می‌شود و پایان یک خط را نشان می‌دهد.</p>
+
+        <h3>ببینیم چگونه انجام می‌شود</h3>
+        <p>یک رشته می‌سازیم و آن را به یک بافر bufio تبدیل می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">input := "$5\r\nAhmed\r\n"
+
+reader := bufio.NewReader(strings.NewReader(input))</code></pre>
+        <p>حالا برای خواندن نام از رشتهٔ RESP باید این مراحل را دنبال کنیم:</p>
+        <ul>
+          <li>نوع داده را بخوانید که اولین بایت در بافر است.</li>
+          <li>سپس عدد را بخوانید تا تعداد کاراکترهایی را که باید بخوانیم تعیین کنیم؛ یعنی ۵ به‌علاوهٔ ۲ بایت اضافی،
+          «\r\n».</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">b, _ := reader.ReadByte()
+
+if b != '$' {
+    fmt.Println("Invalid type, expecting bulk strings only")
+    os.Exit(1)
+}</code></pre>
+        <ul>
+          <li>بعد، عدد را بخوانید تا تعداد کاراکترهای داخل رشته مشخص شود.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">size, _ := reader.ReadByte()
+
+strSize, _ := strconv.ParseInt(string(size), 10, 64)
+
+// مصرف /r/n
+reader.ReadByte()
+reader.ReadByte()</code></pre>
+        <p>با این کار، بایتی را خوانده‌ایم که نوع داده را تعیین می‌کند و سپس عددی که تعداد کاراکترهای رشته را نشان
+        می‌دهد. بعد از آن، ۲ بایت اضافی می‌خوانیم تا از شر «\r\n» که به‌دنبال عدد می‌آید خلاص شویم.</p>
+        <p>حالا شیء reader ما در بایت پنجم قرار دارد که همان حرف «A» است.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">$
+5
+\r
+\n
+A
+h
+m
+e
+d
+\r
+\n</code></pre>
+        <p>از آنجا که تعداد کاراکترها یا بایت‌هایی را که باید بخوانیم می‌دانیم، فقط کافی است یک آرایهٔ بافر بسازیم و آن
+        را بخوانیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">name := make([]byte, strSize)
+reader.Read(name)
+
+fmt.Println(string(name))</code></pre>
+        <p>به این ترتیب تجزیه‌گر را می‌سازیم تا بتوانیم همهٔ دستورهای RESP را مدیریت کنیم. کد کامل مراحل بالا به‌صورت
+        زیر است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "bufio"
+    "fmt"
+    "strings"
+    "os"
+    "strconv"
+)
+
+func main() {
+    input := "$5\r\nAhmed\r\n"
+    reader := bufio.NewReader(strings.NewReader(input))
+
+    b, _ := reader.ReadByte()
+
+    if b != '$' {
+      fmt.Println("Invalid type, expecting bulk strings only")
+      os.Exit(1)
+    }
+
+    size, _ := reader.ReadByte()
+
+    strSize, _ := strconv.ParseInt(string(size), 10, 64)
+
+    // مصرف /r/n
+    reader.ReadByte()
+    reader.ReadByte()
+
+    name := make([]byte, strSize)
+    reader.Read(name)
+
+    fmt.Println(string(name))
+}</code></pre>
+
+        <h3>نوشتن RESP</h3>
+        <p>بیایید یک فایل جدید به نام resp.go بسازیم که همهٔ کدهای مربوط به سریال‌سازی (serializing) و ضدسریال‌سازی
+        (deserializing) روی بافر را در خود داشته باشد.</p>
+        <p>اول، برای آسان‌تر شدن کار با انواع داده، ثابت‌هایی تعریف می‌کنیم که نمایانگر هر نوع هستند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">const (
+	STRING  = '+'
+	ERROR   = '-'
+	INTEGER = ':'
+	BULK    = '$'
+	ARRAY   = '*'
+)</code></pre>
+        <p>سپس یک struct تعریف می‌کنیم تا در فرآیند سریال‌سازی و ضدسریال‌سازی استفاده شود؛ این struct همهٔ دستورها و
+        آرگومان‌هایی را که از کلاینت دریافت می‌کنیم در خود نگه می‌دارد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Value struct {
+	typ   string
+	str   string
+	num   int
+	bulk  string
+	array []Value
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong>
+          <ul>
+            <li><b>typ</b> برای تعیین نوع داده‌ای که <a href="https://redis.io/docs/reference/protocol-spec/#resp-protocol-description" target="_blank" rel="noopener">مقدار (value)</a> حمل می‌کند استفاده می‌شود.</li>
+            <li><b>str</b> مقدار رشتهٔ دریافت‌شده از <a href="https://redis.io/docs/reference/protocol-spec/#resp-simple-strings" target="_blank" rel="noopener">رشته‌های ساده (simple strings)</a> را نگه می‌دارد.</li>
+            <li><b>num</b> مقدار عدد صحیح دریافت‌شده از <a href="https://redis.io/docs/reference/protocol-spec/#resp-integers" target="_blank" rel="noopener">اعداد صحیح (integers)</a> را نگه می‌دارد.</li>
+            <li><b>bulk</b> برای ذخیرهٔ رشتهٔ دریافت‌شده از <a href="https://redis.io/docs/reference/protocol-spec/#resp-bulk-strings" target="_blank" rel="noopener">رشته‌های انبوه (bulk strings)</a> استفاده می‌شود.</li>
+            <li><b>array</b> همهٔ مقادیر دریافت‌شده از <a href="https://redis.io/docs/reference/protocol-spec/#resp-arrays" target="_blank" rel="noopener">آرایه‌ها (arrays)</a> را نگه می‌دارد.</li>
+          </ul>
+        </div>
+        <p>حالا که struct مقدار (Value) را داریم که تجزیه/ضدسریال‌سازی دستورهای RESP را آسان‌تر می‌کند، بیایید Reader را
+        بسازیم تا همهٔ متدهایی را که به ما در خواندن از بافر و ذخیرهٔ آن در struct مقدار کمک می‌کنند در خود داشته باشد.</p>
+
+        <h3>Reader</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Resp struct {
+	reader *bufio.Reader
+}
+
+func NewResp(rd io.Reader) *Resp {
+	return &Resp{reader: bufio.NewReader(rd)}
+}</code></pre>
+        <p>بعداً از NewResp استفاده خواهیم کرد تا بافر را از اتصال (Connection)ای که در بخش ۱ ساختیم عبور دهیم.</p>
+        <p>در این مرحله، دو تابع می‌سازیم که برای فرآیند تجزیه ضروری هستند:</p>
+        <ul>
+          <li><b>readLine</b> خط را از بافر می‌خواند.</li>
+          <li><b>readInteger</b> عدد صحیح را از بافر می‌خواند.</li>
+        </ul>
+        <p>باید این توابع را خودمان پیاده‌سازی کنیم؛ زیرا bufio متدی برای این کار فراهم نمی‌کند.</p>
+        <ul>
+          <li>ReadLine</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (r *Resp) readLine() (line []byte, n int, err error) {
+	for {
+		b, err := r.reader.ReadByte()
+		if err != nil {
+			return nil, 0, err
+		}
+		n += 1
+		line = append(line, b)
+		if len(line) >= 2 && line[len(line)-2] == '\r' {
+			break
+		}
+	}
+	return line[:len(line)-2], n, nil
+}</code></pre>
+        <p>در این تابع، هر بار یک بایت می‌خوانیم تا به «\r» برسیم که پایان خط را نشان می‌دهد. سپس خط را بدون ۲ بایت
+        آخر که «\r\n» هستند برمی‌گردانیم و همچنین تعداد بایت‌های داخل خط را برمی‌گردانیم.</p>
+        <ul>
+          <li>ReadInteger</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (r *Resp) readInteger() (x int, n int, err error) {
+	line, n, err := r.readLine()
+	if err != nil {
+		return 0, 0, err
+	}
+	i64, err := strconv.ParseInt(string(line), 10, 64)
+	if err != nil {
+		return 0, n, err
+	}
+	return int(i64), n, nil
+}</code></pre>
+
+        <h3>فرآیند تجزیه یا ضدسریال‌سازی</h3>
+        <p>structها و متدهایی را ساخته‌ایم که خواندن از بافر را آسان‌تر می‌کنند. حالا بیایید متدهایی بسازیم که به‌صورت
+        بازگشتی (recursively) از بافر می‌خوانند. باید برای هر مرحله از ورودی‌ای که دریافت می‌کنیم، دوباره مقدار
+        (Value) را بخوانیم تا بتوانیم آن را بر اساس کاراکترِ ابتدای خط تجزیه کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (r *Resp) Read() (Value, error) {
+	_type, err := r.reader.ReadByte()
+
+	if err != nil {
+		return Value{}, err
+	}
+
+	switch _type {
+	case ARRAY:
+		return r.readArray()
+	case BULK:
+		return r.readBulk()
+	default:
+		fmt.Printf("Unknown type: %v", string(_type))
+		return Value{}, nil
+	}
+}</code></pre>
+        <p>همان‌طور که در اولین قدم انجام دادیم، اولین بایت را می‌خوانیم تا نوع RESP را که تجزیه خواهیم کرد تعیین
+        کنیم. سپس از یک دستور switch استفاده می‌کنیم تا بر اساس نوع، آن را تجزیه کنیم.</p>
+        <p>فعلاً فقط با آرایه (Array) و رشتهٔ انبوه (Bulk) سروکار خواهیم داشت.</p>
+        <p>حالا ReadArray را پیاده‌سازی کنیم؛ زیرا اولین دستوری است که از کلاینت‌ها دریافت می‌کنیم.</p>
+        <p>قبل از نوشتن متد، به یاد داشته باشید که آرایهٔ RESP این‌گونه است:</p>
+        <p><code class="inline">*2\r\n$5\r\nhello\r\n$5\r\nworld\r\n</code></p>
+        <p>برای آسان‌تر شدن فهم، به‌جای «\r\n» می‌توانیم آن را به خطوط تقسیم کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">*2
+$5
+hello
+$5
+world</code></pre>
+        <p>برای خواندن آرایه این مراحل را دنبال می‌کنیم:</p>
+        <ul>
+          <li>اولین بایت را رد می‌کنیم؛ زیرا قبلاً در متد Read خوانده‌ایم.</li>
+          <li>عدد صحیحی را می‌خوانیم که تعداد عناصر آرایه را نشان می‌دهد.</li>
+          <li>روی آرایه پیمایش می‌کنیم و برای هر خط، متد Read را صدا می‌زنیم تا نوع را بر اساس کاراکتر ابتدای خط
+          تجزیه کند.</li>
+          <li>در هر پیمایش، مقدار تجزیه‌شده را به آرایه در شیء Value اضافه می‌کنیم و آن را برمی‌گردانیم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (r *Resp) readArray() (Value, error) {
+	v := Value{}
+	v.typ = "array"
+
+	// خواندن طول آرایه
+	length, _, err := r.readInteger()
+	if err != nil {
+		return v, err
+	}
+
+	// برای هر خط، مقدار را تجزیه و بخوان
+	v.array = make([]Value, length)
+	for i := 0; i < length; i++ {
+		val, err := r.Read()
+		if err != nil {
+			return v, err
+		}
+
+		// افزودن مقدار تجزیه‌شده به آرایه
+		v.array[i] = val
+	}
+
+	return v, nil
+}</code></pre>
+        <p>حالا که کد کامل است و تجزیه‌گر کار می‌کند، باید نوع Bulk را پیاده‌سازی کنیم تا readArray بداند مقدار را
+        چگونه برگرداند.</p>
+        <p>قبلاً رشته‌های انبوه را پوشش داده‌ایم؛ اما بیایید قالب آن‌ها را به‌سرعت مرور کنیم:</p>
+        <p><code class="inline">$5\r\nhello\r\n</code></p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">$5
+hello</code></pre>
+        <p>برای خواندن Bulk این مراحل را دنبال می‌کنیم:</p>
+        <ul>
+          <li>اولین بایت را رد می‌کنیم؛ زیرا قبلاً در متد Read خوانده‌ایم.</li>
+          <li>عدد صحیحی را می‌خوانیم که تعداد بایت‌های رشتهٔ انبوه را نشان می‌دهد.</li>
+          <li>رشتهٔ انبوه را می‌خوانیم و بعد از آن «\r\n» که پایان رشتهٔ انبوه را نشان می‌دهد.</li>
+          <li>شیء Value را برمی‌گردانیم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (r *Resp) readBulk() (Value, error) {
+	v := Value{}
+
+	v.typ = "bulk"
+
+	len, _, err := r.readInteger()
+	if err != nil {
+		return v, err
+	}
+
+	bulk := make([]byte, len)
+
+	r.reader.Read(bulk)
+
+	v.bulk = string(bulk)
+
+	// خواندن CRLF پایانی
+	r.readLine()
+
+	return v, nil
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> توجه کنید که بعد از خواندن رشته، <code class="inline">r.readLine()</code> را صدا
+          می‌زنیم تا «\r\n»ای را که به‌دنبال هر رشتهٔ انبوه می‌آید بخوانیم. اگر این کار را نکنیم، اشاره‌گر (pointer) در
+          «\r» باقی می‌ماند و متد Read قادر نخواهد بود رشتهٔ انبوه بعدی را درست بخواند.
+        </div>
+        <p>حالا فایل RESP.go شامل همهٔ چیزهایی است که برای تجزیه و ضدسریال‌سازی RESP نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"strconv"
+)
+
+const (
+	STRING  = '+'
+	ERROR   = '-'
+	INTEGER = ':'
+	BULK    = '$'
+	ARRAY   = '*'
+)
+
+type Value struct {
+	typ   string
+	str   string
+	num   int
+	bulk  string
+	array []Value
+}
+
+type Resp struct {
+	reader *bufio.Reader
+}
+
+func NewResp(rd io.Reader) *Resp {
+	return &Resp{reader: bufio.NewReader(rd)}
+}
+
+func (r *Resp) readLine() (line []byte, n int, err error) {
+	for {
+		b, err := r.reader.ReadByte()
+		if err != nil {
+			return nil, 0, err
+		}
+		n += 1
+		line = append(line, b)
+		if len(line) >= 2 && line[len(line)-2] == '\r' {
+			break
+		}
+	}
+	return line[:len(line)-2], n, nil
+}
+
+func (r *Resp) readInteger() (x int, n int, err error) {
+	line, n, err := r.readLine()
+	if err != nil {
+		return 0, 0, err
+	}
+	i64, err := strconv.ParseInt(string(line), 10, 64)
+	if err != nil {
+		return 0, n, err
+	}
+	return int(i64), n, nil
+}
+
+func (r *Resp) Read() (Value, error) {
+	_type, err := r.reader.ReadByte()
+
+	if err != nil {
+		return Value{}, err
+	}
+
+	switch _type {
+	case ARRAY:
+		return r.readArray()
+	case BULK:
+		return r.readBulk()
+	default:
+		fmt.Printf("Unknown type: %v", string(_type))
+		return Value{}, nil
+	}
+}
+
+func (r *Resp) readArray() (Value, error) {
+	v := Value{}
+	v.typ = "array"
+
+	// خواندن طول آرایه
+	len, _, err := r.readInteger()
+	if err != nil {
+		return v, err
+	}
+
+	// برای هر خط، مقدار را تجزیه و بخوان
+	v.array = make([]Value, 0)
+	for i := 0; i < len; i++ {
+		val, err := r.Read()
+		if err != nil {
+			return v, err
+		}
+
+		// افزودن مقدار تجزیه‌شده به آرایه
+		v.array = append(v.array, val)
+	}
+
+	return v, nil
+}
+
+func (r *Resp) readBulk() (Value, error) {
+	v := Value{}
+
+	v.typ = "bulk"
+
+	len, _, err := r.readInteger()
+	if err != nil {
+		return v, err
+	}
+
+	bulk := make([]byte, len)
+
+	r.reader.Read(bulk)
+
+	v.bulk = string(bulk)
+
+	// خواندن CRLF پایانی
+	r.readLine()
+
+	return v, nil
+}</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>حالا RESP را با استفاده از Reader ضدسریال‌سازی کرده‌ایم و می‌توانیم main.go را تغییر دهیم تا دستورها را
+        بخواند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+	"fmt"
+	"net"
+)
+
+func main() {
+	fmt.Println("Listening on port :6379")
+
+	// ساخت یک سرور جدید
+	l, err := net.Listen("tcp", ":6379")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// گوش دادن برای اتصال‌ها
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer conn.Close()
+
+	for {
+		resp := NewResp(conn)
+		value, err := resp.Read()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(value)
+
+		// نادیده گرفتن درخواست و فرستادن یک PONG
+		conn.Write([]byte("+OK\r\n"))
+	}
+}</code></pre>
+        <p>اگر تلاش کنیم با redis-cli وصل شویم، خروجی زیر را خواهیم دید:</p>
+        <img src="https://www.build-redis-from-scratch.dev/images/build-redis-from-scratch/part-2/cli-output.png"
+             alt="خروجی CLI هنگام اتصال redis-cli و خواندن دستورها"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>خط دوم را نادیده بگیرید؛ زیرا وقتی redis-cli متصل می‌شود، دستور
+        <a href="https://redis.io/commands/command-docs/" target="_blank" rel="noopener">COMMAND DOCS</a> را می‌فرستد
+        که در حال حاضر نادیده می‌گیریم.</p>
+        <p>اما اگر به خط سوم نگاه کنید، می‌بینید که Value چاپ‌شده به همان تعداد رشته‌ای که از redis-cli در سمت راست
+        فرستاده‌ایم را در خود دارد.</p>
+        <p>در بخش بعدی، پاسخ Value را روی Writer سریال‌سازی می‌کنیم و با آن به کلاینت پاسخ می‌دهیم. بعد از آن،
+        می‌توانیم هر دستور Redis را پیاده‌سازی کنیم.</p>
+      </section>
+      <!-- ==================== نوشتن RESP ==================== -->
+      <section>
+        <h2>نوشتن RESP (Writing RESP)</h2>
+        <p>در مقالهٔ قبلی، بخش اول RESP را نوشتیم که همان تجزیه است و مسئول تبدیل RESP به اشیاء Value است. از این طریق
+        می‌توانیم بفهمیم کلاینت چه دستورهایی فرستاده است. در این بخش، می‌بینیم که چگونه با RESP به کلاینت پاسخ دهیم و
+        Writer را بنویسیم.</p>
+        <p>از آنجا که برای تبدیل RESP به struct گو از Value استفاده می‌کنیم، می‌توانیم بفهمیم چه چیزی لازم است. همچنین
+        از Value استفاده می‌کنیم تا پاسخی را که قرار است به کلاینت بفرستیم ثبت کنیم؛ چه یک رشته باشد، چه Bulk و چه
+        آرایه.</p>
+        <p>اولین قدمی که باید برداریم، نوشتن Marshal است که Value را به بایت‌هایی تبدیل می‌کند که پاسخ RESP را نشان
+        می‌دهند.</p>
+
+        <h3>نوشتن سریال‌ساز Value</h3>
+        <ul>
+          <li>اول، متد Marshal را می‌نویسیم که بر اساس نوع Value، متد مخصوص همان نوع را صدا می‌زند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (v Value) Marshal() []byte {
+	switch v.typ {
+	case "array":
+		return v.marshalArray()
+	case "bulk":
+		return v.marshalBulk()
+	case "string":
+		return v.marshalString()
+	case "null":
+		return v.marshallNull()
+	case "error":
+		return v.marshallError()
+	default:
+		return []byte{}
+	}
+}</code></pre>
+        <p>طبق معمول، نوع را بررسی می‌کنیم و متدی را صدا می‌زنیم که با آن نوع سروکار دارد.</p>
+
+        <h3>رشته‌های ساده (Simple Strings)</h3>
+        <p>اولین نوع، رشتهٔ ساده خواهد بود؛ زیرا آسان است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (v Value) marshalString() []byte {
+	var bytes []byte
+	bytes = append(bytes, STRING)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}</code></pre>
+        <p>به‌سادگی، یک آرایهٔ بایت می‌سازیم و رشته را اضافه می‌کنیم و سپس CRLF (بازگشت به ابتدای خط و خط جدید). توجه
+        کنید که بدون CRLF مشکل پیش می‌آید؛ زیرا کلاینت RESP بدون آن پاسخ را نمی‌فهمد.</p>
+
+        <h3>رشتهٔ انبوه (Bulk String)</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (v Value) marshalBulk() []byte {
+	var bytes []byte
+	bytes = append(bytes, BULK)
+	bytes = append(bytes, strconv.Itoa(len(v.bulk))...)
+	bytes = append(bytes, '\r', '\n')
+	bytes = append(bytes, v.bulk...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}</code></pre>
+
+        <h3>آرایه (Array)</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (v Value) marshalArray() []byte {
+	len := len(v.array)
+	var bytes []byte
+	bytes = append(bytes, ARRAY)
+	bytes = append(bytes, strconv.Itoa(len)...)
+	bytes = append(bytes, '\r', '\n')
+
+	for i := 0; i < len; i++ {
+		bytes = append(bytes, v.array[i].Marshal()...)
+	}
+
+	return bytes
+}</code></pre>
+        <p>توجه کنید که در مورد آرایه، متد Marshal را روی شیء Value داخل حلقه صدا می‌زنیم تا صرف‌نظر از نوعش تبدیل
+        شود. این همان چیزی است که از بازگشت (recursion) منظور داریم؛ همان‌طور که در بخش اول هنگام انجام Parse به آن
+        اشاره کردیم.</p>
+
+        <h3>Null و Error</h3>
+        <p>در نهایت، در صورتی که بخواهیم به کلاینت پاسخ دهیم که داده پیدا نشده یا خطایی رخ داده است، به Null و Error
+        نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (v Value) marshallError() []byte {
+	var bytes []byte
+	bytes = append(bytes, ERROR)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}
+
+func (v Value) marshallNull() []byte {
+	return []byte("$-1\r\n")
+}</code></pre>
+
+        <h3>resp.go</h3>
+        <p>بنابراین، فایل resp.go بخش کامل و اضافه‌ای است که نوشتیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// سریال‌سازی Value به بایت‌ها
+func (v Value) Marshal() []byte {
+	switch v.typ {
+	case "array":
+		return v.marshalArray()
+	case "bulk":
+		return v.marshalBulk()
+	case "string":
+		return v.marshalString()
+	case "null":
+		return v.marshallNull()
+	case "error":
+		return v.marshallError()
+	default:
+		return []byte{}
+	}
+}
+
+func (v Value) marshalString() []byte {
+	var bytes []byte
+	bytes = append(bytes, STRING)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}
+
+func (v Value) marshalBulk() []byte {
+	var bytes []byte
+	bytes = append(bytes, BULK)
+	bytes = append(bytes, strconv.Itoa(len(v.bulk))...)
+	bytes = append(bytes, '\r', '\n')
+	bytes = append(bytes, v.bulk...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}
+
+func (v Value) marshalArray() []byte {
+	len := len(v.array)
+	var bytes []byte
+	bytes = append(bytes, ARRAY)
+	bytes = append(bytes, strconv.Itoa(len)...)
+	bytes = append(bytes, '\r', '\n')
+
+	for i := 0; i < len; i++ {
+		bytes = append(bytes, v.array[i].Marshal()...)
+	}
+
+	return bytes
+}
+
+func (v Value) marshallError() []byte {
+	var bytes []byte
+	bytes = append(bytes, ERROR)
+	bytes = append(bytes, v.str...)
+	bytes = append(bytes, '\r', '\n')
+
+	return bytes
+}
+
+func (v Value) marshallNull() []byte {
+	return []byte("$-1\r\n")
+}</code></pre>
+        <p>پس ۹۰٪ از Writer را کامل کرده‌ایم و فقط لازم است بایت‌هایی را که از متد Marshal می‌گیریم روی Writer
+        بنویسیم.</p>
+
+        <h3>نوشتن Writer</h3>
+        <p>برای ساخت Writer بسیار ساده است. تنها چیزی که نیاز داریم یک struct Writer است که io.Writer بگیرد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Writer struct {
+	writer io.Writer
+}
+
+func NewWriter(w io.Writer) *Writer {
+	return &Writer{writer: w}
+}</code></pre>
+        <p>سپس متدی می‌سازیم که Value می‌گیرد و بایت‌هایی را که از متد Marshal می‌گیرد روی Writer می‌نویسد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (w *Writer) Write(v Value) error {
+	var bytes = v.Marshal()
+
+	_, err := w.writer.Write(bytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}</code></pre>
+        <p>برای استفاده از آن، مثلاً برای پاسخ دادن با «OK» به دستورهای Redis، فقط به این نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">writer := NewWriter(conn)
+writer.Write(Value{typ: "string", str: "OK"})</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>پس سریال‌سازی و ضدسریال‌سازی RESP را کامل کرده‌ایم و Reader و Writer را ساخته‌ایم که به ما کمک می‌کنند
+        به‌راحتی به کلاینت پاسخ دهیم.</p>
+        <p>در نهایت، باید main.go را تغییر دهیم و آن را وادار کنیم از طریق Writer پاسخ دهد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+	"fmt"
+	"net"
+)
+
+func main() {
+	fmt.Println("Listening on port :6379")
+
+	// ساخت یک سرور جدید
+	l, err := net.Listen("tcp", ":6379")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// گوش دادن برای اتصال‌ها
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer conn.Close()
+
+	for {
+		resp := NewResp(conn)
+		value, err := resp.Read()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		_ = value
+
+		writer := NewWriter(conn)
+		writer.Write(Value{typ: "string", str: "OK"})
+	}
+}</code></pre>
+        <p>در بخش بعد، إنشاءالله شروع به پاسخ دادن به دستورهایی مانند
+        <a href="https://redis.io/commands/ping/" target="_blank" rel="noopener">PING</a>،
+        <a href="https://redis.io/commands/set/" target="_blank" rel="noopener">SET</a>،
+        <a href="https://redis.io/commands/get/" target="_blank" rel="noopener">GET</a>،
+        <a href="https://redis.io/commands/hset/" target="_blank" rel="noopener">HSET</a>،
+        <a href="https://redis.io/commands/hget/" target="_blank" rel="noopener">HGET</a> و
+        <a href="https://redis.io/commands/hgetall/" target="_blank" rel="noopener">HGETALL</a> می‌کنیم و می‌بینیم
+        چگونه می‌توانیم آن‌ها را در Go پیاده‌سازی کنیم.</p>
+      </section>
+
+      <!-- ==================== دستورهای Redis ==================== -->
+      <section>
+        <h2>نوشتن دستورهای Redis (Writing Redis Commands)</h2>
+        <p>سریال‌ساز را نوشته‌ایم و یاد گرفته‌ایم که پس از دریافت هر دستوری، چگونه به کلاینت پاسخ دهیم.</p>
+        <p>حالا Handler دستورها را می‌سازیم و شروع به نوشتن برخی دستورهای Redis می‌کنیم.</p>
+
+        <h3>Handler دستورها (CommandsHandler)</h3>
+        <p>همان‌طور که قبلاً اشاره کردیم، درخواستی که از کلاینت دریافت می‌کنیم یک آرایهٔ RESP است که به ما می‌گوید
+        کلاینت می‌خواهد کدام دستور را بفرستد.</p>
+        <p>پس ما همیشه Handler را بر اساس نام دستور تعریف می‌کنیم که اولین عنصر در آرایهٔ RESP است و بقیهٔ عناصر
+        آرگومان‌ها خواهند بود.</p>
+        <p>بیایید فایل جدیدی به نام handler.go بسازیم و Handler خود را تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var Handlers = map[string]func([]Value) Value</code></pre>
+        <p>حالا اولین دستور را بنویسیم که همان
+        <a href="https://redis.io/commands/ping/" target="_blank" rel="noopener">PING</a> است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func ping(args []Value) Value {
+	return Value{typ: "string", str: "PONG"}
+}</code></pre>
+        <p>و دستور PING را به نقشهٔ handler که ساخته بودیم اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var Handlers = map[string]func([]Value) Value{
+	"PING": ping,
+}</code></pre>
+        <p>توجه کنید که نام دستور را با حروف بزرگ نوشته‌ایم؛ زیرا دستورهای Redis به حروف بزرگ و کوچک حساس نیستند
+        (case-insensitive).</p>
+        <p>برای آزمایش دستور PING، بیایید main.go را تغییر دهیم تا شیء Value را به handler بفرستد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">for {
+	resp := NewResp(conn)
+	value, err := resp.Read()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if value.typ != "array" {
+		fmt.Println("Invalid request, expected array")
+		continue
+	}
+
+	if len(value.array) == 0 {
+		fmt.Println("Invalid request, expected array length > 0")
+		continue
+	}
+
+	command := strings.ToUpper(value.array[0].bulk)
+	args := value.array[1:]
+
+	writer := NewWriter(conn)
+
+	handler, ok := Handlers[command]
+	if !ok {
+		fmt.Println("Invalid command: ", command)
+		writer.Write(Value{typ: "string", str: ""})
+		continue
+	}
+
+	result := handler(args)
+	writer.Write(result)
+}</code></pre>
+        <p>کاری که اینجا انجام دادیم این است که اولین درخواست را دریافت می‌کنیم و شیء Value را از آن خارج می‌کنیم.
+        سپس برخی اعتبارسنجی‌ها انجام می‌دهیم تا مطمئن شویم دستور یک آرایه است و خالی نیست. بعد از آن، اولین عنصر
+        آرایه را برمی‌داریم و به حروف بزرگ تبدیل می‌کنیم که نام دستور خواهد بود. بقیهٔ عناصر آرگومان‌ها خواهند بود.</p>
+        <p>اگر توضیح برایتان واضح نیست، اینجا مثالی از یک شیء Value است وقتی می‌گوییم SET name Ahmed:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">Value{
+	typ: "array",
+	array: []Value{
+		Value{typ: "bulk", bulk: "SET"},
+		Value{typ: "bulk", bulk: "name"},
+		Value{typ: "bulk", bulk: "Ahmed"},
+	},
+}</code></pre>
+        <p>پس کد بالا باعث می‌شود دستور و آرگومان‌ها این‌گونه باشند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">command := Value{typ: "bulk", bulk: "SET"}.bulk // "SET"
+
+args := []Value{
+	Value{typ: "bulk", bulk: "name"},
+	Value{typ: "bulk", bulk: "Ahmed"},
+}</code></pre>
+        <p>حالا در Redis، دستور PING یک آرگومان می‌گیرد و اگر ارائه شده باشد، به‌جای کلمهٔ «PONG» همان آرگومان را
+        برمی‌گرداند. پس بیایید این را اعمال کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func ping(args []Value) Value {
+	if len(args) == 0 {
+		return Value{typ: "string", str: "PONG"}
+	}
+
+	return Value{typ: "string", str: args[0].bulk}
+}</code></pre>
+        <img src="https://www.build-redis-from-scratch.dev/images/build-redis-from-scratch/part-4/redis-ping-command.png"
+             alt="خروجی دستور PING در Redis"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>دستورهای SET و GET</h3>
+        <p>قدم‌های بعدی آسان خواهند بود و به دانش شما از Go و ساختمان داده‌ها وابسته‌اند؛ زیرا بخش سخت کار وقتی
+        پیاده‌سازی RESP و Handler را انجام دادیم تمام شده است.</p>
+        <p>دستور <a href="https://redis.io/commands/set/" target="_blank" rel="noopener">SET</a> در Redis یک جفت
+        کلید-مقدار است. می‌توانید در هر زمانی یک کلید را با یک مقدار مشخص تنظیم کنید و بعداً با دستور GET آن را
+        بازیابی کنید.</p>
+        <p>ساختمان داده‌ای که استفاده خواهیم کرد یک
+        <a href="https://yourbasic.org/golang/maps-explained/" target="_blank" rel="noopener">نقشهٔ هش (Hash Map)</a>
+        یا <code class="inline">map[string]string</code> است.</p>
+        <p>بیایید به handler.go برویم و دستور SET را تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var SETs = map[string]string{}
+var SETsMu = sync.RWMutex{}
+
+func set(args []Value) Value {
+	if len(args) != 2 {
+		return Value{typ: "error", str: "ERR wrong number of arguments for 'set' command"}
+	}
+
+	key := args[0].bulk
+	value := args[1].bulk
+
+	SETsMu.Lock()
+	SETs[key] = value
+	SETsMu.Unlock()
+
+	return Value{typ: "string", str: "OK"}
+}</code></pre>
+        <p>ما از <a href="https://pkg.go.dev/sync#RWMutex" target="_blank" rel="noopener">sync.RWMutex</a> استفاده
+        می‌کنیم؛ زیرا سرور ما قرار است درخواست‌ها را به‌صورت هم‌زمان (concurrent) مدیریت کند. از RWMutex استفاده
+        می‌کنیم تا مطمئن شویم نقشهٔ SETs هم‌زمان توسط چند نخ (thread) اصلاح نمی‌شود.</p>
+        <p>احتمالاً می‌توانید تصور کنید که دستور GET چگونه کار خواهد کرد. اگر کلید را پیدا کنیم، مقدارش را برمی‌گردانیم؛
+        در غیر این صورت nil برمی‌گردانیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func get(args []Value) Value {
+	if len(args) != 1 {
+		return Value{typ: "error", str: "ERR wrong number of arguments for 'get' command"}
+	}
+
+	key := args[0].bulk
+
+	SETsMu.RLock()
+	value, ok := SETs[key]
+	SETsMu.RUnlock()
+
+	if !ok {
+		return Value{typ: "null"}
+	}
+
+	return Value{typ: "bulk", bulk: value}
+}</code></pre>
+        <p>پس از پیاده‌سازی دستورهای SET و GET، باید آن‌ها را در نقشهٔ Handlers ثبت کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var Handlers = map[string]func([]Value) Value{
+	"PING": ping,
+	"SET":  set,
+	"GET":  get,
+}</code></pre>
+        <img src="https://www.build-redis-from-scratch.dev/images/build-redis-from-scratch/part-4/redis-hash-command.png"
+             alt="خروجی دستورهای HSET و HGET در Redis"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>دستورهای HSET و HGET</h3>
+        <p>به زبان ساده، این دستورها یک نقشهٔ هش داخل یک نقشهٔ هش هستند؛ یعنی
+        <code class="inline">map[string]map[string]string</code>. نام هش را می‌گیرند و سپس کلید و مقدار. این به ما
+        اجازه می‌دهد داده‌هایی مانند این ذخیره کنیم:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+	"users": {
+		"u1": "Ahmed",
+		"u2": "Mohamed",
+	},
+	"posts": {
+		"p1": "Hello World",
+		"p2": "Welcome to my blog",
+	},
+}</code></pre>
+        <p>برای مثال، اگر بخواهیم کاربری به نام Ahmed با شناسهٔ u1 ذخیره کنیم، از دستور HSET استفاده می‌کنیم:</p>
+        <p><code class="inline">HSET users u1 Ahmed</code></p>
+        <p>و اگر بخواهیم پستی به نام Hello World با شناسهٔ p1 ذخیره کنیم، از دستور HSET استفاده می‌کنیم:</p>
+        <p><code class="inline">HSET posts u1 Hello World</code></p>
+        <p>برای بازیابی کاربر Ahmed از دستور HGET استفاده می‌کنیم:</p>
+        <p><code class="inline">HGET users u1</code></p>
+        <p>کد بسیار شبیه به دستورهای SET و GET خواهد بود. تفاوت در این است که HSETها
+        <code class="inline">map[string]map[string]string</code> خواهند بود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var HSETs = map[string]map[string]string{}
+var HSETsMu = sync.RWMutex{}
+
+func hset(args []Value) Value {
+	if len(args) != 3 {
+		return Value{typ: "error", str: "ERR wrong number of arguments for 'hset' command"}
+	}
+
+	hash := args[0].bulk
+	key := args[1].bulk
+	value := args[2].bulk
+
+	HSETsMu.Lock()
+	if _, ok := HSETs[hash]; !ok {
+		HSETs[hash] = map[string]string{}
+	}
+	HSETs[hash][key] = value
+	HSETsMu.Unlock()
+
+	return Value{typ: "string", str: "OK"}
+}</code></pre>
+        <p>و دستور HGET این‌گونه خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func hget(args []Value) Value {
+	if len(args) != 2 {
+		return Value{typ: "error", str: "ERR wrong number of arguments for 'hget' command"}
+	}
+
+	hash := args[0].bulk
+	key := args[1].bulk
+
+	HSETsMu.RLock()
+	value, ok := HSETs[hash][key]
+	HSETsMu.RUnlock()
+
+	if !ok {
+		return Value{typ: "null"}
+	}
+
+	return Value{typ: "bulk", bulk: value}
+}</code></pre>
+        <p>همچنین باید این دستورها را در نقشهٔ Handlers ثبت کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var Handlers = map[string]func([]Value) Value{
+	"PING":    ping,
+	"SET":     set,
+	"GET":     get,
+	"HSET":    hset,
+	"HGET":    hget,
+	"HGETALL": hgetall,
+}</code></pre>
+        <img src="https://www.build-redis-from-scratch.dev/images/build-redis-from-scratch/part-4/redis-hash-command.png"
+             alt="خروجی دستورهای HSET و HGET در Redis"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>جمع‌بندی</h3>
+        <p>تا این نقطه، یک پایگاه دادهٔ درون‌حافظه‌ای ساخته‌ایم که برای دستورهای پشتیبانی‌شده با سرور Redis سازگار
+        است. تفاوت با Redis، دستورهای باقیمانده‌ای است که هنوز پیاده‌سازی نکرده‌ایم. این می‌تواند چالشی برای شما
+        باشد تا خودتان آن‌ها را بررسی کنید و سعی کنید خودتان پیاده‌سازی‌شان کنید.</p>
+        <p>مشکل فعلی این است که داده‌ها را از دست می‌دهیم؛ زیرا فقط به حافظه تکیه می‌کنیم. در بخش بعدی، آخرین قدمی را
+        که نیاز داریم پوشش می‌دهیم: ماندگاری داده‌ها. خواهیم دید که چگونه می‌توانیم از
+        <a href="https://redis.io/topics/persistence#append-only-file" target="_blank" rel="noopener">AOF</a> برای
+        ذخیرهٔ داده‌ها روی دیسک استفاده کنیم و هنگام بالا آمدن سرور، آن‌ها را دوباره بخوانیم.</p>
+      </section>
+      <!-- ==================== ماندگاری داده‌ها (AOF) ==================== -->
+      <section>
+        <h2>نوشتن داده‌ها روی دیسک (Writing Data to Disk)</h2>
+        <p>در بخش‌های قبلی، یک پایگاه دادهٔ درون‌حافظه‌ای پیاده‌سازی کردیم و با استفاده از پروتکل RESP آن را با Redis
+        سازگار ساختیم.</p>
+        <p>در این بخش، ماندگاری داده‌ها (data persistence) را روی پایگاه دادهٔ خودمان اعمال می‌کنیم. ماندگاری داده‌ها
+        برای هر پایگاه داده‌ای ویژگی مهمی است؛ حتی برای پایگاه دادهٔ درون‌حافظه‌ای؛ زیرا موارد زیادی وجود دارد که ممکن
+        است بخواهید عملیات‌های مختلفی روی داده‌ها انجام دهید؛ اما ابزار می‌تواند با ذخیرهٔ داده‌ها روی دیسک دوام
+        (durability) را هم فراهم کند تا در صورت از کار افتادن یا راه‌اندازی مجدد سرور، داده‌ها را از دست ندهید.</p>
+        <p>مفهوم ماندگاری گسترده است و بسته به نحوهٔ ذخیره‌سازی و مدیریت داده‌ها متفاوت است. برای مثال، پایگاه‌های دادهٔ
+        SQL مانند SQLite و MySQL اجازه نمی‌دهند هیچ رکوردی به هر شکلی از دست برود. کد این بخش برای تضمین این موضوع
+        بسیار پیچیده است.</p>
+        <p>همین موضوع دربارهٔ Redis صدق می‌کند. بسته به نیازتان، روش‌های مختلفی برای ماندگاری داده‌ها وجود دارد:</p>
+        <ul>
+          <li><b>RDB (پایگاه دادهٔ Redis):</b> این یک عکس فوری (snapshot) از داده‌هاست که در بازه‌های منظم بر اساس
+          پیکربندی ساخته می‌شود. مثلاً هر ۳ دقیقه یا هر ۱۰ دقیقه، بسته به اینکه چگونه پیکربندی کنید. در این روش، Redis
+          یک نسخهٔ کامل از داده‌های داخل حافظه می‌گیرد و آن را در یک فایل ذخیره می‌کند. هنگام راه‌اندازی مجدد یا از کار
+          افتادن، داده‌ها از فایل RDB بارگذاری مجدد می‌شوند.</li>
+          <li><b>AOF (فایل فقط‌الحاقی — Append Only File):</b> در این روش، Redis هر دستور را به‌صورت RESP در فایل
+          ثبت می‌کند. هنگام راه‌اندازی مجدد، Redis همهٔ دستورهای RESP را از فایل AOF می‌خواند و آن‌ها را در حافظه اجرا
+          می‌کند.</li>
+        </ul>
+
+        <h3>AOF</h3>
+        <p>روشی که استفاده خواهیم کرد ساده است؛ زیرا می‌توانیم آن را به struct RESP که ساخته بودیم پیوند بزنیم. هر بار
+        که یک دستور را اجرا می‌کنیم، نمایش RESP آن را در فایل ثبت می‌کنیم. وقتی سرور/کد شروع به کار می‌کند، از فایل AOF
+        می‌خواند و این دستورها را به reader می‌فرستد که آن‌ها را در حافظه اجرا می‌کند.</p>
+        <p>قبل از شروع، قالب فایل AOF را توضیح دهم:</p>
+        <p>اگر ۲ دستور اجرا کرده باشیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">&gt; set name ahmed
+&gt; set website ahmedash95.github.io</code></pre>
+        <p>محتوای فایل این‌گونه خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">*2
+$3
+set
+$4
+name
+*3
+$3
+set
+$4
+name
+$5
+ahmed
+*3
+$3
+set
+$7
+website
+$20
+ahmedash95.github.io</code></pre>
+        <p>باور می‌کنم حالا خواندن و درک پروتکل RESP برایتان آسان است؛ زیرا قبلاً آن را در بخش‌های قبلی پیاده‌سازی
+        کرده‌ایم.</p>
+
+        <h3>نوشتن struct AOF</h3>
+        <p>اولین قدم این است که فایلی به نام aof.go بسازیم که همهٔ کدهای مربوط به AOF را در خود داشته باشد.</p>
+        <ul>
+          <li>اول، struct Aof را می‌سازیم که فایل ذخیره‌شده روی دیسک و یک <code class="inline">bufio.Reader</code> را
+          برای خواندن دستورهای RESP از فایل نگه می‌دارد.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Aof struct {
+	file *os.File
+	rd   *bufio.Reader
+	mu   sync.Mutex
+}</code></pre>
+        <p>سپس متد NewAof را می‌سازیم که هنگام شروع سرور در main.go استفاده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func NewAof(path string) (*Aof, error) {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		return nil, err
+	}
+
+	aof := &Aof{
+		file: f,
+		rd:   bufio.NewReader(f),
+	}
+
+	// شروع یک گوروتین برای همگام‌سازی AOF روی دیسک هر ۱ ثانیه
+	go func() {
+		for {
+			aof.mu.Lock()
+
+			aof.file.Sync()
+
+			aof.mu.Unlock()
+
+			time.Sleep(time.Second)
+		}
+	}()
+
+	return aof, nil
+}</code></pre>
+        <ul>
+          <li>آنچه در اینجا اتفاق می‌افتد این است که اول، اگر فایل وجود نداشته باشد آن را می‌سازیم یا اگر وجود داشته
+          باشد بازش می‌کنیم.</li>
+          <li>سپس <code class="inline">bufio.Reader</code> را می‌سازیم تا از فایل بخوانیم.</li>
+          <li>در حالی که سرور در حال اجراست، یک گوروتین شروع می‌کنیم تا فایل AOF را هر ۱ ثانیه با دیسک همگام
+          (sync) کند.</li>
+        </ul>
+        <p>ایدهٔ همگام‌سازی هر ثانیه تضمین می‌کند که تغییراتی که انجام داده‌ایم همیشه روی دیسک موجود باشند. بدون
+        همگام‌سازی، این تصمیم به خودِ سیستم‌عامل واگذار می‌شود که چه زمانی فایل را روی دیسک خالی کند. با این رویکرد،
+        تضمین می‌کنیم که داده‌ها حتی در صورت از کار افتادن، همیشه در دسترس باشند. اگر هر داده‌ای از دست برود، فقط
+        در همان ثانیهٔ از کار افتادن خواهد بود که نرخ قابل قبولی است.</p>
+        <p>اگر دوام ۱۰۰٪ می‌خواهید، به گوروتین نیاز نخواهیم داشت؛ در عوض، فایل را هر بار که یک دستور اجرا می‌شود
+        همگام می‌کنیم. اما این باعث عملکرد ضعیف در عملیات‌های نوشتن می‌شود؛ زیرا عملیات‌های ورودی/خروجی (IO)
+        گران‌قیمت هستند.</p>
+        <p>متد بعدی Close است که تضمین می‌کند هنگام خاموش شدن سرور، فایل به‌درستی بسته شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (aof *Aof) Close() error {
+	aof.mu.Lock()
+	defer aof.mu.Unlock()
+
+	return aof.file.Close()
+}</code></pre>
+        <p>بعد از آن، متد Write را می‌سازیم که هر بار درخواستی از کلاینت دریافت کنیم، برای نوشتن دستور در فایل AOF
+        استفاده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (aof *Aof) Write(value Value) error {
+	aof.mu.Lock()
+	defer aof.mu.Unlock()
+
+	_, err := aof.file.Write(value.Marshal())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}</code></pre>
+        <p>توجه کنید که از <code class="inline">v.Marshal()</code> برای نوشتن دستور در فایل استفاده می‌کنیم؛ در همان
+        قالب RESP که دریافت می‌کنیم. به این ترتیب، وقتی بعداً فایل را می‌خوانیم، می‌توانیم این خطوط RESP را تجزیه کنیم
+        و آن‌ها را دوباره در حافظه بنویسیم.</p>
+
+        <h3>نوشتن در AOF</h3>
+        <p>تنها کاری که باید بکنیم این است که در main.go از NewAof استفاده کنیم و با هر درخواستی از کلاینت، در فایل AOF
+        بنویسیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func main() {
+	fmt.Println("Listening on port :6379")
+
+	// ساخت یک سرور جدید
+	l, err := net.Listen("tcp", ":6379")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	aof, err := NewAof("database.aof")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer aof.Close()
+
+	// گوش دادن برای اتصال‌ها
+	conn, err := l.Accept()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer conn.Close()
+
+	for {
+		resp := NewResp(conn)
+		value, err := resp.Read()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if value.typ != "array" {
+			fmt.Println("Invalid request, expected array")
+			continue
+		}
+
+		if len(value.array) == 0 {
+			fmt.Println("Invalid request, expected array length > 0")
+			continue
+		}
+
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
+		writer := NewWriter(conn)
+
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			writer.Write(Value{typ: "string", str: ""})
+			continue
+		}
+
+		if command == "SET" || command == "HSET" {
+			aof.Write(value)
+		}
+
+		result := handler(args)
+		writer.Write(result)
+	}
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> توجه کنید که فقط دستورهای SET را می‌نویسیم؛ زیرا دستورهای دیگری مانند GET، HGET و
+          HGETALL نیازی به ذخیره‌سازی ندارند و تفاوتی ایجاد نمی‌کنند؛ به‌جز افزایش اندازهٔ فایل AOF.
+        </div>
+        <p>اگر سرور را اجرا کنیم و دستوری مانند:</p>
+        <p><code class="inline">set name ahmed</code></p>
+        <p>را اجرا کنیم، متوجه می‌شویم که فایل database.aof حاوی محتوای زیر است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">*3
+$3
+set
+$4
+name
+$5
+ahmed</code></pre>
+        <p>همین بود برای بخش نوشتن. حالا باید دستورها را از فایل AOF بخوانیم.</p>
+
+        <h3>خواندن AOF</h3>
+        <p>هنگام خواندن فایل AOF، در این مثال می‌توانیم فرض کنیم که فایل معتبری است؛ زیرا خودمان آن را ساخته‌ایم. در
+        دنیای واقعی، همیشه این‌طور نخواهد بود؛ زیرا ممکن است فایل خراب (corrupted) شده باشد. اول باید یک متد Read به
+        struct AOF اضافه کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (aof *Aof) Read(callback func(value Value)) error {
+	aof.mu.Lock()
+	defer aof.mu.Unlock()
+
+	resp := NewResp(aof.file)
+
+	for {
+		value, err := resp.Read()
+		if err == nil {
+			callback(value)
+		}
+		if err == io.EOF {
+			break
+		}
+		return err
+	}
+
+	return nil
+}</code></pre>
+        <p>متد Read ما در اینجا یک تابع بازگشتی (callback) با آرگومان از نوع Value می‌گیرد. یک حلقهٔ بی‌نهایت شروع
+        می‌کنیم تا فایل aof را بخوانیم. مهم است بدانید که فایل‌ها رابط <code class="inline">io.Reader</code> را
+        پیاده‌سازی می‌کنند؛ به همین دلیل می‌توانیم در main.go یک اتصال (connection) عبور دهیم و در اینجا یک فایل.
+        در این حلقه، شرایط خروج ما به‌این‌صورت است: خطای برگشتی <code class="inline">io.EOF</code> نشان می‌دهد که به
+        پایان فایل رسیده‌ایم. این برای ما در اینجا یک خطای «خوب» است و می‌توانیم فقط break بزنیم تا حلقهٔ بی‌نهایت
+        پایان یابد. اگر خطای دیگری برگردد، آن را به فراخواننده برمی‌گردانیم.</p>
+        <p>تنها کاری که باید بکنیم این است که در ابتدای main.go مقدار <code class="inline">aof.Read</code> را صدا
+        بزنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func main() {
+	fmt.Println("Listening on port :6379")
+
+	// ساخت یک سرور جدید
+	l, err := net.Listen("tcp", ":6379")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	aof, err := NewAof("database.aof")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer aof.Close()
+
+	aof.Read(func(value Value) {
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			return
+		}
+
+		handler(args)
+	})
+
+	// ...
+}</code></pre>
+        <p>همان‌طور که می‌بینید، از همان کدی که قبلاً برای اجرای دستورها استفاده کردیم، استفاده می‌کنیم. اما این بار،
+        در فایل AOF نمی‌نویسیم؛ زیرا از آن می‌خوانیم.</p>
+
+        <h3>جمع‌بندی</h3>
+        <p>با این کار، پیاده‌سازی AOF را کامل کردیم و یاد گرفتیم چگونه داده‌ها را روی دیسک ماندگار کنیم. جالب است بدانید
+        که Redis از همین رویکرد برای ماندگاری استفاده می‌کند. می‌توانید
+        <a href="https://www.memurai.com/blog/redis-persistence-deep-dive" target="_blank" rel="noopener">این مقاله</a>
+        را بخوانید تا دربارهٔ تفاوت‌های RDB و AOF بیشتر بدانید.</p>
+      </section>
+<!-- ==================== قدم‌های بعدی ==================== -->
+      <section>
+        <h2>قدم‌های بعدی (What's Next)</h2>
+        <p>آفرین که به پایان این مجموعه رسیدید و پایگاه دادهٔ درون‌حافظه‌ای خودتان را ساختید. امیدوارم مقاله‌ها برایتان
+        سرگرم‌کننده و آسان بوده باشند.</p>
+        <p>ایدهٔ اصلی پشت این مقاله‌ها، به اشتراک گذاشتن دانش و آسان‌تر کردن درک موضوع پیچیدهٔ داخلیات پایگاه داده
+        (Database Internals) برای همه بود. چه تازه‌کار باشید و درک نحوهٔ کار پایگاه‌های داده، چه به دنبال ساختن چیزی
+        مشابه باشید، می‌خواستم به روشن‌شدن این موضوع کمک کنم.</p>
+        <p>می‌توانید همهٔ کدهای پروژهٔ ما را در
+        <a href="https://github.com/ahmedash95/build-redis-from-scratch" target="_blank" rel="noopener">GitHub</a>
+        پیدا کنید. در کامیت‌ها سعی کرده‌ام همه‌چیز را با جزئیات توضیح دهم و آن‌ها را طوری شکسته‌ام که با بخش‌های
+        مقاله‌ها مطابقت داشته باشند.</p>
+
+        <h3>با CodeCrafters یادگیری خود را جلوتر ببرید</h3>
+        <a href="https://app.codecrafters.io/join?via=ahmedash95" target="_blank" rel="noopener">
+          <img src="https://codecrafters.io/images/app_og/course-redis.jpg"
+               alt="چالش ساخت Redis در CodeCrafters"
+               style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <p>حالا که ساختن چیزی مشابه Redis را یاد گرفته‌اید، چرا مهارت‌هایتان را محک نزنید؟ پیشنهاد می‌کنم چالش نسخهٔ
+        مشابه Redis را در CodeCrafters امتحان کنید. این راهی عالی برای به کار گرفتن آنچه یاد گرفته‌اید و کسب تجربهٔ
+        عملی است. به‌علاوه، با استفاده از لینک ارجاع من
+        <a href="https://app.codecrafters.io/join?via=ahmedash95" target="_blank" rel="noopener">چالش Redis در
+        CodeCrafters با <b>تخفیف ۴۰٪</b></a>، نه‌تنها خودتان را به چالش می‌کشید، بلکه به پشتیبانی از این وبلاگ هم کمک
+        می‌کنید. امتحانش کنید و ببینید چقدر خوب عمل می‌کنید!</p>
+        <p>از اینکه تا پایان این مجموعه همراه من بودید متشکرم. نمی‌توانم صبر کنم ببینم قدم بعدی شما چیست!</p>
+
+        <h3>بعد چه کاری انجام دهیم</h3>
+        <p>در طول مقاله‌ها، فقط تعداد کمی دستور مشابه دستورهای Redis را پوشش دادیم. چرا نگاهی به
+        <a href="https://redis.io/commands/" target="_blank" rel="noopener">سایر دستورها</a> نمی‌اندازید و سعی نمی‌کنید
+        خودتان آن‌ها را پیاده‌سازی کنید؟</p>
+        <p>همچنین موضوعاتی هستند که به آن‌ها نپرداختیم؛ مانند
+        <a href="https://redis.io/docs/manual/pipelining/" target="_blank" rel="noopener">Pipelines</a> برای دسته‌بندی
+        دستورها و <a href="https://redis.io/docs/manual/pubsub/" target="_blank" rel="noopener">Pub/Sub</a> برای
+        ارسال پیام بین کاربران. این‌ها حوزه‌های عالی برای کاوش بعدی هستند.</p>
+        <p>یا اگر به یادگیری انواع دیگر پایگاه‌های داده علاقه‌مندید، با نحوهٔ کار MySQL شروع کنید. نقطهٔ شروع خوبی،
+        خواندن کد منبع <a href="https://sqlite.org/index.html" target="_blank" rel="noopener">SQLite</a> است. این یک
+        پایگاه دادهٔ SQL ساده‌تر است و می‌تواند به شما کمک کند مفاهیم متفاوتی از آنچه بحث کردیم را بفهمید.</p>
+      </section>
+
+      <!-- ==================== درباره نویسنده ==================== -->
+      <section>
+        <h2>دربارهٔ نویسنده (About the Author)</h2>
+        <p>اسم من احمد اشرف (Ahmed Ashraf) است و به‌عنوان مهندس نرم‌افزار کار می‌کنم. اخیراً به موضوعات سطح پایین
+        (Low-Level) در مهندسی نرم‌افزار و علوم کامپیوتر علاقه‌مند شده‌ام. این یکی از دلایلی است که مقاله‌هایی دربارهٔ
+        ساخت Redis از صفر می‌نویسم؛ زیرا شیفتهٔ داخلیات پایگاه داده (Database Internals) و سیستم‌های توزیع‌شده
+        (Distributed Systems) هستم.</p>
+        <p>می‌توانید از این راه‌ها با من در ارتباط باشید:</p>
+        <ul>
+          <li><a href="https://twitter.com/ahmedash95" target="_blank" rel="noopener">Twitter</a></li>
+          <li><a href="https://www.linkedin.com/in/ahmedash95/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a href="https://github.com/ahmedash95" target="_blank" rel="noopener">Github</a></li>
+          <li><a href="https://ahmedash.dev/" target="_blank" rel="noopener">ahmedash.dev</a></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعه مقالات «Build Redis from scratch» اثر «احمد اشرف (Ahmed Ashraf)» است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="https://www.build-redis-from-scratch.dev/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

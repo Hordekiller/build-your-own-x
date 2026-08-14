@@ -720,24 +720,24 @@ window.TUTORIALS = [
 "file": "tutorials/cstack-sqlite-c.html"
 },
 {
-"id": "",
+"id": "mini-redis-cpp",
 "category": "پایگاه داده",
 "lang": "C++",
 "title": "Redis خودت را از صفر بساز",
 "url": "https://build-your-own.org/redis",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/mini-redis-cpp.html"
 },
 {
-"id": "",
+"id": "database-csharp",
 "category": "پایگاه داده",
 "lang": "C#",
 "title": "پایگاه داده خودت را بساز",
 "url": "https://www.codeproject.com/Articles/1029838/Build-Your-Own-Database",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/database-csharp.html"
 },
 {
 "id": "archaeology-db-clojure",
@@ -760,34 +760,34 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "database-go",
 "category": "پایگاه داده",
 "lang": "Go",
 "title": "پایگاه داده خودت را از صفر بساز: از درخت B+ تا SQL در ۳۰۰۰ خط",
 "url": "https://build-your-own.org/database/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/database-go.html"
 },
 {
-"id": "",
+"id": "database-go-45steps",
 "category": "پایگاه داده",
 "lang": "Go",
 "title": "یک پایگاه داده را در ۴۵ مرحله بنویس: مجموعه‌ای از پازل‌های کوچک کدنویسی تست‌محور",
 "url": "https://trialofcode.org/database/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/database-go-45steps.html"
 },
 {
-"id": "",
+"id": "redis-go",
 "category": "پایگاه داده",
 "lang": "Go",
 "title": "Redis خودت را از صفر بساز",
 "url": "https://www.build-redis-from-scratch.dev/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/redis-go.html"
 },
 {
 "id": "dagoba-js",

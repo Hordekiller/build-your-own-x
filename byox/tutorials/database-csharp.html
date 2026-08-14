@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build Your Own Database» (nam1234567، CodeProject)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پایگاه دادهٔ اختصاصی خودت را با C# بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>پایگاه دادهٔ اختصاصی خودت را با C# بساز</span>
+      </div>
+      <h1>پایگاه دادهٔ اختصاصی خودت را با C# بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.codeproject.com/Articles/1029838/Build-Your-Own-Database" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build Your Own Database» نوشته «nam1234567» از
+          سایت CodeProject است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.codeproject.com/Articles/1029838/Build-Your-Own-Database" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>با مشکلی مواجه شدم: باید یک میلیون رکورد از داده‌های دلخواه با اندازه‌های بین ۱ تا ۸ کیلوبایت را طوری
+        ذخیره می‌کردم که بتوانم در سریع‌ترین زمان ممکن — درست مثل دسترسی مستقیم به دیسک — داده‌هایم را پیدا کنم،
+        جست‌وجو کنم، بخوانم و روی آن‌ها پیمایش کنم.</p>
+        <p>هرچند Sqlite در ابتدا بسیار سریع است، اما به‌دلیل استفادهٔ ناکارآمد از فضا از آن خوشم نمی‌آید؛ ضمن اینکه
+        وقتی داده‌های زیادی نوشته و/یا حذف می‌شوند، به‌مرور زمان به‌شدت کند می‌شود. Sqlite همچنین داده‌ها و نمایه‌ها
+        (indexes) را در یک فایل واحد با هم ترکیب می‌کند و این موضوع پیمایش خطی را به تجربه‌ای وحشتناک تبدیل می‌کند؛
+        به‌ویژه وقتی رکوردها حذف می‌شوند، حفره‌هایی باقی می‌مانند که تا زمانی که دستور
+        <code class="inline">vacuum()</code> را فراخوانی نکنید هرگز پر نمی‌شوند.
+        <a href="https://wiki.mozilla.org/Performance/Avoid_SQLite_In_Your_Next_Firefox_Feature" target="_blank" rel="noopener">دربارهٔ مشکلات sqlite در این مقالهٔ موزیلا بیشتر بخوانید</a>.</p>
+        <p>پس تصمیم گرفتم پایگاه داده‌ای بسازم که به اندازهٔ Sqlite سریع باشد، اما با گذشت زمان کند نشود، فضای
+        حذف‌شده را بهتر بازیافت کند و به <code class="inline">vacuum()</code> هم نیازی نداشته باشد.</p>
+        <p>کد منبع کامل پیاده‌سازی‌شده
+        <a href="https://github.com/nam178/FooDB" target="_blank" rel="noopener">در این‌جا در گیت‌هاب قابل دانلود است</a>
+        (البته پیشنهاد می‌کنم قبل از نگاه کردن به کد، مقاله را کامل بخوانید).</p>
+
+        <h3>اهداف (Goals)</h3>
+        <ol>
+          <li>برای ساده‌تر شدن کار، هدف بسیار مشخصی تعیین کردم: پایگاه داده‌ای برای ذخیرهٔ گاوها ساختم که در آن
+          <code class="inline">CowModel</code> این‌گونه تعریف شده است:</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">csharp</span><code style="direction:ltr;text-align:left">public class CowModel
+{
+    public Guid Id { get; set; }
+    public string Breed { get; set; }
+    public int Age { get; set; }
+    public string Name { get; set; }
+    public byte[] DnaData { get; set; }
+}</code></pre>
+        <p>همان‌طور که می‌بینید، اندازهٔ ویژگی‌های <code class="inline">Breed</code>، <code class="inline">Name</code> و
+        <code class="inline">DnaData</code> ناشناخته است؛ این موضوع پروژه را چالش‌برانگیزتر می‌کند، زیرا پایگاه داده باید
+        با داده‌های طول‌متغیر (variable-length) کار کند.</p>
+        <ol start="2">
+          <li>نتیجهٔ نهایی یک DLL سی‌شارپ واحد خواهد بود که می‌توانیم مستقیماً در هر پروژهٔ اصلی به آن وصل شویم؛ با
+          رابط (interface) زیر که به ما امکان تعامل با پایگاه داده را می‌دهد.</li>
+        </ol>
+        <p>توجه کنید که همهٔ عملیات خواندن/جست‌وجو/حذف، موردی (ad-hoc) هستند (یعنی از نمایه‌ها استفاده می‌کنند):</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code style="direction:ltr;text-align:left">public interface ICowDatabase
+{
+    void Insert (CowModel cow);
+    void Delete (CowModel cow);
+    void Update (CowModel cow);
+    CowModel Find (Guid id);  // موردی (Adhoc)
+    IEnumerable&lt;CowModel&gt; FindBy (string breed, int age); // موردی (Adhoc)
+}</code></pre>
+
+        <h3>قلمرو پروژه (Scope)</h3>
+        <p>این یک پایگاه دادهٔ ساده است که تنها ۲۴ تا ۳۲ ساعت کار می‌برد؛ هدف اصلی آن کارایی و یادگیری نحوهٔ کار
+        پایگاه داده‌هاست، تا بتوانید نمونهٔ اختصاصی خودتان را بسازید.</p>
+        <p>ویژگی‌هایی مانند سازگاری ACID، نوشتن تراکنشی/اتمی (transaction/atomic write) و پشتیبانی از چند کاربر
+        در این نسخه گنجانده نشده‌اند؛ اما طراحی به‌گونه‌ای است که راه برای پیاده‌سازی آن‌ها باز است.</p>
+      </section>
+
+      <!-- ==================== طراحی ==================== -->
+      <section>
+        <h2>طراحی (The Design)</h2>
+
+        <h3>A. ذخیره‌سازی بلوکی (Block Storage)</h3>
+        <p>داده‌های خود را در یک فایل واحد ذخیره می‌کنیم. نمایه‌ها به‌صورت جداگانه و هرکدام در یک فایل مستقل نگهداری
+        می‌شوند.</p>
+        <p>برای اینکه پایگاه داده بتواند فضای داده‌های حذف‌شده را بازیافت کند، به‌جای آنکه فایل پایگاه داده را به‌صورت
+        یک جریان (Stream) ببینیم، داده‌ها را به‌صورت بلوک‌های (blocks) منفرد با اندازهٔ یکسان در نظر می‌گیریم. این کار
+        حداقل اندازه‌ای را تضمین می‌کند که فضای استفاده‌نشده قابل بازیافت باشد.</p>
+        <img src="https://www.codeproject.com/KB/recipes/1029838/image-r-700.jpg"
+             alt="نمودار ذخیره‌سازی بلوکی: داده‌ها به بلوک‌هایی با اندازهٔ مساوی تقسیم می‌شوند"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اندازهٔ یک بلوک انتخاب شماست؛ اما اندازهٔ بلوک معمول در سیستم‌های فایل ۴ کیلوبایت است که سیستم‌عامل داده‌ها را
+        در بلوک‌های ۴ کیلوبایتی می‌خواند و می‌نویسد؛ بنابراین اندازهٔ بلوک خود را ۲۵۶ بایت، ۵۱۲ بایت، ۱۰۲۴ بایت و...
+        انتخاب کنید تا پایگاه داده شما با اندازهٔ بلوک سیستم فایل زیرین هم‌تراز (aligned) باشد.</p>
+        <p>ما به این لایه <code class="inline">BlockStorage</code> می‌گوییم. من اندازهٔ بلوک را ۴ کیلوبایت انتخاب می‌کنم،
+        چون داده‌های دی‌ان‌ای گاوهای من نسبتاً حجیم است.</p>
+        <p>محتوای یک بلوک می‌تواند هر چیزی باشد؛ یک بلوک کاری به چیزی که ذخیره می‌کند ندارد. بلوک از سرآیند
+        (header) فراداده (metadata) هم پشتیبانی می‌کند، تا بعداً بتوانیم چیزهایی مانند ارجاع به بلوک‌های دیگر، اندازهٔ
+        محتوای واقعیِ در حال استفادهٔ یک بلوک و موارد مشابه را در آن ذخیره کنیم.</p>
+        <p>به لایهٔ ذخیره‌سازی بلوکی با استفاده از رابط زیر دسترسی خواهیم داشت:</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code style="direction:ltr;text-align:left">public interface IBlockStorage
+{
+    /// &lt;summary&gt;
+    /// تعداد بایت‌های دادهٔ سفارشی در هر بلوک که این مخزن می‌تواند مدیریت کند
+    /// &lt;/summary&gt;
+    int BlockContentSize {
+        get;
+    }
+
+    /// &lt;summary&gt;
+    /// تعداد کل بایت‌های سرآیند
+    /// &lt;/summary&gt;
+    int BlockHeaderSize {
+        get;
+    }
+
+    /// &lt;summary&gt;
+    /// اندازهٔ کل بلوک، برابر با اندازهٔ محتوا + اندازهٔ سرآیند؛ باید مضربی از 128B باشد
+    /// &lt;/summary&gt;
+    int BlockSize {
+        get;
+    }
+
+    /// &lt;summary&gt;
+    /// پیدا کردن یک بلوک با شناسهٔ آن
+    /// &lt;/summary&gt;
+    IBlock Find (uint blockId);
+
+    /// &lt;summary&gt;
+    /// تخصیص بلوک جدید؛ طول مخزن زیرین را افزایش می‌دهد
+    /// &lt;/summary&gt;
+    IBlock CreateNew ();
+}
+
+public interface IBlock : IDisposable
+{
+    /// &lt;summary&gt;
+    /// شناسهٔ بلوک؛ باید یکتا باشد
+    /// &lt;/summary&gt;
+    uint Id {
+        get;
+    }
+
+    /// &lt;summary&gt;
+    /// یک بلوک ممکن است یک یا چند فرادادهٔ سرآیند داشته باشد؛
+    /// هر سرآیند با یک عدد و یک مقدار ۸ بایتی شناسایی می‌شود
+    /// &lt;/summary&gt;
+    long GetHeader (int field);
+
+    /// &lt;summary&gt;
+    /// تغییر مقدار سرآیند مشخص‌شده
+    /// داده نباید تا قبل از آزادسازی (dispose) بلوک روی دیسک نوشته شود
+    /// &lt;/summary&gt;
+    void SetHeader (int field, long value);
+
+    /// &lt;summary&gt;
+    /// خواندن محتوای این بلوک (src) در بافر داده‌شده (dst)
+    /// &lt;/summary&gt;
+    void Read (byte[] dst, int dstOffset, int srcOffset, int count);
+
+    /// &lt;summary&gt;
+    /// نوشتن محتوای بافر داده‌شده (src) در این بلوک (dst)
+    /// &lt;/summary&gt;
+    void Write (byte[] src, int srcOffset, int dstOffset, int count);
+}</code></pre>
+
+        <h3>B. ذخیره‌سازی رکورد (Record Storage)</h3>
+        <p>ذخیره‌سازی بلوکی نیاز «متغیر بودن طول داده‌ها» را برآورده نمی‌کند.</p>
+        <p>برای پشتیبانی از رکوردهای طول‌متغیر — مانند <code class="inline">CowModel</code> که طول ویژگی‌های
+        <code class="inline">Breed</code>، <code class="inline">Name</code> و <code class="inline">DnaData</code>
+        ناشناخته است — لایهٔ دیگری روی ذخیره‌سازی بلوکی اضافه می‌کنیم که «ذخیره‌سازی رکورد» نامیده می‌شود.</p>
+        <img src="https://www.codeproject.com/KB/recipes/1029838/image1.jpg"
+             alt="نمودار ذخیره‌سازی رکورد: یک رکورد از چند بلوک مرتب به هم پیوند خورده ساخته شده است"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این‌جا، یک رکورد از یک یا چند بلوک ساخته می‌شود که به‌صورت مرتب در کنار هم قرار می‌گیرند. به عبارت دیگر،
+        یک <code class="inline">Record</code> یک فهرست پیوندی (linked list) از بلوک‌هاست.</p>
+        <p>یک رکورد ممکن است از کل یک بلوک برای ذخیرهٔ داده‌هایش استفاده کند یا فقط بخشی از یک بلوک را؛ که در میدان
+        <code class="inline">length</code> سرآیند فرادادهٔ بلوک تعریف می‌شود. (بعداً به پیاده‌سازی آن می‌رسیم.)</p>
+        <p>یک رکورد همچنین دارای یک شناسه (ID) است که همان شناسهٔ اولین بلوکی است که رکورد از آن ساخته شده است.</p>
+        <p>یک بلوک را می‌توان با استفاده از یکی از میدان‌های سرآیند فراداده‌اش، به‌صورت منطقی حذف‌شده علامت‌گذاری کرد.
+        همچنین از یک رکورد ویژه، یعنی رکورد شمارهٔ ۰ (اولین رکورد) برای نگهداری یک <b>پشته (stack)</b> از شناسه‌های
+        بلوک‌های حذف‌شده استفاده خواهیم کرد. حذف یک رکورد با علامت‌گذاری منطقی بلوک‌هایش به‌عنوان حذف‌شده انجام
+        می‌شود و سپس شناسهٔ آن بلوک‌ها روی پشتهٔ رکورد شمارهٔ ۰ «فشارده» (push) می‌شود. این امکان بازیافت فضای بلوک‌های
+        استفاده‌نشده را فراهم می‌کند: هنگام ساخت رکورد جدید، رکورد شمارهٔ ۰ خوانده می‌شود و یک شناسهٔ آزاد (اگر موجود
+        باشد) از پشته «بیرون کشیده» (pop) شده و دوباره استفاده می‌شود.</p>
+        <p>روش استفاده از ذخیره‌سازی رکورد به این صورت است:</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code style="direction:ltr;text-align:left">public interface IRecordStorage
+{
+    /// &lt;summary&gt;
+    /// به‌روزرسانی مؤثر یک رکورد
+    /// &lt;/summary&gt;
+    void Update (uint recordId, byte[] data);
+
+    /// &lt;summary&gt;
+    /// گرفتن داده‌های یک رکورد
+    /// &lt;/summary&gt;
+    byte[] Find (uint recordId);
+
+    /// &lt;summary&gt;
+    /// ساخت یک رکورد جدیدِ خالی
+    /// &lt;/summary&gt;
+    uint Create ();
+
+    /// &lt;summary&gt;
+    /// ساخت یک رکورد جدید با دادهٔ داده‌شده و بازگرداندن شناسهٔ آن
+    /// &lt;/summary&gt;
+    uint Create (byte[] data);
+
+    /// &lt;summary&gt;
+    /// مشابه Create(byte[] data)، اما با dataGenerator که داده را
+    /// پس از تخصیص رکورد تولید می‌کند
+    /// &lt;/summary&gt;
+    uint Create (Func&lt;uint, byte[]&gt; dataGenerator);
+
+    /// &lt;summary&gt;
+    /// حذف یک رکورد با شناسهٔ آن
+    /// &lt;/summary&gt;
+    void Delete (uint recordId);
+}</code></pre>
+
+        <h3>C. نمایه‌سازی (Indexing)</h3>
+        <p>نمایه‌سازی امکان جست‌وجوی رکوردها بر اساس ویژگی‌هایشان را فراهم می‌کند (مثلاً پیدا کردن گاو با
+        <code class="inline">Id</code>، پیدا کردن گاوها با <code class="inline">breed</code>)؛ البته می‌توانید با پیمایش
+        در رکوردها آنچه می‌خواهید را پیدا کنید، اما وقتی بیش از چند صد رکورد داشته باشید این کار بسیار ناکارآمد خواهد
+        بود.</p>
+        <p>درخت B (B-Tree) محبوب‌ترین ساختار داده برای ساخت نمایه در یک پایگاه داده است. اگر با درخت B یا ساختار درخت
+        به‌طور کلی آشنایی ندارید، می‌توانید مزایای آن را به‌صورت یک
+        <code class="inline">List&lt;Tuple&lt;K, V&gt;&gt;</code> که بر اساس K مرتب شده است تجسم کنید؛ در آن K کلید
+        نمایه (مانند <code class="inline">ID</code> یا <code class="inline">Breed</code> گاو) و V شناسهٔ رکوردها در
+        <code class="inline">RecordStorage</code> است که در بالا ذکر شد. این به شما امکان می‌دهد روی کلید K یک
+        جست‌وجوی دودویی (BinarySearch) انجام دهید و بلافاصله موقعیت V را برگردانید؛ صرف‌نظر از اینکه فهرست چقدر بزرگ
+        است.</p>
+        <img src="https://www.codeproject.com/KB/recipes/1029838/image2.jpg"
+             alt="نمودار درخت B: یک ساختار درختی با گره‌هایی که جفت کلید-مقدار را نگه می‌دارند"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای اطلاعات بیشتر دربارهٔ درخت B یا ساختار درخت، خواندن این موارد را پیشنهاد می‌کنم:
+        <a href="https://en.wikipedia.org/wiki/Binary_tree" target="_blank" rel="noopener">درخت دودویی (Binary Tree)</a>،
+        <a href="https://en.wikipedia.org/wiki/Binary_search_tree" target="_blank" rel="noopener">درخت جست‌وجوی دودویی (Binary Search Tree)</a>،
+        <a href="https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree" target="_blank" rel="noopener">درخت جست‌وجوی دودویی خودمتعادل (Self-Balance Binary Search Tree)</a>،
+        <a href="https://en.wikipedia.org/wiki/Red%E2%80%93black_tree" target="_blank" rel="noopener">درخت قرمز-سیاه (Red Black Tree)</a> و
+        <a href="https://en.wikipedia.org/wiki/B-tree" target="_blank" rel="noopener">درخت B (B-Tree)</a>.</p>
+        <p>فعلاً تنها چیزی که باید بدانیم این است که نمایه‌ها جفت‌های کلید-مقدار (Key-Value) ذخیره می‌کنند؛ در آن‌ها
+        <code class="inline">Key</code> ویژگی‌های <code class="inline">CowModel</code> ما و <code class="inline">Value</code>
+        شناسهٔ رکورد داده‌های ماست. این کار نه‌تنها امکان جست‌وجوی فوری مقدار به‌ازای کلید را فراهم می‌کند (مثل یک
+        <code class="inline">Dictionary</code>)، بلکه می‌توان موقعیت یک کلید دلخواه K را پیدا کرد و از K به همهٔ
+        کلیدهای دیگر، چه با ترتیب صعودی چه نزولی، پیمایش کرد.</p>
+        <p>درخت B از گره‌های (nodes) منفردی ساخته می‌شود و هر گره ارجاعاتی به گره‌های دیگر نگه می‌دارد. ما نمایه را
+        با سریال‌سازی (serialize) هر گره به یک رکورد ذخیره می‌کنیم و از <code class="inline">RecordStorage</code>
+        طراحیشدهٔ خودمان استفاده می‌کنیم. هر نمایه در یک فایل جداگانه قرار دارد.</p>
+        <img src="https://www.codeproject.com/KB/recipes/1029838/image3.jpg"
+             alt="نمودار سریال‌سازی گره‌های درخت B به‌صورت رکوردهایی در ذخیره‌سازی رکورد"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>وقتی به یک <code class="inline">Node</code> نیاز داریم، محتوای باینری آن را می‌خوانیم و آن را در یک
+        <code class="inline">Node</code> سریال‌زدایی (deserialize) می‌کنیم، تغییرات را اعمال می‌کنیم و سپس آن را دوباره
+        به آرایهٔ بایتی سریال‌سازی کرده و به‌صورت رکورد ذخیره می‌کنیم.</p>
+        <p>برای بهترین کارایی، یک <code class="inline">Node</code> باید دقیقاً در یک بلوک ۴ کیلوبایتی جا شود. برای این
+        کار می‌توانیم تعداد ورودی‌های هر <code class="inline">Node</code> را تنظیم کنیم.</p>
+        <p>روش استفاده از نمایه (Index) به این صورت است:</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code style="direction:ltr;text-align:left">public interface IIndex&lt;K, V&gt;
+{
+    /// &lt;summary&gt;
+    /// ساخت ورودی جدید در این نمایه که کلید K را به مقدار V نگاشت می‌کند
+    /// &lt;/summary&gt;
+    /// &lt;param name="key"&gt;کلید&lt;/param&gt;
+    /// &lt;param name="value"&gt;مقدار&lt;/param&gt;
+    void Insert (K key, V value);
+
+    /// &lt;summary&gt;
+    /// پیدا کردن یک ورودی با کلید
+    /// &lt;/summary&gt;
+    /// &lt;param name="key"&gt;کلید&lt;/param&gt;
+    Tuple&lt;K, V&gt; Get (K key);
+
+    /// &lt;summary&gt;
+    /// پیدا کردن همهٔ ورودی‌هایی که کلیدشان بزرگ‌تر یا مساوی کلید مشخص‌شده است
+    /// &lt;/summary&gt;
+    IEnumerable&lt;Tuple&lt;K, V&gt;&gt; LargerThanOrEqualTo (K key);
+
+    /// &lt;summary&gt;
+    /// پیدا کردن همهٔ ورودی‌هایی که کلیدشان بزرگ‌تر از کلید مشخص‌شده است
+    /// &lt;/summary&gt;
+    IEnumerable&lt;Tuple&lt;K, V&gt;&gt; LargerThan (K key);
+
+    /// &lt;summary&gt;
+    /// پیدا کردن همهٔ ورودی‌هایی که کلیدشان کوچک‌تر یا مساوی کلید مشخص‌شده است
+    /// &lt;/summary&gt;
+    IEnumerable&lt;Tuple&lt;K, V&gt;&gt; LessThanOrEqualTo (K key);
+
+    /// &lt;summary&gt;
+    /// پیدا کردن همهٔ ورودی‌هایی که کلیدشان کوچک‌تر از کلید مشخص‌شده است
+    /// &lt;/summary&gt;
+    IEnumerable&lt;Tuple&lt;K, V&gt;&gt; LessThan (K key);
+
+    /// &lt;summary&gt;
+    /// حذف یک ورودی از این نمایه؛ به‌صورت اختیاری با IComparer مشخص‌شده برای مقایسهٔ مقادیر
+    /// &lt;/summary&gt;
+    /// &lt;param name="key"&gt;کلید&lt;/param&gt;
+    /// &lt;param name="value"&gt;مقدار&lt;/param&gt;
+    /// &lt;param name="valueComparer"&gt;مقایسه‌کنندهٔ مقدار؛ مقدار پیش‌فرض Comparer[k].Default است&lt;/param&gt;
+    bool Delete (K key, V value, IComparer&lt;V&gt; valueComparer = null);
+
+    /// &lt;summary&gt;
+    /// حذف همهٔ ورودی‌های کلید داده‌شده
+    /// &lt;/summary&gt;
+    /// &lt;param name="key"&gt;کلید&lt;/param&gt;
+    bool Delete (K key);
+}</code></pre>
+
+        <h3>D. کنار هم گذاشتن قطعات (Putting Things Together)</h3>
+        <p><code class="inline">IRecordStorage</code> و یک یا چند <code class="inline">IIndex</code> را کنار هم قرار
+        می‌دهیم تا یک پایگاه دادهٔ کامل بسازیم. چون این دو رابط پیاده‌سازی شده‌اند، کار چندانی باقی نمانده است:</p>
+        <ol>
+          <li>درج یک رکورد در پایگاه داده با ساخت یک رکورد در <code class="inline">IRecordStorage.Create()</code>
+          انجام می‌شود که یک <code class="inline">uint ID</code> برمی‌گرداند؛ سپس از این شناسه برای نمایه‌سازی در
+          <code class="inline">IIndex</code> استفاده می‌شود.</li>
+          <li>به‌روزرسانی یک رکورد، نمایهٔ مربوطه را نیز به‌روز می‌کند.</li>
+          <li>حذف یک رکورد، ورودی آن را نیز از <code class="inline">IIndex</code> حذف می‌کند.</li>
+          <li>جست‌وجوی یک رکورد هر زمان که ممکن باشد از <code class="inline">IIndex</code> استفاده می‌کند. وقتی هیچ‌کدام
+          از نمایه‌ها قابل استفاده نباشند، در همهٔ ورودی‌های نمایهٔ اصلی پیمایش می‌کنیم (پیمایش کامل نمایه).</li>
+        </ol>
+      </section>
+
+      <!-- ==================== پیاده‌سازی ==================== -->
+      <section>
+        <h2>پیاده‌سازی (Implementation)</h2>
+        <p>کد منبع ضمیمه شده است. همچنین می‌توانید پیاده‌سازی من را
+        <a href="https://github.com/nam178/FooDB" target="_blank" rel="noopener">در گیت‌هاب</a> پیدا کنید.</p>
+        <p>بیایید پایگاه داده را «<code class="inline">FooDB</code>» بنامیم؛ کد منبع اصلی آن در
+        <a href="https://github.com/nam178/FooDB/tree/master/FooCore" target="_blank" rel="noopener">FooCore</a> قرار دارد
+        و همراه آن تست‌های واحد (unit tests) در
+        <a href="https://github.com/nam178/FooDB/tree/master/FooTest" target="_blank" rel="noopener">FooTest</a> است؛
+        برنامهٔ <code class="inline">Cow</code> ما که از <code class="inline">FooDB</code> برای ساخت
+        <code class="inline">CowDatabase</code> خود استفاده می‌کند نیز در
+        <a href="https://github.com/nam178/FooDB/tree/master/FooApplication" target="_blank" rel="noopener">FooApplication</a> است.</p>
+
+        <h3>A. پیاده‌سازی BlockStorage</h3>
+        <p>کلاس‌های جالب برای بررسی:</p>
+        <ol>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/BlockStorage.cs" target="_blank" rel="noopener">FooCore/BlockStorage.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/Block.cs" target="_blank" rel="noopener">FooCore/Block.cs</a></li>
+        </ol>
+        <p>از آنجا که <code class="inline">BlockStorage</code> هیچ وابستگی‌ای ندارد، پیاده‌سازی آن ساده و سرراست است.</p>
+
+        <h4>ساخت بلوک‌های جدید (Creating New Blocks)</h4>
+        <ul>
+          <li><code class="inline">BlockStorage</code> فقط با یک <code class="inline">Stream</code> به‌عنوان وابستگی
+          مقداردهی اولیه می‌شود.</li>
+          <li><code class="inline">BlockStorage</code> طول <code class="inline">stream</code> را هنگام مقداردهی
+          اولیه، مضربی از <code class="inline">blockSize</code> مشخص‌شده نگه می‌دارد. وقتی کلاینت درخواست ساخت یک بلوک
+          جدید می‌کند، صرفاً طول <code class="inline">Stream</code> زیرین را افزایش می‌دهد.</li>
+        </ul>
+
+        <h4>پیدا کردن یک بلوک (Finding a Block)</h4>
+        <ul>
+          <li>هر بلوک با یک شناسهٔ یکتا شناسایی می‌شود که همان موقعیت آن درون <code class="inline">Stream</code> است.
+          برای مثال، اگر طول <code class="inline">Stream</code> شما ۴۰۹۶ بایت و <code class="inline">blockSize</code>
+          برابر ۱۰۲۴ بایت باشد، ۴ بلوک خواهید داشت: ۰، ۱، ۲ و ۳.</li>
+          <li>به‌سادگی می‌توانید به بلوک شمارهٔ ۳ بروید: با تنظیم موقعیت <code class="inline">stream</code> روی
+          ۳ × ۱۰۲۴ = ۳۰۷۲.</li>
+        </ul>
+
+        <h4>خواندن و نوشتن در یک بلوک (Reading and Writing to a Block)</h4>
+        <ul>
+          <li>پیاده‌سازی بلوک، متدهای <code class="inline">Read()</code> و <code class="inline">Write()</code> را برای
+          کار با محتوای بلوک فراهم می‌کند. آن‌ها صرفاً پوسته‌های ساده‌ای دور خواندن و نوشتن آرایهٔ بایتی از/به
+          <code class="inline">Stream</code> زیرین هستند.</li>
+          <li>چند بایت ابتدایی هر بلوک برای سرآیندها رزرو شده است. یک سرآیند صرفاً یک مقدار
+          <code class="inline">LONG</code> (۸ بایت) است و می‌تواند هر چیزی باشد؛ بلوک کاری به سرآیندهایش ندارد، جز اینکه
+          به کلاینت‌ها امکان خواندن و نوشتن در آن را می‌دهد.</li>
+          <li>وقتی کلاینت کارش با یک بلوک تمام شد، باید <code class="inline">Dispose</code> را فراخوانی کند تا همهٔ
+          کش‌ها تخلیه (flush) شوند.</li>
+        </ul>
+
+        <h4>نکات (NOTES)</h4>
+        <p>در این پیاده‌سازی، ۴ کیلوبایت ابتدایی را که معمولاً هم سرآیند و هم بخشی از بدنهٔ محتوا را در بر دارد، کش
+        می‌کنم تا کارایی را بهینه کنم؛ چون سیستم فایل معمولاً داده‌ها را در بلوک‌های ۴ کیلوبایتی می‌خواند و می‌نویسد،
+        این کار برخی فراخوانی‌های نوشتن را حذف می‌کند. با این حال، برای بلوک‌های بزرگ‌تر از ۴ کیلوبایت، این کار منجر به
+        نوشتن غیرخطی می‌شود (زیرا دادهٔ کش‌شدهٔ ۴ کیلوبایت اول همیشه در آخر نوشته می‌شود).</p>
+        <p>این مشکل باید در برنامه‌های حساس به نوشتن برطرف شود؛ یا با تخلیهٔ هوشمندتر کش، یا با کش کردن کل بلوک در حافظه
+        و نوشتن آن‌ها به‌صورت متوالی هنگام آزادسازی (Dispose) بلوک.</p>
+
+        <h3>B. پیاده‌سازی RecordStorage</h3>
+        <p>کلاس‌های جالب برای بررسی:</p>
+        <ol>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/RecordStorage.cs" target="_blank" rel="noopener">FooCore/RecordStorage.cs</a></li>
+        </ol>
+        <p>همان‌طور که می‌بینید، <code class="inline">RecordStorage</code> با <code class="inline">IBlockStorage</code>
+        به‌عنوان وابستگی مقداردهی می‌شود؛ چون ما <code class="inline">RecordStorage</code> را روی
+        <code class="inline">BlockStorage</code> طراحی کردیم.</p>
+
+        <h4>ساخت رکوردها (Creating Records)</h4>
+        <ul>
+          <li><code class="inline">RecordStorage</code> با تقسیم دادهٔ مشخص‌شده به چند بلوک، یک رکورد برای هر آرایهٔ
+          بایتی دلخواه می‌سازد؛ درست مثل یک فهرست پیوندی.</li>
+          <li>بلوک‌ها را با استفاده از سرآیندهای فراداده (میدان شمارهٔ ۰ با نام <code class="inline">kNextBlockId</code>
+          و میدان شمارهٔ ۳ با نام <code class="inline">kPreviousBlockId</code>) به یکدیگر پیوند می‌زند تا بلوک قبل و
+          بعد از یک بلوک مشخص را که یک رکورد منفرد را می‌سازند، شناسایی کند.</li>
+          <li>از سرآیند بلوک (میدان شمارهٔ ۲ با نام <code class="inline">kBlockContentLength</code>) برای علامت‌گذاری
+          دادهٔ واقعاً قابل استفادهٔ یک <code class="inline">Block</code> استفاده می‌کند. این امکان را می‌دهد که یک
+          رکورد هر اندازه‌ای داشته باشد، نه فقط مضربی از اندازهٔ بلوک خاص.</li>
+          <li>تخصیص رکورد جدید هر زمان که ممکن باشد با بازیافت بلوک‌های حذف‌شده انجام می‌شود (یعنی «بیرون کشیدن» یک
+          <code class="inline">uint</code> از رکورد شمارهٔ ۰)، یا در غیر این صورت از <code class="inline">BlockStorage</code>
+          زیرین درخواست تخصیص بلوک می‌شود.</li>
+        </ul>
+
+        <h4>پیدا کردن رکوردها (Finding Records)</h4>
+        <ul>
+          <li>پیدا کردن یک رکورد آسان است، چون شناسهٔ رکورد همان شناسهٔ اولین بلوکی است که رکورد از آن ساخته شده است.</li>
+          <li>اگر اولین رکورد بلوک بعدی داشته باشد، آن بلوک را می‌گیریم و این کار را تا رسیدن به آخرین بلوک ادامه
+          می‌دهیم.</li>
+        </ul>
+
+        <h4>حذف رکوردها (Deleting Records)</h4>
+        <ul>
+          <li>حذف یک رکورد با علامت‌گذاری رکورد و همهٔ بلوک‌هایش به‌عنوان حذف‌شده (میدان شمارهٔ ۴ با نام
+          <code class="inline">kIsDeleted</code>) انجام می‌شود.</li>
+          <li>برای پیگیری بلوک‌های حذف‌شده از یک رکورد ویژه، یعنی رکورد شمارهٔ ۰، استفاده می‌کند. این رکورد مانند یک
+          پشته از <code class="inline">uint</code> است؛ وقتی یک رکورد حذف می‌شود، یک عدد <code class="inline">uint</code>
+          روی پشته «فشارده» می‌شود.</li>
+        </ul>
+
+        <h4>به‌روزرسانی رکوردها (Updating Records)</h4>
+        <ul>
+          <li>اگر دادهٔ رکورد جدید از همان تعداد بلوک‌های دادهٔ قدیم استفاده کند، <code class="inline">RecordStorage</code>
+          محتوای بلوک‌های موجود را به‌روز می‌کند.</li>
+          <li>اگر دادهٔ رکورد جدید به بلوک‌های بیشتری نسبت به دادهٔ قدیم نیاز داشته باشد،
+          <code class="inline">RecordStorage</code> به تعداد لازم بلوک تخصیص می‌دهد (یا بازیافت می‌کند).</li>
+          <li>اگر دادهٔ رکورد جدید به بلوک‌های کمتری نسبت به دادهٔ قدیم نیاز داشته باشد، بلوک‌های استفاده‌نشده به‌عنوان
+          حذف‌شده علامت‌گذاری می‌شوند.</li>
+        </ul>
+
+        <h3>C. پیاده‌سازی درخت B (روی دیسک) (B-Tree (on disk))</h3>
+        <p>کلاس‌های جالب برای بررسی به این شرح است:</p>
+        <ol>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/Tree.cs" target="_blank" rel="noopener">FooCore/Tree.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeDiskNodeManager.cs" target="_blank" rel="noopener">FooCore/TreeDiskNodeManager.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeDiskNodeSerializer.cs" target="_blank" rel="noopener">FooCore/TreeDiskNodeSerializer.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeEnumerator.cs" target="_blank" rel="noopener">FooCore/TreeEnumerator.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeHelper.cs" target="_blank" rel="noopener">FooCore/TreeHelper.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeMemoryNodeManager.cs" target="_blank" rel="noopener">FooCore/TreeMemoryNodeManager.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeNode.cs" target="_blank" rel="noopener">FooCore/TreeNode.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeTraverser.cs" target="_blank" rel="noopener">FooCore/TreeTraverser.cs</a></li>
+        </ol>
+        <p>پیاده‌سازی درخت B قبلاً توسط افراد دیگر انجام شده است؛ فقط کافی بود الگوریتم‌های آن‌ها را به کد تبدیل کنیم.
+        من از این مقالات برای پیاده‌سازی درخت B پیروی کردم —
+        <a href="http://www.cs.uofs.edu/~mccloske/courses/cmps340/btree_alg.pdf" target="_blank" rel="noopener">این</a>،
+        <a href="http://webdocs.cs.ualberta.ca/~holte/T26/del-b-tree.html" target="_blank" rel="noopener">این</a> و
+        <a href="http://web.cse.ohio-state.edu/~gurari/course/cis680/cis680Ch13.html" target="_blank" rel="noopener">این</a>
+        (به هر حال بیش از ۱۸ ساعت از من وقت گرفت).</p>
+        <p>قسمت دشوار این است که درخت باید از روی هارد دیسک قابل دسترسی باشد، نه از حافظه. وقتی به بخشی از درخت دسترسی
+        پیدا می‌کنیم، فقط همان بخش از هارد دیسک به حافظه بارگذاری می‌شود، نه کل درخت.</p>
+        <p>برای این کار فقط باید دو چیز را تضمین کنیم:</p>
+        <ol>
+          <li><code class="inline">TreeNode</code> قابل سریال‌سازی باشد (بتواند به آرایهٔ بایتی تبدیل شود و از آن ساخته
+          شود). از آنجا که یک <code class="inline">Tree</code> از چند <code class="inline">TreeNode</code> ساخته می‌شود،
+          یک درخت اگر گره‌هایش قابل سریال‌سازی باشند، قابل سریال‌سازی خواهد بود.</li>
+          <li>دسترسی به هر <code class="inline">TreeNode</code> باید از طریق یک نمونهٔ
+          <a href="https://github.com/nam178/FooDB/blob/master/FooCore/ITreeNodeManager.cs" target="_blank" rel="noopener">ITreeNodeManager</a>
+          انجام شود؛ یعنی یک <code class="inline">TreeNode</code> نباید ارجاع مستقیم درون‌حافظه‌ای به
+          <code class="inline">TreeNode</code> دیگر نگه دارد؛ در عوض باید شناسهٔ دیگران را نگه دارد.</li>
+        </ol>
+        <p>برای توسعه و تست واحد، یک پیاده‌سازی آزمایشی از
+        <a href="https://github.com/nam178/FooDB/blob/master/FooCore/ITreeNodeManager.cs" target="_blank" rel="noopener">ITreeNodeManager</a>
+        یعنی <a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeMemoryNodeManager.cs" target="_blank" rel="noopener">TreeMemoryNodeManager</a>
+        شبیه‌سازی کردم. بعداً <a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeDiskNodeManager.cs" target="_blank" rel="noopener">TreeDiskNodeManager</a>
+        را برای استفادهٔ تولیدی نوشتم، همراه با کمکی به نام
+        <a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeDiskNodeSerializer.cs" target="_blank" rel="noopener">TreeDiskNodeSerializer</a>
+        برای سریال‌سازی <a href="https://github.com/nam178/FooDB/blob/master/FooCore/TreeNode.cs" target="_blank" rel="noopener">TreeNode</a>.</p>
+
+        <h3>D. پیاده‌سازی CowDatabase</h3>
+        <p>ساخت <code class="inline">CowDatabase</code> در این مرحله نسبتاً آسان و سریع است، چون
+        <code class="inline">RecordStorage</code> و نمایه‌سازی را ساخته‌ایم.</p>
+        <p>لطفاً پیاده‌سازی <code class="inline">CowDatabase</code> من را ببینید:</p>
+        <ol>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooApplication/CowDatabase.cs" target="_blank" rel="noopener">FooApplication/CowDatabase.cs</a></li>
+          <li><a href="https://github.com/nam178/FooDB/blob/master/FooApplication/CowSerializer.cs" target="_blank" rel="noopener">FooApplication/CowSerializer.cs</a></li>
+        </ol>
+
+        <h4>مقداردهی اولیه (Initialization)</h4>
+        <p><code class="inline">FooDatabase</code> با یک مسیر به پایگاه داده به‌عنوان آرگومان مقداردهی می‌شود و از یک
+        قرارداد نام‌گذاری برای یافتن دو نمایهٔ دیگر استفاده می‌کند (نمایهٔ اصلی <code class="inline">cow Guid</code> و
+        نمایهٔ فرعی <code class="inline">Breed</code> و <code class="inline">Age</code>).</p>
+        <p>سپس یک نمایهٔ اصلی، یک <code class="inline">Tree&lt;Guid, uint&gt;</code> (نگاشت <code class="inline">GUID</code>
+        گاو به شناسهٔ رکوردش) و یک نمایهٔ فرعی
+        <code class="inline">Tree&lt;Tuple&lt;string, int&gt;, uint&gt;</code> (نگاشت <code class="inline">Breed</code> و
+        <code class="inline">Age</code> گاو به شناسهٔ رکوردش) می‌سازد.</p>
+
+        <h4>درج، حذف و به‌روزرسانی گاوها (Insertion, Deletion and Update of Cows)</h4>
+        <p><code class="inline">CowDatabase</code> از یک نمونهٔ <code class="inline">RecordStorage</code> برای ذخیرهٔ
+        داده‌های سریال‌سازی‌شدهٔ گاوها استفاده می‌کند و از
+        <a href="https://github.com/nam178/FooDB/blob/master/FooApplication/CowSerializer.cs" target="_blank" rel="noopener">CowSerializer</a>
+        کمک می‌گیرد. هر بار که یک گاو درج، حذف یا به‌روزرسانی می‌شود، به‌ترتیب متدهای <code class="inline">Create()</code>،
+        <code class="inline">Remove()</code> و <code class="inline">Update()</code> را روی
+        <code class="inline">RecordStorage</code> فراخوانی می‌کند و همچنین نمایهٔ موردنیاز را می‌سازد و تغییر می‌دهد.</p>
+
+        <h4>جست‌وجوی یک گاو یا چند گاو (Searching for a Cow or Cows)</h4>
+        <p>جست‌وجوی یک <code class="inline">cow</code> یا چند <code class="inline">cow</code> با نگاه کردن به نمایهٔ
+        اصلی یا فرعی برای یافتن شناسهٔ رکوردهای واقعی انجام می‌شود؛ سپس از آن شناسه‌ها با
+        <code class="inline">RecordStorage</code> برای خواندن دادهٔ گاو استفاده می‌شود.</p>
+        <p>حالا می‌توانیم ذخیره‌سازی و پرس‌وجوی <code class="inline">cow</code>های خود را همان‌طور که در
+        <a href="https://github.com/nam178/FooDB/blob/master/FooApplication/Program.cs" target="_blank" rel="noopener">FooApplication/Program.cs</a>
+        آمده شروع کنیم؛ از پایگاه دادهٔ سفارشی‌سازی‌شدهٔ خود لذت ببرید!</p>
+      </section>
+
+      <!-- ==================== نکات مورد علاقه ==================== -->
+      <section>
+        <h2>نکات مورد علاقه (Point of Interests)</h2>
+        <p>برای نوشتن این برنامهٔ نمونه از mono روی مک استفاده کردم؛ کارایی بسیار رضایت‌بخش بود؛ اگرچه حدود ۳۰ تا ۴۰
+        درصد از زمان CPU صرف اجرای کد سی‌شارپ می‌شد به‌جای انجام عملیات واقعی ورودی/خروجی (انتظار داشتم حدود ۱۰ تا ۲۰
+        درصد باشد). با این حال، فکر می‌کنم سی‌شارپ بهتر است روی ویندوز اجرا شود.</p>
+        <p>همچنین با مشکلی مواجه شدم: مک همهٔ فراخوانی‌های نوشتن را در حافظه کش می‌کند و راهی برای تخلیهٔ آن نداشتم،
+        حتی با <code class="inline">FileStream.Flush(bool true)</code>. فکر می‌کنم این یک باگ mono باشد.</p>
+        <p>به هر حال، یک پروژهٔ سرگرم‌کننده برای آخر هفته بود؛ امیدوارم همه از آن لذت ببرند.</p>
+      </section>
+
+      <!-- ==================== مجوز ==================== -->
+      <section>
+        <h2>مجوز (License)</h2>
+        <p>این مقاله به همراه تمام کد منبع و فایل‌های مرتبط، تحت
+        <a href="http://www.codeproject.com/info/cpol10.aspx" target="_blank" rel="noopener">مجوز متن‌باز CodeProject (CPOL)</a>
+        مجوزدهی شده است.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build Your Own Database» اثر «nam1234567» از سایت CodeProject است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="https://www.codeproject.com/Articles/1029838/Build-Your-Own-Database" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
