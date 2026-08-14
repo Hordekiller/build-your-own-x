@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی آموزش رسمی Tokio «Mini-Redis»
+  (ساخت کلاینت و سرور Redis با Rust و Tokio)
+  منبع: https://tokio.rs/tokio/tutorial
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش Mini-Redis — ساخت کلاینت و سرور Redis با Rust و Tokio</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>آموزش Mini-Redis — ساخت کلاینت و سرور Redis با Rust و Tokio</span>
+      </div>
+      <h1>آموزش Mini-Redis — ساخت کلاینت و سرور Redis با Rust و Tokio</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://tokio.rs/tokio/tutorial" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش رسمی «Tokio — Mini-Redis Tutorial» از وب‌سایت
+          «Tokio» (پروژه رسمی رانتایم ناهمگام زبان راست) است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://tokio.rs/tokio/tutorial" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== نمای کلی ==================== -->
+      <section>
+        <h2>نمای کلی — معرفی توکیو (Overview)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>توکیو (Tokio) یک رانتایم ناهمگام (asynchronous runtime) برای زبان برنامه‌نویسی راست (Rust) است. توکیو بلوک‌های ساختمانیِ لازم برای نوشتن برنامه‌های شبکه‌ای را فراهم می‌کند و انعطافی را در اختیار شما می‌گذارد که بتوانید طیف گسترده‌ای از سیستم‌ها را هدف بگیرید؛ از سرورهای بزرگ با ده‌ها هسته تا دستگاه‌های تعبیه‌شده (embedded) کوچک.</p>
+        <p>در سطح بالا، توکیو چند مؤلفهٔ اصلی ارائه می‌دهد:</p>
+        <ul>
+          <li>یک رانتایم چندنخی برای اجرای کد ناهمگام.</li>
+          <li>نسخهٔ ناهمگام کتابخانهٔ استاندارد.</li>
+          <li>اکوسیستم بزرگی از کتابخانه‌ها.</li>
+        </ul>
+
+        <h3>نقش توکیو در پروژهٔ شما</h3>
+        <p>وقتی برنامهٔ خود را به‌صورت ناهمگام می‌نویسید، با کاهش هزینهٔ انجامِ هم‌زمانِ کارهای زیاد، امکان مقیاس‌پذیری بسیار بهتری فراهم می‌کنید. بااین‌حال، کد ناهمگامِ راست به‌تنهایی اجرا نمی‌شود؛ بنابراین باید یک رانتایم برای اجرای آن انتخاب کنید. کتابخانهٔ توکیو پرکاربردترین رانتایم است و از نظر کاربرد از مجموعِ سایر رانتایم‌ها پیشی گرفته است.</p>
+        <p>علاوه بر این، توکیو ابزارهای مفید بسیاری ارائه می‌کند. هنگام نوشتن کد ناهمگام، نمی‌توانید از رابط‌های برنامه‌نویسی مسدودکنندهٔ (blocking) معمولِ کتابخانهٔ استانداردِ راست استفاده کنید و باید به‌جای آن‌ها از نسخه‌های ناهمگامِ همان رابط‌ها بهره ببرید. این نسخه‌های جایگزین توسط توکیو فراهم شده‌اند و در جایی که منطقی باشد، رابط کتابخانهٔ استاندارد را منعکس می‌کنند.</p>
+
+        <h3>مزایای توکیو</h3>
+        <h4>سریع (Fast)</h4>
+        <p>توکیو <em>سریع</em> است؛ چراکه روی خودِ زبان راست ساخته شده که خودش سریع است. این کار با همان روحیهٔ راست انجام شده و هدفش این است که نتوانید با نوشتن کد معادل با دست، کارایی بهتری به دست آورید.</p>
+        <p>توکیو <em>مقیاس‌پذیر</em> است؛ چراکه روی قابلیت زبانی async/await ساخته شده که خودش مقیاس‌پذیر است. در کار با شبکه، به‌دلیل تأخیر (latency) محدودیتی در سرعتِ رسیدگی به یک اتصال وجود دارد؛ پس تنها راه مقیاس‌پذیری، رسیدگی به تعداد زیادی اتصال به‌طور هم‌زمان است. با قابلیت زبانی async/await، افزایش تعداد عملیات هم‌زمان فوق‌العاده ارزان می‌شود و می‌توانید به تعداد زیادی تسک (task) هم‌زمان مقیاس دهید.</p>
+        <h4>قابل‌اعتماد (Reliable)</h4>
+        <p>توکیو با راست ساخته شده است؛ زبانی که به همگان قدرت ساخت نرم‌افزارهای قابل‌اعتماد و کارآمد را می‌دهد. تعداد قابل‌توجهی از
+        <a href="https://www.zdnet.com/article/microsoft-70-percent-of-all-security-bugs-are-memory-safety-issues/" target="_blank" rel="noopener">مطالعات</a>
+        نشان داده‌اند که تقریباً حدود ۷۰٪ از باگ‌های امنیتی با شدت بالا ناشی از ناامنی حافظه هستند. استفاده از راست این کلاس کامل از باگ‌ها را در برنامه‌های شما حذف می‌کند.</p>
+        <p>توکیو همچنین تمرکز زیادی بر ارائهٔ رفتار ثابت و بدون غافلگیری دارد. هدف اصلی توکیو این است که به کاربران اجازه دهد نرم‌افزار قابل‌پیش‌بینی‌ای مستقر کنند که روزبه‌روز یکسان عمل کند، زمان پاسخ قابل‌اعتماد داشته باشد و هیچ پیک تأخیر غیرقابل‌پیش‌بینی‌ای ایجاد نکند.</p>
+        <h4>آسان (Easy)</h4>
+        <p>با قابلیت زبانی async/await در راست، پیچیدگی نوشتن برنامه‌های ناهمگام به‌طور چشمگیری کاهش یافته است. همراه با ابزارهای توکیو و اکوسیستم پرنشاط آن، نوشتن برنامه‌ها بسیار آسان می‌شود.</p>
+        <p>توکیو در جایی که منطقی باشد از قرارداد نام‌گذاری کتابخانهٔ استاندارد پیروی می‌کند. این کار تبدیل کدی را که فقط با کتابخانهٔ استاندارد نوشته شده به کدی که با توکیو نوشته شده، آسان می‌کند. با سیستم نوع قوی راست، توانایی تحویل کد صحیح به‌سادگی بی‌نظیر است.</p>
+        <h4>انعطاف‌پذیر (Flexible)</h4>
+        <p>توکیو انواع مختلفی از رانتایم را ارائه می‌دهد؛ از یک رانتایم چندنخی با
+        <a href="https://en.wikipedia.org/wiki/Work_stealing" target="_blank" rel="noopener">دزدی کار (work-stealing)</a>
+        تا یک رانتایم سبکِ تک‌نخی. هر یک از این رانتایم‌ها با گزینه‌های تنظیم فراوانی همراه هستند که به کاربران امکان می‌دهد آن‌ها را مطابق نیاز خود تنظیم کنند.</p>
+
+        <h3>چه زمانی نباید از توکیو استفاده کرد</h3>
+        <p>اگرچه توکیو برای بسیاری از پروژه‌هایی که باید هم‌زمان کارهای زیادی انجام دهند مفید است، موارد استفاده‌ای هم وجود دارد که توکیو انتخاب مناسبی نیست:</p>
+        <ul>
+          <li><b>شتاب‌دادن به محاسباتِ وابسته به پردازنده</b> با اجرای موازی آن‌ها روی چند نخ. توکیو برای برنامه‌های وابسته به ورودی/خروجی (I/O-bound) طراحی شده است که در آن هر تسک بیشتر وقت خود را منتظر ورودی/خروجی می‌گذراند. اگر تنها کاری که برنامهٔ شما انجام می‌دهد اجرای موازی محاسبات است، باید از <a href="https://docs.rs/rayon/" target="_blank" rel="noopener">rayon</a> استفاده کنید. البته اگر به هر دو نیاز داشتید، باز هم می‌توان «ترکیب‌کردن» انجام داد. برای نمونه‌ای عملی، <a href="https://ryhl.io/blog/async-what-is-blocking/#the-rayon-crate" target="_blank" rel="noopener">این نوشته را ببینید</a>.</li>
+          <li><b>خواندن فایل‌های زیاد</b>. اگرچه به‌نظر می‌رسد توکیو برای پروژه‌هایی که صرفاً باید فایل‌های زیادی را بخوانند مفید باشد، در این‌جا نسبت به یک استخر نخ (thread pool) معمولی مزیتی ندارد؛ زیرا سیستم‌عامل‌ها معمولاً رابط‌های ناهمگامِ فایل ارائه نمی‌کنند.</li>
+          <li><b>ارسال یک درخواست وب واحد</b>. جایی که توکیو به شما مزیت می‌دهد، نیاز به انجام هم‌زمان کارهای زیاد است. اگر می‌خواهید از کتابخانه‌ای استفاده کنید که برای راست ناهمگام ساخته شده، مانند <a href="https://docs.rs/reqwest/" target="_blank" rel="noopener">reqwest</a>، ولی لازم نیست هم‌زمان کارهای زیادی انجام دهید، نسخهٔ مسدودکنندهٔ همان کتابخانه را ترجیح دهید؛ چون پروژهٔ شما را ساده‌تر می‌کند. استفاده از توکیو البته همچنان کار می‌کند، اما مزیت واقعی نسبت به رابط مسدودکننده ندارد. اگر کتابخانه رابط مسدودکننده نداشت،
+          <a href="https://tokio.rs/tokio/topics/bridging" target="_blank" rel="noopener">فصل پل‌زدن با کد همگام</a> را ببینید.</li>
+        </ul>
+
+        <h3>گرفتن کمک</h3>
+        <p>در هر نقطه‌ای که گیر کردید، همیشه می‌توانید در
+        <a href="https://discord.gg/tokio" target="_blank" rel="noopener">Discord</a> یا
+        <a href="https://github.com/tokio-rs/tokio/discussions" target="_blank" rel="noopener">بحث‌های گیت‌هاب</a> کمک بگیرید.
+        نگران پرسیدن سؤال‌های «مبتدی» نباشید. همهٔ ما از جایی شروع کرده‌ایم و خوشحال می‌شویم کمک کنیم.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی ==================== -->
+      <section>
+        <h2>راه‌اندازی (Setup)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/setup" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>این آموزش قدم‌به‌قدم شما را در فرایند ساخت یک کلاینت و سرور
+        <a href="https://redis.io" target="_blank" rel="noopener">Redis</a> همراهی می‌کند. ما با مبانی برنامه‌نویسی ناهمگام با راست شروع می‌کنیم و از همان‌جا ادامه می‌دهیم. زیرمجموعه‌ای از دستورهای Redis را پیاده‌سازی خواهیم کرد، اما در این مسیر سفری جامع در توکیو خواهیم داشت.</p>
+
+        <h3>مینی-ردیس (Mini-Redis)</h3>
+        <p>پروژه‌ای که در این آموزش خواهید ساخت، به‌صورت
+        <a href="https://github.com/tokio-rs/mini-redis" target="_blank" rel="noopener">Mini-Redis در گیت‌هاب</a> در دسترس است.
+        مینی-ردیس با هدف اصلی یادگیری توکیو طراحی شده و به همین دلیل کامنت‌های بسیار خوبی دارد؛ اما این بدان معناست که مینی-ردیس برخی از قابلیت‌هایی را که در یک کتابخانهٔ واقعیِ Redis انتظار دارید، ندارد. کتابخانه‌های آمادهٔ تولید را می‌توانید در
+        <a href="https://crates.io/" target="_blank" rel="noopener">crates.io</a> پیدا کنید.</p>
+        <p>ما مستقیماً در آموزش از مینی-ردیس استفاده می‌کنیم. این کار به ما امکان می‌دهد بخش‌هایی از مینی-ردیس را در طول آموزش، پیش از آن‌که خودمان آن‌ها را پیاده‌سازی کنیم، به‌کار بگیریم.</p>
+
+        <h3>گرفتن کمک</h3>
+        <p>در هر نقطه‌ای، اگر گیر کردید، همیشه می‌توانید در
+        <a href="https://discord.gg/tokio" target="_blank" rel="noopener">Discord</a> یا
+        <a href="https://github.com/tokio-rs/tokio/discussions" target="_blank" rel="noopener">بحث‌های گیت‌هاب</a> کمک بگیرید.
+        نگران پرسیدن سؤال‌های «مبتدی» نباشید. همهٔ ما از جایی شروع کرده‌ایم و خوشحال می‌شویم کمک کنیم.</p>
+
+        <h3>پیش‌نیازها</h3>
+        <p>انتظار می‌رود خوانندگان از قبل با <a href="https://rust-lang.org" target="_blank" rel="noopener">زبان راست</a> آشنا باشند.
+        <a href="https://doc.rust-lang.org/book/" target="_blank" rel="noopener">کتاب راست</a> منبع بسیار خوبی برای شروع است.</p>
+        <p>هرچند الزامی نیست، اما کمی تجربه در نوشتن کد شبکه‌ای با
+        <a href="https://doc.rust-lang.org/std/" target="_blank" rel="noopener">کتابخانهٔ استاندارد راست</a> یا زبان دیگر می‌تواند مفید باشد.</p>
+        <p>هیچ دانش قبلی از Redis لازم نیست.</p>
+
+        <h4>راست (Rust)</h4>
+        <p>قبل از شروع، مطمئن شوید که ابزار توسعهٔ
+        <a href="https://www.rust-lang.org/tools/install" target="_blank" rel="noopener">راست</a> را نصب و آماده به کار دارید. اگر ندارید، ساده‌ترین راه نصب آن استفاده از <a href="https://rustup.rs/" target="_blank" rel="noopener">rustup</a> است.</p>
+        <p>این آموزش حداقل به نسخهٔ <code class="inline">1.45.0</code> از راست نیاز دارد، اما توصیه می‌شود از جدیدترین نسخهٔ پایدار راست استفاده کنید.</p>
+        <p>برای بررسی نصب بودن راست روی رایانه، دستور زیر را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ rustc --version</code></pre>
+        <p>باید خروجی‌ای مانند <code class="inline">rustc 1.46.0 (04488afe3 2020-08-24)</code> ببینید.</p>
+
+        <h4>سرور مینی-ردیس</h4>
+        <p>در ادامه، سرور مینی-ردیس را نصب کنید. از این سرور برای آزمایش کلاینتِ در حال ساخت استفاده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo install mini-redis</code></pre>
+        <p>با راه‌اندازی سرور مطمئن شوید که به‌درستی نصب شده است:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ mini-redis-server</code></pre>
+        <p>سپس در یک پنجرهٔ ترمینال جداگانه، با استفاده از <code class="inline">mini-redis-cli</code> تلاش کنید کلید <code class="inline">foo</code> را بگیرید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ mini-redis-cli get foo</code></pre>
+        <p>باید <code class="inline">(nil)</code> ببینید.</p>
+
+        <h3>آمادهٔ شروع</h3>
+        <p>همین است؛ همه‌چیز آماده است. به صفحهٔ بعد بروید تا اولین برنامهٔ ناهمگامِ راست خود را بنویسید.</p>
+      </section>
+      <!-- ==================== سلام توکیو ==================== -->
+      <section>
+        <h2>سلام توکیو (Hello Tokio)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/hello-tokio" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>با نوشتن یک برنامهٔ بسیار سادهٔ توکیو شروع می‌کنیم. این برنامه به سرور مینی-ردیس متصل می‌شود، مقدار کلید <code class="inline">hello</code> را روی <code class="inline">world</code> تنظیم می‌کند و سپس همان کلید را دوباره می‌خواند. این کار با استفاده از کتابخانهٔ کلاینت مینی-ردیس انجام می‌شود.</p>
+
+        <h3>کد</h3>
+        <h4>ساخت یک پروژهٔ جدید (crate)</h4>
+        <p>بیایید با ساخت یک اپ جدیدِ راست شروع کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo new my-redis
+$ cd my-redis</code></pre>
+
+        <h4>افزودن وابستگی‌ها</h4>
+        <p>سپس <code class="inline">Cargo.toml</code> را باز کنید و خطوط زیر را درست زیر <code class="inline">[dependencies]</code> اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code>tokio = { version = "1", features = ["full"] }
+mini-redis = "0.4"</code></pre>
+
+        <h4>نوشتن کد</h4>
+        <p>حالا <code class="inline">main.rs</code> را باز کنید و محتوای فایل را با کد زیر جایگزین کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use mini_redis::{client, Result};
+
+#[tokio::main]
+async fn main() -&gt; Result&lt;()&gt; {
+    // یک اتصال به آدرس mini-redis باز کن
+    let mut client = client::connect("127.0.0.1:6379").await?;
+
+    // کلید "hello" را با مقدار "world" تنظیم کن
+    client.set("hello", "world".into()).await?;
+
+    // کلید "hello" را بگیر
+    let result = client.get("hello").await?;
+
+    println!("got value from the server; result={:?}", result);
+
+    Ok(())
+}</code></pre>
+        <p>مطمئن شوید سرور مینی-ردیس در حال اجراست. در یک پنجرهٔ ترمینال جداگانه، این دستور را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ mini-redis-server</code></pre>
+        <p>اگر هنوز مینی-ردیس را نصب نکرده‌اید، می‌توانید با این دستور این کار را انجام دهید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo install mini-redis</code></pre>
+        <p>حالا برنامهٔ <code class="inline">my-redis</code> را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo run
+got value from the server; result=Some(b"world")</code></pre>
+        <p>موفق شدید!</p>
+        <p>کد کامل را می‌توانید
+        <a href="https://github.com/tokio-rs/website/blob/master/tutorial-code/hello-tokio/src/main.rs" target="_blank" rel="noopener">اینجا</a>
+        پیدا کنید.</p>
+
+        <h3>شکستن کد به اجزا</h3>
+        <p>بیایید کمی وقت بگذاریم و مرور کنیم چه کاری انجام دادیم. کد زیادی نیست، اما اتفاقات زیادی می‌افتد.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let mut client = client::connect("127.0.0.1:6379").await?;</code></pre>
+        <p>تابع
+        <a href="https://docs.rs/mini-redis/0.4/mini_redis/client/fn.connect.html" target="_blank" rel="noopener"><code class="inline">client::connect</code></a>
+        توسط crate مینی-ردیس فراهم شده است. این تابع به‌صورت ناهمگام یک اتصال TCP با آدرس راه‌دور مشخص‌شده برقرار می‌کند. پس از برقراری اتصال، یک دستگیرهٔ (handle) <code class="inline">client</code> برگردانده می‌شود. حتی اگرچه عملیات به‌صورت ناهمگام انجام می‌شود، کدی که می‌نویسیم <b>به‌نظر</b> همگام می‌رسد. تنها نشانه‌ای که عملیات ناهمگام است، عملگر <code class="inline">.await</code> است.</p>
+
+        <h3>برنامه‌نویسی ناهمگام چیست؟</h3>
+        <p>بیشتر برنامه‌های رایانه‌ای به همان ترتیبی اجرا می‌شوند که نوشته شده‌اند. خط اول اجرا می‌شود، بعد خط بعدی و الی آخر. در برنامه‌نویسی همگام (synchronous)، وقتی برنامه با عملیاتی مواجه می‌شود که نمی‌تواند فوراً کامل شود، تا کامل‌شدنِ عملیات مسدود می‌ماند. برای مثال، برقراری اتصال TCP مستلزم تبادل با یک همتا (peer) روی شبکه است که می‌تواند مدت زمان قابل‌توجهی طول بکشد. در این مدت، نخ (thread) مسدود است.</p>
+        <p>در برنامه‌نویسی ناهمگام، عملیاتی که نمی‌توانند فوراً کامل شوند به پس‌زمینه معلق می‌مانند. نخ مسدود نمی‌شود و می‌تواند به اجرای کارهای دیگر ادامه دهد. وقتی عملیات کامل شد، تسک از حالت تعلیق خارج می‌شود و از همان‌جا که متوقف شده بود به پردازش ادامه می‌دهد. مثال قبلی ما فقط یک تسک دارد، پس وقتی معلق است اتفاق دیگری نمی‌افتد؛ اما برنامه‌های ناهمگام معمولاً بسیاری از این تسک‌ها را دارند.</p>
+        <p>اگرچه برنامه‌نویسی ناهمگام می‌تواند به برنامه‌های سریع‌تر منجر شود، اغلب به برنامه‌های بسیار پیچیده‌تر هم می‌انجامد. برنامه‌نویس باید تمام حالت لازم برای ازسرگیری کار پس از کامل‌شدن عملیات ناهمگام را پیگیری کند. از نظر تاریخی، این کار طاقت‌فرسا و مستعد خطا بوده است.</p>
+
+        <h3>نخ‌های سبز زمان کامپایل (Compile-time green-threading)</h3>
+        <p>راست برنامه‌نویسی ناهمگام را با استفاده از قابلیتی به نام
+        <a href="https://en.wikipedia.org/wiki/Async/await" target="_blank" rel="noopener">async/await</a>
+        پیاده‌سازی می‌کند. توابعی که عملیات ناهمگام انجام می‌دهند با کلیدواژهٔ <code class="inline">async</code> علامت‌گذاری می‌شوند. در مثال ما، تابع <code class="inline">connect</code> این‌گونه تعریف شده است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use mini_redis::Result;
+use mini_redis::client::Client;
+use tokio::net::ToSocketAddrs;
+
+pub async fn connect&lt;T: ToSocketAddrs&gt;(addr: T) -&gt; Result&lt;Client&gt; {
+    // ...
+}</code></pre>
+        <p>تعریفِ <code class="inline">async fn</code> شبیه یک تابع همگام معمولی است، اما به‌صورت ناهمگام عمل می‌کند. راست <code class="inline">async fn</code> را در <b>زمان کامپایل</b> به یک روال (routine) که به‌صورت ناهمگام عمل می‌کند تبدیل می‌کند. هر فراخوانیِ <code class="inline">.await</code> درون <code class="inline">async fn</code> کنترل را به نخ برمی‌گرداند. نخ می‌تواند در حالی که عملیات در پس‌زمینه پردازش می‌شود، کارهای دیگری انجام دهد.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگرچه زبان‌های دیگر هم
+          <a href="https://en.wikipedia.org/wiki/Async/await" target="_blank" rel="noopener">async/await</a>
+          را پیاده‌سازی می‌کنند، راست رویکردی یکتا دارد. مهم‌تر از همه، عملیات ناهمگام راست <b>تنبل</b> (lazy) هستند. این موضوع به معناشناسیِ متفاوتِ زمان اجرا نسبت به سایر زبان‌ها منجر می‌شود.
+        </div>
+        <p>اگر هنوز این موضوع کاملاً روشن نیست، نگران نباشید. در ادامهٔ این راهنما بیشتر به بررسی <code class="inline">async/await</code> خواهیم پرداخت.</p>
+
+        <h3>استفاده از <code class="inline">async/await</code></h3>
+        <p>توابع ناهمگام مانند هر تابعِ راستِ دیگری صدا زده می‌شوند. اما صدازدن این توابع باعث اجرای بدنهٔ تابع نمی‌شود. در عوض، صدازدن یک <code class="inline">async fn</code> مقداری برمی‌گرداند که نمایانگر عملیات است. این موضوع از نظر مفهومی مشابه یک کلوژر بدون آرگومان است. برای اجرای واقعی عملیات، باید روی مقدار بازگشتی از عملگر <code class="inline">.await</code> استفاده کنید.</p>
+        <p>برای مثال، برنامهٔ زیر را در نظر بگیرید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn say_world() {
+    println!("world");
+}
+
+#[tokio::main]
+async fn main() {
+    // صدازدن `say_world()` بدنهٔ `say_world()` را اجرا نمی‌کند
+    let op = say_world();
+
+    // این println! اول چاپ می‌شود
+    println!("hello");
+
+    // صدازدن `.await` روی `op` اجرای `say_world` را شروع می‌کند
+    op.await;
+}</code></pre>
+        <p>خروجی:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>hello
+world</code></pre>
+        <p>مقدار بازگشتی یک <code class="inline">async fn</code> یک نوع ناشناس (anonymous type) است که
+        <a href="https://doc.rust-lang.org/std/future/trait.Future.html" target="_blank" rel="noopener">تریتِ <code class="inline">Future</code></a>
+        را پیاده‌سازی می‌کند.</p>
+
+        <h3>تابع اصلیِ ناهمگام (Async <code class="inline">main</code>)</h3>
+        <p>تابع اصلی که برای راه‌اندازی برنامه استفاده می‌شود با تابع معمولِ موجود در بیشتر crateهای راست تفاوت دارد.</p>
+        <ol>
+          <li>یک <code class="inline">async fn</code> است</li>
+          <li>با <code class="inline">#[tokio::main]</code> علامت‌گذاری می‌شود</li>
+        </ol>
+        <p>از یک <code class="inline">async fn</code> استفاده می‌شود، چون می‌خواهیم وارد بستر ناهمگام شویم. اما توابع ناهمگام باید توسط یک
+        <a href="https://docs.rs/tokio/1/tokio/runtime/index.html" target="_blank" rel="noopener">رانتایم</a>
+        اجرا شوند. رانتایم شامل زمان‌بند (scheduler) تسک‌های ناهمگام است و ورودی/خروجیِ مبتنی بر رویداد (evented I/O)، تایمرها و غیره را فراهم می‌کند. رانتایم به‌صورت خودکار شروع نمی‌شود؛ بنابراین تابع main باید آن را راه‌اندازی کند.</p>
+        <p>قابلیتِ <code class="inline">#[tokio::main]</code> یک ماکرو است. این ماکرو <code class="inline">async fn main()</code> را به یک <code class="inline">fn main()</code> همگام تبدیل می‌کند که یک نمونهٔ رانتایم را مقداردهی کرده و تابع main ناهمگام را اجرا می‌کند.</p>
+        <p>برای مثال، کد زیر:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>#[tokio::main]
+async fn main() {
+    println!("hello");
+}</code></pre>
+        <p>به این شکل تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn main() {
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        println!("hello");
+    })
+}</code></pre>
+        <p>جزئیات رانتایم توکیو بعداً پوشش داده می‌شود.</p>
+
+        <h3>ویژگی‌های Cargo (Cargo features)</h3>
+        <p>وقتی برای این آموزش به توکیو وابستگی می‌دهیم، پرچمِ ویژگیِ (feature flag) <code class="inline">full</code> فعال می‌شود:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code>tokio = { version = "1", features = ["full"] }</code></pre>
+        <p>توکیو قابلیت‌های زیادی دارد (TCP، UDP، سوکت‌های یونیکس (Unix sockets)، تایمرها، ابزارهای همگام‌سازی (sync utilities)، چند نوع زمان‌بند و غیره). همهٔ برنامه‌ها به همهٔ قابلیت‌ها نیاز ندارند. وقتی هدف بهینه‌سازی زمان کامپایل یا اندازهٔ نهایی برنامه باشد، برنامه می‌تواند تصمیم بگیرد فقط <b>همان</b> ویژگی‌هایی را انتخاب کند که استفاده می‌کند.</p>
+      </section><!-- ==================== ریختن تسک‌ها ==================== -->
+      <section>
+        <h2>ریختن تسک‌ها (Spawning)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/spawning" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>قرار است مسیر را عوض کنیم و شروع به کار روی سرور Redis کنیم.</p>
+        <p>ابتدا کد <code class="inline">SET</code>/<code class="inline">GET</code> کلاینت را از بخش قبل به یک فایل مثال (example) منتقل می‌کنیم تا بتوانیم آن را در برابر سرور خودمان اجرا کنیم.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ mkdir -p examples
+$ mv src/main.rs examples/hello-redis.rs</code></pre>
+        <p>سپس یک <code class="inline">src/main.rs</code> جدید و خالی بسازید و ادامه دهید.</p>
+
+        <h3>پذیرش سوکت‌ها (Accepting sockets)</h3>
+        <p>اولین کاری که سرور Redis ما باید انجام دهد، پذیرش سوکت‌های ورودی TCP است. این کار با اتصالِ
+        <a href="https://docs.rs/tokio/1/tokio/net/struct.TcpListener.html" target="_blank" rel="noopener"><code class="inline">tokio::net::TcpListener</code></a>
+        به پورت <b>6379</b> انجام می‌شود.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> بسیاری از نوع‌های توکیو همان نام معادل همگام خود را در کتابخانهٔ استاندارد راست دارند. در جایی که منطقی است، توکیو همان رابط‌های <code class="inline">std</code> را با <code class="inline">async fn</code> در معرض دید قرار می‌دهد.
+        </div>
+        <p>سپس سوکت‌ها در یک حلقه پذیرفته می‌شوند. هر سوکت پردازش و سپس بسته می‌شود. فعلاً دستور را می‌خوانیم، روی خروجی استاندارد چاپ می‌کنیم و با یک خطا پاسخ می‌دهیم.</p>
+        <p><code class="inline">src/main.rs</code></p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::{TcpListener, TcpStream};
+use mini_redis::{Connection, Frame};
+
+#[tokio::main]
+async fn main() {
+    // شنونده را به آدرس متصل کن
+    let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
+
+    loop {
+        // آیتم دوم شامل IP و پورت اتصال جدید است
+        let (socket, _) = listener.accept().await.unwrap();
+        process(socket).await;
+    }
+}
+
+async fn process(socket: TcpStream) {
+    // نوع `Connection` به ما اجازه می‌دهد به‌جای جریان بایت،
+    // **قاب‌های** (frames) ردیس را بخوانیم/بنویسیم.
+    // نوع `Connection` توسط mini-redis تعریف شده است.
+    let mut connection = Connection::new(socket);
+
+    if let Some(frame) = connection.read_frame().await.unwrap() {
+        println!("GOT: {:?}", frame);
+
+        // با یک خطا پاسخ بده
+        let response = Frame::Error("unimplemented".to_string());
+        connection.write_frame(&amp;response).await.unwrap();
+    }
+}</code></pre>
+        <p>حالا این حلقهٔ پذیرش را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo run</code></pre>
+        <p>در یک پنجرهٔ ترمینال جداگانه، مثال <code class="inline">hello-redis</code> را اجرا کنید (دستور <code class="inline">SET</code>/<code class="inline">GET</code> از بخش قبل که نقش کلاینت Redis را بازی می‌کند):</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo run --example hello-redis</code></pre>
+        <p>خروجی باید این باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>Error: "unimplemented"</code></pre>
+        <p>در ترمینال سرور، خروجی این است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>GOT: Array([Bulk(b"set"), Bulk(b"hello"), Bulk(b"world")])</code></pre>
+
+        <h3>همروندی (Concurrency)</h3>
+        <p>سرور ما یک مشکل کوچک دارد (علاوه بر اینکه فقط با خطا پاسخ می‌دهد): درخواست‌های ورودی را یکی‌یکی پردازش می‌کند. وقتی اتصالی پذیرفته می‌شود، سرور داخل بلوک حلقهٔ پذیرش می‌ماند تا زمانی که پاسخ به‌طور کامل روی سوکت نوشته شود.</p>
+        <p>ما می‌خواهیم سرور Redis ما <b>بسیاری</b> درخواست هم‌زمان را پردازش کند. برای این کار باید کمی همروندی اضافه کنیم.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> همروندی (concurrency) و موازی‌سازی (parallelism) یکسان نیستند. اگر بین دو کار در نوبت جابه‌جا شوید، روی هر دو کار به‌صورت هم‌روند کار می‌کنید، اما نه به‌صورت موازی. برای اینکه چیزی واجد شرایط موازی‌سازی باشد، به دو نفر نیاز دارید که هر کدام به یک کار اختصاص داشته باشد.<br/>
+          یکی از مزایای استفاده از توکیو این است که کد ناهمگام به شما اجازه می‌دهد روی بسیاری از تسک‌ها به‌صورت هم‌روند کار کنید، بدون اینکه لازم باشد با نخ‌های معمولی آن‌ها را به‌صورت موازی اجرا کنید. در واقع، توکیو می‌تواند بسیاری از تسک‌ها را به‌صورت هم‌روند روی <b>یک</b> نخ اجرا کند!
+        </div>
+        <p>برای پردازش هم‌روند اتصال‌ها، برای هر اتصال ورودی یک تسک جدید ریخته می‌شود (spawn). اتصال روی همان تسک پردازش می‌شود.</p>
+        <p>حلقهٔ پذیرش این‌گونه می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
+
+    loop {
+        let (socket, _) = listener.accept().await.unwrap();
+        // برای هر سوکت ورودی یک تسک جدید ریخته می‌شود. سوکت
+        // به تسک جدید منتقل می‌شود و همان‌جا پردازش می‌شود.
+        tokio::spawn(async move {
+            process(socket).await;
+        });
+    }
+}</code></pre>
+
+        <h3>تسک‌ها (Tasks)</h3>
+        <p>یک تسکِ توکیو یک نخ سبزِ (green thread) ناهمگام است. با پاس‌دادن یک بلوک <code class="inline">async</code> به <code class="inline">tokio::spawn</code> ساخته می‌شود. تابع <code class="inline">tokio::spawn</code> یک <code class="inline">JoinHandle</code> برمی‌گرداند که فراخوان (caller) می‌تواند برای تعامل با تسک ریخته‌شده از آن استفاده کند. بلوک <code class="inline">async</code> می‌تواند مقدار بازگشتی داشته باشد. فراخوان می‌تواند با <code class="inline">.await</code> روی <code class="inline">JoinHandle</code> به مقدار بازگشتی دست یابد.</p>
+        <p>برای مثال:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>#[tokio::main]
+async fn main() {
+    let handle = tokio::spawn(async {
+        // کمی کار ناهمگام انجام بده
+        "return value"
+    });
+
+    // کمی کار دیگر انجام بده
+
+    let out = handle.await.unwrap();
+    println!("GOT {}", out);
+}</code></pre>
+        <p>در انتظار ماندن روی <code class="inline">JoinHandle</code> یک <code class="inline">Result</code> برمی‌گرداند. وقتی تسک در حین اجرا با خطایی مواجه شود، <code class="inline">JoinHandle</code> یک <code class="inline">Err</code> برمی‌گرداند. این اتفاق می‌افتد وقتی تسک یا panic کند، یا اگر تسک به‌دلیل خاموش‌شدنِ رانتایم به‌اجبار لغو شود.</p>
+        <p>تسک‌ها واحد اجرایی هستند که توسط زمان‌بند مدیریت می‌شوند. ریختنِ تسک، آن را به زمان‌بند توکیو می‌سپارد و زمان‌بند تضمین می‌کند که وقتی تسک کاری برای انجام دارد اجرا شود. تسک ریخته‌شده ممکن است روی همان نخی اجرا شود که از آنجا ریخته شده، یا روی یک نخِ متفاوتِ رانتایم. تسک همچنین می‌تواند پس از ریخته‌شدن بین نخ‌ها جابه‌جا شود.</p>
+        <p>تسک‌ها در توکیو بسیار سبک هستند. در پس‌زمینه فقط یک تخصیص حافظه و ۶۴ بایت حافظه لازم دارند. برنامه‌ها باید راحت هزاران، بلکه میلیون‌ها تسک بریزند.</p>
+
+        <h3>مرز <code class="inline">'static</code></h3>
+        <p>وقتی تسکی را روی رانتایم توکیو می‌ریزید، طول عمر (lifetime) نوعِ آن باید <code class="inline">'static</code> باشد. این بدان معناست که تسک ریخته‌شده نباید هیچ ارجاعی به داده‌ای داشته باشد که خارج از تسک مالکیت‌گذاری (owned) شده است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> یک باور غلط رایج این است که <code class="inline">'static</code> همیشه به معنای «برای همیشه زنده است» است؛ اما این‌گونه نیست. صرفِ اینکه یک مقدار <code class="inline">'static</code> است به این معنا نیست که نشتی حافظه دارید. می‌توانید در
+          <a href="https://github.com/pretzelhammer/rust-blog/blob/master/posts/common-rust-lifetime-misconceptions.md#2-if-t-static-then-t-must-be-valid-for-the-entire-program" target="_blank" rel="noopener">باورهای غلط رایج دربارهٔ طول عمر در راست</a>
+          بیشتر بخوانید.
+        </div>
+        <p>برای مثال، کد زیر کامپایل نمی‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::task;
+
+#[tokio::main]
+async fn main() {
+    let v = vec![1, 2, 3];
+
+    task::spawn(async {
+        println!("Here's a vec: {:?}", v);
+    });
+}</code></pre>
+        <p>تلاش برای کامپایل این کد به خطای زیر می‌انجامد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error[E0373]: async block may outlive the current function, but
+              it borrows `v`, which is owned by the current function
+ --&gt; src/main.rs:7:23
+  |
+7 |       task::spawn(async {
+  |  _______________________^
+8 | |         println!("Here's a vec: {:?}", v);
+  | |                                        - `v` is borrowed here
+9 | |     });
+  | |_____^ may outlive borrowed value `v`
+  |
+note: function requires argument type to outlive `'static`
+ --&gt; src/main.rs:7:17
+  |
+7 |       task::spawn(async {
+  |  _________________^
+8 | |         println!("Here's a vector: {:?}", v);
+9 | |     });
+  | |_____^
+help: to force the async block to take ownership of `v` (and any other
+      referenced variables), use the `move` keyword
+  |
+7 |     task::spawn(async move {
+8 |         println!("Here's a vec: {:?}", v);
+9 |     });
+  |</code></pre>
+        <p>این اتفاق می‌افتد چون به‌طور پیش‌فرض، متغیرها به بلوک‌های <code class="inline">async</code> <b>منتقل</b> (move) نمی‌شوند. وکتورِ <code class="inline">v</code> تحت مالکیت تابع <code class="inline">main</code> باقی می‌ماند. خط <code class="inline">println!</code> از <code class="inline">v</code> قرض می‌گیرد (borrow). کامپایلر راست این را با دقت برایمان توضیح می‌دهد و حتی راه‌حل را پیشنهاد می‌کند! تغییر خط ۷ به <code class="inline">task::spawn(async move {</code> به کامپایلر دستور می‌دهد <code class="inline">v</code> را به تسک ریخته‌شده <b>منتقل</b> کند. حالا تسک صاحب تمام داده‌هایش است و آن را <code class="inline">'static</code> می‌کند.</p>
+        <p>اگر باید یک داده از بیش از یک تسک به‌صورت هم‌روند در دسترس باشد، باید با استفاده از ابزارهای همگام‌سازی مانند <code class="inline">Arc</code> به اشتراک گذاشته شود.</p>
+        <p>توجه کنید پیام خطا دربارهٔ <em>بیش‌ازحد-زنده‌ماندنِ</em> (outliving) طول عمرِ <code class="inline">'static</code> توسط نوعِ آرگومان صحبت می‌کند. این اصطلاح‌شناسی می‌تواند گیج‌کننده باشد، چون طول عمر <code class="inline">'static</code> تا پایان برنامه دوام دارد؛ پس اگر چیزی بیش از آن زنده بماند، نکند نشتی حافظه داشته باشید؟ توضیح این است که این <em>نوع</em> است که باید از طول عمر <code class="inline">'static</code> فراتر برود، نه <em>مقدار</em>؛ و مقدار ممکن است پیش از آن‌که نوعِ آن دیگر معتبر نباشد از بین برود.</p>
+        <p>وقتی می‌گوییم یک مقدار <code class="inline">'static</code> است، فقط یعنی اینکه نگه‌داشتن آن مقدار برای همیشه اشتباه نخواهد بود. این مهم است، چون کامپایلر قادر نیست استدلال کند یک تسک تازه‌ریخته‌شده چه مدت می‌ماند. ما باید مطمئن شویم تسک مجاز است برای همیشه زنده بماند، تا توکیو بتواند تسک را تا هر مدت که لازم است اجرا کند.</p>
+
+        <h3>مرز <code class="inline">Send</code></h3>
+        <p>تسک‌هایی که <code class="inline">tokio::spawn</code> می‌ریزد <b>باید</b> <code class="inline">Send</code> را پیاده‌سازی کنند. این به رانتایم توکیو اجازه می‌دهد تسک‌ها را در حالی که روی یک <code class="inline">.await</code> معلق هستند بین نخ‌ها جابه‌جا کند.</p>
+        <p>تسک‌ها زمانی <code class="inline">Send</code> هستند که <b>همهٔ</b> داده‌ای که <b>در میان</b> فراخوانی‌های <code class="inline">.await</code> نگه داشته می‌شود، <code class="inline">Send</code> باشد. این کمی ظریف است. وقتی <code class="inline">.await</code> صدا زده می‌شود، تسک کنترل را به زمان‌بند بازمی‌گرداند. دفعهٔ بعد که تسک اجرا می‌شود، از همان نقطه‌ای که آخرین بار واگذار کرد، از سر گرفته می‌شود. برای عملی‌شدنِ این کار، تمام حالتی که <b>بعد از</b> <code class="inline">.await</code> استفاده می‌شود باید توسط تسک ذخیره شود. اگر این حالت <code class="inline">Send</code> باشد، یعنی می‌تواند بین نخ‌ها جابه‌جا شود، خودِ تسک هم می‌تواند بین نخ‌ها جابه‌جا شود. برعکس، اگر حالت <code class="inline">Send</code> نباشد، تسک هم <code class="inline">Send</code> نیست.</p>
+        <p>برای مثال، این کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::task::yield_now;
+use std::rc::Rc;
+
+#[tokio::main]
+async fn main() {
+    tokio::spawn(async {
+        // این scope باعث می‌شود `rc` قبل از `.await` رها (drop) شود
+        {
+            let rc = Rc::new("hello");
+            println!("{}", rc);
+        }
+
+        // `rc` دیگر استفاده نمی‌شود. وقتی تسک کنترل را به
+        // زمان‌بند برمی‌گرداند، **ذخیره نمی‌شود**
+        yield_now().await;
+    });
+}</code></pre>
+        <p>این کار نمی‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::task::yield_now;
+use std::rc::Rc;
+
+#[tokio::main]
+async fn main() {
+    tokio::spawn(async {
+        let rc = Rc::new("hello");
+
+        // `rc` بعد از `.await` استفاده می‌شود. باید در
+        // حالت تسک ذخیره شود
+        yield_now().await;
+
+        println!("{}", rc);
+    });
+}</code></pre>
+        <p>تلاش برای کامپایل این قطعه به خطای زیر می‌انجامد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error: future cannot be sent between threads safely
+   --&gt; src/main.rs:6:5
+    |
+6   |     tokio::spawn(async {
+    |     ^^^^^^^^^^^^ future created by async block is not `Send`
+    |
+   ::: [..]spawn.rs:127:21
+    |
+127 |         T: Future + Send + 'static,
+    |                     ---- required by this bound in
+    |                          `tokio::task::spawn::spawn`
+    |
+    = help: within `impl std::future::Future`, the trait
+    |       `std::marker::Send` is not  implemented for
+    |       `std::rc::Rc&lt;&amp;str&gt;`
+note: future is not `Send` as this value is used across an await
+   --&gt; src/main.rs:10:9
+    |
+7   |         let rc = Rc::new("hello");
+    |             -- has type `std::rc::Rc&lt;&amp;str&gt;` which is not `Send`
+...
+10  |         yield_now().await;
+    |         ^^^^^^^^^^^^^^^^^ await occurs here, with `rc` maybe
+    |                           used later
+11  |         println!("{}", rc);
+12  |     });
+    |     - `rc` is later dropped here</code></pre>
+        <p>در فصل بعد، حالت خاصی از این خطا را با جزئیات بیشتری بررسی خواهیم کرد:
+        <a href="https://tokio.rs/tokio/tutorial/shared-state#holding-a-mutexguard-across-an-await" target="_blank" rel="noopener">نگه‌داشتن یک <code class="inline">MutexGuard</code> در میان یک <code class="inline">.await</code></a>.</p>
+
+        <h3>ذخیرهٔ مقادیر</h3>
+        <p>حالا تابع <code class="inline">process</code> را برای رسیدگی به دستورهای ورودی پیاده‌سازی می‌کنیم. از یک <code class="inline">HashMap</code> برای ذخیرهٔ مقادیر استفاده می‌کنیم. دستورهای <code class="inline">SET</code> در <code class="inline">HashMap</code> درج می‌کنند و دستورهای <code class="inline">GET</code> مقدار را می‌خوانند. علاوه بر این، از یک حلقه برای پذیرش بیش از یک دستور در هر اتصال استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpStream;
+use mini_redis::{Connection, Frame};
+
+async fn process(socket: TcpStream) {
+    use mini_redis::Command::{self, Get, Set};
+    use std::collections::HashMap;
+
+    // برای ذخیرهٔ داده از hashmap استفاده می‌شود
+    let mut db = HashMap::new();
+
+    // نوع `Connection` که توسط `mini-redis` فراهم شده،
+    // تجزیهٔ قاب‌ها از سوکت را مدیریت می‌کند
+    let mut connection = Connection::new(socket);
+
+    // برای دریافت یک دستور از اتصال از `read_frame` استفاده کن
+    while let Some(frame) = connection.read_frame().await.unwrap() {
+        let response = match Command::from_frame(frame).unwrap() {
+            Set(cmd) =&gt; {
+                // مقدار به‌صورت `Vec&lt;u8&gt;` ذخیره می‌شود
+                db.insert(cmd.key().to_string(), cmd.value().to_vec());
+                Frame::Simple("OK".to_string())
+            }
+            Get(cmd) =&gt; {
+                if let Some(value) = db.get(cmd.key()) {
+                    // `Frame::Bulk` انتظار دارد داده از نوع `Bytes` باشد.
+                    // این نوع بعداً در آموزش پوشش داده می‌شود. فعلاً
+                    // `&amp;Vec&lt;u8&gt;` با استفاده از `into()` به `Bytes` تبدیل می‌شود.
+                    Frame::Bulk(value.clone().into())
+                } else {
+                    Frame::Null
+                }
+            }
+            cmd =&gt; panic!("unimplemented {:?}", cmd),
+        };
+
+        // پاسخ را برای کلاینت بنویس
+        connection.write_frame(&amp;response).await.unwrap();
+    }
+}</code></pre>
+        <p>حالا سرور را راه‌اندازی کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo run</code></pre>
+        <p>و در یک پنجرهٔ ترمینال جداگانه، مثال کلاینتِ <code class="inline">hello-redis</code> را دوباره اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ cargo run --example hello-redis</code></pre>
+        <p>حالا خروجی کلاینت این خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>got value from the server; result=Some(b"world")</code></pre>
+        <p>حالا می‌توانیم مقادیر را بگیریم و تنظیم کنیم، اما یک مشکل وجود دارد: مقادیر بین اتصال‌ها به اشتراک گذاشته نمی‌شوند. اگر سوکت دیگری متصل شود و تلاش کند کلید <code class="inline">hello</code> را با <code class="inline">GET</code> بخواند، چیزی پیدا نمی‌کند.</p>
+        <p>کد کامل را می‌توانید
+        <a href="https://github.com/tokio-rs/website/blob/master/tutorial-code/spawning/src/main.rs" target="_blank" rel="noopener">اینجا</a>
+        پیدا کنید.</p>
+        <p>در بخش بعد، ذخیره‌سازی داده‌ها را برای همهٔ سوکت‌ها پیاده‌سازی خواهیم کرد.</p>
+      </section><!-- ==================== حالت مشترک ==================== -->
+      <section>
+        <h2>حالت مشترک (Shared state)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/shared-state" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>تا این‌جا یک سرور کلید-مقدارِ کارا داریم. اما یک نقص بزرگ وجود دارد: حالت بین اتصال‌ها به اشتراک گذاشته نمی‌شود. در این مقاله آن را برطرف خواهیم کرد.</p>
+
+        <h3>راهبردها (Strategies)</h3>
+        <p>چند راه متفاوت برای به اشتراک‌گذاشتن حالت در توکیو وجود دارد:</p>
+        <ol>
+          <li>محافظت از حالت مشترک با یک قفل (Mutex).</li>
+          <li>ریختن یک تسک برای مدیریت حالت و استفاده از ارسال پیام (message passing) برای کار روی آن.</li>
+        </ol>
+        <p>به‌طور کلی برای داده‌های ساده باید از رویکرد اول استفاده کنید و برای چیزهایی که به کار ناهمگام نیاز دارند — مانند ابزارهای ورودی/خروجی — رویکرد دوم. در این فصل، حالت مشترک یک <code class="inline">HashMap</code> است و عملیات‌ها <code class="inline">insert</code> و <code class="inline">get</code> هستند. هیچ‌کدام از این عملیات‌ها ناهمگام نیستند، پس از یک <code class="inline">Mutex</code> استفاده می‌کنیم.</p>
+        <p>رویکرد دوم در فصل بعد پوشش داده می‌شود.</p>
+
+        <h3>افزودن وابستگیِ <code class="inline">bytes</code></h3>
+        <p>به‌جای <code class="inline">Vec&lt;u8&gt;</code>، crate مینی-ردیس از <code class="inline">Bytes</code> متعلق به crate
+        <a href="https://docs.rs/bytes/1/bytes/struct.Bytes.html" target="_blank" rel="noopener"><code class="inline">bytes</code></a>
+        استفاده می‌کند. هدف <code class="inline">Bytes</code> فراهم‌کردن یک ساختار آرایهٔ بایتِ مستحکم برای برنامه‌نویسی شبکه است. بزرگ‌ترین ویژگی‌ای که نسبت به <code class="inline">Vec&lt;u8&gt;</code> اضافه می‌کند، کلونِ سطحی (shallow cloning) است. به عبارت دیگر، صدازدن <code class="inline">clone()</code> روی یک نمونهٔ <code class="inline">Bytes</code> دادهٔ زیرین را کپی نمی‌کند. در عوض، یک نمونهٔ <code class="inline">Bytes</code> یک دستگیره با شمارش مرجع (reference-counted) به برخی داده‌های زیرین است. نوع <code class="inline">Bytes</code> تقریباً یک <code class="inline">Arc&lt;Vec&lt;u8&gt;&gt;</code> است، اما با برخی قابلیت‌های اضافه.</p>
+        <p>برای وابستگی به <code class="inline">bytes</code>، موارد زیر را به بخش <code class="inline">[dependencies]</code> در <code class="inline">Cargo.toml</code> اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code>bytes = "1"</code></pre>
+
+        <h3>مقداردهیِ <code class="inline">HashMap</code></h3>
+        <p><code class="inline">HashMap</code> در میان بسیاری از تسک‌ها و احتمالاً نخ‌های زیادی به اشتراک گذاشته می‌شود. برای پشتیبانی از این کار، در <code class="inline">Arc&lt;Mutex&lt;_&gt;&gt;</code> بسته‌بندی می‌شود.</p>
+        <p>ابتدا، برای راحتی، این نام مستعار نوع (type alias) را بعد از دستورهای <code class="inline">use</code> اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use bytes::Bytes;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+type Db = Arc&lt;Mutex&lt;HashMap&lt;String, Bytes&gt;&gt;&gt;;</code></pre>
+        <p>سپس تابع <code class="inline">main</code> را به‌روزرسانی کنید تا <code class="inline">HashMap</code> را مقداردهی کند و یک <b>دستگیرهٔ</b> (handle) <code class="inline">Arc</code> به تابع <code class="inline">process</code> بدهد. استفاده از <code class="inline">Arc</code> به <code class="inline">HashMap</code> اجازه می‌دهد به‌صورت هم‌روند از بسیاری از تسک‌ها — که احتمالاً روی نخ‌های زیادی اجرا می‌شوند — ارجاع داده شود. در سراسر توکیو، واژهٔ <b>دستگیره</b> برای اشاره به مقداری استفاده می‌شود که دسترسی به برخی حالت‌های مشترک را فراهم می‌کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpListener;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+#[tokio::main]
+async fn main() {
+    let listener = TcpListener::bind("127.0.0.1:6379").await.unwrap();
+
+    println!("Listening");
+
+    let db = Arc::new(Mutex::new(HashMap::new()));
+
+    loop {
+        let (socket, _) = listener.accept().await.unwrap();
+        // دستگیرهٔ hash map را کلون کن
+        let db = db.clone();
+
+        println!("Accepted");
+        tokio::spawn(async move {
+            process(socket, db).await;
+        });
+    }
+}</code></pre>
+
+        <h3>دربارهٔ استفاده از <code class="inline">std::sync::Mutex</code> و <code class="inline">tokio::sync::Mutex</code></h3>
+        <p>توجه کنید برای محافظت از <code class="inline">HashMap</code> از <code class="inline">std::sync::Mutex</code> استفاده شده است و <b>نه</b> <code class="inline">tokio::sync::Mutex</code>. یک خطای رایج استفادهٔ بدون قیدوشرط از <code class="inline">tokio::sync::Mutex</code> درون کد ناهمگام است. یک mutex ناهمگام، mutexی است که در میان فراخوانی‌های <code class="inline">.await</code> قفل می‌ماند.</p>
+        <p>یک mutex همگام هنگام انتظار برای گرفتن قفل، نخِ جاری را مسدود می‌کند. این به نوبهٔ خود، پردازشِ سایر تسک‌ها را مسدود می‌کند. تغییر به <code class="inline">tokio::sync::Mutex</code> باعث می‌شود تسک کنترل را به اجراکننده (executor) بازگرداند؛ اما این معمولاً به کارایی کمکی نمی‌کند، چون mutex ناهمگام در داخل خودش از یک mutex همگام استفاده می‌کند.</p>
+        <p>به‌عنوان یک قاعدهٔ سرانگشتی: استفاده از یک mutex همگام درون کد ناهمگام تا زمانی خوب است که رقابت (contention) کم بماند و قفل در میان فراخوانی‌های <code class="inline">.await</code> نگه داشته نشود.</p>
+
+        <h3>به‌روزرسانیِ <code class="inline">process()</code></h3>
+        <p>تابع process دیگر یک <code class="inline">HashMap</code> مقداردهی نمی‌کند. در عوض، دستگیرهٔ مشترک <code class="inline">HashMap</code> را به‌عنوان آرگومان می‌گیرد. همچنین باید قبل از استفاده، <code class="inline">HashMap</code> را قفل کند. به یاد داشته باشید که نوع مقدارِ <code class="inline">HashMap</code> حالا <code class="inline">Bytes</code> است (که می‌توانیم ارزان کلونش کنیم)، پس این مورد هم باید تغییر کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpStream;
+use mini_redis::{Connection, Frame};
+
+async fn process(socket: TcpStream, db: Db) {
+    use mini_redis::Command::{self, Get, Set};
+
+    // نوع `Connection` که توسط `mini-redis` فراهم شده،
+    // تجزیهٔ قاب‌ها از سوکت را مدیریت می‌کند
+    let mut connection = Connection::new(socket);
+
+    while let Some(frame) = connection.read_frame().await.unwrap() {
+        let response = match Command::from_frame(frame).unwrap() {
+            Set(cmd) =&gt; {
+                let mut db = db.lock().unwrap();
+                db.insert(cmd.key().to_string(), cmd.value().clone());
+                Frame::Simple("OK".to_string())
+            }
+            Get(cmd) =&gt; {
+                let db = db.lock().unwrap();
+                if let Some(value) = db.get(cmd.key()) {
+                    Frame::Bulk(value.clone())
+                } else {
+                    Frame::Null
+                }
+            }
+            cmd =&gt; panic!("unimplemented {:?}", cmd),
+        };
+
+        // پاسخ را برای کلاینت بنویس
+        connection.write_frame(&amp;response).await.unwrap();
+    }
+}</code></pre>
+
+        <h3>نگه‌داشتن یک <code class="inline">MutexGuard</code> در میان یک <code class="inline">.await</code></h3>
+        <p>ممکن است کدی بنویسید که این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::sync::{Mutex, MutexGuard};
+
+async fn increment_and_do_stuff(mutex: &amp;Mutex&lt;i32&gt;) {
+    let mut lock: MutexGuard&lt;i32&gt; = mutex.lock().unwrap();
+    *lock += 1;
+
+    do_something_async().await;
+} // قفل این‌جا از scope خارج می‌شود</code></pre>
+        <p>وقتی تلاش می‌کنید چیزی را بریزید که این تابع را صدا می‌زند، با پیام خطای زیر مواجه می‌شوید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error: future cannot be sent between threads safely
+   --&gt; src/lib.rs:13:5
+    |
+13  |     tokio::spawn(async move {
+    |     ^^^^^^^^^^^^ future created by async block is not `Send`
+    |
+   ::: /playground/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.21/src/task/spawn.rs:127:21
+    |
+127 |         T: Future + Send + 'static,
+    |                     ---- required by this bound in `tokio::task::spawn::spawn`
+    |
+    = help: within `impl std::future::Future`, the trait `std::marker::Send` is not implemented for `std::sync::MutexGuard&lt;'_, i32&gt;`
+note: future is not `Send` as this value is used across an await
+   --&gt; src/lib.rs:7:5
+    |
+4   |     let mut lock: MutexGuard&lt;i32&gt; = mutex.lock().unwrap();
+    |         -------- has type `std::sync::MutexGuard&lt;'_, i32&gt;` which is not `Send`
+...
+7   |     do_something_async().await;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ await occurs here, with `mut lock` maybe used later
+8   | }
+    | - `mut lock` is later dropped here</code></pre>
+        <p>این اتفاق می‌افتد چون نوعِ <code class="inline">std::sync::MutexGuard</code> <b>نه</b> <code class="inline">Send</code> است. یعنی نمی‌توانید یک قفلِ mutex را به نخ دیگری بفرستید و خطا رخ می‌دهد، چون رانتایم توکیو می‌تواند تسک را در هر <code class="inline">.await</code> بین نخ‌ها جابه‌جا کند. برای اجتناب از این موضوع، باید کد خود را طوری بازسازی کنید که مخرب (destructor) قفلِ mutex پیش از <code class="inline">.await</code> اجرا شود.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>// این کار می‌کند!
+async fn increment_and_do_stuff(mutex: &amp;Mutex&lt;i32&gt;) {
+    {
+        let mut lock: MutexGuard&lt;i32&gt; = mutex.lock().unwrap();
+        *lock += 1;
+    } // قفل این‌جا از scope خارج می‌شود
+
+    do_something_async().await;
+}</code></pre>
+        <p>توجه کنید که این کار نمی‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::sync::{Mutex, MutexGuard};
+
+// این هم شکست می‌خورد.
+async fn increment_and_do_stuff(mutex: &amp;Mutex&lt;i32&gt;) {
+    let mut lock: MutexGuard&lt;i32&gt; = mutex.lock().unwrap();
+    *lock += 1;
+    drop(lock);
+
+    do_something_async().await;
+}</code></pre>
+        <p>این به این دلیل است که کامپایلر در حال حاضر صرفاً بر اساس اطلاعات scope محاسبه می‌کند که یک future آیا <code class="inline">Send</code> است یا نه. امید است کامپایلر در آینده به‌روزرسانی شود تا از drop صریح پشتیبانی کند؛ اما فعلاً باید صریحاً از scope استفاده کنید.</p>
+        <p>توجه کنید خطای موردبحث در این‌جا در
+        <a href="https://tokio.rs/tokio/tutorial/spawning#send-bound" target="_blank" rel="noopener">بخش مرز Send در فصل ریختن تسک‌ها</a>
+        نیز بحث شده است.</p>
+        <p>نباید تلاش کنید این مشکل را با ریختن تسک به شکلی دور بزنید که به <code class="inline">Send</code> بودن نیاز نداشته باشد؛ زیرا اگر توکیو تسک شما را روی یک <code class="inline">.await</code> در حالی که تسک قفل را در دست دارد معلق کند، ممکن است تسک دیگری روی همان نخ زمان‌بندی شود و این تسکِ دیگر هم تلاش کند همان mutex را قفل کند، که به بن‌بست (deadlock) می‌انجامد؛ چون تسکی که منتظر قفل است، مانع آزادشدنِ قفل توسط تسکِ دارندهٔ قفل می‌شود.</p>
+        <p>به خاطر داشته باشید برخی از crateهای mutex برای MutexGuardهای خودشان <code class="inline">Send</code> را پیاده‌سازی می‌کنند. در این حالت، حتی اگر یک MutexGuard را در میان یک <code class="inline">.await</code> نگه دارید، خطای کامپایلر وجود ندارد. کد کامپایل می‌شود، اما بن‌بست می‌کند!</p>
+        <p>برخی رویکردها برای اجتناب از این مشکلات را در زیر بررسی می‌کنیم:</p>
+
+        <h4>بازسازی کد برای نگه‌نداشتن قفل در میان یک <code class="inline">.await</code></h4>
+        <p>امن‌ترین راه برای مدیریت یک mutex این است که آن را در یک ساختار (struct) بپیچید و قفل را فقط درون متدهای غیرناهمگام همان ساختار بگیرید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::sync::Mutex;
+
+struct CanIncrement {
+    mutex: Mutex&lt;i32&gt;,
+}
+impl CanIncrement {
+    // این تابع async علامت‌گذاری نشده است
+    fn increment(&amp;self) {
+        let mut lock = self.mutex.lock().unwrap();
+        *lock += 1;
+    }
+}
+
+async fn increment_and_do_stuff(can_incr: &amp;CanIncrement) {
+    can_incr.increment();
+    do_something_async().await;
+}</code></pre>
+        <p>این الگو تضمین می‌کند به خطای <code class="inline">Send</code> برنخواهید خورد، چون محافظِ قفل (mutex guard) هیچ‌جا در یک تابع ناهمگام ظاهر نمی‌شود. همچنین هنگام استفاده از crateهایی که <code class="inline">MutexGuard</code>شان <code class="inline">Send</code> را پیاده‌سازی می‌کند، از بن‌بست‌ها هم محافظت می‌شوید.</p>
+        <p>می‌توانید یک مثال با جزئیات بیشتر را
+        <a href="https://draft.ryhl.io/blog/shared-mutable-state/" target="_blank" rel="noopener">در این پست وبلاگ</a>
+        پیدا کنید.</p>
+
+        <h4>ریختن یک تسک برای مدیریت حالت و استفاده از ارسال پیام برای کار روی آن</h4>
+        <p>این رویکرد دوم است که در ابتدای این فصل به آن اشاره شد و اغلب وقتی منبعِ مشترک یک منبع ورودی/خروجی باشد استفاده می‌شود. برای جزئیات بیشتر، فصل بعد را ببینید.</p>
+
+        <h4>استفاده از mutex ناهمگامِ توکیو</h4>
+        <p>نوع
+        <a href="https://docs.rs/tokio/1/tokio/sync/struct.Mutex.html" target="_blank" rel="noopener"><code class="inline">tokio::sync::Mutex</code></a>
+        که توسط توکیو فراهم شده را هم می‌توان استفاده کرد. ویژگی اصلی mutex توکیو این است که می‌توان آن را بدون هیچ مشکلی در میان یک <code class="inline">.await</code> نگه داشت. با این حال، یک mutex ناهمگام از یک mutex معمولی گران‌تر است و معمولاً بهتر است از یکی از دو رویکرد دیگر استفاده کنید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::Mutex; // توجه کن! این از mutex توکیو استفاده می‌کند
+
+// این کامپایل می‌شود!
+// (اما در این حالت بازسازی کد بهتر است)
+async fn increment_and_do_stuff(mutex: &amp;Mutex&lt;i32&gt;) {
+    let mut lock = mutex.lock().await;
+    *lock += 1;
+
+    do_something_async().await;
+} // قفل این‌جا از scope خارج می‌شود</code></pre>
+
+        <h3>تسک‌ها، نخ‌ها و رقابت (Tasks, threads, and contention)</h3>
+        <p>استفاده از یک mutex مسدودکننده برای محافظت از بخش‌های بحرانی کوتاه، وقتی رقابت حداقلی باشد راهبردی قابل‌قبول است. وقتی قفل رقابتی باشد، نخی که تسک را اجرا می‌کند باید مسدود شود و منتظر mutex بماند. این کار نه‌فقط تسک جاری را مسدود می‌کند، بلکه همهٔ تسک‌های دیگری را هم که روی نخِ جاری زمان‌بندی شده‌اند مسدود می‌کند.</p>
+        <p>به‌طور پیش‌فرض، رانتایم توکیو از یک زمان‌بند چندنخی استفاده می‌کند. تسک‌ها روی هر تعدادی از نخ‌ها که رانتایم مدیریت می‌کند زمان‌بندی می‌شوند. اگر تعداد زیادی تسک برای اجرا زمان‌بندی شوند و همگی به mutex نیاز داشته باشند، رقابت رخ می‌دهد. از سوی دیگر، اگر از نسخهٔ رانتایمِ
+        <a href="https://docs.rs/tokio/1/tokio/runtime/index.html#current-thread-scheduler" target="_blank" rel="noopener"><code class="inline">current_thread</code></a>
+        استفاده شود، mutex هرگز رقابتی نخواهد شد.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> نسخهٔ رانتایمِ
+          <a href="https://docs.rs/tokio/1/tokio/runtime/struct.Builder.html#method.new_current_thread" target="_blank" rel="noopener"><code class="inline">current_thread</code></a>
+          یک رانتایم سبکِ تک‌نخی است. وقتی فقط چند تسک می‌ریزید و چند سوکت باز می‌کنید انتخاب خوبی است. برای مثال، وقتی یک پلِ رابطِ همگام (synchronous API bridge) روی یک کتابخانهٔ کلاینت ناهمگام فراهم می‌کنید، این گزینه به‌خوبی کار می‌کند.
+        </div>
+        <p>اگر رقابت روی یک mutex همگام مشکل‌ساز شد، بهترین راه‌حل به‌ندرت تغییر به mutex توکیو است. در عوض، گزینه‌هایی که باید در نظر بگیرید این‌ها هستند:</p>
+        <ul>
+          <li>این‌که یک تسک اختصاصی حالت را مدیریت کند و از ارسال پیام استفاده شود.</li>
+          <li>شارد کردن (shard) mutex.</li>
+          <li>بازسازی کد برای اجتناب از mutex.</li>
+        </ul>
+
+        <h4>شارد کردن قفل (Mutex sharding)</h4>
+        <p>در مورد ما، چون هر <em>کلید</em> مستقل است، شارد کردن قفل به‌خوبی کار می‌کند. برای این کار، به‌جای یک نمونهٔ <code class="inline">Mutex&lt;HashMap&lt;_, _&gt;&gt;</code>، <code class="inline">N</code> نمونهٔ مجزا معرفی می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>type ShardedDb = Arc&lt;Vec&lt;Mutex&lt;HashMap&lt;String, Vec&lt;u8&gt;&gt;&gt;&gt;&gt;;
+
+fn new_sharded_db(num_shards: usize) -&gt; ShardedDb {
+    let mut db = Vec::with_capacity(num_shards);
+    for _ in 0..num_shards {
+        db.push(Mutex::new(HashMap::new()));
+    }
+    Arc::new(db)
+}</code></pre>
+        <p>سپس، یافتن سلولِ مربوط به هر کلید به یک فرایند دو مرحله‌ای تبدیل می‌شود. ابتدا از کلید برای شناساییِ شاردی که کلید به آن تعلق دارد استفاده می‌شود. سپس کلید در <code class="inline">HashMap</code> جست‌وجو می‌شود.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let shard = db[hash(key) % db.len()].lock().unwrap();
+shard.insert(key, value);</code></pre>
+        <p>پیاده‌سازی ساده‌ای که در بالا آمد نیاز به استفاده از تعداد ثابتی شارد دارد و پس از ساختِ map شاردشده، دیگر نمی‌توان تعداد شاردها را تغییر داد.</p>
+        <p>crate
+        <a href="https://docs.rs/dashmap" target="_blank" rel="noopener">dashmap</a>
+        پیاده‌سازیِ پیچیده‌تری از hash map شاردشده فراهم می‌کند. شاید هم بخواهید به پیاده‌سازی‌های جدول هشِ هم‌روند مانند
+        <a href="https://docs.rs/leapfrog" target="_blank" rel="noopener">leapfrog</a> و
+        <a href="https://docs.rs/flurry" target="_blank" rel="noopener">flurry</a> نگاه کنید؛ مورد دوم یک پورت از ساختار دادهٔ <code class="inline">ConcurrentHashMap</code> جاواست.</p>
+        <p>قبل از شروع استفاده از هر یک از این crateها، مطمئن شوید کدتان را طوری ساختار می‌دهید که نتوانید یک <code class="inline">MutexGuard</code> را در میان یک <code class="inline">.await</code> نگه دارید. اگر این کار را نکنید، یا خطای کامپایلر خواهید داشت (در مورد محافظ‌های غیر-Send) یا کدتان بن‌بست می‌کند (در مورد محافظ‌های Send). یک مثال کامل و زمینهٔ بیشتر را
+        <a href="https://draft.ryhl.io/blog/shared-mutable-state/" target="_blank" rel="noopener">در این پست وبلاگ</a>
+        ببینید.</p>
+      </section><!-- ==================== کانال‌ها ==================== -->
+      <section>
+        <h2>کانال‌ها (Channels)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/channels" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>در بخش قبل تمام شد که برای دسترسی اشتراک‌گذاری‌شده، mutexها می‌توانند استفاده شوند. به‌عنوان راهکاری مکمل، می‌توان مسیر دسترسی منحصربه‌فردی به حالت مشترک با استفاده از کانال‌های توکیو در اختیار یک تسک اختصاصی قرار داد.</p>
+
+        <h3>کانال‌ها (Channels)</h3>
+        <p>یک crate موازی با توکیو به نام
+        <a href="https://docs.rs/tokio/1/tokio/sync/index.html" target="_blank" rel="noopener"><code class="inline">tokio::sync</code></a>
+        وجود دارد که شامل دو نوع کانال است:</p>
+        <ul>
+          <li><b>mpsc</b> — یک کانال چند-تولیدکننده، تک-مصرف‌کننده (multi-producer, single-consumer)</li>
+          <li><b>oneshot</b> — یک کانال تک-ارسال (single-producer, single-consumer) که می‌تواند یک مقدار بفرستد</li>
+        </ul>
+        <p>در حالی که مورد دوم فقط یک مقدار را پشتیبانی می‌کند، اولی می‌تواند جریان‌هایی از مقادیر را بفرستد. هر دو پشتیبانی می‌کنند که انتظارِ کانال بدون مسدود کردن نخ، کشیده شود. پنجرهٔ بازگشت (backpressure) هم دارند: وقتی صف خالی است، انتظارِ دریافت مسدود می‌شود؛ وقتی صف پر است، فرستنده می‌تواند منتظر بماند.</p>
+        <p>اگر نیاز به فرستادن مقادیر بین چند فرستنده و چند گیرنده دارید، می‌توانید به جای آن از کانال‌های خارج از توکیو مانند
+        <a href="https://docs.rs/sync_channel/" target="_blank" rel="noopener"><code class="inline">sync_channel</code></a>
+        یا crateهایی مانند
+        <a href="https://docs.rs/crossbeam-channel/" target="_blank" rel="noopener">crossbeam-channel</a>
+        یا
+        <a href="https://docs.rs/flume/" target="_blank" rel="noopener">flume</a>
+        استفاده کنید.</p>
+
+        <h3>تعریف پیام (Defining the message)</h3>
+        <p>در مثال خودمان، یک پایانهٔ کلید-مقدار داریم. برای عملیات‌های همگام‌سازی، از استرینگ‌های ساده استفاده می‌کنیم؛ فقط برای دو نوع عملیات، که مطابق با دستورهای <code class="inline">Set</code> و <code class="inline">Get</code> هستند. برای حوزهٔ دستورهایمان، یک نوع <code class="inline">enum</code> می‌سازیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+use bytes::Bytes;
+
+/// چندین دستورها می‌توانند روی یک کانال فرستاده شوند.
+#[derive(Debug)]
+enum Command {
+    Get {
+        key: String,
+        resp: Responder&lt;Option&lt;Bytes&gt;&gt;,
+    },
+    Set {
+        key: String,
+        value: Bytes,
+        resp: Responder&lt;()&gt;,
+    },
+}</code></pre>
+        <p>هیچ یک از این عملیات‌ها ورودی/خروجی بر روی سوکت را انجام نمی‌دهند؛ انجام این کار به کد پیچیده‌تری نیاز دارد و می‌تواند سازندهٔ تصویر را لکه‌دار کند. در این قدامی این کار را انجام نمی‌دهیم؛ به‌جای آن مدیر را طوری طراحی می‌کنیم که responses در کانال‌های oneshot فرستاده شوند.</p>
+
+        <h3>ایجاد کانال</h3>
+        <p>توابع تولیدکننده (constructor functions) سر راست هستند. برای مثال <code class="inline">new_shared_state</code>:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>/// مدیر را با navigating و initialized کن
+fn new_shared_state(
+    num_shards: usize,
+) -&gt; (Arc&lt;Shared&gt;, mpsc::Sender&lt;Command&gt;) {
+    let mut shards = Vec::with_capacity(num_shards);
+    for _ in 0..=num_shards {
+        shards.push(Shard::new());
+    }
+
+    let shared = Arc::new(Shared { shards });
+    let (update_tx, update_rx) = mpsc::channel(num_shards);
+    shared.clone().spawn_manager(update_rx);
+    (shared, update_tx)
+}</code></pre>
+
+        <h3>ارسال یک دریافت (Sending a request)</h3>
+        <p>برای دریافت کردن <code class="inline">values</code>، یک کانال oneshot ایجاد می‌کنیم و آن را با فرستادنِ دستور <code class="inline">GET</code> هم‌مسیر می‌فرستیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn get_value(
+    shard: &amp;Shard,
+    key: &amp;str,
+) -&gt; impl Future&lt;Output = Option&lt;Bytes&gt;&gt; {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    let _ = shard.rx_tx.try_send(Command::Get {
+        key: key.to_string(),
+        resp: resp_tx,
+    });
+
+    async move {
+        match resp_rx.await {
+            Ok(res) =&gt; res,
+            Err(_) =&gt; None,
+        }
+    }
+}</code></pre>
+        <p>برای به‌روزرسانی مقادیر، هم‌مسیر برعکس انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn set_value(
+    shard: &amp;Shard,
+    key: String,
+    value: Bytes,
+) -&gt; impl Future&lt;Output = ()&gt; {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    let _ = shard.rx_tx.try_send(Command::Set {
+        key,
+        value,
+        resp: resp_tx,
+    });
+
+    async move {
+        let _ = resp_rx.await;
+    }
+}</code></pre>
+        <p>سپس می‌توانیم دستورها را دریافت کرده، به‌روزرسانی کنیم و به کلاینت‌ها پاسخ بدهیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn get_value(
+    shard: &amp;Shard,
+    key: &amp;str,
+) -&gt; Option&lt;Bytes&gt; {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    let _ = shard.rx_tx.try_send(Command::Get {
+        key: key.to_string(),
+        resp: resp_tx,
+    });
+
+    resp_rx.await.ok().flatten()
+}
+
+async fn set_value(
+    shard: &amp;Shard,
+    key: String,
+    value: Bytes,
+) {
+    let (resp_tx, resp_rx) = oneshot::channel();
+    let _ = shard.rx_tx.try_send(Command::Set {
+        key,
+        value,
+        resp: resp_tx,
+    });
+
+    let _ = resp_rx.await;
+}</code></pre>
+        <p>نتیجهٔ <code class="inline">resp_rx.await.ok().flatten()</code>: <code class="inline">Option&lt;Result&lt;Option&lt;Bytes&gt;, RecvError&gt;&gt;</code> اول تبدیل می‌شود و بعد flatten می‌شود. با استفاده از این موارد، map_read و map_write را این‌گونه پیاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn map_read(shared: &amp;Arc&lt;Shared&gt;, key: String) -&gt; Option&lt;Bytes&gt; {
+    let shard = shard(shared, &amp;key);
+    get_value(shard, &amp;key).await
+}
+
+async fn map_write(
+    shared: &amp;Arc&lt;Shared&gt;,
+    key: String,
+    value: Bytes,
+) {
+    let shard = shard(shared, &amp;key);
+    let _ = set_value(shard, key, value).await;
+}</code></pre>
+        <p>دقت کنید در این مثال، shardها را برای کوچک نگه‌داشتن مثال نادیده گرفته‌ایم؛ به‌عنوان تمرین می‌توانید اجرای شاردینگ را کامل کنید.</p>
+
+        <h3>پایه (Backbone)</h3>
+        <p>شما باید یک تسک مدیر ایجاد کرده باشید که دریافت انحصاری (<code class="inline">mpsc::Receiver&lt;Command&gt;</code>) را نگه داشته و سرآیند اجرای تسک‌های یکتا را بچرخاند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::mpsc;
+
+async fn start_manager(
+    manager: mpsc::Receiver&lt;Command&gt;,
+    shard_rxs: Vec&lt;Shard&gt;,
+) {
+    let manager = Manager::new(manager, shard_rxs);
+
+    tokio::spawn(async move {
+        manager.run().await;
+    });
+}</code></pre>
+        <p>اینجاست که همهٔ تسک‌ها اجرا می‌شوند: تسک‌ها به‌صورت ناهمگام اجرا می‌شوند و تا زمانی که عملیات‌های sync (همگام) به پایان برسند یا به کانال‌ها دسترسی پیدا کنند، منتظر می‌مانند.</p>
+        <p>از این طریق — یعنی با استفاده از oneshotها برای reply کردن — کلاینت‌ها (مدیر و مشتری که از طریق خط فرمان با آنها گفت‌وگو می‌کند) می‌توانند بدون اینکه منتظر پاسخ بمانند، دستور بفرستند. مدیر هم به‌نوبهٔ خود می‌داند چه زمان‌بندیِ پاسخ برای هر دستور لازم است.</p>
+
+        <h3>فشرده‌سازی پاسخ‌ها (Backpressure) و حلقهٔ دریافت</h3>
+        <p>حلقهٔ دریافت (receive loop) یا loop زندهٔ تسک مدیر — که مدیریت یک مقدار و مدیر را بر عهده دارد — نباید به‌صورت تک‌نخی مسدودکننده اجرا شود. باید بتواند pure async دریافت کند. در این‌جا دو panic رخ می‌دهد: یکی زمانی که دریافت از <code class="inline">receiver</code> شکست بخورد، و دیگری وقتی که از <code class="inline">shard</code> شکست بخورد.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>impl Manager {
+    async fn run(&amp;self) {
+        loop {
+            match self.manager_rx.recv().await {
+                Some(cmd) =&gt; self.process(cmd).await,
+                None =&gt; panic!("manager_rx closed"),
+            };
+        }
+    }
+
+    async fn process(&amp;self, cmd: Command) {
+        match cmd {
+            Command::Get { key, resp } =&gt; {
+                let shard = &amp;self.call_rxs[shard_for(&amp;key)];
+                let res = get_value(shard, &amp;key).await;
+                let _ = resp.send(res);
+            }
+            Command::Set { key, value, resp } =&gt; {
+                let shard = &amp;self.call_rxs[shard_for(&amp;key)];
+                set_value(shard, key, value).await;
+                let _ = resp.send(());
+            }
+        };
+    }
+}</code></pre>
+        <p>وقتی <code class="inline">recv().await</code> مقدار <code class="inline">None</code> برگرداند، یعنی تمام فرستنده‌ها بسته شده‌اند (یا کانال خالی است). با تعریف کامل پیام‌ها، همهٔ این عملیات‌ها async هستند و کد ما تا این‌جا امن است.</p>
+
+        <h3>استفاده از کانال‌ها برای جریان‌های ناهمگام (Using channels for async streams)</h3>
+        <p>مدیرهای مبتنی بر کانال می‌توانند برای مدیریت جریان‌های ناهمگام به‌کار روند؛ به این شکل که <code class="inline">Sub</code>ها یک بار در هر نوع رویداد، <code class="inline">enabled</code> می‌شوند. سپس، چون mpsc یک کانال چند-تولیدکننده است، فرستنده‌ها می‌توانند روی <code class="inline">shard_tx</code>ها بفرستند. برای قفل کردن <code class="inline">enabled</code>، فقط مدیر باید تصمیم بگیرد؛ تولیدکنندگان هم می‌توانند فقط اگر <code class="inline">enabled</code> باشد، بفرستند؛ پس <code class="inline">enabled</code> باید قبل از <code class="inline">send</code> بررسی شود.</p>
+        <p>این مثال‌ها برگرفته از نسخهٔ کامل‌تر پیاده‌سازیِ استفادهٔ کانال‌ها در سرور مینی-ردیس هستند.</p>
+
+        <h3>هدر دادنِ پیام‌ها (Dropping messages)</h3>
+        <p>در مدل mpsc، تنها راه برای اینکه بفهمیم همهٔ مصرف‌کننده‌ها از مصرف بازمانده‌اند، استفاده از روش «قطره (drop)» است. این موضوع می‌تواند هنگام کار با کد async، پیچیدگی‌های غیرمنتظره‌ای ایجاد کند؛ برای مثال، اگر بعد از یک <code class="inline">send</code>، تسک پاک شود، پیام در کانال‌های mpsc گم می‌شود و پاسخ هرگز نمی‌رسد.</p>
+        <p>در نهایت، این‌روزها معمولاً توصیه می‌شود برای ترافیک‌های «fire-and-forget» (بفرست و فراموش کن) از <code class="inline">tokio::sync::Notify</code> یا <code class="inline">std::sync::Notify</code>، که کانال‌های بیدارکنندهٔ منتظرم‌ماندگان هستند، استفاده شود. فقط مطمئن شوید ریسهٔ زندگی (lifetime) آنچه می‌فرستید را بررسی کرده‌اید. به‌طور کلی، بهتر است دریافت‌کننده، صندوق پیام‌ها (mailbox) را مدیریت کند، نه فرستنده — در غیر این صورت هر پیام می‌تواند از دست برود.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> در فصل بعد، رویکرد دومِ به‌اشتراک‌گذاری حالت — یعنی ریختن یک تسک برای مدیریت حالت و استفاده از ارسال پیام برای کار روی آن — به‌طور کامل پیاده‌سازی می‌شود.
+        </div>
+      </section><!-- ==================== ورودی/خروجی ==================== -->
+      <section>
+        <h2>ورودی/خروجی (I/O)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/io" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>توکیو و سایر کتابخانه‌های async، مجموعه‌ای از traits و اجرای مفیدی را برای انجام ورودی/خروجی (I/O) فراهم می‌کنند. این traits و پیاده‌سازی‌ها به‌صورت اشتراکی استفاده می‌شوند و به شما امکان می‌دهند از یک «مدل زمینه» استفاده کنید: مثلاً یک کتابخانهٔ کلاینت TCP و یک کتابخانهٔ کلاینت HTTP هر دو می‌توانند روی یک نوع سرویس‌گیرنده (server) کار کنند، یا یک کتابخانهٔ <code class="inline">TcpListener</code> خودش را دارد ولی برنامه شما سرویس‌گیرندهٔ خودش را می‌نویسد.</p>
+
+        <h3>AsyncRead و AsyncWrite</h3>
+        <p>این traits جریان‌های بایتِ ناهمگام را فراهم می‌کنند. درست همان‌طور که <code class="inline">std::io::Read</code> و <code class="inline">std::io::Write</code> عمل می‌کنند، اما ناهمگام.
+        <code class="inline">Read</code> <b>مسدودکننده</b> را با <code class="inline">read</code>/<code class="inline">read_to_end</code> مدیریت می‌کند؛ <code class="inline">AsyncRead</code> هم مدیریت انتظار برای آماده‌شدن داده‌ها را به‌گونه‌ای انجام می‌دهد که نخ را مسدود نکند. این traits معمولاً با ترکیب‌کننده‌ها (combinators) استفاده می‌شوند، مانند <code class="inline">AsyncReadExt</code> و <code class="inline">AsyncWriteExt</code>. برای شروع کار، از هریک از دو کارکرد زیر استفاده کنید: <code class="inline">read()</code> و <code class="inline">write()</code>، که هر دو از صراحت بیشتری برخوردارند.</p>
+        <p>مینی‌ردیس برای نوشتن قاب‌ها از <code class="inline">AsyncWriteExt</code> استفاده می‌کند، و برای خواندن از <code class="inline">AsyncReadExt</code>؛ همچنین پشتیبانی از عملیات‌های جانبی مانند <code class="inline">read_to_end()</code> و <code class="inline">write_all()</code> را هم فراهم می‌کند: می‌توانید <code class="inline">AsyncReadExt::read_to_end()</code> را برای خواندن همهٔ داده‌های خروجی یک جریان استفاده کنید و <code class="inline">AsyncWriteExt::write_all()</code> را برای نوشتن یک حرکت کامل (buffer) استفاده کنید.</p>
+        <p>برای نمونه، یک <code class="inline">TcpStream</code> از توکیو هر دوی <code class="inline">AsyncRead</code> و <code class="inline">AsyncWrite</code> را پیاده‌سازی می‌کند، همین‌طور <code class="inline">File</code> از توکیو، و <code class="inline">Stdout</code> از توکیو.</p>
+
+        <h3>دو نمونهٔ کاربردی</h3>
+        <p>مثال اول: یک سرور پژواک (echo server)، که ورودی را به همان شکلی که دریافت می‌کند برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io::{self, AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() -&gt; io::Result&lt;()&gt; {
+    let listener = TcpListener::bind("127.0.0.1:6142").await?;
+
+    loop {
+        let (mut socket, _) = listener.accept().await?;
+
+        tokio::spawn(async move {
+            let mut buf = vec![0; 1024];
+
+            // در یک حلقه، داده را بخوان،
+            // سپس آن را به عقب بنویس
+            loop {
+                let n = socket
+                    .read(&amp;mut buf)
+                    .await
+                    .expect("failed to read data from socket");
+
+                if n == 0 {
+                    return;
+                }
+
+                socket
+                    .write_all(&amp;buf[0..n])
+                    .await
+                    .expect("failed to write data to socket");
+            }
+        });
+    }
+}</code></pre>
+        <p>حالا همین کار را با <code class="inline">io::copy()</code>:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io;
+use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() -&gt; io::Result&lt;()&gt; {
+    let listener = TcpListener::bind("127.0.0.1:6142").await?;
+
+    loop {
+        let (mut socket, _) = listener.accept().await?;
+
+        tokio::spawn(async move {
+            // کپی از سوکت به خودش به‌طور مستقیم
+            // نخواهد کار کرد
+            let (mut rd, mut wr) = socket.split();
+
+            if io::copy(&amp;mut rd, &amp;mut wr).await.is_err() {
+                eprintln!("failed to copy");
+            }
+        });
+    }
+}</code></pre>
+        <p><code class="inline">io::copy</code> داده را از یک خواننده (reader) به یک نویسنده (writer) می‌کپی‌کند و دو آرگومان می‌گیرد: یکی که <code class="inline">AsyncRead</code> را پیاده‌سازی می‌کند و دیگری که <code class="inline">AsyncWrite</code> را. این تابع انتظار می‌کشد تا خواندن آماده شود و سپس با <code class="inline">read_to_end()</code> همهٔ داده را می‌خواند. نسخهٔ <code class="inline">io::copy</code> با بافرهای بزرگ کار می‌کند.</p>
+        <p>دقت کنید که در این نسخه از <code class="inline">io::copy</code>، کل سوکت به‌عنوان قرائت‌کننده و نویسنده استفاده می‌شود؛ <code class="inline">split()</code> اجازه می‌دهد عملیات‌های خواندن و نوشتن به‌طور هم‌زمان انجام شوند، اما چون در این کد از آن استفاده نشده، کپی کردن از یک شیء به همان شیء در حلقه مجاز نخواهد بود... در عمل، <code class="inline">io::copy</code> نسخهٔ <code class="inline">tokio::io::copy</code> را بعداً به‌روزرسانی می‌کند.</p>
+        <p>برای حل این مشکل، به جای کل سوکت از «نیمه‌های» آن استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io;
+use tokio::net::TcpStream;
+
+// از طریق یک ارتقا کوچک، می‌توانیم
+// نیمی از سوکت را برای خواندن
+// و نیمی را برای نوشتن داشته باشیم
+async fn process(mut socket: TcpStream) {
+    let (mut rd, mut wr) = socket.split();
+
+    let _ = io::copy(&amp;mut rd, &amp;mut wr).await;
+}</code></pre>
+        <p>در این نسخه، <code class="inline">split()</code> سوکت را به دو نیمه تقسیم می‌کند: یکی که <code class="inline">AsyncRead</code> را پیاده می‌کند (<code class="inline">rd</code>) و دیگری که <code class="inline">AsyncWrite</code> را پیاده می‌کند (<code class="inline">wr</code>). حالا، چون هر دونفر روی دادهٔ یکسان کار نمی‌کنند، <code class="inline">io::copy</code> می‌تواند داده را از <code class="inline">rd</code> به <code class="inline">wr</code> کپی کند، و برنامه به‌عنوان یک سرور پژواک عمل می‌کند.</p>
+        <p>در نسخه‌های قدیمی‌تر توکیو، این کار باید به‌شکل
+        <code class="inline">let (rd, wr) = socket.split()</code>
+        انجام می‌شد، اما والدِ <code class="inline">socket</code> همین‌جا drop می‌شود؛ راه‌حل در نسخهٔ جدید، <code class="inline">TcpStream::into_split()</code> است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io;
+use tokio::net::TcpStream;
+
+async fn process(socket: TcpStream) {
+    let (mut rd, mut wr) = socket.into_split();
+
+    let _ = io::copy(&amp;mut rd, &amp;mut wr).await;
+}</code></pre>
+        <p><code class="inline">io::split</code> همچنین برای انواع دیگری مانند <code class="inline">DuplexStream</code> هم موجود است که می‌تواند بین server و client استفاده شود.</p>
+
+        <h3>بیشتر درمورد <code class="inline">AsyncRead</code> و <code class="inline">AsyncWrite</code> (Manual read/write)</h3>
+        <p>توکیو هر دو نقشِ «خواندن تا پر شدنِ بافر» و «خواندن همهٔ data» را با <code class="inline">AsyncReadExt::read()</code> و <code class="inline">AsyncReadExt::read_to_end()</code> مدیریت می‌کند. اگر لازم است دقیقاً تعداد مشخصی بایت بخوانید — مثل مواردی که با قاب‌ها کار می‌کنید — از <code class="inline">AsyncReadExt::read_exact()</code> استفاده کنید.</p>
+        <p>اگر بخواهید ببینید <code class="inline">TcpStream</code> آیا داده‌ای برای خواندن دارد یا نه — بدون اینکه منتظر بمانید — می‌توانید <code class="inline">poll_read</code> را میلی سنجید، ولی معمولاً این کار نیاز نیست. برای مثال، معماری‌های ناهمگام مبتنی بر رویداد (event-driven) با <code class="inline">AsyncReadExt::read()</code> که انتظار می‌کشد تا داده موجود شود، به‌خوبی کار می‌کنند.</p>
+        <p>برای نوشتن چند بافر به‌صورت یکجا، <code class="inline">write_vectored()</code> را امتحان کنید، که شبیه <code class="inline">std::io::Write::write_vectored</code> است؛ نمونهٔ استفاده از آن در <code class="inline">mini-redis</code> برای نوشتن یک قاب که شامل چند بخش است دیده می‌شود.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> نوشتن پیوسته برای پروتکل‌های متن‌محور، مانند پروتکل‌های فریم، می‌تواند مشکلاتی ایجاد کند. برای جزئیات، به فصل «Framing» بروید.
+        </div>
+        <p>موقعیت‌یابی در جریان‌های خواندنی/نوشتنی: هر دوی <code class="inline">AsyncRead</code> و <code class="inline">AsyncWrite</code> برای موقعیت‌یابی، از اعداد ۷۲ بیتی استفاده می‌کنند. برای جابه‌جایی موقعیت، می‌توانید از <code class="inline">AsyncSeekExt::seek()</code> استفاده کنید؛ <code class="inline">File</code>ها از توکیو این ویژگی را پیاده‌سازی می‌کنند.</p>
+
+        <h3>اجرا برای Serverها و Clientها</h3>
+        <p>ساختن Client با <code class="inline">TcpStream</code> و Server با <code class="inline">TcpListener</code> ساده است.</p>
+        <p>برای Client، استفاده از <code class="inline">TcpStream::connect()</code>:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpStream;
+use tokio::io::AsyncWriteExt;
+
+async fn main() -&gt; io::Result&lt;()&gt; {
+    let mut stream = TcpStream::connect("127.0.0.1:6142").await?;
+    stream.write_all(b"hello world").await?;
+    Ok(())
+}</code></pre>
+        <p>این مدل برای هر پروتکل مبتنی بر TCP — از HTTP گرفته تا وب‌سوکت‌ها و FTP — کار می‌کند. اگر از نوع بایت‌های ناهمگام (AsyncRead + AsyncWrite) پشتیبانی شود، می‌توان آن را با <code class="inline">tokio::io</code> استفاده کرد.</p>
+
+        <h3>Server (Listener)</h3>
+        <p>برای اینکه یک server کار کند، باید حالت قبلیِ acceptor را نگه داریم و برای هر اتصال، یک پاسخ‌گو (handler) بسازیم. این کار را می‌توان به‌وضوح این‌گونه انجام داد:(بخش نخستِ همین فصل، سرور پذیرش و پاسخ را نشان داد). برای جلوگیری از تکرار، به نمونهٔ اول فصل (echo server) مراجعه کنید.</p>
+
+        <h3>روش‌های دیگر منتخب (Other utility functions)</h3>
+        <p>در این فصل با <code class="inline">io::copy</code> آشنا شدیم که کپی کامل است. یک تابع مشابه دیگر، <code class="inline">io::sink()</code> است که همهٔ داده‌ها را دور می‌ریزد؛ برای آزمایش مفید است. توابع همه‌کارهٔ دیگری مثل <code class="inline">repeat()</code> و <code class="inline">empty()</code> هم هست.</p>
+        <p>هنگامی که برنامه بزرگ می‌شود، با دقت از <code class="inline">tracing</code> یا <code class="inline">tokio-console</code> استفاده کنید و در حین اجرا، استفادهٔ I/O را مشاهده کنید؛ این ابزارها داده‌های ارزشمندی دربارهٔ کارایی برنامه به شما می‌دهند.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> در مینی‌ردیس، کد واقعیِ خواندن/نوشتن قاب‌ها در فصل «Framing» پیاده‌سازی می‌شود؛ در آن‌جا از <code class="inline">AsyncReadExt::read()</code>، <code class="inline">AsyncWriteExt::write_all()</code> و bufferها استفاده می‌کنیم.
+        </div>
+      </section><!-- ==================== قاب‌بندی ==================== -->
+      <section>
+        <h2>قاب‌بندی (Framing)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/framing" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>در فصل قبل، برنامهٔ سرورِ مینی‌ردیس داده‌ها را به‌صورت خام می‌خواند و می‌نوشت. پیاده‌سازیِ درست، «قاب» (frame)ها را می‌خواند و می‌نویسد.</p>
+
+        <h3>قاب چیست؟ (What is framing)</h3>
+        <p>وقتی دو برنامهٔ نظیر یکدیگر با هم در یک شبکه صحبت می‌کنند، نیاز به یک قرارداد برای نوع داده‌هایی دارند که مبادله می‌کنند. برای مثال، یک پروتکل ممکن است به این شکل باشد:</p>
+        <ul>
+          <li>یک عدد صحیحِ ۳۲ بیتیِ آخر اینکه طول پیام است</li>
+          <li>به‌دنبالش بایت‌های پیام</li>
+          <li>سپس پیامِ بعدی</li>
+        </ul>
+        <p>با این قرارداد، طولی که برای هر پیام می‌خوانید تعیین می‌شود. نام این فرایند جداسازی قاب‌ها (framing) است.</p>
+        <p>پروتکل‌های مختلف قوانین متفاوتی برای قاب‌بندی دارند. یک قانون بسیار ساده سرصفحه یا سرفصلِ (header) بوده و سپس پیام و... . قانون دیگری که اغلب دیده می‌شود: بر اساس ساختار، یعنی پر کردن با یک کاراکتر معین (مثل خط جدید) یا با الگوهای مبتنی بر مقدار (مثل الگوهایی که اخیراً برای عبارات JSON استفاده می‌شود).</p>
+        <p>ساده‌ترین راه برای شروع، این است که ببینید قاب‌بندی در crate مینی-ردیس چگونه انجام می‌شود؛ بعد می‌توانیم آن را برای مثال خودمان بازسازی کنیم.</p>
+
+        <h3>هدر_valid (Frames از دید client/server)</h3>
+        <p>در ابتدای آموزش، یک دادهٔ <code class="inline">Frame</code> را در ساختار خودمان تعریف کردیم: فریم‌های بلندی که داده را از client به server حمل می‌کنند. پاسخ‌ها از server به client نیز اگرچه داده را متفاوت هدایت می‌کنند، ولی هر دوی‌شان پروتکل قاب‌بندی مشترکی دارند: ابتدا ممکن است یک <code class="inline">Byte</code> خام بیاید…</p>
+        <p>بگذارید بخش واقعی‌تر را ببینیم: یک <code class="inline">Frame</code> در مینی-ردیس یک روی   lazily parse شده است. در اینجا نسخه‌ای است که در
+        <a href="https://github.com/tokio-rs/mini-redis/blob/master/src/frame.rs" target="_blank" rel="noopener">src/frame.rs</a>
+        هست:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use bytes::Bytes;
+
+enum Frame {
+    Simple(String),
+    Error(String),
+    Integer(u64),
+    Bulk(Bytes),
+    Null,
+    Array(Vec&lt;Frame&gt;),
+}</code></pre>
+        <p>قاب‌ها «بسته‌های دادهٔ کامل» هستند که peerهای یک پروتکل بین هم می‌فرستند. در سمت پایین‌تر، قرارداد ما می‌گوید هر قاب با یک بایتِ نوع شروع می‌شود، بعد بدنهٔ آن (بر اساس نوع). این قرارداد ساده، پیاده‌سازی یک پیاده‌سازی‌شدهٔ کارآمد را فراهم می‌کند.</p>
+        <p>برای یک شبکهٔ واقعی، یک قابٔ جداگانه با یک مقدار مشخص (مثل یک طول) شروع می‌شود. بیایید یک نمونه از کاربردها ببینیم:</p>
+
+        <h4>تغییر به <code class="inline">Bytes</code></h4>
+        <p>در نسخهٔ قبلی مینی-ردیس، از <code class="inline">Vec&lt;u8&gt;</code> برای بدنهٔ قاب استفاده می‌شد. با <code class="inline">Bytes</code>، ارسال قاب‌ها بسیار کارآمدتر می‌شود: وقتی یک قاب دریافت می‌شود، دادهٔ آن می‌تواند با clone سطحی به‌اشتراک گذاشته شود.</p>
+        <p>در عمل برای پیاده‌سازی <code class="inline">read_frame</code>، داده را می‌خوانیم و یک <code class="inline">Bytes</code> می‌سازیم که به آن claimed شود. این اکنون کد معتبر مینی-ردیس است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>impl Connection {
+    /// یک single frame را از stream بخوان
+    pub async fn read_frame(&amp;mut self)
+        -&gt; crate::Result&lt;Option&lt;Frame&gt;&gt;
+    {
+        loop {
+            let _len = self.buffer.len();
+            if let Some(packet) = self.parse_frame()? {
+                return Ok(Some(packet));
+            }
+            if 0 == self.stream.read_buf(&amp;mut self.buffer).await? {
+                // اگر یک frame با EOF نزدیک شده بود None را برگردان،
+                // در غیر این صورت خطای اتصال را گزارش کن
+                if self.buffer.is_empty() {
+                    return Ok(None);
+                } else {
+                    return Err("connection reset by peer".into());
+                }
+            }
+        }
+    }
+}</code></pre>
+        <p><code class="inline">read_buf</code> داده را از <code class="inline">AsyncRead</code> به <code class="inline">BufMut</code> می‌کشد. این ورژن، بافرِ <code class="inline">BytesMut</code> را به‌طور مؤثر استفاده می‌کند (می‌تواند از بافرِ تکه‌تکه استفاده کند و داده را کپی نکند). تکه‌های <code class="inline">BytesMut</code> به شما این امکان را می‌دهند که دقیقاً اندازهٔ buffer را مدیریت کنید و اجازهٔ رشد خودکار بدهید.</p>
+
+        <h4>تجزیهٔ قاب (Parsing)</h4>
+        <p>پیاده‌سازیِ <code class="inline">parse_frame</code> دو پیامد دارد:</p>
+        <ul>
+          <li>اگر دادهٔ کافی برای یک قاب کامل در بافر نباشد، باید بگذاریم <code class="inline">None</code> برگردد تا <code class="inline">read_frame</code> دادهٔ بیشتری بخواند.</li>
+          <li>کد باید حالت پارسر را ردیابی کند.</li>
+        </ul>
+        <p>برای این کار، قرارداد ما این‌گونه خواهد بود (که الگویِ نوشتن در هر پیاده‌سازی استفاده می‌شود): ابتدا بایتِ نوعِ قاب، سپس بدنه.</p>
+        <p>اگر پارسر فقط قبل از دادهٔ کامل برگردد، باید بتواند پیشرفت را ردیابی کند. یک راه چیست؟ پیاده‌سازی <code class="inline">Frame::parse</code> با امضای زیر:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn parse(buffer: &amp;[u8]) -&gt; Result&lt;Option&lt;Frame&gt;, Error&gt;</code></pre>
+        <p><code class="inline">Ok(None)</code> یعنی دادهٔ کافی وجود ندارد؛ <code class="inline">Ok(Some(frame))</code> یعنی یک قاب کامل پارس شده و اولِ بافرِ هدر؛ و <code class="inline">Err</code> یعنی قابِ غیرقابل‌قبول.</p>
+        <p>ساده‌ترین پیاده‌سازی‌های اولیه، اولِ خواندنِ بافر را پارس می‌کنند و نسبت به بایتِ نوع رفتار می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn parse(buffer: &amp;[u8]) -&gt; Result&lt;Option&lt;Frame&gt;, Error&gt; {
+    use Frame::*;
+
+    match buffer.first() {
+        Some(b'+') =&gt; {
+            // خواندن تا پایان خط و بازگرداندن یک `Simple`
+            ...
+        }
+        Some(b'-') =&gt; {
+            // ... `Error`
+        }
+        Some(b':') =&gt; {
+            // ... `Integer`
+        }
+        Some(b'$') =&gt; {
+            // طولِ این قاب با `length` شروع می‌شود
+            // سپس `\r\n`
+            ...
+        }
+        Some(b'*') =&gt; {
+            // ... `Array`
+        }
+        _ =&gt; {
+            Err("protocol error; unexpected frame type byte".into())
+        }
+    }
+}</code></pre>
+        <p>در یک <code class="inline">$</code> (Bulk)، قرارداد این است: <code class="inline">$&lt;length&gt;\r\n&lt;data&gt;\r\n</code>. پس پارسر باید این کارها را انجام دهد:</p>
+        <ol>
+          <li>تعداد بایت‌های داده را بخواند و آن را به‌صورت <code class="inline">u64</code> تفسیر کند</li>
+          <li>یک <code class="inline">Bytes</code> به‌اندازهٔ آن طول بسازد</li>
+          <li>بایت‌های داده را کپی کند</li>
+          <li>از قاب خارج شود</li>
+        </ol>
+        <p>مدیریت طول‌های بزرگ: اگر ارسال‌کنندهٔ حمله‌گر طولی مثل <code class="inline">999_999_999_999</code> بفرستد، پارسر باید مراقب باشد که بافر را به‌حدی پر نکند که حافظه تمام شود؛ پس طول را محدود می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>// از تخصیص‌های بزرگ جلوگیری کن
+if len &gt; MAX_BULK_LEN { ... }</code></pre>
+        <p>بعد از این‌که یک <code class="inline">Frame</code> کامل شد، باید آن را از بافر جدا کنیم؛ برای این کار، <code class="inline">Buffer::advance</code> مفید است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>// پس از پارس موفق، بایت‌های استفاده‌شده را دور بریز
+self.buffer.advance(len);</code></pre>
+        <p>همین قرارداد بین peerها و transition حالت (پیشرفت نسبی؟)، پارسر را «state machine» می‌کند.</p>
+
+        <h4>قاب‌بندی با طول (Length-delimited framing)</h4>
+        <p>روش بسیار رایج دیگر، «قاب‌بندیِ محدود به طول» است: ابتدا یک عدد (طول) فرستاده می‌شود و سپس آن تعداد بایت. در مینی-ردیس هم همین قرارداد برای <code class="inline">Bulk</code> و <code class="inline">Array</code> استفاده می‌شود.</p>
+        <p>برای پیاده‌سازی، <code class="inline">Frame::Bulk</code> را با طولِ دلخواه می‌فرستیم. اگر پیام‌های ما همیشه با یک «طول» شروع شوند، می‌توانیم به‌سادگی <code class="inline">read_exact</code> را برای خواندنِ طول صدا بزنیم، سپس «تعداد» را برای دادهٔ اصلی. با این قرارداد، اندازهٔ بافر‌ها قبل از خواندنِ کامل مشخص است.</p>
+
+        <h4>نوشتن قاب (Writing a frame)</h4>
+        <p>پس از پردازش یک درخواست، باید یک پاسخ بنویسیم. در این‌جا نسخهٔ مینی-ردیسِ <code class="inline">write_frame</code> آمده — با فرض اینکه هدرِ <code class="inline">write</code> بافر را ندارد؛ برای کارایی، کدهای واقعی از <code class="inline">write_vectored</code> استفاده می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn write_frame(&amp;mut self, frame: &amp;Frame)
+    -&gt; io::Result&lt;()&gt;
+{
+    match frame {
+        Frame::Simple(val) =&gt; {
+            self.stream.write_all(b"+").await?;
+            self.stream.write_all(val.as_bytes()).await?;
+            self.stream.write_all(b"\r\n").await?;
+        }
+        Frame::Error(val) =&gt; {
+            self.stream.write_all(b"-").await?;
+            self.stream.write_all(val.as_bytes()).await?;
+            self.stream.write_all(b"\r\n").await?;
+        }
+        Frame::Integer(val) =&gt; {
+            self.stream.write_all(b":").await?;
+            self.write_decimal(*val).await?;
+        }
+        Frame::Null =&gt; {
+            self.stream.write_all(b"$-1\r\n").await?;
+        }
+        Frame::Bulk(val) =&gt; {
+            let len = val.len();
+            self.stream.write_all(b"$").await?;
+            self.write_decimal(len as u64).await?;
+            self.stream.write_all(val).await?;
+            self.stream.write_all(b"\r\n").await?;
+        }
+        Frame::Array(val) =&gt; {
+            self.stream.write_all(b"*").await?;
+            self.write_decimal(val.len() as u64).await?;
+            for frame in val {
+                self.write_frame(frame).await?;
+            }
+        }
+    }
+    Ok(())
+}</code></pre>
+        <p>دقت کنید این نسخه برای سادگی از <code class="inline">Buffer</code> استفاده نمی‌کند؛ در نسخهٔ واقعی، از <code class="inline">BytesMut</code> و flush استفاده می‌شود.</p>
+
+        <h3>بافر کردن (Buffered reads and writes)</h3>
+        <p>تابع بالا داده را به‌صورت خام به سوکت می‌نویسد. برای کارآمدی، معمولاً می‌خواهیم از بافر استفاده کنیم: به‌جای یک فراخوانی syscall برای هر <code class="inline">write_all</code>، داده در حافظه جمع می‌شود و سپس در یک فراخوانی نوشته می‌شود. به همین ترتیب، برای خواندن‌ها از <code class="inline">BufReader&lt;TcpStream&gt;</code> استفاده می‌کنیم.</p>
+        <p>ساده‌ترین راه این است که <code class="inline">Connection</code> را با <code class="inline">BufReader</code> و <code class="inline">BufWriter</code> بسازیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io::{BufReader, BufWriter};
+
+struct Connection {
+    stream: BufReader&lt;BufWriter&lt;TcpStream&gt;&gt;,
+    buffer: BytesMut,
+}</code></pre>
+        <p>سازندهٔ آن (constructor) such that:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>impl Connection {
+    pub fn new(socket: TcpStream) -&gt; Connection {
+        let stream = BufReader::new(BufWriter::new(socket));
+        Connection {
+            stream,
+            buffer: BytesMut::with_capacity(4 * 1024),
+        }
+    }
+}</code></pre>
+        <p>در نسخهٔ سادهٔ بالا از بافرها استفاده نکردیم؛ بگذارید ارتقایش بدهیم. وقتی یک <code class="inline">Frame::Array</code> می‌خواهیم بنویسیم، هر <code class="inline">Frame</code> را جداگانه می‌نویسیم؛ هر بار <code class="inline">write_all</code> فلاش‌کنندهٔ (flush) بافرِ داخل است. این باعث بسیاری از syscallهای کوچک می‌شود. بهتر است همهٔ داده را در یک <code class="inline">BytesMut</code> مونتاژ کنیم و فقط یک‌بار بنویسیم. با <code class="inline">BufWriter</code>، بافرها به تنهایی مدیریت می‌شوند و داده‌ها به‌طور مؤثر در یک بافر انباشته و سپس در یک فراخوانی نوشته می‌شوند.</p>
+        <p>یک پیچیدگی مهم: <code class="inline">BufWriter::flush()</code> باید بعد از هر قاب صدا زده شود (یا در end-of-response)، وگرنه peer ممکن است هرگز شروع قاب را نبیند. توکیو <code class="inline">BufWriter::poll_flush</code> را دارد، ولی اگر فقط در پایان تابع صدا زده شود، نوشتن نادرست است. در عمل بهتر است فشرده‌سازی را به لایهٔ پروتکل خودتان بدهید: قرارداد «یک قاب در هر <code class="inline">write_frame</code>» را نگاه دارید.</p>
+        <p>راه حل استاندارد: قاب را در یک <code class="inline">BytesMut</code> با ظرفیت اولیه بسازید، سپس یک‌بار با <code class="inline">write_all</code> به <code class="inline">BufWriter</code> بدهید و در پایان <code class="inline">flush</code> کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn write_frame(&amp;mut self, frame: &amp;Frame)
+    -&gt; io::Result&lt;()&gt;
+{
+    let mut buf = BytesMut::with_capacity(128);
+    encode_frame(frame, &amp;mut buf); // همهٔ بخش‌ها را مونتاژ کن
+    self.stream.write_all(&amp;buf).await?;
+    self.stream.flush().await?;
+    Ok(())
+}</code></pre>
+
+        <h3>کودک‌ها (Codecs)</h3>
+        <p>فریم‌بندی یک الگوی آن‌قدر رایج است که crate
+        <a href="https://docs.rs/tokio-util/0.6/tokio_util/codec/index.html" target="_blank" rel="noopener"><code class="inline">tokio_util::codec</code></a>
+        یک سیستم ابتکاری برای انجامش دارد، از جمله دیکودرها و انکودرها برای خط‌ها (lines). روش این است: <code class="inline">Framed</code> را با یک <code class="inline">Codec</code> روی جریان اعمال می‌کنید و سپس <code class="inline">Framed::next()</code> قابِ بعدی را به شما می‌دهد که در حال <code class="inline">AsyncRead</code> است؛ و <code class="inline">Framed::send()</code> یک قاب را می‌نویسد.</p>
+        <p>برای قاب‌های با طول محدود، <code class="inline">LengthDelimitedCodec</code> از <code class="inline">tokio_util</code> را می‌توانید استفاده کنید، که دقیقاً «قاب‌بندی محدود به طول» را پیاده می‌کند؛ می‌تواند پیام‌هایی با حداکثر طول مشخص را بخواند، مقدار پیش‌فرض ۸ مگابایت است. توجه کنید که با این کار، کدِ پارسِ دستی که بالاتر نوشتیم دیگر لازم نیست. اگر بخواهید به‌جای buffer از یک <code class="inline">Codec</code> استفاده کنید، مثالی است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio_util::codec::{
+    Framed, LengthDelimitedCodec,
+};
+
+let stream = TcpStream::connect("...").await?;
+let mut framed = Framed::new(stream, LengthDelimitedCodec::new());
+let message = framed.next().await??;</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> برای پروتکل‌های پیچیده، معمولاً بهتر است از <code class="inline">tokio_util::codec</code> استفاده کنید و روی پارس کردنِ پیام‌ها تمرکز کنید، نه روی delimiters. کدِ مینی-ردیس، برای آموزش، پارس دستی را نشان می‌دهد؛ ولی همین crate در production هم می‌تواند استفاده شود.
+        </div>
+        <p>اگر از <code class="inline">LengthDelimitedCodec</code> استفاده کنید، محدودیت طولِ پیش‌فرض ۸ مگابایت مانع از تخصیص‌های بزرگ می‌شود؛ تنظیمِ <code class="inline">max_frame_length</code> را هم می‌توانید تغییر دهید.</p>
+        <p>پس از آشنایی با فریم‌بندی، نوبت آن است که یک سرور کامل با قاب‌بندی و بر اساس کدهای بالا بسازیم؛ ولی قبل از آن، دو فصل دیگر مهم‌اند: «Async in depth» و «select». در فصلِ «Async in depth» دربارهٔ futures و poll صحبت می‌کنیم؛ در فصلِ «select» دربارهٔ مکانیزم انتخاب بین چند عملیات ناهمگام.</p>
+      </section><!-- ==================== بررسی عمیق ناهمگام‌ها ==================== -->
+      <section>
+        <h2>بررسی عمیق ناهمگام‌ها (Async in depth)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/async" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>در این فصل، جزئیات داخلی async/await در راستا (Rust) را بررسی می‌کنیم. به‌جای صرفاً اینکه به شما بگوییم «از <code class="inline">tokio::spawn</code> استفاده کنید»، خواهیم دید که پشت پردهٔ آن چه می‌گذرد.</p>
+
+        <h3>Futures</h3>
+        <p>یک <b>Future</b> یک محاسبهٔ ناهمگام است. در راست، یک Future با <code class="inline">trait Future</code> نشان داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::pin::Pin;
+use std::task::{Context, Poll};
+
+pub trait Future {
+    type Output;
+
+    fn poll(self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Self::Output&gt;;
+}</code></pre>
+        <p>متد <code class="inline">poll</code> وظیفهٔ پیش‌بردن future را بر عهده دارد. اگر future به‌پایان برسد، <code class="inline">Poll::Ready</code> را با مقدارِ خروجی برمی‌گرداند. در غیر این صورت، <code class="inline">Poll::Pending</code> را برمی‌گرداند و یک «waker» را در <code class="inline">Context</code> ثبت می‌کند؛ وقتی future آمادهٔ پیشرفت بیشتر شد، اجراکننده (executor) باید <code class="inline">poll</code> را دوباره صدا بزند.</p>
+        <p>وقتی یک <code class="inline">Future</code> به‌صورت <code class="inline">Poll::Pending</code> برمی‌گردد، به این معنی است که <b>آماده نیست</b>؛ کار ممکن است در حال انجام باشد، یا در حال انتظار برای رویدادی خارجی. در هر صورت، اجراکننده باید آن را دوباره poll کند وقتی چیزی تغییر می‌کند، که از طریق waker مشخص می‌شود.</p>
+
+        <h3>my_async_fn</h3>
+        <p>تابع‌های <code class="inline">async fn</code> را در نظر بگیرید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn my_async_fn() -&gt; i32 {
+    println!("hello from async");
+    42
+}</code></pre>
+        <p>این تابع چیزی اجرا نمی‌کند؛ در عوض یک future برمی‌گرداند که وقتی <code class="inline">poll</code> شود، بدنه‌اش اجرا می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>#[tokio::main]
+async fn main() {
+    let future = my_async_fn();
+
+    println!("function returned");
+
+    let result = future.await;
+    println!("result: {}", result);
+}</code></pre>
+        <p>خروجی این برنامه این است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>function returned
+hello from async
+result: 42</code></pre>
+
+        <h3>Lazy futures</h3>
+        <p>در بالا دیدیم که صدازدنِ یک <code class="inline">async fn</code>، بدنه‌اش را اجرا نمی‌کند. این فوتورها «تنبل» (lazy) هستند. به همین دلیل، <code class="inline">.await</code> در واقع جایی است که poll رخ می‌دهد.</p>
+        <p>در راست، یک <code class="inline">async fn</code> چیزی نیست جز یک <code class="inline">fn</code> که یک نوع Future پنهان برمی‌گرداند. کامپایلر، بدنه را به یک state machine تبدیل می‌کند که بین pollها، state را حفظ می‌کند. به همین دلیل، وقتی <code class="inline">.await</code> می‌شوید، کنترل به اجراکننده برمی‌گردد و اجراکننده می‌تواند pollهای بعدی را انجام دهد؛ در واقع poll برمی‌گردد و اجرای آن از همان جا ادامه پیدا می‌کند که <code class="inline">Pending</code> شده بود.</p>
+
+        <h3>Mini-Tokio</h3>
+        <p>برای درک اینکه اجراکننده (executor) چگونه با futures کار می‌کند، یک «مینی-توکیو» می‌سازیم — نسخه‌ای ساده‌شده که فقط pollهای زمان‌بندی‌شده انجام می‌دهد.</p>
+        <p>ایدهٔ اصلی: آینده‌ها poll می‌شوند؛ وقتی <code class="inline">Pending</code> برمی‌گردانند، کنار گذاشته می‌شوند تا دوباره poll شوند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::mpsc;
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+
+struct MiniTokio {
+    scheduled: mpsc::Receiver&lt;Task&gt;,
+    sender: mpsc::Sender&lt;Task&gt;,
+}
+
+impl MiniTokio {
+    fn new() -&gt; MiniTokio {
+        let (sender, scheduled) = mpsc::channel(128);
+        MiniTokio { scheduled, sender }
+    }
+
+    /// future داده‌شده را ریخته و زمان‌بندی می‌کند
+    /// تا poll شود
+    fn spawn&lt;F&gt;(&amp;mut self, future: F)
+    where
+        F: Future&lt;Output = ()&gt; + Send + 'static,
+    {
+        let task = async_task::spawn(future, self.sender.clone());
+        let _ = self.sender.send(task);
+    }
+
+    async fn run(&amp;mut self) {
+        while let Some(task) = self.scheduled.recv().await {
+            // فرایند poll، future را اجرا می‌کند
+            task.poll();
+        }
+    }
+}</code></pre>
+        <p>crate
+        <a href="https://docs.rs/async-task" target="_blank" rel="noopener"><code class="inline">async-task</code></a>
+        یک Task را فراهم می‌کند که future را با poll رانده و waker را مدیریت می‌کند. <code class="inline">run()</code> تسک‌ها را از صف می‌گیرد و <code class="inline">poll()</code> را صدا می‌زند.</p>
+        <p>حالا ببینیم این به‌عنوان یک اجراکنندهٔ کامل چه چیزی کم دارد:</p>
+        <ul>
+          <li>پس از <code class="inline">poll</code> که <code class="inline">Pending</code> برمی‌گرداند، task باید دوباره زمان‌بندی شود — ولی این بار فقط وقتی waker بیدارش کند.</li>
+          <li>waker از کجا می‌آید؟ از <code class="inline">Context</code> که <code class="inline">poll</code> می‌گیرد؛ در پیاده‌سازی‌های واقعی، waker معمولاً به صفِ زمان‌بند اشاره می‌کند.</li>
+        </ul>
+
+        <h3>Async readiness (و wakerها)</h3>
+        <p>در برنامه‌های واقعی، poll‌های مکرر بی‌فایده‌اند. اگر یک future منتظر دریافت بایت از یک سوکت است و هنوز بایتی نرسیده، poll کردن مکررش منابع را تلف می‌کند. به همین دلیل، Future باید <b>وضعیت آمادگی</b> را به بیرون خبر دهد.</p>
+        <p>مکانیزم آماده‌بودن در توکیو روی دو جزء اصلی ساخته شده است: <code class="inline">poll</code> و <b>waker</b>. قرارداد این است: <code class="inline">poll</code> بررسی می‌کند که future آماده است یا نه؛ اگر آماده نیست، <code class="inline">Pending</code> برمی‌گرداند و یک waker ثبت می‌کند. بعداً، وقتی منبع آماده شد (مثلاً دادهٔ جدید رسید)، waker فراخوانی می‌شود و اجراکننده، future را دوباره poll می‌کند.</p>
+        <p>در توکیو، رابط میان زمان‌بند و منابع ورودی/خروجی، یک <b>درایور I/O</b> است که رویدادها را به wakerها ترجمه می‌کند. این مکانیزم همان چیزی است که به برنامه‌های async اجازه می‌دهد با تعداد زیادی اتصال هم‌زمان کار کنند، بدون نیاز به یک نخ برای هر اتصال.</p>
+
+        <h3>تمرین: تایمرها (Timers)</h3>
+        <p>برای درک بهتر، یک تایمرِ ساده می‌سازیم. تایمر یک future است که بعد از مدت زمان معین، <code class="inline">Ready</code> می‌شود. اگرچه توکیو <code class="inline">tokio::time::sleep</code> را دارد، اما ببینیم چگونه یک نسخهٔ ساده را خودمان پیاده کنیم.</p>
+        <p>روش: یک تسک که می‌خوابد و بعد پیامی را روی یک کانال oneshot می‌فرستد؛ <code class="inline">Timer::wait</code> منتظر آن پیام می‌ماند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+use std::time::Duration;
+
+struct Timer {
+    rx: oneshot::Receiver&lt;()&gt;,
+}
+
+impl Timer {
+    /// یک تسک می‌ریزد که بعد از مدتِ خواسته‌شده بیدار می‌شود
+    fn new(duration: Duration) -&gt; Timer {
+        let (tx, rx) = oneshot::channel();
+
+        tokio::spawn(async move {
+            tokio::time::sleep(duration).await;
+            let _ = tx.send(());
+        });
+
+        Timer { rx }
+    }
+
+    /// منتظر می‌ماند تا زمان سپری شود
+    async fn wait(self) {
+        let _ = self.rx.await;
+    }
+}</code></pre>
+        <p>این نسخه با «یک تسک + یک کانال» ساخته شده. نسخهٔ پیچیده‌تر و واقعی‌تر — که waker را به‌طور مستقیم مدیریت می‌کند — در راهنمای توکیو وجود دارد، اما همین پیاده‌سازی برای درک ایده کافی است: future منتظر یک رویداد (پایانِ sleep) است و تا آماده‌شدن، Pending است.</p>
+
+        <h3>ارسال به بین نخ‌ها (The Send bound)</h3>
+        <p>یک تابع <code class="inline">async fn</code> که <code class="inline">.await</code> می‌شود، ممکن است به یک نخِ دیگر فرستاده شود. به همین دلیل، <code class="inline">tokio::spawn</code> به <code class="inline">Future + Send + 'static</code> نیاز دارد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>tokio::spawn(async move {
+    // ...
+});</code></pre>
+        <p>bound <code class="inline">Send</code> می‌گوید future باید برای فرستادن به نخِ دیگر امن باشد. بیشتر عملیات‌های I/O توکیو این‌گونه هستند؛ اما برخی مقادیر <code class="inline">Send</code> نیستند. مثال معروف، <code class="inline">std::rc::Rc</code> است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::rc::Rc;
+
+async fn my_async_fn() {
+    let rc = Rc::new(123);
+
+    // کامپایل نمی‌شود! `Rc` ارسال‌شدنی نیست
+    tokio::spawn(async move {
+        println!("{:?}", rc);
+    });
+}</code></pre>
+        <p>خطای کامپایلر این است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error: future cannot be sent between threads safely
+    --&gt; src/main.rs:7:15
+     |
+7    |     tokio::spawn(async move {
+     |               ^^^^^ future created by async block is not `Send`
+     |
+     = help: within `impl Future&lt;Output = ()&gt;`, the trait
+       `std::marker::Send` is not implemented for `Rc&lt;i32&gt;`
+note: future is not `Send` as this value is used across an await
+    --&gt; src/main.rs:8:16
+     |
+8    |         println!("{:?}", rc);
+     |                ^^^^^^^^^^^
+note: `Rc&lt;i32&gt;` is a non-`Send` type, in this case
+       the `rc` value is only needed for a short section of the
+       future's execution</code></pre>
+        <p>خطا می‌گوید future در یک <code class="inline">await</code> نگه داشته شده و «Send نیست». کامپایلر، futureها را به‌صورت state machine می‌سازد و اگر بین pollها چیزی غیرقابل‌ارسال نگه دارد، whole future غیرقابل‌ارسال است.</p>
+        <p>راه‌حل‌ها: از <code class="inline">std::sync::Arc</code> به‌جای <code class="inline">Rc</code> استفاده کنید، یا مطمئن شوید مقدار قبل از <code class="inline">.await</code> دیگر لازم نیست (تا در state machine ذخیره نشود). برای جزئیات بیشتر دربارهٔ نگه‌داشتن قفل‌ها در میان <code class="inline">.await</code>، به فصل «حالت مشترک» مراجعه کنید.</p>
+
+        <h3>Polling و <code class="inline">Context</code></h3>
+        <p>اجراکننده باید future را poll کند. برای این کار از <code class="inline">Context</code> استفاده می‌شود که waker را حمل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll, Wake};
+
+fn poll&lt;T&gt;(fut: &amp;mut Pin&lt;&amp;mut impl Future&lt;Output = T&gt;&gt;) -&gt; Poll&lt;T&gt; {
+    // در عمل، waker از یک Arc&lt;impl Wake&gt; ساخته می‌شود
+    let waker = ...;
+    let mut cx = Context::from_waker(&amp;waker);
+    fut.as_mut().poll(&amp;mut cx)
+}</code></pre>
+        <p>نکتهٔ کلیدی: وقتی یک future <code class="inline">Pending</code> برمی‌گرداند، این وعده را می‌دهد که waker را ثبت کرده است؛ و وقتی آن waker صدا زده می‌شود، اجراکننده باید دوباره poll کند. این قرارداد — poll + wake — هستهٔ تمام اجراکننده‌های راست است.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر یک future را poll کنید و Pending برگردد ولی waker را ثبت نکند، اجراکننده هرگز دوباره آن را poll نمی‌کند و برنامه معلق می‌ماند. به همین دلیل، پیاده‌سازی‌های درست همیشه قبل از برگرداندن Pending، یک waker ثبت می‌کنند.
+        </div>
+        <p>اگر می‌خواهید با پیاده‌سازی کامل‌تر یک اجراکنندهٔ کوچک آشنا شوید،
+        <a href="https://tokio.rs/tokio/tutorial/async" target="_blank" rel="noopener">نسخهٔ انگلیسی همین فصل</a>
+        بخش «Implementing the poll function» را دارد که با <code class="inline">Waker</code>، <code class="inline">Poll::ready</code> و موارد دیگر سروکار دارد. فصل بعدی آموزش، یعنی «Select»، از همین دانش برای انتخاب بین چند future استفاده می‌کند.</p>
+      </section><!-- ==================== select ==================== -->
+      <section>
+        <h2>انتخاب (Select)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/select" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>تا این‌جا، وقتی می‌خواستیم به سیستم هم‌روندی اضافه کنیم، یک تسک جدید ریخته‌ایم. حالا چند روش دیگر برای اجرای هم‌زمانِ کد ناهمگام با توکیو را پوشش می‌دهیم.</p>
+
+        <h3><code class="inline">tokio::select!</code></h3>
+        <p>ماکروی <code class="inline">tokio::select!</code> به شما اجازه می‌دهد منتظر چند محاسبهٔ ناهمگام بمانید و وقتی <b>یک</b> محاسبه کامل شد، برگردد.</p>
+        <p>برای مثال:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+
+#[tokio::main]
+async fn main() {
+    let (tx1, rx1) = oneshot::channel();
+    let (tx2, rx2) = oneshot::channel();
+
+    tokio::spawn(async {
+        let _ = tx1.send("one");
+    });
+
+    tokio::spawn(async {
+        let _ = tx2.send("two");
+    });
+
+    tokio::select! {
+        val = rx1 => {
+            println!("rx1 completed first with {:?}", val);
+        }
+        val = rx2 => {
+            println!("rx2 completed first with {:?}", val);
+        }
+    }
+}</code></pre>
+        <p>از دو کانال oneshot استفاده شده است. هرکدام از کانال‌ها می‌توانند اول کامل شوند. عبارت <code class="inline">select!</code> روی هر دو کانال انتظار می‌کشد و <code class="inline">val</code> را به مقداری که تسک برمی‌گرداند بایند (bind) می‌کند. وقتی <code class="inline">tx1</code> یا <code class="inline">tx2</code> کامل شود، بلوکِ مرتبط اجرا می‌شود.</p>
+        <p>شاخه‌ای که <b>کامل نمی‌شود</b> drop می‌شود. در مثال بالا، محاسبات روی <code class="inline">oneshot::Receiver</code> هر کانال منتظر می‌مانند. <code class="inline">oneshot::Receiver</code> مربوط به کانالی که هنوز کامل نشده drop می‌شود.</p>
+
+        <h3>لغوکردن (Cancellation)</h3>
+        <p>در راستِ ناهمگام، لغوکردن با drop کردن یک future انجام می‌شود. از فصل «بررسی عمیق ناهمگام‌ها» به یاد بیاورید: عملیات‌های ناهمگام راست با futureها پیاده‌سازی می‌شوند و futureها تنبل هستند. عملیات فقط وقتی future poll شود پیش می‌رود. اگر future drop شود، عملیات نمی‌تواند ادامه یابد، چون همهٔ state مربوطه drop شده است.</p>
+        <p>با این حال، گاهی یک عملیات ناهمگام تسک‌های پس‌زمینه می‌ریزد یا عملیاتِ دیگری را شروع می‌کند که در پس‌زمینه اجرا می‌شود. مثلاً در مثال بالا تسکی ریخته می‌شود که پیام را ارسال کند. معمولاً تسک‌ها محاسباتی انجام می‌دهند تا مقدار را تولید کنند.</p>
+        <p>Futureها یا انواعِ دیگر می‌توانند <code class="inline">Drop</code> را پیاده‌سازی کنند تا منابع پس‌زمینه را تمیز کنند. <code class="inline">oneshot::Receiver</code> توکیو <code class="inline">Drop</code> را با فرستادن یک اعلانِ بسته‌شدن به نیمهٔ <code class="inline">Sender</code> پیاده‌سازی می‌کند. نیمهٔ فرستنده می‌تواند این اعلان را دریافت کند و با drop کردنش، عملیاتِ در حال انجام را لغو کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+
+async fn some_operation() -&gt; String {
+    // مقدار را این‌جا محاسبه کن
+}
+
+#[tokio::main]
+async fn main() {
+    let (mut tx1, rx1) = oneshot::channel();
+    let (tx2, rx2) = oneshot::channel();
+
+    tokio::spawn(async {
+        // بین عملیات و اعلانِ `closed()` کانال oneshot انتخاب کن
+        tokio::select! {
+            val = some_operation() => {
+                let _ = tx1.send(val);
+            }
+            _ = tx1.closed() => {
+                // `some_operation()` لغو می‌شود،
+                // تسک کامل می‌شود و `tx1` drop می‌شود.
+            }
+        }
+    });
+
+    tokio::spawn(async {
+        let _ = tx2.send("two");
+    });
+
+    tokio::select! {
+        val = rx1 => {
+            println!("rx1 completed first with {:?}", val);
+        }
+        val = rx2 => {
+            println!("rx2 completed first with {:?}", val);
+        }
+    }
+}</code></pre>
+
+        <h3>پیاده‌سازیِ <code class="inline">Future</code></h3>
+        <p>برای درک بهترِ سازوکار <code class="inline">select!</code>، ببینیم یک پیاده‌سازیِ فرضیِ <code class="inline">Future</code> چه شکلی خواهد بود. این یک نسخهٔ ساده‌شده است؛ در عمل، <code class="inline">select!</code> قابلیت‌های بیشتری دارد، مثل انتخاب تصادفیِ شاخه‌ای که اول poll شود.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+
+struct MySelect {
+    rx1: oneshot::Receiver&lt;&amp;'static str&gt;,
+    rx2: oneshot::Receiver&lt;&amp;'static str&gt;,
+}
+
+impl Future for MySelect {
+    type Output = ();
+
+    fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;()&gt; {
+        if let Poll::Ready(val) = Pin::new(&amp;mut self.rx1).poll(cx) {
+            println!("rx1 completed first with {:?}", val);
+            return Poll::Ready(());
+        }
+
+        if let Poll::Ready(val) = Pin::new(&amp;mut self.rx2).poll(cx) {
+            println!("rx2 completed first with {:?}", val);
+            return Poll::Ready(());
+        }
+
+        Poll::Pending
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let (tx1, rx1) = oneshot::channel();
+    let (tx2, rx2) = oneshot::channel();
+
+    // از tx1 و tx2 استفاده کن
+
+    MySelect {
+        rx1,
+        rx2,
+    }.await;
+}</code></pre>
+        <p>futureِ <code class="inline">MySelect</code> شامل futureهای هر شاخه است. وقتی <code class="inline">MySelect</code> poll می‌شود، اول شاخهٔ اول poll می‌شود. اگر آماده باشد، مقدار استفاده می‌شود و <code class="inline">MySelect</code> کامل می‌شود. بعد از اینکه <code class="inline">.await</code> خروجیِ یک future را دریافت کرد، future drop می‌شود. این باعث می‌شود futureهای هر دو شاخه drop شوند. چون یکی از شاخه‌ها کامل نشده بود، عملیات عملاً لغو می‌شود.</p>
+        <p>از بخش قبل به یاد بیاورید:</p>
+        <blockquote>وقتی future مقدار <code class="inline">Poll::Pending</code> برمی‌گرداند، <b>باید</b> مطمئن شود waker در آینده سیگنال می‌شود. فراموش کردن این کار باعث می‌شود تسک بی‌نهایت معلق بماند.</blockquote>
+        <p>در پیاده‌سازیِ <code class="inline">MySelect</code> استفادهٔ صریحی از آرگومان <code class="inline">Context</code> نیست. در عوض، نیازِ waker با پاس‌دادن <code class="inline">cx</code> به futureهای داخلی برآورده می‌شود. چون future داخلی هم باید نیازِ waker را برآورده کند، با برگرداندن <code class="inline">Poll::Pending</code> فقط وقتی از future داخلی <code class="inline">Poll::Pending</code> دریافت شود، <code class="inline">MySelect</code> هم نیازِ waker را برآورده می‌کند.</p>
+
+        <h3>دستور زبان (Syntax)</h3>
+        <p>ماکروی <code class="inline">select!</code> می‌تواند بیش از دو شاخه داشته باشد. محدودیت فعلی ۶۴ شاخه است. هر شاخه این‌گونه ساختار می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>&lt;pattern&gt; = &lt;async expression&gt; =&gt; &lt;handler&gt;,</code></pre>
+        <p>وقتی ماکروی select ارزیابی می‌شود، همهٔ عبارت‌های ناهمگام جمع و به‌صورت هم‌زمان اجرا می‌شوند. وقتی یک عبارت کامل شود، نتیجه با <code class="inline">&lt;pattern&gt;</code> مطابقت داده می‌شود. اگر نتیجه با الگو مطابقت داشت، همهٔ عبارت‌های ناهمگامِ باقی‌مانده drop می‌شوند و <code class="inline">&lt;handler&gt;</code> اجرا می‌شود. عبارتِ <code class="inline">&lt;handler&gt;</code> به هر binding که <code class="inline">&lt;pattern&gt;</code> ایجاد کرده دسترسی دارد.</p>
+        <p>حالت پایهٔ <code class="inline">&lt;pattern&gt;</code> یک نام متغیر است؛ نتیجهٔ عبارت ناهمگام به آن بایند می‌شود و <code class="inline">&lt;handler&gt;</code> به آن متغیر دسترسی دارد. به همین دلیل است که در مثال اول، <code class="inline">val</code> به‌عنوان الگو استفاده شده و handler به <code class="inline">val</code> دسترسی داشت.</p>
+        <p>اگر <code class="inline">&lt;pattern&gt;</code> <b>با</b> نتیجه‌ی محاسبهٔ ناهمگام مطابقت نداشته باشد، عبارت‌های ناهمگامِ باقی‌مانده به‌صورت هم‌زمان به اجرا ادامه می‌دهند تا مورد بعدی کامل شود. در آن زمان، همان منطق روی آن نتیجه اعمال می‌شود.</p>
+        <p>چون <code class="inline">select!</code> هر عبارت ناهمگامی می‌پذیرد، می‌توان محاسبات پیچیده‌تری برای انتخاب تعریف کرد. در این‌جا روی خروجی یک کانال oneshot و یک اتصال TCP انتخاب می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpStream;
+use tokio::sync::oneshot;
+
+#[tokio::main]
+async fn main() {
+    let (tx, rx) = oneshot::channel();
+
+    // تسکی می‌ریزیم که پیامی روی oneshot بفرستد
+    tokio::spawn(async move {
+        tx.send("done").unwrap();
+    });
+
+    tokio::select! {
+        socket = TcpStream::connect("localhost:3465") => {
+            println!("Socket connected {:?}", socket);
+        }
+        msg = rx => {
+            println!("received message first {:?}", msg);
+        }
+    }
+}</code></pre>
+        <p>و در این‌جا، روی oneshot و پذیرفتن سوکت از یک <code class="inline">TcpListener</code> انتخاب می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpListener;
+use tokio::sync::oneshot;
+use std::io;
+
+#[tokio::main]
+async fn main() -&gt; io::Result&lt;()&gt; {
+    let (tx, rx) = oneshot::channel();
+
+    tokio::spawn(async move {
+        tx.send(()).unwrap();
+    });
+
+    let mut listener = TcpListener::bind("localhost:3465").await?;
+
+    tokio::select! {
+        _ = async {
+            loop {
+                let (socket, _) = listener.accept().await?;
+                tokio::spawn(async move { process(socket) });
+            }
+
+            // به کامپایلر در استنتاج نوع کمک کن
+            Ok::&lt;_, io::Error&gt;(())
+        } => {}
+        _ = rx => {
+            println!("terminating accept loop");
+        }
+    }
+
+    Ok(())
+}</code></pre>
+        <p>حلقهٔ پذیرش تا وقتی اجرا می‌شود که خطایی رخ دهد یا <code class="inline">rx</code> مقداری دریافت کند. الگوی <code class="inline">_</code> نشان می‌دهد به مقدار بازگشتیِ محاسبهٔ ناهمگام علاقه‌ای نداریم.</p>
+
+        <h3>مقدار بازگشتی (Return value)</h3>
+        <p>ماکروی <code class="inline">tokio::select!</code> نتیجهٔ عبارتِ <code class="inline">&lt;handler&gt;</code> ارزیابی‌شده را برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn computation1() -&gt; String {
+    // .. محاسبه
+}
+
+async fn computation2() -&gt; String {
+    // .. محاسبه
+}
+
+#[tokio::main]
+async fn main() {
+    let out = tokio::select! {
+        res1 = computation1() => res1,
+        res2 = computation2() => res2,
+    };
+
+    println!("Got = {}", out);
+}</code></pre>
+        <p>به همین دلیل، لازم است عبارتِ <code class="inline">&lt;handler&gt;</code> برای <b>هر</b> شاخه به یک نوعِ یکسان ارزیابی شود. اگر به خروجیِ یک عبارت <code class="inline">select!</code> نیاز نیست، بهتر است عبارت به <code class="inline">()</code> ارزیابی شود.</p>
+
+        <h3>خطاها (Errors)</h3>
+        <p>استفاده از عملگر <code class="inline">?</code> خطا را از عبارت «انتشار» می‌دهد. اینکه چطور کار می‌کند بستگی به این دارد که <code class="inline">?</code> از یک عبارت ناهمگام استفاده شود یا از یک handler. استفادهٔ <code class="inline">?</code> در یک عبارت ناهمگام، خطا را به بیرون از عبارت ناهمگام انتشار می‌دهد. این کار خروجیِ عبارت ناهمگام را به یک <code class="inline">Result</code> تبدیل می‌کند. استفاده از <code class="inline">?</code> از یک handler بلافاصله خطا را به بیرون از عبارت <code class="inline">select!</code> انتشار می‌دهد. به مثالِ حلقهٔ پذیرش دوباره نگاه کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::net::TcpListener;
+use tokio::sync::oneshot;
+use std::io;
+
+#[tokio::main]
+async fn main() -&gt; io::Result&lt;()&gt; {
+    // [راه‌اندازی کانال oneshot `rx`]
+
+    let listener = TcpListener::bind("localhost:3465").await?;
+
+    tokio::select! {
+        res = async {
+            loop {
+                let (socket, _) = listener.accept().await?;
+                tokio::spawn(async move { process(socket) });
+            }
+
+            // به کامپایلر در استنتاج نوع کمک کن
+            Ok::&lt;_, io::Error&gt;(())
+        } => {
+            res?;
+        }
+        _ = rx => {
+            println!("terminating accept loop");
+        }
+    }
+
+    Ok(())
+}</code></pre>
+        <p>توجه کنید <code class="inline">listener.accept().await?</code>. عملگر <code class="inline">?</code> خطا را از آن عبارت به بیرون و به bindingِ <code class="inline">res</code> انتشار می‌دهد. در صورت خطا، <code class="inline">res</code> برابر <code class="inline">Err(_)</code> خواهد بود. سپس در handler، دوباره از عملگر <code class="inline">?</code> استفاده می‌شود. عبارتِ <code class="inline">res?</code> یک خطا را به بیرون از تابع <code class="inline">main</code> انتشار می‌دهد.</p>
+
+        <h3>مطابقت الگو (Pattern matching)</h3>
+        <p>یادتان باشد دستور زبان شاخه‌های ماکروی <code class="inline">select!</code> این‌گونه بود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>&lt;pattern&gt; = &lt;async expression&gt; =&gt; &lt;handler&gt;,</code></pre>
+        <p>تا این‌جا فقط از binding متغیر برای <code class="inline">&lt;pattern&gt;</code> استفاده کرده‌ایم. اما هر الگوی راست قابل استفاده است. مثلاً فرض کنید از چند کانال mpsc دریافت می‌کنیم، شاید بخواهیم این‌گونه عمل کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (mut tx1, mut rx1) = mpsc::channel(128);
+    let (mut tx2, mut rx2) = mpsc::channel(128);
+
+    tokio::spawn(async move {
+        // کاری با `tx1` و `tx2` انجام بده
+    });
+
+    tokio::select! {
+        Some(v) = rx1.recv() => {
+            println!("Got {:?} from rx1", v);
+        }
+        Some(v) = rx2.recv() => {
+            println!("Got {:?} from rx2", v);
+        }
+        else => {
+            println!("Both channels closed");
+        }
+    }
+}</code></pre>
+        <p>در این مثال، عبارت <code class="inline">select!</code> منتظر دریافت مقدار از <code class="inline">rx1</code> و <code class="inline">rx2</code> می‌ماند. اگر کانالی بسته شود، <code class="inline">recv()</code> مقدار <code class="inline">None</code> برمی‌گرداند. این <b>با الگو مطابقت ندارد</b> و شاخه غیرفعال می‌شود. عبارت <code class="inline">select!</code> به انتظار روی شاخه‌های باقی‌مانده ادامه می‌دهد.</p>
+        <p>توجه کنید این عبارت <code class="inline">select!</code> یک شاخهٔ <code class="inline">else</code> دارد. عبارت <code class="inline">select!</code> باید به یک مقدار ارزیابی شود. هنگام استفاده از مطابقت الگو ممکن است <b>هیچ‌کدام</b> از شاخه‌ها با الگوی مرتبط‌شان مطابقت نکند. اگر این اتفاق بیفتد، شاخهٔ <code class="inline">else</code> ارزیابی می‌شود.</p>
+
+        <h3>قرض‌گرفتن (Borrowing)</h3>
+        <p>هنگام ریختن تسک، عبارت ناهمگامِ ریخته‌شده باید همهٔ داده‌هایش را مالک باشد. ماکروی <code class="inline">select!</code> این محدودیت را ندارد. هر شاخه می‌تواند داده‌ها را قرض بگیرد و هم‌زمان کار کند. طبق قوانین قرض‌گرفتنِ راست، چند عبارت ناهمگام می‌توانند یک تکه داده را نمی‌توانند به‌صورت متغیر (mutable) قرض بگیرند، یا اینکه یک عبارت ناهمگام می‌تواند داده را به‌صورت متغیر قرض بگیرد.</p>
+        <p>در مثال زیر، هم‌زمان دادهٔ یکسان را به دو مقصد TCP متفاوت می‌فرستیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
+use std::io;
+use std::net::SocketAddr;
+
+async fn race(
+    data: &amp;[u8],
+    addr1: SocketAddr,
+    addr2: SocketAddr
+) -&gt; io::Result&lt;()&gt; {
+    tokio::select! {
+        Ok(_) = async {
+            let mut socket = TcpStream::connect(addr1).await?;
+            socket.write_all(data).await?;
+            Ok::&lt;_, io::Error&gt;(())
+        } => {}
+        Ok(_) = async {
+            let mut socket = TcpStream::connect(addr2).await?;
+            socket.write_all(data).await?;
+            Ok::&lt;_, io::Error&gt;(())
+        } => {}
+        else => {}
+    };
+
+    Ok(())
+}</code></pre>
+        <p>متغیر <code class="inline">data</code> از هر دو عبارت ناهمگام به‌صورت <b>غیرمتغیر (immutable)</b> قرض گرفته می‌شود. وقتی یکی از عملیات‌ها با موفقیت تمام شود، دیگری drop می‌شود. چون روی <code class="inline">Ok(_)</code> مطابقت الگو انجام می‌دهیم، اگر یک عبارت شکست بخورد، دیگری به اجرا ادامه می‌دهد.</p>
+        <p>وقتی صحبت از <code class="inline">&lt;handler&gt;</code> هر شاخه است، <code class="inline">select!</code> تضمین می‌کند فقط یک <code class="inline">&lt;handler&gt;</code> اجرا می‌شود. به همین دلیل، هر <code class="inline">&lt;handler&gt;</code> می‌تواند همان داده را به‌صورت متغیر قرض بگیرد.</p>
+        <p>مثلاً این‌جا <code class="inline">out</code> در هر دو handler تغییر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::oneshot;
+
+#[tokio::main]
+async fn main() {
+    let (tx1, rx1) = oneshot::channel();
+    let (tx2, rx2) = oneshot::channel();
+
+    let mut out = String::new();
+
+    tokio::spawn(async move {
+        // مقادیری روی `tx1` و `tx2` بفرست
+    });
+
+    tokio::select! {
+        _ = rx1 => {
+            out.push_str("rx1 completed");
+        }
+        _ = rx2 => {
+            out.push_str("rx2 completed");
+        }
+    }
+
+    println!("{}", out);
+}</code></pre>
+
+        <h3>حلقه‌ها (Loops)</h3>
+        <p>ماکروی <code class="inline">select!</code> اغلب در حلقه‌ها استفاده می‌شود. با مثالی دربارهٔ انتخاب روی چند کانال شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (tx1, mut rx1) = mpsc::channel(128);
+    let (tx2, mut rx2) = mpsc::channel(128);
+    let (tx3, mut rx3) = mpsc::channel(128);
+
+    loop {
+        let msg = tokio::select! {
+            Some(msg) = rx1.recv() => msg,
+            Some(msg) = rx2.recv() => msg,
+            Some(msg) = rx3.recv() => msg,
+            else => { break }
+        };
+
+        println!("Got {:?}", msg);
+    }
+
+    println!("All channels have been closed.");
+}</code></pre>
+        <p>این مثال روی سه گیرندهٔ کانال انتخاب می‌کند. وقتی در هر کانالی پیامی دریافت شود، به STDOUT نوشته می‌شود. وقتی کانالی بسته شود، <code class="inline">recv()</code> با <code class="inline">None</code> برمی‌گردد. با استفاده از مطابقت الگو، ماکروی <code class="inline">select!</code> به انتظار روی کانال‌های باقی‌مانده ادامه می‌دهد. وقتی همهٔ کانال‌ها بسته شوند، شاخهٔ <code class="inline">else</code> ارزیابی می‌شود و حلقه خاتمه می‌یابد.</p>
+        <p>ماکروی <code class="inline">select!</code> شاخه‌ها را برای آمادگی به‌صورت تصادفی انتخاب می‌کند. وقتی چند کانال مقدارِ در انتظار دارند، یک کانال تصادفی برای دریافت انتخاب می‌شود. این کار برای رسیدگی به حالتی است که حلقهٔ دریافت پیام‌ها را کندتر از آنچه به کانال‌ها push می‌شوند پردازش کند؛ یعنی کانال‌ها شروع به پر شدن می‌کنند. اگر <code class="inline">select!</code> <b>به‌صورت تصادفی</b> شاخه‌ای را برای بررسی اول انتخاب نمی‌کرد، در هر تکرار حلقه، اول <code class="inline">rx1</code> بررسی می‌شد. اگر <code class="inline">rx1</code> همیشه پیامِ جدید داشت، کانال‌های باقی‌مانده هرگز بررسی نمی‌شدند.</p>
+        <blockquote>وقتی <code class="inline">select!</code> ارزیابی می‌شود و چند کانال پیامِ در انتظار دارند، فقط از یک کانال مقدارِ pop می‌شود. همهٔ کانال‌های دیگر دست‌نخورده می‌مانند و پیام‌هایشان تا تکرار بعدی حلقه در همان کانال‌ها می‌مانند. هیچ پیامی از دست نمی‌رود.</blockquote>
+
+        <h4>ادامه‌دادن یک عملیات ناهمگام (Resuming an async operation)</h4>
+        <p>حالا نشان می‌دهیم چگونه یک عملیات ناهمگام را در چند فراخوانیِ <code class="inline">select!</code> اجرا کنیم. در این مثال، یک کانال mpsc با نوع آیتمِ <code class="inline">i32</code> و یک تابع ناهمگام داریم. می‌خواهیم تابع ناهمگام را اجرا کنیم تا کامل شود یا یک عدد زوج روی کانال دریافت شود.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn action() {
+    // یک منطق ناهمگام
+}
+
+#[tokio::main]
+async fn main() {
+    let (mut tx, mut rx) = tokio::sync::mpsc::channel(128);
+
+    let operation = action();
+    tokio::pin!(operation);
+
+    loop {
+        tokio::select! {
+            _ = &amp;mut operation => break,
+            Some(v) = rx.recv() => {
+                if v % 2 == 0 {
+                    break;
+                }
+            }
+        }
+    }
+}</code></pre>
+        <p>توجه کنید به‌جای صدازدنِ <code class="inline">action()</code> در ماکروی <code class="inline">select!</code>، خارج از حلقه صدا زده می‌شود. مقدارِ بازگشتیِ <code class="inline">action()</code> به <code class="inline">operation</code> اختصاص داده می‌شود <b>بدون</b> اینکه <code class="inline">.await</code> شود. سپس روی <code class="inline">operation</code> تابع <code class="inline">tokio::pin!</code> را صدا می‌زنیم.</p>
+        <p>داخل حلقهٔ <code class="inline">select!</code>، به‌جای پاس‌دادن <code class="inline">operation</code>، <code class="inline">&amp;mut operation</code> را پاس می‌دهیم. متغیر <code class="inline">operation</code> در حال ردیابی عملیات ناهمگامِ در حال اجراست. هر تکرار حلقه از همان عملیات استفاده می‌کند به‌جای اینکه فراخوانی جدیدی به <code class="inline">action()</code> صادر کند.</p>
+        <p>این نخستین بار است که از <code class="inline">tokio::pin!</code> استفاده می‌کنیم. جزئیات pinning را بررسی نمی‌کنیم. فقط توجه کنید که برای <code class="inline">.await</code> کردن یک مرجع، مقدارِ مرجع‌شده باید pin شده باشد یا <code class="inline">Unpin</code> را پیاده‌سازی کند.</p>
+        <p>اگر خطِ <code class="inline">tokio::pin!</code> را حذف کنیم و تلاش کنیم کامپایل کنیم، این خطا را می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error[E0599]: no method named `poll` found for struct
+     `std::pin::Pin&lt;&amp;mut &amp;mut impl std::future::Future&gt;`
+     in the current scope
+  --&gt; src/main.rs:16:9
+   |
+16 | /         tokio::select! {
+17 | |             _ = &amp;mut operation => break,
+18 | |             Some(v) = rx.recv() =&gt; {
+19 | |                 if v % 2 == 0 {
+...  |
+22 | |             }
+23 | |         }
+   | |_________^ method not found in
+   |             `std::pin::Pin&lt;&amp;mut &amp;mut impl std::future::Future&gt;`
+   |
+   = note: the method `poll` exists but the following trait bounds
+            were not satisfied:
+           `impl std::future::Future: std::marker::Unpin`
+           which is required by
+           `&amp;mut impl std::future::Future: std::future::Future`</code></pre>
+        <p>اگرچه <code class="inline">Future</code> را در فصل قبل پوشش دادیم، این خطا هنوز خیلی واضح نیست. اگر موقع <code class="inline">.await</code> کردن یک <b>مرجع</b>، خطایی دربارهٔ پیاده‌نشدنِ <code class="inline">Future</code> دیدید، احتمالاً future باید pin شود.</p>
+
+        <h4>تغییر یک شاخه (Modifying a branch)</h4>
+        <p>به یک حلقهٔ کمی پیچیده‌تر نگاه کنیم. این‌ها را داریم:</p>
+        <ol>
+          <li>یک کانال از مقادیرِ <code class="inline">i32</code>.</li>
+          <li>یک عملیات ناهمگام برای اجرا روی مقادیرِ <code class="inline">i32</code>.</li>
+        </ol>
+        <p>منطقی که می‌خواهیم پیاده کنیم:</p>
+        <ol>
+          <li>منتظر یک عدد <b>زوج</b> روی کانال بمان.</li>
+          <li>عملیات ناهمگام را با استفاده از عدد زوج به‌عنوان ورودی شروع کن.</li>
+          <li>منتظر عملیات بمان؛ در عین حال به اعداد زوجِ بیشتر روی کانال گوش بده.</li>
+          <li>اگر قبل از کامل‌شدنِ عملیاتِ موجود، عدد زوجِ جدیدی دریافت شد، عملیاتِ موجود را لغو کن و با عدد زوجِ جدید دوباره شروعش کن.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">rust</span><code>async fn action(input: Option&lt;i32&gt;) -&gt; Option&lt;String&gt; {
+    // اگر ورودی `None` است، `None` را برگردان.
+    // این را می‌توان با `let i = input?;` هم نوشت
+    let i = match input {
+        Some(input) =&gt; input,
+        None =&gt; return None,
+    };
+    // منطق ناهمگام این‌جا
+}
+
+#[tokio::main]
+async fn main() {
+    let (mut tx, mut rx) = tokio::sync::mpsc::channel(128);
+
+    let mut done = false;
+    let operation = action(None);
+    tokio::pin!(operation);
+
+    tokio::spawn(async move {
+        let _ = tx.send(1).await;
+        let _ = tx.send(3).await;
+        let _ = tx.send(2).await;
+    });
+
+    loop {
+        tokio::select! {
+            res = &amp;mut operation, if !done =&gt; {
+                done = true;
+
+                if let Some(v) = res {
+                    println!("GOT = {}", v);
+                    return;
+                }
+            }
+            Some(v) = rx.recv() =&gt; {
+                if v % 2 == 0 {
+                    // `.set` یک متد روی `Pin` است.
+                    operation.set(action(Some(v)));
+                    done = false;
+                }
+            }
+        }
+    }
+}</code></pre>
+        <p>از راهبردی مشابه مثال قبل استفاده می‌کنیم. تابع async خارج از حلقه صدا زده می‌شود و به <code class="inline">operation</code> اختصاص داده می‌شود. متغیر <code class="inline">operation</code> pin می‌شود. حلقه هم روی <code class="inline">operation</code> و هم روی گیرندهٔ کانال انتخاب می‌کند.</p>
+        <p>توجه کنید <code class="inline">action</code> یک <code class="inline">Option&lt;i32&gt;</code> به‌عنوان آرگومان می‌گیرد. قبل از دریافتِ اولین عدد زوج، باید <code class="inline">operation</code> را با چیزی مقداردهی کنیم. <code class="inline">action</code> را طوری می‌سازیم که <code class="inline">Option</code> بگیرد و <code class="inline">Option</code> برگرداند. اگر <code class="inline">None</code> پاس داده شود، <code class="inline">None</code> برمی‌گردد. در اولین تکرار حلقه، <code class="inline">operation</code> بلافاصله با <code class="inline">None</code> کامل می‌شود.</p>
+        <p>این مثال از برخی دستور زبان‌های جدید استفاده می‌کند. اولین شاخه <code class="inline">, if !done</code> را دارد. این یک <b>پیش‌شرطِ شاخه</b> (branch precondition) است. قبل از توضیح نحوهٔ کار، ببینیم اگر پیش‌شرط حذف شود چه می‌شود. حذفِ <code class="inline">, if !done</code> و اجرای مثال نتیجهٔ زیر را دارد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>thread 'main' panicked at '`async fn` resumed after completion', src/main.rs:1:55
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace</code></pre>
+        <p>این خطا وقتی رخ می‌دهد که تلاش کنید بعد از کامل‌شدن از <code class="inline">operation</code> <b>دوباره</b> استفاده کنید. معمولاً هنگام استفاده از <code class="inline">.await</code>، مقدارِ await شده مصرف می‌شود. در این مثال، روی یک مرجع await می‌کنیم؛ یعنی <code class="inline">operation</code> بعد از کامل‌شدن هنوز وجود دارد.</p>
+        <p>برای اجتناب از این panic، باید مراقب باشیم اگر <code class="inline">operation</code> کامل شده، شاخهٔ اول را غیرفعال کنیم. متغیر <code class="inline">done</code> برای ردیابی اینکه آیا <code class="inline">operation</code> کامل شده یا نه استفاده می‌شود. یک شاخهٔ <code class="inline">select!</code> می‌تواند یک <b>پیش‌شرط</b> داشته باشد. این پیش‌شرط <b>قبل از</b> اینکه <code class="inline">select!</code> روی شاخه await کند بررسی می‌شود. اگر شرط <code class="inline">false</code> ارزیابی شود، شاخه غیرفعال می‌شود. متغیر <code class="inline">done</code> با <code class="inline">false</code> مقداردهی می‌شود. وقتی <code class="inline">operation</code> کامل شود، <code class="inline">done</code> روی <code class="inline">true</code> تنظیم می‌شود. تکرار بعدی حلقه، شاخهٔ <code class="inline">operation</code> را غیرفعال می‌کند. وقتی پیامِ زوجی از کانال دریافت شود، <code class="inline">operation</code> بازنشانی می‌شود و <code class="inline">done</code> روی <code class="inline">false</code> تنظیم می‌شود.</p>
+
+        <h3>هم‌روندیِ درون تسک (Per-task concurrency)</h3>
+        <p>هم <code class="inline">tokio::spawn</code> و هم <code class="inline">select!</code> اجرای هم‌زمانِ عملیات‌های ناهمگام را ممکن می‌کنند. اما راهبردِ مورد استفاده برای اجرای عملیات‌های هم‌زمان متفاوت است. تابع <code class="inline">tokio::spawn</code> یک عملیات ناهمگام می‌گیرد و یک تسکِ جدید برای اجرای آن می‌ریزد. یک تسک، شیءی است که رانتایم توکیو زمان‌بندی می‌کند. دو تسکِ مختلف به‌صورت مستقل توسط توکیو زمان‌بندی می‌شوند. ممکن است هم‌زمان روی نخ‌های سیستم‌عاملِ متفاوتی اجرا شوند. به همین دلیل، یک تسکِ ریخته‌شده همان محدودیتِ نخِ ریخته‌شده را دارد: بدون قرض‌گرفتن.</p>
+        <p>ماکروی <code class="inline">select!</code> همهٔ شاخه‌ها را هم‌زمان <b>روی همان تسک</b> اجرا می‌کند. چون همهٔ شاخه‌های ماکروی <code class="inline">select!</code> روی همان تسک اجرا می‌شوند، هرگز به‌صورت هم‌زمان <b>اجرا</b> نمی‌شوند. ماکروی <code class="inline">select!</code> عملیات‌های ناهمگام را روی یک تسکِ واحد مالتی‌پلکس می‌کند.</p>
+        <p>در فصل بعد — «Streams» — همین تکنیک‌ها را روی جریان‌های ناهمگام اعمال می‌کنیم.</p>
+      </section><!-- ==================== جریان‌ها ==================== -->
+      <section>
+        <h2>جریان‌ها (Streams)</h2>
+        <p style="font-size:0.85rem;opacity:0.85"><a href="https://tokio.rs/tokio/tutorial/streams" target="_blank" rel="noopener">↗ مشاهده بخش اصلی در tokio.rs</a></p>
+        <p>یک <b>Stream</b> یک سری مقدارِ ناهمگام است. معادل ناهمگامِ
+        <a href="https://doc.rust-lang.org/book/ch13-02-iterators.html" target="_blank" rel="noopener"><code class="inline">std::iter::Iterator</code></a>
+        راست است و با trait
+        <a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html" target="_blank" rel="noopener"><code class="inline">Stream</code></a>
+        نشان داده می‌شود. جریان‌ها را می‌توان در توابع <code class="inline">async</code> پیمایش کرد. همچنین می‌توان با آداپترها (adapter) تبدیلشان کرد. توکیو تعدادی آداپتر رایج روی trait
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html" target="_blank" rel="noopener"><code class="inline">StreamExt</code></a>
+        فراهم می‌کند.</p>
+        <p>توکیو پشتیبانیِ stream را در یک crate جداگانه فراهم می‌کند: <code class="inline">tokio-stream</code>.</p>
+        <pre class="code"><span class="lang-tag">toml</span><code>tokio-stream = "0.1"</code></pre>
+        <blockquote>فعلاً ابزارهای Stream توکیو در crate <code class="inline">tokio-stream</code> وجود دارند. وقتی trait <code class="inline">Stream</code> در کتابخانهٔ استاندارد راست پایدار شود، ابزارهای جریانِ توکیو به crate <code class="inline">tokio</code> منتقل می‌شوند.</blockquote>
+
+        <h3>پیمایش (Iteration)</h3>
+        <p>در حال حاضر، زبان برنامه‌نویسی راست از حلقه‌های <code class="inline">for</code> ناهمگام پشتیبانی نمی‌کند. به‌جای آن، پیمایش جریان‌ها با حلقهٔ <code class="inline">while let</code> همراه با
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.next" target="_blank" rel="noopener"><code class="inline">StreamExt::next()</code></a>
+        انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio_stream::StreamExt;
+
+#[tokio::main]
+async fn main() {
+    let mut stream = tokio_stream::iter(&amp;[1, 2, 3]);
+
+    while let Some(v) = stream.next().await {
+        println!("GOT = {:?}", v);
+    }
+}</code></pre>
+        <p>مثل iteratorها، متد <code class="inline">next()</code> یک <code class="inline">Option&lt;T&gt;</code> برمی‌گرداند که <code class="inline">T</code> نوعِ مقدارِ جریان است. دریافت <code class="inline">None</code> نشان می‌دهد پیمایشِ جریان خاتمه یافته است.</p>
+
+        <h3>پخش مینی-ردیس (Mini-Redis broadcast)</h3>
+        <p>یک مثال کمی پیچیده‌تر با استفاده از کلاینت مینی-ردیس را بررسی کنیم. کد کامل را می‌توانید
+        <a href="https://github.com/tokio-rs/website/blob/master/tutorial-code/streams/src/main.rs" target="_blank" rel="noopener">اینجا</a>
+        ببینید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio_stream::StreamExt;
+use mini_redis::client;
+
+async fn publish() -&gt; mini_redis::Result&lt;()&gt; {
+    let mut client = client::connect("127.0.0.1:6379").await?;
+
+    // داده را publish کن
+    client.publish("numbers", "1".into()).await?;
+    client.publish("numbers", "two".into()).await?;
+    client.publish("numbers", "3".into()).await?;
+    client.publish("numbers", "four".into()).await?;
+    client.publish("numbers", "five".into()).await?;
+    client.publish("numbers", "6".into()).await?;
+    Ok(())
+}
+
+async fn subscribe() -&gt; mini_redis::Result&lt;()&gt; {
+    let client = client::connect("127.0.0.1:6379").await?;
+    let subscriber = client.subscribe(vec!["numbers".to_string()]).await?;
+    let messages = subscriber.into_stream();
+
+    tokio::pin!(messages);
+
+    while let Some(msg) = messages.next().await {
+        println!("got = {:?}", msg);
+    }
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -&gt; mini_redis::Result&lt;()&gt; {
+    tokio::spawn(async {
+        publish().await
+    });
+
+    subscribe().await?;
+
+    println!("DONE");
+
+    Ok(())
+}</code></pre>
+        <p>یک تسک برای publish کردن پیام‌ها به سرور مینی-ردیس روی کانال «numbers» ریخته می‌شود. سپس روی تسک اصلی، مشترک کانال «numbers» می‌شویم و پیام‌های دریافتی را نمایش می‌دهیم.</p>
+        <p>بعد از اشتراک،
+        <a href="https://docs.rs/mini-redis/0.4/mini_redis/client/struct.Subscriber.html#method.into_stream" target="_blank" rel="noopener"><code class="inline">into_stream()</code></a>
+        روی subscriberِ بازگشتی صدا زده می‌شود. این کار <code class="inline">Subscriber</code> را مصرف می‌کند و یک جریان برمی‌گرداند که با رسیدن پیام‌ها آنها را تولید می‌کند (yield). قبل از شروع پیمایش پیام‌ها، توجه کنید که جریان با استفاده از
+        <a href="https://docs.rs/tokio/1/tokio/macro.pin.html" target="_blank" rel="noopener"><code class="inline">tokio::pin!</code></a>
+        روی پشته
+        <a href="https://doc.rust-lang.org/std/pin/index.html" target="_blank" rel="noopener">pin</a>
+        می‌شود. صدازدنِ <code class="inline">next()</code> روی یک جریان نیاز دارد که جریان
+        <a href="https://doc.rust-lang.org/std/pin/index.html" target="_blank" rel="noopener">pin</a>
+        شده باشد. تابع <code class="inline">into_stream()</code> یک جریان برمی‌گرداند که pin <em>نشده</em>؛ باید صریحاً آن را pin کنیم تا بتوانیم پیمایشش کنیم.</p>
+        <blockquote>یک مقدارِ راست «pin» شده یعنی دیگر نمی‌توان در حافظه جابه‌جا شود. یک ویژگیِ کلیدیِ مقدارِ pin‌شده این است که می‌توان به دادهٔ pin‌شده اشاره‌گر گرفت و فراخوان بتواند مطمئن باشد که اشاره‌گر معتبر می‌ماند. از این ویژگی در <code class="inline">async/await</code> برای پشتیبانی از قرض‌گرفتن داده در میان نقاطِ <code class="inline">.await</code> استفاده می‌شود.</blockquote>
+        <p>اگر pin کردنِ جریان را فراموش کنیم، خطایی مانند این می‌گیریم (خطای واقعی بلندتر است):</p>
+        <pre class="code"><span class="lang-tag">text</span><code>error[E0277]: `from_generator::GenFuture&lt;...&gt;` cannot be unpinned
+  --&gt; streams/src/main.rs:29:36
+   |
+29 |     while let Some(msg) = messages.next().await {
+   |                                    ^^^^ within `tokio_stream::filter::...`, the trait `Unpin` is not implemented for `from_generator::GenFuture&lt;...&gt;`
+   |
+   = note: required because it appears within the type `impl Future`
+   = note: required because of the requirements on the impl of `Unpin` for `tokio_stream::filter::Filter&lt;...&gt;`
+   ...</code></pre>
+        <p>اگر با چنین خطایی روبه‌رو شدید، try pin کردنِ مقدار را امتحان کنید!</p>
+        <p>قبل از اجرا، سرور مینی-ردیس را شروع کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>$ mini-redis-server</code></pre>
+        <p>سپس برنامه را اجرا کنید. خروجیِ زیر را در STDOUT می‌بینیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>got = Ok(Message { channel: "numbers", content: b"1" })
+got = Ok(Message { channel: "numbers", content: b"two" })
+got = Ok(Message { channel: "numbers", content: b"3" })
+got = Ok(Message { channel: "numbers", content: b"four" })
+got = Ok(Message { channel: "numbers", content: b"five" })
+got = Ok(Message { channel: "numbers", content: b"6" })</code></pre>
+        <p>ممکن است بعضی پیام‌های اولیه drop شوند، چون بین اشتراک و publish یک رقابت (race) وجود دارد. برنامه هرگز خارج نمی‌شود. اشتراک یک کانال مینی-ردیس تا وقتی سرور فعال است فعال می‌ماند.</p>
+        <p>ببینیم چگونه با جریان‌ها کار کنیم تا این برنامه را گسترش دهیم.</p>
+
+        <h3>آداپترها (Adapters)</h3>
+        <p>توابعی که یک
+        <a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html" target="_blank" rel="noopener"><code class="inline">Stream</code></a>
+        می‌گیرند و یک
+        <a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html" target="_blank" rel="noopener"><code class="inline">Stream</code></a>
+        دیگر برمی‌گردانند اغلب «آداپتر جریان» نامیده می‌شوند، چون نوعی از «الگوی آداپتر» هستند. آداپترهای رایج جریان شامل
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.map" target="_blank" rel="noopener"><code class="inline">map</code></a>،
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.take" target="_blank" rel="noopener"><code class="inline">take</code></a> و
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.filter" target="_blank" rel="noopener"><code class="inline">filter</code></a>
+        هستند.</p>
+        <p>مینی-ردیس را طوری به‌روزرسانی کنیم که خارج شود. بعد از دریافت سه پیام، پیمایشِ پیام‌ها را متوقف کنید. این کار با
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.take" target="_blank" rel="noopener"><code class="inline">take</code></a>
+        انجام می‌شود. این آداپتر جریان را محدود می‌کند تا <b>حداکثر</b> <code class="inline">n</code> پیام تولید کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let messages = subscriber
+    .into_stream()
+    .take(3);</code></pre>
+        <p>برنامه را دوباره اجرا می‌کنیم، این خروجی را می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>got = Ok(Message { channel: "numbers", content: b"1" })
+got = Ok(Message { channel: "numbers", content: b"two" })
+got = Ok(Message { channel: "numbers", content: b"3" })</code></pre>
+        <p>این بار برنامه تمام می‌شود.</p>
+        <p>حالا جریان را به اعداد تک‌رقمی محدود کنیم. این را با بررسیِ طول پیام بررسی می‌کنیم. از آداپتر
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.filter" target="_blank" rel="noopener"><code class="inline">filter</code></a>
+        برای حذف هر پیامی که با محمول (predicate) مطابقت ندارد استفاده می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let messages = subscriber
+    .into_stream()
+    .filter(|msg| match msg {
+        Ok(msg) if msg.content.len() == 1 => true,
+        _ => false,
+    })
+    .take(3);</code></pre>
+        <p>برنامه را دوباره اجرا می‌کنیم، این خروجی را می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>got = Ok(Message { channel: "numbers", content: b"1" })
+got = Ok(Message { channel: "numbers", content: b"3" })
+got = Ok(Message { channel: "numbers", content: b"6" })</code></pre>
+        <p>توجه کنید ترتیبی که آداپترها اعمال می‌شوند مهم است. صدازدنِ <code class="inline">filter</code> اول و بعد <code class="inline">take</code>، متفاوت از صدازدنِ <code class="inline">take</code> اول و بعد <code class="inline">filter</code> است.</p>
+        <p>در نهایت، با حذف قسمتِ <code class="inline">Ok(Message { ... })</code> خروجی را مرتب می‌کنیم. این کار با
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.map" target="_blank" rel="noopener"><code class="inline">map</code></a>
+        انجام می‌شود. چون این کار <b>بعد از</b> <code class="inline">filter</code> اعمال می‌شود، می‌دانیم پیام <code class="inline">Ok</code> است، پس می‌توانیم از <code class="inline">unwrap()</code> استفاده کنیم.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let messages = subscriber
+    .into_stream()
+    .filter(|msg| match msg {
+        Ok(msg) if msg.content.len() == 1 => true,
+        _ => false,
+    })
+    .map(|msg| msg.unwrap().content)
+    .take(3);</code></pre>
+        <p>حالا خروجی این است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>got = b"1"
+got = b"3"
+got = b"6"</code></pre>
+        <p>گزینهٔ دیگر این است که مراحل
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.filter" target="_blank" rel="noopener"><code class="inline">filter</code></a>
+        و
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.map" target="_blank" rel="noopener"><code class="inline">map</code></a>
+        را با یک فراخوانیِ واحد با استفاده از
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html#method.filter_map" target="_blank" rel="noopener"><code class="inline">filter_map</code></a>
+        ترکیب کنیم.</p>
+        <p>آداپترهای بیشتری موجودند. فهرست کامل را
+        <a href="https://docs.rs/tokio-stream/0.1/tokio_stream/trait.StreamExt.html" target="_blank" rel="noopener">اینجا</a>
+        ببینید.</p>
+
+        <h3>پیاده‌سازیِ <code class="inline">Stream</code></h3>
+        <p>trait
+        <a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html" target="_blank" rel="noopener"><code class="inline">Stream</code></a>
+        بسیار شبیه trait
+        <a href="https://doc.rust-lang.org/std/future/trait.Future.html" target="_blank" rel="noopener"><code class="inline">Future</code></a>
+        است.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use std::pin::Pin;
+use std::task::{Context, Poll};
+
+pub trait Stream {
+    type Item;
+
+    fn poll_next(
+        self: Pin&lt;&amp;mut Self&gt;,
+        cx: &amp;mut Context&lt;'_&gt;
+    ) -&gt; Poll&lt;Option&lt;Self::Item&gt;&gt;;
+
+    fn size_hint(&amp;self) -&gt; (usize, Option&lt;usize&gt;) {
+        (0, None)
+    }
+}</code></pre>
+        <p>تابع <code class="inline">Stream::poll_next()</code> خیلی شبیه <code class="inline">Future::poll</code> است، با این تفاوت که می‌توان بارها صدا زد تا مقادیر زیادی از جریان دریافت شود. همان‌طور که در «بررسی عمیق ناهمگام‌ها» دیدیم، وقتی جریان <b>آمادهٔ</b> برگرداندن مقدار نیست، به‌جایش <code class="inline">Poll::Pending</code> برگردانده می‌شود. wakerِ تسک ثبت می‌شود. وقتی جریان باید دوباره poll شود، waker مطلع می‌شود.</p>
+        <p>متد <code class="inline">size_hint()</code> به همان شکلی که با
+        <a href="https://doc.rust-lang.org/book/ch13-02-iterators.html" target="_blank" rel="noopener">iteratorها</a>
+        استفاده می‌شود، استفاده می‌شود.</p>
+        <p>معمولاً وقتی <code class="inline">Stream</code> را به‌صورت دستی پیاده‌سازی می‌کنیم، با ترکیبِ futureها و جریان‌های دیگر انجامش می‌دهیم. به‌عنوان مثال، روی futureِ «Delay» که در «بررسی عمیق ناهمگام‌ها» پیاده کردیم کار کنیم. آن را به یک جریان تبدیل می‌کنیم که سه بار با فاصلهٔ ۱۰ میلی‌ثانیه مقدار <code class="inline">()</code> تولید می‌کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tokio_stream::Stream;
+use std::pin::Pin;
+use std::task::{Context, Poll};
+use std::time::Duration;
+
+struct Interval {
+    rem: usize,
+    delay: Delay,
+}
+
+impl Interval {
+    fn new() -&gt; Self {
+        Self {
+            rem: 3,
+            delay: Delay { when: Instant::now() }
+        }
+    }
+}
+
+impl Stream for Interval {
+    type Item = ();
+
+    fn poll_next(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;)
+        -&gt; Poll&lt;Option&lt;()&gt;&gt;
+    {
+        if self.rem == 0 {
+            // تأخیر دیگری باقی نمانده
+            return Poll::Ready(None);
+        }
+
+        match Pin::new(&amp;mut self.delay).poll(cx) {
+            Poll::Ready(_) =&gt; {
+                let when = self.delay.when + Duration::from_millis(10);
+                self.delay = Delay { when };
+                self.rem -= 1;
+                Poll::Ready(Some(()))
+            }
+            Poll::Pending =&gt; Poll::Pending,
+        }
+    }
+}</code></pre>
+
+        <h3><code class="inline">async-stream</code></h3>
+        <p>پیاده‌سازیِ دستیِ جریان‌ها با trait
+        <a href="https://docs.rs/futures-core/0.3/futures_core/stream/trait.Stream.html" target="_blank" rel="noopener"><code class="inline">Stream</code></a>
+        می‌تواند خسته‌کننده باشد. متأسفانه زبان برنامه‌نویسی راست هنوز از دستور زبانِ <code class="inline">async/await</code> برای تعریف جریان‌ها پشتیبانی نمی‌کند. این کار در دست انجام است، اما هنوز آماده نیست.</p>
+        <p>crate
+        <a href="https://docs.rs/async-stream" target="_blank" rel="noopener"><code class="inline">async-stream</code></a>
+        به‌عنوان راه‌حل موقت موجود است. این crate یک ماکروی <code class="inline">stream!</code> فراهم می‌کند که ورودی را به یک جریان تبدیل می‌کند. با استفاده از این crate، intervalِ بالا چنین پیاده‌سازی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>use async_stream::stream;
+use std::time::{Duration, Instant};
+
+stream! {
+    let mut when = Instant::now();
+    for _ in 0..3 {
+        let delay = Delay { when };
+        delay.await;
+        yield ();
+        when += Duration::from_millis(10);
+    }
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> این آخرین فصل آموزش «مینی-ردیس» است. اگر می‌خواهید ادامه دهید، بخش «Topics» در سایت توکیو موضوعات پیشرفته‌تری مانند اتصال کد همگام/ناهمگام، خاموش‌سازیِ نرم (graceful shutdown) و تست واحد را پوشش می‌دهد.
+        </div>
+      </section><!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمهٔ فارسیِ کاملِ «Mini-Redis Tutorial» از مستندات رسمی توکیو است که در
+        <a href="https://tokio.rs/tokio/tutorial" target="_blank" rel="noopener">tokio.rs</a>
+        منتشر شده است. تمام حقوق محتوا، تصاویر و کدها متعلق به پروژهٔ Tokio (tokio-rs) و نویسندگان اصلی آن است. برای مشاهدهٔ
+        اصل مطلب به <a href="https://tokio.rs/tokio/tutorial" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

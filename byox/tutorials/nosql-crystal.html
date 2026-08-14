@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Why you should build your own NoSQL database» (Marcelo Boeira)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چرا باید پایگاه داده NoSQL خودتان را بسازید</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>چرا باید پایگاه داده NoSQL خودتان را بسازید</span>
+      </div>
+      <h1>چرا باید پایگاه داده NoSQL خودتان را بسازید</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Crystal</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@marceloboeira/why-you-should-build-your-own-nosql-database-9bbba42039f5" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Why you should build your own NoSQL database» از
+          «مارسلو بویرا (Marcelo Boeira)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/@marceloboeira/why-you-should-build-your-own-nosql-database-9bbba42039f5" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <img src="https://miro.medium.com/v2/resize:fit:1400/1*kurkNjaeuwn6PeNpiD5yMg.jpeg" alt="کتابخانه‌ها — پایگاه‌های داده قدیمی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <blockquote style="margin-top:14px;opacity:0.85;font-size:0.9rem">
+          <strong>سلب مسئولیت (Disclaimer):</strong> این مقاله چند سال پیش نوشته شده و دیگر به‌روزترین مرجع برای چنین
+          محتوایی نیست.
+        </blockquote>
+        <p>اگر برای وب کدنویسی می‌کنید، احتمالاً با <strong>پایگاه‌های داده</strong> کار می‌کنید؛ کاری که شما را به سمت
+        یکپارچه‌سازی، راه‌اندازی و مهم‌تر از همه، به سمت <strong>درک</strong> نحوهٔ عملکرد یک پایگاه داده سوق می‌دهد.</p>
+        <p>فرض کنیم در یک مقطع زمانی، پروژه‌تان شروع به جلب توجه کند؛ کاربران زیادی هم‌زمان در حال اتصال و مصرف داده هستند.
+        آنگاه شما ناگزیر به <strong>مقیاس‌پذیری (scaling)</strong> خواهید بود!</p>
+        <p>یکی از رازهای پشت یک معماری مقیاس‌پذیر برای یک برنامهٔ وب، به دانستن اینکه از کدام پایگاه داده استفاده کنید و
+        همچنین زمان و نحوهٔ استفاده از آن‌ها وابسته است. برای چنین کاری، باید آن‌ها را <strong>درک</strong> کنید.</p>
+        <p>برای دستیابی به چنین دانشی از چالش‌ها و الگوواره‌های (paradigms) پشت یک پروژه، جالب است که به کد نگاه کنیم و
+        از آن سر در بیاوریم.</p>
+        <p>در بیشتر موارد، این فرایند فرو رفتن در کد می‌تواند یک <strong>ماجراجویی رمزگشایانه</strong> (از میان برداشتن
+        ابهام‌ها) باشد. این تجربه می‌تواند تصویر روشنی از قابلیت‌های آن سیستم در اختیارتان بگذارد.</p>
+        <div class="callout tip">
+          <strong>پس همیشه به یاد داشته باشید:</strong> «می‌شنوم و فراموش می‌کنم؛ می‌بینم و به‌یاد می‌آورم؛ انجام می‌دهم و
+          می‌فهمم — کنفوسیوس (Confucius)». با ساختن یک پایگاه دادهٔ اختصاصی، حتی اگر فقط برای سرگرمی باشد، می‌توانید مفاهیم
+          و الگوواره‌های پشت چنین پروژه‌ای را درک کنید.
+        </div>
+        <p>جالب بود؟ <strong>به پایین اسکرول کنید!</strong></p>
+      </section>
+
+      <!-- ==================== NoSQL چیست ==================== -->
+      <section>
+        <h2>پایگاه دادهٔ NoSQL چیست؟</h2>
+        <p>قبل از هر چیز، بگذارید با مرور چند مفهوم، حافظه‌مان را تازه کنیم.</p>
+        <p><strong>پایگاه‌های دادهٔ رابطه‌ای (Relational)</strong> یا <strong>SQL</strong> در دههٔ ۱۹۸۰ ظهور کردند و
+        <strong>هنوز هم بسیار مورد استفاده</strong> هستند.</p>
+        <p>پایگاه‌های دادهٔ رابطه‌ای با ایجاد یک <strong>زبان پرس‌وجوی مشترک (common query language)</strong>، و فراهم‌کردن
+        <strong>ماندگاری داده (persistence)</strong>، <strong>گزارش‌گیری (reporting)</strong> و پشتیبانی از
+        <strong>تراکنش‌ها (transactions)</strong>، موفقیت خود را تثبیت کردند و به پایه‌ای قابل‌اعتماد برای برنامه‌ها تبدیل شدند.</p>
+        <p>تأکید بر این نکته مهم است که این موفقیت کاملاً به <strong>نیازمندی‌های برنامه</strong> در آن زمان وابسته بود.</p>
+        <p>بااین‌حال، از زمان پیدایش، پایگاه‌های دادهٔ رابطه‌ای مشکلات متعددی داشتند و شاید مهم‌ترین آن‌ها دشواری در
+        <strong>نگاشت موجودیت‌های دنیای واقعی به یک قالب ساختاریافته</strong> بود.</p>
+        <p>در دههٔ ۱۹۹۰، <strong>پایگاه‌های دادهٔ شی‌گرا (object-oriented)</strong> با ذخیره‌سازی کل اشیاء، ناموفق تلاش کردند
+        این مشکل نگاشت را حل کنند. این شکست معمولاً به این واقعیت نسبت داده می‌شود که در آن زمان پایگاه‌های دادهٔ رابطه‌ای
+        به‌عنوان یک <strong>رابط یکپارچه‌سازی (integration interface)</strong> میان <strong>برنامه‌های مختلف</strong> به‌کار
+        می‌رفتند.</p>
+        <p>اگر تا به حال با <strong>چندین برنامه</strong> که به یک <strong>پایگاه دادهٔ واحد</strong> متصل می‌شوند کار کرده
+        باشید، احتمالاً می‌دانید که تلاش برای تغییر پایگاه دادهٔ یکپارچه‌ساز تقریباً به اندازهٔ بازنویسی کامل برنامه‌ها هزینه دارد.</p>
+        <p>بعدها، در اواخر دههٔ ۲۰۰۰، <strong>رشد نمایی</strong> اینترنت اثری مستقیم بر <strong>نیازمندی‌های</strong> برنامه‌های
+        <strong>وب</strong> گذاشت و نقص‌های طراحی معماری‌های موجود را برجسته کرد. همین موضوع <strong>بازیکنان بزرگ</strong>،
+        مانند شرکت‌هایی نظیر گوگل و آمازون، را به ارائهٔ <strong>راه‌حل‌های اختصاصی</strong> برای حل مشکلات مقیاس‌پذیری
+        واداشت. به‌عنوان مثال: <a href="https://cloud.google.com/bigtable/" target="_blank" rel="noopener">Bigtable</a> و
+        <a href="https://en.wikipedia.org/wiki/Dynamo_(storage_system)" target="_blank" rel="noopener">Dynamo</a> در آن زمان ظهور کردند.</p>
+        <p>آن راه‌حل‌ها چند <strong>عامل مشترک</strong> داشتند: غیر رابطه‌ای بودن، سازگاری با خوشه (cluster)، بدون طرحواره
+        (schema-less) بودن و متن‌باز بودن بیشتر آن‌ها.</p>
+        <p>بنیان آنچه امروز به‌عنوان NoSQL شناخته می‌شود بر آن ابتکارها استوار است. اما اصطلاح «NoSQL» اولین بار حدود
+        سال‌های ۲۰۰۹/۲۰۱۰ ظاهر شد و قرار بود بیشتر یک شوخی باشد تا هر چیز دیگری. اینکه به چنین <strong>واژهٔ پرطرفداری
+        (buzzword)</strong> برای شناسایی آن دسته از پایگاه‌های دادهٔ مدرن تبدیل شد، کاملاً <strong>تصادفی</strong> بود؛ زیرا
+        این اصطلاح قرار است معنای «فقط SQL نبودن (not only SQL)» را بدهد، نه «بدون SQL (no-sql)». <a href="http://martinfowler.com/bliki/NosqlDefinition.html" target="_blank" rel="noopener">[منبع]</a></p>
+        <p>برخلاف <a href="https://en.wikipedia.org/wiki/SQL" target="_blank" rel="noopener">پایگاه‌های دادهٔ SQL</a> معمول که در آن‌ها
+        پشتیبانی از یک طرحوارهٔ رابطه‌ای ساختاریافته برای ذخیرهٔ داده وجود دارد، پایگاه‌های دادهٔ
+        <a href="https://en.wikipedia.org/wiki/NoSQL" target="_blank" rel="noopener">NoSQL</a> به‌هیچ‌وجه از ذخیره‌سازی دادهٔ
+        رابطه‌ای پشتیبانی نمی‌کنند. اگرچه ممکن است بتوانید این رفتار را شبیه‌سازی کنید، اما بگذارید آن را به فرصتی دیگر
+        واگذار کنیم.</p>
+        <p>نکتهٔ اصلی در این‌جاست که مقیاس‌پذیری این پایگاه‌های دادهٔ مدرن بر <strong>توزیع‌شدگی (distribution)</strong>
+        استوار است. پذیرفته‌شده است که <strong>پایگاه‌های دادهٔ رابطه‌ای</strong> در ابتدا برای <strong>توزیع‌شدگی</strong>
+        طراحی نشده بودند؛ آن‌ها قادر به مدیریت سازگاری (consistency) در سطح خوشه نبودند و قرار بود
+        <strong>فقط به‌صورت عمودی مقیاس‌پذیر</strong> باشند. یعنی اگر می‌خواستید پاسخگوی تقاضای بیشتری باشید، باید
+        <strong>توان پردازشی</strong> سرور را افزایش می‌دادید یا <strong>حافظه</strong> بیشتری اضافه می‌کردید.</p>
+        <p>اگرچه این گزینه برای شرکت‌هایی مانند گوگل و آمازون چندان انتخاب مناسبی نبود؛ عمدتاً به‌خاطر اینکه یک سرور پایگاه
+        دادهٔ واحد نمی‌توانست میلیاردها درخواست گوگل را مدیریت کند. راه‌حل مقیاس‌دهی آن برنامه‌ها بر تغییر چینش سرورها استوار
+        بود؛ به‌جای افزایش <strong>حافظه</strong> و <strong>پردازنده‌ها</strong>، آن‌ها شروع به ساخت <strong>خوشه‌های کوچک و
+        توزیع‌شده</strong> کردند؛ چیزی که امروز به‌عنوان <strong>مقیاس‌پذیری افقی (horizontally scaling)</strong> می‌شناسیم.</p>
+        <p>امروزه مشخص شده است که مقیاس‌پذیری افقی <strong>مزایای متعددی</strong> دارد؛ و امکان
+        <strong>افزایش</strong> یا <strong>کاهش</strong> آسان تعداد سرورها بر اساس تقاضا را فراهم می‌کند، که تأثیر عظیمی بر هزینهٔ
+        میزبانی چنین برنامه‌هایی دارد.</p>
+        <p>مثلاً نتفلیکس (Netflix) را در نظر بگیرید؛ فرض کنیم آن‌ها معمولاً در یک روز عادی ۱۰۰.۰۰۰ نفر را هم‌زمان آنلاین دارند،
+        اما وقتی فصل جدیدی منتشر می‌شود، این عدد می‌تواند <strong>به میلیون‌ها برسد</strong>.</p>
+        <p>شاید آن‌ها بتوانند یک <strong>سرور عظیم</strong> فراهم کنند و آن را <strong>در تمام زمان</strong> روشن نگه دارند؛
+        اما هزینهٔ نگهداری چنین زیرساختی چقدر می‌شود؟ با <strong>مقیاس‌پذیری افقی</strong>، آن‌ها می‌توانند
+        <strong>تعداد سرورها</strong> را بر اساس تقاضا <strong>افزایش</strong> دهند تا این سیل موقت تقاضا را مدیریت کنند و سپس
+        پس از پایان تقاضای عظیم، دوباره به پایهٔ معمول کاهش دهند. آن‌ها در واقع این کار را <a href="http://techblog.netflix.com/2012/01/auto-scaling-in-amazon-cloud.html" target="_blank" rel="noopener">چندین بار در طول روز</a> انجام می‌دهند.</p>
+        <p>از آنجا که مقیاس‌پذیری افقی بر چندین <strong>واحد کوچک</strong>/سرور استوار است، درک برخی مفاهیم
+        <strong>سیستم‌های توزیع‌شده (distributed systems)</strong> مانند قضیهٔ CAP <strong>بسیار حیاتی</strong> است.</p>
+
+        <h3>CAP</h3>
+        <p><a href="https://en.wikipedia.org/wiki/Eric_Brewer_(scientist)" target="_blank" rel="noopener">اریک بروئر (Eric Brewer)</a>،
+        دانشمندی شناخته‌شده، زمانی گفت که برای یک سیستم توزیع‌شده غیرممکن است هم‌زمان از هر سه تضمین زیر پشتیبانی کند:</p>
+        <img src="https://miro.medium.com/max/3840/1*V0qJAXHDWaKE6lNN3_FD5g.png" alt="نمودار قضیه CAP: در هر سیستم توزیع‌شده فقط دو ضلع از سه ضلع سازگاری، در دسترس‌پذیری و تحمل پارتیشن قابل انتخاب است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <ul>
+          <li><b>سازگاری (Consistency)</b> — همهٔ سرورها در یک زمان دادهٔ یکسانی را می‌بینند.</li>
+          <li><b>در دسترس‌پذیری (Availability)</b> — هر درخواست، چه موفق و چه ناموفق، پاسخی دریافت می‌کند.</li>
+          <li><b>تحمل پارتیشن (Partition tolerance)</b> — سیستم باوجود پارتیشن‌بندی دلخواه ناشی از خطاهای شبکه، به کار خود ادامه می‌دهد.</li>
+        </ul>
+        <p>معمولاً افراد می‌گویند باید دو مورد از این جنبه‌ها را انتخاب کنید؛ اما در دنیای واقعی این <a href="https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html" target="_blank" rel="noopener">یک انتخاب دودویی نیست</a>،
+        زیرا پایگاه‌های داده می‌توانند در برخی عملیات‌ها سازگاری را بر در دسترس‌پذیری ترجیح دهند و در برخی دیگر برعکس.</p>
+        <p>بااین‌حال، می‌توان پایگاه‌های دادهٔ شناخته‌شده را بر اساس تمرکزشان روی دو مورد از سه تضمین تقسیم کرد و آن‌ها را
+        CA، CP یا AP نامید.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> این یک قاعدهٔ دودویی نیست؛ بیشتر راهی برای درک تمرکز هر سیستم است.
+        </div>
+
+        <h4>CA — سازگاری و در دسترس‌پذیری — MySQL، PostgreSQL</h4>
+        <p>این پایگاه‌های داده همیشه سازگاری را تضمین می‌کنند؛ داده همیشه قابل‌اعتماد خواهد بود و همچنین می‌توانید مطمئن
+        باشید که برای هر درخواست پاسخی دریافت می‌کنید.</p>
+        <p>بااین‌حال، چون شکست پارتیشن را در نظر نمی‌گیرند، در خوشه‌ها عملکرد خوبی نخواهند داشت. جالب است همچنین در نظر بگیرید
+        که آن‌ها سازگاری را بر زمان پاسخ‌دهی ترجیح می‌دهند؛ چیزی که ممکن است برای شما قابل پرداخت نباشد.</p>
+
+        <h4>CP — سازگاری و تحمل پارتیشن — MongoDB، Redis، MemcacheDB، HBase</h4>
+        <p>چنین پایگاه‌های داده‌ای سازگاری و تحمل پارتیشن را بر در دسترس‌پذیری تضمین می‌کنند. یعنی حفظ سازگاری داده میان همهٔ
+        گره‌ها (nodes) مهم است؛ اگر به هر دلیلی گره‌ای در دسترس نباشد، سیستم عمل نمی‌کند.</p>
+        <p>باز هم، زمان پاسخ‌دهی می‌تواند مستقیماً تحت‌تأثیر بررسی سازگاری میان همهٔ گره‌ها قرار گیرد.</p>
+
+        <h4>AP — در دسترس‌پذیری و تحمل پارتیشن — Cassandra، CouchDB، Voldemort، Riak</h4>
+        <p>در نهایت، این نوع پایگاه داده بر در دسترس‌پذیری تمرکز دارد؛ آن‌ها همیشه در حال کار و پاسخ‌گویی به همهٔ درخواست‌ها
+        خواهند بود. برای تامین این هزینه، ممکن است سازگاری میان گره‌ها را نادیده بگیرند؛ اگر گره‌ای قابل دسترس نباشد، سایر
+        گره‌ها بررسی سازگاری را رد می‌کنند و عملیات را انجام می‌دهند.</p>
+
+        <div class="callout tip">
+          <strong>به‌یاد بسپارید:</strong> فقط زمانی از پایگاه‌های دادهٔ SQL استفاده کنید که به
+          <strong>تراکنش‌های سازگار</strong> نیاز دارید!
+        </div>
+      </section>
+
+      <!-- ==================== مدل‌های داده ==================== -->
+      <section>
+        <h2>مدل‌های داده (Data models)</h2>
+        <p><strong>انواع مختلف NoSQL</strong></p>
+        <p>برای تشخیص هدف استفاده، می‌توانیم پایگاه‌های دادهٔ NoSQL را بر اساس نحوهٔ مدیریت داده نیز تقسیم کنیم. معمولاً
+        آن‌ها یا رویکرد کلید-مقدار (key-value)، سند (document) یا گراف (graph) دارند.</p>
+
+        <h3>کلید-مقدار (Key-Value)</h3>
+        <p>این مقاله بر پایگاه‌های دادهٔ <strong>کلید-مقدار</strong> تمرکز دارد. یک پایگاه دادهٔ کلید-مقدار هنگام مدیریت داده،
+        فقط یک <strong>شناسه</strong> یعنی <strong>کلید (key)</strong> و <strong>مقدار (value)</strong> فراهم می‌کند. می‌توانید
+        آن را مانند یک جدول هش یا دیکشنری بزرگ مشترک در نظر بگیرید.</p>
+        <p>با توجه به سادگی‌اش، فروشگاه‌های کلید-مقدار را می‌توان <strong>ابتدایی‌ترین نوع پایگاه دادهٔ NoSQL</strong> دانست.</p>
+      </section>
+
+      <!-- ==================== زمان نمایش ==================== -->
+      <section>
+        <h2>زمان نمایش (Showtime)</h2>
+        <p>همان‌طور که گفته شد، برای درک نحوهٔ کار آن‌ها بگذارید یکی بسازیم.</p>
+        <p>ایده این است که از صفر شروع کنیم و آن را ساده نگه داریم؛ مشخصات پایهٔ پروژه را ببینید:</p>
+
+        <h3>مفهوم پروژه (Project Concept)</h3>
+        <img src="https://miro.medium.com/max/3056/1*BVaGSLdWAltpXcT6TrMWNg.png" alt="مفهوم پروژه: نمایش انتزاعی جعبه‌های سرور، ارتباطات، هسته و ذخیره‌سازی در یک پایگاه داده ساده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>طرح مفهومی چند جعبه دارد که نمایشی انتزاعی از اجزای سیستم است. این اجزا عبارت‌اند از:</p>
+
+        <h4>سرور (Server)</h4>
+        <p>محفظهٔ انتزاع‌های داخلی. معمولاً سرور کل پروژه است؛ چیزی که وقتی کسی به یک پایگاه داده اشاره می‌کند، مدنظر است.</p>
+
+        <h4>ذخیره‌سازی (Storage)</h4>
+        <p>هر پایگاه داده باید یک انتزاع ذخیره‌سازی داشته باشد؛ راهی برای ذخیرهٔ داده برای استفادهٔ بعدی. برای این پروژه از یک
+        راهبرد سادهٔ درون‌حافظه‌ای (in-memory) استفاده می‌کنیم؛ یعنی محتوا فقط در حافظهٔ فرار (volatile memory) ذخیره می‌شود و
+        هیچ پشتیبان‌گیر (backup) یا پشتیبانی سیستم فایلی فراهم نیست.</p>
+        <p>همچنین، تعریف ساختار ذخیرهٔ کلید-مقدار ما در این مرحله مهم است؛ برای اهداف مثال، هم کلید و هم مقدار
+        <strong>رشته (String)</strong> خواهند بود.</p>
+
+        <h4>ارتباطات (Communication)</h4>
+        <p>پایگاه داده بدون رابطی برای فراهم‌کردن <strong>ارتباط بین فرایندی (inter-process communication)</strong> بی‌استفاده
+        است. اجازه‌دادن به سایر فرایندها یا حتی ماشین‌های دیگر برای تبادل پیام با پایگاه داده، برای هدف این پروژه حیاتی است.</p>
+        <p>برای برقراری ارتباط بین فرایندی می‌توان از انواع مختلفی از رابط‌ها یا انتقال‌ها استفاده کرد؛ مانند: سوکت یونیکس
+        (Unix Socket)، سوکت TCP، HTTP یا حتی WebSocket و موارد مشابه.</p>
+        <p>برای سادگی، از یک سرور TCP استفاده می‌کنیم که دستورهای ساده دریافت و پاسخ می‌دهد.</p>
+
+        <h4>هسته (Core)</h4>
+        <p>هسته کدی است که اتصالات و پیام‌های ورودی و خروجی را هماهنگ می‌کند و عملیات ذخیره‌سازی را انجام می‌دهد.</p>
+        <p>دربارهٔ <strong>API</strong>، بگذارید از یک قالب سادهٔ تبادل پیام پیروی کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">command key value</code></pre>
+        <ul>
+          <li><b>command</b> — عملی که باید انجام شود (<em>الزامی</em>)</li>
+          <li><b>key</b> — هدفی که عمل باید روی آن انجام شود (<em>الزامی</em>)</li>
+          <li><b>value</b> — مقداری که در صورت نیاز استفاده می‌شود (<em>فقط برای دستور set الزامی است</em>)</li>
+        </ul>
+        <p>دستورهای موجود:</p>
+        <ul>
+          <li><b>set</b> — درج یا بازنویسی یک کلید با مقدار داده‌شده</li>
+          <li><b>get</b> — بازیابی محتوای کلید</li>
+        </ul>
+        <p>دستور <strong>set</strong> به یک <strong>کلید</strong> مانند foo و یک <strong>مقدار</strong> مانند bar نیاز دارد. مثال:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">set foo bar</code></pre>
+        <p>سرور مقدار کلید درج‌شده را برمی‌گرداند. اما دستور <strong>get</strong> فقط به <strong>کلید</strong> یعنی foo نیاز دارد. مثال:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">get foo</code></pre>
+        <p>باز هم، سرور مقدار کلید «foo» را برمی‌گرداند؛ در این مورد «bar».</p>
+
+        <h3>زبان برنامه‌نویسی (Programming Language)</h3>
+        <p>زبان برنامه‌نویسی نباید محدودیتی برای دنبال‌کردن این مقاله باشد؛ عمدتاً به‌خاطر اینکه تقریباً هر زبان مدرن از TCP و
+        هش‌ها (Hashes) پشتیبانی می‌کند.</p>
+        <p>برای ساده نگه‌داشتن کار، زبان انتخاب‌شده برای این پروژه <a href="https://crystal-lang.org/" target="_blank" rel="noopener">Crystal</a> است؛
+        یک <strong>زبان کامپایل‌شده</strong> جدید و <strong>قدرتمند</strong> با نحوی (syntax) الهام‌گرفته از
+        <strong>Ruby</strong>.</p>
+        <p>با یک نحو ساده و زیبا، کد تقریباً خودش را توضیح می‌دهد. اما بگذارید به بررسی آن بپردازیم. یک نگاه به کد بیندازید:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">require "socket"
+
+class Server
+  def self.start
+    server = TCPServer.new("localhost", 5000)
+    server.recv_buffer_size = 4096
+    data = Hash(String, String).new
+
+    loop do
+      socket = server.accept
+      if socket
+        spawn do
+          loop do
+            if request = socket.gets
+              request = request.split(" ").map{|item| item.strip }
+              command = request[0]
+              key = request[1]
+
+              if command == "set"
+                value = request[2]
+
+                data[key] = value
+
+                socket.puts(value)
+              elsif command == "get"
+                value = data[key]
+
+                socket.puts(value)
+              else
+                socket.puts("error: #{command} is not a valid command")
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> توجه داشته باشید که در این مرحله <strong>کد خودش هدف نیست</strong>؛ بلکه ابزاری برای راهنمایی
+          شما در درک مفاهیم است. فعلاً کد ممکن است از نظر اصول شی‌گرایی پایه، وحشتناک به‌نظر برسد؛ دارای
+          <strong>فرض‌های نادرست و زودهنگام</strong> و <strong>چندین اشکال (bug)</strong> است. فعلاً به آن‌ها توجه نکنید.
+        </div>
+        <p>با این مقدمه، بگذارید کد را تحلیل کنیم.</p>
+        <p>دو خط اول، <strong>سرور TCP</strong> — یعنی <strong>رابط ارتباطی</strong> ما — و همچنین یک <strong>Hash</strong> با
+        کلیدها و مقادیر <strong>رشته‌ای</strong> — یعنی <strong>انتزاع ذخیره‌سازی</strong> ما — را تعریف می‌کنند.</p>
+        <p>در ادامه، عبارت‌های <code class="inline">loop</code> و <code class="inline">spawn</code> دور کد را می‌گیرند تا آن را
+        «همروند (concurrent)» کنند. کد بی‌پایان به دنبال اتصال‌های جدید TCP است؛ وقتی اتصال جدیدی در دسترس باشد، آن را در یک
+        نخ* جدید spawn می‌کند تا اجرای برنامه برای سایر اتصال‌های احتمالی مسدود نشود.</p>
+        <p><em>(*) Crystal از نخ (thread) پشتیبانی نمی‌کند، بلکه از فیبر (Fiber) پشتیبانی می‌کند؛ برای سادگی مقاله بگذارید آن را
+        یک نخ در نظر بگیریم.</em></p>
+        <p>خیلی زود، داخل همان «نخ» spawnشده، بار دیگر یک <code class="inline">loop</code> و یک <code class="inline">spawn</code>
+        دیگر دور «درخواست» را می‌گیرند تا پشتیبانی از <strong>درخواست‌های هم‌زمان</strong> که از همان <strong>اتصال</strong> یا
+        همان کلاینت می‌آیند فراهم شود.</p>
+        <p>درخواست پردازش می‌شود؛ هر بستهٔ دریافتی روی کاراکتر فاصله (space) شکسته می‌شود و در صورت وجود، یک دستور، یک کلید و
+        یک مقدار را به‌وجود می‌آورد.</p>
+        <p>سپس درخواست با ۳ سناریوی ممکن ارزیابی می‌شود: دستور داده‌شده یک <code class="inline">get</code> است، یک
+        <code class="inline">set</code> است یا <strong>وجود ندارد</strong> (سرور یک پیام خطا برمی‌گرداند).</p>
+        <p>در نهایت، عملیات حافظه مطابق با درخواست انجام می‌شود و همچنین پیام پاسخ مناسب برای هر حالت ارسال می‌شود.</p>
+
+        <h3>آزمون (Testing)</h3>
+        <p>برای آزمودن پایگاه داده، می‌توانید با <code class="inline">telnet</code> یک اتصال TCP باز کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">telnet 127.0.0.1 5000</code></pre>
+        <p>یک پیام تایپ کنید، اینتر را بزنید و منتظر پاسخ بمانید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">&gt;set foo bar
+bar
+&gt;get foo
+bar
+&gt;invalid
+error: "invalid" is not a valid command</code></pre>
+        <p>هورا، کار می‌کند!</p>
+      </section>
+
+      <!-- ==================== یادداشت‌های پایانی ==================== -->
+      <section>
+        <h2>یادداشت‌های پایانی (Final notes)</h2>
+        <p>ساخت یک پایگاه دادهٔ ساده، درک برخی از اصول اولیهٔ مشکلاتی که پروژه‌های مشابه با آن‌ها روبه‌رو هستند را آسان
+        می‌کند. حالا جرئت می‌دهم شما <strong>فراتر بروید</strong>؛ کد را انتخاب کنید و روی آن کار کنید تا یا سازگاری یا در
+        دسترس‌پذیری را تضمین کنید.</p>
+        <p>این کد <strong>اولین پیش‌نویس خام</strong> پروژه‌ای بود که اخیراً روی آن کار می‌کنم؛ نامش
+        <a href="https://github.com/marceloboeira/bojack" target="_blank" rel="noopener">BoJack</a> است و کد منبعش در
+        <a href="https://github.com/marceloboeira/bojack" target="_blank" rel="noopener">GitHub</a> در دسترس است.</p>
+        <p>اگر از مقاله لذت برده‌اید — و امیدوارم برده باشید — <strong>پیشنهاد می‌کنم</strong> به کد BoJack سر بزنید تا ایده‌ای
+        از روند پیشرفت آن در مسیر چالش‌های یادشدهٔ یک پایگاه دادهٔ NoSQL به دست آورید.</p>
+        <p>برای <strong>مقالات بیشتر</strong> از این دست، لطفاً این مقاله را <strong>پیشنهاد (recommend)</strong> و
+        <strong>اشتراک‌گذاری (share)</strong> کنید.</p>
+
+        <h3>الهام‌گرفته از (Inspired by)</h3>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=qI_g07C_Q5I" target="_blank" rel="noopener">Introduction to NoSQL Databases by Martin Fowler</a></li>
+          <li><a href="https://jeffknupp.com/blog/2014/09/01/what-is-a-nosql-database-learn-by-writing-one-in-python/" target="_blank" rel="noopener">What is a NoSQL Database? Learn by doing one in Python</a></li>
+          <li><a href="https://www.quora.com/What-is-the-difference-between-availability-and-partition-tolerance-in-CAP" target="_blank" rel="noopener">What is the difference between availability and Partition tolerance</a></li>
+          <li><a href="https://codahale.com/you-cant-sacrifice-partition-tolerance/" target="_blank" rel="noopener">You can't sacrifice partition tolerance</a></li>
+          <li><a href="https://stackoverflow.com/questions/12346326/nosql-cap-theorem-availability-and-partition-tolerance" target="_blank" rel="noopener">NoSQL CAP Theorem</a></li>
+          <li><a href="https://blog.cloudera.com/cap-confusion-problems-with-partition-tolerance/" target="_blank" rel="noopener">CAP Confusions with partition tolerance</a></li>
+          <li><a href="https://stackoverflow.com/questions/11707879/difference-between-scaling-horizontally-and-vertically-for-databases" target="_blank" rel="noopener">Differences between Horizontally and Vertically scaling</a></li>
+          <li><a href="https://www.youtube.com/watch?v=emCKnNXSWcA" target="_blank" rel="noopener">Scaling web applications</a></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Why you should build your own NoSQL database» اثر «مارسلو بویرا (Marcelo Boeira)»
+        است و در Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی
+        است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/@marceloboeira/why-you-should-build-your-own-nosql-database-9bbba42039f5" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

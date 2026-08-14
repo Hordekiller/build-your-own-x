@@ -750,14 +750,14 @@ window.TUTORIALS = [
 "file": "tutorials/archaeology-db-clojure.html"
 },
 {
-"id": "",
+"id": "nosql-crystal",
 "category": "پایگاه داده",
 "lang": "Crystal",
 "title": "چرا باید پایگاه داده NoSQL خودت را بسازی",
 "url": "https://medium.com/@marceloboeira/why-you-should-build-your-own-nosql-database-9bbba42039f5",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/nosql-crystal.html"
 },
 {
 "id": "database-go",
@@ -820,24 +820,24 @@ window.TUTORIALS = [
 "file": "tutorials/redis-python.html"
 },
 {
-"id": "",
+"id": "kv-store-ruby",
 "category": "پایگاه داده",
 "lang": "Ruby",
 "title": "فروشگاه کلید-مقدار سریع و ماندگار خودت را در Ruby بساز",
 "url": "https://dineshgowda.com/posts/build-your-own-persistent-kv-store/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/kv-store-ruby.html"
 },
 {
-"id": "",
+"id": "mini-redis-rust",
 "category": "پایگاه داده",
 "lang": "Rust",
 "title": "کلاینت و سرور Redis خودت را بساز",
 "url": "https://tokio.rs/tokio/tutorial/setup",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/mini-redis-rust.html"
 },
 {
 "id": "",

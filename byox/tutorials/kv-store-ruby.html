@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build Your Own Fast, Persistent KV Store» (Dinesh Gowda)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت فروشگاه کلید-مقدار سریع و ماندگار با Ruby</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>ساخت فروشگاه کلید-مقدار سریع و ماندگار با Ruby</span>
+      </div>
+      <h1>ساخت فروشگاه کلید-مقدار سریع و ماندگار با Ruby</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build Your Own Fast, Persistent KV Store» نوشته «دینش
+          گوودا (Dinesh Gowda)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>پایگاه‌های داده همیشه مرا مجذوب خود کرده‌اند و همیشه آرزوی ساختن یک پایگاه دادهٔ ساده و سرگرمی‌محور
+        (hobby database) را برای لذت بردن داشته‌ام. چندین پست وبلاگی دربارهٔ ساختن redis، git، کامپایلر و مفسر خوانده‌ام،
+        اما هیچ‌کدام دربارهٔ ساختن پایگاه داده نبود. این پست نتیجهٔ یک جست‌وجوی طولانی و پرپیچ‌وخم در میان پست‌های مربوط
+        به ساخت پایگاه داده است که در نهایت به
+        <a href="https://riak.com/assets/bitcask-intro.pdf" target="_blank" rel="noopener">مقالهٔ Bitcask</a>
+        (بیت‌کاسک) ختم شد.</p>
+        <p>پروژهٔ این مقاله جنبهٔ آموزشی دارد و کد کامل آن در مخزن
+        <a href="https://github.com/dineshgowda24/bitcask-rb" target="_blank" rel="noopener">bitcask-rb</a> روی GitHub
+        در دسترس است.</p>
+      </section>
+
+      <!-- ==================== بیت‌کاسک ==================== -->
+      <section>
+        <h2>بیت‌کاسک (Bitcask)</h2>
+        <p><a href="https://riak.com/assets/bitcask-intro.pdf" target="_blank" rel="noopener">بیت‌کاسک</a> یک
+        فروشگاه محلی کلید-مقدار (key/value store) است که در آن داده‌ها در یک فایل ماندگار می‌شوند (persist). در هر لحظه،
+        یک فرایند (process) از سیستم‌عامل، فایل را برای نوشتن باز خواهد کرد. وقتی اندازهٔ فایل به یک آستانهٔ نظریِ قابل‌توجه
+        برسد، فایل را می‌بندیم و فایل جدیدی باز می‌کنیم.</p>
+
+        <h3>اهداف (Goals)</h3>
+        <ol>
+          <li>تأخیر کم (low latency) برای هر داده، چه خوانده و چه نوشته شود.</li>
+          <li>توان عملیاتی بالا (high throughput)، به‌ویژه هنگام نوشتن جریانی از داده‌های تصادفی ورودی.</li>
+          <li>توانایی مدیریت مجموعه‌داده‌هایی بسیار بزرگ‌تر از حافظهٔ RAM بدون افت عملکرد.</li>
+          <li>دوستی با کرش (crash friendliness)، هم از نظر بازیابی سریع و هم از نظر از دست ندادن داده.</li>
+          <li>سهولت پشتیبان‌گیری و بازیابی (backup and restore).</li>
+          <li>ساختار کد و قالب داده‌ای نسبتاً ساده و قابل‌فهم.</li>
+        </ol>
+      </section>
+
+      <!-- ==================== قالب داده ==================== -->
+      <section>
+        <h2>قالب داده (Data Format)</h2>
+        <p>بیایید شروع به جزء‌به‌جزء بررسی آن کنیم.</p>
+
+        <h3>چیزی که اساساً باید ذخیره کنیم چیست؟</h3>
+        <ol>
+          <li>کلید (key)</li>
+          <li>مقدار (value)</li>
+        </ol>
+        <img src="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/images/bitcask-db-kv.svg" alt="نمایش سادهٔ ساختار ذخیره‌سازی: فقط کلید و مقدار" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>با وجود نشانگرِ مکانیِ داده در فایل، آیا می‌توانید داده را بخوانید؟</h3>
+        <p>پاسخ «نه» است!</p>
+        <p><b>اجازه دهید توضیح دهم</b></p>
+        <p>چون کلید و مقدار طول متغیری دارند، باید بفهمیم چقدر باید بخوانیم. پس باید اندازهٔ کلید و اندازهٔ مقدارش را
+        ذخیره کنیم.</p>
+        <img src="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/images/bitcask-db-kv-size.svg" alt="افزودن اندازهٔ کلید و اندازهٔ مقدار به ساختار داده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا که اندازهٔ کلید و مقدار در فایل نوشته شده است، با داشتن یک نشانگرِ فایل (file cursor) که به محل داده اشاره
+        می‌کند، می‌دانیم که ۸ بایت اول نشان‌دهندهٔ اندازهٔ کلید و مقدار است. پس از خواندن آن‌ها، اندازهٔ واقعی کلید و
+        مقداری را که باید خوانده شود، می‌بینیم.</p>
+
+        <h3>ذخیرهٔ انواع دادهٔ ابتدایی (primitive data types)</h3>
+        <p>اگرچه فروشگاه کلید-مقدار ما برای نسخهٔ اولیهٔ قابل‌عرضه (MVP-ready) آماده است، فرض کنید می‌خواهیم انواع داده‌ای
+        مانند عدد صحیح (integer)، عدد اعشاری (float) و رشته (string) را ذخیره کنیم. وقتی داده در فایل نوشته می‌شود، نوع
+        داده از بین می‌رود و همه‌چیز به‌عنوان رشته تلقی می‌شود، چون ما هیچ اطلاعاتی دربارهٔ آن ذخیره نمی‌کنیم.</p>
+        <p>برای حفظ اطلاعات نوع، بیایید دو فیلد دیگر با نام‌های <code class="inline">keytype</code> و
+        <code class="inline">valuetype</code> ذخیره کنیم که نشان‌دهندهٔ نوع دادهٔ ذخیره‌شده هستند.</p>
+        <img src="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/images/bitcask-db-kv-size-type.svg" alt="افزودن نوع کلید و نوع مقدار به ساختار داده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>حسابرسی و امنیت (Auditing &amp; Security)</h3>
+        <p>برای حسابرسی و امنیت، بیت‌کاسک پیشنهاد می‌کند به‌ترتیب یک برچسب زمانیِ (timestamp) دورهٔ عرف
+        (epoch) ۳۲ بیتی و یک CRC
+        (<a href="https://en.wikipedia.org/wiki/Cyclic_redundancy_check" target="_blank" rel="noopener">Cyclic Redundancy Check</a>
+        — بررسی افزونگی چرخه‌ای) ذخیره کنیم. این مقادیر هنگام نوشتن داده در فایل تولید می‌شوند.</p>
+        <p>قالب نهایی داده به شکلی خواهد بود که در زیر آمده است. ما برای هر کلید و مقدار، ۲۰ بایت دادهٔ اضافی ذخیره
+        خواهیم کرد.</p>
+        <ul>
+          <li>۴ بایت اول یک عدد صحیح بدون علامت ۳۲ بیتی هستند که CRC را نشان می‌دهند.</li>
+          <li>۴ بایت بعدی یک عدد صحیح بدون علامت ۳۲ بیتی هستند که برچسب زمانیِ دورهٔ عرف را نشان می‌دهند.</li>
+          <li>۸ بایت بعدی دو عدد صحیح بدون علامت ۳۲ بیتی هستند که <code class="inline">keysize</code> و
+          <code class="inline">valuesize</code> را نشان می‌دهند.</li>
+          <li>۴ بایت بعدی دو عدد صحیح بدون علامت ۱۶ بیتی هستند که <code class="inline">keytype</code> و
+          <code class="inline">valuetype</code> را نشان می‌دهند.</li>
+          <li>بایت‌های باقی‌مانده کلید و مقدار ما هستند.</li>
+        </ul>
+        <img src="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/images/bitcask-db.svg" alt="قالب نهایی داده: CRC، برچسب زمانی، اندازهٔ کلید و مقدار، نوع کلید و مقدار و سپس خود داده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== سیستم عددی ==================== -->
+      <section>
+        <h2>سیستم عددی (Number System)</h2>
+        <p>رایانه‌ها داده‌ها را با مجموعه‌هایی از ارقام دودویی (binary digits) نمایش می‌دهند. این بازنمایی از بیت‌هایی
+        تشکیل شده است که در مجموعه‌های بزرگ‌تری مانند بایت‌ها گروه‌بندی شده‌اند. اگر به قالب دادهٔ ما دقت کنید، ۲۴ بایت
+        اول، اعداد صحیح بدون علامت (unsigned integers) هستند. به‌طور پیش‌فرض، وقتی اعداد صحیح در یک فایل نوشته می‌شوند،
+        به شکل دودویی ذخیره نمی‌شوند.</p>
+        <p><b>اجازه دهید توضیح دهم</b></p>
+        <p>فرض کنید کد زیر را اجرا می‌کنیم. اندازهٔ داده‌ای که در فایل نوشته می‌شود چقدر خواهد بود؟</p>
+        <pre class="code"><span class="lang-tag">rb</span><code style="direction:ltr;text-align:left">File.open('sample.txt', 'w') do |file|
+    [1, 12, 123, 1234, 12345, 123456, 1234567, 12345678].each do |num|
+        file.write(num)
+    end
+end</code></pre>
+        <p>اندازهٔ آن <b>۳۶ بایت</b> است؛ زیرا به‌طور پیش‌فرض آن‌ها به‌صورت رشته نوشته می‌شوند که هر کاراکتر آن ۱ بایت
+        است.</p>
+        <p style="direction:ltr;text-align:center;font-size:1.05rem">1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 = 36 bytes</p>
+        <p>اما این روش می‌تواند کارآمدتر باشد. در قالب دادهٔ خود بحث کردیم که برای هر کلید و مقداری، ۲۰ بایت متادیتا ذخیره
+        می‌کنیم. پس نمی‌توانیم آن‌ها را به‌صورت رشته نگه داریم، زیرا این کار به یک فیلد با طول متغیر منجر می‌شود. راه‌حل
+        این است که آن‌ها را کدگذاری کرده و در قالب دودویی ذخیره کنیم.</p>
+        <p>اگر آن‌ها را به‌صورت اعداد صحیح ۴ بایتی کدگذاری کرده و در قالب دودویی ذخیره کنیم، اندازهٔ فایل <b>۳۲ بایت</b>
+        خواهد بود.</p>
+        <p style="direction:ltr;text-align:center;font-size:1.05rem">4 * 8 = 32 bytes</p>
+      </section>
+
+      <!-- ==================== بزرگ‌ترین اندازهٔ کلید و مقدار ==================== -->
+      <section>
+        <h2>بزرگ‌ترین اندازهٔ کلید و مقدار (Largest Key &amp; Value Size)</h2>
+        <p>بزرگ‌ترین <code class="inline">key</code> یا <code class="inline">value</code> ذخیره‌شده در فایل، تابعی از
+        نوع عدد صحیحِ <code class="inline">keysize</code> یا <code class="inline">valuesize</code> است؛ یعنی بیشترین
+        مقدارِ تابع f(x) که در آن x اندازهٔ یک عدد صحیح بر حسب بیت است.</p>
+        <p>چون <code class="inline">keysize</code> و <code class="inline">valuesize</code> ما اعداد صحیح بدون علامت
+        ۴ بایتی (۳۲ بیتی) هستند، بزرگ‌ترین مقدار کلید یا مقداری که می‌توانیم ذخیره کنیم برابر است با:</p>
+        <p style="direction:ltr;text-align:center;font-size:1.05rem">2<sup>32</sup> - 1 = 4294967295 bytes = 4.29 GB</p>
+      </section>
+
+      <!-- ==================== به‌هم‌دوختن همه‌چیز ==================== -->
+      <section>
+        <h2>به‌هم‌دوختن همه‌چیز (Stitching Everything)</h2>
+        <p>بیایید یک ماژول <code class="inline">Serializer</code> بسازیم که منطق سریال‌سازی (serialization) و
+        سریال‌زدایی (deserialization) را در خود بسته‌بندی کند. باید داده‌های خود را به یک دنبالهٔ دودویی کدگذاری کنیم.
+        Ruby متد <a href="https://apidock.com/ruby/Array/pack" target="_blank" rel="noopener">Array.pack</a> را دارد که
+        داده‌ها را بر اساس یک دستورالعمل (directive) به یک دنبالهٔ دودویی می‌بندد. دستورالعمل‌ها مشخص می‌کنند که داده‌ها
+        چگونه باید در یک دنبالهٔ دودویی کدگذاری شوند. در ادامه فهرست دستورالعمل‌هایی است که استفاده خواهیم کرد:</p>
+        <ol>
+          <li><b>L&lt;</b>: عدد صحیح بدون علامت ۳۲ بیتی، little endian (uint32_t)</li>
+          <li><b>S&lt;</b>: عدد صحیح بدون علامت ۱۶ بیتی، little endian (uint16_t)</li>
+          <li><b>q&lt;</b>: عدد صحیح دارای علامت ۶۴ بیتی، little endian (int64_t)</li>
+          <li><b>E</b>: عدد اعشاری با دقت دوگانه (double-precision)، little endian</li>
+        </ol>
+        <p>همهٔ دستورالعمل‌های ما ترتیب بایت little endian دارند. این کار هیچ مزیت عملکردی ندارد؛ می‌توانید آن‌ها را به
+        ترتیب big endian نیز کدگذاری کنید. ما ترتیب بایت را مشخص می‌کنیم تا مطمئن شویم فایل پایگاه دادهٔ ما با
+        پلتفرم‌های مختلف سازگار است (cross-platform compatible).</p>
+        <pre class="code"><span class="lang-tag">rb</span><code style="direction:ltr;text-align:left">module Bitcask
+  module Serializer
+
+    HEADER_FORMAT = 'L&lt;L&lt;L&lt;S&lt;S&lt;'
+    HEADER_SIZE = 16
+
+    CRC32_FORMAT = 'L<'
+    CRC32_SIZE = 4
+
+    DATA_TYPE = {
+      Integer: 1,
+      Float: 2,
+      String: 3
+    }.freeze
+
+    DATA_TYPE_LOOK_UP = {
+      DATA_TYPE[:Integer] => :Integer,
+      DATA_TYPE[:Float] => :Float,
+      DATA_TYPE[:String] => :String
+    }.freeze
+
+    DATA_TYPE_DIRECTIVE = {
+      DATA_TYPE[:Integer] => 'q<',
+      DATA_TYPE[:Float] => 'E'
+    }.freeze
+
+  end
+end</code></pre>
+
+        <h3>سریال‌سازی و سریال‌زدایی (Serialize &amp; Deserialize)</h3>
+        <ol>
+          <li><code class="inline">serialize</code> داده را به قالب دادهٔ ما سریال‌سازی می‌کند. نوع داده را تشخیص می‌دهد،
+          یک هدر (header) تولید می‌کند و crc را محاسبه می‌کند. این متد طول داده و دادهٔ کدگذاری‌شدهٔ دودویی را برمی‌گرداند.</li>
+          <li><code class="inline">deserialize</code> دقیقاً برعکس <code class="inline">serialize</code> عمل می‌کند.
+          crc را اعتبارسنجی می‌کند، دادهٔ کدگذاری‌شدهٔ دودویی را رمزگشایی می‌کند و دورهٔ عرف، کلید و مقدار را برمی‌گرداند.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">rb</span><code style="direction:ltr;text-align:left">module Bitcask
+  module Serializer
+
+    def serialize(epoch:, key:, value:)
+      key_type = type(key)
+      value_type = type(value)
+
+      key_bytes = pack(key, key_type)
+      value_bytes = pack(value, value_type)
+
+      header = serialize_header(epoch: epoch, keysz: key_bytes.length, key_type: key_type, value_type: value_type,
+                                valuesz: value_bytes.length)
+      data = key_bytes + value_bytes
+
+      [crc32_header_offset + data.length, crc32(header + data) + header + data]
+    end
+
+    def deserialize(data)
+      return 0, '', '' unless crc32_valid?(desearlize_crc32(data[..crc32_offset - 1]), data[crc32_offset..])
+
+      epoch, keysz, valuesz, key_type, value_type = deserialize_header(data[crc32_offset..crc32_header_offset - 1])
+      key_bytes = data[crc32_header_offset..crc32_header_offset + keysz - 1]
+      value_bytes = data[crc32_header_offset + keysz..]
+
+      [epoch, unpack(key_bytes, key_type), unpack(value_bytes, value_type)]
+    end
+
+    def serialize_header(epoch:, key_type:, keysz:, value_type:, valuesz:)
+      [epoch, keysz, valuesz, DATA_TYPE[key_type], DATA_TYPE[value_type]].pack(HEADER_FORMAT)
+    end
+
+    def deserialize_header(header_data)
+      header = header_data.unpack(HEADER_FORMAT)
+
+      [header[0], header[1], header[2], DATA_TYPE_LOOK_UP[header[3]], DATA_TYPE_LOOK_UP[header[4]]]
+    end
+
+  end
+end</code></pre>
+        <p>در ادامه چند تابع کمکی (helper function) آمده است که برای بسته‌بندی (packing)، بازکردن (unpacking) و تولید
+        crc استفاده می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">rb</span><code style="direction:ltr;text-align:left">module Bitcask
+  module Serializer
+
+    def crc32_offset
+      CRC32_SIZE
+    end
+
+    def header_offset
+      HEADER_SIZE
+    end
+
+    def crc32_header_offset
+      crc32_offset + header_offset
+    end
+
+    def crc32(data_bytes)
+      [Zlib.crc32(data_bytes)].pack(CRC32_FORMAT)
+    end
+
+    def desearlize_crc32(crc)
+      crc.unpack1(CRC32_FORMAT)
+    end
+
+    def crc32_valid?(digest, data_bytes)
+      digest == Zlib.crc32(data_bytes)
+    end
+
+    def pack(attribute, attribute_type)
+      case attribute_type
+      when :Integer, :Float
+        [attribute].pack(directive(attribute_type))
+      when :String
+        attribute.encode('utf-8')
+      else
+        raise StandardError, 'Invalid attribute_type for pack'
+      end
+    end
+
+    def unpack(attribute, attribute_type)
+      case attribute_type
+      when :Integer, :Float
+        attribute.unpack1(directive(attribute_type))
+      when :String
+        attribute
+      else
+        raise StandardError, 'Invalid attribute_type for unpack'
+      end
+    end
+
+    private
+
+    def directive(attribute_type)
+      DATA_TYPE_DIRECTIVE[DATA_TYPE[attribute_type]]
+    end
+
+    def type(attribute)
+      attribute.class.to_s.to_sym
+    end
+
+  end
+end</code></pre>
+
+        <h3>DiskStore (فروشگاه دیسکی)</h3>
+        <p>در نهایت، بیایید کلاسی به نام <code class="inline">DiskStore</code> بسازیم؛ فروشگاه کلید-مقدار ماندگار ما.
+        این کلاس متدهای زیر را دارد.</p>
+
+        <h4>Get</h4>
+        <p>مقدار یک کلید داده‌شده را از فروشگاه برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">mermaid</span><code style="direction:ltr;text-align:left">flowchart LR; A([get]) --> C{key in
+look_up table?} C -->|yes| D(seek to
+data loc in file) D --> F(read
+log_size bytes) F --> G{crc valid?} G --> |no| E G --> |yes| H(deserialize) H --> J(return value) C -->|no| E(return
+empty string)</code></pre>
+
+        <h4>Put</h4>
+        <p>کلید-مقدار را در فروشگاه می‌نویسد.</p>
+        <pre class="code"><span class="lang-tag">mermaid</span><code style="direction:ltr;text-align:left">flowchart LR; A([put]) --> B(generate epoch) B --> C(serialize data) C --> G(add to key_dir) G --> D(write to file) D --> E(incr write_pos
+by data size) E --> F(return)</code></pre>
+        <pre class="code"><span class="lang-tag">rb</span><code style="direction:ltr;text-align:left">module Bitcask
+  class DiskStore
+
+    include Serializer
+
+    def initialize(db_file = 'bitcask.db')
+      @db_fh = File.open(db_file, 'a+b')
+      @write_pos = 0
+      @key_dir = {}
+    end
+
+    def get(key)
+      key_struct = @key_dir[key]
+      return '' if key_struct.nil?
+
+      @db_fh.seek(key_struct[:write_pos])
+      epoch, key, value = deserialize(@db_fh.read(key_struct[:log_size]))
+
+      value
+    end
+
+    def put(key, value)
+      log_size, data = serialize(epoch: Time.now.to_i, key: key, value: value)
+
+      @key_dir[key] = key_struct(@write_pos, log_size, key)
+      persist(data)
+      incr_write_pos(log_size)
+
+      nil
+    end
+
+    def flush
+      @db_fh.flush
+    end
+
+    private
+
+    def persist(data)
+      @db_fh.write(data)
+      @db_fh.flush
+    end
+
+    def incr_write_pos(pos)
+      @write_pos += pos
+    end
+
+    def key_struct(write_pos, log_size, key)
+      { write_pos: write_pos, log_size: log_size, key: key }
+    end
+
+  end
+end</code></pre>
+      </section>
+
+      <!-- ==================== سخن پایانی ==================== -->
+      <section>
+        <h2>سخن پایانی (Closing thoughts)</h2>
+        <p>برای این‌که شما را با حجم بیش‌ازحدی از داده بمباران نکنم، چند مورد را از این مقاله حذف کرده‌ام. بهبود بعدی که
+        باید به آن فکر کنید این است: <b>چگونه می‌توانیم DiskStore را با یک فایل دادهٔ از پیش موجود مقداردهی اولیه کنیم؟</b></p>
+        <p>می‌توانید آن را به زبان دلخواه خود پیاده‌سازی کنید. اگر در هر جایی گیر کردید، به کد کامل و کارا در
+        <a href="https://github.com/dineshgowda24/bitcask-rb" target="_blank" rel="noopener">https://github.com/dineshgowda24/bitcask-rb</a>
+        سر بزنید. آن مخزن شامل پیاده‌سازی مقداردهی اولیهٔ <code class="inline">DiskStore</code> با یک فایل دادهٔ از پیش
+        موجود و همچنین بنچمارک‌ها (benchmarks) است، اگر به هرکدام از آن‌ها علاقه دارید.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> ساختن فروشگاه کلید-مقدار اختصاصی‌تان مبارک!
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build Your Own Fast, Persistent KV Store» اثر «دینش گوودا (Dinesh Gowda)»
+        است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به <a href="https://dineshgowda.com/posts/build-your-own-persistent-kv-store/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
