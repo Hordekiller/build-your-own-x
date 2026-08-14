@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Write your own miniature Redis with Python» (Charles Leifer)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | با پایتون یک سرور Redis مینیاتوری بسازید</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>با پایتون یک سرور Redis مینیاتوری بسازید</span>
+      </div>
+      <h1>با پایتون یک سرور Redis مینیاتوری بسازید</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://charlesleifer.com/blog/building-a-simple-redis-server-with-python/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Write your own miniature Redis with Python» نوشته «چارلز
+          لایفر (Charles Leifer)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://charlesleifer.com/blog/building-a-simple-redis-server-with-python/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://media.charlesleifer.com/blog/photos/redis-like-server.png" alt="نمای سرور سادهٔ شبیه به Redis در حال اجرا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>چند روز پیش به این فکر افتادم که نوشتن یک سرور پایگاه‌دادهٔ ساده شبیه به <a href="https://redis.io" target="_blank" rel="noopener">Redis</a>
+        جالب خواهد بود. اگرچه تجربهٔ زیادی در کار با برنامه‌های WSGI دارم، یک سرور پایگاه‌داده چالشی تازه بود و راهی عملی
+        و لذت‌بخش برای یادگیری کار با سوکت‌ها (sockets) در پایتون به‌شمار می‌رفت. در این پست تجربه‌هایی را که در این مسیر
+        به‌دست آوردم با شما در میان می‌گذارم.</p>
+        <p>هدف پروژه‌ام نوشتن یک <a href="https://github.com/coleifer/simpledb" target="_blank" rel="noopener">سرور ساده</a>
+        بود که بتوانم آن را با پروژهٔ صف وظیفه (task queue) خودم به نام <a href="https://github.com/coleifer/huey" target="_blank" rel="noopener">huey</a>
+        استفاده کنم. Huey از Redis به‌عنوان موتور ذخیره‌سازی پیش‌فرض برای پیگیری وظیفه‌های قرارگرفته در صف (enqueued
+        jobs)، نتایج وظیفه‌های تمام‌شده و موارد دیگر استفاده می‌کند. برای این پست، دامنهٔ پروژهٔ اصلی را باز هم کوچک‌تر
+        کرده‌ام تا مطلب با کدهایی که به‌راحتی می‌توانید خودتان بنویسید شلوغ نشود؛ اما اگر کنجکاو هستید می‌توانید
+        <a href="https://github.com/coleifer/simpledb" target="_blank" rel="noopener">نتیجهٔ نهایی را اینجا ببینید</a>
+        (<a href="http://huey.readthedocs.io/en/latest/contrib.html#simple-server" target="_blank" rel="noopener">مستندات</a>).</p>
+        <p>سروری که می‌سازیم به فرمان‌های زیر پاسخ خواهد داد:</p>
+        <ul>
+          <li><code class="inline">GET</code> &lt;کلید&gt; — دریافت مقدار یک کلید</li>
+          <li><code class="inline">SET</code> &lt;کلید&gt; &lt;مقدار&gt; — تنظیم مقدار یک کلید</li>
+          <li><code class="inline">DELETE</code> &lt;کلید&gt; — حذف یک کلید</li>
+          <li><code class="inline">FLUSH</code> — پاک‌کردن همهٔ داده‌ها</li>
+          <li><code class="inline">MGET</code> &lt;کلید۱&gt; ... &lt;کلید n&gt; — دریافت چند کلید</li>
+          <li><code class="inline">MSET</code> &lt;کلید۱&gt; &lt;مقدار۱&gt; ... &lt;کلید n&gt; &lt;مقدار n&gt; — تنظیم چند کلید</li>
+        </ul>
+        <p>همچنین از انواع دادهٔ زیر پشتیبانی خواهیم کرد:</p>
+        <ul>
+          <li>رشته‌ها <em>و</em> دادهٔ باینری (Strings and Binary Data)</li>
+          <li>اعداد (Numbers)</li>
+          <li>NULL</li>
+          <li>آرایه‌ها (Arrays) — که می‌توانند تودرتو (nested) باشند</li>
+          <li>دیکشنری‌ها (Dictionaries) — که می‌توانند تودرتو باشند</li>
+          <li>پیام‌های خطا (Error messages)</li>
+        </ul>
+        <p>برای رسیدگی ناهمگام (asynchronous) به چندین کلاینت، از <a href="https://gevent.org/" target="_blank" rel="noopener">gevent</a>
+        استفاده می‌کنیم؛ اما می‌توانید از ماژول <a href="https://docs.python.org/3/library/socketserver.html" target="_blank" rel="noopener">SocketServer</a>
+        کتابخانهٔ استاندارد همراه با <a href="https://docs.python.org/3/library/socketserver.html#socketserver.ForkingMixIn" target="_blank" rel="noopener">ForkingMixin</a>
+        یا <a href="https://docs.python.org/3/library/socketserver.html#socketserver.ThreadingMixIn" target="_blank" rel="noopener">ThreadingMixin</a>
+        نیز استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== اسکلت سرور ==================== -->
+      <section>
+        <h2>اسکلت (Skeleton)</h2>
+        <p>بیایید اسکلت سرورمان را بسازیم. به خود سرور و یک تابع بازخوانی (callback) که هنگام اتصال کلاینت جدید اجرا
+        می‌شود نیاز داریم. علاوه بر آن، به منطقی برای پردازش درخواست کلاینت و ارسال پاسخ نیاز داریم.</p>
+        <p>این یک شروع است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">from gevent import socket
+from gevent.pool import Pool
+from gevent.server import StreamServer
+
+from collections import namedtuple
+from io import BytesIO
+from socket import error as socket_error
+
+
+# از استثناها برای اطلاع‌رسانی به حلقهٔ مدیریت اتصال دربارهٔ مشکلات استفاده می‌کنیم.
+class CommandError(Exception):
+    pass
+
+class Disconnect(Exception):
+    pass
+
+Error = namedtuple('Error', ('message',))
+
+
+class ProtocolHandler(object):
+    def handle_request(self, socket_file):
+        # درخواست کلاینت را به اجزای سازنده‌اش تجزیه می‌کنیم.
+        pass
+
+    def write_response(self, socket_file, data):
+        # دادهٔ پاسخ را سریال‌سازی کرده و به کلاینت می‌فرستیم.
+        pass
+
+
+class Server(object):
+    def __init__(self, host='127.0.0.1', port=31337, max_clients=64):
+        self._pool = Pool(max_clients)
+        self._server = StreamServer(
+            (host, port),
+            self.connection_handler,
+            spawn=self._pool)
+
+        self._protocol = ProtocolHandler()
+        self._kv = {}
+
+    def connection_handler(self, conn, address):
+        # «conn» (یک شیء سوکت) را به یک شیء شبیه فایل تبدیل می‌کنیم.
+        socket_file = conn.makefile('rwb')
+
+        # درخواست‌های کلاینت را تا زمان قطع اتصال پردازش می‌کنیم.
+        while True:
+            try:
+                data = self._protocol.handle_request(socket_file)
+            except Disconnect:
+                break
+
+            try:
+                resp = self.get_response(data)
+            except CommandError as exc:
+                resp = Error(exc.args[0])
+
+            self._protocol.write_response(socket_file, resp)
+
+    def get_response(self, data):
+        # در اینجا در واقع دادهٔ ارسالی کلاینت را تجزیه می‌کنیم،
+        # فرمان موردنظر او را اجرا می‌کنیم و مقدار بازگشتی را برمی‌گردانیم.
+        pass
+
+    def run(self):
+        self._server.serve_forever()</code></pre>
+        <p>امیدوارم کد بالا روشن باشد. دغدغه‌ها را از هم جدا کرده‌ایم؛ به‌طوری که مدیریت پروتکل در کلاس جداگانه‌ای با
+        دو متد عمومی <code class="inline">handle_request</code> و <code class="inline">write_response</code> قرار
+        گرفته است. خود سرور از مدیریت‌کنندهٔ پروتکل برای تجزیهٔ درخواست‌های کلاینت و سریال‌سازی پاسخ‌ها برای
+        بازگرداندن به کلاینت استفاده می‌کند. متد <code class="inline">get_response()</code> برای اجرای فرمانی که
+        کلاینت آغاز کرده به‌کار می‌رود.</p>
+        <p>با نگاهی دقیق‌تر به کد متد <code class="inline">connection_handler()</code> می‌بینید که یک پوشش
+        شبیه‌فایل (file-like) دور شیء سوکت ایجاد می‌کنیم. این پوشش به ما امکان می‌دهد برخی از رفتارهای نامتعارف
+        (quirks) را که معمولاً هنگام کار با سوکت‌های خام (raw sockets) با آن‌ها مواجه می‌شویم،
+        <a href="https://docs.python.org/3/howto/sockets.html#using-a-socket" target="_blank" rel="noopener">پنهان کنیم</a>.
+        تابع وارد یک حلقهٔ بی‌پایان می‌شود؛ درخواست‌ها را از کلاینت می‌خواند، پاسخ می‌فرستد و در نهایت وقتی کلاینت
+        قطع می‌شود (که با بازگرداندن رشتهٔ خالی توسط <code class="inline">read()</code> مشخص می‌شود) از حلقه خارج
+        می‌شود.</p>
+        <p>برای مدیریت قطع اتصال کلاینت‌ها و اطلاع‌رسانی خطاهای پردازش فرمان‌ها از استثناهای نوع‌دار (typed exceptions)
+        استفاده می‌کنیم. برای مثال، اگر کاربر درخواستی با قالب نامناسب به سرور بفرستد، یک <code class="inline">CommandError</code>
+        برانگیخته می‌شود که به‌صورت یک پاسخ خطا سریال‌سازی شده و برای کلاینت ارسال می‌شود.</p>
+        <p>قبل از ادامه، بگذارید دربارهٔ نحوهٔ ارتباط کلاینت و سرور صحبت کنیم.</p>
+      </section>
+
+      <!-- ==================== پروتکل خط ==================== -->
+      <section>
+        <h2>پروتکل خط (Wire protocol)</h2>
+        <p>اولین چالشی که با آن مواجه شدم، چگونگی ارسال دادهٔ باینری روی خط ارتباطی (wire) بود. بیشتر مثال‌هایی که آنلاین
+        پیدا کردم سرورهای پژواک (echo) بی‌ارزشی بودند که سوکت را به یک شیء شبیه‌فایل تبدیل کرده و فقط
+        <code class="inline">readline()</code> را صدا می‌زدند. اگر می‌خواستم دادهٔ pickleشده یا رشته‌های دارای
+        خطِ جدید (newline) ذخیره کنم، به نوعی قالب سریال‌سازی (serialization) نیاز داشتم.</p>
+        <p>بعد از اینکه وقت زیادی را برای اختراع یک قالب مناسب تلف کردم، تصمیم گرفتم مستندات
+        <a href="https://redis.io/topics/protocol" target="_blank" rel="noopener">پروتکل Redis</a> را بخوانم؛ که معلوم
+        شد پیاده‌سازی آن بسیار ساده است و مزیت اضافهٔ پشتیبانی از چند نوع دادهٔ متفاوت را هم دارد.</p>
+        <p>پروتکل Redis با کلاینت‌ها از الگوی ارتباطی درخواست/پاسخ (request/response) استفاده می‌کند. در پاسخ‌های سرور،
+        بایت اول نوع داده را مشخص می‌کند؛ سپس داده می‌آید و در پایان با کاراکترهای carriage-return/line-feed (CRLF)
+        خاتمه می‌یابد.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">نوع داده</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">پیشوند</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ساختار</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">مثال</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">رشتهٔ ساده (Simple string)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">+</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">+{دادهٔ رشته‌ای}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">+this is a simple string\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">خطا (Error)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">-</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">-{پیام خطا}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">-ERR unknown command "FLUHS"\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">عدد صحیح (Integer)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">:</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">:{عدد}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">:1337\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">باینری (Binary)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">$</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">${تعداد بایت‌ها}\r\n{داده}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">$6\r\nfoobar\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">آرایه (Array)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">*</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">*{تعداد عناصر}\r\n{صفر یا چند مورد از موارد بالا}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">*3\r\n+a simple string element\r\n:12345\r\n$7\r\ntesting\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">دیکشنری (Dictionary)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">%</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">%{تعداد کلیدها}\r\n{صفر یا چند مورد از موارد بالا}\r\n</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">%3\r\n+key1\r\n+value1\r\n+key2\r\n*2\r\n+value2-0\r\n+value2-1\r\n:3\r\n$7\r\ntesting\r\n</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">NULL</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">$</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">$-1\r\n</code> (رشته با طولِ ۱-)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">$-1\r\n</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>حالا کلاس مدیریت‌کنندهٔ پروتکل را کامل می‌کنیم تا پروتکل Redis را پیاده‌سازی کند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class ProtocolHandler(object):
+    def __init__(self):
+        self.handlers = {
+            '+': self.handle_simple_string,
+            '-': self.handle_error,
+            ':': self.handle_integer,
+            '$': self.handle_string,
+            '*': self.handle_array,
+            '%': self.handle_dict}
+
+    def handle_request(self, socket_file):
+        first_byte = socket_file.read(1)
+        if not first_byte:
+            raise Disconnect()
+
+        try:
+            # بر اساس بایت اول، به مدیریت‌کنندهٔ (handler) متناسب واگذار می‌کنیم.
+            return self.handlers[first_byte](socket_file)
+        except KeyError:
+            raise CommandError('bad request')
+
+    def handle_simple_string(self, socket_file):
+        return socket_file.readline().rstrip('\r\n')
+
+    def handle_error(self, socket_file):
+        return Error(socket_file.readline().rstrip('\r\n'))
+
+    def handle_integer(self, socket_file):
+        return int(socket_file.readline().rstrip('\r\n'))
+
+    def handle_string(self, socket_file):
+        # ابتدا طول را می‌خوانیم ($&lt;length&gt;\r\n).
+        length = int(socket_file.readline().rstrip('\r\n'))
+        if length == -1:
+            return None  # مورد خاص برای مقدار NULL.
+        length += 2  # \r\n پایانی را در شمارش لحاظ می‌کنیم.
+        return socket_file.read(length)[:-2]
+
+    def handle_array(self, socket_file):
+        num_elements = int(socket_file.readline().rstrip('\r\n'))
+        return [self.handle_request(socket_file) for _ in range(num_elements)]
+
+    def handle_dict(self, socket_file):
+        num_items = int(socket_file.readline().rstrip('\r\n'))
+        elements = [self.handle_request(socket_file)
+                    for _ in range(num_items * 2)]
+        return dict(zip(elements[::2], elements[1::2]))</code></pre>
+        <p>برای طرف سریال‌سازی پروتکل، برعکس کار بالا را انجام می‌دهیم: اشیاء پایتون را به شکل سریال‌سازی‌شدهٔ
+        متناظرشان تبدیل می‌کنیم!</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class ProtocolHandler(object):
+    # ... متدهای بالا حذف شده‌اند ...
+    def write_response(self, socket_file, data):
+        buf = BytesIO()
+        self._write(buf, data)
+        buf.seek(0)
+        socket_file.write(buf.getvalue())
+        socket_file.flush()
+
+    def _write(self, buf, data):
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+
+        if isinstance(data, bytes):
+            buf.write('$%s\r\n%s\r\n' % (len(data), data))
+        elif isinstance(data, int):
+            buf.write(':%s\r\n' % data)
+        elif isinstance(data, Error):
+            buf.write('-%s\r\n' % error.message)
+        elif isinstance(data, (list, tuple)):
+            buf.write('*%s\r\n' % len(data))
+            for item in data:
+                self._write(buf, item)
+        elif isinstance(data, dict):
+            buf.write('%%%s\r\n' % len(data))
+            for key in data:
+                self._write(buf, key)
+                self._write(buf, data[key])
+        elif data is None:
+            buf.write('$-1\r\n')
+        else:
+            raise CommandError('unrecognized type: %s' % type(data))</code></pre>
+        <p>یک مزیت اضافهٔ نگه‌داشتن مدیریت پروتکل در کلاس جداگانه این است که می‌توانیم متدهای
+        <code class="inline">handle_request</code> و <code class="inline">write_response</code> را برای ساخت یک
+        کتابخانهٔ کلاینت دوباره استفاده کنیم.</p>
+      </section>
+
+      <!-- ==================== پیاده‌سازی فرمان‌ها ==================== -->
+      <section>
+        <h2>پیاده‌سازی فرمان‌ها</h2>
+        <p>حالا باید متد <code class="inline">get_response()</code> کلاس <code class="inline">Server</code> که
+        ساختارش را قبلاً مشخص کردیم، پیاده‌سازی شود. فرض می‌کنیم کلاینت فرمان‌ها را یا به‌صورت رشتهٔ ساده یا به‌صورت
+        آرایه‌ای از آرگومان‌های فرمان می‌فرستد؛ بنابراین پارامتر <code class="inline">data</code> که به
+        <code class="inline">get_response()</code> ارسال می‌شود یا <code class="inline">bytes</code> است یا لیست.
+        برای ساده‌کردن مدیریت، اگر <code class="inline">data</code> یک رشتهٔ ساده باشد، با جداکردن بر اساس فضای خالی
+        آن را به لیست تبدیل می‌کنیم.</p>
+        <p>آرگومان اول نام فرمان خواهد بود و آرگومان‌های بعدی متعلق به همان فرمان مشخص‌شده هستند. همان‌طور که در
+        <code class="inline">ProtocolHandler</code> نگاشت بایت اول به مدیریت‌کننده‌ها را انجام دادیم، در
+        <code class="inline">Server</code> هم نگاشت فرمان به تابع بازخوانی ایجاد می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Server(object):
+    def __init__(self, host='127.0.0.1', port=31337, max_clients=64):
+        self._pool = Pool(max_clients)
+        self._server = StreamServer(
+            (host, port),
+            self.connection_handler,
+            spawn=self._pool)
+
+        self._protocol = ProtocolHandler()
+        self._kv = {}
+
+        self._commands = self.get_commands()
+
+    def get_commands(self):
+        return {
+            'GET': self.get,
+            'SET': self.set,
+            'DELETE': self.delete,
+            'FLUSH': self.flush,
+            'MGET': self.mget,
+            'MSET': self.mset}
+
+    def get_response(self, data):
+        if not isinstance(data, list):
+            try:
+                data = data.split()
+            except:
+                raise CommandError('Request must be list or simple string.')
+
+        if not data:
+            raise CommandError('Missing command')
+
+        command = data[0].upper()
+        if command not in self._commands:
+            raise CommandError('Unrecognized command: %s' % command)
+
+        return self._commands[command](*data[1:])</code></pre>
+        <p>سرور ما تقریباً تمام شده است! فقط باید شش متد فرمان تعریف‌شده در متد <code class="inline">get_commands()</code>
+        را پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Server(object):
+    def get(self, key):
+        return self._kv.get(key)
+
+    def set(self, key, value):
+        self._kv[key] = value
+        return 1
+
+    def delete(self, key):
+        if key in self._kv:
+            del self._kv[key]
+            return 1
+        return 0
+
+    def flush(self):
+        kvlen = len(self._kv)
+        self._kv.clear()
+        return kvlen
+
+    def mget(self, *keys):
+        return [self._kv.get(key) for key in keys]
+
+    def mset(self, *items):
+        data = zip(items[::2], items[1::2])
+        for key, value in data:
+            self._kv[key] = value
+        return len(data)</code></pre>
+        <p>تمام شد! سرور ما حالا آمادهٔ پردازش درخواست‌هاست. در بخش بعد، یک کلاینت برای تعامل با سرور پیاده‌سازی
+        می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== کلاینت ==================== -->
+      <section>
+        <h2>کلاینت (Client)</h2>
+        <p>برای تعامل با سرور، کلاس <code class="inline">ProtocolHandler</code> را دوباره استفاده می‌کنیم تا یک
+        کلاینت ساده پیاده‌سازی کنیم. کلاینت به سرور متصل می‌شود و فرمان‌ها را به‌صورت لیست‌های رمزگذاری‌شده می‌فرستد.
+        از منطق <code class="inline">write_response()</code> برای رمزگذاری درخواست‌ها و از
+        <code class="inline">handle_request()</code> برای پردازش پاسخ‌های سرور استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Client(object):
+    def __init__(self, host='127.0.0.1', port=31337):
+        self._protocol = ProtocolHandler()
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.connect((host, port))
+        self._fh = self._socket.makefile('rwb')
+
+    def execute(self, *args):
+        self._protocol.write_response(self._fh, args)
+        resp = self._protocol.handle_request(self._fh)
+        if isinstance(resp, Error):
+            raise CommandError(resp.message)
+        return resp</code></pre>
+        <p>با متد <code class="inline">execute()</code> می‌توانیم فهرستی دلخواه از پارامترها را ارسال کنیم که
+        به‌صورت یک آرایه رمزگذاری شده و برای سرور ارسال می‌شوند. پاسخ سرور تجزیه شده و به‌صورت یک شیء پایتون
+        بازگردانده می‌شود. برای راحتی، می‌توانیم متدهای کلاینت را برای تک‌تک فرمان‌ها بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class Client(object):
+    # ...
+    def get(self, key):
+        return self.execute('GET', key)
+
+    def set(self, key, value):
+        return self.execute('SET', key, value)
+
+    def delete(self, key):
+        return self.execute('DELETE', key)
+
+    def flush(self):
+        return self.execute('FLUSH')
+
+    def mget(self, *keys):
+        return self.execute('MGET', *keys)
+
+    def mset(self, *items):
+        return self.execute('MSET', *items)</code></pre>
+        <p>برای آزمایش کلاینت، اسکریپت پایتونمان را طوری پیکربندی می‌کنیم که وقتی مستقیماً از خط فرمان اجرا می‌شود
+        یک سرور راه‌اندازی کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># این را به انتهای ماژول اضافه کنید:
+if __name__ == '__main__':
+    from gevent import monkey; monkey.patch_all()
+    Server().run()</code></pre>
+      </section>
+
+      <!-- ==================== آزمایش سرور ==================== -->
+      <section>
+        <h2>آزمایش سرور</h2>
+        <p>برای آزمایش سرور، فقط کافی است ماژول پایتون سرور را از خط فرمان اجرا کنید. در یک ترمینال دیگر، یک مفسر
+        پایتون باز کنید و کلاس <code class="inline">Client</code> را از ماژول سرور وارد (import) کنید. نمونه‌سازی از
+        کلاینت یک اتصال باز می‌کند و می‌توانید اجرای فرمان‌ها را شروع کنید!</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">&gt;&gt;&gt; from server_ex import Client
+&gt;&gt;&gt; client = Client()
+&gt;&gt;&gt; client.mset('k1', 'v1', 'k2', ['v2-0', 1, 'v2-2'], 'k3', 'v3')
+3
+&gt;&gt;&gt; client.get('k2')
+['v2-0', 1, 'v2-2']
+&gt;&gt;&gt; client.mget('k3', 'k1')
+['v3', 'v1']
+&gt;&gt;&gt; client.delete('k1')
+1
+&gt;&gt;&gt; client.get('k1')
+&gt;&gt;&gt; client.delete('k1')
+0
+&gt;&gt;&gt; client.set('kx', {'vx': {'vy': 0, 'vz': [1, 2, 3]}})
+1
+&gt;&gt;&gt; client.get('kx')
+{'vx': {'vy': 0, 'vz': [1, 2, 3]}}
+&gt;&gt;&gt; client.flush()
+2</code></pre>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>کد ارائه‌شده در این پست کاملاً فقط برای اهداف نمایشی است. امیدوارم خواندن دربارهٔ این پروژه به اندازهٔ
+        نوشتنش برای شما لذت‌بخش بوده باشد. می‌توانید <a href="https://gist.github.com/coleifer/dbbedc287605dcc22990a6e549de9f36" target="_blank" rel="noopener">نسخهٔ کامل کد را اینجا پیدا کنید</a>.
+        برای دیدن یک مثال کامل‌تر، به <a href="https://github.com/coleifer/simpledb" target="_blank" rel="noopener">simpledb</a>
+        نگاهی بیندازید (<a href="http://huey.readthedocs.io/en/latest/contrib.html#simple-server" target="_blank" rel="noopener">مستندات</a>).</p>
+        <p>برای گسترش پروژه، می‌توانید این موارد را در نظر بگیرید:</p>
+        <ul>
+          <li>فرمان‌های بیشتری اضافه کنید!</li>
+          <li>از مدیریت‌کنندهٔ پروتکل برای پیاده‌سازی یک گزارش فرمان فقط‌-‌افزودنی (append-only command log) استفاده کنید</li>
+          <li>مدیریت خطای مقاوم‌تر (more robust error handling)</li>
+          <li>به کلاینت اجازه دهید اتصال را ببندد و دوباره متصل شود</li>
+          <li>ثبت وقایع (logging)</li>
+          <li>بازنویسی برای استفاده از <code class="inline">SocketServer</code> کتابخانهٔ استاندارد و <code class="inline">ThreadingMixin</code></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Write your own miniature Redis with Python» اثر «چارلز لایفر (Charles
+        Leifer)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="http://charlesleifer.com/blog/building-a-simple-redis-server-with-python/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

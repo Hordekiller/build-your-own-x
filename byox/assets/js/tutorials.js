@@ -710,14 +710,14 @@ window.TUTORIALS = [
 "file": "tutorials/zig-cli.html"
 },
 {
-"id": "",
+"id": "cstack-sqlite-c",
 "category": "پایگاه داده",
 "lang": "C",
 "title": "یک پایگاه داده ساده بسازیم",
 "url": "https://cstack.github.io/db_tutorial/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/cstack-sqlite-c.html"
 },
 {
 "id": "",
@@ -740,14 +740,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "archaeology-db-clojure",
 "category": "پایگاه داده",
 "lang": "Clojure",
 "title": "یک پایگاه داده الهام‌گرفته از باستان‌شناسی",
 "url": "http://aosabook.org/en/500L/an-archaeology-inspired-database.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/archaeology-db-clojure.html"
 },
 {
 "id": "",
@@ -790,34 +790,34 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "dagoba-js",
 "category": "پایگاه داده",
 "lang": "JavaScript",
 "title": "Dagoba: یک پایگاه داده گرافی درون‌حافظه‌ای",
 "url": "http://aosabook.org/en/500L/dagoba-an-in-memory-graph-database.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/dagoba-js.html"
 },
 {
-"id": "",
+"id": "dbdb-python",
 "category": "پایگاه داده",
 "lang": "Python",
 "title": "DBDB: پایگاه داده تخت سگ (Dog Bed Database)",
 "url": "http://aosabook.org/en/500L/dbdb-dog-bed-database.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/dbdb-python.html"
 },
 {
-"id": "",
+"id": "redis-python",
 "category": "پایگاه داده",
 "lang": "Python",
 "title": "Redis کوچک خودت را با پایتون بنویس",
 "url": "http://charlesleifer.com/blog/building-a-simple-redis-server-with-python/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/redis-python.html"
 },
 {
 "id": "",

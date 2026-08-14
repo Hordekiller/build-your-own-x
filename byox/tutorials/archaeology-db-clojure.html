@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی فصل «An Archaeology-Inspired Database» (Yoav Rubin)
+  از کتاب 500 Lines or Less
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پایگاه دادهٔ الهام‌گرفته از باستان‌شناسی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>پایگاه دادهٔ الهام‌گرفته از باستان‌شناسی</span>
+      </div>
+      <h1>پایگاه دادهٔ الهام‌گرفته از باستان‌شناسی (An Archaeology-Inspired Database)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Clojure</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/an-archaeology-inspired-database.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی فصل «An Archaeology-Inspired Database» نوشتهٔ «یوآو روبین
+          (Yoav Rubin)» از کتاب «500 Lines or Less» است. نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/an-archaeology-inspired-database.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== معرفی نویسنده ==================== -->
+      <section>
+        <p><em>یوآو روبین (Yoav Rubin) مهندس ارشد نرم‌افزار در مایکروسافت است و پیش از آن عضو کادر پژوهش و استاد
+        مخترع (Master Inventor) در IBM Research بود. او اکنون در حوزهٔ امنیت داده در ابر کار می‌کند و در گذشته کارش
+        بر توسعهٔ محیط‌های توسعهٔ مبتنی بر ابر یا وب متمرکز بود. یوآو مدرک کارشناسی ارشد در پژوهش پزشکی در حوزهٔ
+        عصب‌شناسی و کارشناسی در مهندسی سامانه‌های اطلاعاتی دارد. او را در توییتر با
+        <a href="https://twitter.com/yoavrubin" target="_blank" rel="noopener">@yoavrubin</a> می‌شناسند و گاهی در
+        <a href="http://yoavrubin.blogspot.com" target="_blank" rel="noopener">وبلاگش</a> می‌نویسد.</em></p>
+      </section>
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه (Introduction)</h2>
+        <p>توسعهٔ نرم‌افزار اغلب به‌عنوان فرایندی دقیق و منضبط دیده می‌شود که ورودی‌های آن نیازمندی‌ها و خروجی آن محصول
+        نهاییِ کارا است. با این حال، توسعه‌دهندگان نرم‌افزار انسان‌هایی هستند با دیدگاه‌ها و پیش‌داوری‌های خودشان که بر
+        خروجی کارشان اثر می‌گذارد.</p>
+        <p>در این فصل بررسی می‌کنیم که چگونه یک تغییر در یک دیدگاه رایج، بر طراحی و پیاده‌سازی یک نوع نرم‌افزارِ
+        به‌خوبی‌شناخته‌شده اثر می‌گذارد: یک پایگاه داده (database).</p>
+        <p>سامانه‌های پایگاه داده برای ذخیره‌سازی و پرس‌وجو (query) از داده طراحی شده‌اند. این کاری است که همهٔ
+        کارگران اطلاعات انجام می‌دهند؛ اما خود این سامانه‌ها توسط دانشمندان علوم رایانه طراحی شده‌اند. در نتیجه،
+        سامانه‌های مدرن پایگاه داده به‌شدت از تعریف دانشمندان علوم رایانه از اینکه «داده چیست و با آن چه می‌توان کرد»
+        تأثیر گرفته‌اند.</p>
+        <p>برای نمونه، بیشتر پایگاه‌های دادهٔ مدرن به‌روزرسانی را با بازنویسی داده‌های قدیمی در همان مکان (overwriting
+        in-place) پیاده‌سازی می‌کنند به‌جای آنکه دادهٔ جدید را الحاق کنند و نسخهٔ قدیمی را نگه دارند. این سازوکار که
+        «ریچ هیکی» (Rich Hickey) آن را «برنامه‌نویسی مکان‌محور» (place-oriented programming) می‌نامد، فضای ذخیره‌سازی را
+        صرفه‌جویی می‌کند اما بازیابی کل تاریخچهٔ یک رکورد مشخص را ناممکن می‌سازد. این تصمیم طراحی، بازتاب دیدگاه
+        دانشمند علوم رایانه است که «تاریخچه» از قیمتِ ذخیره‌سازیِ آن کم‌اهمیت‌تر است.</p>
+        <p>اگر به‌جای آن از یک باستان‌شناس بپرسید دادهٔ قدیمی را کجا می‌توان یافت، پاسخ او این خواهد بود:
+        «امیدوارانه، فقط زیر خاک مدفون است».</p>
+        <div class="callout note">
+          <strong>سلب مسئولیت (Disclaimer):</strong> درک من از دیدگاه یک باستان‌شناس نمونه، مبتنی بر بازدید از چند موزه،
+          خواندن چند مقالهٔ ویکی‌پدیا و تماشای کامل مجموعه‌فیلم‌های ایندیانا جونز است.
+        </div>
+
+        <h3>طراحی یک پایگاه داده مانند یک باستان‌شناس</h3>
+        <p>اگر از باستان‌شناسِ خوش‌برخوردِ خود بخواهیم یک پایگاه داده طراحی کند، انتظار داریم نیازمندی‌ها بازتابِ آن چیزی
+        باشد که در یک محل کاوش (excavation site) یافت می‌شود:</p>
+        <ul>
+          <li>همهٔ داده‌ها در محل کاوش پیدا و کاتالوگ می‌شوند.</li>
+          <li>حفاری عمیق‌تر، وضعیت چیزها در زمان‌های گذشته را آشکار می‌کند.</li>
+          <li>آثار (artifacts) یافت‌شده در همان لایه، از همان دوره‌اند.</li>
+          <li>هر اثر شامل حالت‌هایی است که در دوره‌های مختلف بر آن انباشته شده است.</li>
+        </ul>
+        <p>برای نمونه، یک دیوار ممکن است روی یک لایه نمادهای رومی داشته باشد و در لایه‌ای پایین‌تر نمادهای یونانی. هر دوی
+        این مشاهدات به‌عنوان بخشی از حالت دیوار ثبت می‌شوند.</p>
+        <p>این قیاس در شکل ۱۰.۱ به‌تصویر کشیده شده است:</p>
+        <ul>
+          <li>کل دایره، محل کاوش است.</li>
+          <li>هر حلقه یک <em>لایه</em> (layer) است (اینجا از ۰ تا ۴ شماره‌گذاری شده).</li>
+          <li>هر برش، یک اثرِ برچسب‌گذاری‌شده است («A» تا «E»).</li>
+          <li>هر اثر یک صفتِ «نماد» (symbol) دارد (جای خالی یعنی هیچ به‌روزرسانی انجام نشده است).</li>
+          <li>فلش‌های توپر، تغییر نماد بین لایه‌ها را نشان می‌دهند.</li>
+          <li>فلش‌های نقطه‌چین، روابط دلخواهِ موردعلاقه بین آثار هستند (مثلاً از «E» به «A»).</li>
+        </ul>
+        <img src="https://aosabook.org/en/500L/functionalDB-images/image_0.png" alt="شکل ۱۰.۱ - محل کاوش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">شکل ۱۰.۱ - محل کاوش</p>
+        <p>اگر زبان باستان‌شناس را به اصطلاحاتی ترجمه کنیم که طراح پایگاه داده به‌کار می‌برد:</p>
+        <ul>
+          <li>محل کاوش یک <em>پایگاه داده</em> است.</li>
+          <li>هر اثر یک <em>موجودیت</em> (entity) با یک <em>شناسه</em> (ID) متناظر است.</li>
+          <li>هر موجودیت مجموعه‌ای از <em>صفت‌ها</em> (attributes) دارد که ممکن است در طول زمان تغییر کنند.</li>
+          <li>هر صفت در یک زمان مشخص، یک <em>مقدار</em> (value) مشخص دارد.</li>
+        </ul>
+        <p>این ممکن است با انواع پایگاه‌های داده‌ای که به کار با آن‌ها عادت دارید بسیار متفاوت به‌نظر برسد. به این طراحی
+        گاهی «پایگاه دادهٔ تابعی» (functional database) گفته می‌شود، زیرا از ایده‌های حوزهٔ برنامه‌نویسی تابعی
+        (functional programming) استفاده می‌کند. بقیهٔ فصل نحوهٔ پیاده‌سازی چنین پایگاه داده‌ای را توصیف می‌کند.</p>
+        <p>از آنجا که در حال ساختن یک پایگاه دادهٔ تابعی هستیم، از یک زبان برنامه‌نویسی تابعی به نام Clojure استفاده
+        خواهیم کرد.</p>
+        <p>کلوجور چندین ویژگی دارد که آن را به زبان پیاده‌سازی مناسبی برای یک پایگاه دادهٔ تابعی تبدیل می‌کند، مانند
+        تغییرناپذیری (immutability) از پیش‌آماده، توابع مرتبه‌بالا (higher order functions) و امکانات فرابرنامه‌نویسی
+        (metaprogramming). اما در نهایت، دلیل انتخاب کلوجور تأکید آن بر طراحی تمیز و دقیق بود؛ ویژگی‌ای که زبان‌های
+        برنامه‌نویسی اندکی آن را دارند.</p>
+      </section>
+
+      <!-- ==================== پی‌سازی پایه ==================== -->
+      <section>
+        <h2>پی‌سازی پایه (Laying the Foundation)</h2>
+        <p>بیایید با اعلام سازه‌های (constructs) هسته‌ای که پایگاه دادهٔ ما را می‌سازند شروع کنیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defrecord Database [layers top-id curr-time])</code></pre>
+        <p>یک پایگاه داده شامل:</p>
+        <ol>
+          <li>لایه‌هایی از موجودیت‌ها که هر کدام برچسب زمانی (timestamp) یکتای خود را دارند (حلقه‌ها در شکل ۱).</li>
+          <li>یک مقدار <code class="inline">top-id</code> که شناسهٔ یکتای بعدیِ در دسترس است.</li>
+          <li>زمانی که پایگاه داده آخرین بار به‌روزرسانی شده است.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defrecord Layer [storage VAET AVET VEAT EAVT])</code></pre>
+        <p>هر لایه شامل:</p>
+        <ol>
+          <li>یک فروشگاه داده (data store) برای موجودیت‌ها.</li>
+          <li>ایندکس‌هایی که برای سرعت بخشیدن به پرس‌وجوهای پایگاه داده استفاده می‌شوند. (این ایندکس‌ها و معنای نامشان
+          بعداً توضیح داده می‌شود.)</li>
+        </ol>
+        <p>در طراحی ما، یک «پایگاه داده» مفهومیِ منفرد ممکن است از نمونه‌های (instances) متعدد <code class="inline">Database</code>
+        تشکیل شده باشد که هر کدام یک عکس فوری (snapshot) از پایگاه داده در <code class="inline">curr-time</code> است. یک
+        <code class="inline">Layer</code> ممکن است دقیقاً همان موجودیت را با <code class="inline">Layer</code> دیگری به اشتراک
+        بگذارد، اگر حالتِ آن موجودیت بین زمان‌هایی که آن دو لایه نشان می‌دهند تغییر نکرده باشد.</p>
+
+        <h3>موجودیت‌ها (Entities)</h3>
+        <p>پایگاه دادهٔ ما بدون موجودیت‌هایی برای ذخیره‌سازی بی‌فایده است، پس بعدی تعریفشان می‌کنیم. همان‌طور که قبلاً بحث
+        شد، یک موجودیت یک شناسه و یک لیست صفت‌ها دارد؛ آن‌ها را با تابع <code class="inline">make-entity</code> می‌سازیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defrecord Entity [id attrs])
+
+(defn make-entity
+   ([] (make-entity :db/no-id-yet))
+   ([id] (Entity.  id {})))</code></pre>
+        <p>توجه کنید که اگر شناسه‌ای داده نشود، شناسهٔ موجودیت به‌صورت <code class="inline">:db/no-id-yet</code> تنظیم
+        می‌شود؛ یعنی چیز دیگری مسئول دادن شناسه به آن است. بعداً خواهیم دید این چگونه کار می‌کند.</p>
+
+        <h4>صفت‌ها (Attributes)</h4>
+        <p>هر صفت از نام، مقدار، و برچسب‌های زمانیِ به‌روزرسانیِ اخیرش و همین‌طور به‌روزرسانیِ قبلیِ آن تشکیل شده است.
+        هر صفت همچنین دو فیلد دارد که <code class="inline">نوع</code> (type) و <code class="inline">کاردینالیتی</code>
+        (cardinality) آن را توصیف می‌کنند.</p>
+        <p>در صورتی که از یک صفت برای نمایش رابطه با موجودیت دیگری استفاده شود، <code class="inline">نوع</code> آن
+        <code class="inline">:db/ref</code> خواهد بود و مقدارش شناسهٔ موجودیتِ مرتبط است. این سیستم نوع ساده همچنین به‌عنوان
+        یک نقطهٔ گسترش (extension point) عمل می‌کند. کاربران آزادند انواع خودشان را تعریف کنند و برای ارائهٔ معناشناسی
+        (semantics) تکمیلی برای داده‌هایشان از آن‌ها بهره ببرند.</p>
+        <p>کاردینالیتیِ یک صفت مشخص می‌کند که صفت یک مقدار منفرد را نشان می‌دهد یا مجموعه‌ای از مقادیر را. از این فیلد برای
+        تعیین مجموعهٔ عملیاتِ مجاز روی این صفت استفاده می‌کنیم.</p>
+        <p>ساخت یک صفت با تابع <code class="inline">make-attr</code> انجام می‌شود.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defrecord Attr [name value ts prev-ts])
+
+(defn make-attr
+   ([name value type ; این‌ها الزامی هستند
+       &amp; {:keys [cardinality] :or {cardinality :db/single}} ]
+     {:pre [(contains? #{:db/single :db/multiple} cardinality)]}
+    (with-meta (Attr. name value -1 -1) {:type type :cardinality cardinality})))</code></pre>
+        <p>در این تابع سازنده چند الگوی جالب استفاده شده است:</p>
+        <ul>
+          <li>برای اعتبارسنجی اینکه پارامتر cardinality یک مقدار مجاز است، از الگوی <em>طراحی بر پایهٔ قرارداد</em>
+          (Design by Contract) کلوجور استفاده می‌کنیم.</li>
+          <li>برای فراهم کردن مقدار پیش‌فرضِ <code class="inline">:db/single</code> در صورت داده‌نشدن، از سازوکار تجزیهٔ
+          (destructuring) کلوجور استفاده می‌کنیم.</li>
+          <li>برای تمایز بین داده‌های یک صفت (نام، مقدار و برچسب‌های زمانی) و فراداده‌های (metadata) آن (نوع و
+          کاردینالیتی)، از قابلیت‌های فرادادهٔ کلوجور استفاده می‌کنیم. در کلوجور، مدیریت فراداده با توابع
+          <code class="inline">with-meta</code> (برای تنظیم) و <code class="inline">meta</code> (برای خواندن) انجام می‌شود.</li>
+        </ul>
+        <p>صفت‌ها فقط زمانی معنا دارند که بخشی از یک موجودیت باشند. این اتصال را با تابع <code class="inline">add-attr</code>
+        برقرار می‌کنیم که یک صفتِ داده‌شده را به نقشهٔ صفت‌های موجودیت (که <code class="inline">:attrs</code> نام دارد)
+        اضافه می‌کند.</p>
+        <p>توجه کنید که به‌جای استفادهٔ مستقیم از نام صفت، ابتدا آن را به یک کلیدواژه (keyword) تبدیل می‌کنیم تا از
+        کاربرد اصطلاحی (idiomatic) کلوجور از نقشه‌ها پیروی کنیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn add-attr [ent attr]
+   (let [attr-id (keyword (:name attr))]
+      (assoc-in ent [:attrs attr-id] attr)))</code></pre>
+
+        <h3>ذخیره‌سازی (Storage)</h3>
+        <p>تا این‌جا دربارهٔ <em>چه چیزی</em> قرار است ذخیره کنیم زیاد صحبت کرده‌ایم، بدون اینکه به <em>کجا</em> ذخیره شود
+        فکر کنیم. در این فصل به ساده‌ترین سازوکار ذخیره‌سازی روی می‌آوریم: ذخیره‌سازی داده‌ها در حافظه (in-memory). این کار
+        قطعاً قابل اتکا نیست، اما توسعه و رفع اشکال را ساده می‌کند و به ما اجازه می‌دهد روی بخش‌های جالب‌تر برنامه تمرکز
+        کنیم.</p>
+        <p>از طریق یک <em>پروتکل</em> (protocol) ساده به ذخیره‌سازی دسترسی خواهیم داشت که تعریف فراهم‌کننده‌های ذخیره‌سازی
+        اضافی را برای انتخاب توسط مالک پایگاه داده ممکن می‌سازد.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defprotocol Storage
+   (get-entity [storage e-id] )
+   (write-entity [storage entity])
+   (drop-entity [storage entity]))</code></pre>
+        <p>و این هم پیاده‌سازی درون‌حافظه‌ای ما از این پروتکل که از یک نقشه به‌عنوان فروشگاه استفاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defrecord InMemory [] Storage
+   (get-entity [storage e-id] (e-id storage))
+   (write-entity [storage entity] (assoc storage (:id entity) entity))
+   (drop-entity [storage entity] (dissoc storage (:id entity))))</code></pre>
+
+        <h3>ایندکس‌کردن داده‌ها (Indexing the Data)</h3>
+        <p>حالا که عناصر پایه‌ای پایگاه دادهٔ خود را تعریف کرده‌ایم، می‌توانیم به این فکر کنیم که قرار است چگونه از آن
+        پرس‌وجو کنیم. به‌لطف نحوهٔ ساختاردهی داده‌هایمان، هر پرس‌وجویی به‌ناچار به حداقل یکی از شناسهٔ موجودیت و نام و مقدار
+        برخی از صفت‌های آن علاقه‌مند است. این سه‌تاییِ <code class="inline">(شناسهٔ موجودیت، نام صفت، مقدار صفت)</code> برای
+        فرایند پرس‌وجوی ما به‌اندازه‌ای مهم است که نام صریحی به آن می‌دهیم: یک <em>دیتام</em> (datom).</p>
+        <p>دیتام‌ها مهم هستند، زیرا واقعیت‌ها (facts) را نمایندگی می‌کنند و پایگاه دادهٔ ما واقعیت‌ها را انباشته می‌کند.</p>
+        <p>اگر قبلاً با یک سامانهٔ پایگاه داده کار کرده باشید، احتمالاً با مفهوم <em>ایندکس</em> (index) آشنا هستید؛
+        ساختار دادهٔ پشتیبانی که فضای اضافی مصرف می‌کند تا میانگین زمان پرس‌وجو را کاهش دهد. در پایگاه دادهٔ ما، یک ایندکس
+        ساختاری سه‌لایه است که مؤلفه‌های یک دیتام را به ترتیبی مشخص ذخیره می‌کند. هر ایندکس نامش را از ترتیبی می‌گیرد که
+        مؤلفه‌های دیتام را در آن ذخیره می‌کند.</p>
+        <p>برای نمونه، به ایندکسی که در شکل ۱۰.۲ ترسیم شده است نگاه کنیم:</p>
+        <ul>
+          <li>سطح اول شناسه‌های موجودیت را ذخیره می‌کند</li>
+          <li>سطح دوم نام‌های صفتِ مرتبط را ذخیره می‌کند</li>
+          <li>سطح سوم مقدارِ مرتبط را ذخیره می‌کند</li>
+        </ul>
+        <p>این ایندکس EAVT نامیده می‌شود، زیرا نقشهٔ سطح بالا شناسه‌های موجودیت (Entity) را نگه می‌دارد، سطح دوم نام‌های
+        صفت (Attribute) را و برگ‌ها مقادیر (Values) را. حرف «T» از این واقعیت می‌آید که هر لایه در پایگاه داده ایندکس‌های
+        خودش را دارد؛ از این رو ایندکس خودش برای یک زمان (Time) مشخص مرتبط است.</p>
+        <img src="https://aosabook.org/en/500L/functionalDB-images/image_1.png" alt="شکل ۱۰.۲ - ایندکس EAVT" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">شکل ۱۰.۲ - EAVT</p>
+        <p>شکل ۱۰.۳ ایندکسی را نشان می‌دهد که AVET نامیده می‌شود، زیرا:</p>
+        <ul>
+          <li>نقشهٔ سطح اول نامِ صفت را نگه می‌دارد.</li>
+          <li>نقشهٔ سطح دوم مقادیر (صفت‌ها) را نگه می‌دارد.</li>
+          <li>مجموعهٔ سطح سوم شناسه‌های موجودیت (موجودیت‌هایی که صفتشان در سطح اول است) را نگه می‌دارد.</li>
+        </ul>
+        <img src="https://aosabook.org/en/500L/functionalDB-images/image_2.png" alt="شکل ۱۰.۳ - ایندکس AVET" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">شکل ۱۰.۳ - AVET</p>
+        <p>ایندکس‌های ما به‌صورت نقشه‌ای از نقشه‌ها پیاده‌سازی شده‌اند؛ کلیدهای نقشهٔ ریشه به‌عنوان سطح اول عمل می‌کنند، هر
+        یک از این کلیدها به نقشه‌ای اشاره می‌کند که کلیدهایش به‌عنوان سطح دوم ایندکس عمل می‌کنند و مقادیر، سطح سوم ایندکس
+        هستند. هر عنصر در سطح سوم یک مجموعه (set) است که برگ‌های ایندکس را نگه می‌دارد.</p>
+        <p>هر ایندکس مؤلفه‌های یک دیتام را به‌صورت نوعی جایگشت از ترتیب متعارفِ «EAV» آن (شناسهٔ موجودیت، نام صفت، مقدار
+        صفت) ذخیره می‌کند. با این حال، وقتی با دیتام‌ها <em>خارج از</em> ایندکس کار می‌کنیم، انتظار داریم به فرمت متعارف
+        باشند. از این رو برای هر ایندکس توابع <code class="inline">from-eav</code> و <code class="inline">to-eav</code>
+        فراهم می‌کنیم تا به این ترتیب‌ها تبدیل و از آن‌ها تبدیل کنیم.</p>
+        <p>در بیشتر سامانه‌های پایگاه داده، ایندکس‌ها مؤلفه‌ای اختیاری‌اند؛ برای نمونه در یک RDBMS (سامانهٔ مدیریت پایگاه
+        دادهٔ رابطه‌ای، Relational Database Management System) مانند PostgreSQL یا MySQL، شما انتخاب می‌کنید که فقط به
+        ستون‌های مشخصی از یک جدول ایندکس اضافه کنید. برای هر ایندکس یک تابع <code class="inline">usage-pred</code> فراهم
+        می‌کنیم که برای یک صفت تعیین می‌کند آیا باید در این ایندکس گنجانده شود یا نه.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn make-index [from-eav to-eav usage-pred]
+    (with-meta {} {:from-eav from-eav :to-eav to-eav :usage-pred usage-pred}))
+
+ (defn from-eav [index] (:from-eav (meta index)))
+ (defn to-eav [index] (:to-eav (meta index)))
+ (defn usage-pred [index] (:usage-pred (meta index)))</code></pre>
+        <p>در پایگاه دادهٔ ما چهار ایندکس وجود دارد: EAVT (شکل ۱۰.۲ را ببینید)، AVET (شکل ۱۰.۳ را ببینید)، VEAT و VAET.
+        می‌توانیم به این‌ها به‌صورت برداری از مقادیری که تابع <code class="inline">indexes</code> برمی‌گرداند دسترسی
+        داشته باشیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn indexes[] [:VAET :AVET :VEAT :EAVT])</code></pre>
+        <p>برای نشان دادن اینکه همهٔ این‌ها چگونه کنار هم قرار می‌گیرند، نتیجهٔ ایندکس‌کردن پنج موجودیت زیر در جدول ۱۰.۱
+        به‌تصویر کشیده شده است.</p>
+        <ol>
+          <li>ژولیوس سزار (که با نام JC نیز شناخته می‌شود) در رم زندگی می‌کند</li>
+          <li>بروتوس (که با نام B نیز شناخته می‌شود) در رم زندگی می‌کند</li>
+          <li>کلئوپاترا (که با نام Cleo نیز شناخته می‌شود) در مصر زندگی می‌کند</li>
+          <li>رودِ رم تیبر است</li>
+          <li>رودِ مصر نیل است</li>
+        </ol>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ایندکس EAVT</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ایندکس AVET</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ایندکس VEAT</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ایندکس VAET</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left;vertical-align:top">JC ⇒ {lives-in ⇒ {Rome}}<br />B ⇒ {lives-in ⇒ {Rome}}<br />Cleo ⇒ {lives-in ⇒ {Egypt}}<br />Rome ⇒ {river ⇒ {Tiber}}<br />Egypt ⇒ {river ⇒ {Nile}}</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left;vertical-align:top">lives-in ⇒ {Rome ⇒ {JC, B}}<br />{Egypt ⇒ {Cleo}}<br />river ⇒ {Rome ⇒ {Tiber}}<br />{Egypt ⇒ {Nile}}</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left;vertical-align:top">Rome ⇒ {JC ⇒ {lives-in}}<br />{B ⇒ {lives-in}}<br />Egypt ⇒ {Cleo ⇒ {lives-in}}<br />Tiber ⇒ {Rome ⇒ {river}}<br />Nile ⇒ {Egypt ⇒ {river}}</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left;vertical-align:top">Rome ⇒ {lives-in ⇒ {JC, B}}<br />Egypt ⇒ {lives-in ⇒ {Cleo}}<br />Tiber ⇒ {river ⇒ {Rome}}<br />Nile ⇒ {river ⇒ {Egypt}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۱ - ایندکس‌ها</p>
+
+        <h3>پایگاه داده (Database)</h3>
+        <p>حالا همهٔ مؤلفه‌هایی را داریم که برای ساخت پایگاه دادهٔ خود نیاز داریم. مقداردهی اولیهٔ پایگاه دادهٔ ما یعنی:</p>
+        <ul>
+          <li>ساخت یک لایهٔ خالیِ اولیه بدون داده</li>
+          <li>ساخت مجموعه‌ای از ایندکس‌های خالی</li>
+          <li>تنظیم <code class="inline">top-id</code> و <code class="inline">curr-time</code> روی ۰</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn ref? [attr] (= :db/ref (:type (meta attr))))
+
+(defn always[&amp; more] true)
+
+(defn make-db []
+   (atom 
+       (Database. [(Layer.
+                   (fdb.storage.InMemory.) ; ذخیره‌سازی
+                   (make-index #(vector %3 %2 %1) #(vector %3 %2 %1) #(ref? %));VAET                     
+                   (make-index #(vector %2 %3 %1) #(vector %3 %1 %2) always);AVET                        
+                   (make-index #(vector %3 %1 %2) #(vector %2 %3 %1) always);VEAT                       
+                   (make-index #(vector %1 %2 %3) #(vector %1 %2 %3) always);EAVT
+                  )] 0 0)))</code></pre>
+        <p>با این حال یک مشکل وجود دارد: همهٔ مجموعه‌های کلوجور تغییرناپذیرند. از آنجا که عملیات نوشتن در پایگاه داده
+        کاملاً حیاتی است، ساختارمان را به‌صورت یک <em>اتم</em> (Atom) تعریف می‌کنیم؛ نوع مرجعی در کلوجور که قابلیت نوشتن‌های
+        اتمی (atomic) را فراهم می‌کند.</p>
+        <p>شاید از خود بپرسید چرا برای ایندکس‌های AVET، VEAT و EAVT از تابع <code class="inline">always</code> و برای
+        ایندکس VAET از محمول <code class="inline">ref?</code> استفاده می‌کنیم. دلیل این است که این ایندکس‌ها در سناریوهای
+        متفاوتی استفاده می‌شوند؛ بعداً وقتی پرس‌وجوها را به‌طور عمیق بررسی می‌کنیم این را خواهیم دید.</p>
+
+        <h3>دسترسی‌های پایه (Basic Accessors)</h3>
+        <p>پیش از آن‌که بتوانیم امکانات پرس‌وجوی پیچیده‌ای برای پایگاه دادهٔ خود بسازیم، باید یک API سطح‌پایین فراهم کنیم
+        که بخش‌های مختلف سیستم بتوانند از آن برای بازیابی مؤلفه‌هایی که ساخته‌ایم — به‌وسیلهٔ شناسه‌های مرتبطشان از هر
+        نقطه‌ای در زمان — استفاده کنند. مصرف‌کنندگان پایگاه داده نیز می‌توانند از این API استفاده کنند؛ اما احتمال بیشتری
+        دارد که از مؤلفه‌های کامل‌تری که روی آن ساخته شده‌اند استفاده کنند.</p>
+        <p>این API سطح‌پایین از چهار تابع دسترسی زیر تشکیل شده است:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn entity-at
+   ([db ent-id] (entity-at db (:curr-time db) ent-id))
+   ([db ts ent-id] (get-entity (get-in db [:layers ts :storage]) ent-id)))
+
+(defn attr-at
+   ([db ent-id attr-name] (attr-at db ent-id attr-name (:curr-time db)))
+   ([db ent-id attr-name ts] (get-in (entity-at db ts ent-id) [:attrs attr-name])))
+
+(defn value-of-at
+   ([db ent-id attr-name]  (:value (attr-at db ent-id attr-name)))
+   ([db ent-id attr-name ts] (:value (attr-at db ent-id attr-name ts))))
+
+(defn indx-at
+   ([db kind] (indx-at db kind (:curr-time db)))
+   ([db kind ts] (kind ((:layers db) ts))))</code></pre>
+        <p>از آنجا که با پایگاه دادهٔ خود دقیقاً مانند هر مقدار دیگری رفتار می‌کنیم، هر یک از این توابع یک پایگاه داده را
+        به‌عنوان آرگومان می‌گیرند. هر عنصر به‌وسیلهٔ شناسهٔ مرتبطش و به‌صورت اختیاری با برچسب زمانیِ موردنظر بازیابی
+        می‌شود. این برچسب زمانی برای یافتن لایهٔ متناظری استفاده می‌شود که جست‌وجوی ما باید روی آن اعمال شود.</p>
+
+        <h4>تکامل (Evolution)</h4>
+        <p>یک کاربردِ اول از دسترسی‌های پایه، فراهم کردن یک API «خواندن در گذشته» است. این ممکن است، زیرا در پایگاه دادهٔ
+        ما عملیات به‌روزرسانی با الحاق یک لایهٔ جدید انجام می‌شود (در مقابل بازنویسی). از این رو می‌توانیم از ویژگی
+        <code class="inline">prev-ts</code> برای نگاه کردن به صفت در آن لایه استفاده کنیم و به کاوش در عمق تاریخچه ادامه
+        دهیم تا مشاهده کنیم مقدار یک صفت در طول زمان چگونه تکامل یافته است.</p>
+        <p>تابع <code class="inline">evolution-of</code> دقیقاً همین کار را می‌کند. دنباله‌ای از جفت‌ها برمی‌گرداند که هر
+        کدام از برچسب زمانی و مقدار یک به‌روزرسانی صفت تشکیل شده است.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn evolution-of [db ent-id attr-name]
+   (loop [res [] ts (:curr-time db)]
+     (if (= -1 ts) (reverse res)
+         (let [attr (attr-at db ent-id attr-name ts)]
+           (recur (conj res {(:ts attr) (:value attr)})  (:prev-ts attr))))))</code></pre>
+      </section>
+
+      <!-- ==================== رفتار و چرخه حیات داده ==================== -->
+      <section>
+        <h2>رفتار و چرخهٔ حیات داده (Data Behavior and Life Cycle)</h2>
+        <p>تاکنون بحث ما بر ساختار دادهٔ ما متمرکز بوده است: مؤلفه‌های هسته‌ای چه هستند و چگونه کنار هم جمع می‌شوند. زمان
+        آن رسیده است که پویایی‌های سامانهٔ خود را کاوش کنیم: داده‌ها در طول زمان از طریق <em>چرخهٔ حیات داده</em>
+        (data lifecycle)ِ افزودن–به‌روزرسانی–حذف چگونه تغییر می‌کنند.</p>
+        <p>همان‌طور که قبلاً بحث کردیم، داده در دنیای باستان‌شناس هرگز واقعاً تغییر نمی‌کند. پس از ایجاد، برای همیشه وجود
+        دارد و فقط می‌تواند توسط داده‌های یک لایهٔ جدیدتر از دید پنهان شود. اصطلاح «پنهان‌شدن» در این‌جا حیاتی است. دادهٔ
+        قدیمی «ناپدید» نمی‌شود — مدفون می‌شود و با آشکار کردن یک لایهٔ قدیمی‌تر می‌تواند دوباره نمایان شود. به‌طور
+        متقابل، به‌روزرسانی داده یعنی پنهان کردن دادهٔ قدیمی با افزودن لایه‌ای جدید حاوی چیز دیگری روی آن. بنابراین
+        می‌توانیم با افزودن لایه‌ای از «هیچ» روی داده، آن را «حذف» کنیم.</p>
+        <p>این بدان معناست که وقتی دربارهٔ چرخهٔ حیات داده صحبت می‌کنیم، واقعاً دربارهٔ افزودن لایه‌هایی به دادهٔ خود در
+        طول زمان صحبت می‌کنیم.</p>
+
+        <h3>ملزومات اصلی (The Bare Necessities)</h3>
+        <p>چرخهٔ حیات داده از سه عملیات پایه تشکیل شده است:</p>
+        <ul>
+          <li>افزودن یک موجودیت با تابع <code class="inline">add-entity</code></li>
+          <li>حذف یک موجودیت با تابع <code class="inline">remove-entity</code></li>
+          <li>به‌روزرسانی یک موجودیت با تابع <code class="inline">update-entity</code></li>
+        </ul>
+        <p>به یاد داشته باشید که حتی اگر این توابع توهم تغییرپذیری را فراهم می‌کنند، همهٔ کاری که در هر مورد واقعاً انجام
+        می‌دهیم افزودن یک لایهٔ دیگر به داده است. همچنین، از آنجا که از ساختارهای دادهٔ پایدار (persistent) کلوجور
+        استفاده می‌کنیم، از دیدگاه فراخواننده همان هزینه را برای این عملیات می‌پردازیم که برای یک تغییر «در محل» (یعنی
+        سربار عملکرد ناچیز) — در حالی که تغییرناپذیری را برای همهٔ کاربران دیگر ساختار داده حفظ می‌کنیم.</p>
+
+        <h4>افزودن یک موجودیت (Adding an Entity)</h4>
+        <p>افزودن یک موجودیت مستلزم انجام سه کار است:</p>
+        <ul>
+          <li>آماده‌سازی موجودیت برای افزودن (با دادن یک شناسه و یک برچسب زمانی به آن)</li>
+          <li>قرار دادن موجودیت در ذخیره‌سازی</li>
+          <li>به‌روزرسانی ایندکس‌ها در صورت نیاز</li>
+        </ul>
+        <p>این مراحل در تابع <code class="inline">add-entity</code> انجام می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn add-entity [db ent]
+   (let [[fixed-ent next-top-id] (fix-new-entity db ent)
+         layer-with-updated-storage (update-in 
+                            (last (:layers db)) [:storage] write-entity fixed-ent)
+         add-fn (partial add-entity-to-index fixed-ent)
+         new-layer (reduce add-fn layer-with-updated-storage (indexes))]
+    (assoc db :layers (conj (:layers db) new-layer) :top-id next-top-id)))</code></pre>
+        <p>آماده‌سازی یک موجودیت با صدازدن تابع <code class="inline">fix-new-entity</code> و توابع کمکی آن
+        <code class="inline">next-id</code>، <code class="inline">next-ts</code> و
+        <code class="inline">update-creation-ts</code> انجام می‌شود. این دو تابع کمکیِ اخیر مسئول یافتن برچسب زمانی بعدی
+        پایگاه داده (انجام‌شده توسط <code class="inline">next-ts</code>) و به‌روزرسانی برچسب زمانیِ ایجادِ موجودیتِ
+        داده‌شده (انجام‌شده توسط <code class="inline">update-creation-ts</code>) هستند. به‌روزرسانی برچسب زمانیِ ایجادِ
+        یک موجودیت یعنی گذر کردن از روی صفت‌های موجودیت و به‌روزرسانی فیلدهای <code class="inline">:ts</code> آن‌ها.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- next-ts [db] (inc (:curr-time db)))
+
+(defn- update-creation-ts [ent ts-val]
+   (reduce #(assoc-in %1 [:attrs %2 :ts ] ts-val) ent (keys (:attrs ent))))
+
+(defn- next-id [db ent]
+   (let [top-id (:top-id db)
+         ent-id (:id ent)
+         increased-id (inc top-id)]
+         (if (= ent-id :db/no-id-yet)
+             [(keyword (str increased-id)) increased-id]
+             [ent-id top-id])))
+
+(defn- fix-new-entity [db ent]
+   (let [[ent-id next-top-id] (next-id db ent)
+         new-ts               (next-ts db)]
+       [(update-creation-ts (assoc ent :id ent-id) new-ts) next-top-id]))</code></pre>
+        <p>برای افزودن موجودیت به ذخیره‌سازی، جدیدترین لایه را در پایگاه داده می‌یابیم و ذخیره‌سازی آن لایه را با یک لایهٔ
+        جدید به‌روزرسانی می‌کنیم که نتیجه‌اش در <code class="inline">layer-with-updated-storage</code> ذخیره می‌شود.</p>
+        <p>در نهایت باید ایندکس‌ها را به‌روزرسانی کنیم. این یعنی برای هر یک از ایندکس‌ها (که با ترکیب
+        <code class="inline">reduce</code> و <code class="inline">add-entity-to-index</code>ِ
+        <code class="inline">partial</code>شده در تابع <code class="inline">add-entity</code> انجام می‌شود):</p>
+        <ul>
+          <li>صفت‌هایی را که باید ایندکس شوند بیابید (ترکیب <code class="inline">filter</code> با
+          <code class="inline">usage-pred</code> ایندکس را ببینید که روی صفت‌ها در
+          <code class="inline">add-entity-to-index</code> عمل می‌کند)</li>
+          <li>یک مسیر ایندکس (index-path) از شناسهٔ موجودیت بسازید (ترکیب
+          <code class="inline">update-entry-in-index</code>ِ <code class="inline">partial</code>شده با
+          <code class="inline">from-eav</code> در تابع <code class="inline">update-attr-in-index</code> را ببینید)</li>
+          <li>آن مسیر را به ایندکس اضافه کنید (تابع <code class="inline">update-entry-in-index</code> را ببینید)</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- add-entity-to-index [ent layer ind-name]
+   (let [ent-id (:id ent)
+         index (ind-name layer)
+         all-attrs  (vals (:attrs ent))
+         relevant-attrs (filter #((usage-pred index) %) all-attrs)
+         add-in-index-fn (fn [ind attr] 
+                                 (update-attr-in-index ind ent-id (:name attr) 
+                                                                  (:value attr) 
+                                                                  :db/add))]
+        (assoc layer ind-name  (reduce add-in-index-fn index relevant-attrs))))
+
+(defn- update-attr-in-index [index ent-id attr-name target-val operation]
+   (let [colled-target-val (collify target-val)
+         update-entry-fn (fn [ind vl] 
+                             (update-entry-in-index 
+                                ind 
+                                ((from-eav index) ent-id attr-name vl) 
+                                operation))]
+     (reduce update-entry-fn index colled-target-val)))
+
+(defn- update-entry-in-index [index path operation]
+   (let [update-path (butlast path)
+         update-value (last path)
+         to-be-updated-set (get-in index update-path #{})]
+     (assoc-in index update-path (conj to-be-updated-set update-value))))</code></pre>
+        <p>همهٔ این مؤلفه‌ها به‌صورت یک لایهٔ جدید به پایگاه دادهٔ داده‌شده اضافه می‌شوند. تنها چیزی که می‌ماند به‌روزرسانی
+        برچسب زمانیِ پایگاه داده و فیلدهای <code class="inline">top-id</code> است. این گام آخر در خط آخر
+        <code class="inline">add-entity</code> رخ می‌دهد که پایگاه دادهٔ به‌روزشده را هم برمی‌گرداند.</p>
+        <p>همچنین یک تابع کمکی <code class="inline">add-entities</code> فراهم می‌کنیم که با اعمال تکرارشوندهٔ
+        <code class="inline">add-entity</code>، چندین موجودیت را در یک فراخوانی به پایگاه داده اضافه می‌کند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn add-entities [db ents-seq] (reduce add-entity db ents-seq))</code></pre>
+
+        <h4>حذف یک موجودیت (Removing an Entity)</h4>
+        <p>حذف یک موجودیت از پایگاه دادهٔ ما یعنی افزودن لایه‌ای که در آن موجودیت وجود ندارد. برای انجام این کار لازم
+        است:</p>
+        <ul>
+          <li>خود موجودیت حذف شود</li>
+          <li>هر صفتی از موجودیت‌های دیگر که به آن ارجاع می‌دهد به‌روزرسانی شود</li>
+          <li>موجودیت از ایندکس‌های ما پاک شود</li>
+        </ul>
+        <p>این فرایند «ساخت-بدون» (construct-without) توسط تابع <code class="inline">remove-entity</code> اجرا می‌شود که
+        بسیار شبیه <code class="inline">add-entity</code> است:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn remove-entity [db ent-id]
+   (let [ent (entity-at db ent-id)
+         layer (remove-back-refs db ent-id (last (:layers db)))
+         no-ref-layer (update-in layer [:VAET] dissoc ent-id)
+         no-ent-layer (assoc no-ref-layer :storage 
+                                   (drop-entity  
+                                          (:storage no-ref-layer) ent))
+         new-layer (reduce (partial remove-entity-from-index ent) 
+                                 no-ent-layer (indexes))]
+     (assoc db :layers (conj  (:layers db) new-layer))))</code></pre>
+        <p>حذف ارجاع‌ها توسط تابع <code class="inline">remove-back-refs</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- remove-back-refs [db e-id layer]
+   (let [reffing-datoms (reffing-to e-id layer)
+         remove-fn (fn[d [e a]] (update-entity db e a e-id :db/remove))
+         clean-db (reduce remove-fn db reffing-datoms)]
+     (last (:layers clean-db))))</code></pre>
+        <p>با استفاده از <code class="inline">reffing-datoms-to</code> شروع می‌کنیم تا همهٔ موجودیت‌هایی را که در لایهٔ
+        داده‌شده به موجودیتِ ما ارجاع می‌دهند بیابیم؛ این تابع دنباله‌ای از سه‌تایی‌ها برمی‌گرداند که شامل شناسهٔ
+        موجودیتِ ارجاع‌دهنده، نام صفت و شناسهٔ موجودیتِ حذف‌شده است.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- reffing-to [e-id layer]
+   (let [vaet (:VAET layer)]
+         (for [[attr-name reffing-set] (e-id vaet)
+               reffing reffing-set]
+              [reffing attr-name])))</code></pre>
+        <p>سپس <code class="inline">update-entity</code> را روی هر سه‌تایی اعمال می‌کنیم تا صفت‌هایی را که به موجودیتِ
+        حذف‌شدهٔ ما ارجاع می‌دهند به‌روزرسانی کنیم. (در بخش بعد بررسی می‌کنیم که <code class="inline">update-entity</code>
+        چگونه کار می‌کند.)</p>
+        <p>گام آخرِ <code class="inline">remove-back-refs</code> پاک کردن خودِ ارجاع از ایندکس‌های ما و به‌طور خاص‌تر از
+        ایندکس VAET است، زیرا تنها ایندکسی است که اطلاعات ارجاع را ذخیره می‌کند.</p>
+
+        <h4>به‌روزرسانی یک موجودیت (Updating an Entity)</h4>
+        <p>در ذات خود، یک به‌روزرسانی تغییرِ مقدارِ صفتِ یک موجودیت است. خود فرایند تغییر به کاردینالیتی صفت بستگی دارد:
+        صفتی با کاردینالیتی <code class="inline">:db/multiple</code> مجموعه‌ای از مقادیر را نگه می‌دارد؛ پس باید امکان
+        افزودن آیتم‌ها به این مجموعه یا حذفشان از آن، یا جایگزینیِ کاملِ مجموعه را بدهیم. صفتی با کاردینالیتی
+        <code class="inline">:db/single</code> یک مقدار منفرد را نگه می‌دارد و بنابراین فقط امکان جایگزینی را می‌دهد.</p>
+        <p>از آنجا که ایندکس‌هایی هم داریم که جست‌وجوی مستقیم روی صفت‌ها و مقادیرشان را فراهم می‌کنند، این‌ها هم باید
+        به‌روزرسانی شوند.</p>
+        <p>همانند <code class="inline">add-entity</code> و <code class="inline">remove-entity</code>، در واقع موجودیتِ
+        خود را در محل تغییر نمی‌دهیم؛ بلکه یک لایهٔ جدید اضافه می‌کنیم که حاوی موجودیتِ به‌روزشده است.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn update-entity
+   ([db ent-id attr-name new-val]
+    (update-entity db ent-id attr-name new-val :db/reset-to))
+   ([db ent-id attr-name new-val operation]
+      (let [update-ts (next-ts db)
+            layer (last (:layers db))
+            attr (attr-at db ent-id attr-name)
+            updated-attr (update-attr attr new-val update-ts operation)
+            fully-updated-layer (update-layer layer ent-id 
+                                              attr updated-attr 
+                                              new-val operation)]
+        (update-in db [:layers] conj fully-updated-layer))))</code></pre>
+        <p>برای به‌روزرسانی یک صفت، آن را با <code class="inline">attr-at</code> می‌یابیم و سپس از
+        <code class="inline">update-attr</code> برای انجام خودِ به‌روزرسانی استفاده می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- update-attr [attr new-val new-ts operation]
+    {:pre  [(if (single? attr)
+            (contains? #{:db/reset-to :db/remove} operation)
+            (contains? #{:db/reset-to :db/add :db/remove} operation))]}
+    (-&gt; attr
+       (update-attr-modification-time new-ts)
+       (update-attr-value new-val operation)))</code></pre>
+        <p>برای انجام به‌روزرسانی از دو تابع کمکی استفاده می‌کنیم. <code class="inline">update-attr-modification-time</code>
+        برچسب‌های زمانی را به‌روزرسانی می‌کند تا ایجادِ فلش‌های سیاه در شکل ۱ را بازتاب دهد:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- update-attr-modification-time  
+  [attr new-ts]
+       (assoc attr :ts new-ts :prev-ts (:ts attr)))</code></pre>
+        <p><code class="inline">update-attr-value</code> در واقع مقدار را به‌روزرسانی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- update-attr-value [attr value operation]
+   (cond
+      (single? attr)    (assoc attr :value #{value})
+      ; حالا دربارهٔ یک صفت با چند مقدار صحبت می‌کنیم
+      (= :db/reset-to operation) 
+        (assoc attr :value value)
+      (= :db/add operation) 
+        (assoc attr :value (CS/union (:value attr) value))
+      (= :db/remove operation)
+        (assoc attr :value (CS/difference (:value attr) value))))</code></pre>
+        <p>همهٔ آنچه می‌ماند این است که مقدار قدیمی را از ایندکس‌ها حذف کنیم و مقدار جدید را به آن‌ها اضافه کنیم، و سپس
+        لایهٔ جدید را با همهٔ مؤلفه‌های به‌روزشده‌اش بسازیم. خوشبختانه می‌توانیم برای انجام این کار از کدی که برای افزودن و
+        حذف موجودیت‌ها نوشته‌ایم بهره ببریم.</p>
+
+        <h3>تراکنش‌ها (Transactions)</h3>
+        <p>هر یک از عملیات‌ها در API سطح‌پایین ما روی یک موجودیت منفرد عمل می‌کند. با این حال، تقریباً همهٔ پایگاه‌های داده
+        راهی برای کاربران دارند که چندین عملیات را به‌صورت یک <em>تراکنش</em> (transaction) منفرد انجام دهند. این یعنی:</p>
+        <ul>
+          <li>دستهٔ عملیات به‌صورت یک عملیات اتمیِ منفرد دیده می‌شود؛ پس همهٔ عملیات یا با هم موفق می‌شوند یا با هم شکست
+          می‌خورند.</li>
+          <li>پایگاه داده قبل و بعد از تراکنش در حالت معتبری است.</li>
+          <li>به‌روزرسانیِ دسته‌ای <em>ایزوله</em> (isolated) به‌نظر می‌رسد؛ پرس‌وجوهای دیگر هرگز نباید حالتی از پایگاه داده
+          را ببینند که در آن فقط برخی از عملیات اعمال شده باشند.</li>
+        </ul>
+        <p>می‌توانیم این الزامات را از طریق یک رابط برآورده کنیم که یک پایگاه داده و مجموعه‌ای از عملیاتِ باید‌انجام‌شده را
+        مصرف می‌کند و پایگاه داده‌ای را تولید می‌کند که حالتش بازتابِ تغییراتِ داده‌شده است. همهٔ تغییرات ارائه‌شده در دسته
+        باید از طریق افزودن یک <em>لایهٔ منفرد</em> اعمال شوند. اما یک مشکل داریم: همهٔ توابعی که در API سطح‌پایین
+        نوشته‌ایم یک لایهٔ جدید به پایگاه داده اضافه می‌کنند. اگر قرار بود دسته‌ای با <em>n</em> عملیات انجام دهیم، در نتیجه
+        <em>n</em> لایهٔ جدید می‌دیدیم، در حالی که آنچه واقعاً می‌خواهیم داشتن دقیقاً یک لایهٔ جدید است.</p>
+        <p>نکتهٔ کلیدی اینجاست که لایهٔ موردنظر ما همان <em>لایهٔ بالایی</em> (top layer) است که با انجام متوالیِ آن
+        به‌روزرسانی‌ها تولید می‌شود. بنابراین، راه‌حل این است که عملیات‌های کاربر را یکی پس از دیگری اجرا کنیم و هر کدام یک
+        لایهٔ جدید بسازد. وقتی آخرین لایه ساخته شد، فقط آن لایهٔ بالایی را می‌گیریم و روی پایگاه دادهٔ اولیه قرار می‌دهیم
+        (و همهٔ لایه‌های میانی را رها می‌کنیم). فقط پس از انجام همهٔ این کارها، برچسب زمانیِ پایگاه داده را به‌روزرسانی
+        می‌کنیم.</p>
+        <p>همهٔ این‌ها در تابع <code class="inline">transact-on-db</code> انجام می‌شود که مقدار اولیهٔ پایگاه داده و دستهٔ
+        عملیاتی که باید انجام شوند را دریافت می‌کند و مقدار به‌روزشدهٔ آن را برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn transact-on-db [initial-db ops]
+    (loop [[op &amp; rst-ops] ops transacted initial-db]
+      (if op
+          (recur rst-ops (apply (first op) transacted (rest op)))
+          (let [initial-layer  (:layers initial-db)
+                new-layer (last (:layers transacted))]
+            (assoc initial-db :layers (conj initial-layer new-layer) 
+                              :curr-time (next-ts initial-db) 
+                              :top-id (:top-id transacted))))))</code></pre>
+        <p>در این‌جا توجه کنید که از اصطلاح <em>مقدار</em> استفاده کردیم؛ یعنی فقط فراخوانندهٔ این تابع در معرض حالت
+        به‌روزشده قرار می‌گیرد؛ همهٔ کاربران دیگر پایگاه داده از این تغییر بی‌خبرند (زیرا پایگاه داده یک مقدار است و بنابراین
+        نمی‌تواند تغییر کند). برای داشتن سامانه‌ای که در آن کاربران بتوانند در معرض تغییرات حالتی قرار بگیرند که دیگران انجام
+        داده‌اند، کاربران مستقیماً با پایگاه داده تعامل نمی‌کنند، بلکه با استفاده از سطح دیگری از واسطگی (indirection) به آن
+        ارجاع می‌دهند. این سطح اضافی با استفاده از <code class="inline">Atom</code> کلوجور، یک نوع مرجع، پیاده‌سازی می‌شود.
+        در این‌جا از سه ویژگی کلیدیِ اصلی یک <code class="inline">Atom</code> بهره می‌بریم:</p>
+        <ol>
+          <li>به یک مقدار ارجاع می‌دهد.</li>
+          <li>با اجرای یک تراکنش می‌توان ارجاعِ <code class="inline">Atom</code> را به مقدار دیگری به‌روزرسانی کرد (با
+          استفاده از قابلیت‌های حافظهٔ تراکنشیِ نرم‌افزاری (Software Transactional Memory) کلوجور). تراکنش یک
+          <code class="inline">Atom</code> و یک تابع می‌پذیرد. آن تابع روی مقدارِ <code class="inline">Atom</code> عمل
+          می‌کند و یک مقدار جدید برمی‌گرداند. پس از اجرای تراکنش، <code class="inline">Atom</code> به مقداری که از تابع
+          برگشته است ارجاع می‌دهد.</li>
+          <li>رسیدن به مقداری که <code class="inline">Atom</code> به آن ارجاع می‌دهد با رفرنس‌زدایی (dereferencing) از آن
+          انجام می‌شود که حالتِ آن <code class="inline">Atom</code> را در آن زمان برمی‌گرداند.</li>
+        </ol>
+        <p>بین <code class="inline">Atom</code> کلوجور و کاری که در <code class="inline">transact-on-db</code> انجام
+        می‌شود، هنوز شکافی برای پر کردن وجود دارد؛ یعنی فراخوانی تراکنش با ورودی‌های درست.</p>
+        <p>برای داشتن ساده‌ترین و واضح‌ترین APIها، می‌خواهیم کاربران فقط <code class="inline">Atom</code> و فهرست
+        عملیات‌ها را فراهم کنند و پایگاه داده ورودی کاربر را به یک تراکنش مناسب تبدیل کند.</p>
+        <p>آن تبدیل در زنجیرهٔ فراخوانیِ تراکنشِ زیر رخ می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">transact →  _transact → swap! → transact-on-db</code></pre>
+        <p>کاربران <code class="inline">transact</code> را با <code class="inline">Atom</code> (یعنی اتصال (connection)) و
+        عملیاتی که باید انجام شوند صدا می‌زنند؛ این تابع ورودی خود را به <code class="inline">_transact</code> منتقل
+        می‌کند و نام تابعی که <code class="inline">Atom</code> را به‌روزرسانی می‌کند (<code class="inline">swap!</code>) را
+        به آن اضافه می‌کند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro transact [db-conn &amp; txs]  `(_transact ~db-conn swap! ~@txs))</code></pre>
+        <p><code class="inline">_transact</code> فراخوانیِ <code class="inline">swap!</code> را آماده می‌کند. این کار را
+        با ساخت یک فهرست انجام می‌دهد که با <code class="inline">swap!</code> شروع می‌شود، سپس
+        <code class="inline">Atom</code>، سپس نماد <code class="inline">transact-on-db</code> و سپس دستهٔ عملیات‌ها.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro  _transact [db op &amp; txs]
+   (when txs
+     (loop [[frst-tx# &amp; rst-tx#] txs  res#  [op db `transact-on-db]  accum-txs# []]
+       (if frst-tx#
+           (recur rst-tx# res#  (conj  accum-txs#  (vec frst-tx#)))
+           (list* (conj res#  accum-txs#))))))</code></pre>
+        <p><code class="inline">swap!</code> در یک تراکنش (با آرگومان‌های آماده‌شدهٔ قبلی)
+        <code class="inline">transact-on-db</code> را فراخوانی می‌کند و <code class="inline">transact-on-db</code> حالت جدید
+        پایگاه داده را می‌سازد و آن را برمی‌گرداند.</p>
+        <p>در این نقطه می‌توانیم ببینیم که با چند اصلاح کوچک، می‌توانیم راهی برای پرسیدن پرسش‌های «چه می‌شود اگر»
+        (what-if) نیز فراهم کنیم. این کار با جایگزین کردن <code class="inline">swap!</code> با تابعی انجام می‌شود که هیچ
+        تغییری در سامانه ایجاد نمی‌کند. این سناریو با زنجیرهٔ فراخوانیِ <code class="inline">what-if</code> پیاده‌سازی
+        شده است:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">what-if →  _transact → _what-if → transact-on-db</code></pre>
+        <p>کاربر <code class="inline">what-if</code> را با مقدار پایگاه داده و عملیاتی که باید انجام شوند صدا می‌زند. سپس
+        این ورودی‌ها را به <code class="inline">_transact</code> منتقل می‌کند و تابعی به آن‌ها اضافه می‌کند که APIهای
+        <code class="inline">swap!</code> را تقلید می‌کند بدونِ اثرش (که <code class="inline">_what-if</code> نامیده
+        می‌شود).</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro what-if [db &amp; ops]  `(_transact ~db _what-if  ~@ops))</code></pre>
+        <p><code class="inline">_transact</code> فراخوانیِ <code class="inline">_what-if</code> را آماده می‌کند. این کار
+        را با ساخت فهرستی انجام می‌دهد که با <code class="inline">_what-if</code> شروع می‌شود، سپس پایگاه داده، سپس نماد
+        <code class="inline">transact-on-db</code> و سپس دستهٔ عملیات‌ها. <code class="inline">_what-if</code> مانند کاری
+        که <code class="inline">swap!</code> در سناریوی تراکنش انجام می‌دهد، <code class="inline">transact-on-db</code> را
+        فراخوانی می‌کند، اما هیچ تغییری به سامانه وارد نمی‌کند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn- _what-if [db f txs]  (f db txs))</code></pre>
+        <p>توجه کنید که از توابع استفاده نمی‌کنیم، بلکه از ماکروها (macros). دلیل استفاده از ماکروها در این‌جا این است که
+        آرگومان‌های ماکروها هنگام برقراری فراخوانی ارزیابی نمی‌شوند؛ این به ما اجازه می‌دهد طراحی API تمیزتری ارائه کنیم که
+        در آن کاربر عملیات‌ها را به همان شکلی ساختار می‌دهد که هر فراخوانیِ تابع در کلوجور ساختار می‌یابد.</p>
+        <p>فرایند بالا را می‌توان در مثال‌های زیر مشاهده کرد. برای تراکنش، فراخوانیِ کاربر:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(transact db-conn  (add-entity e1) (update-entity e2 atr2 val2 :db/add))  </code></pre>
+        <p>به این تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(_transact db-conn swap! (add-entity e1) (update-entity e2 atr2 val2 :db/add))</code></pre>
+        <p>که به این بدل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(swap! db-conn transact-on-db [[add-entity e1][update-entity e2 atr2 val2 :db/add]])</code></pre>
+        <p>برای what-if، فراخوانیِ کاربر:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(what-if my-db (add-entity e3) (remove-entity e4))</code></pre>
+        <p>به این تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(_transact my-db _what-if (add-entity e3) (remove-entity e4))</code></pre>
+        <p>سپس:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(_what-if my-db transact-on-db [[add-entity e3] [remove-entity e4]])</code></pre>
+        <p>و در نهایت:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(transact-on-db my-db  [[add-entity e3] [remove-entity e4]])</code></pre>
+      </section>
+
+      <!-- ==================== استخراج بینش به عنوان کتابخانه ==================== -->
+      <section>
+        <h2>استخراج بینش به‌عنوان کتابخانه (Insight Extraction as Libraries)</h2>
+        <p>در این نقطه قابلیت هسته‌ای پایگاه داده را در جای خود داریم و زمان آن رسیده است که <em>دلیلِ وجود</em>
+        (raison d'être) آن را اضافه کنیم: استخراج بینش (insights extraction). رویکرد معماری که در این‌جا استفاده کردیم این
+        است که اجازه دهیم این قابلیت‌ها به‌صورت کتابخانه اضافه شوند، زیرا کاربردهای مختلف پایگاه داده به مکانیزم‌های متفاوتی
+        نیاز خواهند داشت.</p>
+
+        <h3>پیمایش گراف (Graph Traversal)</h3>
+        <p>یک اتصالِ ارجاعی (reference) بین موجودیت‌ها زمانی ایجاد می‌شود که نوعِ صفتِ یک موجودیت
+        <code class="inline">:db/ref</code> باشد؛ یعنی مقدار آن صفت، شناسهٔ موجودیتِ دیگری است. وقتی یک موجودیتِ
+        ارجاع‌دهنده به پایگاه داده اضافه می‌شود، ارجاع در ایندکس VAET ایندکس می‌شود.</p>
+        <p>از اطلاعات موجود در ایندکس VAET می‌توان برای استخراج همهٔ پیوندهای ورودی (incoming links) به یک موجودیت بهره
+        برد. این کار در تابع <code class="inline">incoming-refs</code> انجام می‌شود که همهٔ برگ‌هایی را که از موجودیت در آن
+        ایندکس قابل دسترسی‌اند جمع‌آوری می‌کند:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn incoming-refs [db ts ent-id &amp; ref-names]
+   (let [vaet (indx-at db :VAET ts)
+         all-attr-map (vaet ent-id)
+         filtered-map (if ref-names 
+                          (select-keys ref-names all-attr-map) 
+                          all-attr-map)]
+      (reduce into #{} (vals filtered-map))))</code></pre>
+        <p>همچنین می‌توانیم از همهٔ صفت‌های یک موجودیتِ داده‌شده عبور کنیم و همهٔ مقادیر صفت‌های نوعِ
+        <code class="inline">:db/ref</code> را جمع‌آوری کنیم و به این ترتیب همهٔ ارجاع‌های خروجی (outgoing references) از آن
+        موجودیت را استخراج کنیم. این کار توسط تابع <code class="inline">outgoing-refs</code> انجام می‌شود.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn outgoing-refs [db ts ent-id &amp; ref-names]
+   (let [val-filter-fn (if ref-names #(vals (select-keys ref-names %)) vals)]
+   (if-not ent-id []
+     (-&gt;&gt; (entity-at db ts ent-id)
+          (:attrs) (val-filter-fn) (filter ref?) (mapcat :value)))))</code></pre>
+        <p>این دو تابع به‌عنوان بلوک‌های ساختمانیِ پایه برای هر عملیاتِ پیمایش گراف عمل می‌کنند، زیرا آن‌ها کسانی هستند که
+        سطح انتزاع را از موجودیت‌ها و صفت‌ها به گره‌ها (nodes) و پیوندها (links) در یک گراف بالا می‌برند. وقتی توانایی نگاه
+        کردن به پایگاه دادهٔ خود به‌عنوان یک گراف را داشته باشیم، می‌توانیم APIهای مختلف پیمایش و پرس‌وجوی گراف را فراهم
+        کنیم. این را به‌عنوان تمرینی حل‌شده به خواننده واگذار می‌کنیم؛ یک راه‌حل را می‌توان در کد منبع فصل یافت (به
+        <code class="inline">graph.clj</code> مراجعه کنید).</p>
+      </section>
+
+      <!-- ==================== پرس و جوی پایگاه داده ==================== -->
+      <section>
+        <h2>پرس‌وجو از پایگاه داده (Querying the Database)</h2>
+        <p>دومین کتابخانه‌ای که ارائه می‌کنیم قابلیت‌های پرس‌وجو را فراهم می‌کند که دغدغهٔ اصلی این بخش است. پایگاه داده
+        بدون مکانیزمِ پرس‌وجویِ قدرتمند برای کاربرانش چندان مفید نیست. این ویژگی معمولاً از طریق یک <em>زبان پرس‌وجو</em>
+        (query language) در معرض دید کاربران قرار می‌گیرد که برای تعیینِ اعلامی (declarative) مجموعهٔ دادهٔ موردنظر استفاده
+        می‌شود.</p>
+        <p>مدل دادهٔ ما مبتنی بر انباشت واقعیت‌ها (یعنی دیتام‌ها) در طول زمان است. برای این مدل، مکان طبیعی برای جست‌وجوی
+        زبان پرس‌وجوی مناسب، <em>برنامه‌نویسی منطقی</em> (logic programming) است. یک زبان پرس‌وجویِ پرکاربرد که تحت تأثیر
+        برنامه‌نویسی منطقی است، <em>دیتالاگ</em> (Datalog) نام دارد که علاوه بر اینکه برای مدل دادهٔ ما بسیار مناسب است،
+        سازگاری بسیار ظریفی با نحو (syntax) کلوجور دارد. موتور پرس‌وجوی ما زیرمجموعه‌ای از زبان دیتالاگ از
+        <a href="http://docs.datomic.com/query.html" target="_blank" rel="noopener">پایگاه دادهٔ دیتامیک (Datomic)</a> را
+        پیاده‌سازی می‌کند.</p>
+
+        <h3>زبان پرس‌وجو (Query Language)</h3>
+        <p>بیایید به یک پرس‌وجوی نمونه در زبان پیشنهادیمان نگاه کنیم. این پرس‌وجو می‌پرسد: «نام‌ها و تولدهای موجودیت‌هایی که
+        پیتزا دوست دارند، انگلیسی صحبت می‌کنند، و تولدشان این ماه است چیست؟»</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">{  :find [?nm ?bd ]
+   :where [
+      [?e  :likes "pizza"]
+      [?e  :name  ?nm]
+      [?e  :speak "English"]
+      [?e  :bday (bday-mo? ?bd)]]}</code></pre>
+
+        <h4>نحو (Syntax)</h4>
+        <p>برای فراهم کردن نحوِ پایه‌ای پرس‌وجوهایمان مستقیماً از نحوِ لفظ‌های داده‌ای (data literals) کلوجور استفاده
+        می‌کنیم. این به ما اجازه می‌دهد از نوشتن یک تجزیه‌گر (parser) تخصصی اجتناب کنیم، در حالی که همچنان فرمی فراهم
+        می‌کنیم که برای برنامه‌نویسان آشنا با کلوجور آشنا و به‌راحتی خواندنی است.</p>
+        <p>یک پرس‌وجو نقشه‌ای با دو آیتم است:</p>
+        <ul>
+          <li>آیتمی با <code class="inline">:where</code> به‌عنوان کلید و با یک <em>قاعده</em> (rule) به‌عنوان مقدار. یک
+          قاعده برداری از <em>بندها</em> (clauses) است و یک بند برداری است که از سه <em>محمول</em> (predicate) تشکیل شده
+          که هر کدام روی مؤلفهٔ متفاوتی از یک دیتام عمل می‌کند. در مثال بالا، <code class="inline">[?e :likes "pizza"]</code>
+          یک بند است. این آیتمِ <code class="inline">:where</code> قاعده‌ای را تعریف می‌کند که به‌عنوان فیلتری روی دیتام‌های
+          پایگاه دادهٔ ما عمل می‌کند (مانند بند <code class="inline">WHERE</code> در SQL).</li>
+          <li>آیتمی با <code class="inline">:find</code> به‌عنوان کلید و با یک بردار به‌عنوان مقدار. بردار مشخص می‌کند کدام
+          مؤلفه‌های دیتامِ انتخاب‌شده باید در نتایج نمایش داده شوند (مانند بند <code class="inline">SELECT</code> در SQL).</li>
+        </ul>
+        <p>توصیف بالا یک الزامِ حیاتی را حذف می‌کند: چگونه بندهای مختلف را روی یک مقدار همگام کنیم (یعنی یک عملیات پیوند
+        (join) بین آن‌ها انجام دهیم)، و چگونه مقادیرِ یافت‌شده را در خروجی ساختاربندی کنیم (که توسط بخش
+        <code class="inline">:find</code> مشخص می‌شود).</p>
+        <p>هر دوی این الزامات را با استفاده از <em>متغیرها</em> (variables) برآورده می‌کنیم که با یک <code class="inline">?</code>
+        پیشرو نشان داده می‌شوند. تنها استثنای این تعریف، متغیر «برایم مهم نیست» (don't care) یعنی
+        <code class="inline">_</code> (خط زیر) است.</p>
+        <p>یک بند در یک پرس‌وجو از سه محمول تشکیل شده است؛ جدول ۱۰.۲ مشخص می‌کند چه چیزی می‌تواند به‌عنوان یک محمول در زبان
+        پرس‌وجوی ما عمل کند.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">نام</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">معنا</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">مثال</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">ثابت (Constant)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px">آیا مقدارِ آیتم در دیتام با ثابت برابر است؟</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">:likes</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">متغیر (Variable)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px">مقدارِ آیتم در دیتام را به متغیر الزام می‌کند و true برمی‌گرداند.</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">?e</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">بی‌اهمیت (Don't-care)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px">همیشه true برمی‌گرداند.</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">_</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">عملگر یکتایی (Unary operator)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px">عملیاتِ یکتایی که یک متغیر را به‌عنوان عملوند می‌گیرد.<br />مقدارِ آیتمِ دیتام را به متغیر الزام می‌کند (مگر اینکه «<code class="inline">_</code>» باشد).<br />متغیر را با مقدارِ آیتم در دیتام جایگزین می‌کند.<br />نتیجهٔ اعمالِ عملیات را برمی‌گرداند.</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">(bday-mo? _)</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">عملگر دوتایی (Binary operator)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px">عملیاتِ دوتایی که باید یک متغیر را به‌عنوان یکی از عملوندهایش داشته باشد.<br />مقدارِ آیتمِ دیتام را به متغیر الزام می‌کند (مگر اینکه «<code class="inline">_</code>» باشد).<br />متغیر را با مقدارِ آیتم در دیتام جایگزین می‌کند.<br />نتیجهٔ عملیات را برمی‌گرداند.</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">(&gt; ?age 20)</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۲ - محمول‌ها</p>
+
+        <h4>محدودیت‌های زبان پرس‌وجوی ما (Limitations of our Query Language)</h4>
+        <p>مهندسی تماماً دربارهٔ مدیریت مبادله‌ها (tradeoffs) است و طراحی موتور پرس‌وجوی ما نیز تفاوتی ندارد. در مورد ما،
+        مبادلهٔ اصلی که باید به آن بپردازیم غنای ویژگی‌ها در برابر پیچیدگی است. حل این مبادله مستلزم نگاه کردن به کاربردهای
+        رایج سامانه و تصمیم‌گیری از آن نقطه است که چه محدودیت‌هایی قابل قبول خواهند بود.</p>
+        <p>در پایگاه دادهٔ خود تصمیم گرفتیم موتور پرس‌وجویی با محدودیت‌های زیر بسازیم:</p>
+        <ul>
+          <li>کاربران نمی‌توانند عملیات‌های منطقی بین بندها تعریف کنند؛ آن‌ها همیشه با هم «AND» می‌شوند. (با استفاده از
+          محمول‌های یکتایی یا دوتایی می‌توان این را دور زد.)</li>
+          <li>اگر بیش از یک بند در یک پرس‌وجو وجود داشته باشد، باید یک متغیر وجود داشته باشد که در همهٔ بندهای آن پرس‌وجو
+          یافت شود. این متغیر به‌عنوان متغیر اتصال‌دهنده (joining variable) عمل می‌کند. این محدودیت بهینه‌ساز پرس‌وجو را
+          ساده می‌کند.</li>
+          <li>یک پرس‌وجو فقط روی یک پایگاه دادهٔ منفرد اجرا می‌شود.</li>
+        </ul>
+        <p>در حالی که این تصمیم‌های طراحی به زبان پرس‌وجویی منجر می‌شوند که کمتر از دیتالاگ غنی است، همچنان قادریم از انواع
+        بسیاری از پرس‌وجوهای ساده اما مفید پشتیبانی کنیم.</p>
+
+        <h3>طراحی موتور پرس‌وجو (Query Engine Design)</h3>
+        <p>در حالی که زبان پرس‌وجوی ما به کاربر اجازه می‌دهد مشخص کند <em>چه چیزی</em> می‌خواهد به آن دسترسی داشته باشد،
+        جزئیات <em>چگونگی</em> انجام این کار را پنهان می‌کند. موتور پرس‌وجو مؤلفهٔ پایگاه داده است که مسئول تولید داده برای
+        یک پرس‌وجویِ داده‌شده است.</p>
+        <p>این شامل چهار گام است:</p>
+        <ol>
+          <li>تبدیل به نمایش داخلی: پرس‌وجو را از شکل متنی‌اش به ساختار داده‌ای تبدیل کنید که توسط پلنر پرس‌وجو
+          (query planner) مصرف می‌شود.</li>
+          <li>ساختن پلن پرس‌وجو: یک <em>پلن</em> (plan) کارآمد برای تولید نتایجِ پرس‌وجویِ داده‌شده تعیین کنید. در مورد ما،
+          پلن پرس‌وجو تابعی است که باید فراخوانی شود.</li>
+          <li>اجرای پلن: پلن را اجرا کنید و نتایجش را به فاز بعدی بفرستید.</li>
+          <li>یکسان‌سازی و گزارش: فقط نتایجی را که باید گزارش شوند استخراج کنید و آن‌ها را همان‌طور که مشخص شده فرمت‌بندی
+          کنید.</li>
+        </ol>
+
+        <h4>فاز ۱: تبدیل (Transformation)</h4>
+        <p>در این فاز، پرس‌وجویِ داده‌شده را از نمایشی که برای کاربر آسان است به نمایشی تبدیل می‌کنیم که بتواند به‌صورت
+        کارآمد توسط پلنر پرس‌وجو مصرف شود.</p>
+        <p>بخش <code class="inline">:find</code> پرس‌وجو به مجموعه‌ای از نام‌های متغیرِ داده‌شده تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro symbol-col-to-set [coll] (set (map str coll)))</code></pre>
+        <p>بخش <code class="inline">:where</code> پرس‌وجو ساختار برداریِ تو در توی خود را حفظ می‌کند. با این حال، هر یک از
+        عبارت‌های هر یک از بندها مطابق جدول ۱۰.۲ با یک محمول جایگزین می‌شود.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro clause-term-expr [clause-term]
+   (cond
+    (variable? (str clause-term)) ; متغیر
+      #(= % %) 
+    (not (coll? clause-term)) ; ثابت 
+      `#(= % ~clause-term) 
+    (= 2 (count clause-term)) ; عملگر یکتایی
+      `#(~(first clause-term) %) 
+    (variable? (str (second clause-term))); عملگر دوتایی؛ عملوند اول متغیر است
+      `#(~(first clause-term) % ~(last clause-term))
+    (variable? (str (last clause-term))); عملگر دوتایی؛ عملوند دوم متغیر است
+      `#(~(first clause-term) ~(second clause-term) %)))</code></pre>
+        <p>برای هر بند، برداری با نام‌های متغیرِ استفاده‌شده در آن بند به‌عنوان فراداده‌اش تنظیم می‌شود.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro clause-term-meta [clause-term]
+   (cond
+   (coll? clause-term)  (first (filter #(variable? % false) (map str clause-term))) 
+   (variable? (str clause-term) false) (str clause-term) 
+   :no-variable-in-clause nil))</code></pre>
+        <p>برای پیمایش روی عبارت‌های هر بند از <code class="inline">pred-clause</code> استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro pred-clause [clause]
+   (loop [[trm# &amp; rst-trm#] clause exprs# [] metas# []]
+     (if  trm#
+          (recur rst-trm# (conj exprs# `(clause-term-expr ~ trm#)) 
+                       (conj metas#`(clause-term-meta ~ trm#)))
+          (with-meta exprs# {:db/variable metas#}))))</code></pre>
+        <p>پیمایش روی خودِ بندها در <code class="inline">q-clauses-to-pred-clauses</code> رخ می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro  q-clauses-to-pred-clauses [clauses]
+     (loop [[frst# &amp; rst#] clauses preds-vecs# []]
+       (if-not frst#  preds-vecs#
+         (recur rst# `(conj ~preds-vecs# (pred-clause ~frst#))))))</code></pre>
+        <p>بار دیگر به این واقعیت تکیه می‌کنیم که ماکروها آرگومان‌هایشان را مشتاقانه (eagerly) ارزیابی نمی‌کنند. این به ما
+        اجازه می‌دهد API ساده‌تری تعریف کنیم که در آن کاربران نام‌های متغیر را به‌صورت نمادها (symbols) فراهم می‌کنند
+        (مثلاً <code class="inline">?name</code>) به‌جای اینکه از کاربر بخواهیم درون‌بندی‌های موتور را با فراهم کردن نام‌های
+        متغیر به‌صورت رشته‌ها (مثلاً <code class="inline">"?name"</code>) درک کند، یا حتی بدتر، نام متغیر را نقل‌قول
+        (quote) کند (مثلاً <code class="inline">'?name</code>).</p>
+        <p>در پایان این فاز، مثال ما برای بخش <code class="inline">:find</code> مجموعهٔ زیر را به دست می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">#{"?nm" "?bd"} </code></pre>
+        <p>و برای بخش <code class="inline">:where</code> ساختارِ جدول ۱۰.۳ را. (هر خانه در ستونِ <em>بند محمولی</em>
+        (Predicate Clause)، فرادادهٔ یافت‌شده در همسایهٔ خود در ستونِ <em>بند فراداده‌ای</em> (Meta Clause) را نگه می‌دارد.)</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">بند پرس‌وجو (Query Clause)</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">بند محمولی (Predicate Clause)</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">بند فراداده‌ای (Meta Clause)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[?e  :likes "pizza"]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[#(= % %) #(= % :likes) #(= % "pizza")]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[?e  :name  ?nm]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[#(= % %) #(= % :name) #(= % %)]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?nm"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[?e  :speak "English"]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[#(= % %) #(= % :speak) #(= % "English")]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[?e  :bday (bday-mo? ?bd)]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[#(= % %) #(= % :bday) #(bday-mo? %)]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?bd"]</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۳ - بندها</p>
+        <p>این ساختار به‌عنوان پرس‌وجویی عمل می‌کند که در فازِ بعدی، وقتی موتور تصمیم می‌گیرد پلن مناسبِ اجرا کدام است،
+        اجرا می‌شود.</p>
+
+        <h4>فاز ۲: ساختن پلن (Making a Plan)</h4>
+        <p>در این فاز، پرس‌وجو را بازرسی می‌کنیم تا پلن خوبی برای تولید نتیجهٔ توصیف‌شده بسازیم.</p>
+        <p>به‌طور کلی، این شامل انتخاب ایندکس مناسب (جدول ۱۰.۴) و ساختن پلنی به شکل یک تابع خواهد بود. ایندکس را بر اساس
+        <em>متغیرِ اتصال‌دهندهٔ منفرد</em> (که فقط می‌تواند روی یک نوع عنصر عمل کند) انتخاب می‌کنیم.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">متغیر اتصال‌دهنده روی چه چیزی عمل می‌کند</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">ایندکس مورداستفاده</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">شناسه‌های موجودیت (Entity IDs)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">AVET</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">نام‌های صفت (Attribute names)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">VEAT</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px">مقادیر صفت (Attribute values)</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">EAVT</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۴ - انتخاب ایندکس</p>
+        <p>منطقِ پشت این نگاشت در بخشِ بعد، وقتی واقعاً پلنِ تولیدشده را اجرا می‌کنیم، واضح‌تر خواهد شد. فعلاً فقط توجه کنید
+        که نکتهٔ کلیدی اینجاست که ایندکسی انتخاب کنیم که برگ‌هایش عناصری را که متغیر اتصال‌دهنده روی آن‌ها عمل می‌کند نگه
+        می‌دارند.</p>
+        <p>یافتن ایندکسِ متغیرِ اتصال‌دهنده توسط <code class="inline">index-of-joining-variable</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn index-of-joining-variable [query-clauses]
+   (let [metas-seq  (map #(:db/variable (meta %)) query-clauses) 
+         collapsing-fn (fn [accV v] (map #(when (= %1 %2) %1)  accV v))
+         collapsed (reduce collapsing-fn metas-seq)] 
+     (first (keep-indexed #(when (variable? %2 false) %1)  collapsed)))) </code></pre>
+        <p>با استخراج فرادادهٔ هر بند در پرس‌وجو شروع می‌کنیم. این فرادادهٔ استخراج‌شده بردارِ سه‌عنصری است؛ هر عنصر یا یک
+        نام متغیر است یا nil. (توجه کنید که در آن بردار بیش از یک نام متغیر وجود ندارد.) پس از استخراج بردار، از آن (با
+        reduce) یک مقدار منفرد تولید می‌کنیم که یا نام متغیر است یا nil. اگر نام متغیری تولید شود، در همهٔ بردارهای
+        فراداده‌ای در همان ایندکس ظاهر شده است؛ یعنی این متغیرِ اتصال‌دهنده است. بنابراین می‌توانیم انتخاب کنیم که ایندکسِ
+        مرتبط با این متغیرِ اتصال‌دهنده را بر اساس نگاشتِ توصیف‌شدهٔ بالا استفاده کنیم.</p>
+        <p>هنگامی که ایندکس انتخاب شد، پلن خود را می‌سازیم؛ تابعی که روی پرس‌وجو و نام ایندکس بسته می‌شود (closes over) و
+        عملیاتِ لازم برای برگرداندن نتایجِ پرس‌وجو را اجرا می‌کند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn build-query-plan [query]
+   (let [term-ind (index-of-joining-variable query)
+         ind-to-use (case term-ind 0 :AVET 1 :VEAT 2 :EAVT)]
+      (partial single-index-query-plan query ind-to-use)))</code></pre>
+        <p>در مثال ما ایندکسِ انتخاب‌شده <code class="inline">AVET</code> است، زیرا متغیرِ اتصال‌دهنده روی شناسه‌های
+        موجودیت عمل می‌کند.</p>
+
+        <h4>فاز ۳: اجرای پلن (Execution of the Plan)</h4>
+        <p>در فازِ قبلی دیدیم که پلن پرس‌وجوی ما با صدازدن <code class="inline">single-index-query-plan</code> پایان می‌یابد.
+        این تابع:</p>
+        <ol>
+          <li>هر بند محمولی را روی یک ایندکس اعمال می‌کند (هر محمول روی سطحِ مناسبِ ایندکس).</li>
+          <li>عملیات AND را روی نتایج انجام می‌دهد.</li>
+          <li>نتایج را در ساختار دادهٔ ساده‌تری ادغام می‌کند.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn single-index-query-plan [query indx db]
+   (let [q-res (query-index (indx-at db indx) query)]
+     (bind-variables-to-query q-res (indx-at db indx))))</code></pre>
+        <p>برای توضیح بهتر این فرایند، آن را با پرس‌وجویِ نمونهٔ خود نشان می‌دهیم و فرض می‌کنیم که پایگاه دادهٔ ما
+        موجودیت‌های جدول ۱۰.۵ را نگه می‌دارد.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">شناسهٔ موجودیت</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">نام صفت</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">مقدار صفت</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center">1</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">:name<br />:likes<br />:speak<br />:bday</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">USA<br />Pizza<br />English<br />July 4, 1776</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center">2</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">:name<br />:likes<br />:speak<br />:bday</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">France<br />Red wine<br />French<br />July 14, 1789</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center">3</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">:name<br />:likes<br />:speak<br />:bday</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left">Canada<br />Snow<br />English<br />July 1, 1867</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۵ - موجودیت‌های نمونه</p>
+        <p>حالا وقت آن است که به عمقِ خرگوش‌خانه برویم و به تابع <code class="inline">query-index</code> نگاهی بیندازیم، جایی
+        که پرس‌وجوی ما در نهایت شروع به تولیدِ برخی نتایج می‌کند:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn query-index [index pred-clauses]
+   (let [result-clauses (filter-index index pred-clauses)
+         relevant-items (items-that-answer-all-conditions (map last result-clauses) 
+                                                          (count pred-clauses))
+         cleaned-result-clauses (map (partial mask-path-leaf-with-items 
+                                              relevant-items)
+                                     result-clauses)] 
+     (filter #(not-empty (last %)) cleaned-result-clauses)))</code></pre>
+        <p>این تابع با اعمال بندهای محمولی روی ایندکسِ قبلاً انتخاب‌شده شروع می‌کند. هر اعمالِ یک بند محمولی روی یک ایندکس،
+        یک <em>بند نتیجه</em> (result clause) برمی‌گرداند.</p>
+        <p>ویژگی‌های اصلی یک نتیجه:</p>
+        <ol>
+          <li>از سه آیتم ساخته شده است که هر کدام از سطحِ متفاوتی از ایندکس می‌آیند و هر کدام از محمولِ مربوطهٔ خود گذشته
+          است.</li>
+          <li>ترتیب آیتم‌ها با ساختارِ سطوح ایندکس هماهنگ است. (بندهای محمولی همیشه در ترتیب EAV هستند.) ترتیب‌مجدد هنگام
+          اعمالِ <code class="inline">from-eav</code> ایندکس روی بند محمولی انجام می‌شود.</li>
+          <li>فرادادهٔ بند محمولی به آن چسبانده می‌شود.</li>
+        </ol>
+        <p>همهٔ این‌ها در تابع <code class="inline">filter-index</code> انجام می‌شود.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn filter-index [index predicate-clauses]
+   (for [pred-clause predicate-clauses
+         :let [[lvl1-prd lvl2-prd lvl3-prd] (apply (from-eav index) pred-clause)] 
+         [k1 l2map] index  ; کلیدها و مقادیر سطح اول
+         :when (try (lvl1-prd k1) (catch Exception e false))
+         [k2  l3-set] l2map  ; کلیدها و مقادیر سطح دوم
+         :when (try (lvl2-prd k2) (catch Exception e false))
+         :let [res (set (filter lvl3-prd l3-set))] ]
+     (with-meta [k1 k2 res] (meta pred-clause))))</code></pre>
+        <p>با فرض اینکه پرس‌وجو در ۴ ژوئیه اجرا شده باشد، نتایجِ اجرای آن روی داده‌های بالا در جدول ۱۰.۶ دیده می‌شوند.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">بند نتیجه (Result Clause)</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">فرادادهٔ نتیجه (Result Meta)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:likes Pizza #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:name USA #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?nm"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:speak "English" #{1, 3}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:bday "July 4, 1776" #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?bd"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:name France #{2}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?nm"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:bday "July 14, 1789" #{2}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?bd"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:name Canada #{3}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?nm"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:bday "July 1, 1867" #{3}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?bd"]</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۶ - نتایج پرس‌وجو</p>
+        <p>پس از تولیدِ همهٔ بندهای نتیجه، باید عملیاتِ <code class="inline">AND</code> بین آن‌ها انجام دهیم. این کار با
+        یافتنِ همهٔ عناصری انجام می‌شود که از همهٔ بندهای محمولی گذشته‌اند:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn items-that-answer-all-conditions [items-seq num-of-conditions]
+   (-&gt;&gt; items-seq ; items-seq را بردار
+         (map vec) ; هر مجموعه (در واقع یک set) را به یک بردار تبدیل کن
+         (reduce into []) ; همهٔ بردارها را در یک بردار ادغام کن
+         (frequencies) ; برای هر آیتم بشمار در چند مجموعه (set) بوده است
+         (filter #(&lt;= num-of-conditions (last %))) ; آیتم‌هایی که همهٔ شرایط را پاسخ داده‌اند
+         (map first) ; از جفت‌ها خودِ آیتم‌ها را بردار
+         (set))) ; آن را به‌صورت مجموعه برگردان</code></pre>
+        <p>در مثال ما، نتیجهٔ این گام مجموعه‌ای است که مقدار <em>1</em> را نگه می‌دارد (که شناسهٔ موجودیتِ USA است).</p>
+        <p>حالا باید آیتم‌هایی را که از همهٔ شرایط نگذشته‌اند حذف کنیم:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn mask-path-leaf-with-items [relevant-items path]
+     (update-in path [2] CS/intersection relevant-items))</code></pre>
+        <p>در نهایت، همهٔ بندهای نتیجِه‌ای را که «خالی» هستند (یعنی آخرین آیتمشان خالی است) حذف می‌کنیم. این کار را در
+        خطِ آخرِ تابع <code class="inline">query-index</code> انجام می‌دهیم. مثال ما ما را با آیتم‌های جدول ۱۰.۷ تنها
+        می‌گذارد.</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">بند نتیجه (Result Clause)</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">فرادادهٔ نتیجه (Result Meta)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:likes Pizza #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:name USA #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?nm"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:bday "July 4, 1776" #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil "?bd"]</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">[:speak "English" #{1}]</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">["?e" nil nil]</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="text-align:center;font-size:0.85rem;color:var(--muted)">جدول ۱۰.۷ - نتایج پرس‌وجوی فیلترشده</p>
+        <p>حالا آمادهٔ گزارش نتایج هستیم. ساختارِ بند نتیجه برای این منظور دست‌وپاگیر است؛ پس آن را به ساختاری
+        ایندکس‌مانند (نقشه‌ای از نقشه‌ها) تبدیل می‌کنیم — با یک پیچش (twist) قابل توجه.</p>
+        <p>برای درک این پیچش، ابتدا باید ایدهٔ <em>جفت الزام</em> (binding pair) را معرفی کنیم؛ جفتی که یک نام متغیر را با
+        مقدارش همتا می‌کند. نام متغیر همانی است که در بندهای محمولی استفاده می‌شود و مقدار، مقداری است که در بندهای نتیجه
+        یافت می‌شود.</p>
+        <p>پیچش در ساختار ایندکس این است که حالا در مکانی که در یک ایندکس یک جفتِ شناسهٔ موجودیت/نام صفت/مقدار را نگه
+        می‌داشتیم، یک جفتِ الزامِ شناسهٔ موجودیت/نام صفت/مقدار را نگه می‌داریم:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn bind-variables-to-query [q-res index]
+   (let [seq-res-path (mapcat (partial combine-path-and-meta (from-eav index)) 
+                               q-res)       
+         res-path (map #(-&gt;&gt; %1 (partition 2)(apply (to-eav index))) seq-res-path)] 
+     (reduce #(assoc-in %1  (butlast %2) (last %2)) {} res-path)))
+(defn combine-path-and-meta [from-eav-fn path]
+    (let [expanded-path [(repeat (first path)) (repeat (second path)) (last path)] 
+          meta-of-path (apply from-eav-fn (map repeat (:db/variable (meta path))))
+          combined-data-and-meta-path (interleave meta-of-path expanded-path)]
+       (apply (partial map vector) combined-data-and-meta-path)))</code></pre>
+        <p>در پایان فاز ۳ اجرایِ مثالِ ما، ساختار زیر را در دست داریم:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">{[1 "?e"]{ 
+    {[:likes nil]    ["Pizza" nil]}
+    {[:name nil]     ["USA" "?nm"]}
+    {[:speaks nil]   ["English" nil]} 
+    {[:bday nil] ["July 4, 1776" "?bd"]} 
+}}</code></pre>
+
+        <h4>فاز ۴: یکسان‌سازی و گزارش (Unify and Report)</h4>
+        <p>در این نقطه، ابرمجموعه‌ای از نتایجی را تولید کرده‌ایم که کاربر در ابتدا خواسته بود. در این فاز، مقادیری را که
+        کاربر می‌خواهد استخراج می‌کنیم. این فرایند <em>یکسان‌سازی</em> (unification) نامیده می‌شود: اینجاست که ساختارِ
+        جفت‌های الزام را با بردارِ نام‌های متغیری که کاربر در بندِ <code class="inline">:find</code> پرس‌وجو تعریف کرده است
+        یکسان می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn unify [binded-res-col needed-vars]
+   (map (partial locate-vars-in-query-res needed-vars) binded-res-col))</code></pre>
+        <p>هر گامِ یکسان‌سازی توسط <code class="inline">locate-vars-in-query-result</code> مدیریت می‌شود که روی یک نتیجهٔ
+        پرس‌وجو (که به‌عنوان یک ورودیِ ایندکس ساختاردهی شده، اما با جفت‌های الزام) پیمایش می‌کند تا همهٔ متغیرها و مقادیری
+        را که کاربر خواسته است تشخیص دهد.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defn locate-vars-in-query-res [vars-set q-res]
+   (let [[e-pair av-map]  q-res
+         e-res (resultify-bind-pair vars-set [] e-pair)]
+     (map (partial resultify-av-pair vars-set e-res)  av-map)))
+(defn resultify-bind-pair [vars-set accum pair]
+   (let [[ var-name _] pair]
+      (if (contains? vars-set var-name) (conj accum pair) accum)))
+(defn resultify-av-pair [vars-set accum-res av-pair]
+   (reduce (partial resultify-bind-pair vars-set) accum-res av-pair))</code></pre>
+        <p>در پایان این فاز، نتایجِ مثالِ ما به این صورت است:</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">[("?nm" "USA") ("?bd" "July 4, 1776")]</code></pre>
+
+        <h4>اجرای نمایش (Running the Show)</h4>
+        <p>بالاخره همهٔ مؤلفه‌هایی را ساخته‌ایم که برای مکانیزمِ پرس‌وجویِ کاربرمحورمان نیاز داریم: ماکروی
+        <code class="inline">q</code> که یک پایگاه داده و یک پرس‌وجو را به‌عنوان آرگومان دریافت می‌کند.</p>
+        <pre class="code"><span class="lang-tag">clj</span><code style="direction:ltr;text-align:left">(defmacro q
+  [db query]
+  `(let [pred-clauses#  (q-clauses-to-pred-clauses ~(:where query)) 
+         needed-vars# (symbol-col-to-set  ~(:find query))
+         query-plan# (build-query-plan pred-clauses#)
+         query-internal-res# (query-plan# ~db)]
+     (unify query-internal-res# needed-vars#)))</code></pre>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی (Summary)</h2>
+        <p>سفر ما با یک تصور از نوعی متفاوت از پایگاه داده آغاز شد و با پایگاه داده‌ای پایان یافت که:</p>
+        <ul>
+          <li>از تراکنش‌های ACI پشتیبانی می‌کند (ماندگاری (durability) زمانی که تصمیم گرفتیم داده‌ها در حافظه ذخیره شوند از
+          دست رفت).</li>
+          <li>از تعامل‌های «چه می‌شود اگر» پشتیبانی می‌کند.</li>
+          <li>به پرسش‌های مرتبط با زمان پاسخ می‌دهد.</li>
+          <li>پرس‌وجوهای دیتالاگِ ساده‌ای را مدیریت می‌کند که با ایندکس‌ها بهینه شده‌اند.</li>
+          <li>APIهایی برای پرس‌وجوهای گراف فراهم می‌کند.</li>
+          <li>مفهوم پرس‌وجوهای تکاملی (evolutionary queries) را معرفی و پیاده‌سازی می‌کند.</li>
+        </ul>
+        <p>هنوز چیزهای زیادی وجود دارد که می‌توانیم بهبود دهیم: می‌توانیم برای بهبود عملکرد به چند مؤلفه حافظهٔ پنهان
+        (caching) اضافه کنیم؛ از پرس‌وجوهای غنی‌تر پشتیبانی کنیم؛ و پشتیبانیِ ذخیره‌سازی واقعی برای فراهم کردن ماندگاریِ
+        داده اضافه کنیم؛ فقط چند نمونه نام بردیم.</p>
+        <p>با این حال، محصول نهاییِ ما می‌تواند کارهای بسیار زیادی انجام دهد و در ۴۸۸ خط کد منبع کلوجور پیاده‌سازی شده
+        است که ۷۳ تای آن خطوط خالی و ۵۵ تای آن رشته‌های مستندسازی (docstrings) هستند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> کد کامل این فصل (به‌همراه فایل‌های <code class="inline">graph.clj</code> و سایر کتابخانه‌ها)
+          در مخزن رسمی کتاب 500 Lines or Less در GitHub در دسترس است:
+          <a href="https://github.com/aosabook/500lines/tree/master/archaeology" target="_blank" rel="noopener">مخزن archaeology</a>.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «An Archaeology-Inspired Database» اثر «یوآو روبین (Yoav Rubin)» از کتاب
+        «500 Lines or Less» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://aosabook.org/en/500L/an-archaeology-inspired-database.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

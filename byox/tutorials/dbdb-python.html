@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی فصل «DBDB: Dog Bed Database» (Taavi Burns)
+  از کتاب 500 Lines or Less (AOSA)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | DBDB: پایگاه دادهٔ تخت سگ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پایگاه داده</a>
+        <span class="sep">←</span>
+        <span>DBDB: پایگاه دادهٔ تخت سگ</span>
+      </div>
+      <h1>DBDB: پایگاه دادهٔ تخت سگ</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: پایگاه داده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/dbdb-dog-bed-database.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی فصل «DBDB: Dog Bed Database» نوشته «تاوی برنز (Taavi Burns)»
+          از کتاب «500 Lines or Less» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/dbdb-dog-bed-database.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>DBDB (Dog Bed Database) یک کتابخانهٔ پایتون است که یک پایگاه دادهٔ سادهٔ کلید/مقدار (key/value database)
+        را پیاده‌سازی می‌کند. به شما امکان می‌دهد یک کلید (key) را به یک مقدار (value) مرتبط کنید و آن رابطه را برای
+        بازیابی بعدی روی دیسک ذخیره کنید.</p>
+        <p>هدف DBDB حفظ داده‌ها در برابر خرابی‌های (crash) رایانه و شرایط خطا است. همچنین از نگه‌داشتن هم‌زمان همهٔ
+        داده‌ها در حافظهٔ RAM اجتناب می‌کند تا بتوانید دادهٔ بیشتری از حافظهٔ RAM خود ذخیره کنید.</p>
+        <div class="callout note">
+          <strong>دربارهٔ نویسنده:</strong> به‌عنوان جدیدترین باس (و گاهی تنور) در گروه
+          <a href="http://www.countermeasuremusic.com" target="_blank" rel="noopener">Countermeasure</a>، تاوی برنز
+          می‌کوشد قالب‌ها را بشکند... گاهی صرفاً با نادیده گرفتن وجودشان. این موضوع قطعاً در تنوع محل‌های کاری دوران
+          حرفه‌ای او صادق است: IBM (با سی و پرل)، FreshBooks (همه‌چیز)، Points.com (با پایتون)، و اکنون در PagerDuty
+          (با اسکالا). جدای از آن — وقتی با دوچرخهٔ تاشوی برومپتون‌اش سر نمی‌خورد — ممکن است او را در حال بازی
+          ماین‌کرافت با پسرش، یا پارکور (یا سنگ‌نوردی، یا ماجراجویی‌های دیگر) با همسرش پیدا کنید. او به روش قاره‌ای
+          بافتنی می‌بافد.
+        </div>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر از این کتاب‌ها لذت می‌برید، احتمالاً از
+          <a href="https://third-bit.com/sdxpy/" target="_blank" rel="noopener">Software Design by Example in Python</a>
+          و <a href="https://third-bit.com/sdxjs/" target="_blank" rel="noopener">Software Design by Example in JavaScript</a>
+          نیز لذت خواهید برد.
+        </div>
+      </section>
+
+      <!-- ==================== حافظه ==================== -->
+      <section>
+        <h2>حافظه</h2>
+        <p>اولین باری که واقعاً روی یک باگ گیر کردم را به خاطر می‌آورم. وقتی تایپ برنامهٔ بیسیک‌ام را تمام کردم و آن را
+        اجرا کردم، پیکسل‌های عجیب و درخشانی روی صفحه ظاهر شدند و برنامه زودتر از موعد متوقف شد. وقتی برگشتم تا کد را
+        نگاه کنم، چند خط آخر برنامه از بین رفته بودند.</p>
+        <p>یکی از دوستان مادرم برنامه‌نویسی بلد بود؛ پس یک تماس تلفنی ترتیب دادیم. ظرف چند دقیقه صحبت با او مشکل را
+        پیدا کردم: برنامه خیلی بزرگ بود و وارد حافظهٔ ویدیویی (video memory) شده بود. پاک‌کردن صفحه، برنامه را کوتاه
+        کرده بود و آن درخشش‌ها مصنوعاتی از رفتار Applesoft BASIC بودند که حالت برنامه را درست پس از پایان برنامه در
+        RAM ذخیره می‌کرد.</p>
+        <p>از همان لحظه به تخصیص حافظه (memory allocation) اهمیت می‌دادم. دربارهٔ اشاره‌گرها (pointers) و نحوهٔ تخصیص
+        حافظه با <code class="inline">malloc</code> یاد گرفتم. یاد گرفتم که ساختارهای داده‌ام در حافظه چگونه چیده
+        می‌شوند. و یاد گرفتم هنگام تغییر دادن آن‌ها بسیار بسیار محتاط باشم.</p>
+        <p>چند سال بعد، هنگام خواندن دربارهٔ زبان فرایندمحور اِرلنگ (Erlang)، یاد گرفتم که برای ارسال پیام بین فرایندها
+        نیازی به کپی‌کردن داده نیست، چون همه‌چیز تغییرناپذیر (immutable) است. سپس ساختارهای دادهٔ تغییرناپذیر را در
+        کلوجر (Clojure) کشف کردم و این مفهوم واقعاً در من جا افتاد.</p>
+        <p>وقتی در سال ۲۰۱۳ دربارهٔ CouchDB خواندم، فقط لبخند زدم و سر تکان دادم؛ ساختارها و سازوکارهای مدیریت دادهٔ
+        پیچیده هنگام تغییر را می‌شناختم.</p>
+        <p>یاد گرفتم که می‌توان سیستم‌هایی طراحی کرد که حول داده‌های تغییرناپذیر بنا شده‌اند.</p>
+        <p>سپس قبول کردم فصلی برای یک کتاب بنویسم.</p>
+        <p>فکر کردم توصیف مفاهیم اصلی ذخیره‌سازی دادهٔ CouchDB (آن‌طور که من می‌فهمم) سرگرم‌کننده خواهد بود.</p>
+        <p>هنگام تلاش برای نوشتن الگوریتمی برای درخت دودویی (binary tree) که درخت را درجا (in place) تغییر می‌داد، از
+        پیچیده‌شدن اوضاع عصبانی شدم. تعداد موارد مرزی (edge cases) و تلاش برای استدلال دربارهٔ اینکه تغییرات یک بخش
+        درخت روی بخش‌های دیگر اثر می‌گذارد، سرم را به درد آورده بود. هیچ ایده‌ای نداشتم که می‌خواهم همهٔ این‌ها را
+        چگونه توضیح دهم.</p>
+        <p>با یادآوری درس‌های آموخته‌شده، سری به یک الگوریتم بازگشتی برای به‌روزرسانی درخت‌های دودویی تغییرناپذیر زدم
+        و معلوم شد که نسبتاً سرراست است.</p>
+        <p>یک بار دیگر یاد گرفتم که استدلال دربارهٔ چیزهایی که تغییر نمی‌کنند آسان‌تر است.</p>
+        <p>و داستان از این‌جا شروع می‌شود.</p>
+      </section>
+
+      <!-- ==================== چرا جالب است؟ ==================== -->
+      <section>
+        <h2>چرا جالب است؟</h2>
+        <p>بیشتر پروژه‌ها به نوعی پایگاه داده نیاز دارند. واقعاً نباید پایگاه دادهٔ خودتان را بنویسید؛ موارد مرزی زیادی
+        وجود دارند که گریبان شما را می‌گیرند، حتی اگر فقط JSON روی دیسک بنویسید:</p>
+        <ul>
+          <li>اگر فضای سیستم فایل شما تمام شود چه اتفاقی می‌افتد؟</li>
+          <li>اگر باتری لپ‌تاپ شما هنگام ذخیره‌سازی از کار بیفتد چه اتفاقی می‌افتد؟</li>
+          <li>اگر اندازهٔ داده‌های شما از حافظهٔ موجود بیشتر شود چه؟ (برای بیشتر برنامه‌ها روی رایانه‌های رومیزی مدرن
+          بعید است… اما برای یک دستگاه موبایل یا برنامهٔ وب سمت سرور چندان بعید نیست.)</li>
+        </ul>
+        <p>بااین‌حال، اگر می‌خواهید <em>بفهمید</em> یک پایگاه داده چگونه با همهٔ این مشکلات کنار می‌آید، نوشتن یکی
+        برای خودتان می‌تواند ایدهٔ خوبی باشد.</p>
+        <p>تکنیک‌ها و مفاهیمی که این‌جا بحث می‌کنیم باید برای هر مسئله‌ای که در مواجهه با خطا به رفتار منطقی و قابل
+        پیش‌بینی نیاز دارد، قابل استفاده باشند.</p>
+        <p>و صحبت از خطا شد...</p>
+      </section>
+
+      <!-- ==================== توصیف شکست ==================== -->
+      <section>
+        <h2>توصیف شکست</h2>
+        <p>پایگاه‌های داده معمولاً بر اساس میزان پایبندی‌شان به ویژگی‌های ACID توصیف می‌شوند: اتمیک بودن (atomicity)،
+        سازگاری (consistency)، جداسازی (isolation) و پایداری (durability).</p>
+        <p>به‌روزرسانی‌ها در DBDB اتمیک و پایدارند؛ دو ویژگی که بعداً در این فصل توصیف می‌شوند. DBDB هیچ تضمینی برای
+        سازگاری نمی‌دهد، چون هیچ محدودیتی روی داده‌های ذخیره‌شده وجود ندارد. جداسازی نیز به همین ترتیب پیاده‌سازی
+        نشده است.</p>
+        <p>البته کد برنامه می‌تواند تضمین‌های سازگاری خودش را اعمال کند، اما جداسازی صحیح به یک مدیر تراکنش
+        (transaction manager) نیاز دارد. ما در این‌جا سراغ آن نمی‌رویم؛ بااین‌حال می‌توانید دربارهٔ مدیریت تراکنش در
+        فصل <a href="http://aosabook.org/en/500L/an-archaeology-inspired-database.html" target="_blank" rel="noopener">CircleDB</a>
+        بیشتر بخوانید.</p>
+        <p>مشکلات نگهداری سیستم دیگری هم داریم که باید به آن‌ها فکر کنیم. داده‌های کهنه (stale data) در این
+        پیاده‌سازی بازپس‌گرفته نمی‌شوند؛ بنابراین به‌روزرسانی‌های مکرر (حتی روی کلید یکسان) در نهایت کل فضای دیسک را
+        مصرف خواهند کرد. (به‌زودی کشف خواهید کرد چرا چنین است.)</p>
+        <p><a href="http://www.postgresql.org/" target="_blank" rel="noopener">PostgreSQL</a> این بازپس‌گیری را
+        «خلاءسازی» (vacuuming) می‌نامد (که فضای ردیف‌های قدیمی را برای استفادهٔ مجدد در دسترس می‌گذارد) و
+        <a href="http://couchdb.apache.org/" target="_blank" rel="noopener">CouchDB</a> آن را «فشرده‌سازی»
+        (compaction) می‌نامد (با بازنویسی بخش‌های «زندهٔ» داده در یک فایل جدید و جابه‌جا کردن اتمیک آن روی فایل
+        قدیمی).</p>
+        <p>DBDB را می‌توان با افزودن قابلیت فشرده‌سازی ارتقا داد، اما این کار به‌عنوان تمرینی برای خواننده واگذار شده
+        است<a href="#fn1">[1]</a>.</p>
+        <div class="callout note">
+          <strong>خلاصه:</strong> به‌روزرسانی‌های DBDB اتمیک و پایدارند؛ اما هیچ تضمینی برای سازگاری یا جداسازی نمی‌دهد
+          و داده‌های کهنه بازپس‌گرفته نمی‌شوند.
+        </div>
+      </section>
+
+      <!-- ==================== معماری DBDB ==================== -->
+      <section>
+        <h2>معماری DBDB</h2>
+        <p>DBDB دغدغهٔ «این را یک‌جایی روی دیسک بگذار» (چیدمان داده‌ها در یک فایل؛ لایهٔ فیزیکی physical layer) را از
+        ساختار منطقی داده‌ها (در این مثال یک درخت دودویی؛ لایهٔ منطقی logical layer) و از محتوای فروشگاه کلید/مقدار
+        (رابطهٔ کلید <code class="inline">a</code> با مقدار <code class="inline">foo</code>؛ رابط برنامه‌نویسی عمومی
+        public API) جدا می‌کند.</p>
+        <p>بسیاری از پایگاه‌های داده جنبه‌های منطقی و فیزیکی را جدا می‌کنند، زیرا اغلب مفید است که پیاده‌سازی‌های
+        جایگزینی برای هر یک فراهم شود تا ویژگی‌های عملکردی متفاوتی به دست آید؛ مانند tablespaceهای SMS (فایل‌ها در یک
+        سیستم فایل) در برابر DMS (دستگاه بلوکی خام raw block device) در DB2، یا
+        <a href="http://dev.mysql.com/doc/refman/5.7/en/storage-engines.html" target="_blank" rel="noopener">پیاده‌سازی‌های
+        موتور جایگزین</a> در MySQL.</p>
+      </section>
+
+      <!-- ==================== کشف طراحی ==================== -->
+      <section>
+        <h2>کشف طراحی</h2>
+        <p>بیشتر فصل‌های این کتاب توصیف می‌کنند که یک برنامه چگونه از آغاز تا تکمیل ساخته شده است. اما این‌طور نیست که
+        بیشتر ما با کدی که روی آن کار می‌کنیم این‌گونه در ارتباط باشیم. ما بیشتر اوقات کدی را کشف می‌کنیم که دیگران
+        نوشته‌اند و می‌فهمیم چگونه آن را برای انجام کاری متفاوت تغییر یا گسترش دهیم.</p>
+        <p>در این فصل فرض می‌کنیم DBDB یک پروژهٔ کامل‌شده است و آن را قدم‌به‌قدم مرور می‌کنیم تا یاد بگیریم چگونه
+        کار می‌کند. اول بیایید ساختار کل پروژه را کاوش کنیم.</p>
+
+        <h3>واحدهای سازمانی</h3>
+        <p>واحدها در این‌جا بر اساس فاصله از کاربر نهایی مرتب شده‌اند؛ یعنی اولین ماژول، ماژولی است که کاربر این برنامه
+        احتمالاً بیشتر از همه باید درباره‌اش بداند، در حالی که آخرین ماژول چیزی است که کاربر باید تعامل بسیار کمی با
+        آن داشته باشد.</p>
+        <ul>
+          <li><code class="inline">tool.py</code> یک ابزار خط فرمان برای کاوش یک پایگاه داده از پنجرهٔ ترمینال تعریف
+          می‌کند.</li>
+          <li><code class="inline">interface.py</code> کلاسی (<code class="inline">DBDB</code>) تعریف می‌کند که رابط
+          برنامه‌نویسی دیکشنری پایتون را با استفاده از پیاده‌سازی مشخص <code class="inline">BinaryTree</code>
+          پیاده‌سازی می‌کند. این‌گونه است که DBDB را داخل یک برنامهٔ پایتون استفاده می‌کنید.</li>
+          <li><code class="inline">logical.py</code> لایهٔ منطقی را تعریف می‌کند. این یک رابط انتزاعی (abstract
+          interface) به یک فروشگاه کلید/مقدار است.
+            <ul>
+              <li><code class="inline">LogicalBase</code> رابط برنامه‌نویسی به‌روزرسانی‌های منطقی (مانند get، set و
+              commit) را فراهم می‌کند و پیاده‌سازی خود به‌روزرسانی‌ها را به یک زیرکلاس مشخص واگذار می‌کند. همچنین
+              مدیریت قفل ذخیره‌سازی (storage locking) و برداشتن ارجاع (dereferencing) گره‌های داخلی را بر عهده دارد.</li>
+              <li><code class="inline">ValueRef</code> یک شیء پایتون است که به یک بلوک باینری (binary blob) ذخیره‌شده
+              در پایگاه داده اشاره می‌کند. این لایهٔ میانی (indirection) به ما اجازه می‌دهد از بارگذاری کل فروشگاه داده
+              به یک‌باره در حافظه اجتناب کنیم.</li>
+            </ul>
+          </li>
+          <li><code class="inline">binary_tree.py</code> یک الگوریتم مشخص درخت دودویی را زیر رابط منطقی تعریف می‌کند.
+            <ul>
+              <li><code class="inline">BinaryTree</code> پیاده‌سازی مشخصی از یک درخت دودویی با متدهایی برای دریافت،
+              درج و حذف جفت‌های کلید/مقدار فراهم می‌کند. <code class="inline">BinaryTree</code> یک درخت تغییرناپذیر
+              را نمایش می‌دهد؛ به‌روزرسانی‌ها با برگرداندن یک درخت جدید انجام می‌شوند که ساختار مشترکی با درخت قدیمی
+              دارد.</li>
+              <li><code class="inline">BinaryNode</code> یک گره در درخت دودویی را پیاده‌سازی می‌کند.</li>
+              <li><code class="inline">BinaryNodeRef</code> یک <code class="inline">ValueRef</code> تخصصی است که
+              می‌داند چگونه یک <code class="inline">BinaryNode</code> را سریال (serialise) و از سریال خارج (deserialise)
+              کند.</li>
+            </ul>
+          </li>
+          <li><code class="inline">physical.py</code> لایهٔ فیزیکی را تعریف می‌کند. کلاس <code class="inline">Storage</code>
+          ذخیره‌سازی پایدار و (عمدتاً) فقط‌-افزودنی (append-only) رکوردها را فراهم می‌کند.</li>
+        </ul>
+        <p>این ماژول‌ها از تلاش برای دادن یک مسئولیت واحد به هر کلاس شکل گرفتند. به عبارت دیگر، هر کلاس باید فقط یک
+        دلیل برای تغییر داشته باشد.</p>
+
+        <h3>خواندن یک مقدار</h3>
+        <p>با ساده‌ترین حالت شروع می‌کنیم: خواندن یک مقدار از پایگاه داده. ببینیم وقتی تلاش می‌کنیم مقدار مرتبط با
+        کلید <code class="inline">foo</code> را در <code class="inline">example.db</code> بگیریم چه اتفاقی می‌افتد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ python -m dbdb.tool example.db get foo</code></pre>
+        <p>این کار تابع <code class="inline">main()</code> از ماژول <code class="inline">dbdb.tool</code> را اجرا
+        می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/tool.py
+def main(argv):
+    if not (4 &lt;= len(argv) &lt;= 5):
+        usage()
+        return BAD_ARGS
+    dbname, verb, key, value = (argv[1:] + [None])[:4]
+    if verb not in {'get', 'set', 'delete'}:
+        usage()
+        return BAD_VERB
+    db = dbdb.connect(dbname)          # اتصال
+    try:
+        if verb == 'get':
+            sys.stdout.write(db[key])  # دریافت مقدار
+        elif verb == 'set':
+            db[key] = value
+            db.commit()
+        else:
+            del db[key]
+            db.commit()
+    except KeyError:
+        print("Key not found", file=sys.stderr)
+        return BAD_KEY
+    return OK</code></pre>
+        <p>تابع <code class="inline">connect()</code> فایل پایگاه داده را باز می‌کند (احتمالاً آن را می‌سازد، اما هرگز
+        بازنویسی‌اش نمی‌کند) و یک نمونه از <code class="inline">DBDB</code> برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/__init__.py
+def connect(dbname):
+    try:
+        f = open(dbname, 'r+b')
+    except IOError:
+        fd = os.open(dbname, os.O_RDWR | os.O_CREAT)
+        f = os.fdopen(fd, 'r+b')
+    return DBDB(f)</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/interface.py
+class DBDB(object):
+
+    def __init__(self, f):
+        self._storage = Storage(f)
+        self._tree = BinaryTree(self._storage)</code></pre>
+        <p>بلافاصله می‌بینیم که <code class="inline">DBDB</code> یک ارجاع به یک نمونه از <code class="inline">Storage</code>
+        دارد، اما آن ارجاع را با <code class="inline">self._tree</code> نیز به اشتراک می‌گذارد. چرا؟ آیا
+        <code class="inline">self._tree</code> نمی‌تواند به‌تنهایی دسترسی به ذخیره‌سازی را مدیریت کند؟</p>
+        <p>پرسش اینکه کدام اشیا «مالک» (own) یک منبع هستند اغلب در یک طراحی مهم است، زیرا به ما نشانه‌هایی می‌دهد
+        دربارهٔ اینکه چه تغییراتی ممکن است ناامن باشند. بیایید این پرسش را در ذهن نگه داریم تا جلو برویم.</p>
+        <p>وقتی نمونهٔ DBDB داشته باشیم، گرفتن مقدار در <code class="inline">key</code> از طریق جست‌وجوی دیکشنری
+        (<code class="inline">db[key]</code>) انجام می‌شود که باعث می‌شود مفسر پایتون
+        <code class="inline">DBDB.__getitem__()</code> را صدا بزند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/interface.py
+class DBDB(object):
+# ...
+    def __getitem__(self, key):
+        self._assert_not_closed()
+        return self._tree.get(key)
+
+    def _assert_not_closed(self):
+        if self._storage.closed:
+            raise ValueError('Database closed.')</code></pre>
+        <p><code class="inline">__getitem__()</code> با صدازدن <code class="inline">_assert_not_closed</code> مطمئن
+        می‌شود پایگاه داده همچنان باز است. آها! این‌جا حداقل یک دلیل می‌بینیم که چرا <code class="inline">DBDB</code>
+        به دسترسی مستقیم به نمونهٔ <code class="inline">Storage</code> ما نیاز دارد: تا بتواند پیش‌شرط‌ها (preconditions)
+        را اعمال کند. (آیا با این طراحی موافقید؟ آیا می‌توانید راه متفاوتی فکر کنید که می‌توانستیم این کار را انجام
+        دهیم؟)</p>
+        <p>سپس DBDB مقدار مرتبط با <code class="inline">key</code> را روی <code class="inline">_tree</code> داخلی با
+        صدازدن <code class="inline">_tree.get()</code> بازیابی می‌کند که توسط <code class="inline">LogicalBase</code>
+        فراهم شده است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class LogicalBase(object):
+# ...
+    def get(self, key):
+        if not self._storage.locked:
+            self._refresh_tree_ref()
+        return self._get(self._follow(self._tree_ref), key)</code></pre>
+        <p><code class="inline">get()</code> بررسی می‌کند آیا ذخیره‌سازی را قفل کرده‌ایم. صددرصد مطمئن نیستیم <em>چرا</em>
+        ممکن است این‌جا قفلی وجود داشته باشد، اما می‌توانیم حدس بزنیم که احتمالاً برای این وجود دارد که به نویسنده‌ها
+        اجازه دهد دسترسی به داده‌ها را سریال (serialize) کنند. اگر ذخیره‌سازی قفل نباشد چه اتفاقی می‌افتد؟</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class LogicalBase(object):
+# ...
+def _refresh_tree_ref(self):
+        self._tree_ref = self.node_ref_class(
+            address=self._storage.get_root_address())</code></pre>
+        <p><code class="inline">_refresh_tree_ref</code> «نمای» درخت از داده‌ها را با آنچه در حال حاضر روی دیسک است
+        بازنشانی می‌کند و به ما اجازه می‌دهد خواندی کاملاً به‌روز انجام دهیم.</p>
+        <p>اگر هنگام تلاش برای خواندن، ذخیره‌سازی <em>قفل</em> باشد چه؟ این یعنی احتمالاً فرایند دیگری در همین لحظه
+        دارد داده‌هایی را که می‌خواهیم بخوانیم تغییر می‌دهد؛ خواندن ما احتمالاً با وضعیت فعلی داده‌ها به‌روز نیست. این
+        به‌طور کلی به‌عنوان «خواندن کثیف» (dirty read) شناخته می‌شود. این الگو به خواننده‌های متعدد اجازه می‌دهد بدون
+        هرگز نگرانی از مسدودشدن، به داده‌ها دسترسی داشته باشند؛ به بهای کمی قدیمی‌بودن.</p>
+        <p>فعلاً بیایید نگاهی بیندازیم به اینکه چگونه واقعاً داده را بازیابی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/binary_tree.py
+class BinaryTree(LogicalBase):
+# ...
+    def _get(self, node, key):
+        while node is not None:
+            if key &lt; node.key:
+                node = self._follow(node.left_ref)
+            elif node.key &lt; key:
+                node = self._follow(node.right_ref)
+            else:
+                return self._follow(node.value_ref)
+        raise KeyError</code></pre>
+        <p>این یک جست‌وجوی استاندارد در درخت دودویی است که ارجاع‌ها را تا گره‌هایشان دنبال می‌کند. از خواندن مستندات
+        <code class="inline">BinaryTree</code> می‌دانیم که <code class="inline">Node</code>ها و
+        <code class="inline">NodeRef</code>ها اشیای مقداری (value objects) هستند: تغییرناپذیرند و محتوایشان هرگز
+        تغییر نمی‌کند. <code class="inline">Node</code>ها با یک کلید و مقدار مرتبط و فرزندان چپ و راست ساخته می‌شوند.
+        آن ارتباط‌ها نیز هرگز تغییر نمی‌کنند. محتوای کل <code class="inline">BinaryTree</code> فقط وقتی به‌شکل قابل
+        مشاهده تغییر می‌کند که گرهٔ ریشه جایگزین شود. این یعنی لازم نیست نگران تغییر محتوای درختمان در حین انجام
+        جست‌وجو باشیم.</p>
+        <p>وقتی مقدار مرتبط پیدا شد، توسط <code class="inline">main()</code> بدون افزودن هیچ خط جدید اضافه‌ای روی
+        <code class="inline">stdout</code> نوشته می‌شود تا داده‌های کاربر دقیقاً حفظ شود.</p>
+
+        <h3>درج و به‌روزرسانی</h3>
+        <p>حالا کلید <code class="inline">foo</code> را روی مقدار <code class="inline">bar</code> در
+        <code class="inline">example.db</code> تنظیم می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ python -m dbdb.tool example.db set foo bar</code></pre>
+        <p>باز هم این کار تابع <code class="inline">main()</code> از ماژول <code class="inline">dbdb.tool</code> را اجرا
+        می‌کند. چون قبلاً این کد را دیده‌ایم، فقط بخش‌های مهم را برجسته می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/tool.py
+def main(argv):
+    ...
+    db = dbdb.connect(dbname)          # اتصال
+    try:
+        ...
+        elif verb == 'set':
+            db[key] = value            # تنظیم مقدار
+            db.commit()                # ثبت
+        ...
+    except KeyError:
+        ...</code></pre>
+        <p>این بار مقدار را با <code class="inline">db[key] = value</code> تنظیم می‌کنیم که
+        <code class="inline">DBDB.__setitem__()</code> را صدا می‌زند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/interface.py
+class DBDB(object):
+# ...
+    def __setitem__(self, key, value):
+        self._assert_not_closed()
+        return self._tree.set(key, value)</code></pre>
+        <p><code class="inline">__setitem__</code> مطمئن می‌شود پایگاه داده همچنان باز است و سپس با صدازدن
+        <code class="inline">_tree.set()</code> رابطهٔ <code class="inline">key</code> تا
+        <code class="inline">value</code> را روی <code class="inline">_tree</code> داخلی ذخیره می‌کند.</p>
+        <p><code class="inline">_tree.set()</code> توسط <code class="inline">LogicalBase</code> فراهم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class LogicalBase(object):
+# ...
+    def set(self, key, value):
+        if self._storage.lock():
+            self._refresh_tree_ref()
+        self._tree_ref = self._insert(
+            self._follow(self._tree_ref), key, self.value_ref_class(value))</code></pre>
+        <p><code class="inline">set()</code> ابتدا قفل ذخیره‌سازی را بررسی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/storage.py
+class Storage(object):
+    ...
+    def lock(self):
+        if not self.locked:
+            portalocker.lock(self._f, portalocker.LOCK_EX)
+            self.locked = True
+            return True
+        else:
+            return False</code></pre>
+        <p>دو نکتهٔ مهم در این‌جا قابل توجه است:</p>
+        <ul>
+          <li>قفل ما توسط یک کتابخانهٔ شخص ثالث قفل‌گذاری فایل به نام
+          <a href="https://pypi.python.org/pypi/portalocker" target="_blank" rel="noopener">portalocker</a> فراهم
+          می‌شود.</li>
+          <li><code class="inline">lock()</code> اگر پایگاه داده از قبل قفل شده باشد <code class="inline">False</code>
+          برمی‌گرداند و در غیر این صورت <code class="inline">True</code>.</li>
+        </ul>
+        <p>با بازگشت به <code class="inline">_tree.set()</code>، حالا می‌توانیم بفهمیم چرا اصلاً مقدار بازگشتی
+        <code class="inline">lock()</code> را بررسی می‌کرد: به ما اجازه می‌دهد برای آخرین ارجاع گرهٔ ریشه
+        <code class="inline">_refresh_tree_ref</code> را صدا بزنیم تا به‌روزرسانی‌هایی را که ممکن است فرایند دیگری از
+        زمان آخرین به‌روزرسانی درخت از روی دیسک انجام داده باشد از دست ندهیم. سپس گرهٔ ریشهٔ درخت را با یک درخت جدید
+        حاوی کلید/مقدار درج‌شده (یا به‌روزرسانی‌شده) جایگزین می‌کند.</p>
+        <p>درج یا به‌روزرسانی درخت هیچ گرهی را تغییر نمی‌دهد، چون <code class="inline">_insert()</code> یک درخت جدید
+        برمی‌گرداند. درخت جدید بخش‌های تغییرنکرده را با درخت قبلی به اشتراک می‌گذارد تا در حافظه و زمان اجرا
+        صرفه‌جویی شود. پیاده‌سازی بازگشتی این کار طبیعی است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/binary_tree.py
+class BinaryTree(LogicalBase):
+# ...
+    def _insert(self, node, key, value_ref):
+        if node is None:
+            new_node = BinaryNode(
+                self.node_ref_class(), key, value_ref, self.node_ref_class(), 1)
+        elif key &lt; node.key:
+            new_node = BinaryNode.from_node(
+                node,
+                left_ref=self._insert(
+                    self._follow(node.left_ref), key, value_ref))
+        elif node.key &lt; key:
+            new_node = BinaryNode.from_node(
+                node,
+                right_ref=self._insert(
+                    self._follow(node.right_ref), key, value_ref))
+        else:
+            new_node = BinaryNode.from_node(node, value_ref=value_ref)
+        return self.node_ref_class(referent=new_node)</code></pre>
+        <p>توجه کنید که همیشه یک گرهٔ جدید برمی‌گردانیم (که در یک <code class="inline">NodeRef</code> پیچیده شده).
+        به‌جای به‌روزرسانی یک گره تا به یک زیردرخت جدید اشاره کند، گرهٔ جدیدی می‌سازیم که زیردرخت تغییرنکرده را به
+        اشتراک می‌گذارد. این همان چیزی است که این درخت دودویی را به یک ساختار دادهٔ تغییرناپذیر تبدیل می‌کند.</p>
+        <p>ممکن است متوجه چیز عجیبی شده باشید: هنوز هیچ تغییری روی دیسک ایجاد نکرده‌ایم. تمام کاری که کرده‌ایم
+        دستکاری نمای خودمان از داده‌های روی دیسک با جابه‌جا کردن گره‌های درخت است.</p>
+        <p>برای اینکه واقعاً این تغییرات را روی دیسک بنویسیم، به یک فراخوانی صریح <code class="inline">commit()</code>
+        نیاز داریم؛ همان چیزی که در ابتدای این بخش به‌عنوان بخش دوم عملیات <code class="inline">set</code> در
+        <code class="inline">tool.py</code> دیدیم.</p>
+        <p>ثبت (committing) شامل نوشتن تمام وضعیت کثیف (dirty state) در حافظه و سپس ذخیرهٔ آدرس دیسکی گرهٔ ریشهٔ جدید
+        درخت است.</p>
+        <p>با شروع از رابط برنامه‌نویسی:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/interface.py
+class DBDB(object):
+# ...
+    def commit(self):
+        self._assert_not_closed()
+        self._tree.commit()</code></pre>
+        <p>پیاده‌سازی <code class="inline">_tree.commit()</code> از <code class="inline">LogicalBase</code> می‌آید:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class LogicalBase(object)
+# ...
+    def commit(self):
+        self._tree_ref.store(self._storage)
+        self._storage.commit_root_address(self._tree_ref.address)</code></pre>
+        <p>همهٔ <code class="inline">NodeRef</code>ها می‌دانند چگونه خودشان را روی دیسک سریال کنند؛ اول از همه با
+        پرسیدن از فرزندان‌شان برای سریال‌کردن از طریق <code class="inline">prepare_to_store()</code>:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class ValueRef(object):
+# ...
+    def store(self, storage):
+        if self._referent is not None and not self._address:
+            self.prepare_to_store(storage)
+            self._address = storage.write(self.referent_to_string(self._referent))</code></pre>
+        <p><code class="inline">self._tree_ref</code> در <code class="inline">LogicalBase</code> در این مورد در واقع
+        یک <code class="inline">BinaryNodeRef</code> (زیرکلاسی از <code class="inline">ValueRef</code>) است؛ پس
+        پیاده‌سازی مشخص <code class="inline">prepare_to_store()</code> این است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/binary_tree.py
+class BinaryNodeRef(ValueRef):
+    def prepare_to_store(self, storage):
+        if self._referent:
+            self._referent.store_refs(storage)</code></pre>
+        <p><code class="inline">BinaryNode</code> موردنظر یعنی <code class="inline">_referent</code> از ارجاع‌هایش
+        می‌خواهد خودشان را ذخیره کنند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/binary_tree.py
+class BinaryNode(object):
+# ...
+    def store_refs(self, storage):
+        self.value_ref.store(storage)
+        self.left_ref.store(storage)
+        self.right_ref.store(storage)</code></pre>
+        <p>این روند برای هر <code class="inline">NodeRef</code> که تغییرات نوشته‌نشده دارد (یعنی
+        <code class="inline">_address</code> ندارد) تمام راه تا پایین بازگشت می‌کند.</p>
+        <p>حالا دوباره در پشته به بالا و در متد <code class="inline">store</code> متعلق به
+        <code class="inline">ValueRef</code> برگشته‌ایم. آخرین گام <code class="inline">store()</code> سریال‌کردن این
+        گره و ذخیرهٔ آدرس ذخیره‌سازی آن است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/logical.py
+class ValueRef(object):
+# ...
+    def store(self, storage):
+        if self._referent is not None and not self._address:
+            self.prepare_to_store(storage)
+            self._address = storage.write(self.referent_to_string(self._referent))</code></pre>
+        <p>در این نقطه تضمین شده است که <code class="inline">_referent</code> موجود در <code class="inline">NodeRef</code>
+        برای همهٔ ارجاع‌های خودش آدرس در دسترس دارد؛ پس با ساختن یک رشتهٔ بایتی (bytestring) که نمایانگر این گره است
+        آن را سریال می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/binary_tree.py
+class BinaryNodeRef(ValueRef):
+# ...
+    @staticmethod
+    def referent_to_string(referent):
+        return pickle.dumps({
+            'left': referent.left_ref.address,
+            'key': referent.key,
+            'value': referent.value_ref.address,
+            'right': referent.right_ref.address,
+            'length': referent.length,
+        })</code></pre>
+        <p>به‌روزرسانی آدرس در متد <code class="inline">store()</code> از نظر فنی یک تغییر (mutation) روی
+        <code class="inline">ValueRef</code> است. چون هیچ اثری روی مقدار قابل مشاهده برای کاربر ندارد، می‌توانیم آن را
+        تغییرناپذیر در نظر بگیریم.</p>
+        <p>وقتی <code class="inline">store()</code> روی <code class="inline">_tree_ref</code> ریشه کامل شد (در
+        <code class="inline">LogicalBase.commit()</code>)، می‌دانیم همهٔ داده‌ها روی دیسک نوشته شده‌اند. حالا می‌توانیم
+        با صدازدن این کد، آدرس ریشه را ثبت کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># dbdb/physical.py
+class Storage(object):
+# ...
+    def commit_root_address(self, root_address):
+        self.lock()
+        self._f.flush()
+        self._seek_superblock()
+        self._write_integer(root_address)
+        self._f.flush()
+        self.unlock()</code></pre>
+        <p>مطمئن می‌شویم که دستهٔ فایل (file handle) flush شده (تا سیستمعامل بداند می‌خواهیم همهٔ داده‌ها در
+        ذخیره‌سازی پایدار مانند SSD ذخیره شوند) و آدرس گرهٔ ریشه را می‌نویسیم. می‌دانیم این آخرین نوشتن اتمیک است،
+        چون آدرس دیسک را روی مرز سکتور (sector boundary) ذخیره می‌کنیم. این اولین چیز در فایل است؛ پس این موضوع بدون
+        توجه به اندازهٔ سکتور صادق است و نوشتن‌های تک‌سکتوری توسط سخت‌افزار دیسک به‌صورت اتمیک تضمین شده‌اند.</p>
+        <p>چون آدرس گرهٔ ریشه یا مقدار قدیمی دارد یا جدید (هرگز کمی از قدیمی و کمی از جدید)، فرایندهای دیگر می‌توانند
+        بدون گرفتن قفل از پایگاه داده بخوانند. یک فرایند خارجی ممکن است درخت قدیمی یا جدید را ببیند، اما هرگز ترکیبی
+        از هر دو را. از این طریق، ثبت‌ها (commits) اتمیک هستند.</p>
+        <p>چون داده‌های جدید را روی دیسک می‌نویسیم و قبل از نوشتن آدرس گرهٔ ریشه، فراخوانی سیستمی
+        <code class="inline">fsync</code> را صدا می‌زنیم<a href="#fn2">[2]</a>، داده‌های ثبت‌نشده (uncommitted)
+        دست‌نیافتنی‌اند. برعکس، وقتی آدرس گرهٔ ریشه به‌روزرسانی شد، می‌دانیم همهٔ داده‌هایی که به آن‌ها ارجاع می‌دهد
+        نیز روی دیسک هستند. از این طریق، ثبت‌ها همچنین پایدارند (durable).</p>
+        <p>تمام شد!</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اتمیک بودن ثبت به این دلیل حاصل می‌شود که آدرس گرهٔ ریشه همیشه در ابتدای فایل، روی
+          مرز سکتور، نوشته می‌شود؛ بنابراین خواننده‌های دیگر یا درخت قدیمی را می‌بینند یا درخت جدید را — هرگز ترکیبی
+          از هر دو را.
+        </div>
+
+        <h3>چگونه NodeRefها حافظه را ذخیره می‌کنند</h3>
+        <p>برای اینکه کل ساختار درخت به‌طور هم‌زمان در حافظه نگهداری نشود، وقتی یک گرهٔ منطقی از دیسک خوانده می‌شود،
+        آدرس دیسکی فرزندان چپ و راست آن (و همچنین مقدارش) در حافظه بارگذاری می‌شوند. دسترسی به فرزندان و مقادیرشان به
+        یک فراخوانی تابع اضافه به <code class="inline">NodeRef.get()</code> برای برداشتن ارجاع («واقعاً گرفتن») داده
+        نیاز دارد.</p>
+        <p>تنها چیزی که برای ساختن یک <code class="inline">NodeRef</code> نیاز داریم یک آدرس است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">+---------+
+| NodeRef |
+| ------- |
+| addr=3  |
+| get()   |
++---------+</code></pre>
+        <p>صدازدن <code class="inline">get()</code> روی آن، گرهٔ مشخص را به همراه ارجاع‌های آن گره به‌عنوان
+        <code class="inline">NodeRef</code> برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">+---------+     +---------+     +---------+
+| NodeRef |     | Node    |     | NodeRef |
+| ------- |     | ------- | +-&gt; | ------- |
+| addr=3  |     | key=A   | |   | addr=1  |
+| get() ------&gt; | value=B | |   +---------+
++---------+     | left  ----+
+                | right ----+   +---------+
+                +---------+ |   | NodeRef |
+                            +-&gt; | ------- |
+                                | addr=2  |
+                                +---------+</code></pre>
+        <p>وقتی تغییرات درخت ثبت نشده‌اند، با ارجاع‌هایی از ریشه تا برگ‌های تغییرکرده در حافظه وجود دارند. تغییرات
+        هنوز روی دیسک ذخیره نشده‌اند؛ پس گره‌های تغییرکرده شامل کلیدها و مقادیر مشخص هستند و هیچ آدرس دیسکی ندارند.
+        فرایندی که نوشتن را انجام می‌دهد می‌تواند تغییرات ثبت‌نشده را ببیند و قبل از صدور ثبت، تغییرات بیشتری انجام
+        دهد، چون <code class="inline">NodeRef.get()</code> در صورت وجود، مقدار ثبت‌نشده را برمی‌گرداند؛ وقتی از طریق
+        رابط برنامه‌نویسی به داده‌ها دسترسی می‌گیرید، هیچ تفاوتی بین دادهٔ ثبت‌شده و ثبت‌نشده وجود ندارد. همهٔ
+        به‌روزرسانی‌ها به‌صورت اتمیک برای سایر خواننده‌ها ظاهر می‌شوند، چون تغییرات تا زمانی که آدرس گرهٔ ریشهٔ جدید
+        روی دیسک نوشته نشود قابل مشاهده نیستند. به‌روزرسانی‌های هم‌زمان توسط یک فایل قفل (lockfile) روی دیسک مسدود
+        می‌شوند. قفل در اولین به‌روزرسانی گرفته می‌شود و پس از ثبت آزاد می‌شود.</p>
+      </section>
+
+      <!-- ==================== تمرین‌هایی برای خواننده ==================== -->
+      <section>
+        <h2>تمرین‌هایی برای خواننده</h2>
+        <p>DBDB به فرایندهای متعدد اجازه می‌دهد هم‌زمان از یک پایگاه داده بدون مسدودشدن بخوانند؛ در عوض، خواننده‌ها
+        گاهی می‌توانند دادهٔ کهنه بازیابی کنند. چه می‌شود اگر نیاز داشته باشیم بتوانیم برخی داده‌ها را به‌طور سازگار
+        بخوانیم؟ یک مورد استفادهٔ رایج، خواندن یک مقدار و سپس به‌روزرسانی آن بر اساس همان مقدار است. چگونه یک متد روی
+        <code class="inline">DBDB</code> می‌نوشتید تا این کار را انجام دهد؟ برای فراهم‌کردن این قابلیت باید چه
+        مبادلاتی (tradeoffs) را بپذیرید؟</p>
+        <p>الگوریتم مورد استفاده برای به‌روزرسانی فروشگاه داده را می‌توان با جایگزین‌کردن رشتهٔ
+        <code class="inline">BinaryTree</code> در <code class="inline">interface.py</code> کاملاً عوض کرد. فروشگاه‌های
+        داده معمولاً از انواع پیچیده‌تر درخت‌های جست‌وجو مانند درخت‌های B، درخت‌های B+ و دیگران برای بهبود عملکرد
+        استفاده می‌کنند. در حالی که یک درخت دودویی متوازن (و این یکی متوازن نیست) برای پیدا کردن یک مقدار به
+        <code class="inline">O(log<sub>2</sub>(n))</code> خواندن تصادفی گره نیاز دارد، یک درخت B+ به تعداد خیلی کمتری
+        نیاز دارد؛ مثلاً <code class="inline">O(log<sub>32</sub>(n))</code>، چون هر گره به‌جای فقط ۲ شاخه، به ۳۲ شاخه
+        تقسیم می‌شود. این در عمل تفاوت بزرگی ایجاد می‌کند، چون جست‌وجو در ۴ میلیارد ورودی از
+        <code class="inline">log<sub>2</sub>(2<sup>32</sup>) = 32</code> به حدود
+        <code class="inline">log<sub>32</sub>(2<sup>32</sup>) ≈ 6.4</code> جست‌وجو کاهش می‌یابد. هر جست‌وجو یک دسترسی
+        تصادفی است که برای هارددیسک‌های دارای صفحهٔ چرخان (spinning platters) فوق‌العاده پرهزینه است. SSDها در تأخیر
+        (latency) کمک می‌کنند، اما صرفه‌جویی در ورودی/خروجی همچنان پابرجاست.</p>
+        <p>به‌طور پیش‌فرض، مقادیر توسط <code class="inline">ValueRef</code> ذخیره می‌شوند که بایت‌ها را به‌عنوان مقدار
+        انتظار دارد (تا مستقیماً به <code class="inline">Storage</code> ارسال شوند). گره‌های درخت دودویی خودشان فقط
+        یک زیرکلاس از <code class="inline">ValueRef</code> هستند. ذخیرهٔ دادهٔ غنی‌تر از طریق
+        <a href="http://json.org" target="_blank" rel="noopener">json</a> یا
+        <a href="http://msgpack.org" target="_blank" rel="noopener">msgpack</a> مسئلهٔ نوشتن زیرکلاس خودتان و تنظیم آن
+        به‌عنوان <code class="inline">value_ref_class</code> است. <code class="inline">BinaryNodeRef</code> نمونه‌ای
+        از استفاده از
+        <a href="https://docs.python.org/3.4/library/pickle.html" target="_blank" rel="noopener">pickle</a> برای
+        سریال‌کردن داده است.</p>
+        <p>فشرده‌سازی پایگاه داده تمرین جالب دیگری است. فشرده‌سازی را می‌توان با یک پیمایش میان‌ترتیبِ (in-order)
+        میانه‌محور (infix-of-median) از درخت انجام داد و حین حرکت داده‌ها را نوشت. احتمالاً بهتر است گره‌های درخت
+        همگی کنار هم نوشته شوند، چون آن‌ها همان چیزی هستند که برای یافتن هر تکه از داده پیمایش می‌شوند. جاسازی
+        هرچه‌بیشتر گره‌های میانی در یک سکتور دیسک باید عملکرد خواندن را بهبود دهد، حداقل بلافاصله پس از فشرده‌سازی.
+        اگر خودتان بخواهید این را پیاده‌سازی کنید، نکات ظریفی این‌جا وجود دارد (برای مثال، مصرف حافظه). و به یاد
+        داشته باشید: همیشه بهبودهای عملکرد را قبل و بعد بنچمارک (benchmark) کنید! اغلب از نتایج شگفت‌زده خواهید شد.</p>
+      </section>
+
+      <!-- ==================== الگوها و اصول ==================== -->
+      <section>
+        <h2>الگوها و اصول</h2>
+        <p><strong>رابط‌ها را تست کنید، نه پیاده‌سازی را.</strong> به‌عنوان بخشی از توسعهٔ DBDB، تعدادی تست نوشتم که
+        توصیف می‌کردند چگونه می‌خواهم بتوانم از آن استفاده کنم. اولین تست‌ها روی یک نسخهٔ درون‌حافظه‌ای (in-memory) از
+        پایگاه داده اجرا شدند؛ سپس DBDB را گسترش دادم تا روی دیسک پایدار بماند و حتی بعداً مفهوم NodeRefها را اضافه
+        کردم. بیشتر تست‌ها نیازی به تغییر نداشتند که به من اعتمادبه‌نفس می‌داد که همه‌چیز همچنان کار می‌کند.</p>
+        <p><strong>به اصل مسئولیت واحد (Single Responsibility Principle) احترام بگذارید.</strong> کلاس‌ها باید حداکثر
+        یک دلیل برای تغییر داشته باشند. این موضوع دربارهٔ DBDB به‌طور دقیق صادق نیست، اما مسیرهای متعددی برای گسترش
+        با فقط تغییرات محلی موردنیاز وجود دارد. بازآرایی (refactoring) هنگام افزودن قابلیت‌ها لذت‌بخش بود!</p>
+      </section>
+
+      <!-- ==================== خلاصه ==================== -->
+      <section>
+        <h2>خلاصه</h2>
+        <p>DBDB یک پایگاه دادهٔ ساده است که تضمین‌های ساده‌ای می‌دهد و بااین‌حال اوضاع همچنان سریع پیچیده شد. مهم‌ترین
+        کاری که برای مدیریت این پیچیدگی انجام دادم، پیاده‌سازی یک شیء ظاهراً تغییرپذیر با یک ساختار دادهٔ تغییرناپذیر
+        بود. شما را تشویق می‌کنم دفعهٔ بعد که خود را وسط یک مسئلهٔ دشوار یافتید که به‌نظر می‌رسد موارد مرزی بیشتری از
+        آنچه می‌توانید پیگیری کنید دارد، این تکنیک را در نظر بگیرید.</p>
+      </section>
+
+      <!-- ==================== پینوشت‌ها ==================== -->
+      <section>
+        <h2>پینوشت‌ها</h2>
+        <ol>
+          <li id="fn1">قابلیت جایزه: آیا می‌توانید تضمین کنید که ساختار درخت فشرده‌شده متوازن است؟ این به حفظ عملکرد
+          در طول زمان کمک می‌کند.<a href="#fnref1">↩</a></li>
+          <li id="fn2">صدازدن <code class="inline">fsync</code> روی یک توصیفگر فایل (file descriptor) از سیستمعامل و
+          هارددیسک (یا SSD) می‌خواهد همهٔ داده‌های بافرشده را فوراً بنویسند. سیستمعامل‌ها و درایوها معمولاً برای
+          بهبود عملکرد، همه‌چیز را فوراً نمی‌نویسند.<a href="#fnref2">↩</a></li>
+        </ol>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل «DBDB: Dog Bed Database» اثر «تاوی برنز (Taavi Burns)» از کتاب
+        «500 Lines or Less» (مجموعهٔ Architecture of Open Source Applications) است. این صفحه فقط ترجمهٔ فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://aosabook.org/en/500L/dbdb-dog-bed-database.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

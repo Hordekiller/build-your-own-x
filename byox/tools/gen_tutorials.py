@@ -76,6 +76,19 @@ DONE = {
     "rust-cli.github.io": "rust-cli-book",
     "writing-cli-app-rust": "rust-cli-mattgathu",
     "rebuild-x.github.io": "zig-cli",
+    "db_tutorial": "cstack-sqlite-c",
+    "build-your-own.org/redis": "mini-redis-cpp",
+    "Articles/1029838": "database-csharp",
+    "an-archaeology-inspired-database": "archaeology-db-clojure",
+    "why-you-should-build-your-own-nosql-database": "nosql-crystal",
+    "build-your-own.org/database": "database-go",
+    "trialofcode.org/database": "database-go-45steps",
+    "build-redis-from-scratch": "redis-go",
+    "dagoba-an-in-memory-graph-database": "dagoba-js",
+    "dbdb-dog-bed-database": "dbdb-python",
+    "building-a-simple-redis-server-with-python": "redis-python",
+    "build-your-own-persistent-kv-store": "kv-store-ruby",
+    "tokio.rs/tokio/tutorial/setup": "mini-redis-rust",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}
