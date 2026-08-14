@@ -1,13 +1,13 @@
 window.TUTORIALS = [
 {
-"id": "",
+"id": "distributed-kafka-java",
 "category": "سیستم‌های توزیع‌شده",
 "lang": "Java",
 "title": "ساخت سیستمی شبیه به کافکا از صفر: راهنمای گام‌به‌گام",
 "url": "https://github.com/buildthingsuseful/build-your-own-kafka",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/distributed-kafka-java.html"
 },
 {
 "id": "scratchapixel-raytracing-intro",
@@ -120,34 +120,34 @@ window.TUTORIALS = [
 "file": "tutorials/aosabook-3d-modeller.html"
 },
 {
-"id": "",
+"id": "ai-llm-from-scratch",
 "category": "مدل هوش مصنوعی",
 "lang": "Python",
 "title": "یک مدل زبانی بزرگ (LLM)",
 "url": "https://github.com/rasbt/LLMs-from-scratch",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ai-llm-from-scratch.html"
 },
 {
-"id": "",
+"id": "ai-diffusion-course",
 "category": "مدل هوش مصنوعی",
 "lang": "Python",
 "title": "مدل‌های Diffusion برای تولید تصویر",
 "url": "https://huggingface.co/learn/diffusion-course/en/unit1/3",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ai-diffusion-course.html"
 },
 {
-"id": "",
+"id": "ai-rag-from-scratch",
 "category": "مدل هوش مصنوعی",
 "lang": "Python",
 "title": "RAG برای جست‌وجوی اسناد",
 "url": "https://github.com/langchain-ai/rag-from-scratch",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ai-rag-from-scratch.html"
 },
 {
 "id": "ar-vuforia-unity",
@@ -350,14 +350,14 @@ window.TUTORIALS = [
 "file": "tutorials/savjeecoin-js.html"
 },
 {
-"id": "",
+"id": "blockchain-crypto-launch",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "چگونه ارز دیجیتال آماده تولید خودت را راه‌اندازی کنی",
 "url": "https://hackernoon.com/how-to-launch-your-own-production-ready-cryptocurrency-ab97cb773371",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-crypto-launch.html"
 },
 {
 "id": "blockchain-node-smashing",
@@ -480,14 +480,14 @@ window.TUTORIALS = [
 "file": "tutorials/haskell-irc.html"
 },
 {
-"id": "",
+"id": "bot-fb-messenger-api-ai",
 "category": "ربات",
 "lang": "Node.js",
 "title": "ساخت ربات هوش مصنوعی ساده فیسبوک مسنجر با API.ai در Node.js",
 "url": "https://tutorials.botsfloor.com/creating-a-simple-facebook-messenger-ai-bot-with-api-ai-in-node-js-50ae2fa5c80d",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bot-fb-messenger-api-ai.html"
 },
 {
 "id": "telegram-bot-node",
@@ -840,34 +840,34 @@ window.TUTORIALS = [
 "file": "tutorials/mini-redis-rust.html"
 },
 {
-"id": "",
+"id": "docker-linux-containers-500loc",
 "category": "داکر",
 "lang": "C",
 "title": "کانتینرهای لینوکس در ۵۰۰ خط کد",
 "url": "https://blog.lizzie.io/linux-containers-in-500-loc.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-linux-containers-500loc.html"
 },
 {
-"id": "",
+"id": "docker-container-golang",
 "category": "داکر",
 "lang": "Go",
 "title": "کانتینر خودت را با کمتر از ۱۰۰ خط Go بساز",
 "url": "https://www.infoq.com/articles/build-a-container-golang",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-container-golang.html"
 },
 {
-"id": "",
+"id": "docker-container-go-video",
 "category": "داکر",
 "lang": "Go",
 "title": "ساخت یک کانتینر از صفر در Go",
 "url": "https://www.youtube.com/watch?v=8fi7uSYlOdc",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-container-go-video.html"
 },
 {
 "id": "docker-rubber",

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Creating a Simple Facebook Messenger AI Bot with API.ai in Node.js»
+  از Tomomi Imura (GirlieMac) — Bots Floor (via Wayback Machine)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات هوشمند پیام‌رسان فیسبوک با API.ai در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات هوشمند پیام‌رسان فیسبوک با API.ai در Node.js</span>
+      </div>
+      <h1>ساخت ربات هوشمند پیام‌رسان فیسبوک با API.ai در Node.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://tutorials.botsfloor.com/creating-a-simple-facebook-messenger-ai-bot-with-api-ai-in-node-js-50ae2fa5c80d" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «Creating a Simple Facebook Messenger AI Bot with API.ai in Node.js»
+          نوشتهٔ «تومومی ایمورا (Tomomi Imura)» است که در Bots Floor منتشر شده و توسط «تومومی ایمورا» به زبان انگلیسی نوشته شده است.
+          نسخه کامل را از سایت اصلی (یا آرشیو Wayback) بخوانید.
+        </div>
+        <a class="btn solid" href="https://tutorials.botsfloor.com/creating-a-simple-facebook-messenger-ai-bot-with-api-ai-in-node-js-50ae2fa5c80d" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>در این آموزش یاد می‌گیرید چطور یک ربات هوشمند (AI bot) برای پیام‌رسان فیسبوک با استفاده از <a href="https://api.ai" target="_blank" rel="noopener">API.ai</a> (که امروزه با نام <strong>Dialogflow</strong> شناخته می‌شود) و Node.js بسازید. ربات ساده‌ای می‌سازیم که «حسابدارِ» هوشمندانهٔ شماست: با API.ai به آن گفتار (Natural Language) می‌دهیم تا بتواند مکالمه‌های ساده را بفهمد — حتی می‌تواند شوخی کند! به آخرش برسید تا یک ربات واقعاً کاری داشته باشید.</p>
+        <p>این آموزش بر پایهٔ <a href="https://developers.facebook.com/docs/messenger-platform" target="_blank" rel="noopener">Facebook Messenger Platform</a> و شروع سریع رسمی آن است، اما با دو تفاوت بزرگ: اول اینکه ربات را با Express.js و Node.js می‌سازیم؛ دوم اینکه — به‌جای پاسخ‌های از پیش تعریف‌شده — به ربات هوش مصنوعی با API.ai اضافه می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>آنچه نیاز دارید</h2>
+        <ul>
+          <li>یک اپ فیسبوک و صفحهٔ فیسبوکی (برای دریافت Page Token)</li>
+          <li>حساب API.ai (رایگان) و یک Agent جدید</li>
+          <li>سرور Node.js —— با <a href="https://ngrok.com" target="_blank" rel="noopener">ngrok</a> برای وب‌هوک محلی آزمایش کنید</li>
+          <li>دسترسی به ترمینال/CLI (Node و npm نصب شده)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>گام ۱: راه‌اندازی پروژه Node.js</h2>
+        <p>ابتدا یک پوشهٔ پروژه بسازید و package.json را مقداردهی کنید. برای ربات به دو کتابخانه‌ی نیاز داریم: <code class="inline">express</code> برای وب‌سرور و <code class="inline">request</code> برای فراخوانی APIهای فیسبوک و API.ai. اگر می‌خواهید دست‌کم از الگوی شروع سریع فیسبوک استفاده کنید، پیشنهاد می‌کنم کد خودِ‌ آموزش را دنبال کنید.</p>
+
+        <pre class="code"><span class="lang-tag">bash</span><code>npm init
+npm install express request --save</code></pre>
+
+        <p>سپس فایل <code class="inline">app.js</code> را بسازید. کد شروع‌کنندهٔ آن (ساده‌سازی‌شده و از الگوی آموزش):</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code>// app.js — ربات پیام‌رسان فیسبوک با API.ai
+const express = require('express');
+const request = require('request');
+
+const app = express();
+
+// توکن دسترسی صفحه — از تنظیمات اپ فیسبوک
+const PAGE_ACCESS_TOKEN = 'صفحه_توکن_شما';
+// توکن تأیید وب‌هوک — که خودتان تعیین می‌کنید
+const VERIFY_TOKEN = 'توکن_تأیید_شما';
+
+app.use(express.json());
+
+// تأیید وب‌هوک توسط فیسبوک
+app.get('/webhook', (req, res) => {
+  if (req.query['hub.mode'] === 'subscribe' &&
+      req.query['hub.verify_token'] === VERIFY_TOKEN) {
+    res.status(200).send(req.query['hub.challenge']);
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+// دریافت پیام‌ها از فیسبوک
+app.post('/webhook', (req, res) => {
+  const body = req.body;
+  if (body.object === 'page') {
+    body.entry.forEach(entry => {
+      entry.messaging.forEach(event => {
+        const senderId = event.sender.id;
+        if (event.message && event.message.text) {
+          handleMessage(senderId, event.message.text);
+        }
+      });
+    });
+    res.sendStatus(200);
+  }
+});
+
+function handleMessage(senderId, messageText) {
+  // این‌جا متن پیام را به API.ai می‌فرستیم
+  console.log('دریافت پیام:', messageText);
+}
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log('سرور ربات روشن شد');
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>گام ۲: ساخت اپ فیسبوک و دریافت Page Token</h2>
+        <p>به <a href="https://developers.facebook.com" target="_blank" rel="noopener">developers.facebook.com</a> بروید و:</p>
+        <ol>
+          <li>یک <strong>بستهٔ پیام‌رسان (Messenger product)</strong> به اپ خود اضافه کنید</li>
+          <li>صفحهٔ فیسبوکی‌تان را به اپ متصل کنید</li>
+          <li>یک <code class="inline">Page Access Token</code> کپی کنید و در <code class="inline">app.js</code> بگذارید</li>
+          <li>یک <code class="inline">Verify Token</code> دلخواه تعیین کنید (مثلاً یک رشتهٔ تصادفی) و در کد بگذارید</li>
+        </ol>
+
+        <h3>راه‌اندازی وب‌هوک</h3>
+        <p>در تنظیمات Facebook Developer، بخش Webhooks را باز کنید، آدرس <span dir="ltr"><code>https://YOUR_SERVER/webhook</code></span> را بدهید و Verify Token را وارد کنید. فیسبوک برای تأیید، یک درخواست GET به آدرس شما می‌فرستد؛ کد بالا با <code class="inline">hub.challenge</code> پاسخ می‌دهد و اتصال برقرار می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>گام ۳: تست محلی با ngrok</h2>
+        <p>برای اینکه فیسبوک بتواند به سرور محلی‌تان دسترسی داشته باشد، ngrok یک تونل امن ایجاد می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">bash</span><code>node app.js
+# در ترمینال دوم:
+ngrok http 3000</code></pre>
+
+        <p>ngrok یک آدرس عمومی مثل <span dir="ltr">https://xxxx.ngrok.io</span> می‌دهد — همان را به‌عنوان آدرس Callback وب‌هوک (با /webhook) در فیسبوک ثبت کنید.</p>
+      </section>
+
+      <section>
+        <h2>گام ۴: اتصال API.ai به ربات</h2>
+        <p>در داشبورد API.ai یک Agent جدید بسازید. دو کار کلیدی انجام می‌دهیم:</p>
+        <ol>
+          <li><strong>Small Talk:</strong> در منوی Agent باید افزونه‌ی (Domain) «Small Talk» را فعال کنید تا ربات به مکالمه‌های روزمره (سلام، حال‌ت چطوره، شوخی و...) پاسخ بداند.</li>
+          <li><strong>Intent سفارشی:</strong> یک Intent مثل <code class="inline">get.current.time</code> بسازید تا ربات درک کند کاربر چه می‌خواهد — مثلاً وقتی کاربر می‌پرسد «ساعت چند است؟»، API.ai آن را درک کرده و پاسخ مناسب می‌فرستد.</li>
+        </ol>
+        <p>سپس در <code class="inline">handleMessage</code> متن پیام را به <code class="inline">https://api.dialogflow.com/v1/query</code> بفرستید و پاسخ (<code class="inline">result.fulfillment.speech</code>) را با «Send API» فیسبوک به کاربر برگردانید:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code>function handleMessage(senderId, messageText) {
+  request({
+    url: 'https://api.dialogflow.com/v1/query',
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + APIAI_TOKEN },
+    json: { query: messageText, lang: 'en', sessionId: senderId }
+  }, (err, res, body) => {
+    if (err) { console.error(err); return; }
+    const reply = body.result.fulfillment.speech;
+    sendTextMessage(senderId, reply);
+  });
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>گام ۵: اشتراک‌گذاری ربات</h2>
+        <p>بعد از تست موفق، ربات خود را منتشر کنید: کد را روی <a href="https://www.heroku.com" target="_blank" rel="noopener">Heroku</a> (یا سرویس مشابه) deploy کنید و آدرس عمومی‌ را جایگزین ngrok کنید. صفحهٔ فیسبوکی‌تان را به پیام‌رسان فیسبوک متصل کنید تا همه بتوانند با آن چت کنند.</p>
+        <p>شما اکنون یک <strong>ربات هوشمند</strong> دارید — نه صرفاً یک پاسخ‌دهندهٔ کلمه‌به‌کلمه. دمو و کد کامل این آموزش در ریپازیتوری گیت‌هاب نویسنده (شاخهٔ <span dir="ltr">tutorial-01</span>) موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «Creating a Simple Facebook Messenger AI Bot with API.ai in Node.js» اثر «تومومی ایمورا (Tomomi Imura)» است.
+        این صفحه فقط ترجمه فارسی آن است؛ تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://tutorials.botsfloor.com/creating-a-simple-facebook-messenger-ai-bot-with-api-ai-in-node-js-50ae2fa5c80d" target="_blank" rel="noopener">سایت اصلی</a> (یا
+        <a href="https://web.archive.org/web/20180530163047id_/https://tutorials.botsfloor.com/creating-a-simple-facebook-messenger-ai-bot-with-api-ai-in-node-js-50ae2fa5c80d" target="_blank" rel="noopener">آرشیو Wayback</a>) مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

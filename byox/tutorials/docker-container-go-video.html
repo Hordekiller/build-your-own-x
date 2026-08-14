@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — صفحه ویدیویی «Build a container from scratch in Go»
+  از Liz Rice — GOTO Conferences (YouTube)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  صفحات ویدیویی فقط لینک/امبد یوتیوب + توصیف فارسی کوتاه
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک کانتینر از صفر در Go (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">داکر</a>
+        <span class="sep">←</span>
+        <span>ساخت یک کانتینر از صفر در Go (ویدیو)</span>
+      </div>
+      <h1>ساخت یک کانتینر از صفر در Go (ویدیو)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎬 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: داکر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه درباره ویدیوی «Build a container from scratch in Go» از «لیز رایس (Liz Rice)»
+          است که در کنفرانس GOTO ارائه شده و در یوتیوب منتشر شده است.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=8fi7uSYlOdc" target="_blank" rel="noopener">↗ مشاهده ویدیو در یوتیوب</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>درباره ویدیو</h2>
+        <p>در این ارائهٔ زندهٔ کدنویسی، «لیز رایس (Liz Rice)» از صفر یک کانتینر می‌سازد — فقط با کد Go و بدون استفاده از ابزارهای موجود مثل Docker. تماشا می‌کنید که چطور با حدود ۱۰۰ خط کد، یک کانتینر واقعی که فرایندهای ایزوله را اجرا می‌کند ساخته می‌شود.</p>
+        <p>در طول ویدیو این مفاهیم به‌صورت عملی نشان داده می‌شوند:</p>
+        <ul>
+          <li><strong>Namespaces:</strong> ایزوله‌کردن PID، شبکه، mount و نام‌میزبان با <code class="inline">CLONE_NEWPID</code> و دیگر پرچم‌های <code class="inline">clone()</code></li>
+          <li><strong>جداسازی فایل‌سیستم:</strong> mount کردن rootfs و <code class="inline">pivot_root</code></li>
+          <li><strong>cgroups:</strong> محدودکردن منابع (مثل CPU و حافظه) برای فرایند داخل کانتینر</li>
+          <li><strong>پایین‌آوردن امتیازات:</strong> مدیریت capabilities و <code class="inline">setuid</code> برای امنیت بیشتر</li>
+          <li><strong>زنجیرهٔ فرایندها:</strong> چطور فرایند «والد» فرایند «فرزند» را داخل namespace های ایزوله راه‌اندازی می‌کند</li>
+        </ul>
+        <p>این ویدیو نقطهٔ شروع عالی‌ای برای هر کسی است که می‌خواهد بفهمد کانتینرها واقعاً در سطح سیستمعامل چطور کار می‌کنند.</p>
+
+        <h2>مشاهده ویدیو</h2>
+        <p>ویدیو را می‌توانید مستقیماً از یوتیوب تماشا کنید:</p>
+        <div style="text-align:center;margin:24px 0">
+          <a class="btn solid" style="font-size:1.05rem;padding:14px 32px" href="https://www.youtube.com/watch?v=8fi7uSYlOdc" target="_blank" rel="noopener">▶ تماشا در یوتیوب</a>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted)">نسخهٔ ارائه در سایت کنفرانس GOTO نیز موجود است: <span dir="ltr">goto-con.com</span></p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیو «Build a container from scratch in Go» اثر «لیز رایس (Liz Rice)» است و متعلق به
+        <a href="https://www.youtube.com/watch?v=8fi7uSYlOdc" target="_blank" rel="noopener">کانال GOTO Conferences در یوتیوب</a> است.
+        این صفحه فقط معرفی فارسی ویدیو است؛ تماشا و استفاده از ویدیو در پلتفرم اصلی انجام می‌شود.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «RAG From Scratch»
+  از LangChain — GitHub
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | RAG از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">مدل هوش مصنوعی</a>
+        <span class="sep">←</span>
+        <span>RAG از صفر</span>
+      </div>
+      <h1>RAG از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: مدل هوش مصنوعی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/langchain-ai/rag-from-scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی معرفی و راهنمای ریپازیتوری «RAG From Scratch» از «LangChain» در گیت‌هاب است —
+          مجموعه نوتبوک‌های همراه پلی‌لیست ویدیویی «RAG From Scratch» که RAG را از پایه می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/langchain-ai/rag-from-scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>درباره پروژه</h2>
+        <p>مدل‌های زبانی بزرگ (LLMها) روی یک بدنهٔ دادهٔ بزرگ اما ثابت آموزش دیده‌اند که توانایی آن‌ها را برای استدلال دربارهٔ اطلاعات خصوصی یا اخیر محدود می‌کند. تنظیم دقیق (Fine-tuning) یکی از راه‌های کاهش این محدودیت است، اما اغلب برای بازیابی واقعیت‌ها مناسب نیست و می‌تواند پرهزینه باشد.</p>
+        <p><strong>تولید با بازیابی افزوده (Retrieval Augmented Generation — RAG)</strong> به‌عنوان یک مکانیزم محبوب و قدرتمند برای گسترش پایگاه دانش LLM ظهور کرده است: با استفاده از اسنادی که از یک منبع دادهٔ خارجی بازیابی می‌شوند، تولید LLM از طریق یادگیری درون‌بافتی (in-context learning) زمین‌دار (ground) می‌شود.</p>
+        <p>این نوتبوک‌ها همراه یک <a href="https://youtube.com/playlist?list=PLfaIDFEXuae2LXbO1_PKyVJiQ23ZztA0x&feature=shared" target="_blank" rel="noopener">پلی‌لیست ویدیویی</a> هستند که درک RAG را از صفر می‌سازند — شروع از مبانی ایندکس‌گذاری (indexing)، بازیابی (retrieval) و تولید (generation).</p>
+      </section>
+
+      <section>
+        <h2>نوتبوک‌های موجود</h2>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">فایل</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">پوشش‌دهنده</th></tr>
+          </thead>
+          <tbody>
+            <tr><td dir="ltr" style="padding:8px;border-bottom:1px solid var(--line)">rag_from_scratch_1_to_4.ipynb</td><td style="padding:8px;border-bottom:1px solid var(--line)">مبانی: ایندکس‌گذاری، بازیابی و تولید (ویدیوهای ۱ تا ۴)</td></tr>
+            <tr><td dir="ltr" style="padding:8px;border-bottom:1px solid var(--line)">rag_from_scratch_5_to_9.ipynb</td><td style="padding:8px;border-bottom:1px solid var(--line)">بازیابی پیشرفته (ویدیوهای ۵ تا ۹)</td></tr>
+            <tr><td dir="ltr" style="padding:8px;border-bottom:1px solid var(--line)">rag_from_scratch_10_and_11.ipynb</td><td style="padding:8px;border-bottom:1px solid var(--line)">ترجمهٔ پرس‌وجو و مسیریابی (ویدیوهای ۱۰ و ۱۱)</td></tr>
+            <tr><td dir="ltr" style="padding:8px;border-bottom:1px solid var(--line)">rag_from_scratch_12_to_14.ipynb</td><td style="padding:8px;border-bottom:1px solid var(--line)">ساخت پرس‌وجو و نمره‌دهی (ویدیوهای ۱۲ تا ۱۴)</td></tr>
+            <tr><td dir="ltr" style="padding:8px;border-bottom:1px solid var(--line)">rag_from_scratch_15_to_18.ipynb</td><td style="padding:8px;border-bottom:1px solid var(--line)">بهینه‌سازی و مباحث پیشرفته (ویدیوهای ۱۵ تا ۱۸)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی</h2>
+        <ul>
+          <li><strong>ایندکس‌گذاری (Indexing):</strong> آماده‌سازی و سازمان‌دهی اسناد برای ورود به پایگاه دانش</li>
+          <li><strong>بازیابی (Retrieval):</strong> یافتن اسناد مرتبط با سؤال کاربر (جست‌وجوی شباهت برداری)</li>
+          <li><strong>تولید (Generation):</strong> پاسخ‌گویی مدل با استفاده از اسناد بازیابی‌شده به‌عنوان زمینه (grounding)</li>
+          <li><strong>ترجمهٔ پرس‌وجو (Query Translation):</strong> تکنیک‌هایی مثل چند پرس‌وجو، رَگ RAG و decomposition برای بهبود بازیابی</li>
+          <li><strong>مسیریابی (Routing):</strong> انتخاب مسیر مناسب (پرس‌وجو در چند source متفاوت) بر اساس سؤال</li>
+          <li><strong>ساخت پرس‌وجو (Query Construction):</strong> تبدیل پرس‌وجوی طبیعی به ساختارهای قابل جست‌وجو (مثل SQL یا داده‌های ساختاریافته)</li>
+          <li><strong>نمره‌دهی (Scoring):</strong> بازیابی با نمره‌دهی نوعگذاری‌شده (type-aware) و مقایسهٔ معیارهای مختلف بازیابی</li>
+        </ul>
+        <p>ویدیوها گام‌به‌گام این مفاهیم را با کد پیاده‌سازی می‌کنند و نوتبوک‌های مخزن همان کدها را به‌صورت قابل اجرا نگه می‌دارند.</p>
+      </section>
+
+      <section>
+        <h2>نحوه استفاده</h2>
+        <p>نوتبوک‌ها را می‌توانید مستقیماً در Google Colab باز کنید (دکمهٔ Open in Colab در بالای هر نوتبوک) یا در محیط محلی با نصب وابستگی‌های لازم اجرا کنید. پلی‌لیست ویدیویی مرتبط در یوتیوب:</p>
+        <ul>
+          <li>پلی‌لیست: <span dir="ltr">youtube.com/playlist?list=PLfaIDFEXuae2LXbO1_PKyVJiQ23ZztA0x</span></li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مخزن «RAG From Scratch» از «LangChain» است (GitHub — langchain-ai/rag-from-scratch).
+        این صفحه فقط ترجمه فارسی معرفی/راهنما است؛ تمام حقوق محتوا، تصاویر و کدها متعلق به صاحبان اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/langchain-ai/rag-from-scratch" target="_blank" rel="noopener">مخزن اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

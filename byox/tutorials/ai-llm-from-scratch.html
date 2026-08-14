@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Build a Large Language Model (From Scratch)»
+  از Sebastian Raschka — GitHub (MIT License)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک مدل زبانی بزرگ (LLM) بساز — از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">مدل هوش مصنوعی</a>
+        <span class="sep">←</span>
+        <span>یک مدل زبانی بزرگ (LLM) بساز — از صفر</span>
+      </div>
+      <h1>یک مدل زبانی بزرگ (LLM) بساز — از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: مدل هوش مصنوعی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/rasbt/LLMs-from-scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی معرفی و راهنمای ریپازیتوری «LLMs-from-scratch» از «سباستین راشکا (Sebastian Raschka)» در گیت‌هاب است —
+          مخزن رسمی کد کتاب «Build a Large Language Model (From Scratch)» از انتشارات Manning.
+        </div>
+        <a class="btn solid" href="https://github.com/rasbt/LLMs-from-scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>درباره پروژه</h2>
+        <p>این مخزن شامل کد توسعه، پیش‌آموزش (pretraining) و تنظیم دقیق (finetuning) یک مدل زبانی بزرگ شبیه GPT است و مخزن رسمی کد کتاب
+          <a href="https://amzn.to/4fqvn0D" target="_blank" rel="noopener">Build a Large Language Model (From Scratch)</a> از «سباستین راشکا» است.</p>
+        <p>در این کتاب یاد می‌گیرید مدل‌های زبانی بزرگ (LLM) از درون چطور کار می‌کنند — با کدنویسی آن‌ها از پایه، گام‌به‌گام. نویسنده شما را در ساختن LLM خودتان راهنمایی می‌کند و هر مرحله را با متن واضح، نمودار و مثال توضیح می‌دهد.</p>
+        <p>روش آموزش و توسعهٔ یک مدل کوچک اما کاربردی برای اهداف آموزشی در این کتاب، همان رویکردی است که در ساخت مدل‌های پایه‌ای بزرگ مثل مدل‌های پشت ChatGPT استفاده می‌شود. علاوه بر این، کتاب شامل کد بارگذاری وزن‌های مدل‌های از پیش آموزش‌دیدهٔ بزرگ‌تر برای تنظیم دقیق هم هست.</p>
+      </section>
+
+      <section>
+        <h2>فهرست مطالب</h2>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">فصل</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">عنوان</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--line)">کد اصلی</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۱</td><td style="padding:8px;border-bottom:1px solid var(--line)">درک مدل‌های زبانی بزرگ</td><td style="padding:8px;border-bottom:1px solid var(--line)">— (بدون کد)</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۲</td><td style="padding:8px;border-bottom:1px solid var(--line)">کار با داده‌های متنی</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch02.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۳</td><td style="padding:8px;border-bottom:1px solid var(--line)">کدنویسی مکانیزم‌های توجه (Attention)</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch03.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۴</td><td style="padding:8px;border-bottom:1px solid var(--line)">پیاده‌سازی مدل GPT از صفر</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch04.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۵</td><td style="padding:8px;border-bottom:1px solid var(--line)">پیش‌آموزش روی داده‌های بدون برچسب</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch05.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۶</td><td style="padding:8px;border-bottom:1px solid var(--line)">تنظیم دقیق برای طبقه‌بندی متن</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch06.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">فصل ۷</td><td style="padding:8px;border-bottom:1px solid var(--line)">تنظیم دقیق برای پیروی از دستورالعمل‌ها</td><td style="padding:8px;border-bottom:1px solid var(--line)">ch07.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">ضمیمه A</td><td style="padding:8px;border-bottom:1px solid var(--line)">آشنایی با PyTorch</td><td style="padding:8px;border-bottom:1px solid var(--line)">code-part1.ipynb</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid var(--line)">ضمیمه E</td><td style="padding:8px;border-bottom:1px solid var(--line)">تنظیم دقیق کم‌مصرف با LoRA</td><td style="padding:8px;border-bottom:1px solid var(--line)">appendix-E.ipynb</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>پیش‌نیازها</h2>
+        <ul>
+          <li>مهم‌ترین پیش‌نیاز، پایه‌ای قوی در برنامه‌نویسی Python است</li>
+          <li>آشنایی با شبکه‌های عصبی عمیق کمک می‌کند، چون LLMها بر همین معماری‌ها ساخته می‌شوند</li>
+          <li>کتاب کدها را بدون هیچ کتابخانهٔ LLM خارجی و فقط با PyTorch از صفر پیاده‌سازی می‌کند؛ آشنایی با مبانی PyTorch مفید است (ضمیمه A مقدمهٔ کوتاهی دارد)</li>
+        </ul>
+
+        <h3>نیازمندی‌های سخت‌افزاری</h3>
+        <p>کد فصل‌های اصلی طوری طراحی شده که روی لپ‌تاپ‌های معمولی در زمان معقول اجرا شود و به سخت‌افزار خاصی نیاز ندارد؛ کد به‌صورت خودکار در صورت وجود، از GPU استفاده می‌کند.</p>
+
+        <h3>دانلود مخزن</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code>git clone --depth 1 https://github.com/rasbt/LLMs-from-scratch.git</code></pre>
+      </section>
+
+      <section>
+        <h2>مطالب تکمیلی</h2>
+        <ul>
+          <li><strong>دورهٔ ویدیویی:</strong> یک دورهٔ ویدیویی ۱۷ ساعته و ۱۵ دقیقه‌ای که نویسنده در آن کدهای هر فصل را قدم‌به‌قدم می‌نویسد</li>
+          <li><strong>کتاب مکمل:</strong> «Build A Reasoning Model (From Scratch)» — دنبالهٔ این کتاب دربارهٔ استدلال، یادگیری تقویتی و تقطیر</li>
+          <li><strong>تمرین‌ها:</strong> هر فصل تمرین‌هایی دارد؛ پاسخ‌ها در ضمیمه C و نوتبوک‌های exercise-solutions موجود است</li>
+          <li><strong>مطالب جایزه:</strong> توکنایزر BPE از صفر، KV Cache، جایگزین‌های توجه (GQA, MLA, SWA)، معماری‌های Llama 3.2، Qwen3، Gemma 3 از صفر، DPO برای هم‌راستاسازی و... </li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مخزن «LLMs-from-scratch» و کتاب «Build a Large Language Model (From Scratch)» اثر «سباستین راشکا (Sebastian Raschka)» است
+        (Manning, 2024 — ISBN: 978-1633437166). این صفحه فقط ترجمه فارسی معرفی/راهنما است؛ تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است.
+        برای مشاهده اصل مطلب به <a href="https://github.com/rasbt/LLMs-from-scratch" target="_blank" rel="noopener">مخزن اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

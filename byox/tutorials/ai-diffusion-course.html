@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Diffusion Models from Scratch» (واحد ۱.۳ دوره HF)
+  از Hugging Face — Diffusion Models Class
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مدل‌های Diffusion از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">مدل هوش مصنوعی</a>
+        <span class="sep">←</span>
+        <span>مدل‌های Diffusion از صفر</span>
+      </div>
+      <h1>مدل‌های Diffusion از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: مدل هوش مصنوعی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://huggingface.co/learn/diffusion-course/en/unit1/3" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی واحد «Diffusion Models from Scratch» از دورهٔ Hugging Face دربارهٔ مدل‌های Diffusion است
+          (Unit 1.3 — نوشتهٔ «جاناتان ویتاکر (Jonathan Whitaker)»).
+        </div>
+        <a class="btn solid" href="https://huggingface.co/learn/diffusion-course/en/unit1/3" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>گاهی اوقات مفید است ساده‌ترین نسخهٔ ممکن از یک چیز را در نظر بگیریم تا بهتر بفهمیم چطور کار می‌کند. در این نوتبوک با یک مدل Diffusion «اسباب‌بازی» شروع می‌کنیم تا ببینیم اجزای مختلف چطور کار می‌کنند و سپس بررسی می‌کنیم با پیاده‌سازی پیچیده‌تر چه تفاوت‌هایی دارند.</p>
+        <p>به این موارد نگاه خواهیم کرد:</p>
+        <ul>
+          <li>فرایند تخریب (افزودن نویز به داده)</li>
+          <li>UNet چیست و چطور یک نمونهٔ فوق‌مینیمال آن را از صفر پیاده‌سازی کنیم</li>
+          <li>آموزش مدل Diffusion</li>
+          <li>نظریهٔ نمونه‌برداری (Sampling)</li>
+        </ul>
+        <p>سپس نسخهٔ خودمان را با پیاده‌سازی DDPM در کتابخانهٔ diffusers مقایسه می‌کنیم و بررسی می‌کنیم:</p>
+        <ul>
+          <li>بهبودهای UNet مینی‌ما نسبت به UNet ما</li>
+          <li>برنامهٔ نویز (noise schedule) در DDPM</li>
+          <li>تفاوت در هدف آموزش</li>
+          <li>شرطی‌سازی گام زمانی (timestep conditioning)</li>
+          <li>رویکردهای مختلف نمونه‌برداری</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>راه‌اندازی و ایمپورت‌ها</h2>
+        <pre class="code"><span class="lang-tag">python</span><code>import torch
+import torchvision
+from torch import nn
+from torch.nn import functional as F
+from torch.utils.data import DataLoader
+from diffusers import DDPMScheduler, UNet2DModel
+from matplotlib import pyplot as plt
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f'Using device: {device}')</code></pre>
+
+        <h3>داده‌ها</h3>
+        <p>برای تست، از یک دیتاست خیلی کوچک استفاده می‌کنیم: MNIST. هر تصویر یک رقم ۲۸×۲۸ پیکسلی با مقیاس خاکستری است که مقادیر آن از ۰ تا ۱ است. اگر چالش کمی سخت‌تر می‌خواهید، <code class="inline">FashionMNIST</code> جایگزین مستقیم آن است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>dataset = torchvision.datasets.MNIST(
+    root="mnist/", train=True, download=True,
+    transform=torchvision.transforms.ToTensor()
+)
+train_dataloader = DataLoader(dataset, batch_size=128, shuffle=True)</code></pre>
+      </section>
+
+      <section>
+        <h2>فرایند تخریب</h2>
+        <p>فرض کنید هیچ مقاله‌ای دربارهٔ مدل‌های Diffusion نخوانده‌اید، اما می‌دانید این فرایند شامل افزودن نویز است. چطور این کار را انجام می‌دهید؟ احتمالاً می‌خواهید راهی آسان برای کنترل مقدار تخریب داشته باشید. پس پارامتری برای «مقدار» نویز می‌گیریم و انجام می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def corrupt(x, amount):
+    """ورودی x را طبق amount با نویز مخلوط می‌کنیم"""
+    noise = torch.rand_like(x)
+    amount = amount.view(-1, 1, 1, 1)  # شکل را مرتب می‌کنیم تا broadcast کار کند
+    return x*(1-amount) + noise*amount</code></pre>
+        <p>اگر amount صفر باشد، ورودی بدون تغییر برمی‌گردد؛ اگر به ۱ برسد، فقط نویز می‌ماند و اثری از x نیست. با این ترکیب، خروجی در همان بازهٔ ۰ تا ۱ می‌ماند. وقتی مقدار نویز به ۱ نزدیک می‌شود، داده مثل نویز کاملاً تصادفی به نظر می‌رسد.</p>
+      </section>
+
+      <section>
+        <h2>مدل: UNet مینیمال</h2>
+        <p>مدلی می‌خواهیم که یک تصویر ۲۸×۲۸ نویزی بگیرد و پیش‌بینی‌ای هم‌شکل با آن بدهد. انتخاب محبوب، معماری UNet است — که ابتدا برای segment شدن در تصاویر پزشکی اختراع شد. UNet یک «مسیر فشرده‌ساز» دارد که داده در آن فشرده می‌شود و یک «مسیر گسترش» که داده را به ابعاد اصلی برمی‌گرداند (مثل یک autoencoder) و همچنین اتصالات پرشی (skip connections) که جریان اطلاعات و گرادیان را در سطوح مختلف ممکن می‌کند.</p>
+        <p>برای این دموی مینیمال، تصویر تک‌کاناله را از سه لایهٔ کانولوشنی در مسیر پایین (down) و سه لایه در مسیر بالا (up) می‌گذرانیم، با اتصالات پرشی بین آن‌ها. برای کاهش ابعاد از MaxPooling و برای افزایش از <code class="inline">nn.Upsample</code> استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class BasicUNet(nn.Module):
+    """یک پیاده‌سازی مینیمال از UNet."""
+    def __init__(self, in_channels=1, out_channels=1):
+        super().__init__()
+        self.down_layers = torch.nn.ModuleList([
+            nn.Conv2d(in_channels, 32, kernel_size=5, padding=2),
+            nn.Conv2d(32, 64, kernel_size=5, padding=2),
+            nn.Conv2d(64, 64, kernel_size=5, padding=2),
+        ])
+        self.up_layers = torch.nn.ModuleList([
+            nn.Conv2d(64, 64, kernel_size=5, padding=2),
+            nn.Conv2d(64, 32, kernel_size=5, padding=2),
+            nn.Conv2d(32, out_channels, kernel_size=5, padding=2),
+        ])
+        self.act = nn.SiLU()  # تابع فعال‌سازی
+        self.downscale = nn.MaxPool2d(2)
+        self.upscale = nn.Upsample(scale_factor=2)
+
+    def forward(self, x):
+        h = []
+        for i, l in enumerate(self.down_layers):
+            x = self.act(l(x))   # عبور از لایه و تابع فعال‌سازی
+            if i &lt; 2:            # به‌جز آخرین لایه پایین
+              h.append(x)        # ذخیره خروجی برای اتصال پرشی
+              x = self.downscale(x)  # کاهش ابعاد
+        for i, l in enumerate(self.up_layers):
+            if i &gt; 0:            # به‌جز اولین لایه بالا
+              x = self.upscale(x)    # افزایش ابعاد
+              x += h.pop()           # بازیابی خروجی ذخیره‌شده (اتصال پرشی)
+            x = self.act(l(x))   # عبور از لایه و تابع فعال‌سازی
+        return x</code></pre>
+        <p>این شبکه کمی بیش از ۳۰۰,۰۰۰ پارامتر دارد. خروجی آن هم‌شکل ورودی است — دقیقاً همان‌طور که انتظار داریم.</p>
+      </section>
+
+      <section>
+        <h2>آموزش شبکه</h2>
+        <p>مدل دقیقاً باید چه کاری انجام دهد؟ برای این دمو یک چارچوب ساده انتخاب می‌کنیم: با ورودیِ تخریب‌شدهٔ <code class="inline">noisy_x</code>، مدل باید بهترین حدس خودش را از x اصلی بزند. این خروجی را با میانگین مربعات خطا (MSE) با مقدار واقعی مقایسه می‌کنیم.</p>
+        <p>حلقهٔ آموزش:</p>
+        <ul>
+          <li>یک batch از داده بردار</li>
+          <li>با مقادیر تصادفی نویزی‌اش کن</li>
+          <li>از مدل عبورش بده</li>
+          <li>پیش‌بینی‌های مدل را با تصاویر تمیز مقایسه کن تا loss حساب شود</li>
+          <li>پارامترهای مدل را به‌روز کن</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code>n_epochs = 3
+net = BasicUNet()
+net.to(device)
+loss_fn = nn.MSELoss()
+opt = torch.optim.Adam(net.parameters(), lr=1e-3)
+losses = []
+
+for epoch in range(n_epochs):
+    for x, y in train_dataloader:
+        x = x.to(device)                     # داده روی GPU
+        noise_amount = torch.rand(x.shape[0]).to(device)  # مقادیر نویز تصادفی
+        noisy_x = corrupt(x, noise_amount)   # ساخت x نویزی
+        pred = net(noisy_x)                  # پیش‌بینی مدل
+        loss = loss_fn(pred, x)              # چقدر خروجی به x تمیز نزدیک است؟
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+        losses.append(loss.item())
+    avg = sum(losses[-len(train_dataloader):]) / len(train_dataloader)
+    print(f'Finished epoch {epoch}. Average loss: {avg:05f}')</code></pre>
+        <p>می‌بینید که برای مقدارهای نویز پایین، پیش‌بینی‌ها خیلی خوب‌اند؛ اما وقتی مقدار خیلی بالا می‌رود، مدل اطلاعات کمی برای کار دارد و در amount=1 خروجی تار می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نمونه‌برداری (Sampling)</h2>
+        <p>اگر پیش‌بینی‌های ما در سطوح نویز بالا خوب نیستند، چطور تصویر تولید می‌کنیم؟ از نویز تصادفی شروع می‌کنیم، به پیش‌بینی مدل نگاه می‌کنیم اما فقط مقدار کمی به سمت آن حرکت می‌کنیم — مثلاً ۲۰٪ مسیر. حالا تصویری بسیار نویزی داریم که شاید ردپایی از ساختار در آن باشد؛ آن را به مدل می‌دهیم تا پیش‌بینی جدید بگیریم. امیدواریم پیش‌بینی جدید کمی بهتر باشد (چون نقطهٔ شروع کمی کم‌نویزتر است) و همین‌طور قدم‌های کوچک برداریم.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>n_steps = 40
+x = torch.rand(64, 1, 28, 28).to(device)   # شروع از نویز تصادفی
+for i in range(n_steps):
+    noise_amount = torch.ones((x.shape[0],)).to(device) * (1-(i/n_steps))
+    with torch.no_grad():
+        pred = net(x)          # پیش‌بینی x0 تمیز
+    mix_factor = 1/(n_steps - i)
+    x = x*(1-mix_factor) + pred*mix_factor  # بخشی از مسیر حرکت کن</code></pre>
+        <p>نتیجه عالی نیست، اما چند رقم قابل تشخیص در آن هست! می‌توانید با آموزش طولانی‌تر (۱۰ یا ۲۰ epoch) و تنظیم پیکربندی مدل، نرخ یادگیری و بهینه‌ساز آزمایش کنید.</p>
+      </section>
+
+      <section>
+        <h2>مقایسه با DDPM</h2>
+        <p>حالا تفاوت پیاده‌سازی «اسباب‌بازی» ما با رویکرد DDPM را بررسی می‌کنیم:</p>
+
+        <h3>۱. UNet</h3>
+        <p>مدل <code class="inline">UNet2DModel</code> در diffusers بهبودهای متعددی نسبت به BasicUNet ما دارد:</p>
+        <ul>
+          <li>GroupNorm برای نرمال‌سازی ورودی هر بلاک</li>
+          <li>لایه‌های Dropout برای آموزش نرم‌تر</li>
+          <li>چند لایهٔ ResNet در هر بلاک</li>
+          <li>توجه (Attention) — معمولاً فقط در بلاک‌های رزولوشن پایین</li>
+          <li>شرطی‌سازی روی گام زمانی</li>
+          <li>بلاک‌های کاهش/افزایش ابعاد با پارامترهای قابل یادگیری</li>
+        </ul>
+        <p>این مدل به‌طور قابل توجهی پارامترهای بیشتری دارد (حدود ۱.۷ میلیون در برابر ~۳۰۹ هزار پارامتر BasicUNet).</p>
+
+        <h3>۲. فرایند تخریب</h3>
+        <p>مقالهٔ DDPM فرایند تخریبی توصیف می‌کند که برای هر «گام زمانی» مقدار کمی نویز اضافه می‌کند. با توجه به <span dir="ltr">$x_{t-1}$</span>، نسخهٔ بعدی (کمی نویزی‌تر) <span dir="ltr">$x_t$</span> به دست می‌آید:</p>
+        <p style="text-align:center;direction:ltr" dir="ltr">q(x<sub>t</sub> | x<sub>t−1</sub>) = N(x<sub>t</sub>; √(1−β<sub>t</sub>)·x<sub>t−1</sub>, β<sub>t</sub>I)</p>
+        <p>x<sub>t−1</sub> را در √(1−β<sub>t</sub>) ضرب می‌کنیم و نویزی با مقیاس β<sub>t</sub> اضافه می‌کنیم. این β برای هر t طبق یک برنامهٔ (schedule) مشخص می‌شود. نیازی نیست این کار را ۵۰۰ بار برای رسیدن به x<sub>۵۰۰</sub> انجام دهیم — فرمول دیگری داریم که x<sub>t</sub> را برای هر t با داشتن x<sub>0</sub> می‌دهد.</p>
+        <p>تفاوت دیگر: DDPM نویز را از توزیع گاوسی (میانگین ۰، انحراف ۱ — یعنی <code class="inline">torch.randn</code>) می‌کشد نه نویز یکنواخت بین ۰ و ۱ (یعنی <code class="inline">torch.rand</code> مثل تابع corrupt ما).</p>
+
+        <h3>۳. هدف آموزش</h3>
+        <p>در مثال اسباب‌بازی ما، مدل باید تصویر حذف‌نویز شده را پیش‌بینی کند. در DDPM و بسیاری از پیاده‌سازی‌ها، مدل <strong>نویز</strong> استفاده‌شده در فرایند تخریب را پیش‌بینی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>noise = torch.randn_like(xb)          # توجه: randn نه rand
+noisy_x = noise_scheduler.add_noise(x, noise, timesteps)
+model_prediction = model(noisy_x, timesteps).sample
+loss = mse_loss(model_prediction, noise)  # نویز به‌عنوان هدف</code></pre>
+        <p>چرا این‌ها معادل نیستند؟ چون loss روی گام‌های زمانی مختلف (تصادفی) محاسبه می‌شود و این وزن‌دهی ضمنی متفاوتی می‌دهد؛ پیش‌بینی نویز وزن بیشتری روی سطوح نویز پایین می‌گذارد. انتخاب هدف روی عملکرد مدل اثر می‌گذارد و تحقیق دربارهٔ بهترین گزینه ادامه دارد.</p>
+
+        <h3>۴. شرطی‌سازی گام زمانی</h3>
+        <p>UNet2DModel هم x و هم timestep را می‌گیرد؛ دومی به embedding تبدیل و در چند نقطه به مدل داده می‌شود. منطقش این است: با دادن اطلاعات دربارهٔ سطح نویز، مدل می‌تواند کارش را بهتر انجام دهد. آموزش بدون این شرطی‌سازی ممکن است، اما در بسیاری از پیاده‌سازی‌ها به عملکرد کمک می‌کند.</p>
+
+        <h3>۵. نمونه‌برداری</h3>
+        <p>چند قدم کوچک بر اساس پیش‌بینی مدل برمی‌داریم و هر بار کمی از نویز را حذف می‌کنیم. سؤالات کلیدی طراحی:</p>
+        <ul>
+          <li>قدم چقدر بزرگ باشد؟ (چه «برنامهٔ نویز»ی را دنبال کنیم؟)</li>
+          <li>فقط از پیش‌بینی فعلی مدل استفاده کنیم (مثل DDPM و DDIM) یا از روش‌های مرتبهٔ بالاتر یا تاریخچهٔ پیش‌بینی‌ها؟</li>
+          <li>نویز اضافی (churn) برای تصادفی‌سازی بیشتر اضافه کنیم یا کاملاً قطعی بمانیم؟</li>
+        </ul>
+        <p>تحقیق روی روش‌های نمونه‌برداری به سرعت در حال تکامل است و روش‌های بیشتری برای یافتن راه‌حل‌های خوب با قدم‌های کمتر پیشنهاد می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>امیدواریم این نگاه از زاویه‌ای کمی متفاوت به مدل‌های Diffusion مفید بوده باشد. این نوتبوک برای دورهٔ Hugging Face توسط «جاناتان ویتاکر» نوشته شده و نسخهٔ دیگری از آن با شرطی‌سازی نویز و کلاس در دورهٔ خودش («The Generative Landscape») موجود است.</p>
+        <p>پیشنهاد مطالعه: مقالهٔ <a href="https://arxiv.org/abs/2206.00364" target="_blank" rel="noopener">Elucidating the Design Space of Diffusion-Based Generative Models</a> که همهٔ این اجزا را با جزئیات بررسی می‌کند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوتبوک «Diffusion Models from Scratch» اثر «جاناتان ویتاکر (Jonathan Whitaker)» است و برای دورهٔ Diffusion Course از «Hugging Face» نوشته شده.
+        این صفحه فقط ترجمه فارسی آن است؛ تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://huggingface.co/learn/diffusion-course/en/unit1/3" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

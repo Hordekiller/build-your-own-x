@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Building Your Own Kafka-like System From Scratch»
+  از buildthingsuseful — GitHub (MIT License)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت سیستمی شبیه کافکا از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌های توزیع‌شده</a>
+        <span class="sep">←</span>
+        <span>ساخت سیستمی شبیه کافکا از صفر</span>
+      </div>
+      <h1>ساخت سیستمی شبیه کافکا از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">📁 دسته: سیستم‌های توزیع‌شده</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/buildthingsuseful/build-your-own-kafka" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی ریپازیتوری «build-your-own-kafka» از «buildthingsuseful» در گیت‌هاب است.
+          پروژهٔ SimpleKafka با مجوز MIT منتشر شده و مقالهٔ گام‌به‌گام آن در Medium موجود است.
+        </div>
+        <a class="btn solid" href="https://github.com/buildthingsuseful/build-your-own-kafka" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>ساختن سیستمی شبیه کافکا از صفر — راهنمای گام‌به‌گام</h2>
+        <p>اگر به دنبال درک واقعی معماری کافکا هستید و می‌خواهید با پیاده‌سازی نسخه‌ای ساده‌شده از آن، این کار را انجام دهید، به جای درستی آمده‌اید. به‌جای اینکه فقط کد را کپی کنیم، «سیمپل‌کافکا (SimpleKafka)» را به‌صورت تدریجی می‌سازیم و در هر مرحله، هر کامپوننت را می‌فهمیم. این رویکرد درک عمیقی از سیستم‌های پیام‌رسان توزیع‌شده به شما می‌دهد.</p>
+
+        <h3>خلاصهٔ گردش کار</h3>
+        <p>این رویکردِ مرحله‌به‌مرحله به شما اجازه می‌دهد هر کامپوننت یک سیستم شبیه‌کافکا را از مرحلهٔ ۱ تا ۷ به‌تفصیل بسازید و بفهمید:</p>
+        <ol>
+          <li>راه‌اندازی ساختار پروژه</li>
+          <li>ایجاد لایهٔ اصلی پروتکل</li>
+          <li>پیاده‌سازی یکپارچه‌سازی ZooKeeper</li>
+          <li>ساخت لایهٔ ذخیره‌سازی</li>
+          <li>ساخت بروکر (Broker)</li>
+          <li>توسعهٔ کتابخانهٔ کلاینت</li>
+          <li>ساخت APIهای سطح‌بالاتر تولیدکننده و مصرف‌کننده</li>
+          <li>آزمایش سیستم</li>
+        </ol>
+
+        <h3>مرحله‌های ۱ تا ۷</h3>
+        <p>برای مرحله‌های ۱ تا ۷، مقالهٔ گام‌به‌گام و مفصل <a href="https://medium.com/@buildthingsuseful/building-your-own-kafka-like-system-from-scratch-a-step-by-step-guide-d3c5f0a303c0" target="_blank" rel="noopener">Medium</a> را دنبال کنید و هم‌زمان ریپازیتوری گیت‌هاب را مرجع بگیرید. این ترکیب به شما کمک می‌کند به‌صورت منظم در هر بخش پیش بروید.</p>
+        <p>با ساختن هر کامپوننت به‌صورت دستی، درک عمیقی از معماری کافکا و تصمیم‌های طراحی پشت آن به دست می‌آورید. این دانش وقتی با کافکای واقعی کار می‌کنید یا سیستم‌های توزیع‌شدهٔ خودتان را طراحی می‌کنید، فوق‌العاده ارزشمند خواهد بود.</p>
+      </section>
+
+      <section>
+        <h2>آزمایش سیستم</h2>
+
+        <h3>۱. کامپایل پروژه با Maven:</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code>mvn clean package</code></pre>
+
+        <h3>۲. راه‌اندازی ZooKeeper</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code># راه‌اندازی ZooKeeper با پیکربندی پیش‌فرض
+zkServer start
+
+# اگر جواب نداد، این را امتحان کنید:
+zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties
+
+# یا یک فایل کانفیگ ساده بسازید:
+echo "tickTime=2000" > zk.cfg
+echo "dataDir=/tmp/zookeeper" >> zk.cfg
+echo "clientPort=2181" >> zk.cfg
+zookeeper-server-start zk.cfg</code></pre>
+
+        <h3>۳. راه‌اندازی چند نمونه بروکر</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code># ترمینال ۱ — بروکر ۱
+java -cp target/simple-kafka-1.0-SNAPSHOT.jar com.simplekafka.broker.SimpleKafkaBroker 1 localhost 9091 2181
+
+# ترمینال ۲ — بروکر ۲
+java -cp target/simple-kafka-1.0-SNAPSHOT.jar com.simplekafka.broker.SimpleKafkaBroker 2 localhost 9092 2181
+
+# ترمینال ۳ — بروکر ۳
+java -cp target/simple-kafka-1.0-SNAPSHOT.jar com.simplekafka.broker.SimpleKafkaBroker 3 localhost 9093 2181</code></pre>
+
+        <h3>۴. تولید پیام</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code>java -cp target/simple-kafka-1.0-SNAPSHOT.jar com.simplekafka.client.SimpleKafkaProducer localhost 9091 test-topic</code></pre>
+
+        <h3>۵. مصرف پیام</h3>
+        <pre class="code"><span class="lang-tag">bash</span><code>java -cp target/simple-kafka-1.0-SNAPSHOT.jar com.simplekafka.client.SimpleKafkaConsumer localhost 9091 test-topic 0</code></pre>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی برای تمرکز در هنگام آزمایش</h2>
+
+        <h3>۱. پارتیشن‌بندی تاپیک و تکثیر (Replication)</h3>
+        <p>تماشا کنید که چطور یک تاپیک به پارتیشن‌ها تقسیم می‌شود و آن پارتیشن‌ها چطور بین بروکرها توزیع می‌شوند.</p>
+
+        <h3>۲. مکانیک لیدر و فالوور</h3>
+        <ul>
+          <li>چطور یک بروکر لیدر می‌شود</li>
+          <li>چطور فالوورها داده را از لیدر تکثیر می‌کنند</li>
+          <li>وقتی لیدر از کار می‌افتد و لیدر جدیدی انتخاب می‌شود چه اتفاقی می‌افتد</li>
+        </ul>
+
+        <h3>۳. نقش کنترلر (Controller)</h3>
+        <ul>
+          <li>کنترلر از طریق ZooKeeper انتخاب می‌شود</li>
+          <li>مدیریت تخصیص پارتیشن‌ها را بر عهده دارد</li>
+          <li>خرابی بروکرها را مدیریت می‌کند</li>
+          <li>اگر کنترلر جاری از کار بیفتد، کنترلر جدیدی انتخاب می‌شود</li>
+        </ul>
+
+        <h3>۴. ماندگاری پیام (Message Persistence)</h3>
+        <ul>
+          <li>ساختار سگمنت لاگ (Log Segment)</li>
+          <li>چطور پیام‌ها به‌صورت ترتیبی append می‌شوند</li>
+          <li>چطور ایندکس‌ها آفست‌ها را به موقعیت‌های فایل نگاشت می‌کنند</li>
+        </ul>
+
+        <h3>۵. پروتکل کلاینت-بروکر</h3>
+        <ul>
+          <li>فرمت پروتکل باینری</li>
+          <li>الگوهای درخواست/پاسخ (Request/Response)</li>
+          <li>چطور کلاینت‌ها بروکرهای درست را پیدا و به آن‌ها متصل می‌شوند</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>درباره پروژه</h2>
+        <p>پروژهٔ «SimpleKafka» یک پیاده‌سازی آموزشی و ساده‌شده از یک سیستم پیام‌رسان توزیع‌شده شبیه کافکا است که با جاوا و Maven ساخته شده. ساختار آن شامل پکیج‌هایی برای بروکر، کلاینت و لایه‌های ذخیره‌سازی است و با ZooKeeper برای انتخاب لیدر و مدیریت کنترلر یکپارچه می‌شود. مخزن با مجوز MIT منتشر شده است.</p>
+        <p>برای یادگیری بهتر:</p>
+        <ul>
+          <li>مخزن گیت‌هاب: <span dir="ltr">github.com/buildthingsuseful/build-your-own-kafka</span></li>
+          <li>مقالهٔ گام‌به‌گام Medium: <span dir="ltr">medium.com/@buildthingsuseful/building-your-own-kafka-like-system-from-scratch-a-step-by-step-guide-d3c5f0a303c0</span></li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژه و راهنمای «build-your-own-kafka» اثر «buildthingsuseful» است و با مجوز MIT منتشر شده.
+        این صفحه فقط ترجمه فارسی راهنما است؛ تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/buildthingsuseful/build-your-own-kafka" target="_blank" rel="noopener">مخزن اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

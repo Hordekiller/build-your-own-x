@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Build Your Own Container Using Less than 100 Lines of Go»
+  از Julian Friedman — InfoQ
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کانتینر خودت را با کمتر از ۱۰۰ خط Go بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">داکر</a>
+        <span class="sep">←</span>
+        <span>کانتینر خودت را با کمتر از ۱۰۰ خط Go بساز</span>
+      </div>
+      <h1>کانتینر خودت را با کمتر از ۱۰۰ خط Go بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: داکر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.infoq.com/articles/build-a-container-golang" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build Your Own Container Using Less than 100 Lines of Go»
+          از «جولیان فریدمن (Julian Friedman)» — InfoQ است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.infoq.com/articles/build-a-container-golang" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه — مشکلِ قیاس‌ها</h2>
+        <p>مشکل قیاس‌ها این است که وقتی می‌شنویمشان، ذهنمان خاموش می‌شود. بعضی‌ها می‌گویند معماری نرم‌افزار «درست مثل» معماری ساختمان است؛ نه، نیست. به همین ترتیب، کانتینری‌سازی نرم‌افزار اغلب به‌عنوان قابلیت جابه‌جایی نرم‌افزار «درست مثل» جابه‌جایی کالا با کانتینرهای حمل‌ونقل معرفی می‌شود. کانتینرهای حمل‌ونقل و کانتینرهای نرم‌افزاری نقاط اشتراک زیادی دارند — شکل و اندازهٔ استاندارد کانتینرهای حمل‌ونقل، صرفه‌جویی‌های مقیاس و استانداردسازی قدرتمندی را ممکن می‌کند — و کانتینرهای نرم‌افزاری هم وعدهٔ همین فواید را می‌دهند. اما این قیاسی سطحی است: یک هدف است، نه یک واقعیت.</p>
+        <p>برای فهمیدن واقعی چیستیِ کانتینر در دنیای نرم‌افزار باید بفهمیم چه چیزهایی در ساختِ یکی نقش دارند. در این مقاله دربارهٔ کانتینر در برابر کانتینری‌سازی، کانتینرهای لینوکس (شامل namespaces، cgroups و فایل‌سیستم‌های لایه‌ای) صحبت می‌کنیم، سپس با هم کدی را مرور می‌کنیم که یک کانتینر ساده را از صفر می‌سازد، و در نهایت دربارهٔ معنی همهٔ این‌ها صحبت می‌کنیم.</p>
+        <p>این مقاله بخشی از مجموعهٔ «Containers in the Real World — Stepping Off the Hype Curve» در InfoQ است.</p>
+      </section>
+
+      <section>
+        <h2>یک «کانتینر» واقعاً چیست؟</h2>
+        <p>در ذهن خودتان بگویید «کانتینر» چیست؟ احتمالاً یکی یا چند مورد از این‌ها گفته‌اید:</p>
+        <ul>
+          <li>راهی برای به اشتراک گذاشتن منابع</li>
+          <li>انزوای فرایند (Process Isolation)</li>
+          <li>نوعی مجازی‌سازی سبک</li>
+          <li>بسته‌بندی یک ریشه‌فایل‌سیستم و متادیتا با هم</li>
+          <li>نوعی زندان chroot</li>
+          <li>هر کاری که docker انجام می‌دهد</li>
+        </ul>
+        <p>کلمهٔ «کانتینر» برای مفاهیم بسیار زیادی (گاهی هم‌پوشان) به کار می‌رود: هم برای قیاس کانتینری‌سازی و هم برای فناوری‌های پیاده‌سازی‌اش. اگر این‌ها را جدا در نظر بگیریم، تصویر واضح‌تری به دست می‌آوریم. اول از «چرایی» کانتینرها بگوییم، بعد «چگونگی».</p>
+
+        <h3>در آغاز...</h3>
+        <p>در آغاز، یک برنامه بود؛ اسمش را run.sh بگذارید. آن را روی یک سرور راه دور کپی می‌کردیم و اجرایش می‌کردیم. اما اجرای کد دلخواه روی کامپیوترهای راه دور ناامن و مدیریتش و مقیاس‌پذیریش سخت است. پس سرورهای خصوصی مجازی (VPS) و مجوزهای کاربری را اختراع کردیم. و اوضاع خوب بود.</p>
+        <p>اما run.sh کوچک وابستگی داشت؛ کتابخانه‌های خاصی لازم داشت که روی میزبان وجود داشته باشند. و هیچ‌وقت درست مثل محلی، روی سرور راه دور کار نمی‌کرد. پس AMI ها (تصاویر ماشین آمازون)، VMDK ها (تصاویر VMware)، Vagrantfile ها و امثال آن را اختراع کردیم. و اوضاع خوب بود — تقریباً. باندل‌ها بزرگ بودند و جابه‌جایی‌شان سخت بود چون استاندارد نبودند. و سپس caching را اختراع کردیم.</p>
+        <p><img src="https://imgopt.infoq.com/fit-in/3000x4000/filters:quality(85)/filters:no_upscale()/articles/build-a-container-golang/en/resources/fig1.jpg" alt="نمودار حمل تصاویر و کش‌کردن لایه‌های داکر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>کشینگ همان چیزی است که تصاویر داکر را بسیار مؤثرتر از vmdk ها یا vagrantfile ها می‌کند. به ما اجازه می‌دهد به‌جای جابه‌جایی کل تصاویر، دلتاها را روی تصاویر پایهٔ مشترک جابه‌جا کنیم. یعنی می‌توانیم کل محیط را از یک جا به جای دیگر بفرستیم؛ به همین دلیل است که وقتی <code class="inline">docker run whatever</code> می‌زنید، تقریباً بلافاصله شروع می‌شود حتی اگر whatever کل یک تصویر سیستمعامل را توصیف کند.</p>
+        <p>و واقعاً، کار کانتینرها همین است: بسته‌بندی وابستگی‌ها تا کدمان را به‌شکلی تکرارپذیر و امن جابه‌جا کنیم. اما این یک هدف سطح بالا است، نه تعریف.</p>
+      </section>
+
+      <section>
+        <h2>ساختن یک کانتینر</h2>
+        <p>خوب، برای بار آخر: کانتینر چیست؟ خیلی خوب می‌شد اگر ساختن کانتینر به سادگی یک سیستمعمل <code class="inline">create_container</code> بود. نیست. اما صادقانه بگویم، نزدیک است.</p>
+        <p>برای صحبت دربارهٔ کانتینر در سطح پایین، باید دربارهٔ سه چیز صحبت کنیم: namespaces، cgroups و فایل‌سیستم‌های لایه‌ای. چیزهای دیگری هم هستند، اما این سه بخش عمدهٔ جادو را می‌سازند.</p>
+
+        <h3>Namespaces</h3>
+        <p>ناماسپیس‌ها انزوا (isolation) لازم برای اجرای چند کانتینر روی یک ماشین را فراهم می‌کنند، در حالی که به هر کدام ظاهری از محیطِ خودش را می‌دهند. در زمان نوشتن این مقاله شش namespace وجود دارد. هر کدام را می‌توان مستقلاً درخواست کرد و یعنی دادنِ دیدِ (view) به یک فرایند (و فرزندانش) از زیرمجموعه‌ای از منابع ماشین. آن‌ها عبارت‌اند از:</p>
+        <ul>
+          <li><strong>PID:</strong> به یک فرایند و فرزندانش دیدِ خودشان از زیرمجموعه‌ای از فرایندهای سیستم می‌دهد. مثل یک جدول نگاشت است: وقتی فرایندی در یک pid namespace از هسته فهرست فرایندها را می‌خواهد، هسته به جدول نگاشت نگاه می‌کند؛ اگر فرایند در جدول بود، از شناسهٔ نگاشت‌شده استفاده می‌شود وگرنه هسته وانمود می‌کند اصلاً وجود ندارد. اولین فرایند ساخته‌شده داخل آن pid یک می‌شود و ظاهر یک درخت فرایند ایزوله را در کانتینر می‌دهد.</li>
+          <li><strong>MNT:</strong> از بعضی جهات مهم‌ترین است. به فرایندهای داخلش جدول mount های خودشان را می‌دهد؛ یعنی می‌توانند دایرکتوری‌ها را mount و unmount کنند بدون اینکه روی namespace های دیگر (از جمله میزبان) تأثیر بگذارد. مهم‌تر اینکه در ترکیب با سیستمعملِ <code class="inline">pivot_root</code> به یک فرایند اجازه می‌دهد فایل‌سیستم خودش را داشته باشد. این‌طور است که یک فرایند فکر می‌کند روی ubuntu یا busybox یا alpine اجرا می‌شود — با عوض کردن فایل‌سیستمی که کانتینر می‌بیند.</li>
+          <li><strong>NET:</strong> به فرایندهایی که استفاده‌اش می‌کنند پشتهٔ شبکهٔ خودشان را می‌دهد. معمولاً فقط namespace شبکهٔ اصلی کارت‌های شبکهٔ فیزیکی واقعی دارد. اما می‌توانیم جفت‌های ethernet مجازی بسازیم — کارت‌های شبکهٔ به‌هم‌پیوسته که یک سرش توی یک network namespace و سر دیگرش توی یکی دیگر است — و یک لینک مجازی بین namespace ها بسازیم. با کمی جادوی مسیریابی، این به هر کانتینر اجازه می‌دهد با دنیای واقعی حرف بزند در حالی که به پشتهٔ شبکهٔ خودش ایزوله است.</li>
+          <li><strong>UTS:</strong> به فرایندهایش دید خودشان از hostname و نام دامنهٔ سیستم می‌دهد. بعد از ورود به UTS namespace، تنظیم hostname روی فرایندهای دیگر اثر نمی‌گذارد.</li>
+          <li><strong>IPC:</strong> مکانیزم‌های ارتباط بین‌فرایندی مثل صف پیام را ایزوله می‌کند.</li>
+          <li><strong>USER:</strong> آخرین مورد اضافه‌شده و از دید امنیتی احتمالاً قدرتمندترین است. uidهایی را که یک فرایند می‌بیند به مجموعهٔ uid (و gid) متفاوتی روی میزبان نگاشت می‌کند. با آن می‌توانیم uid کاربر root کانتینر (یعنی ۰) را به یک uid دلخواه (و بدون امتیاز) روی میزبان نگاشت کنیم؛ یعنی کانتینر فکر کند root است — حتی می‌توانیم امتیازات rootمانند روی منابع مخصوص کانتینر بدهیم — بدون اینکه امتیازی در root namespace بدهیم. هسته آن uid را زیر پوسته به یک uid واقعیِ بدون امتیاز نگاشت می‌کند. بیشتر سیستم‌های کانتینری هیچ uidای در کانتینر به uid صفرِ فضای فراخواننده نگاشت نمی‌کنند؛ به بیان دیگر، در کانتینر اصلاً uidای با امتیازات root واقعی وجود ندارد.</li>
+        </ul>
+        <p>بیشتر فناوری‌های کانتینری فرایند کاربر را در همهٔ namespace های بالا قرار می‌دهند و آن‌ها را برای فراهم‌کردن محیط استاندارد مقداردهی می‌کنند؛ مثلاً یک کارت اینترنت اولیه در network namespace ایزولهٔ کانتینر با اتصال به یک شبکهٔ واقعی روی میزبان ساخته می‌شود.</p>
+
+        <h3>CGroups</h3>
+        <p>cgroups می‌توانستند یک مقالهٔ کامل باشند. نویسنده این‌جا خیلی مختصر به آن‌ها می‌پردازد چون وقتی مفاهیم را فهمیدید، همه‌چیز را می‌توانید در مستندات پیدا کنید.</p>
+        <p>در بنیاد، cgroups مجموعه‌ای از شناسه‌های فرایند/تسک را جمع می‌کنند و محدودیت‌هایی روی آن‌ها اعمال می‌کنند. جایی که namespaces یک فرایند را ایزوله می‌کنند، cgroups اشتراک منصفانه (یا ناعادلانه — انتخاب با شماست) منابع را بین فرایندها اعمال می‌کنند.</p>
+        <p>cgroups توسط هسته به‌صورت یک فایل‌سیستم خاص که می‌توانید mount کنید در معرض دید قرار می‌گیرند. یک فرایند یا thread را با افزودن شناسه‌های فرایند به یک فایل <code class="inline">tasks</code> به cgroup اضافه می‌کنید و مقادیر مختلف را عملاً با ویرایش فایل‌های همان دایرکتوری می‌خوانید و پیکربندی می‌کنید.</p>
+
+        <h3>فایل‌سیستم‌های لایه‌ای</h3>
+        <p>namespaces و cgroups جنبهٔ انزوا و اشتراک منابع کانتینری‌سازی‌اند؛ آن‌ها بدنهٔ فلزی و نگهبان اسکله‌اند. فایل‌سیستم‌های لایه‌ای روشی‌اند که با آن می‌توانیم کل تصاویر ماشین را به‌صورت کارآمد جابه‌جا کنیم؛ آن‌ها دلیل شناور ماندن کشتی‌اند.</p>
+        <p>در سطح پایه، فایل‌سیستم‌های لایه‌ای یعنی بهینه‌کردن فراخوانِ ساخت یک کپی از ریشه‌فایل‌سیستم برای هر کانتینر. روش‌های متعددی هست: <a href="https://btrfs.wiki.kernel.org/" target="_blank" rel="noopener">Btrfs</a> از copy on write در سطح فایل‌سیستم استفاده می‌کند؛ <a href="https://en.wikipedia.org/wiki/Aufs" target="_blank" rel="noopener">Aufs</a> از «union mount». چون راه‌های زیادی برای رسیدن به این مرحله هست، این مقاله فقط از چیزی وحشتناک ساده استفاده می‌کند: واقعاً یک کپی انجام می‌دهیم. کُند است، اما کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>ساختن کانتینر</h2>
+
+        <h3>گام یک: برپایی اسکلت</h3>
+        <p>اول اسکلت را سرِ پا کنیم. با فرض نصب بودن جدیدترین نسخهٔ <a href="https://golang.org/doc/install" target="_blank" rel="noopener">SDK زبان برنامه‌نویسی Go</a>، یک ویرایشگر باز کنید و لیست زیر را کپی کنید:</p>
+
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"syscall"
+)
+
+func main() {
+	switch os.Args[1] {
+	case "run":
+		parent()
+	case "child":
+		child()
+	default:
+		panic("wat should I do")
+	}
+}
+
+func parent() {
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("ERROR", err)
+		os.Exit(1)
+	}
+}
+
+func child() {
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("ERROR", err)
+		os.Exit(1)
+	}
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}</code></pre>
+
+        <p>این کد چه می‌کند؟ از <code class="inline">main.go</code> شروع می‌کنیم و اولین آرگومان را می‌خوانیم. اگر «run» بود متد <code class="inline">parent()</code> اجرا می‌شود و اگر «child» بود متد <code class="inline">child()</code>. متد parent، <code class="inline">/proc/self/exe</code> را اجرا می‌کند — فایل ویژه‌ای که حاوی تصویر درون‌حافظه‌ایِ همان executable جاری است. به بیان دیگر، خودمان را دوباره اجرا می‌کنیم، اما با child به‌عنوان آرگومان اول.</p>
+        <p>این دیوانگی چیست؟ فعلاً چیز زیادی نیست؛ فقط به ما اجازه می‌دهد برنامه‌ای را اجرا کنیم که برنامهٔ درخواستی کاربر را اجرا می‌کند. اما با همین داربست ساده می‌توانیم یک کانتینر بسازیم.</p>
+
+        <h3>گام دو: افزودن namespaces</h3>
+        <p>برای افزودن چند namespace به برنامه فقط کافی است یک خط اضافه کنیم. در خط دوم متد <code class="inline">parent()</code> این خط را اضافه کنید تا به go بگوییم هنگام اجرای فرایند فرزند، چند پرچم اضافه بفرستد:</p>
+
+        <pre class="code"><span class="lang-tag">go</span><code>cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+	Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+}</code></pre>
+
+        <p>اگر برنامه را الان اجرا کنید، برنامه‌تان داخل namespace های UTS، PID و MNT اجرا می‌شود!</p>
+
+        <h3>گام سه: ریشه‌فایل‌سیستم</h3>
+        <p>فعلاً فرایند شما در مجموعه‌ای از namespace های ایزوله است (در این نقطه آزادید namespace های دیگر را هم به Cloneflags بالا اضافه کنید و امتحان کنید). اما فایل‌سیستم مثل میزبان به نظر می‌رسد. دلیلش این است که شما در یک mount namespace هستید، اما mount های اولیه از namespace سازنده به ارث رسیده‌اند.</p>
+        <p>بیایید تغییرش دهیم. این چهار خط ساده را لازم داریم تا به یک ریشه‌فایل‌سیستم وارد شویم. آن‌ها را دقیقاً در ابتدای تابع <code class="inline">child()</code> بگذارید:</p>
+
+        <pre class="code"><span class="lang-tag">go</span><code>must(syscall.Mount("rootfs", "rootfs", "", syscall.MS_BIND, ""))
+must(os.MkdirAll("rootfs/oldrootfs", 0700))
+must(syscall.PivotRoot("rootfs", "rootfs/oldrootfs"))
+must(os.Chdir("/"))</code></pre>
+
+        <p>دو خط آخر بخش مهم است: به سیستم‌عامل می‌گویند دایرکتوری جاری در <code class="inline">/</code> را به <code class="inline">rootfs/oldrootfs</code> منتقل کند و دایرکتوری جدید rootfs را به <code class="inline">/</code> تبدیل کند. بعد از کامل‌شدن فراخوانِ <code class="inline">pivotroot</code>، دایرکتوری <code class="inline">/</code> در کانتینر به rootfs اشاره می‌کند. (فراخوان bind mount لازم است تا برخی الزامات دستور <code class="inline">pivotroot</code> برآورده شود — سیستم‌عامل می‌خواهد <code class="inline">pivotroot</code> برای جابه‌جایی دو فایل‌سیستمی استفاده شود که بخشی از یک درخت نیستند؛ bind mount کردنِ rootfs به خودش همین را برآورده می‌کند. بله، خیلی احمقانه است.)</p>
+
+        <h3>گام چهار: مقداردهیِ دنیای کانتینر</h3>
+        <p>در این نقطه فرایندی دارید که در مجموعه‌ای از namespace های ایزوله با ریشه‌فایل‌سیستمی به انتخاب خودتان اجرا می‌شود. راه‌اندازی cgroups را رد کرده‌ایم (هرچند ساده است) و مدیریت ریشه‌فایل‌سیستم را رد کرده‌ایم که به شما امکانِ دانلود و کش کارآمد تصاویرِ ریشه‌فایل‌سیستمی که به آن‌ها <code class="inline">pivotroot</code> زده‌ایم را می‌دهد.</p>
+        <p>راه‌اندازی کانتینر را هم رد کرده‌ایم. آنچه دارید یک کانتینر تازه در namespace های ایزوله است. mount namespace را با pivoting به rootfs تنظیم کرده‌ایم، اما سایر namespace ها محتوای پیش‌فرض دارند. در یک کانتینر واقعی باید قبل از اجرای فرایند کاربر، «دنیا» را برای کانتینر پیکربندی کنیم؛ مثلاً شبکه را راه بیندازیم، قبل از اجرای فرایند به uid درست سوییچ کنیم، هر محدودیت دیگری که می‌خواهیم را تنظیم کنیم (مثل پایین‌آوردن capabilities و تنظیم rlimit ها) و غیره. این شاید ما را از ۱۰۰ خط رد کند.</p>
+
+        <h3>گام پنج: کنار هم گذاشتن همه</h3>
+        <p>پس اینجاست: یک کانتینر فوق‌ساده، در (خیلی) کمتر از ۱۰۰ خط Go. واضح است که عمداً ساده است؛ اگر در تولید از آن استفاده کنید، دیوانه‌اید و مهم‌تر، تنها هستید. اما دیدن یک چیز ساده و زمخت تصویر واقعاً مفیدی از آنچه روی می‌دهد می‌دهد.</p>
+
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"syscall"
+)
+
+func main() {
+	switch os.Args[1] {
+	case "run":
+		parent()
+	case "child":
+		child()
+	default:
+		panic("wat should I do")
+	}
+}
+
+func parent() {
+	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
+	cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+	}
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("ERROR", err)
+		os.Exit(1)
+	}
+}
+
+func child() {
+	must(syscall.Mount("rootfs", "rootfs", "", syscall.MS_BIND, ""))
+	must(os.MkdirAll("rootfs/oldrootfs", 0700))
+	must(syscall.PivotRoot("rootfs", "rootfs/oldrootfs"))
+	must(os.Chdir("/"))
+
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("ERROR", err)
+		os.Exit(1)
+	}
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>خب، چه معنی‌ای دارد؟</h2>
+        <p>اینجاست که نویسنده کمی جنجالی می‌شود. به نظر او، کانتینر راهی فوق‌العاده برای جابه‌جا کردن چیزها و اجرای ارزان کد با درجهٔ خوبی از انزواست؛ اما پایان گفتگو نیست. کانتینرها یک فناوری هستند، نه یک تجربهٔ کاربری.</p>
+        <p>به‌عنوان کاربر، آدم نمی‌خواهد کانتینرها را به تولید هل بدهد، بیشتر از آنچه مشتریِ amazon.com بخواهد برای ترتیب حمل کالایش زنگ بزند به اسکله. کانتینرها فناوری فوق‌العاده‌ای برای ساختن رویشان هستند، اما نباید با تواناییِ جابه‌جاییِ تصاویر ماشین فریفته شویم و نیاز به ساختن تجربه‌های توسعه‌دهندهٔ واقعاً عالی را از یاد ببریم.</p>
+        <p>پلتفرم‌های Platform as a Service (PaaS) که روی کانتینرها ساخته شده‌اند، مثل <a href="https://www.cloudfoundry.org/" target="_blank" rel="noopener">Cloud Foundry</a>، با تجربهٔ کاربری مبتنی بر <em>کد</em> شروع می‌کنند نه کانتینر. برای بیشتر توسعه‌دهنده‌ها خواسته این است: کدشان را push کنند و اجرا شود. در پس‌زمینه، Cloud Foundry — و بیشتر PaaS های دیگر — همان کد را می‌گیرد و یک تصویر کانتینری‌شده می‌سازد که مقیاس‌دهی و مدیریت می‌شود. در مورد Cloud Foundry این کار با buildpack انجام می‌شود، اما می‌توانید این گام را رد کنید و یک تصویر داکر ساخته‌شده از Dockerfile را هم push کنید.</p>
+        <p>با یک PaaS همهٔ مزیت‌های کانتینرها هنوز حاضرند — محیط‌های سازگار، مدیریت کارآمد منابع و... — اما با کنترل تجربهٔ کاربری، یک PaaS هم تجربهٔ ساده‌تری به توسعه‌دهنده می‌دهد و هم می‌تواند چند ترفند اضافه انجام دهد مثل وصله‌کردن ریشه‌فایل‌سیستم هنگام آسیب‌پذیری‌های امنیتی. علاوه بر این، پلتفرم‌ها چیزهایی مثل پایگاه‌داده و صف پیام را به‌صورت <em>سرویس</em> فراهم می‌کنند که می‌توانید به اپ‌هایتان متصل کنید و دیگر لازم نیست به همه‌چیز به‌عنوان کانتینر فکر کنید.</p>
+        <p>پس کانتینرها را بررسی کردیم. حالا با آن‌ها چه کنیم؟</p>
+      </section>
+
+      <section>
+        <h2>دربارهٔ نویسنده</h2>
+        <p><a href="https://www.infoq.com/profile/Julian-Friedman/" target="_blank" rel="noopener">جولیان فریدمن (Julian Friedman)</a> مهندس IBM و لید مهندسیِ Garden، فناوری کانتینرِ Cloud Foundry است. قبل از Cloud Foundry روی پروژه‌های فناوری نوظهور متعددی کار کرده — از کارایی IBM Watson تا بعضی از اولین تکرارهای فناوری‌های ابری IBM. او اخیراً دکترایش را در حوزهٔ Map/Reduce تمام کرده است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Build Your Own Container Using Less than 100 Lines of Go» اثر «جولیان فریدمن (Julian Friedman)» است که در InfoQ منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.infoq.com/articles/build-a-container-golang" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
