@@ -18,7 +18,7 @@
 
 پلتفرم HTML فارسی (پوشه `byox/`) که همه آموزش‌ها را به‌صورت صفحه‌به‌صفحه، دقیق و کامل ترجمه می‌کند — هر بار ۱۰ آموزش.
 
-- 🌐 **آدرس آنلاین:** `https://hordekiller.github.io/build-your-own-x/byox/`
+- 🌐 **آدرس آنلاین:** `https://hordekiller.github.io/build-your-own-x/`
 - 🚀 با هر push روی شاخه `master`، به‌صورت خودکار روی **GitHub Pages** دِپلوی می‌شود (workflow: `.github/workflows/deploy-pages.yml`).
 
 **نکته فعال‌سازی (یک بار):** از تب *Settings ← Pages* مخزن، بخش «Build and deployment» را روی *GitHub Actions* بگذارید تا دِپلوی خودکار فعال شود.
