@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت کلاینت بیت‌تورنت از پایه در Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">کلاینت بیت‌تورنت</a>
+        <span class="sep">←</span>
+        <span>ساخت کلاینت بیت‌تورنت از پایه در Go</span>
+      </div>
+      <h1>ساخت کلاینت بیت‌تورنت از پایه در Go</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📡 کلاینت بیت‌تورنت</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.jse.li/posts/torrent/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Building a BitTorrent client from the ground up in Go» از «Jesse Li (blog.jse.li)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://blog.jse.li/posts/torrent/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه: بیت‌تورنت چیست و چرا آن را می‌سازیم؟</h2>
+        <p>
+          بیت‌تورنت (BitTorrent) یک پروتکل برای دانلود و توزیع فایل‌ها در سراسر اینترنت است. در تقابل با رابطه سنتی کلاینت/سرور
+          (مثل تماشای فیلم در نتفلیکس یا بارگذاری همین صفحه وب که می‌خوانید) که در آن دانلودکننده‌ها به یک سرور مرکزی متصل می‌شوند،
+          شرکت‌کنندگان در شبکه بیت‌تورنت که <b>همتا (peer)</b> نامیده می‌شوند، قطعه‌های فایل را از یکدیگر دانلود می‌کنند؛ همین موضوع
+          باعث می‌شود بیت‌تورنت یک پروتکل نظیربه‌نظیر (peer-to-peer) باشد. در این آموزش بررسی می‌کنیم این کار چگونه انجام می‌شود و
+          کلاینتی می‌سازیم که می‌تواند همتاها را پیدا کند و بین آن‌ها داده ردوبدل کند.
+        </p>
+        <img src="https://blog.jse.li/torrent/client-server-p2p.png" alt="نمودار تفاوت رابطه کلاینت/سرور (همه کلاینت‌ها به یک سرور متصل می‌شوند) و نظیربه‌نظیر (همتاها به هم متصل می‌شوند)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          این پروتکل طی ۲۰ سال گذشته به‌صورت ارگانیک تکامل پیدا کرده و افراد و سازمان‌های مختلفی افزونه‌هایی برای قابلیت‌هایی مثل
+          رمزنگاری، تورنت‌های خصوصی و راه‌های جدید پیدا کردن همتا اضافه کرده‌اند. ما مشخصات اصلی سال ۲۰۰۱ را پیاده‌سازی می‌کنیم تا
+          پروژه در حد یک آخر هفته بماند.
+        </p>
+        <p>
+          من از فایل ISO دبیان به‌عنوان آزمون استفاده می‌کنم، چون بزرگ است اما خیلی بزرگ نه — حدود ۳۵۰ مگابایت. دبیان به‌عنوان یک
+          توزیع لینوکسی محبوب، همتاهای سریع و خوش‌برخورد زیادی برای اتصال دارد. به این ترتیب از مسائل حقوقی و اخلاقی مربوط به
+          دانلود محتوای دزدی هم دور می‌مانیم.
+        </p>
+        <div class="callout tip">
+          در مقاله اصلی، نویسنده یادآوری می‌کند که فعالان اعتراضات اجتماعی (مثل جنبش‌های عدالت نژادی) به وثیقه و کمک حقوقی نیاز
+          دارند و از خوانندگان می‌خواهد به صندوق‌های وثیقه محلی کمک کنند — پیوند: communityjusticeexchange.org/nbfn-directory.
+        </div>
+      </section>
+
+      <section>
+        <h2>پیدا کردن همتاها</h2>
+        <p>
+          این‌جا یک مشکل داریم: می‌خواهیم با بیت‌تورنت فایلی را دانلود کنیم، اما این یک پروتکل نظیربه‌نظیر است و ما هیچ ایده‌ای
+          نداریم که همتاها را کجا پیدا کنیم. این خیلی شبیه جابه‌جایی به یک شهر جدید و تلاش برای پیدا کردن دوست است — شاید سراغ یک
+          میخانه محلی یا گروه ملاقات برویم! مکان‌های متمرکز مثل این‌ها، ایده اصلی پشت <b>ترکرها (tracker)</b> هستند؛ سرورهای مرکزی
+          که همتاها را به یکدیگر معرفی می‌کنند. آن‌ها فقط وب‌سرورهایی هستند که روی HTTP اجرا می‌شوند
+          <small style="color:var(--muted)">* بعضی ترکرها برای صرفه‌جویی در پهنای باند از یک پروتکل باینری UDP استفاده می‌کنند؛
+          ترکر دبیان را در http://bttracker.debian.org:6969/ می‌بینید.</small>
+        </p>
+        <img src="https://blog.jse.li/torrent/trackers.png" alt="تصویر یک کامپیوتر رومیزی و یک لپ‌تاپ که در یک میخانه نشسته‌اند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          البته این سرورهای مرکزی اگر تبادل محتوای غیرقانونی را تسهیل کنند، ممکن است توسط ماموران فدرال جمع شوند. احتمالاً
+          درباره توقیف و تعطیلی ترکرهایی مثل TorrentSpy، Popcorn Time و KickassTorrents خوانده‌اید. روش‌های جدید، میان‌بر را حذف
+          می‌کنند و حتی کشف همتا را هم به یک فرایند توزیع‌شده تبدیل می‌کنند. ما آن‌ها را پیاده‌سازی نمی‌کنیم، اما اگر علاقه‌مندید،
+          این کلمات را جست‌وجو کنید: <b>DHT</b>، <b>PEX</b> و <b>مگنت‌لینک (magnet links)</b>.
+        </p>
+
+        <h3>تجزیه یک فایل .torrent</h3>
+        <p>
+          یک فایل .torrent محتوای فایل قابل‌تورنت‌شدن و اطلاعات اتصال به ترکر را توصیف می‌کند. همین یک فایل برای شروع فرایند
+          دانلود یک تورنت کافی است. فایل .torrent دبیان این‌طور به نظر می‌رسد:
+        </p>
+        <pre class="code"><span class="lang-tag">bencode</span><code>d8:announce41:http://bttracker.debian.org:6969/announce7:comment35:&quot;Debian CD from cdimage.debian.org&quot;13:creation datei1573903810e9:httpseedsl145:https://cdimage.debian.org/cdimage/release/10.2.0//srv/cdbuilder.debian.org/dst/deb-cd/weekly-builds/amd64/iso-cd/debian-10.2.0-amd64-netinst.iso145:https://cdimage.debian.org/cdimage/archive/10.2.0//srv/cdbuilder.debian.org/dst/deb-cd/weekly-builds/amd64/iso-cd/debian-10.2.0-amd64-netinst.isoe4:infod6:lengthi351272960e4:name31:debian-10.2.0-amd64-netinst.iso12:piece lengthi262144e6:pieces26800:�����PS�^�� (بلاب باینری هش هر قطعه)ee</code></pre>
+        <p>
+          این درهم‌وبرهم با قالبی به نام <b>Bencode</b> (تلفظ: بی‌-انکود) کدگذاری شده و ما باید آن را کدگشایی کنیم.
+          Bencode تقریباً همان نوع ساختارهایی را می‌تواند کدگذاری کند که JSON — رشته‌ها، اعداد صحیح، لیست‌ها و دیکشنری‌ها.
+          داده بنکدشده به اندازه JSON برای انسان خواناتر و قابل‌نوشتن نیست، اما می‌تواند داده باینری را کارآمد مدیریت کند و
+          تجزیه آن از یک جریان (stream) واقعاً ساده است. رشته‌ها با پیشوند طول می‌آیند و این‌طور دیده می‌شوند: <code>4:spam</code>.
+          اعداد صحیح بین دو نشانگر شروع و پایان قرار می‌گیرند؛ بنابراین 7 به‌صورت <code>i7e</code> کدگذاری می‌شود. لیست‌ها و
+          دیکشنری‌ها هم به شکلی مشابه کار می‌کنند: <code>l4:spami7ee</code> یعنی <code>['spam', 7]</code> و <code>d4:spami7ee</code>
+          یعنی <code>{spam: 7}</code>.
+        </p>
+        <p>در قالبی خواناتر، فایل .torrent ما این‌طور دیده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">bencode</span><code>d
+  8:announce
+    41:http://bttracker.debian.org:6969/announce
+  7:comment
+    35:&quot;Debian CD from cdimage.debian.org&quot;
+  13:creation date
+    i1573903810e
+  4:info
+    d
+      6:length
+        i351272960e
+      4:name
+        31:debian-10.2.0-amd64-netinst.iso
+      12:piece length
+        i262144e
+      6:pieces
+        26800:�����PS�^�� (بلاب باینری هش هر قطعه)
+    e
+e</code></pre>
+        <p>
+          در این فایل، نشانی URL ترکر، تاریخ ساخت (به‌صورت زمان‌سنج یونیکس)، نام و اندازه فایل، و یک بلاب باینری بزرگ شامل هش
+          SHA-1 هر قطعه را می‌بینیم. قطعه‌ها (pieces) بخش‌های هم‌اندازه فایلی هستند که می‌خواهیم دانلود کنیم. اندازه دقیق هر قطعه
+          در تورنت‌های مختلف فرق دارد، اما معمولاً جایی بین ۲۵۶ کیلوبایت و ۱ مگابایت است. این یعنی یک فایل بزرگ ممکن است از هزاران
+          قطعه تشکیل شده باشد. ما این قطعه‌ها را از همتاهایمان دانلود می‌کنیم، آن‌ها را با هش‌های داخل فایل تورنت چک می‌کنیم،
+          کنار هم می‌چینیم و ... بوم! یک فایل داریم!
+        </p>
+        <img src="https://blog.jse.li/torrent/pieces.png" alt="تصویر بریدن یک فایل با قیچی به چند قطعه، که از قطعه صفر شروع می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          این سازوکار به ما اجازه می‌دهد یکپارچگی هر قطعه را هنگام دریافت بررسی کنیم. این ویژگی بیت‌تورنت را در برابر خرابی
+          اتفاقی یا مسموم‌سازی عمدی تورنت مقاوم می‌کند. مگر اینکه مهاجمی بتواند SHA-1 را با حمله پیش‌تصویر (preimage attack)
+          بشکند، ما دقیقاً همان محتوایی را می‌گیریم که خواسته‌ایم.
+        </p>
+        <p>
+          نوشتن یک پارسر بنکد خیلی سرگرم‌کننده است، اما امروز تمرکز ما روی تجزیه نیست. پارسر ۵۰ خطی فردریک لوند (Fredrik Lundh)
+          را واقعاً روشنگر پیدا کردم. برای این پروژه از <code>github.com/jackpal/bencode-go</code> استفاده کردم:
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>import (
+    "github.com/jackpal/bencode-go"
+)
+
+// bencodeInfo اطلاعات داخل بخش info فایل تورنت را نگه می‌دارد
+type bencodeInfo struct {
+    Pieces      string `bencode:"pieces"`       // بلاب باینری هش‌های همه قطعه‌ها
+    PieceLength int    `bencode:"piece length"` // طول هر قطعه به بایت
+    Length      int    `bencode:"length"`       // طول کل فایل به بایت
+    Name        string `bencode:"name"`         // نام فایل
+}
+
+// bencodeTorrent ساختار ریشه یک فایل تورنت بنکدشده است
+type bencodeTorrent struct {
+    Announce string      `bencode:"announce"` // نشانی ترکر
+    Info     bencodeInfo `bencode:"info"`     // دیکشنری info
+}
+
+// Open یک فایل تورنت را تجزیه می‌کند
+func Open(r io.Reader) (*bencodeTorrent, error) {
+    bto := bencodeTorrent{}
+    err := bencode.Unmarshal(r, &bto)
+    if err != nil {
+        return nil, err
+    }
+    return &bto, nil
+}</code></pre>
+        <p>
+          چون دوست دارم ساختارهایم نسبتاً تخت باشند و ساختارهای کاربردی برنامه را از ساختارهای سریال‌سازی جدا نگه دارم، یک
+          ساختار تخت‌تر و متفاوت به نام <code>TorrentFile</code> صادر کردم و چند تابع کمکی برای تبدیل بین این دو نوشتم.
+        </p>
+        <p>
+          نکته مهم: فیلد <code>pieces</code> (که قبلاً یک رشته بود) را به یک برش (slice) از هش‌ها (هرکدام <code>[20]byte</code>)
+          تقسیم کردم تا بعداً راحت به هش‌های تکی دسترسی داشته باشم. همچنین هش SHA-1 کل دیکشنری بنکدشده info (همان دیکشنری که
+          نام، اندازه و هش قطعه‌ها را داشت) را محاسبه کردم. ما این را <b>infohash</b> می‌شناسیم و وقتی با ترکرها و همتاها حرف
+          می‌زنیم، فایل‌ها را یکتا شناسایی می‌کند. بعداً بیشتر درباره‌اش صحبت می‌کنیم.
+        </p>
+        <img src="https://blog.jse.li/torrent/info-hash.png" alt="یک برچسب نام با نوشته: سلام، نام من 86d4c80024a469be4c50bc5a102cf71780310074 است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">go</span><code>// TorrentFile ساختار تخت و کاربردی یک فایل تورنت است
+type TorrentFile struct {
+    Announce    string      // نشانی ترکر
+    InfoHash    [20]byte    // هش SHA-1 دیکشنری بنکدشده info
+    PieceHashes [][20]byte  // هش SHA-1 هر قطعه
+    PieceLength int         // طول هر قطعه به بایت
+    Length      int         // طول کل فایل به بایت
+    Name        string      // نام فایل
+}
+
+// toTorrentFile ساختار بنکدشده را به ساختار تخت TorrentFile تبدیل می‌کند
+func (bto bencodeTorrent) toTorrentFile() (TorrentFile, error) {
+// …
+}</code></pre>
+
+        <h3>دریافت همتاها از ترکر</h3>
+        <p>
+          حالا که درباره فایل و ترکر آن اطلاعات داریم، بیایید با ترکر صحبت کنیم تا حضورمان را به‌عنوان یک همتا اعلام کنیم و
+          فهرست همتاهای دیگر را بگیریم. فقط کافی است یک درخواست GET به نشانی announce داخل فایل .torrent بفرستیم، با چند
+          پارامتر کوئری:
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// buildTrackerURL نشانی درخواست به ترکر را با پارامترهای لازم می‌سازد
+func (t *TorrentFile) buildTrackerURL(peerID [20]byte, port uint16) (string, error) {
+    base, err := url.Parse(t.Announce)
+    if err != nil {
+        return "", err
+    }
+    params := url.Values{
+        "info_hash":  []string{string(t.InfoHash[:])}, // هش فایل مورد نظر
+        "peer_id":    []string{string(peerID[:])},     // شناسه ما به‌عنوان همتا
+        "port":       []string{strconv.Itoa(int(Port))}, // پورتی که به آن گوش می‌دهیم
+        "uploaded":   []string{"0"},     // حجم آپلودشده
+        "downloaded": []string{"0"},     // حجم دانلودشده
+        "compact":    []string{"1"},     // پاسخ فشرده (باینری) بخواه
+        "left":       []string{strconv.Itoa(t.Length)}, // حجم باقی‌مانده برای دانلود
+    }
+    base.RawQuery = params.Encode()
+    return base.String(), nil
+}</code></pre>
+        <p>مهم‌ترین‌های این پارامترها:</p>
+        <ul>
+          <li>
+            <code>info_hash</code>: فایلی را که می‌خواهیم دانلود کنیم شناسایی می‌کند. همان infohash است که قبلاً از دیکشنری
+            بنکدشده info محاسبه کردیم. ترکر از این برای فهمیدن اینکه کدام همتاها را به ما نشان بدهد استفاده می‌کند.
+          </li>
+          <li>
+            <code>peer_id</code>: یک نام ۲۰ بایتی برای معرفی خودمان به ترکرها و همتاها. ما فقط ۲۰ بایت تصادفی برای آن می‌سازیم.
+            کلاینت‌های واقعی بیت‌تورنت شناسه‌هایی مثل <code>-TR2940-k8hj0wgej6ch</code> دارند که نرم‌افزار و نسخه کلاینت را
+            شناسایی می‌کند — در این مورد TR2940 یعنی کلاینت Transmission نسخه 2.94.
+          </li>
+        </ul>
+        <img src="https://blog.jse.li/torrent/info-hash-peer-id.png" alt="یک فایل با برچسب info_hash و یک شخص با برچسب peer_id" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>تجزیه پاسخ ترکر</h3>
+        <p>یک پاسخ بنکدشده برمی‌گردد:</p>
+        <pre class="code"><span class="lang-tag">bencode</span><code>d
+  8:interval
+    i900e
+  5:peers
+    252:(یک بلاب باینری طولانی دیگر)
+e</code></pre>
+        <p>
+          <code>interval</code> به ما می‌گوید چند وقت یک‌بار باید دوباره به ترکر وصل شویم تا فهرست همتاهایمان را تازه کنیم.
+          مقدار ۹۰۰ یعنی باید هر ۱۵ دقیقه (۹۰۰ ثانیه) دوباره متصل شویم.
+        </p>
+        <p>
+          <code>peers</code> یک بلاب باینری طولانی دیگر شامل آدرس IP هر همتاست و از گروه‌های شش‌بایتی ساخته شده است. چهار بایت
+          اول هر گروه آدرس IP همتا را نشان می‌دهد — هر بایت یک عدد از IP است. دو بایت آخر هم پورت را به‌صورت یک
+          <code>uint16</code> بیگ-اندین (big-endian) نشان می‌دهند. بیگ-اندین یا ترتیب شبکه یعنی می‌توانیم یک گروه بایت را به‌صورت
+          یک عدد صحیح تفسیر کنیم فقط با فشردن آن‌ها کنار هم از چپ به راست. مثلاً بایت‌های <code>0x1A</code> و <code>0xE1</code>
+          می‌شوند <code>0x1AE1</code> یا در مبنای ۱۰ برابر ۶۸۸۱
+          <small style="color:var(--muted)">* تفسیر همین بایت‌ها به‌صورت لیتل-اندین (little-endian) می‌شود <code>0xE11A</code> = 57626</small>.
+        </p>
+        <img src="https://blog.jse.li/torrent/address.png" alt="نمودار اینکه چگونه 192، 0، 2، 123، 0x1A، 0xE1 به‌صورت 192.0.1.123:6881 تفسیر می‌شوند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">go</span><code>// Peer اطلاعات اتصال یک همتا را کدگذاری می‌کند
+type Peer struct {
+    IP   net.IP
+    Port uint16
+}
+
+// Unmarshal آدرس‌های IP و پورت همتاها را از یک بافر تجزیه می‌کند
+func Unmarshal(peersBin []byte) ([]Peer, error) {
+    const peerSize = 6 // ۴ بایت برای IP، ۲ بایت برای پورت
+    numPeers := len(peersBin) / peerSize
+    if len(peersBin)%peerSize != 0 {
+        err := fmt.Errorf("Received malformed peers")
+        return nil, err
+    }
+    peers := make([]Peer, numPeers)
+    for i := 0; i < numPeers; i++ {
+        offset := i * peerSize
+        peers[i].IP = net.IP(peersBin[offset : offset+4])
+        peers[i].Port = binary.BigEndian.Uint16(peersBin[offset+4 : offset+6])
+    }
+    return peers, nil
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>دانلود از همتاها</h2>
+        <p>
+          حالا که فهرست همتاها را داریم، وقت آن است که به آن‌ها متصل شویم و دانلود قطعه‌ها را شروع کنیم! می‌توانیم فرایند را به
+          چند گام بشکنیم. برای هر همتا می‌خواهیم:
+        </p>
+        <ol>
+          <li>یک اتصال TCP با همتا شروع کنیم. این مثل شروع یک تماس تلفنی است.</li>
+          <li>یک دست‌دهی (handshake) دوطرفه بیت‌تورنت انجام دهیم. «الو؟» «الو.»</li>
+          <li>برای دانلود قطعه‌ها پیام مبادله کنیم. «قطعه شماره ۲۳۱ را می‌خواهم، لطفاً.»</li>
+        </ol>
+
+        <h3>شروع یک اتصال TCP</h3>
+        <pre class="code"><span class="lang-tag">go</span><code>// یک اتصال TCP به همتا برقرار می‌کنیم؛ تایم‌اوت تعیین شده تا وقت کمتری برای
+// همتاهایی که اجازه اتصال نمی‌دهند هدر بدهیم
+conn, err := net.DialTimeout("tcp", peer.String(), 3*time.Second)
+if err != nil {
+    return nil, err
+}</code></pre>
+        <p>در بیشتر موارد، این یک اتصال TCP کاملاً استاندارد است.</p>
+
+        <h3>تکمیل دست‌دهی (Handshake)</h3>
+        <p>تازه با یک همتا اتصال برقرار کرده‌ایم، اما می‌خواهیم دست‌دهی انجام دهیم تا فرض‌هایمان را تأیید کنیم که همتا:</p>
+        <ul>
+          <li>می‌تواند با پروتکل بیت‌تورنت ارتباط برقرار کند</li>
+          <li>می‌تواند پیام‌های ما را بفهمد و به آن‌ها پاسخ دهد</li>
+          <li>فایلی که می‌خواهیم را دارد، یا حداقل می‌فهمد درباره چه چیزی حرف می‌زنیم</li>
+        </ul>
+        <img src="https://blog.jse.li/torrent/handshake.png" alt="دو رایانه در حال ارتباط؛ یکی می‌پرسد: آیا بیت‌تورنت صحبت می‌کنی و این فایل را داری؟ و دیگری جواب می‌دهد: بله، بیت‌تورنت صحبت می‌کنم و آن فایل را دارم" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          پدرم به من گفت راز یک دست‌دهی خوب، گرفتن محکم دست و تماس چشمی است. راز دست‌دهی خوب بیت‌تورنت هم این است که از پنج
+          بخش تشکیل شده است:
+        </p>
+        <ol>
+          <li>طول شناسه پروتکل که همیشه ۱۹ است (0x13 در مبنای شانزده)</li>
+          <li>شناسه پروتکل که <b>pstr</b> نامیده می‌شود و همیشه <code>BitTorrent protocol</code> است</li>
+          <li>هشت بایت رزرو که همگی ۰ هستند. بعضی‌شان را ۱ می‌کردیم تا بگوییم از بعضی افزونه‌ها پشتیبانی می‌کنیم. اما ما
+          پشتیبانی نمی‌کنیم، پس آن‌ها را ۰ نگه می‌داریم.</li>
+          <li>همان infohash که قبلاً محاسبه کردیم تا مشخص شود کدام فایل را می‌خواهیم</li>
+          <li>شناسه همتا (Peer ID) که ساختیم تا خودمان را معرفی کنیم</li>
+        </ol>
+        <p>کنار هم قرار گرفته، یک رشته دست‌دهی ممکن است این‌طور دیده شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>\x13BitTorrent protocol\x00\x00\x00\x00\x00\x00\x00\x00\x86\xd4\xc8\x00\x24\xa4\x69\xbe\x4c\x50\xbc\x5a\x10\x2c\xf7\x17\x80\x31\x00\x74-TR2940-k8hj0wgej6ch</code></pre>
+        <p>
+          بعد از اینکه دست‌دهی را به همتایمان فرستادیم، باید یک دست‌دهی به همان قالب دریافت کنیم. infohash دریافتی باید با
+          infohash ارسالی یکی باشد تا مطمئن شویم درباره همان فایل حرف می‌زنیم. اگر همه‌چیز طبق برنامه پیش برود، آماده‌ایم.
+          اگر نه، می‌توانیم اتصال را قطع کنیم چون یک‌جایی مشکلی هست. «الو؟» «تو کی هستی؟ چه می‌خواهی؟» «اوکی، عجب، شماره
+          اشتباه گرفتم.»
+        </p>
+        <p>در کدمان، یک ساختار برای نمایش دست‌دهی می‌سازیم و چند متد برای سریال‌سازی و خواندن آن‌ها می‌نویسیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// Handshake یک پیام ویژه است که یک همتا برای معرفی خودش از آن استفاده می‌کند
+type Handshake struct {
+    Pstr     string      // شناسه پروتکل، همیشه "BitTorrent protocol"
+    InfoHash [20]byte    // هش فایلی که می‌خواهیم
+    PeerID   [20]byte    // شناسه خودمان
+}
+
+// Serialize دست‌دهی را به یک بافر سریال می‌کند
+func (h *Handshake) Serialize() []byte {
+    buf := make([]byte, len(h.Pstr)+49)
+    buf[0] = byte(len(h.Pstr)) // بایت اول: طول شناسه پروتکل (همیشه ۱۹)
+    curr := 1
+    curr += copy(buf[curr:], h.Pstr)
+    curr += copy(buf[curr:], make([]byte, 8)) // ۸ بایت رزرو که همه صفرند
+    curr += copy(buf[curr:], h.InfoHash[:])
+    curr += copy(buf[curr:], h.PeerID[:])
+    return buf
+}
+
+// Read یک دست‌دهی را از جریان می‌خواند
+func Read(r io.Reader) (*Handshake, error) {
+    // دقیقاً برعکس Serialize() عمل کن
+    // ...
+}</code></pre>
+
+        <h3>ارسال و دریافت پیام‌ها</h3>
+        <p>
+          بعد از تکمیل دست‌دهی اولیه، می‌توانیم پیام ارسال و دریافت کنیم. راستش، نه کاملاً — اگر همتای دیگر آماده دریافت پیام
+          نباشد، تا وقتی نگوید آماده است نمی‌توانیم چیزی بفرستیم. در این حالت، می‌گوییم توسط همتای دیگر <b>خفه شده‌ایم
+          (choked)</b>. آن‌ها یک پیام <b>unchoke</b> می‌فرستند تا بفهمانند می‌توانیم درخواست داده بدهیم. به‌صورت پیش‌فرض فرض
+          می‌کنیم خفه شده‌ایم، مگر اینکه خلافش ثابت شود.
+        </p>
+        <p>
+          وقتی unchoke شدیم، می‌توانیم درخواست قطعه‌ها را بفرستیم و آن‌ها هم می‌توانند پیام‌هایی حاوی قطعه‌ها برایمان بفرستند.
+        </p>
+        <img src="https://blog.jse.li/torrent/choke.png" alt="کارتونی که نفر اول می‌گوید: سلام، می‌خواهم قطعه شماره — و نفر دوم گردنش را می‌گیرد و می‌گوید: 00 00 00 01 00 (choke)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک پیام یک طول (length)، یک شناسه (ID) و یک بار (payload) دارد. روی سیم، این‌طور دیده می‌شود:</p>
+        <img src="https://blog.jse.li/torrent/message.png" alt="یک پیام با ۴ بایت برای طول، ۱ بایت برای شناسه و یک بار اختیاری" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          یک پیام با نشانگر طول شروع می‌شود که به ما می‌گوید پیام چند بایت طول دارد. این یک عدد صحیح ۳۲ بیتی است، یعنی از چهار
+          بایت فشرده‌شده با ترتیب بیگ-اندین ساخته شده. بایت بعدی، یعنی شناسه، به ما می‌گوید چه نوع پیامی دریافت می‌کنیم — مثلاً
+          بایت ۲ یعنی «علاقه‌مند (interested)». در نهایت، بار اختیاری بقیه طول پیام را پر می‌کند.
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// messageID نوع شناسه پیام‌های پروتکل همتا است
+type messageID uint8
+
+const (
+    MsgChoke         messageID = 0 // خفه کردن (اجازه درخواست نده)
+    MsgUnchoke       messageID = 1 // رفع خفگی (اجازه درخواست بده)
+    MsgInterested    messageID = 2 // علاقه‌مند به فایل
+    MsgNotInterested messageID = 3 // بی‌علاقه به فایل
+    MsgHave          messageID = 4 // دارا بودن یک قطعه
+    MsgBitfield      messageID = 5 // بیت‌فیلد قطعه‌های در اختیار
+    MsgRequest       messageID = 6 // درخواست یک بلاک
+    MsgPiece         messageID = 7 // ارسال یک بلاک (قطعه)
+    MsgCancel        messageID = 8 // لغو درخواست
+)
+
+// Message شناسه و بار یک پیام را نگه می‌دارد
+type Message struct {
+    ID      messageID
+    Payload []byte
+}
+
+// Serialize یک پیام را به بافری به شکل
+// <پیشوند طول><شناسه پیام><بار>
+// سریال می‌کند. مقدار nil به‌عنوان پیام keep-alive تفسیر می‌شود
+func (m *Message) Serialize() []byte {
+    if m == nil {
+        return make([]byte, 4) // طول صفر یعنی keep-alive
+    }
+    length := uint32(len(m.Payload) + 1) // +1 برای شناسه
+    buf := make([]byte, 4+length)
+    binary.BigEndian.PutUint32(buf[0:4], length)
+    buf[4] = byte(m.ID)
+    copy(buf[5:], m.Payload)
+    return buf
+}</code></pre>
+        <p>
+          برای خواندن یک پیام از جریان، فقط قالب پیام را دنبال می‌کنیم: چهار بایت می‌خوانیم و به‌صورت <code>uint32</code>
+          تفسیرشان می‌کنیم تا طول پیام به‌دست آید. سپس همان تعداد بایت را می‌خوانیم تا شناسه (بایت اول) و بار (بقیه بایت‌ها) را
+          بگیریم.
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// Read یک پیام را از جریان می‌خواند. برای پیام keep-alive مقدار nil برمی‌گرداند
+func Read(r io.Reader) (*Message, error) {
+    lengthBuf := make([]byte, 4)
+    _, err := io.ReadFull(r, lengthBuf)
+    if err != nil {
+        return nil, err
+    }
+    length := binary.BigEndian.Uint32(lengthBuf)
+
+    // پیام keep-alive
+    if length == 0 {
+        return nil, nil
+    }
+
+    messageBuf := make([]byte, length)
+    _, err = io.ReadFull(r, messageBuf)
+    if err != nil {
+        return nil, err
+    }
+
+    m := Message{
+        ID:      messageID(messageBuf[0]),
+        Payload: messageBuf[1:],
+    }
+
+    return &m, nil
+}</code></pre>
+        <p>
+          یکی از جالب‌ترین انواع پیام، <b>بیت‌فیلد (bitfield)</b> است؛ یک ساختار داده که همتاها با آن به‌شکل کارآمد کدگذاری
+          می‌کنند که کدام قطعه‌ها را می‌توانند برایمان بفرستند. بیت‌فیلد شبیه یک آرایه بایت است و برای چک کردن اینکه کدام
+          قطعه‌ها را دارند، فقط باید به موقعیت بیت‌های ۱ نگاه کنیم. می‌توانید به آن مثل معادل دیجیتالی کارت وفاداری یک کافی‌شاپ
+          فکر کنید. با یک کارت خالی از همه صفر شروع می‌کنیم و بیت‌ها را به ۱ می‌کنیم تا موقعیت‌شان را به‌عنوان «مهر خورده»
+          علامت بزنیم.
+        </p>
+        <img src="https://blog.jse.li/torrent/bitfield.png" alt="کارت وفاداری کافی‌شاپ با هشت خانه، مهر روی چهار خانه اول و یک مهر روی خانه ماقبل‌آخر، که به‌صورت 11110010 نشان داده شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          این ساختار داده با کار روی بیت‌ها به‌جای بایت‌ها فوق‌العاده فشرده است. می‌توانیم اطلاعات هشت قطعه را در فضای یک بایت
+          تنها جا بدهیم — اندازه یک bool. بهایش این است که دسترسی به مقادیر کمی پیچیده‌تر می‌شود. کوچک‌ترین واحد حافظه‌ای که
+          کامپیوترها می‌توانند آدرس‌دهی کنند بایت است، پس برای رسیدن به بیت‌هایمان باید کمی دستکاری بیتی انجام دهیم:
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// Bitfield قطعه‌هایی را نشان می‌دهد که یک همتا دارد
+type Bitfield []byte
+
+// HasPiece می‌گوید که آیا بیت‌فیلد ایندکس مشخصی را به‌صورت ۱ (دارد) دارد یا نه
+func (bf Bitfield) HasPiece(index int) bool {
+    byteIndex := index / 8 // کدام بایت
+    offset := index % 8    // کدام بیت در آن بایت
+    return bf[byteIndex]>>(7-offset)&1 != 0
+}
+
+// SetPiece یک بیت را در بیت‌فیلد به ۱ می‌کند
+func (bf Bitfield) SetPiece(index int) {
+    byteIndex := index / 8
+    offset := index % 8
+    bf[byteIndex] |= 1 << (7 - offset)
+}</code></pre>
+
+        <h3>کنار هم قرار دادن همه‌چیز</h3>
+        <p>
+          حالا همه ابزارهای لازم برای دانلود یک تورنت را داریم: فهرستی از همتاها از ترکر گرفته‌ایم و می‌توانیم با آن‌ها ارتباط
+          برقرار کنیم — با برقراری اتصال TCP، شروع دست‌دهی، و فرستادن و دریافت پیام. آخرین مشکلات بزرگ‌مان، مدیریت هم‌زمانی
+          (concurrency) در صحبت با چند همتا به‌طور هم‌زمان و مدیریت وضعیت همتاها هنگام تعامل با آن‌هاست. هر دو از مشکلات کلاسیک
+          دشوارند.
+        </p>
+        <p>
+          در Go، حافظه را با ارتباط به اشتراک می‌گذاریم و می‌توانیم یک کانال Go را یک صف امن-رشته‌ای ارزان فکر کنیم. دو کانال
+          برای هم‌گام‌سازی کارگرهای هم‌زمان‌مان برپا می‌کنیم: یکی برای توزیع کار (قطعه‌هایی که باید دانلود شوند) بین همتاها و
+          یکی دیگر برای جمع‌آوری قطعه‌های دانلودشده. وقتی قطعه‌های دانلودشده از کانال results می‌آیند، می‌توانیم آن‌ها را در
+          یک بافر کپی کنیم تا شروع به سرهم‌کردن فایل کامل کنیم.
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// صف‌ها را برای اینکه کارگرها کار بگیرند و نتیجه بدهند آماده می‌کنیم
+workQueue := make(chan *pieceWork, len(t.PieceHashes))
+results := make(chan *pieceResult)
+for index, hash := range t.PieceHashes {
+    length := t.calculatePieceSize(index)
+    workQueue <- &pieceWork{index, hash, length}
+}
+
+// کارگرها را راه‌اندازی می‌کنیم
+for _, peer := range t.Peers {
+    go t.startDownloadWorker(peer, workQueue, results)
+}
+
+// نتیجه‌ها را در بافر جمع می‌کنیم تا پر شود
+buf := make([]byte, t.Length)
+donePieces := 0
+for donePieces < len(t.PieceHashes) {
+    res := <-results
+    begin, end := t.calculateBoundsForPiece(res.index)
+    copy(buf[begin:end], res.buf)
+    donePieces++
+}
+close(workQueue)</code></pre>
+        <p>
+          برای هر همتایی که از ترکر گرفته‌ایم یک goroutine کارگر می‌سازیم. کارگر به همتا متصل می‌شود و دست‌دهی می‌کند، بعد شروع
+          به گرفتن کار از workQueue می‌کند، تلاش می‌کند آن را دانلود کند و قطعه‌های دانلودشده را از کانال results می‌فرستد.
+        </p>
+        <img src="https://blog.jse.li/torrent/download.png" alt="نمودار جریان استراتژی دانلود: گرفتن قطعه از صف کار، چک بیت‌فیلد، دانلود بلاک‌ها، بررسی یکپارچگی، و ارسال نتیجه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">go</span><code>// startDownloadWorker دانلود قطعه‌ها از یک همتا را مدیریت می‌کند
+func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork, results chan *pieceResult) {
+    c, err := client.New(peer, t.PeerID, t.InfoHash)
+    if err != nil {
+        log.Printf("Could not handshake with %s. Disconnecting\n", peer.IP)
+        return
+    }
+    defer c.Conn.Close()
+    log.Printf("Completed handshake with %s\n", peer.IP)
+
+    c.SendUnchoke()
+    c.SendInterested()
+
+    for pw := range workQueue {
+        if !c.Bitfield.HasPiece(pw.index) {
+            workQueue <- pw // همتا این قطعه را ندارد؛ دوباره به صف برگردان
+            continue
+        }
+
+        // قطعه را دانلود کن
+        buf, err := attemptDownloadPiece(c, pw)
+        if err != nil {
+            log.Println("Exiting", err)
+            workQueue <- pw // قطعه را دوباره به صف برگردان
+            return
+        }
+
+        err = checkIntegrity(pw, buf)
+        if err != nil {
+            log.Printf("Piece #%d failed integrity check\n", pw.index)
+            workQueue <- pw // قطعه را دوباره به صف برگردان
+            continue
+        }
+
+        c.SendHave(pw.index)
+        results <- &pieceResult{pw.index, buf}
+    }
+}</code></pre>
+        <p>
+          هر همتا را در یک ساختار پیگیری می‌کنیم و هنگام خواندن پیام‌ها آن را به‌روز می‌کنیم. این ساختار داده‌هایی مثل اینکه
+          چقدر از همتا دانلود کرده‌ایم، چقدر از آن درخواست کرده‌ایم و اینکه خفه شده‌ایم یا نه را نگه می‌دارد. اگر بخواهیم این
+          را بیشتر مقیاس‌پذیر کنیم، می‌توانیم آن را به‌صورت یک ماشین حالت متناهی رسمی کنیم. اما یک ساختار و یک switch فعلاً
+          کافی است.
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// pieceProgress وضعیت پیشرفت دانلود یک قطعه را دنبال می‌کند
+type pieceProgress struct {
+    index      int            // ایندکس قطعه
+    client     *client.Client // کلاینت متصل به همتا
+    buf        []byte         // بافر قطعه در حال دانلود
+    downloaded int            // چند بایت دانلود شده
+    requested  int            // چند بایت درخواست شده
+    backlog    int            // تعداد درخواست‌های برآورده‌نشده در خط لوله
+}
+
+// readMessage یک پیام از همتا می‌خواند و وضعیت را به‌روز می‌کند
+func (state *pieceProgress) readMessage() error {
+    msg, err := state.client.Read() // این فراخوانی بلاک می‌شود
+    switch msg.ID {
+    case message.MsgUnchoke:
+        state.client.Choked = false // دیگر خفه نیستیم
+    case message.MsgChoke:
+        state.client.Choked = true // خفه شدیم
+    case message.MsgHave:
+        index, err := message.ParseHave(msg)
+        state.client.Bitfield.SetPiece(index) // همتا این قطعه را دارد
+    case message.MsgPiece:
+        n, err := message.ParsePiece(state.index, state.buf, msg)
+        state.downloaded += n // پیشرفت دانلود
+        state.backlog--
+    }
+    return nil
+}</code></pre>
+        <p>
+          فایل‌ها، قطعه‌ها و هش قطعه‌ها کل داستان نیستند — می‌توانیم جلوتر برویم و قطعه‌ها را به <b>بلاک‌ها (blocks)</b> بشکنیم.
+          بلاک بخشی از یک قطعه است و می‌توانیم آن را کاملاً با ایندکس قطعه‌ای که بخشی از آن است، آفست بایتی‌اش درون قطعه و
+          طولش تعریف کنیم. وقتی از همتاها داده درخواست می‌کنیم، در واقع بلاک درخواست می‌کنیم. یک بلاک معمولاً ۱۶ کیلوبایت
+          است؛ یعنی یک قطعه ۲۵۶ کیلوبایتی ممکن است واقعاً به ۱۶ درخواست نیاز داشته باشد.
+        </p>
+        <p>
+          اگر همتا درخواستی برای بلاکی بزرگ‌تر از ۱۶ کیلوبایت دریافت کند باید اتصال را قطع کند. با این حال، بر اساس تجربه من،
+          آن‌ها اغلب با کمال میل درخواست‌های تا ۱۲۸ کیلوبایت را برآورده می‌کنند. من فقط بهره‌های متوسطی در سرعت کلی با بلاک‌های
+          بزرگ‌تر دیدم، پس احتمالاً بهتر است به مشخصات (spec) پایبند بمانیم.
+        </p>
+        <p>
+          رفت‌وبرگشت‌های شبکه گران‌اند و درخواست تک‌تک هر بلاک، عملکرد دانلودمان را کاملاً نابود می‌کند. بنابراین مهم است
+          درخواست‌هایمان را خط‌لوله (pipeline) کنیم طوری که فشار ثابتی از تعدادی درخواست برآورده‌نشده نگه داریم. این می‌تواند
+          گذردهی اتصال‌مان را یک مرتبه بزرگی افزایش دهد.
+        </p>
+        <img src="https://blog.jse.li/torrent/pipelining.png" alt="دو رشته ایمیل شبیه‌سازی اتصال همتا؛ رشته چپ یک درخواست و یک پاسخ را سه بار تکرار می‌کند و رشته راست سه درخواست می‌فرستد و سه پاسخ پشت‌سرهم می‌گیرد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          به‌صورت کلاسیک، کلاینت‌های بیت‌تورنت یک صف پنج‌تایی از درخواست‌های خط‌لوله‌شده نگه می‌داشتند و این همان مقداری است که
+          من استفاده می‌کنم. دریافتم که افزایش آن می‌تواند سرعت دانلود را تا دو برابر کند. کلاینت‌های جدیدتر از اندازه صف تطبیقی
+          استفاده می‌کنند تا بهتر با سرعت‌ها و شرایط شبکه مدرن جور شوند. این قطعاً پارامتری است که ارزش تنظیم کردن دارد و یک
+          میوه آویزان پایین برای بهینه‌سازی عملکرد آینده است.
+        </p>
+        <pre class="code"><span class="lang-tag">go</span><code>// MaxBlockSize بزرگ‌ترین تعداد بایتی است که یک درخواست می‌تواند بخواهد
+const MaxBlockSize = 16384
+
+// MaxBacklog تعداد درخواست‌های برآورده‌نشده‌ای است که کلاینت می‌تواند در خط لوله داشته باشد
+const MaxBacklog = 5
+
+// attemptDownloadPiece تمام بلاک‌های یک قطعه را از همتا دانلود و سرهم می‌کند
+func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
+    state := pieceProgress{
+        index:  pw.index,
+        client: c,
+        buf:    make([]byte, pw.length),
+    }
+
+    // تعیین ددلاین به آزاد شدن همتاهای بی‌پاسخ کمک می‌کند.
+    // ۳۰ ثانیه برای دانلود یک قطعه ۲۶۲ کیلوبایتی بیش از اندازه کافی است
+    c.Conn.SetDeadline(time.Now().Add(30 * time.Second))
+    defer c.Conn.SetDeadline(time.Time{}) // ددلاین را غیرفعال کن
+
+    for state.downloaded < pw.length {
+        // اگر خفه نیستیم، درخواست بفرست تا درخواست‌های برآورده‌نشده کافی داشته باشیم
+        if !state.client.Choked {
+            for state.backlog < MaxBacklog && state.requested < pw.length {
+                blockSize := MaxBlockSize
+                // آخرین بلاک ممکن است کوتاه‌تر از بلاک معمولی باشد
+                if pw.length-state.requested < blockSize {
+                    blockSize = pw.length - state.requested
+                }
+
+                err := c.SendRequest(pw.index, state.requested, blockSize)
+                if err != nil {
+                    return nil, err
+                }
+                state.backlog++
+                state.requested += blockSize
+            }
+        }
+
+        err := state.readMessage()
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    return state.buf, nil
+}</code></pre>
+        <p>این بخش کوتاه است. تقریباً تمام شدیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+    "log"
+    "os"
+
+    "github.com/veggiedefender/torrent-client/torrentfile"
+)
+
+// main نقطه ورود برنامه: یک فایل تورنت و یک مسیر خروجی می‌گیرد
+func main() {
+    inPath := os.Args[1]  // مسیر فایل .torrent
+    outPath := os.Args[2] // مسیر فایل خروجی
+
+    tf, err := torrentfile.Open(inPath)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    err = tf.DownloadToFile(outPath)
+    if err != nil {
+        log.Fatal(err)
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>این تمام داستان نیست</h2>
+        <p>
+          برای اختصار، فقط چند تا از اسنیپت‌های مهم کد را آوردم. نکته مهم: همه کدهای چسبان (glue)، تجزیه، تست‌های واحد و بخش‌های
+          خسته‌کننده‌ای که شخصیت می‌سازند را جا گذاشتم. اگر علاقه‌مندید،
+          <a href="https://github.com/veggiedefender/torrent-client" target="_blank" rel="noopener">پیاده‌سازی کامل من</a> را ببینید.
+        </p>
+        <div class="callout note">
+          نویسنده این مقاله با «CodeCrafters» همکاری می‌کند؛ سرویسی که چالش‌های برنامه‌نویسی برای مهندسان باتجربه می‌سازد
+          (مثل Build your own Git، Docker و Redis). آن‌ها یک چالش بیت‌تورنت دارند که همه‌چیز این مقاله را قدم‌به‌قدم جلو می‌برد —
+          تجزیه بنکد، کشف همتاها و دانلود قطعه‌ها — با قاب‌های تست و کد داربست برای زبان‌های مختلف.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Building a BitTorrent client from the ground up in Go» اثر Jesse Li (blog.jse.li) است.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://blog.jse.li/posts/torrent/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

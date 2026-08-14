@@ -150,114 +150,114 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "ar-vuforia-unity",
 "category": "واقعیت افزوده",
 "lang": "C#",
 "title": "آموزش ساخت اپ واقعیت افزوده برای مبتدیان با Vuforia و Unity 3D",
 "url": "https://www.youtube.com/watch?v=uXNjNcqW4kY",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-vuforia-unity.html"
 },
 {
-"id": "",
+"id": "ar-unity-arcore",
 "category": "واقعیت افزوده",
 "lang": "C#",
 "title": "آموزش Unity ARCore",
 "url": "https://www.youtube.com/playlist?list=PLKIKuXdn4ZMjuUAtdQfK1vwTZPQn_rgSv",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-unity-arcore.html"
 },
 {
-"id": "",
+"id": "ar-unity-portal",
 "category": "واقعیت افزوده",
 "lang": "C#",
 "title": "آموزش پرتال AR با Unity",
 "url": "https://www.youtube.com/playlist?list=PLPCqNOwwN794Gz5fzUSi1p4OqLU0HTmvn",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-unity-portal.html"
 },
 {
-"id": "",
+"id": "ar-dragon-arcore",
 "category": "واقعیت افزوده",
 "lang": "C#",
 "title": "چگونه یک اژدها در واقعیت افزوده با Unity ARCore بسازیم",
 "url": "https://www.youtube.com/watch?v=qTSDPkPyPqs",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-dragon-arcore.html"
 },
 {
-"id": "",
+"id": "ar-arkit-portal",
 "category": "واقعیت افزوده",
 "lang": "C#",
 "title": "آموزش واقعیت افزوده: پرتال ARKit به دنیای Upside Down",
 "url": "https://www.youtube.com/watch?v=Z5AmqMuNi08",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-arkit-portal.html"
 },
 {
-"id": "",
+"id": "ar-python-opencv",
 "category": "واقعیت افزوده",
 "lang": "Python",
 "title": "واقعیت افزوده با پایتون و OpenCV",
 "url": "https://bitesofcode.wordpress.com/2017/09/12/augmented-reality-with-python-and-opencv-part-1/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ar-python-opencv.html"
 },
 {
-"id": "",
+"id": "bittorrent-csharp",
 "category": "کلاینت بیت‌تورنت",
 "lang": "C#",
 "title": "ساخت کلاینت بیت‌تورنت از صفر در C#",
 "url": "https://www.seanjoflynn.com/research/bittorrent.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bittorrent-csharp.html"
 },
 {
-"id": "",
+"id": "bittorrent-go",
 "category": "کلاینت بیت‌تورنت",
 "lang": "Go",
 "title": "ساخت کلاینت بیت‌تورنت از پایه در Go",
 "url": "https://blog.jse.li/posts/torrent/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bittorrent-go.html"
 },
 {
-"id": "",
+"id": "bencode-parser-nim",
 "category": "کلاینت بیت‌تورنت",
 "lang": "Nim",
 "title": "نوشتن یک Bencode Parser",
 "url": "https://xmonader.github.io/nimdays/day02_bencode.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bencode-parser-nim.html"
 },
 {
-"id": "",
+"id": "bittorrent-node",
 "category": "کلاینت بیت‌تورنت",
 "lang": "Node.js",
 "title": "کلاینت بیت‌تورنت خودت را بنویس",
 "url": "https://allenkim67.github.io/programming/2016/05/04/how-to-make-your-own-bittorrent-client.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bittorrent-node.html"
 },
 {
-"id": "",
+"id": "bittorrent-python",
 "category": "کلاینت بیت‌تورنت",
 "lang": "Python",
 "title": "یک کلاینت بیت‌تورنت در پایتون ۳.۵",
 "url": "http://markuseliasson.se/article/bittorrent-in-python/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/bittorrent-python.html"
 },
 {
 "id": "",

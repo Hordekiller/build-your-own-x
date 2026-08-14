@@ -21,6 +21,17 @@ DONE = {
     "blog.rogach.org/2015/08": "rogach-java-3d-render",
     "gabrielgambetta.com/computer-graphics-from-scratch": "gambetta-computer-graphics",
     "aosabook.org/en/500L/a-3d-modeller": "aosabook-3d-modeller",
+    "youtube.com/watch?v=uXNjNcqW4kY": "ar-vuforia-unity",
+    "youtube.com/playlist?list=PLKIKuXdn4ZMjuUAtdQfK1vwTZPQn_rgSv": "ar-unity-arcore",
+    "youtube.com/playlist?list=PLPCqNOwwN794Gz5fzUSi1p4OqLU0HTmvn": "ar-unity-portal",
+    "youtube.com/watch?v=qTSDPkPyPqs": "ar-dragon-arcore",
+    "youtube.com/watch?v=Z5AmqMuNi08": "ar-arkit-portal",
+    "bitesofcode.wordpress.com/2017/09/12": "ar-python-opencv",
+    "seanjoflynn.com/research/bittorrent": "bittorrent-csharp",
+    "blog.jse.li/posts/torrent": "bittorrent-go",
+    "xmonader.github.io/nimdays/day02_bencode": "bencode-parser-nim",
+    "allenkim67.github.io/programming/2016/05/04": "bittorrent-node",
+    "markuseliasson.se/article/bittorrent-in-python": "bittorrent-python",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}

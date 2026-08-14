@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کلاینت بیت‌تورنت خودت را بنویس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه و پروتکل</a>
+        <span class="sep">←</span>
+        <span>کلاینت بیت‌تورنت خودت را بنویس</span>
+      </div>
+      <h1>کلاینت بیت‌تورنت خودت را بنویس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">💠 دسته: کلاینت بیت‌تورنت</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://allenkim67.github.io/programming/2016/05/04/how-to-make-your-own-bittorrent-client.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Write your own bittorrent client» نوشته «Allen Kim» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://allenkim67.github.io/programming/2016/05/04/how-to-make-your-own-bittorrent-client.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>۱. مقدمه</h2>
+
+        <h3>۱.۱ درباره این راهنما</h3>
+        <p>این راهنما یک کلاینت ساده بیت‌تورنت را از صفر در node.js می‌سازد. در پایان این آموزش باید بتوانید با خط فرمان، محتوای مشترک یک فایل تورنت را دانلود کنید.</p>
+        <p>دو گروه مخاطب را برای این راهنما در نظر داشتم. اول هرکسی که اصول اولیه جاوااسکریپت را یاد گرفته و دنبال یک آموزش سطح متوسط است. دوم توسعه‌دهندگان وب که شاید تسلط خوبی روی جاوااسکریپت دارند اما تجربه کمی در کار با سمت سرور (backend) دارند. این راهنما چیزهایی مثل خواندن/نوشتن روی فایل و سوکت‌های شبکه را پوشش می‌دهد.</p>
+        <p>تغییرات پروژه را با git ثبت می‌کنم، بنابراین می‌توانید ببینید پروژه قدم‌به‌قدم چگونه تکامل پیدا می‌کند. صفحه گیت‌هاب پروژه را می‌توانید <a href="https://github.com/allenkim67/bittorrent" target="_blank" rel="noopener">اینجا</a> پیدا کنید. اولین commit فقط یک package.json خالی، فایل .gitignore و یک فایل تورنت نمونه برای کار کردن است. در طول راهنما هم نقاطی را با لینک به commit ها علامت می‌زنم.</p>
+
+        <h3>۱.۲ نمای کلی بیت‌تورنت</h3>
+        <p>پروتکل بیت‌تورنت دو بخش اصلی دارد:</p>
+        <p><strong>قدم ۱:</strong> باید به چیزی به نام <strong>tracker</strong> (ردیاب) درخواست بفرستید و ترکر با فهرستی از همتاها (peer) پاسخ می‌دهد. به‌طور دقیق‌تر، به ترکر می‌گویید دنبال کدام فایل‌ها هستید و ترکر آدرس IP کاربرانی را به شما می‌دهد که آن فایل‌ها را از آن‌ها دانلود می‌کنید. درخواست به ترکر، آدرس IP شما را هم به فهرست کاربرانی که می‌توانند آن فایل را به اشتراک بگذارند اضافه می‌کند.</p>
+        <p><strong>قدم ۲:</strong> بعد از اینکه فهرست آدرس همتاها را گرفتید، می‌خواهید مستقیماً به آن‌ها متصل شوید و دانلود را شروع کنید. این کار از طریق تبادل پیام انجام می‌شود که در آن همتاها می‌گویند چه قطعه‌هایی (piece) دارند و شما می‌گویید کدام قطعه‌ها را می‌خواهید.</p>
+        <p>می‌توانید در تصویر زیر ایده‌ای از چگونگی این کار به دست آورید (اعتبار از morehawes.co.uk):</p>
+        <img src="http://images.morehawes.co.uk.s3.amazonaws.com/bittorrent/bittorrent.gif" alt="تصویر متحرک نشان‌دهنده نحوه کارکرد پروتکل بیت‌تورنت و تبادل داده بین همتاها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>۱.۳ لینک‌ها و مراجع</h3>
+        <p>این‌ها لینک‌هایی هستند که در طول این پروژه بارها به آن‌ها ارجاع دادم:</p>
+        <ul>
+          <li><a href="https://wiki.theory.org/index.php/BitTorrentSpecification" target="_blank" rel="noopener">wiki.theory.org/index.php/BitTorrentSpecification</a> — این یک مشخصات غیررسمی بیت‌تورنت است اما اساساً هر چیزی که نیاز دارید را دارد. جزئی و بسیار خوانا.</li>
+          <li><a href="https://www.bittorrent.org/beps/bep_0015.html" target="_blank" rel="noopener">www.bittorrent.org/beps/bep_0015.html</a> — تنها چیزی که در مشخصات غیررسمی پیدا نمی‌کنید، نحوه ساخت درخواست به ترکری است که از URL نوع UDP استفاده می‌کند. اما آن را می‌توانید در این لینک پیدا کنید. وقتی به ترکرها و UDP رسیدم دوباره به این لینک اشاره می‌کنم.</li>
+          <li><a href="https://www.morehawes.co.uk/the-bittorrent-protocol" target="_blank" rel="noopener">www.morehawes.co.uk/the-bittorrent-protocol</a> — یک توضیح سطح بالا و بسیار خوب از پروتکل بیت‌تورنت. با تصویر!</li>
+          <li><a href="https://www.kristenwidman.com/blog/33/how-to-write-a-bittorrent-client-part-1" target="_blank" rel="noopener">www.kristenwidman.com/blog/33/how-to-write-a-bittorrent-client-part-1</a> — یک توضیح خوب سطح بالای دیگر.</li>
+          <li><a href="https://www.bittorrent.org/beps/bep_0020.html" target="_blank" rel="noopener">www.bittorrent.org/beps/bep_0020.html</a> — BEP مربوط به قراردادهای peer id.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۲. باز کردن فایل تورنت</h2>
+        <p><em>* Github commit #1: commit اولیه</em></p>
+        <p>معرفی کافی است، بگذارید بریم سراغ کد! اگر روی لینک بالا کلیک کنید تا commit اولیه بروید، می‌بینید که اساساً از یک صفحه خالی شروع می‌کنیم. این ساختار فایل فعلی ماست:</p>
+        <img src="https://allenkim67.github.io/img/file-structure-1.png" alt="ساختار فایل‌های پروژه شامل package.json و فایل puppy.torrent" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌بینید که یک فایل تورنت برای کار کردن اضافه کرده‌ام. آن شامل عکس یک توله‌سگ داخل لیوان است. بیایید فایل جدیدی به نام index.js بسازیم و با باز کردن فایل تورنت شروع کنیم.</p>
+        <p><strong>index.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const torrent = fs.readFileSync('puppy.torrent');
+console.log(torrent.toString('utf8'));</code></pre>
+        <p>readFileSync ساده‌ترین راه برای خواندن محتوای یک فایل است. اما اگر این کد را اجرا کنید می‌فهمید که readFileSync یک <strong>بافر</strong> (buffer) برمی‌گرداند، نه یک رشته. بعداً خواهید دید که همه پیام‌های شبکه ما به صورت بافر فرستاده و دریافت می‌شوند، پس مهم است درک خوبی از نحوه کار آن‌ها داشته باشید. اگر با بافرها در node.js آشنایی ندارید، یک راهنمای کوچک درباره بافرها نوشته‌ام (<a href="https://allenkim67.github.io/2016/05/seeing-node-buffers.html" target="_blank" rel="noopener">اینجا</a>). خلاصه کلام اینکه بافرها دنباله‌ای از بایت‌های خام را نشان می‌دهند. اگر می‌خواهید بافر را به صورت رشته بخوانید باید یک طرح رمزگذاری (encoding) مشخص کنید (می‌بینید که بالا از utf-8 استفاده کردم).</p>
+        <p>خروجی باید چیزی شبیه این بوده باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'d8:announce43:udp://tracker.coppersurfer.tk:6969/announce10:created by13:uTorrent/187013:creation datei1462355939e8:encoding5:UTF-84:infod6:lengthi124234e4:name9:puppy.jpg12:piece lengthi16384e6:pieces160:T�k�/�_(�S\u0011h%���+]q'B\u0018�٠:����p"�j����1-g"\u0018�s(\u001b\u000f���V��=�h�m\u0017a�nF�2���N\r�ǩ�_�\u001e"2���'�wO���-;\u0004ע\u0017�ؑ��L&����0\u001f�D_9��\t\\��O�h,n\u001a5g�(��仑,�\\߰�%��U��\u0019��C\u0007>��df��ee'</code></pre>
+
+        <h3>۲.۱ بنکد (Bencode)</h3>
+        <p><em>* Github commit #2: باز کردن تورنت، گرفتن URL ترکر</em></p>
+        <p>آن خروجی احتمالاً برایتان کاملاً غیرقابل‌فهم به نظر رسید، و دلیلش این است که احتمالاً هرگز نام بنکد را نشنیده‌اید. بنکد یک قالب سریال‌سازی داده است و فکر نمی‌کنم جایی خارج از فایل‌های تورنت از آن استفاده شده باشد. اما شاید با JSON یا XML آشنا باشید و بنکد اساساً همان ایده است؛ فقط یک قالب کمی متفاوت استفاده می‌کند.</p>
+        <p>داده‌های یکسان بالا را در JSON ببینید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
+        <p>آن باید کمی آشناتر به نظر برسد (به‌جز خاصیت pieces که بعداً به آن می‌رسم). هرچند نوشتن parser بنکد خودمان ممکن است، کتابخانه‌های متن‌باز خوبی وجود دارند که این کار را برای ما انجام می‌دهند. من فقط جستجو کردم «bencode node» و اولین نتیجه را نصب کردم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install --save bencode</code></pre>
+        <p>حالا می‌توانیم تورنت‌مان را به داده‌ای که قابلیت تعامل دارد تجزیه کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const bencode = require('bencode');
+
+const torrent = bencode.decode(fs.readFileSync('puppy.torrent'));
+console.log(torrent.announce.toString('utf8'));</code></pre>
+        <p>متوجه می‌شوید که بسیاری از مقادیر در آبجکت تورنت رمزگشایی‌شده ما بافر هستند. می‌توان همه بافرها را با پاس دادن «utf8» (یا هر طرح رمزگذاری دیگر) به‌عنوان آرگومان دوم bencode.decode به رشته تبدیل کرد. اما چون در بخش شبکه‌ای این پروژه بیشتر با بافرها سر و کار خواهیم داشت، بهتر است آن‌ها را همین‌طور بافر نگه داریم.</p>
+      </section>
+
+      <section>
+        <h2>۳. گرفتن همتاها از ترکر</h2>
+        <p>در کد بالا خاصیت announce تورنت را با console.log چاپ کردم. برای این فایل خاص مقدار آن udp://tracker.coppersurfer.tk:6969/announce است. آدرس announce همان چیزی است که من آن را «آدرس ترکر» می‌نامم؛ یعنی مکان ترکرِ این تورنت.</p>
+        <p>یک نکته جالب که متوجه می‌شوید این است که به‌جای «http» معمول در ابتدای آدرس، این آدرس «udp» دارد. یعنی به‌جای پروتکل http باید از پروتکل udp استفاده کنید. قبلاً همه ترکرها از http استفاده می‌کردند، اما امروزه تقریباً همه تورنت‌های جدید از udp استفاده می‌کنند. پس تفاوت بین دو پروتکل چیست و چرا به udp روی بیاوریم؟</p>
+
+        <h3>۳.۱ HTTP در برابر UDP در برابر TCP</h3>
+        <p>دلیل اصلی اینکه بیشتر ترکرها حالا از udp استفاده می‌کنند این است که udp عملکرد بهتری نسبت به http دارد. Http بالای پروتکل دیگری به نام tcp ساخته شده است که بعداً در همین پروژه وقتی واقعاً شروع به دانلود فایل از همتاها کردیم از آن استفاده می‌کنیم. پس تفاوت بین tcp و udp چیست؟</p>
+        <p>تفاوت اصلی این است که tcp تضمین می‌کند وقتی کاربری داده می‌فرستد، کاربر دیگر آن داده را کامل، بدون خرابی و به ترتیب درست دریافت کند — اما باید قبل از فرستادن داده، یک اتصال پایدار بین کاربران ایجاد کند و این می‌تواند tcp را خیلی کندتر از udp کند. در مورد udp، اگر داده ارسالی به اندازه کافی کوچک باشد (کمتر از ۵۱۲ بایت) لازم نیست نگران دریافت بخشی از داده یا دریافت داده به‌هم‌ریخته باشید. با این حال، همان‌طور که به‌زودی می‌بینیم، ممکن است داده ارسالی هرگز به مقصد نرسد و بنابراین گاهی مجبور می‌شوید داده را دوباره بفرستید یا دوباره درخواست کنید.</p>
+        <p>به همین دلایل، udp اغلب انتخاب خوبی برای ترکرهاست چون پیام‌های کوچک می‌فرستند؛ و tcp را برای زمانی استفاده می‌کنیم که واقعاً فایل‌ها را بین همتاها منتقل می‌کنیم، چون آن فایل‌ها بزرگ‌ترند و باید سالم برسند.</p>
+
+        <h3>۳.۲ ارسال پیام با UDP</h3>
+        <p>در کد زیر، تغییراتی داده‌ام تا نشان دهم چگونه می‌توانیم از طریق UDP پیام بفرستیم و دریافت کنیم. توجه: این مثال ممکن است پاسخی دریافت نکند چون پیام ارسالی درست قالب‌بندی نشده است. این فقط مثالی است برای نشان دادن ماژول‌های مختلفی که استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const bencode = require('bencode');
+// 1 — ماژول‌های جدید از کتابخانه استاندارد
+const dgram = require('dgram');
+const Buffer = require('buffer').Buffer;
+const urlParse = require('url').parse;
+
+const torrent = bencode.decode(fs.readFileSync('puppy.torrent'));
+// 2 — تجزیه آدرس ترکر تا بخش‌های مختلف آن را استخراج کنیم
+const url = urlParse(torrent.announce.toString('utf8'));
+
+// 3 — ایجاد نمونه سوکت udp4
+const socket = dgram.createSocket('udp4');
+// 4 — پیام باید یک بافر باشد
+const myMsg = Buffer.from('hello?', 'utf8');
+// 5 — ارسال پیام با مشخص کردن پورت و میزبان گیرنده
+socket.send(myMsg, 0, myMsg.length, url.port, url.host, () => {});
+// 6 — مدیریت پیام‌های ورودی
+socket.on('message', msg => {
+  console.log('message is', msg);
+});</code></pre>
+        <p>در این کد اتفاقات زیادی می‌افتد، پس بیایید آن را بشکنیم.</p>
+        <p>اول ۳ ماژول دیگر اضافه می‌کنیم: dgram، buffer و url. این‌ها همه از کتابخانه استاندارد هستند.</p>
+        <p>از متد parse ماژول url روی آدرس ترکر استفاده می‌کنم. این به من اجازه می‌دهد بخش‌های مختلف آدرس مثل پروتکل، نام میزبان، پورت و... را به راحتی استخراج کنم.</p>
+        <p>ماژول dgram ماژول ما برای udp است و اینجا یک نمونه سوکت جدید می‌سازم. سوکت یک آبجکت است که ارتباط شبکه از طریق آن اتفاق می‌افتد. آرگومان «udp4» را پاس می‌دهیم، یعنی می‌خواهیم از فرمت معمول IPv4 چهاربایتی آدرس استفاده کنیم (مثل 127.0.0.1). می‌توانید برای فرمت جدیدتر IPv6 (مثل FE80:CD00:0000:0CDE:1257:0000:211E:729C) «udp6» را هم پاس دهید، اما این فرمت هنوز به‌ندرت استفاده می‌شود.</p>
+        <p>برای اینکه پیامی از طریق سوکت فرستاده شود، باید به صورت بافر باشد، نه رشته یا عدد. Buffer.from راهی آسان برای ساخت یک بافر از یک رشته است؛ برای اطلاعات بیشتر درباره بافرها راهنمای کوچک من را ببینید.</p>
+        <p>متد send سوکت برای فرستادن پیام استفاده می‌شود. آرگومان اول پیام به صورت بافر است. دو آرگومان بعدی به شما اجازه می‌دهند فقط بخشی از بافر را به‌عنوان پیام بفرستید (با مشخص کردن یک offset و یک طول) اما اگر کل بافر را می‌فرستید کافی است offset را ۰ و طول را کل طول بافر بگذارید. بعد پورت و میزبان آدرس گیرنده است. در نهایت آخرین آرگومان یک callback برای وقتی است که ارسال پیام تمام شده است.</p>
+        <p>اینجا به سوکت می‌گوییم چگونه پیام‌های ورودی را مدیریت کند. هر وقت پیامی از طریق سوکت برگردد به تابع callback پاس داده می‌شود.</p>
+
+        <h3>۳.۳ پروتکل و قالب پیام ترکر UDP</h3>
+        <p>حالا می‌دانیم چگونه از طریق UDP پیام بفرستیم و دریافت کنیم، اما برای گرفتن فهرست همتاها از ترکر، ترکر انتظار دارد پیام‌ها از یک <a href="https://www.bittorrent.org/beps/bep_0015.html" target="_blank" rel="noopener">پروتکل مشخص</a> پیروی کنند. به طور خلاصه باید:</p>
+        <ol>
+          <li>یک درخواست connect (اتصال) بفرستید</li>
+          <li>پاسخ connect را بگیرید و شناسه اتصال (connection id) را استخراج کنید</li>
+          <li>از شناسه اتصال برای فرستادن درخواست announce (اعلام) استفاده کنید — این‌جاست که به ترکر می‌گوییم به کدام فایل‌ها علاقه‌مندیم</li>
+          <li>پاسخ announce را بگیرید و فهرست همتاها را استخراج کنید</li>
+        </ol>
+        <p>چون حجم کد مربوط به ترکر دارد بزرگ می‌شود، در این نقطه می‌خواهم فایل جدیدی به نام tracker.js بسازم و همه کدهای مربوط به ترکر را آنجا منتقل کنم.</p>
+        <p><strong>tracker.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const dgram = require('dgram');
+const Buffer = require('buffer').Buffer;
+const urlParse = require('url').parse;
+
+module.exports.getPeers = (torrent, callback) => {
+  const socket = dgram.createSocket('udp4');
+  const url = torrent.announce.toString('utf8');
+
+  // 1. ارسال درخواست اتصال
+  udpSend(socket, buildConnReq(), url);
+
+  socket.on('message', response => {
+    if (respType(response) === 'connect') {
+      // 2. دریافت و تجزیه پاسخ اتصال
+      const connResp = parseConnResp(response);
+      // 3. ارسال درخواست اعلام
+      const announceReq = buildAnnounceReq(connResp.connectionId);
+      udpSend(socket, announceReq, url);
+    } else if (respType(response) === 'announce') {
+      // 4. تجزیه پاسخ اعلام
+      const announceResp = parseAnnounceResp(response);
+      // 5. تحویل همتاها به callback
+      callback(announceResp.peers);
+    }
+  });
+};
+
+function udpSend(socket, message, rawUrl, callback = () => {}) {
+  const url = urlParse(rawUrl);
+  socket.send(message, 0, message.length, url.port, url.host, callback);
+}
+
+function respType(resp) {
+  // ...
+}
+
+function buildConnReq() {
+  // ...
+}
+
+function parseConnResp(resp) {
+  // ...
+}
+
+function buildAnnounceReq(connId) {
+  // ...
+}
+
+function parseAnnounceResp(resp) {
+  // ...
+}</code></pre>
+        <p><em>* Github commit #3: انتقال کد UDP به فایل جدید tracker.js</em></p>
+        <p>اینجا فقط یک تابع یعنی getPeers را export می‌کنم که نسبتاً دقیقاً همان پروتکل ۴ مرحله‌ای بالا را دنبال می‌کند. وقتی بالاخره فهرست همتاها را گرفتیم، آن را به callback پاس می‌دهیم. شش تابع دیگر به این شرح هستند:</p>
+        <ul>
+          <li>udpSend فقط یک تابع راحتی است که بیشترش فقط socket.send را صدا می‌زند اما به من اجازه می‌دهد از تنظیم آرگومان‌های offset و طول رهایی پیدا کنم چون می‌دانم می‌خواهم کل بافر را بفرستم؛ همچنین یک callback پیش‌فرض که فقط یک تابع خالی است تنظیم می‌کند، چون در بیشتر مواقع بعد از ارسال پیام کاری ندارم (اگر لازم بود درباره socket.send تجدید اطلاع کنید به نکته ۵ در بخش قبل مراجعه کنید).</li>
+          <li>respType بررسی می‌کند پاسخ مربوط به درخواست connect بوده یا announce. چون هر دو پاسخ از یک سوکت می‌آیند، راهی برای تشخیص آن‌ها می‌خواهیم.</li>
+          <li>توابع ۳ تا ۶ این چهار متد پیام‌های connect و announce را می‌سازند و تجزیه می‌کنند.</li>
+        </ul>
+        <p>index.js هم برای استفاده از تابع جدید getPeers بازسازی شده است.</p>
+        <p><strong>index.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const bencode = require('bencode');
+const tracker = require('./tracker');
+
+const torrent = bencode.decode(fs.readFileSync('puppy.torrent'));
+
+tracker.getPeers(torrent, peers => {
+  console.log('list of peers: ', peers);
+});</code></pre>
+
+        <h3>۳.۳.۱ پیام اتصال (Connect messaging)</h3>
+        <p>حالا بیایید نگاهی به ساخت واقعی پیام‌ها بیندازیم. هر پیام یک بافر با قالب مشخص است که در BEP توصیف شده. اول به درخواست connect نگاه کنیم.</p>
+        <p>BEP درخواست connect را این‌طور توصیف می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Offset  Size            Name            Value
+0       64-bit integer  connection_id   0x41727101980
+8       32-bit integer  action          0 // connect
+12      32-bit integer  transaction_id  ? // random
+16</code></pre>
+        <p>این به ما می‌گوید پیام ما باید با یک عدد صحیح ۶۴ بیتی (یعنی ۸ بایت) در ایندکس ۰ شروع شود و مقدارش باید 0x41727101980 باشد. چون فقط ۸ بایت می‌نویسیم، ایندکس بخش بعدی ۸ است. حالا یک عدد صحیح ۳۲ بیتی (۴ بایت) با مقدار ۰ می‌نویسیم. این ما را به offset ای ۱۲ بایت می‌رساند و یک عدد صحیح تصادفی ۳۲ بیتی می‌نویسیم. پس طول کل پیام ۸ بایت + ۴ بایت + ۴ بایت = ۱۶ بایت است و باید چیزی شبیه این باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">&lt;Buffer 00 00 04 17 27 10 19 80 00 00 00 00 a6 ec 6b 7d&gt;</code></pre>
+        <p>ببینیم چگونه می‌توانیم این را در فایل tracker.js پیاده‌سازی کنیم.</p>
+        <p><strong>tracker.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+const crypto = require('crypto'); // 1 — ماژول داخلی برای ساخت اعداد تصادفی
+
+function buildConnReq() {
+  const buf = Buffer.alloc(16); // 2 — بافر خالی ۱۶ بایتی
+
+  // connection id — شناسه اتصال
+  buf.writeUInt32BE(0x417, 0); // 3 — نوشتن در دو بخش ۴ بایتی
+  buf.writeUInt32BE(0x27101980, 4);
+  // action — نوع عمل (همیشه ۰ برای درخواست اتصال)
+  buf.writeUInt32BE(0, 8); // 4
+  // transaction id — شناسه تراکنش تصادفی
+  crypto.randomBytes(4).copy(buf, 12); // 5 — کپی بافر تصادفی در بافر اصلی
+
+  return buf;
+}</code></pre>
+        <p>اول ماژول داخلی crypto را اضافه می‌کنیم تا به ما در ساخت یک عدد تصادفی برای بافر کمک کند. به‌زودی عملکرد آن را می‌بینیم.</p>
+        <p>بعد یک بافر خالی جدید با اندازه ۱۶ بایت می‌سازیم چون از قبل می‌دانیم کل پیام باید ۱۶ بایت باشد.</p>
+        <p>اینجا شناسه اتصال را می‌نویسیم که هنگام نوشتن درخواست اتصال باید همیشه 0x41727101980 باشد. از متد writeUInt32BE استفاده می‌کنیم که یک عدد صحیح بدون علامت ۳۲ بیتی را در قالب big-endian می‌نویسد (اطلاعات بیشتر <a href="https://en.wikipedia.org/wiki/Endianness" target="_blank" rel="noopener">اینجا</a>). عدد 0x417 را با مقدار offset برابر ۰ پاس می‌دهیم و بعد دوباره عدد 0x27101980 را با offset چهار بایت.</p>
+        <p>شاید دو سؤال بپرسید: این 0x چیست؟ و چرا باید عدد را به دو نوشته تقسیم کنیم؟</p>
+        <p>0x نشان می‌دهد عدد به صورت hexadecimal (شانزده‌مبنایی) است که وقتی با بایت‌ها کار می‌کنید نمایش راحت‌تری می‌تواند باشد. در غیر این صورت اساساً همان اعداد مبنای ۱۰ هستند.</p>
+        <p>دلیل اینکه باید در تکه‌های ۴ بایتی بنویسیم این است که متدی برای نوشتن عدد صحیح ۶۴ بیتی وجود ندارد. در واقع node.js از اعداد صحیح دقیق ۶۴ بیتی <a href="https://en.wikipedia.org/wiki/Floating-point_arithmetic" target="_blank" rel="noopener">پشتیبانی نمی‌کند</a>. اما همان‌طور که می‌بینید، نوشتن یک عدد hexadecimal شصت‌وچهاربیتی به صورت ترکیبی از دو عدد سی‌ودوبیتی آسان است.</p>
+        <p>بعد ۰ را برای action در ۴ بایت بعدی می‌نویسیم و offset را روی ۸ بایت قرار می‌دهیم چون همین‌الان یک عدد ۸ بایتی نوشتیم. این مقدار برای درخواست اتصال باید همیشه ۰ باشد.</p>
+        <p>برای ۴ بایت آخر یک بافر تصادفی ۴ بایتی با crypto.randomBytes تولید می‌کنیم که راه نسبتاً کاربردی برای ساخت یک عدد صحیح تصادفی ۳۲ بیتی است. برای کپی کردن آن بافر در بافر اصلی‌مان از متد copy استفاده می‌کنیم و offset موردنظرمان برای شروع نوشتن را پاس می‌دهیم.</p>
+        <p>تجزیه پاسخ خیلی ساده‌تر است. قالب پاسخ این‌طور است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Offset  Size            Name            Value
+0       32-bit integer  action          0 // connect
+4       32-bit integer  transaction_id
+8       64-bit integer  connection_id
+16</code></pre>
+        <p>و این تابع تجزیه است:</p>
+        <p><strong>tracker.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+function parseConnResp(resp) {
+  return {
+    action: resp.readUInt32BE(0),        // نوع عمل
+    transactionId: resp.readUInt32BE(4), // شناسه تراکنش
+    connectionId: resp.slice(8)          // شناسه اتصال — چون نمی‌توان ۶۴ بیت را خواند، بافر نگه می‌داریم
+  }
+}</code></pre>
+        <p>می‌بینید که action و شناسه تراکنش را به‌صورت اعداد صحیح بدون علامت ۳۲ بیتی big-endian می‌خوانم و offset را پاس می‌دهم. بعد فقط از متد slice برای گرفتن ۸ بایت آخر استفاده می‌کنم. چون نمی‌توانم عدد صحیح ۶۴ بیتی بخوانم، راحت‌تر است که همان‌طور بافر نگهش دارم.</p>
+        <p><em>* github commit #4: افزودن توابع درخواست و پاسخ اتصال</em></p>
+
+        <h3>۳.۳.۲ پیام اعلام (Announce messaging)</h3>
+        <p>بسیاری از مفاهیم اینجا همان‌هایی است که در درخواست و پاسخ connect داشتیم. با این حال چند نکته هست که باید مراقبشان باشم و به آن‌ها اشاره می‌کنم. درخواست announce در زیر آمده:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Offset  Size            Name            Value
+0       64-bit integer  connection_id
+8       32-bit integer  action          1 // announce
+12      32-bit integer  transaction_id
+16      20-byte string  info_hash
+36      20-byte string  peer_id
+56      64-bit integer  downloaded
+64      64-bit integer  left
+72      64-bit integer  uploaded
+80      32-bit integer  event           0 // 0: none; 1: completed; 2: started; 3: stopped
+84      32-bit integer  IP address      0 // default
+88      32-bit integer  key             ? // random
+92      32-bit integer  num_want        -1 // default
+96      16-bit integer  port            ? // should be between 6881 and 6889
+98</code></pre>
+        <p><strong>tracker.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+// ببینید در یادداشت‌های پایین درباره این چیست
+const torrentParser = require('./torrent-parser');
+const util = require('./util');
+
+module.exports.getPeers = (torrent, callback) => {
+  // ...
+  // این خط حالا تورنت را دریافت می‌کند
+  const announceReq = buildAnnounceReq(connResp.connectionId, torrent);
+  // ...
+};
+
+function buildAnnounceReq(connId, torrent, port = 6881) {
+  const buf = Buffer.allocUnsafe(98);
+
+  // connection id — شناسه اتصال
+  connId.copy(buf, 0);
+  // action — نوع عمل (۱ یعنی announce)
+  buf.writeUInt32BE(1, 8);
+  // transaction id — شناسه تراکنش تصادفی
+  crypto.randomBytes(4).copy(buf, 12);
+  // info hash — هش اطلاعات تورنت
+  torrentParser.infoHash(torrent).copy(buf, 16);
+  // peerId — شناسه همتا
+  util.genId().copy(buf, 36);
+  // downloaded — حجم دانلود شده (مقدار اولیه ۰)
+  Buffer.alloc(8).copy(buf, 56);
+  // left — حجم باقی‌مانده
+  torrentParser.size(torrent).copy(buf, 64);
+  // uploaded — حجم آپلود شده (مقدار اولیه ۰)
+  Buffer.alloc(8).copy(buf, 72);
+  // event — رویداد (۰ یعنی هیچ)
+  buf.writeUInt32BE(0, 80);
+  // ip address — آدرس IP (۰ یعنی پیش‌فرض)
+  buf.writeUInt32BE(0, 84);
+  // key — کلید تصادفی
+  crypto.randomBytes(4).copy(buf, 88);
+  // num want — تعداد همتای درخواستی (-۱ یعنی پیش‌فرض)
+  buf.writeInt32BE(-1, 92);
+  // port — پورت
+  buf.writeUInt16BE(port, 96);
+
+  return buf;
+}</code></pre>
+        <p><strong>util.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const crypto = require('crypto');
+
+let id = null;
+
+module.exports.genId = () => {
+  if (!id) {
+    id = crypto.randomBytes(20);              // شناسه تصادفی ۲۰ بایتی
+    Buffer.from('-AT0001-').copy(id, 0);      // نام کلاینت و شماره نسخه
+  }
+  return id;
+};</code></pre>
+        <p>در اینجا فهرست سریعی از چیزهایی است که می‌خواهم درباره این کد بگویم:</p>
+        <ul>
+          <li>«peer id» برای شناسایی یکتای کلاینت شما استفاده می‌شود. فایل جدیدی به نام util.js ساختم که برای من شناسه تولید کند. یک peer id اساساً می‌تواند هر رشته تصادفی ۲۰ بایتی باشد اما بیشتر کلاینت‌ها از یک قرارداد که <a href="https://www.bittorrent.org/beps/bep_0020.html" target="_blank" rel="noopener">اینجا</a> شرح داده شده پیروی می‌کنند. «AT» نام کلاینت من است (allen-torrent) و 0001 شماره نسخه است.</li>
+          <li>همان‌طور که می‌بینید شناسه فقط یک بار تولید می‌شود. معمولاً یک شناسه هر بار که کلاینت بارگذاری می‌شود تنظیم می‌شود و باید تا بسته شدنش ثابت بماند. بعداً دوباره از این شناسه استفاده خواهیم کرد.</li>
+          <li>کد محاسبه «info hash» و «left» کمی پیچیده است، پس خواستم آن را در فایل جدیدی به نام torrent-parser.js جدا کنم. در بخش بعد به آن می‌پردازیم، فعلاً می‌توانید آن بخش‌ها را نادیده بگیرید.</li>
+          <li>توجه کنید که این تابع حالا پارامتر torrent می‌گیرد. باز هم برای فیلدهای «info hash» و «left» است که به‌زودی به آن می‌رسیم.</li>
+          <li>اگر به BEP این درخواست نگاه کنید، offset ها را به شما می‌گوید؛ لازم نیست خودتان آن‌ها را بشمارید!</li>
+          <li>انتظار دارم connId یک بافر باشد چون این‌طور در متد parseConnResp رهایش کردیم، پس فقط مستقیم در بافر کپی‌اش می‌کنم.</li>
+          <li>چند جا به عدد صحیح ۶۴ بیتی نیاز دارم اما چون همیشه با ۰ مقداردهی می‌شوند، فقط از Buffer.alloc(8) استفاده می‌کنم؛ این یک بافر ۸ بایتی با همه صفرها می‌سازد.</li>
+          <li>برای بخش «num want» اشاره می‌کنم که از writeInt32BE استفاده کردم نه writeUInt32BE (به حرف U توجه کنید). چون عدد منفی است، نمی‌توان از نسخه بدون علامت استفاده کرد.</li>
+          <li>و در نهایت برای پورت، مشخصات رسمی می‌گوید پورت‌های بیت‌تورنت باید بین ۶۸۸۱ و ۶۸۸۹ باشند، پس تصمیم گرفتم پیش‌فرض ۶۸۸۱ را استفاده کنم.</li>
+        </ul>
+        <p>حالا نگاهی به تجزیه پاسخ بیندازیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Offset      Size            Name            Value
+0           32-bit integer  action          1 // announce
+4           32-bit integer  transaction_id
+8           32-bit integer  interval
+12          32-bit integer  leechers
+16          32-bit integer  seeders
+20 + 6 * n  32-bit integer  IP address
+24 + 6 * n  16-bit integer  TCP port
+20 + 6 * N</code></pre>
+        <p>کمی پیچیده است چون تعداد آدرس‌هایی که برمی‌گردند ثابت نیست. آدرس‌ها در گروه‌های ۶ بایتی می‌آیند؛ ۴ بایت اول آدرس IP و ۲ بایت بعدی پورت است. پس کد ما باید بخش آدرس‌های پاسخ را درست بشکند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+function parseAnnounceResp(resp) {
+  // گروه‌بندی مقادیر به تکه‌های ۶ بایتی
+  function group(iterable, groupSize) {
+    let groups = [];
+    for (let i = 0; i < iterable.length; i += groupSize) {
+      groups.push(iterable.slice(i, i + groupSize));
+    }
+    return groups;
+  }
+
+  return {
+    action: resp.readUInt32BE(0),        // نوع عمل
+    transactionId: resp.readUInt32BE(4), // شناسه تراکنش
+    leechers: resp.readUInt32BE(8),      // تعداد لچرها (دانلودکننده‌ها)
+    seeders: resp.readUInt32BE(12),      // تعداد سیدرها (آپلودکننده‌ها)
+    peers: group(resp.slice(20), 6).map(address => {
+      return {
+        ip: address.slice(0, 4).join('.'),  // ۴ بایت اول آدرس IP
+        port: address.readUInt16BE(4)       // ۲ بایت بعدی پورت
+      }
+    })
+  }
+}</code></pre>
+        <p>بیشتر این کد کاملاً سرراست است. فکر می‌کنم می‌توانستید تابع group را بیرون یا در یک فایل جدید بگذارید تا قابل استفاده مجدد باشد، اما برای اهداف این آموزش فکر می‌کنم همین کافی است. همچنین کمی تعجب‌آور است که می‌توانید روی یک بافر join صدا بزنید. این کمی حرفه‌ای است چون بایت‌ها را به رشته تبدیل می‌کند و به نظر می‌رسد کار می‌کند و فکر می‌کنم خوب هم به نظر می‌رسد.</p>
+
+        <h3>۳.۳.۳ هش اطلاعات (Info hash) و اندازه تورنت</h3>
+        <p>فایل جدیدی به نام torrent-parser.js ساختم که می‌توانم همه کدهای مربوط به بیرون کشیدن اطلاعات از فایل تورنت را آنجا نگه دارم. این یعنی می‌خواهم کد باز کردن فایل تورنت را هم اینجا منتقل کنم.</p>
+        <p><strong>torrent-parser.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const bencode = require('bencode');
+
+module.exports.open = (filepath) => {
+  return bencode.decode(fs.readFileSync(filepath));
+};
+
+module.exports.size = torrent => {
+  // ...
+};
+
+module.exports.infoHash = torrent => {
+  // ...
+};</code></pre>
+        <p><strong>index.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const fs = require('fs');
+const bencode = require('bencode');
+const tracker = require('./tracker');
+const torrentParser = require('./torrent-parser');
+
+const torrent = torrentParser.open('puppy.torrent');
+
+tracker.getPeers(torrent, peers => {
+  console.log('list of peers: ', peers);
+});</code></pre>
+        <p><em>* github commit #5: افزودن درخواست و پاسخ announce</em></p>
+
+        <h3>۳.۳.۳.۱ هش اطلاعات (Info Hash)</h3>
+        <p>حالا برگردیم به وقتی که اول فایل تورنت را باز کردیم. یادتان هست شبیه این بود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
+        <p>دفعه قبل خاصیت announce را از این آبجکت بیرون کشیدیم. می‌بینید که یک خاصیت info هم دارد؟ اگر خاصیت info را بردارید و از تابع هش SHA1 عبورش دهید، هش اطلاعات (info hash) را می‌گیرید! می‌توانید با ماژول داخلی crypto به راحتی هش SHA1 اعمال کنید.</p>
+        <p><strong>torrent-parser.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+const bencode = require('bencode');
+const crypto = require('crypto');
+
+module.exports.infoHash = torrent => {
+  const info = bencode.encode(torrent.info);              // رمزگذاری دوباره خاصیت info
+  return crypto.createHash('sha1').update(info).digest(); // اعمال هش SHA1
+};</code></pre>
+        <p>چرا از تابع هش SHA1 استفاده کنیم؟ SHA1 یکی از بسیاری از توابع هش است اما همانی است که بیت‌تورنت استفاده می‌کند، پس در مورد ما هیچ تابع هش دیگری کارایی ندارد. می‌خواهیم از یک هش استفاده کنیم چون راهی فشرده برای شناسایی یکتای تورنت است. یک تابع هش بافری با طول ثابت برمی‌گرداند (در این مورد ۲۰ بایت). به عنوان مثال، تورنت نمونه ما خروجی <code>&lt;Buffer 11 7e 3a 66 65 e8 ff 1b 15 7e 5e c3 78 23 57 8a db 8a 71 2b&gt;</code> می‌دهد.</p>
+        <p>چون احتمال اینکه دو ورودی مقدار هش یکسانی بدهند بسیار کم است، و چون ورودی (خاصیت info) حاوی اطلاعاتی درباره تک‌تک قطعه‌های فایل‌های تورنت است (بعداً بیشتر در این باره)، راه خوبی برای شناسایی یکتای یک تورنت است. برای همین است که باید هش اطلاعات را به‌عنوان بخشی از درخواست به ترکر بفرستیم؛ داریم می‌گوییم فهرست همتاهایی را می‌خواهیم که می‌توانند دقیقاً همین تورنت را به اشتراک بگذارند.</p>
+
+        <h3>۳.۳.۳.۲ اندازه تورنت (Torrent Size)</h3>
+        <p>وقتی درخواست announce را می‌ساختیم دیدیم که باید فیلد «left» را پر کنیم. در واقع فقط کل اندازه فایل‌های تورنت را می‌فرستیم. ببینیم چگونه می‌توانیم آن را محاسبه کنیم.</p>
+        <p><strong>torrent-parser.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+const bignum = require('bignum');
+
+module.exports.size = torrent => {
+  // اگر چند فایل باشد مجموع طول‌ها، وگرنه طول فایل تکی
+  const size = torrent.info.files ?
+    torrent.info.files.map(file => file.length).reduce((a, b) => a + b) :
+    torrent.info.length;
+
+  return bignum.toBuffer(size, {size: 8}); // تبدیل به بافر ۸ بایتی
+};</code></pre>
+        <p><em>* github commit #6: افزودن توابع infoHash و size به torrent-parser</em></p>
+        <p>دو حالت باید در نظر بگیریم — تورنت‌هایی که یک فایل دارند یا بیشتر از یک فایل. اگر تورنت فقط یک فایل داشته باشد می‌توانیم اندازه آن را از خاصیت torrent.info.length بگیریم. اما اگر چند فایل داشته باشد، به‌جایش یک خاصیت torrent.info.files دارد که آرایه‌ای از آبجکت‌ها برای هر فایل است. باید روی این آبجکت‌های فایل پیمایش کنیم و مقدار خاصیت length آن‌ها را جمع بزنیم.</p>
+        <p>یک مشکل دیگر هم باید با اندازه فایل در نظر بگیریم؛ ممکن است از عدد صحیح ۳۲ بیتی بزرگ‌تر باشد. ساده‌ترین راه برای برخورد با این، نصب یک ماژول برای مدیریت اعداد بزرگ‌تر است. تصمیم گرفتم از کتابخانه «bignum» استفاده کنم که برای این مورد کاربرد محبوبی است. با این دستور نصبش کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install --save bignum</code></pre>
+        <p>می‌بینید که عدد را با تابع bignum.toBuffer در یک بافر می‌نویسم. گزینه {size: 8} به تابع می‌گوید می‌خواهید عدد را در بافری با اندازه ۸ بایت بنویسید. این همان اندازه بافری است که درخواست announce لازم دارد.</p>
+
+        <h3>۳.۳.۴ نکات پایانی، نوع پاسخ و تلاش مجدد</h3>
+        <p>حالا تقریباً همه تکه‌های ارتباط با ترکر جمع شده است. آخرین کاری که باید بکنیم نوشتن تابع respType برای تشخیص اینکه پاسخ، پاسخ connect است یا پاسخ announce است.</p>
+        <p>بیش از یک راه برای نوشتن این متد وجود دارد. بعد از نگاه کردن به ساختار دو نوع پاسخ، متوجه شدم پاسخ connect مقدار action برابر ۰ دارد و پاسخ announce مقدار action برابر ۱.</p>
+        <p><strong>tracker.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
+
+function respType(resp) {
+  const action = resp.readUInt32BE(0);
+  if (action === 0) return 'connect';
+  if (action === 1) return 'announce';
+}</code></pre>
+        <p><em>* github commit #7: افزودن تابع respType به tracker.js</em></p>
+        <p>و این همه چیزی است که برای اجرای برنامه و گرفتن فهرست همتاهای تورنت‌مان لازم داریم.</p>
+        <p>ممکن است وقتی برنامه را اجرا می‌کنید گیر کند. همان‌طور که قبلاً گفتم، ممکن است پیام‌های udp هنگام انتقال گم شوند؛ اگر این اتفاق افتاد فقط سعی کنید برنامه را دوباره اجرا کنید. یا می‌توانید به‌عنوان تمرین جایزه، تابع خودتان را بنویسید که بعد از یک زمان توقف (timeout) تلاش مجدد کند!</p>
+        <p>اگر این کار را امتحان کردید، طبق BEP باید بین هر درخواست 2^n × ۱۵ ثانیه صبر کنید و در کل حداکثر ۸ درخواست بفرستید. این «عقب‌نشینی نمایی» (exponential backoff) نامیده می‌شود و دلیل انجامش متعادل کردن دو نگرانی است:</p>
+        <ul>
+          <li>ممکن است پیام شما هنگام انتقال گم شده باشد؛ در این صورت باید در سریع‌ترین زمان ممکن دوباره بفرستید.</li>
+          <li>پیام هنوز دارد می‌آید، اما شبکه ترافیک دارد. در این حالت نمی‌خواهید شبکه را با درخواست‌های بیشتر بمباران کنید.</li>
+        </ul>
+        <p>این یک تکنیک رایج برای ارتباطات شبکه‌ای نامطمئن است.</p>
+      </section>
+
+      <section>
+        <h2>۴. دانلود از همتاها</h2>
+        <p>حالا که می‌توانیم برای فایل‌هایمان فهرست همتاها را بگیریم، می‌خواهیم واقعاً فایل‌ها را از آن‌ها دانلود کنیم. در اینجا یک نمای کلی پایه از چگونگی کار این موضوع داریم:</p>
+        <ol>
+          <li>اول باید با همه همتاهای فهرستتان یک اتصال tcp بسازید. هرچه همتای بیشتری بتوانید به‌ش متصل شوید، سریع‌تر می‌توانید فایل‌هایتان را دانلود کنید.</li>
+          <li>بعد از تبادل چند پیام با همتا به‌عنوان راه‌اندازی، باید شروع به درخواست قطعه‌های فایل‌هایی که می‌خواهید کنید. همان‌طور که به‌زودی می‌بینیم، فایل‌های مشترک یک تورنت به قطعه‌ها تقسیم می‌شوند تا بتوانید بخش‌های مختلف فایل‌ها را به‌طور هم‌زمان از همتاهای مختلف دانلود کنید.</li>
+          <li>به احتمال زیاد تعداد قطعه‌ها از همتاها بیشتر است، پس وقتی دریافت یک قطعه از یک همتا تمام شد، می‌خواهیم قطعه بعدی که نیاز داریم را از همان همتا درخواست کنیم. در حالت ایده‌آل می‌خواهید همه اتصال‌ها قطعه‌های متفاوت و جدید درخواست کنند، پس باید ردیابی کنید کدام قطعه‌ها را دارید و کدام‌ها را هنوز نیاز دارید.</li>
+          <li>و در نهایت وقتی قطعه‌ها را دریافت می‌کنید، در حافظه ذخیره می‌شوند، پس باید داده را روی هارد دیسکتان بنویسید. امیدوارم در این نقطه کارتان تمام شده باشد!</li>
+        </ol>
+
+        <h3>۴.۱ راه‌اندازی</h3>
+        <p>قبل از شروع می‌خواهم فایل جدیدی به نام download.js اضافه کنم. همچنین چون داریم فایل‌های بیشتری پیدا می‌کنیم، می‌خواهم پوشه جدیدی به نام «src» بسازم و کدهایمان را آنجا منتقل کنم. در نهایت تصمیم گرفتم فایل puppy.torrent را حذف کنم. چون همتایان زیادی ندارد، برای این بخش پروژه چندان مفید نخواهد بود. توصیه می‌کنم یک تورنت کوچک با همتایان زیاد پیدا کنید که بتوانید با آن بازی کنید. ساختار فایل جدید ما باید شبیه این باشد:</p>
+        <img src="https://allenkim67.github.io/img/file-structure-2.png" alt="ساختار جدید فایل‌های پروژه شامل پوشه src با فایل‌های download.js و tracker.js" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همچنین index.js را برای بازتاب این تغییرات به‌روز کرده‌ام:</p>
+        <p><strong>index.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const download = require('./src/download');
+const torrentParser = require('./src/torrent-parser');
+
+const torrent = torrentParser.open(process.argv[2]); // فایل تورنت از آرگومان خط فرمان
+
+download(torrent);</code></pre>
+        <p>به مسیرهای require به‌روزشده توجه کنید. process.argv[2] آرگومان‌ها را از خط فرمان می‌گیرد، پس می‌توانید در ترمینال چیزی مثل این اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">node index.js /file/path/to/name-of-torrent.torrent</code></pre>
+        <p>همچنین توجه کنید که از متدی استفاده می‌کنم که download.js export کرده.</p>
+        <p><em>* github commit #8: بازسازی ساختار و افزودن download.js</em></p>
+
+        <h3>۴.۲ اتصال TCP به همتاها</h3>
+        <p>استفاده از tcp برای فرستادن پیام‌ها شبیه استفاده از udp است که قبلاً استفاده کردیم. در این مورد به‌جای ماژول «dgram» از ماژول «net» استفاده می‌کنیم. بیایید به مثالی نگاه کنیم که چگونه کار می‌کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const net = require('net');
+const Buffer = require('buffer').Buffer;
+
+const socket = new net.Socket();
+socket.on('error', console.log); // اگر اتصال شکست بخورد، برنامه نباید کرش کند
+socket.connect(port, ip, function() {
+  socket.write(Buffer.from('hello world'));
+});
+socket.on('data', responseBuffer => {
+  // اینجا با بافر پاسخ کاری انجام بده
+});</code></pre>
+        <p>می‌بینید که رابط tcp خیلی شبیه استفاده از udp است، اما باید قبل از فرستادن هر پیامی، متد connect را برای ساخت اتصال صدا بزنید. همچنین ممکن است اتصال شکست بخورد؛ در این صورت نمی‌خواهیم برنامه کرش کند، پس خطا را با socket.on('error', console.log) می‌گیریم. این خطا را به‌جایش در کنسول ثبت می‌کند. udp این مشکل را نداشت چون udp نیازی به ساخت اتصال ندارد.</p>
+        <p>با به‌کار بردن چیزهایی که بالا درباره tcp یاد گرفتیم، می‌توانیم نوشتن فایل download.js را شروع کنیم.</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const net = require('net');
+const Buffer = require('buffer').Buffer;
+const tracker = require('./tracker');
+
+module.exports = torrent => {
+  tracker.getPeers(torrent, peers => {
+    peers.forEach(download); // برای هر همتا یک دانلود شروع کن
+  });
+};
+
+function download(peer) {
+  const socket = net.Socket();
+  socket.on('error', console.log);
+  socket.connect(peer.port, peer.ip, () => {
+    // socket.write(...) اینجا یک پیام بنویس
+  });
+  socket.on('data', data => {
+    // اینجا پاسخ را مدیریت کن
+  });
+}</code></pre>
+        <p>از متد getPeers فایل tracker.js استفاده می‌کنیم و بعد برای هر همتا یک اتصال tcp می‌سازیم و شروع به تبادل پیام می‌کنیم. قبل از اینکه ادامه بدهیم باید بدانیم چه پیام‌هایی را می‌فرستیم و دریافت می‌کنیم.</p>
+
+        <h3>۴.۳ نمای کلی پروتکل</h3>
+        <p>وقتی اتصال tcp برقرار شد، پیام‌هایی که می‌فرستید و دریافت می‌کنید باید از پروتکل زیر پیروی کنند.</p>
+        <p>اولین کاری که می‌خواهید بکنید این است که به همتای خودتان بگویید به دانلود کدام فایل‌ها علاقه‌مندید، به‌همراه چند اطلاعات شناسایی. اگر همتا فایل‌هایی را که می‌خواهید نداشته باشد، اتصال را می‌بندد، اما اگر فایل‌ها را داشته باشد باید پیام مشابهی به‌عنوان تأیید برگرداند. به این «handshake» (دست دادن) می‌گویند.</p>
+        <p>محتمل‌ترین چیزی که بعداً اتفاق می‌افتد این است که همتا به شما بگوید چه قطعه‌هایی دارد. این از طریق پیام‌های «have» و «bitfield» اتفاق می‌افتد. هر پیام «have» یک اندیس قطعه به‌عنوان payload دارد. یعنی چندین پیام have دریافت می‌کنید، برای هر قطعه‌ای که همتایتان دارد یک پیام.</p>
+        <p>پیام bitfield هدف مشابهی دارد اما به روش متفاوتی. پیام bitfield می‌تواند همه قطعه‌های همتا را فقط در یک پیام بگوید. این کار را با فرستادن یک رشته از بیت‌ها انجام می‌دهد، برای هر قطعه‌ای در فایل یک بیت. اندیس هر بیت همان اندیس قطعه است و اگر آن قطعه را داشته باشند ۱ می‌شود و اگر نداشته باشند ۰. مثلاً اگر یک bitfield دریافت کنید که با 011001... شروع می‌شود، یعنی قطعه‌های اندیس ۱، ۲ و ۵ را دارند اما قطعه‌های اندیس ۰، ۳ و ۴ را ندارند.</p>
+        <p>امکان دارد هم پیام‌های «have» و هم یک پیام bitfield را دریافت کنید؛ در این صورت باید آن‌ها را ترکیب کنید تا فهرست کامل قطعه‌ها به دست بیاید.</p>
+        <p>در واقع ممکن است نوع دیگری از پیام هم دریافت کنید؛ ممکن است همتا تصمیم بگیرد نمی‌خواهد با شما به اشتراک بگذارد! پیام‌های choke (خفه)، unchoke (رفع خفه)، interested (علاقه‌مند) و not interested (بی‌علاقه) برای همین هستند. اگر خفه (choked) شوید یعنی همتا نمی‌خواهد با شما به اشتراک بگذارد؛ اگر رفع خفه (unchoked) شوید یعنی همتا مایل به اشتراک گذاری است. از طرف دیگر، interested یعنی شما چیزی را که همتایتان دارد می‌خواهید، در حالی که not interested یعنی آنچه را دارد نمی‌خواهید.</p>
+        <p>شما همیشه خفه و بی‌علاقه شروع می‌کنید. پس اولین پیامی که می‌فرستید باید پیام interested باشد. بعد امیدوارید آن‌ها یک پیام unchoke بفرستند تا بتوانید به قدم بعدی بروید. اگر به‌جایش یک پیام choke دریافت کردید، فقط می‌توانید بگذارید اتصال بیفتد.</p>
+        <p>در این نقطه آماده شروع درخواست هستید. می‌توانید این کار را با فرستادن پیام‌های «request» انجام دهید که اندیس قطعه‌ای را که می‌خواهید دارد (جزئیات بیشتر در بخش بعد).</p>
+        <p>و در نهایت یک پیام piece دریافت می‌کنید که حاوی بایت‌های داده‌ای است که درخواست کردید.</p>
+
+        <h3>۴.۴ انواع پیام</h3>
+        <p>طبق <a href="https://wiki.theory.org/index.php/BitTorrentSpecification" target="_blank" rel="noopener">مشخصات</a>، پیام handshake باید بافری شبیه این باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">handshake: &lt;pstrlen&gt;&lt;pstr&gt;&lt;reserved&gt;&lt;info_hash&gt;&lt;peer_id&gt;
+
+pstrlen: string length of &lt;pstr&gt;, as a single raw byte
+pstr: string identifier of the protocol
+reserved: eight (8) reserved bytes. All current implementations use all zeroes.
+peer_id: 20-byte string used as a unique ID for the client.
+
+In version 1.0 of the BitTorrent protocol, pstrlen = 19, and pstr = "BitTorrent protocol".</code></pre>
+        <p>وقتی handshake برقرار شد، ۱۰ نوع پیام مختلف می‌توانند رد و بدل شوند که همه از یک قالب پیروی می‌کنند:</p>
+        <ul>
+          <li>۴ بایت که طول پیام را نشان می‌دهد (به‌جز همین ۴ بایت)</li>
+          <li>۱ بایت برای شناسه (id) پیام</li>
+          <li>بقیه بافر، payload پیام است که با هر پیام فرق می‌کند</li>
+        </ul>
+        <p>در مورد این‌ها وقتی پیش بیایند با جزئیات بیشتری بحث می‌کنم، اما می‌توانید اطلاعات بیشتر را در <a href="https://wiki.theory.org/index.php/BitTorrentSpecification" target="_blank" rel="noopener">مشخصات</a> پیدا کنید.</p>
+        <p>فایل جدیدی به نام message.js ساختم با چند تابع راحت برای کمک به ساخت این بافرهای پیام.</p>
+        <p><strong>message.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const Buffer = require('buffer').Buffer;
+const torrentParser = require('./torrent-parser');
+
+module.exports.buildHandshake = torrent => {
+  const buf = Buffer.alloc(68);
+  // pstrlen — طول رشته پروتکل
+  buf.writeUInt8(19, 0);
+  // pstr — رشته شناساگر پروتکل
+  buf.write('BitTorrent protocol', 1);
+  // reserved — بایت‌های رزروشده (همه صفر)
+  buf.writeUInt32BE(0, 20);
+  buf.writeUInt32BE(0, 24);
+  // info hash — هش اطلاعات تورنت
+  torrentParser.infoHash(torrent).copy(buf, 28);
+  // peer id — شناسه یکتای کلاینت
+  buf.write(util.genId());
+  return buf;
+};
+
+module.exports.buildKeepAlive = () => Buffer.alloc(4);
+
+module.exports.buildChoke = () => {
+  const buf = Buffer.alloc(5);
+  // length — طول پیام
+  buf.writeUInt32BE(1, 0);
+  // id — شناسه پیام (۰ یعنی خفه)
+  buf.writeUInt8(0, 4);
+  return buf;
+};
+
+module.exports.buildUnchoke = () => {
+  const buf = Buffer.alloc(5);
+  // length — طول پیام
+  buf.writeUInt32BE(1, 0);
+  // id — شناسه پیام (۱ یعنی رفع خفه)
+  buf.writeUInt8(1, 4);
+  return buf;
+};
+
+module.exports.buildInterested = () => {
+  const buf = Buffer.alloc(5);
+  // length — طول پیام
+  buf.writeUInt32BE(1, 0);
+  // id — شناسه پیام (۲ یعنی علاقه‌مند)
+  buf.writeUInt8(2, 4);
+  return buf;
+};
+
+module.exports.buildUninterested = () => {
+  const buf = Buffer.alloc(5);
+  // length — طول پیام
+  buf.writeUInt32BE(1, 0);
+  // id — شناسه پیام (۳ یعنی بی‌علاقه)
+  buf.writeUInt8(3, 4);
+  return buf;
+};
+
+module.exports.buildHave = payload => {
+  const buf = Buffer.alloc(9);
+  // length — طول پیام
+  buf.writeUInt32BE(5, 0);
+  // id — شناسه پیام (۴ یعنی have)
+  buf.writeUInt8(4, 4);
+  // piece index — اندیس قطعه
+  buf.writeUInt32BE(payload, 5);
+  return buf;
+};
+
+module.exports.buildBitfield = bitfield => {
+  const buf = Buffer.alloc(14);
+  // length — طول پیام
+  buf.writeUInt32BE(payload.length + 1, 0);
+  // id — شناسه پیام (۵ یعنی bitfield)
+  buf.writeUInt8(5, 4);
+  // bitfield — بیت‌های قطعه‌ها
+  bitfield.copy(buf, 5);
+  return buf;
+};
+
+module.exports.buildRequest = payload => {
+  const buf = Buffer.alloc(17);
+  // length — طول پیام
+  buf.writeUInt32BE(13, 0);
+  // id — شناسه پیام (۶ یعنی درخواست)
+  buf.writeUInt8(6, 4);
+  // piece index — اندیس قطعه
+  buf.writeUInt32BE(payload.index, 5);
+  // begin — آفست شروع بلاک
+  buf.writeUInt32BE(payload.begin, 9);
+  // length — طول بلاک
+  buf.writeUInt32BE(payload.length, 13);
+  return buf;
+};
+
+module.exports.buildPiece = payload => {
+  const buf = Buffer.alloc(payload.block.length + 13);
+  // length — طول پیام
+  buf.writeUInt32BE(payload.block.length + 9, 0);
+  // id — شناسه پیام (۷ یعنی قطعه)
+  buf.writeUInt8(7, 4);
+  // piece index — اندیس قطعه
+  buf.writeUInt32BE(payload.index, 5);
+  // begin — آفست شروع بلاک
+  buf.writeUInt32BE(payload.begin, 9);
+  // block — داده بلاک
+  payload.block.copy(buf, 13);
+  return buf;
+};
+
+module.exports.buildCancel = payload => {
+  const buf = Buffer.alloc(17);
+  // length — طول پیام
+  buf.writeUInt32BE(13, 0);
+  // id — شناسه پیام (۸ یعنی لغو)
+  buf.writeUInt8(8, 4);
+  // piece index — اندیس قطعه
+  buf.writeUInt32BE(payload.index, 5);
+  // begin — آفست شروع بلاک
+  buf.writeUInt32BE(payload.begin, 9);
+  // length — طول بلاک
+  buf.writeUInt32BE(payload.length, 13);
+  return buf;
+};
+
+module.exports.buildPort = payload => {
+  const buf = Buffer.alloc(7);
+  // length — طول پیام
+  buf.writeUInt32BE(3, 0);
+  // id — شناسه پیام (۹ یعنی پورت)
+  buf.writeUInt8(9, 4);
+  // listen-port — پورت شنود
+  buf.writeUInt16BE(payload, 5);
+  return buf;
+};</code></pre>
+        <p>این توابع بیشتر سرراست هستند؛ فقط یک payload پاس بدهید و یک بافر با طول و شناسه مناسب برمی‌گرداند. همه‌چیز مستقیماً از مشخصاتی که قبلاً ذکر شد پیروی می‌کند.</p>
+        <p><em>* github commit #9: افزودن message.js</em></p>
+
+        <h3>۴.۵ گروه‌بندی پیام‌ها</h3>
+        <p>قبل از رفتن به تبادل واقعی پیام، یک چیز دیگر هست که باید درباره tcp به آن بپردازم. شاید فرض کرده باشید که هر بار داده‌ای از سوکت دریافت می‌کنید، یک پیام کامل و واحد است. اما این‌طور نیست. یادتان باشد کد ما برای دریافت داده شبیه این بود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">socket.on('data', receivedBuffer => {
+  // اینجا با receivedBuffer کاری انجام بده
+})</code></pre>
+        <p>مشکل این است که callback داده را همان‌طور که در دسترس قرار می‌گیرد دریافت می‌کند و هیچ راهی برای دانستن چگونگی تکه‌تکه شدن آن داده وجود ندارد. سوکت ممکن است فقط بخشی از یک پیام را دریافت کند، یا ممکن است چند پیام را یک‌جا دریافت کند. به همین دلیل است که هر پیام با طولش شروع می‌شود تا به پیدا کردن شروع و پایان هر پیام کمک کند.</p>
+        <p>اگر هر بار که callback صدا زده می‌شد، یک پیام کامل واحد دریافت می‌کرد، همه‌چیز برای ما خیلی راحت‌تر می‌شد، پس می‌خواهم تابعی به نام onWholeMsg بنویسم که دقیقاً همین کار را برای ما کند.</p>
+        <p>مثل این:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">function download(peer) {
+  const socket = net.Socket();
+  socket.connect(peer.port, peer.ip, () => {
+    // socket.write(...) اینجا یک پیام بنویس
+  });
+  onWholeMsg(socket, data => {
+    // اینجا پاسخ را مدیریت کن
+  });
+}</code></pre>
+        <p>اینجا پیاده‌سازی onWholeMsg است:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">function onWholeMsg(socket, callback) {
+  let savedBuf = Buffer.alloc(0); // بافر ذخیره پیام‌های ناقص
+  let handshake = true;           // اولین پیام همیشه handshake است
+
+  socket.on('data', recvBuf => {
+    // msgLen طول یک پیام کامل را محاسبه می‌کند
+    const msgLen = () => handshake ? savedBuf.readUInt8(0) + 49 : savedBuf.readInt32BE(0) + 4;
+    savedBuf = Buffer.concat([savedBuf, recvBuf]);
+
+    while (savedBuf.length >= 4 && savedBuf.length >= msgLen()) {
+      callback(savedBuf.slice(0, msgLen())); // پاس دادن یک پیام کامل به callback
+      savedBuf = savedBuf.slice(msgLen());   // حذف آن پیام از بافر
+      handshake = false;
+    }
+  });
+}</code></pre>
+        <p>این تابع چگونه کار می‌کند؟ اول به تمایز بین تابع onWholeMsg، callback پاس‌داده‌شده به onWholeMsg و callback بی‌نام پاس‌داده‌شده به socket.on توجه کنید. بعد، کلید کار کردن این‌ها استفاده از یک بستار (closure) است. چون callback سوکت داخل تابع onWholeMsg است، همیشه به متغیرهای دومی دسترسی دارد.</p>
+        <p>پس هر بار که سوکت داده دریافت می‌کند، callback سوکت صدا زده می‌شود. داده جدید را با savedBuf ترکیب می‌کند و تا وقتی savedBuf به اندازه کافی بلند باشد که حداقل یک پیام کامل را نگه دارد، آن را به callback تابع onWholeMsg پاس می‌دهد و بعد savedBuf را با بریدن آن پیام‌ها به‌روز می‌کند. اساساً savedBuf تکه‌های پیام‌های ناتمام را بین دورهای دریافت داده از سوکت نگه می‌دارد.</p>
+        <p>متغیر handshake را هم در بستار دارم. چون پیام handshake طولش را به‌عنوان بخشی از پیام نمی‌گوید. تنها راهی که می‌توانید بفهمید پیام handshake دریافت می‌کنید این است که همیشه اولین پیامی است که دریافت می‌کنید. برای همین با handshake برابر true شروع می‌کنم و اولین بار که یک پیام کامل دریافت می‌کنیم، false می‌کنمش.</p>
+        <p>اگر خیلی با بستارها آشنا نیستید، همه این‌ها شاید کمی مغز را درگیر کند، اما تشویقتان می‌کنم که ادامه دهید و کد را با دقت بخوانید. یک چیزی که شاید کمک کند این است که متوجه شوید تابع onWholeMsg فقط یک بار صدا زده می‌شود، پس متغیرهای savedBuf و handshake فقط یک بار مقداردهی می‌شوند. اما بعد callback سوکت چند بار صدا زده می‌شود و هر بار همان دو متغیر را می‌خواند و می‌نویسد.</p>
+        <p><em>* github commit #10: افزودن تابع onWholeMsg</em></p>
+
+        <h3>۴.۶ دست دادن (Handshake)</h3>
+        <p>حالا دست دادن را کدنویسی کنیم:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+const net = require('net');
+const tracker = require('./tracker');
+const message = require('./message');
+
+module.exports = torrent => {
+  tracker.getPeers(torrent, peers => {
+    // 1 — پاس دادن تورنت به تابع دانلود
+    peers.forEach(peer => download(peer, torrent));
+  });
+};
+
+function download(peer, torrent) {
+  const socket = new net.Socket();
+  socket.on('error', console.log);
+  socket.connect(peer.port, peer.ip, () => {
+    // 1 — ارسال پیام دست دادن
+    socket.write(message.buildHandshake(torrent));
+  });
+  // 2 — مدیریت پیام‌های ورودی با msgHandler
+  onWholeMsg(socket, msg => msgHandler(msg, socket));
+}
+
+// 2 — بررسی نوع پیام و مدیریت آن
+function msgHandler(msg, socket) {
+  if (isHandshake(msg)) socket.write(message.buildInterested());
+}
+
+// 3 — بررسی اینکه پیام دست دادن است
+function isHandshake(msg) {
+  return msg.length === msg.readUInt8(0) + 49 &&
+    msg.toString('utf8', 1) === 'BitTorrent protocol';
+}</code></pre>
+        <p>از تابع buildHandshake که در فایل message.js ساختیم استفاده می‌کنیم، اما این متد به آبجکت تورنت نیاز دارد، پس حالا آن را از طریق تابع download پاس می‌دهیم.</p>
+        <p>در تابع download تابع callback طولانی نمی‌خواستم، پس تابع جدیدی به نام msgHandler ساختم. این تابع بررسی می‌کند چه نوع پیامی دریافت می‌کنیم و مطابق آن مدیریتش می‌کند. اینجا بررسی می‌کند که آیا پیام، پاسخ دست دادن است؛ اگر بود پیام interested را می‌فرستد و امیدواریم همتا یک پیام unchoke بفرستد.</p>
+        <p>این تابع بررسی می‌کند که آیا پیام دست دادن است. اساساً فقط بررسی می‌کند طولش هماندازه پیام دست دادن است و pstr آن «BitTorrent protocol» است.</p>
+        <p><em>* github commit #11: افزودن مدیریت دست دادن</em></p>
+
+        <h3>۴.۷ قطعه‌ها (Pieces)</h3>
+        <p>بعد از برقراری دست دادن، همتایتان باید به شما بگوید چه قطعه‌هایی دارد. بیایید لحظه‌ای بفهمیم قطعه‌ها دقیقاً چه هستند.</p>
+        <p>اگر یک فایل تورنت را باز کنید، دیدیم که حاوی داده‌هایی با ویژگی‌های مختلف مثل «announce» و «info» است. یک ویژگی دیگر «piece length» است. این به شما می‌گوید طول یک قطعه چند بایت است. فرض کنیم به‌طور فرضی طول قطعه ۱۰۰۰ بایت دارید. اگر اندازه کل فایل(ها) ۱۲۰۰۰ بایت باشد، یعنی فایل باید ۱۲ قطعه داشته باشد. توجه کنید که آخرین قطعه ممکن است پر ۱۰۰۰ بایت نباشد. اگر فایل ۱۲۰۰۱ بایت بود، کل قطعه‌ها ۱۳ می‌شد که آخرین قطعه فقط ۱ بایت است.</p>
+        <p>این قطعه‌ها از ۰ ایندکس می‌شوند و این‌طور می‌دانیم کدام قطعه را می‌فرستیم یا دریافت می‌کنیم. مثلاً ممکن است قطعه اندیس ۰ را درخواست کنید؛ یعنی از مثال قبلی‌مان ۱۰۰۰ بایت اول فایل را می‌خواهیم. اگر قطعه اندیس ۱ را بخواهیم، ۱۰۰۰ بایت دوم را می‌خواهیم و الی آخر.</p>
+
+        <h3>۴.۸ مدیریت پیام‌ها</h3>
+        <p>حالا می‌خواهم مدیریت پیام‌هایی را شروع کنم که پیام handshake نیستند. چون این پیام‌ها یک <a href="https://wiki.theory.org/index.php/BitTorrentSpecification" target="_blank" rel="noopener">قالب ثابت</a> دارند، می‌توانم فقط شناسه‌شان را بررسی کنم تا بفهمم چه پیامی است. برای کمک به این کار تابعی به message.js اضافه کردم که بافرهای پیام را به اجزایش تجزیه می‌کند:</p>
+        <p><strong>message.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+module.exports.parse = msg => {
+  const id = msg.length > 4 ? msg.readInt8(4) : null;     // پیام‌های بدون id (keep-alive)
+  let payload = msg.length > 5 ? msg.slice(5) : null;     // پیام‌های بدون payload
+
+  if (id === 6 || id === 7 || id === 8) {
+    // برای request، piece و cancel: payload شامل index، begin و block/length است
+    const rest = payload.slice(8);
+    payload = {
+      index: payload.readInt32BE(0),
+      begin: payload.readInt32BE(4)
+    };
+    payload[id === 7 ? 'block' : 'length'] = rest;
+  }
+
+  return {
+    size: msg.readInt32BE(0), // طول پیام
+    id: id,                   // شناسه پیام
+    payload: payload          // محتوای پیام
+  }
+};</code></pre>
+        <p>اگر طول پیام بیشتر از ۴ نباشد، می‌دانیم پیام keep-alive است که id ندارد. اگر طول بیشتر از ۵ نباشد، می‌دانیم payload ندارد. اگر id برابر ۶، ۷ یا ۸ بود، آن پیام‌ها payload را به index، begin و block/length تقسیم می‌کنند.</p>
+        <p>حالا می‌توانیم این کار را انجام دهیم:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+function msgHandler(msg, socket) {
+  if (isHandshake(msg)) {
+    socket.write(message.buildInterested());
+  } else {
+    const m = message.parse(msg);
+
+    if (m.id === 0) chokeHandler();                  // خفه
+    if (m.id === 1) unchokeHandler();                // رفع خفه
+    if (m.id === 4) haveHandler(m.payload);          // اعلام داشتن قطعه
+    if (m.id === 5) bitfieldHandler(m.payload);      // بیت‌فیلد قطعه‌ها
+    if (m.id === 7) pieceHandler(m.payload);         // دریافت قطعه
+  }
+}
+
+function chokeHandler() { ... }
+
+function unchokeHandler() { ... }
+
+function haveHandler(payload) { ... }
+
+function bitfieldHandler(payload) { ... }
+
+function pieceHandler(payload) { ... }</code></pre>
+        <p><em>* github commit #12: افزودن مدیریت‌کننده‌های پیام غیر handshake</em></p>
+        <p>پس تابع msgHandler یک پیام دریافت می‌کند، شناسه را بررسی می‌کند و بعد payload را، اگر بود، به تابع مدیریت مناسب پاس می‌دهد. توجه می‌کنید که همه انواع پیام را مدیریت نمی‌کنیم. پیام‌های دیگر برای فرستادن فایل هستند نه دریافت آن، پس این‌ها پیام‌هایی هستند که فعلاً رویشان تمرکز می‌کنم.</p>
+
+        <h3>۴.۹ مدیریت اتصال‌ها و قطعه‌ها</h3>
+        <p>این نقطه مهمی در پروژه است چون مدیریت اتصال‌ها و قطعه‌ها شامل تصمیم‌ها و بده‌بستان‌های جالب زیادی است. تا اینجا بیشتر مستقیم از مشخصات پیروی کردیم، اما از این به بعد راه‌حل‌های ممکن زیادی وجود دارد و من فقط یکی را مرور می‌کنم. برای همین توصیه می‌کنم قبل از ادامه، کمی وقت بگذارید و فکر کنید این مدیریت‌کننده‌های پیام را خودتان چگونه پیاده می‌کنید.</p>
+        <p>البته یک نگرانی بزرگ کارایی است. می‌خواهیم دانلودهایمان هرچه سریع‌تر تمام شود. بخش سخت این است که همه همتاها همه قطعه‌ها را ندارند. همچنین همه همتاها نمی‌توانند با یک نرخ آپلود کنند. علاوه بر این‌ها، ممکن است اتصال‌ها هر لحظه بیفتند، پس به راهی برای برخورد با درخواست‌های ناموفق نیاز داریم. چگونه می‌توانیم کار به اشتراک گذاشتن قطعه‌های درست را بین همه همتاها تقسیم کنیم تا سریع‌ترین سرعت دانلود را داشته باشیم؟</p>
+
+        <h3>۴.۹.۱ فهرست قطعه‌های درخواست‌شده</h3>
+        <p>بعد از کمی فکر روی راه‌حل زیر تصمیم گرفتم. اول یک فهرست واحد از همه قطعه‌هایی که قبلاً درخواست شده‌اند می‌سازم که به هر اتصال سوکت پاس داده می‌شود. مثل این:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+module.exports = torrent => {
+  const requested = [];                        // فهرست مشترک قطعه‌های درخواست‌شده
+  tracker.getPeers(torrent, peers => {
+    peers.forEach(peer => download(peer, torrent, requested));
+  });
+};
+
+function download(peer, torrent, requested) {
+  // ...
+  onWholeMsg(socket, msg => msgHandler(msg, socket, requested));
+}
+
+function msgHandler(msg, socket, requested) {
+  // ...
+  if (m.id === 4) haveHandler(m.payload, socket, requested);
+}
+
+function haveHandler(payload, socket, requested) {
+  // ...
+  const pieceIndex = payload.readUInt32BE(0);
+  if (!requested[pieceIndex]) {          // اگر قبلاً درخواست نشده
+    socket.write(message.buildRequest(...));
+  }
+  requested[pieceIndex] = true;          // علامت‌گذاری به‌عنوان درخواست‌شده
+}</code></pre>
+        <p>پیاده‌سازی واقعی haveHandler از این مفصل‌تر خواهد بود، اما می‌بینید فهرست requested چگونه پاس داده می‌شود و چگونه برای تعیین اینکه آیا قطعه‌ای باید درخواست شود استفاده خواهد شد. همچنین می‌بینید که فقط یک فهرست واحد وجود دارد که بین همه اتصال‌ها مشترک است. بعضی از شما شاید فکر کنید پاس دادن فهرست requested به این همه تابع ناخوشایند است. باز هم راه‌حل‌های ممکن بیش از یکی است، پس شما را تشویق می‌کنم راه خودتان را امتحان کنید.</p>
+        <p>این هنوز درخواست‌های ناموفق را پوشش نمی‌دهد، اما در بخش بعدی به آن می‌پردازم.</p>
+
+        <h3>۴.۹.۲ صف کار (Job queue)</h3>
+        <p>بعد می‌خواهم یک فهرست per اتصال بسازم. این فهرست شامل همه قطعه‌هایی است که یک همتا دارد. چرا باید این فهرست را نگه داریم؟ چرا به محض دریافت پیام «have» یا «bitfield» برای یک قطعه درخواست بدهیم؟ مشکل این است که احتمالاً در نهایت همه قطعه‌ها را از همان اولین همتایی که به آن وصل می‌شویم درخواست می‌کنیم و بعد چون نمی‌خواهیم همان قطعه را دوبار درخواست کنیم، هیچ قطعه‌ای برای بقیه همتاها نمی‌ماند که درخواست کنند.</p>
+        <p>حتی اگر استفاده از راهبرد round-robin ممکن باشد طوری که هر همتا فقط بعد از اینکه همه همتاها حداقل یک قطعه برای درخواست گرفتند، قطعه دوم را بگیرد، باز هم یک مشکل هست. این راهبرد باعث می‌شود همه همتاها تعداد درخواست مساوی داشته باشند، اما بعضی همتاها ناگزیر سریع‌تر از بقیه آپلود می‌کنند. در حالت ایده‌آل می‌خواهیم همتاهای سریع‌تر درخواست‌های بیشتری بگیرند، نه اینکه چند درخواست به خاطر کندترین همتا گلوگاه شوند.</p>
+        <p>راه‌حل طبیعی این است که فقط یک یا چند قطعه را در یک زمان از یک همتا درخواست کنیم و فقط بعد از دریافت پاسخ، درخواست بعدی را بدهیم. این‌طور همتاهای سریع‌تر پاسخ‌هایشان را سریع‌تر می‌فرستند و بیشتر «برمی‌گردند» تا درخواست‌های بیشتری بگیرند.</p>
+        <p>اما چون پیام‌های «have» و «bitfield» را یک‌جا دریافت می‌کنیم، یعنی باید فهرست قطعه‌هایی که همتا دارد را ذخیره کنیم. این‌طور می‌توانیم صبر کنیم پاسخ یک قطعه بیاید و بعد به فهرست مراجعه کنیم تا ببینیم بعدی چه چیزی را درخواست کنیم.</p>
+        <p>من به این «صف کار» می‌گویم، چون می‌توانید این‌طور به آن فکر کنید: هر اتصال یک فهرست قطعه برای درخواست دارد. به اولین آیتم فهرست نگاه می‌کنند و بررسی می‌کنند آیا در فهرست قطعه‌های قبلاً درخواست‌شده هست یا نه. اگر نبود، قطعه را درخواست می‌کنند و منتظر پاسخ می‌مانند. وگرنه آیتم را دور می‌ریزند و به سراغ بعدی می‌روند. وقتی پاسخ دریافت می‌کنند، به سراغ آیتم بعدی فهرست می‌روند و این فرایند را تا خالی شدن فهرست تکرار می‌کنند.</p>
+        <p>این فهرست هم باید به توابع مدیریت پاس داده شود، اما باید per اتصال ساخته شود. مثل این:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+module.exports = torrent => {
+  const requested = [];
+  tracker.getPeers(torrent, peers => {
+    peers.forEach(peer => download(peer, torrent, requested));
+  });
+};
+
+function download(peer, torrent, requested) {
+  // ...
+  const queue = []; // صف کار این اتصال
+  onWholeMsg(socket, msg => msgHandler(msg, socket, requested, queue));
+}
+
+function msgHandler(msg, socket, requested, queue) {
+  // ...
+  if (m.id === 4) haveHandler(m.payload, socket, requested, queue);
+  if (m.id === 7) pieceHandler(m.payload, socket, requested, queue);
+}
+
+function haveHandler(payload, socket, requested, queue) {
+  // ...
+  const pieceIndex = payload.readUInt32BE(0);
+  queue.push(pieceIndex);          // افزودن قطعه به صف
+  if (queue.length === 1) {        // اگر صف قبلاً خالی بود، درخواست را شروع کن
+    requestPiece(socket, requested, queue);
+  }
+}
+
+function pieceHandler(payload, socket, requested, queue) {
+  // ...
+  queue.shift();                        // حذف قطعه دریافت‌شده از صف
+  requestPiece(socket, requested, queue);
+}
+
+function requestPiece(socket, requested, queue) {
+  if (requested[queue[0]]) {            // اگر قبلاً درخواست شده، رد شو
+    queue.shift();
+  } else {
+    // این شبه‌کد است؛ buildRequest در واقع آرگومان‌های کمی پیچیده‌تر می‌گیرد
+    socket.write(message.buildRequest(pieceIndex));
+  }
+}</code></pre>
+        <p>پس فقط وقتی روی «have» یک قطعه درخواست می‌کنیم که صف قبلاً خالی بوده باشد (برای bitfieldHandler هم باید مشابه باشد). از آن نقطه به بعد فقط وقتی پاسخ قطعه را دریافت کرده‌ایم درخواست می‌دهیم (در pieceHandler). وقتی قطعه‌ای دریافت می‌کنیم می‌توانیم آن را از صف بیرون بیاوریم. اگر قطعه قبلاً درخواست شده باشد، باز آن را از صف بیرون می‌آوریم. می‌بینید که این در تابع requestPiece اتفاق می‌افتد که ساخته‌امش چون کدی است که بین هر دو مدیریت‌کننده مشترک است.</p>
+
+        <h3>۴.۹.۳ شکست درخواست‌ها (Request Failures)</h3>
+        <p>آخرین چیزی که قبل از پیاده‌سازی کامل توابع مدیریت می‌خواهم مرور کنم شکست درخواست‌هاست. الان هر وقت درخواست می‌فرستیم اندیس قطعه را هم به آرایه requested اضافه می‌کنیم. این‌طور می‌دانیم کدام قطعه‌ها قبلاً درخواست شده‌اند و می‌توانیم جلوی درخواست تکراری همتای بعدی را بگیریم.</p>
+        <p>اما ممکن است قطعه‌ای را درخواست کنیم و هرگز دریافتش نکنیم. دلیلش این است که اتصال می‌تواند هر لحظه به هر دلیلی بیفتد. چون از درخواست قطعه‌هایی که به آرایه requested اضافه شده‌اند اجتناب می‌کنیم، این قطعه‌ها هرگز دریافت نمی‌شوند.</p>
+        <p>شاید فکر کنید کافی است قطعه‌ها را وقتی دریافت می‌کنیم به فهرست اضافه کنیم. اما بعد بین زمان درخواست قطعه و دریافتش، هر همتای دیگری هم می‌تواند همان قطعه را درخواست کند که به درخواست‌های تکراری می‌انجامد.</p>
+        <p>فهمیدم ساده‌ترین راه‌حل نگه داشتن دو فهرست است، یکی برای قطعه‌های درخواست‌شده و یکی برای قطعه‌های دریافت‌شده. فهرست requested را هنگام درخواست به‌روز می‌کنیم و فهرست received را هنگام دریافت. بعد وقتی همه قطعه‌ها را درخواست کرده‌ایم اما هنوز قطعه‌هایی هستند که دریافت نکرده‌ایم، فهرست received را در فهرست requested کپی می‌کنیم و این اجازه می‌دهد آن قطعه‌های جاافتاده را دوباره درخواست کنیم.</p>
+        <p>اما نگه داشتن چند فهرست وقتی فقط یک انتزاع داده‌ای باید کافی باشد، ناخوشایند است. پس فایل جدیدی به نام Pieces.js ساختم:</p>
+        <p><strong>Pieces.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+module.exports = class {
+  constructor(size) {
+    this.requested = new Array(size).fill(false); // فهرست قطعه‌های درخواست‌شده
+    this.received = new Array(size).fill(false);  // فهرست قطعه‌های دریافت‌شده
+  }
+
+  addRequested(pieceIndex) {
+    this.requested[pieceIndex] = true;
+  }
+
+  addReceived(pieceIndex) {
+    this.received[pieceIndex] = true;
+  }
+
+  needed(pieceIndex) {
+    if (this.requested.every(i => i === true)) {
+      // برای برگرداندن یک کپی از آرایه از slice استفاده کن
+      this.requested = this.received.slice();
+    }
+    return !this.requested[pieceIndex];
+  }
+
+  isDone() {
+    return this.received.every(i => i === true);
+  }
+};</code></pre>
+        <p>می‌بینید که باید نمونه Pieces را با تعداد کل قطعه‌ها مقداردهی کنیم، وگرنه دانستن اینکه چه زمانی همه قطعه‌ها را گرفته‌ایم ممکن نیست. فرض می‌کنیم اندیس آرایه همان اندیس قطعه است و بعد اگر درخواست/دریافت شده باشد آن اندیس را true می‌کنیم (همه اندیس‌ها به‌طور پیش‌فرض false شروع می‌شوند). این راه خوبی برای پیدا کردن وضعیت یک قطعه بدون پیمایش آرایه‌هاست.</p>
+        <p><em>* github commit #13: افزودن pieces</em></p>
+        <p>این آبجکت حالا می‌تواند جایگزین آرایه requested قبلی شود.</p>
+
+        <h3>۴.۱۰ پیاده‌سازی مدیریت‌کننده‌های پیام</h3>
+
+        <h3>۴.۱۰.۱ خفه و رفع خفه (Choke and unchoke)</h3>
+        <p>برخورد با حالت‌های choke و unchoke کمی پیچیده است چون نمی‌خواهیم هیچ قطعه‌ای را تا وقتی رفع خفه نشده‌ایم درخواست کنیم. فکر می‌کنم ساده‌ترین راه برای اعمال این، ساختن یک آبجکت جدید است که هم آرایه صف ما را نگه دارد و هم یک خاصیت choked.</p>
+        <p>حالا می‌توانیم این آبجکت جدید را اضافه کنیم و مدیریت‌کننده‌های choke و unchoke را بنویسیم.</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const net = require('net');
+const tracker = require('./tracker');
+const message = require('./message');
+// 1 — کلاس جدید Pieces
+const Pieces = require('./Pieces');
+
+module.exports = torrent => {
+  tracker.getPeers(torrent, peers => {
+    // 1 — ساخت نمونه Pieces با تعداد کل قطعه‌ها
+    const pieces = new Pieces(torrent.info.pieces.length / 20);
+    peers.forEach(peer => download(peer, torrent, pieces));
+  });
+};
+
+// 1 — پاس دادن pieces به تابع دانلود
+function download(peer, torrent, pieces) {
+  const socket = new net.Socket();
+  socket.on('error', console.log);
+  socket.connect(peer.port, peer.ip, () => {
+    socket.write(message.buildHandshake(torrent));
+  });
+  // 1 — آبجکت صف با خاصیت choked
+  const queue = {choked: true, queue: []};
+  onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue));
+}
+
+function onWholeMsg(socket, callback) {
+  let savedBuf = Buffer.alloc(0);
+  let handshake = true;
+
+  socket.on('data', recvBuf => {
+    // msgLen طول یک پیام کامل را محاسبه می‌کند
+    const msgLen = () => handshake ? savedBuf.readUInt8(0) + 49 : savedBuf.readInt32BE(0) + 4;
+    savedBuf = Buffer.concat([savedBuf, recvBuf]);
+
+    while (savedBuf.length >= 4 && savedBuf.length >= msgLen()) {
+      callback(savedBuf.slice(0, msgLen()));
+      savedBuf = savedBuf.slice(msgLen());
+      handshake = false;
+    }
+  });
+}
+
+// 1 — پاس دادن pieces و queue به مدیریت‌کننده پیام
+function msgHandler(msg, socket, pieces, queue) {
+  if (isHandshake(msg)) {
+    socket.write(message.buildInterested());
+  } else {
+    const m = message.parse(msg);
+
+    if (m.id === 0) chokeHandler(socket);
+    // 1 — unchoke حالا pieces و queue را هم می‌گیرد
+    if (m.id === 1) unchokeHandler(socket, pieces, queue);
+    if (m.id === 4) haveHandler(m.payload);
+    if (m.id === 5) bitfieldHandler(m.payload);
+    if (m.id === 7) pieceHandler(m.payload);
+  }
+}
+
+function isHandshake(msg) {
+  return msg.length === msg.readUInt8(0) + 49 &&
+    msg.toString('utf8', 1) === 'BitTorrent protocol';
+}
+
+function chokeHandler(socket) {
+  socket.end(); // همتا نمی‌خواهد با ما به اشتراک بگذارد؛ اتصال را ببند
+}
+
+// 1 — رفع خفه: حالا اجازه درخواست داریم
+function unchokeHandler(socket, pieces, queue) {
+  queue.choked = false;
+  // 2 — شروع درخواست اولین قطعه
+  requestPiece(socket, pieces, queue);
+}
+
+function haveHandler() {
+  // ...
+}
+
+function bitfieldHandler() {
+  // ...
+}
+
+function pieceHandler() {
+  // ...
+}
+
+// 1 — درخواست قطعه بعدی از صف
+function requestPiece(socket, pieces, queue) {
+  // 2 — اگر هنوز خفه هستیم کاری نکن
+  if (queue.choked) return null;
+
+  while (queue.queue.length) {
+    const pieceIndex = queue.shift();
+    if (pieces.needed(pieceIndex)) {
+      // باید این را درست کنیم
+      socket.write(message.buildRequest(pieceIndex));
+      pieces.addRequested(pieceIndex);
+      break;
+    }
+  }
+}</code></pre>
+        <p><em>* github commit #14: افزودن مدیریت‌کننده‌های choke و unchoke</em></p>
+        <p>اینجا فایل جدید download.js را کامل آوردم چون اتفاقات زیادی می‌افتد. خوشبختانه بیشترش در بخش‌های قبل پوشش داده شد. بیشتر این تغییرات صرفاً پاس دادن دو ساختار داده جدید Pieces و آبجکت queue به مدیریت‌کننده‌هاست. همه این خط‌ها را با ۱ علامت زدم.</p>
+        <p>در بخش قبل کلاس Pieces را تغییر دادم طوری که سازنده‌اش تعداد کل قطعه‌ها را به‌عنوان آرگومان می‌گیرد. می‌توانید این مقدار را با نگاه کردن به خاصیت torrent.info.pieces.length و تقسیم بر ۲۰ پیدا کنید. torrent.info.pieces بافری است که هش SHA-1 بیست‌بایتی هر قطعه را دارد و length تعداد کل بایت‌های بافر را می‌دهد. برای همین بر ۲۰ تقسیم می‌کنیم تا تعداد کل قطعه‌ها به دست بیاید.</p>
+        <p>تغییر بزرگ دیگر این است که وقتی رفع خفه می‌شویم شروع به درخواست قطعه‌ها می‌کنیم (که با ۲ علامت زدم). می‌بینید که وقتی خفه هستید نمی‌توانید هیچ درخواستی بدهید و هیچ اتفاقی نمی‌افتد. اگر رفع خفه شده باشید، اندیس‌های قطعه را بیرون می‌آوریم تا وقتی یکی را پیدا کنیم که با متد pieces.needed که قبلاً کدنویسی کردیم نداریمش و آن قطعه را درخواست می‌کنیم. در نهایت اندیس درخواست‌شده را به pieces اضافه می‌کنیم و حلقه را می‌شکنیم. درخواست بعدی تا وقتی «پاسخ قطعه» را بگیریم اتفاق نمی‌افتد که آن را در تابع pieceHandler کدنویسی می‌کنیم.</p>
+        <p>شاید متوجه شده باشید که بالای socket.write(message.buildRequest(pieceIndex)); کامنتی نوشتم که چیزی باید درست شود. این مشکل را در بخش بعد حل می‌کنیم.</p>
+
+        <h3>۴.۱۰.۲ قطعه‌ها در برابر بلاک‌ها (Pieces vs. blocks)</h3>
+        <p>تابع message.buildRequest در کد بالا باید آبجکتی با خاصیت‌های index، begin و length بگیرد. این‌ها فیلدهای الزامی payload یک پیام درخواست هستند. اما این فیلدها دقیقاً برای چه هستند؟ index که آسان است؛ همان اندیس قطعه‌ای است که الان پاس داده می‌شود. begin و length چطور؟</p>
+        <p>این دو خاصیت لازم‌اند چون گاهی یک قطعه برای یک پیام خیلی بزرگ است. هرچند درباره بهترین اندازه اختلاف نظر هست، معمولاً حدود 2^14 (۱۶۳۸۴) بایت در نظر گرفته می‌شود. به این یک «بلاک» می‌گویند، جایی که یک قطعه از یک یا چند بلاک تشکیل شده است. اگر طول قطعه بیشتر از طول یک بلاک باشد، باید به بلاک‌هایی شکسته شود و برای هر بلاک یک پیام فرستاده شود.</p>
+        <p>پس فیلد «begin» آفست صفرپایه بایت است که از شروع قطعه حساب می‌شود و «length» طول بلاک درخواست‌شده است. این همیشه 2^14 خواهد بود، به‌جز احتمالاً آخرین بلاک که شاید کمتر باشد.</p>
+        <p>برای جا دادن این موضوع به تغییرات متعددی نیاز خواهیم داشت. اما اول می‌خواهم چند تابع در torrentParser.js بنویسم که به من در تعیین طول قطعه و بلاک برای یک اندیس قطعه مشخص کمک کند.</p>
+        <p><strong>torrent-parser.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+const bignum = require('bignum');
+
+module.exports.BLOCK_LEN = Math.pow(2, 14); // طول استاندارد هر بلاک
+
+module.exports.pieceLen = (torrent, pieceIndex) => {
+  const totalLength = bignum.fromBuffer(this.size(torrent)).toNumber(); // اندازه کل فایل
+  const pieceLength = torrent.info['piece length'];                    // طول تعیین‌شده هر قطعه
+
+  const lastPieceLength = totalLength % pieceLength;   // طول آخرین قطعه (کوتاه‌تر)
+  const lastPieceIndex = Math.floor(totalLength / pieceLength);
+
+  return lastPieceIndex === pieceIndex ? lastPieceLength : pieceLength;
+};
+
+module.exports.blocksPerPiece = (torrent, pieceIndex) => {
+  const pieceLength = this.pieceLen(torrent, pieceIndex);
+  return Math.ceil(pieceLength / this.BLOCK_LEN); // تعداد بلاک‌های هر قطعه
+};
+
+module.exports.blockLen = (torrent, pieceIndex, blockIndex) => {
+  const pieceLength = this.pieceLen(torrent, pieceIndex);
+
+  const lastPieceLength = pieceLength % this.BLOCK_LEN; // طول بلاک آخر
+  const lastPieceIndex = Math.floor(pieceLength / this.BLOCK_LEN);
+
+  return blockIndex === lastPieceIndex ? lastPieceLength : this.BLOCK_LEN;
+};</code></pre>
+        <p>در pieceLen مجبور بودم از کتابخانه bignum برای برخورد با متغیر totalLength استفاده کنم چون در یک بافر ۸ بایتی است. pieceLen و blockLen مشابه‌اند؛ فقط به ترتیب طول قطعه یا طول بلاک را برمی‌گردانند، مگر اینکه اتفاقاً آخرین قطعه یا بلاک باشند؛ آن موقع شاید از یک قطعه یا بلاک کامل کوتاه‌تر باشند. طول قطعه را می‌توان در فایل تورنت پیدا کرد و طول بلاک طبق قرارداد 2^14 بایت است.</p>
+        <p>همچنین، هم آبجکت queue و هم کلاس Pieces باید تغییر کنند تا با بلاک‌ها سر و کار داشته باشند نه فقط قطعه‌ها. برای آبجکت queue فقط از یک آبجکت ساده جاوااسکریپتی با دو خاصیت استفاده کردیم، اما با پیچیدگی اضافه‌شده برخورد با بلاک‌ها، تصمیم گرفتم یک کلاس Queue جدید بسازم.</p>
+        <p><strong>Queue.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const tp = require('./torrent-parser');
+
+module.exports = class {
+  constructor(torrent) {
+    this._torrent = torrent;
+    this._queue = [];
+    this.choked = true; // خاصیت عمومی
+  }
+
+  // افزودن همه بلاک‌های یک قطعه به صف
+  queue(pieceIndex) {
+    const nBlocks = tp.blocksPerPiece(this._torrent, pieceIndex);
+    for (let i = 0; i < nBlocks; i++) {
+      const pieceBlock = {
+        index: pieceIndex,                       // اندیس قطعه
+        begin: i * tp.BLOCK_LEN,                 // آفست شروع بلاک
+        length: this.blockLen(this._torrent, pieceIndex, i) // طول بلاک
+      };
+      this._queue.push(pieceBlock);
+    }
+  }
+
+  deque() { return this._queue.shift(); }  // خروج از صف
+  peek() { return this._queue[0]; }        // نگاه به اول صف
+  length() { return this._queue.length; }  // طول صف
+};</code></pre>
+        <p>حالا صف فهرستی از آبجکت‌های pieceBlock است. قبول دارم اصطلاحات کمی گیج‌کننده شده اما منظورم آبجکتی است که در متد queue ساخته می‌شود و خاصیت‌های index، begin و length دارد. این آبجکت‌های pieceBlock همان ساختار payload هنگام فرستادن پیام درخواست را دارند (به تابع buildRequest در message.js نگاه کنید)، پس می‌توانیم مستقیماً به سازنده درخواست پاس‌شان دهیم.</p>
+        <p>به‌طور کلی‌تر، از این به بعد می‌خواهیم با این آبجکت‌ها سر و کار داشته باشیم نه اندیس قطعه، چون اطلاعاتی هم درباره بلاک به ما می‌دهند. در اینجا طرحی از اینکه کجا/کی از این آبجکت‌ها استفاده می‌کنیم داریم:</p>
+        <ul>
+          <li>وقتی پیام «have» دریافت می‌کنیم، یک اندیس قطعه می‌گیریم، اما صف را با این آبجکت‌های قطعه پر می‌کنیم، برای هر بلاکِ هر قطعه یکی.</li>
+          <li>وقتی آبجکتی را از صف خارج می‌کنیم می‌توانیم به سازنده درخواست پاس‌اش دهیم و برای بلاک مربوطه درخواست بدهیم.</li>
+          <li>کلاس Pieces که قطعه‌های درخواست‌شده و دریافت‌شده را ردیابی می‌کند باید بتواند یک pieceBlock اضافه کند. پیاده‌سازی‌اش را بعداً می‌بینیم.</li>
+        </ul>
+        <p>توجه کنید که سازنده حالا باید یک آبجکت تورنت بگیرد، نه فقط تعداد قطعه‌ها.</p>
+        <p>متغیرهای خصوصی را با زیرخط (underscore) شروع می‌کنم و متدهای دیگر فقط متدهای عمومی برای تعامل با متغیر خصوصی _queue هستند. choked را بدون زیرخط گذاشتم تا نشان دهم خاصیت عمومی است. اگر با خاصیت‌های خصوصی و عمومی آشنا نیستید، اهمیت چندانی ندارد. ایده این است که کاربران این ماژول نباید از خاصیت‌های با زیرخط استفاده کنند.</p>
+        <p>اینجا کلاس Pieces است که برای مدیریت بلاک‌ها تغییر کرده:</p>
+        <p><strong>Pieces.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const tp = require('./torrent-parser');
+
+module.exports = class {
+  constructor(torrent) {
+    // ساخت آرایه‌ای از آرایه‌ها: برای هر قطعه، آرایه‌ای از بلاک‌هایش
+    function buildPiecesArray() {
+      const nPieces = torrent.info.pieces.length / 20; // تعداد کل قطعه‌ها
+      const arr = new Array(nPieces).fill(null);
+      return arr.map((_, i) => new Array(tp.blocksPerPiece(torrent, i)).fill(false));
+    }
+
+    this._requested = buildPiecesArray(); // وضعیت بلاک‌های درخواست‌شده
+    this._received = buildPiecesArray();  // وضعیت بلاک‌های دریافت‌شده
+  }
+
+  addRequested(pieceBlock) {
+    const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+    this._requested[pieceBlock.index][blockIndex] = true;
+  }
+
+  addReceived(pieceBlock) {
+    const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+    this._received[pieceBlock.index][blockIndex] = true;
+  }
+
+  needed(pieceBlock) {
+    // اگر همه چیز درخواست شده اما بعضی دریافت نشده، اجازه درخواست دوباره بده
+    if (this._requested.every(blocks => blocks.every(i => i))) {
+      this._requested = this._received.map(blocks => blocks.slice());
+    }
+    const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+    return !this._requested[pieceBlock.index][blockIndex];
+  }
+
+  isDone() {
+    return this._received.every(blocks => blocks.every(i => i));
+  }
+};</code></pre>
+        <p>حالا آرایه‌های requested و received که قبلاً وضعیت یک اندیس قطعه را نگه می‌داشتند، حالا آرایه‌ای از آرایه‌ها را نگه می‌دارند که آرایه داخلی وضعیت یک بلاک در یک اندیس قطعه مشخص را نگه می‌دارد. پس اگر می‌خواستید وضعیت بلاک اندیس ۱ از قطعه اندیس ۷ را بفهمید، می‌توانید _requested[7][1] را نگاه کنید و ببینید true هست یا نه. مثل قبل، همه مقادیر اولیه false هستند.</p>
+        <p>همچنین توجه کنید که این متدها انتظار دارند یک pieceBlock پاس بگیرند، همان‌هایی که در کلاس Queue دیدیم. یعنی وقتی یک pieceBlock را از صف برمی‌داریم (peek) و درخواستش می‌کنیم، یا وقتی دریافتش کردیم از صف خارجش می‌کنیم (deque)، می‌توانیم همان pieceBlock را مستقیم به ترتیب به addRequested یا addReceived پاس دهیم.</p>
+        <p>در نهایت چند تغییر هم در download.js لازم است جایی که از کلاس‌های Queue و Pieces استفاده می‌کنیم.</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+const Queue = require('./Queue');
+
+module.exports = torrent => {
+  tracker.getPeers(torrent, peers => {
+    // حالا باید تورنت را پاس بدهیم
+    const pieces = new Pieces(torrent);
+    peers.forEach(peer => download(peer, torrent, pieces));
+  });
+};
+
+function download(peer, torrent, pieces) {
+  // ...
+
+  // استفاده از کلاس جدید Queue
+  const queue = new Queue(torrent);
+  onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue));
+}
+
+function requestPiece(socket, pieces, queue) {
+  if (queue.choked) return null; // اگر خفه هستیم، درخواستی نده
+
+  while (queue.length()) {
+    const pieceBlock = queue.deque();     // بیرون کشیدن بلاک بعدی
+    if (pieces.needed(pieceBlock)) {      // اگر به آن نیاز داریم
+      socket.write(message.buildRequest(pieceBlock)); // درخواست بلاک
+      pieces.addRequested(pieceBlock);
+      break;
+    }
+  }
+}</code></pre>
+        <p><em>* github commit #15: پشتیبانی از بلاک‌ها</em></p>
+        <p>این کد بیشتر مثل قبل است، به‌جز اینکه کلاس‌های جدید Pieces و Queue را پاس می‌دهیم و استفاده می‌کنیم. همچنین حالا به‌جای اندیس قطعه از آبجکت pieceBlock استفاده می‌کنیم.</p>
+
+        <h3>۴.۱۰.۳ have و bitfield</h3>
+        <p>این دو پیام تقریباً کار یکسانی انجام می‌دهند؛ به ما می‌گویند همتا کدام قطعه‌ها را برای اشتراک دارد. با پیام «have» شروع می‌کنیم.</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+function haveHandler(socket, pieces, queue, payload) {
+  const pieceIndex = payload.readUInt32BE(0); // اندیس قطعه
+  const queueEmpty = queue.length === 0;      // آیا صف خالی بود؟
+  queue.queue(pieceIndex);                    // افزودن قطعه به صف
+  if (queueEmpty) requestPiece(socket, pieces, queue); // اگر اولین آیتم بود، درخواست شروع شود
+}</code></pre>
+        <p>این اندیس قطعه را به صف اضافه می‌کند. همچنین می‌خواهیم اگر این اولین آیتم اضافه‌شده به صف است، فرایند درخواست قطعه را شروع کنیم. چرا فقط اولین؟ چون همان‌طور که قبلاً بحث کردیم، می‌خواهیم قبل از درخواست قطعه بعدی، منتظر برگشتن پاسخ قطعه بمانیم.</p>
+        <p>حالا bitfieldHandler را ببینیم:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+function bitfieldHandler(socket, pieces, queue, payload) {
+  const queueEmpty = queue.length === 0;
+  payload.forEach((byte, i) => {
+    // هر بایت ۸ بیت است؛ هر بیت نشان‌دهنده یک قطعه
+    for (let j = 0; j < 8; j++) {
+      if (byte % 2) queue.queue(i * 8 + 7 - j); // اگر بیت ۱ بود، همتا آن قطعه را دارد
+      byte = Math.floor(byte / 2);
+    }
+  });
+  if (queueEmpty) requestPiece(socket, pieces, queue);
+}</code></pre>
+        <p><em>* github commit #16: افزودن مدیریت‌کننده‌های have و bitfield</em></p>
+        <p>payload اینجا یک بافر است که می‌توانید مثل یک رشته بلند از بیت‌ها به آن فکر کنید. اگر همتا قطعه اندیس-۰ را داشته باشد، بیت اول ۱ است. اگر نه، ۰ است. اگر قطعه اندیس-۱ را داشته باشند، بیت بعدی ۱ است، وگرنه ۰. و الی آخر. پس به راهی برای خواندن بیت‌های منفرد از بافر نیاز داریم.</p>
+        <p>نمی‌خواهم زیادی روی این بخش مکث کنم. فکر می‌کنم تمرین خوبی است که خواننده خودش امتحان کند. اساساً تقسیم مکرر بر ۲ و گرفتن باقی‌مانده، یک عدد مبنای ۱۰ را به عدد دودویی تبدیل می‌کند و رقم‌های عدد دودویی را از کم‌ارزش‌ترین بیت به پرارزش‌ترین (راست به چپ) به شما می‌دهد.</p>
+        <p>دقیقاً مثل haveHandler اندیس قطعه را صف می‌کنیم و فقط وقتی اولین قطعه را به صف اضافه می‌کنیم درخواست می‌دهیم.</p>
+
+        <h3>۴.۱۰.۴ مدیریت‌کننده پاسخ قطعه (Piece response handler)</h3>
+        <p>این آخرین بخش قبل از اینکه بتوانیم دانلود تورنت را شروع کنیم! فقط باید pieceHandler را بنویسیم که برای وقتی است که بایت‌های واقعی قطعه‌ای را که درخواست کرده‌ایم دریافت می‌کنیم.</p>
+        <p>کارهای اصلی که می‌خواهیم در این تابع انجام دهیم:</p>
+        <ol>
+          <li>قطعه را به فهرست قطعه‌های دریافت‌شده اضافه کنیم.</li>
+          <li>بایت‌ها را روی فایل بنویسیم.</li>
+          <li>قطعه بعدی موردنیاز را درخواست کنیم. یا... اگر قطعه دیگری برای دانلود در صف نمانده، اتصال سوکت را ببندیم.</li>
+        </ol>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+function pieceHandler(socket, pieces, queue, torrent, pieceResp) {
+  pieces.addReceived(pieceResp); // ثبت قطعه به‌عنوان دریافت‌شده
+
+  // اینجا روی فایل بنویس...
+
+  if (pieces.isDone()) {           // اگر همه قطعه‌ها دریافت شد
+    socket.end();                  // بستن اتصال
+    console.log('DONE!');          // تمام!
+  } else {
+    requestPiece(socket, pieces, queue); // درخواست قطعه بعدی
+  }
+}</code></pre>
+        <p>پاسخ را pieceResp می‌نامم. کمی با pieceBlock فرق دارد چون به‌جای طول قطعه، داده واقعی قطعه را دارد. اما خاصیت‌های index و begin یکی هستند، پس می‌توانید به‌طور عادی به pieces.addReceived پاس‌اش دهید. همچنین می‌توانیم از متد pieces.isDone استفاده کنیم تا بررسی کنیم کار تمام شده یا نه. اگر تمام شده سوکت را می‌بندیم، وگرنه قطعه بعدی را درخواست می‌کنیم.</p>
+        <p>تنها کاری که حالا باید بکنیم نوشتن بایت‌ها روی فایل است. می‌توانیم با ماژول fs و با متد fs.openSync یک فایل باز کنیم. این یک توصیف‌گر فایل (file descriptor) برمی‌گرداند که به متد fs.write پاس می‌دهیم. چون می‌خواهیم همه همتاها روی یک فایل یکسان بنویسند، ساخت توصیف‌گر فایل یکی از اولین کارهایی است که باید بکنیم:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+module.exports = (torrent, path) => {
+  tracker.getPeers(torrent, peers => {
+    const pieces = new Pieces(torrent);
+    const file = fs.openSync(path, 'w');            // باز کردن فایل در حالت نوشتن
+    peers.forEach(peer => download(peer, torrent, pieces, file));
+  });
+};</code></pre>
+        <p>متد openSync یک مسیر فایل می‌گیرد (شامل نام فایل)، جایی که فایل ساخته می‌شود. توجه کنید که این تابع export شده حالا یک آرگومان دوم path می‌گیرد. بعد از «w» یا حالت نوشتن (write) برای ساخت یک فایل جدید و نوشتن در آن استفاده می‌کنیم. می‌توانید این کد را طوری تغییر دهید که دانلودها از سر گرفته شوند (resume) به‌جای بازنویسی داده‌های قبلی، اما فعلاً همه‌چیز را ساده نگه می‌داریم. این توصیف‌گر فایل باید تا تابع pieceHandler پاس داده شود.</p>
+        <p>تابع نهایی pieceHandler باید شبیه این باشد:</p>
+        <p><strong>download.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// برخی کدها برای صرفه‌جویی در فضا حذف شده‌اند
+
+function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
+  console.log(pieceResp);
+  pieces.addReceived(pieceResp); // ثبت قطعه به‌عنوان دریافت‌شده
+
+  // محاسبه آفست مطلق از ابتدای فایل
+  const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
+  fs.write(file, pieceResp.block, 0, pieceResp.block.length, offset, () => {});
+
+  if (pieces.isDone()) {
+    console.log('DONE!');         // همه قطعه‌ها دریافت شد
+    socket.end();                 // بستن اتصال
+    try { fs.closeSync(file); } catch (e) {} // بستن فایل
+  } else {
+    requestPiece(socket, pieces, queue); // درخواست قطعه بعدی
+  }
+}</code></pre>
+        <p>چون pieceResp.begin فقط آفست را نسبت به قطعه‌ای که در آن است به ما می‌گوید، باید آفست مطلق را خودمان حساب کنیم. بعد فقط بلوک داده را روی توصیف‌گر فایلی که قبلاً ساختیم می‌نویسیم. تمام!</p>
+        <p>آخرین کاری که باید بکنیم پاس دادن مسیر فایل به تابع export شده است.</p>
+        <p><strong>index.js:</strong></p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+
+const download = require('./src/download');
+const torrentParser = require('./src/torrent-parser');
+
+const torrent = torrentParser.open(process.argv[2]);
+
+// پاس دادن نام فایل تورنت به تابع دانلود
+download(torrent, torrent.info.name);</code></pre>
+        <p>تنها تغییری که اینجا دادیم پاس دادن نام فایل تورنت به تابع download است.</p>
+        <p><em>* github commit #17: افزودن مدیریت‌کننده قطعه</em></p>
+      </section>
+
+      <section>
+        <h2>۵. نتیجه‌گیری</h2>
+        <p>در این آموزش یک کلاینت بیت‌تورنت کامل را از صفر در node.js ساختیم: فایل تورنت را با بنکد باز کردیم، با ترکر UDP دست دادن کردیم و فهرست همتاها را گرفتیم، با همتاها اتصال TCP برقرار کردیم، پیام‌های peer wire را رد و بدل کردیم، قطعه‌ها و بلاک‌ها را مدیریت کردیم و در نهایت فایل‌های دانلودشده را روی دیسک نوشتیم.</p>
+
+        <h3>۵.۱ بهبودها</h3>
+        <p>در حال حاضر فقط می‌توانیم فایل‌های تکی را دانلود کنیم، نه فایل‌های داخل پوشه. این کار سخت‌گیری برای پیاده‌سازی نیست. فقط باید آبجکت تورنت را بررسی کنید تا ببینید ساختار فایل چگونه است و شروع و پایان هر فایل کجاست. در واقع هنوز مشکلات جالب زیادی وجود دارد که می‌توانید برای پرداخت این پروژه رویشان کار کنید. اینجا یک فهرست است:</p>
+        <ul>
+          <li>افزودن رابط کاربری گرافیکی</li>
+          <li>بهینه‌سازی برای سرعت دانلود بهتر و مصرف کارآمدتر CPU. مثلاً بعضی کلاینت‌ها محاسبه می‌کنند کدام قطعه‌ها کمیاب‌ترین هستند و اول همان‌ها را دانلود می‌کنند.</li>
+          <li>چیزی به نام جدول‌های هش توزیع‌شده (distributed hash tables) هم وجود دارد که به اشتراک گذاشتن تورنت‌ها را بدون استفاده از ترکرهای متمرکز ممکن می‌کند.</li>
+          <li>می‌توانید کدی بنویسید که اتصال‌های افتاده را دوباره وصل کند</li>
+          <li>می‌توانید به‌طور دوره‌ای همتاهای بیشتری جستجو کنید</li>
+          <li>می‌توانید از توقف و ادامه (pause/resume) دانلود پشتیبانی کنید</li>
+          <li>می‌توانید از آپلود پشتیبانی کنید چون فعلاً کلاینت ما فقط دانلود می‌کند</li>
+          <li>بعضی وقت‌ها همتاها نمی‌توانند به یکدیگر متصل شوند چون پشت یک NAT هستند که یک IP پروکسی می‌دهد. می‌توانید راهبردهای گذر از NAT (NAT traversal) را بررسی کنید</li>
+          <li>می‌توان بیت‌تورنت را با WebRTC به وب آورد که یک اتصال مستقیم همتا به همتا می‌سازد</li>
+        </ul>
+        <p>آسمان حد و مرز است! (The sky's the limit!)</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> مقاله «Write your own bittorrent client» اثر «Allen Kim» است. این صفحه فقط ترجمه فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://allenkim67.github.io/programming/2016/05/04/how-to-make-your-own-bittorrent-client.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

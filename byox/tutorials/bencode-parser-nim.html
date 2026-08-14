@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — صفحه آموزش | ترجمه فارسی «نوشتن یک Bencode Parser»
+  منبع اصلی: https://xmonader.github.io/nimdays/day02_bencode.html
+  نویسنده: Ahmed Youssef (xmonader) — کتاب Nim Days
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک Bencode Parser</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">کلاینت بیت‌تورنت</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک Bencode Parser</span>
+      </div>
+      <h1>نوشتن یک Bencode Parser</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day02_bencode.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Day 2: Parsing Bencode» از کتاب آنلاین «Nim Days» نوشته <b>Ahmed Youssef (xmonader)</b> است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day02_bencode.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>چه چیزی انتظار دارید؟</h2>
+        <p><em>nim-bencode</em> کتابخانه‌ای برای رمزگذاری (encode) و رمزگشایی (decode) فایل‌های تورنت با قالب
+        <a href="https://en.wikipedia.org/wiki/Bencode" target="_blank" rel="noopener">Bencode</a> است.</p>
+        <p>در این آموزش یک انکودر و یک دیکودر کامل برای قالب بنکد می‌سازیم. ابتدا یک نمونه استفاده از این کتابخانه را ببینید:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">import bencode, tables, strformat
+
+let encoder = newEncoder()
+let decoder = newDecoder()
+
+let btListSample1 = @[BencodeType(kind:btInt, i:1), BencodeType(kind:btString, s:"hi") ]
+var btDictSample1 = initOrderedTable[BencodeType, BencodeType]()
+btDictSample1[BencodeType(kind:btString, s:"name")] = BencodeType(kind:btString, s:"dmdm")
+btDictSample1[BencodeType(kind:btString, s:"lang")] = BencodeType(kind:btString, s:"nim")
+btDictSample1[BencodeType(kind:btString, s:"age")] = BencodeType(kind:btInt, i:50)
+btDictSample1[BencodeType(kind:btString, s:"alist")] = BencodeType(kind:btList, l:btListSample1)
+
+var testObjects = initOrderedTable[BencodeType, string]()
+testObjects[BencodeType(kind: btString, s:"hello")] = "5:hello"
+testObjects[BencodeType(kind: btString, s:"yes")] = "3:yes"
+testObjects[BencodeType(kind: btInt, i:55)] = "i55e"
+
+testObjects[BencodeType(kind: btInt, i:12345)] = "i12345e"
+testObjects[BencodeType(kind: btList, l:btListSample1)] = "li1e2:hie"
+testObjects[BencodeType(kind:btDict, d:btDictSample1)] = "d4:name4:dmdm4:lang3:nim3:agei50e5:alistli1e2:hiee"
+
+
+for k, v in testObjects.pairs():
+    echo $k &amp; " =&gt; " &amp; $v
+    doAssert(encoder.encodeObject(k) == v)
+    doAssert(decoder.decodeObject(v) == k)</code></pre>
+        <p>در این کد، تعدادی شیء بنکد (لیست، دیکشنری، عدد و رشته) ساخته می‌شود و سپس با <code>doAssert</code> بررسی می‌شود که
+        خروجی انکودر دقیقاً با رشته‌های بنکدِ انتظاری (مثل <code>i55e</code> یا <code>li1e2:hie</code>) برابر است و
+        دیکودر هم همان شیء اصلی را بازسازی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>پیاده‌سازی</h2>
+        <p>طبق قالب بنکد، این نوع داده‌ها را داریم:</p>
+        <ul>
+          <li><b>رشته‌ها</b> — با طول رشته، سپس یک دونقطه و سپس خود رشته رمزگذاری می‌شوند: <code>length:string</code>؛
+          مثلاً <code>yes</code> به صورت <code>3:yes</code> رمزگذاری می‌شود.</li>
+          <li><b>اعداد صحیح</b> — بین حروف <code>i</code> و <code>e</code> رمزگذاری می‌شوند؛ مثلاً 59 به صورت <code>i59e</code>.</li>
+          <li><b>لیست‌ها</b> — می‌توانند هر کدام از انواع بنکد را داشته باشند و با حروف <code>l</code> و <code>e</code> رمزگذاری
+          می‌شوند؛ مثلاً لیست اعداد 1 و 2 به صورت <code>li1ei2e</code> یا برای خوانایی بیشتر با فاصله:
+          <code>l i1e i2e e</code>.</li>
+          <li><b>دیکشنری‌ها</b> — نگاشت‌هایی از رشته به هر نوع هستند و بین حروف <code>d</code> و <code>e</code> رمزگذاری
+          می‌شوند؛ مثلاً <code>name =&gt; hi</code> و <code>num =&gt; 3</code> به صورت <code>d4:name2:hi3:numi3ee</code>
+          یا با فاصله: <code>d 4:name 2:hi 3:num i3e e</code> رمزگذاری می‌شوند.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h3>ایمپورت‌ها</h3>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">import strformat, tables, json, strutils, hashes</code></pre>
+        <p>چون قرار است زیاد با رشته‌ها و جدول‌ها (جدول‌های مرتب) سر و کار داشته باشیم، این ماژول‌ها را ایمپورت می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h3>انواع (Types)</h3>
+        <p>همان‌طور که درباره انواع داده بنکد گفتیم، می‌توانیم یک enum برای نمایش این انواع تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">type 
+    BencodeKind* = enum
+        btString, btInt, btList, btDict</code></pre>
+        <p>حالا نوع اصلی یعنی <code>BencodeType</code> را به‌صورت یک «شیء متغیر» (variant object) تعریف می‌کنیم که در زبان‌های
+        دیگر به آن «کلاس‌های case» می‌گویند؛ همراه با دو کلاس ساده <code>Encoder</code> و <code>Decoder</code>:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">    BencodeType* = ref object
+        case kind*: BencodeKind 
+        of BencodeKind.btString: s* : string 
+        of BencodeKind.btInt: i*    : int
+        of BencodeKind.btList: l*   : seq[BencodeType]
+        of BencodeKind.btDict: d*  : OrderedTable[BencodeType, BencodeType]
+
+    Encoder* = ref object
+    Decoder* = ref object </code></pre>
+        <ul>
+          <li><code>Encoder</code> — یک کلاس ساده برای نمایش عملیات رمزگذاری.</li>
+          <li><code>Decoder</code> — یک کلاس ساده برای نمایش عملیات رمزگشایی.</li>
+          <li>برای <code>BencodeType</code> از شیء متغیر (در زبان‌های دیگر: case classes) استفاده می‌کنیم. جالب است بدانید
+          که ماژول <code>json</code> نیم هم دقیقاً از همین تکنیک استفاده می‌کند.</li>
+        </ul>
+        <p>پس می‌توانیم این‌طور از آن استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">BencodeType(kind: btString, s:"hello")
+BencodeType(kind: btInt, i:55)
+let btListSample1 = @[BencodeType(kind:btInt, i:1), BencodeType(kind:btString, s:"hi") ]
+BencodeType(kind: btList, l:btListSample1)</code></pre>
+        <p>قانون کلی این «کلاس‌های case» این است که یک <code>kind</code> تعریف‌شده در enum دارید و با یک سازنده، شیء را
+        می‌سازید. اگر از هسکل (Haskell) یا زبان مشابهی به نیم آمده باشید، این تعریف معادل Haskell زیر است:</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code style="direction:ltr;text-align:left">data BValue = BInt Integer
+            | BStr B.ByteString
+            | BList [BValue]
+            | BDict (M.Map BValue BValue)
+            deriving (Show, Eq, Ord)</code></pre>
+        <p>لطفاً توجه داشته باشید: اگر نوع متغیر خودتان را تعریف می‌کنید، باید پروسیجرهای <code>hash</code> و <code>==</code>
+        را نیز تعریف کنید تا بتوانید مقادیر را مقایسه یا هش کنید.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc hash*(obj: BencodeType): Hash = 
+    case obj.kind
+    of btString : !$(hash(obj.s))
+    of btInt : !$(hash(obj.i))
+    of btList: !$(hash(obj.l))
+    of btDict: 
+        var h = 0
+        for k, v in obj.d.pairs:
+            h = h !&amp; hash(k) !&amp; hash(v)
+        !$(h)</code></pre>
+        <ul>
+          <li>پروسیجر <code>hash</code> یک <code>Hash</code> برمی‌گرداند و بسته به <code>kind</code>، هش شیء ذخیره‌شده درون
+          آن (رشته، عدد صحیح یا لیست) را برمی‌گرداند یا در صورت لزوم یک هش جدید محاسبه می‌کند.</li>
+          <li><code>!&amp;</code> را مانند «ادغام دو هش در هم» در نظر بگیرید.</li>
+          <li><code>!$</code> برای نهایی‌کردنِ شیء Hash به کار می‌رود.</li>
+        </ul>
+        <p>حالا عملگر برابری را روی <code>BencodeType</code> تعریف می‌کنیم تا مشخص کنیم دو مقدار چه زمانی برابرند — با تعریف
+        پروسیجر برای عملگر <code>==</code>:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc `==`* (a, b: BencodeType): bool =
+    ## بررسی تساوی دو گره
+    if a.isNil:
+        if b.isNil: return true
+        return false
+    elif b.isNil or a.kind != b.kind:
+        return false
+    else:
+        case a.kind
+        of btString:
+            result = a.s == b.s
+        of btInt:
+            result = a.i == b.i
+        of btList:
+            result = a.l == b.l
+        of btDict:
+            if a.d.len != b.d.len: return false
+            for key, val in a.d:
+                if not b.d.hasKey(key): return false
+                if b.d[key] != val: return false
+            result = true</code></pre>
+        <p>و در نهایت یک پروسیجر ساده <code>toString</code> با استفاده از عملگر <code>$</code> تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc `$`* (a: BencodeType): string = 
+    case a.kind
+    of btString:  fmt("&lt;Bencode {a.s}&gt;")
+    of btInt: fmt("&lt;Bencode {a.i}&gt;")
+    of btList: fmt("&lt;Bencode {a.l}&gt;")
+    of btDict: fmt("&lt;Bencode {a.d}")</code></pre>
+      </section>
+
+      <section>
+        <h3>رمزگذاری (Encoding)</h3>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode(this: Encoder,  obj: BencodeType) : string</code></pre>
+        <p>یک اعلانِ پیشاپیش (forward declaration) برای <code>encode</code> اضافه می‌کنیم؛ چون برای رمزگذاری یک لیست ممکن است
+        مجبور باشیم مقادیر دیگری مثل <code>string</code> یا حتی خود <code>list</code> را رمزگذاری کنیم، بنابراین در صورت نیاز
+        <code>encode</code> را به‌صورت بازگشتی صدا می‌زنیم — در صورت تمایل می‌توانید به بخش بعدی بروید.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode_s(this: Encoder, s: string) : string=
+    # TODO: بررسی طول
+    return $s.len &amp; ":" &amp; s</code></pre>
+        <p>برای رمزگذاری یک رشته گفتیم که آن را با طولش + <code>:</code> + خود رشته رمزگذاری می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode_i(this: Encoder, i: int) : string=
+    # TODO: بررسی طول
+    return fmt("i{i}e") </code></pre>
+        <p>برای رمزگذاری یک عدد صحیح آن را بین حروف <code>i</code> و <code>e</code> قرار می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode_l(this: Encoder, l: seq[BencodeType]): string =
+    var encoded = "l"
+    for el in l:
+        encoded &amp;= this.encode(el)
+    encoded &amp;= "e"
+    return encoded</code></pre>
+        <ul>
+          <li>برای رمزگذاری یک لیست از عناصر نوع <code>BencodeType</code>، مقادیر رمزگذاری‌شده‌شان را بین حروف <code>l</code>
+          و <code>e</code> قرار می‌دهیم.</li>
+          <li>به صدای <code>this.encode</code> دقت کنید؛ به همین دلیل به اعلان پیشاپیش (forward declaration) نیاز داشتیم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode_d(this: Encoder, d: OrderedTable[BencodeType, BencodeType]): string =
+    var encoded = "d"
+    for k, v in d.pairs():
+        assert k.kind == BencodeKind.btString
+        encoded &amp;= this.encode(k) &amp; this.encode(v)
+
+    encoded &amp;= "e"
+    return encoded</code></pre>
+        <ul>
+          <li>برای رمزگذاری یک دیکشنری، مقدار رمزگذاری‌شده زوج‌های کلید/مقدار را بین <code>d</code> و <code>e</code> قرار
+          می‌دهیم.</li>
+          <li>به صدا‌زدن بازگشتی <code>this.encode</code> برای کلیدها و مقادیر دقت کنید.</li>
+          <li>به جمله شرط (assert) دقت کنید: طبق مشخصات <code>Bencode</code>، نوع کلیدها <b>باید</b> حتماً
+          <code>btString</code> باشد.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encode(this: Encoder,  obj: BencodeType) :  string =
+    case obj.kind
+    of BencodeKind.btString:  result =this.encode_s(obj.s)
+    of BencodeKind.btInt :  result = this.encode_i(obj.i)
+    of BencodeKind.btList : result = this.encode_l(obj.l)
+    of BencodeKind.btDict : result = this.encode_d(obj.d)</code></pre>
+        <p>یک پروکسی ساده برای رمزگذاری شیء <code>obj</code> از نوع <code>BencodeType</code>.</p>
+      </section>
+
+      <section>
+        <h3>رمزگشایی (Decoding)</h3>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode(this: Decoder,  source: string) : (BencodeType, int)</code></pre>
+        <p>اعلان پیشاپیش برای <code>decode</code>؛ همان دلیلی که برای <code>encode</code> داشتیم.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode_s(this: Decoder, s: string) : (BencodeType, int) =
+    let lengthpart = s.split(":")[0]
+    let sizelength = lengthpart.len
+    let strlen = parseInt(lengthpart)
+    return (BencodeType(kind:btString, s: s[sizelength+1..strlen+1]), sizelength+1+strlen)</code></pre>
+        <p>پس از رمزگشایی یک رشته، یک <code>BencodeType</code> می‌سازیم — این عملیاتِ معکوسِ <code>encode_s</code> است. به‌طور
+        خلاصه: به اندازه <code>strlen</code> کاراکتر بعد از دونقطه را می‌خوانیم و از روی آن یک <code>BencodeType</code> از نوع
+        <code>btString</code> می‌سازیم.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode_i(this: Decoder, s: string) : (BencodeType, int) =
+    let epos = s.find('e')
+    let i = parseInt(s[1..&lt;epos])
+    return (BencodeType(kind:btInt, i:i), epos+1)</code></pre>
+        <p>عدد بین حروف <code>i</code> و <code>e</code> را استخراج می‌کنیم و از روی آن یک <code>BencodeType</code> از نوع
+        <code>btInt</code> می‌سازیم.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode_l(this: Decoder, s: string): (BencodeType, int) =
+    # عناصر بین l و e هستند
+    var els = newSeq[BencodeType]()
+    var curchar = s[1]
+    var idx = 1
+    while idx &lt; s.len:
+        curchar = s[idx]
+        if curchar == 'e':
+            idx += 1
+            break
+    
+        let pair = this.decode(s[idx..&lt;s.len])
+        let obj = pair[0]
+        let nextobjpos = pair[1] 
+        els.add(obj)
+        idx += nextobjpos
+    return (BencodeType(kind:btList, l:els), idx)</code></pre>
+        <p>رمزگشایی لیست کمی پیچیده است:</p>
+        <ul>
+          <li>عناصر آن بین حروف <code>l</code> و <code>e</code> قرار دارند.</li>
+          <li>بنابراین از اولین حرف «بعد از» <code>l</code> شروع به رمزگشایی اشیاء می‌کنیم تا به <code>e</code> پایانی برسیم.
+          مثلاً:</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">li1ei2ee</code></pre>
+        <p>به این صورت تجزیه می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">li120ei492ee
+ $   $</code></pre>
+        <ul>
+          <li>شیء <code>i120e</code> مصرف می‌شود و مکان‌نما (cursor) به ابتدای شیء دوم یعنی <code>i492e</code> منتقل می‌شود.</li>
+          <li>بعد از مصرف همه اشیاء، حرف پایانی <code>e</code> را هم مصرف می‌کنیم و تمام می‌شویم.</li>
+          <li>به همین دلیل است که همه پروسیجرهای decode یک مقدار <code>int</code> هم برمی‌گردانند تا بدانیم چند کاراکتر باید
+          رد شویم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode_d(this: Decoder, s: string): (BencodeType, int) =
+    var d = initOrderedTable[BencodeType, BencodeType]()
+    var curchar = s[1]
+    var idx = 1
+    var readingKey = true
+    var curKey: BencodeType
+    while idx &lt; s.len:
+        curchar = s[idx]
+        if curchar == 'e':
+            break
+        let pair = this.decode(s[idx..&lt;s.len])
+        let obj = pair[0]
+        let nextobjpos = pair[1]
+        if readingKey == true:
+            curKey = obj
+            readingKey = false
+        else:
+            d[curKey] = obj
+            readingKey = true
+        idx += nextobjpos
+    return (BencodeType(kind:btDict, d: d), idx)</code></pre>
+        <ul>
+          <li>همان تکنیک بالا.</li>
+          <li>به‌طور خلاصه: یک شیء می‌خوانیم؛ اگر کلید جاری نداشته باشیم، آن را به‌عنوان کلید جاری قرار می‌دهیم.</li>
+          <li>اگر کلید جاری داشته باشیم، شیء خوانده‌شده مقدار (value) است؛ پس کلید جاری را به آن مقدار نسبت می‌دهیم و حالت را
+          دوباره به <code>readingKey</code> برمی‌گردانیم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decode(this: Decoder,  source: string) : (BencodeType, int) =
+    var curchar = source[0]
+    var idx = 0
+    while idx &lt; source.len:
+        curchar = source[idx]
+        case curchar
+        of 'i':
+            let pair = this.decode_i(source[idx..source.len])
+            let obj = pair[0]
+            let nextobjpos = pair[1] 
+            idx += nextobjpos
+            return (obj, idx)
+        of 'l':
+            let pair = this.decode_l(source[idx..source.len])
+            let obj = pair[0]
+            let nextobjpos = pair[1] 
+            idx += nextobjpos
+            return (obj, idx)
+        of 'd':
+            let pair = this.decode_d(source[idx..source.len])
+            let obj = pair[0]
+            let nextobjpos = pair[1] 
+            idx += nextobjpos
+            return (obj, idx)
+        else: 
+            let pair = this.decode_s(source[idx..source.len])
+            let obj = pair[0]
+            let nextobjpos = pair[1] 
+            idx += nextobjpos
+            return (obj, idx)</code></pre>
+        <p>رمزگشایی بر اساس حرف اولِ شیء رمزگذاری‌شده شروع می‌شود: <code>i</code> برای عدد صحیح، <code>l</code> برای لیست،
+        <code>d</code> برای دیکشنری؛ در غیر این صورت سعی می‌کند یک رشته را تجزیه کند.</p>
+      </section>
+
+      <section>
+        <h3>سازنده‌ها و API عمومی</h3>
+        <p>پروسیجرهای سازنده ساده برای <code>newEncoder</code> و <code>newDecoder</code>:</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc newEncoder*(): Encoder =
+    new Encoder
+
+proc newDecoder*(): Decoder = 
+    new Decoder</code></pre>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc encodeObject*(this: Encoder, obj: BencodeType) : string =
+    return this.encode(obj)</code></pre>
+        <p><code>encodeObject</code> فراخوانی را به پروسیجر <code>encode</code> ارجاع می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc decodeObject*(this: Decoder, source:string) : BencodeType =
+    let p = this.decode(source)
+    return p[0]</code></pre>
+        <p><code>decodeObject</code> یک API دوستانه‌تر ارائه می‌دهد و به جای جفت <code>BencodeType</code> و «چند کاراکتر باید
+        خوانده شود»، فقط همان <code>BencodeType</code> را از decode برمی‌گرداند.</p>
+        <p>به همین سادگی — یک انکودر و دیکودر کامل بنکد با نیم نوشتیم که می‌تواند پایه کتابخانه‌ای برای خواندن و ساخت فایل‌های
+        تورنت باشد.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Day 2: Parsing Bencode» اثر <b>Ahmed Youssef (xmonader)</b> از کتاب آنلاین «Nim Days» است.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://xmonader.github.io/nimdays/day02_bencode.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — صفحه آموزش: ساخت کلاینت بیت‌تورنت از صفر در C#
+  ترجمه فارسی مقاله «Building a BitTorrent client from scratch in C#»
+  نویسنده اصلی: Sean J. O'Flynn — منبع: https://www.seanjoflynn.com/research/bittorrent.html
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت کلاینت بیت‌تورنت از صفر در C#</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">همتا‌به‌همتا</a>
+        <span class="sep">←</span>
+        <span>ساخت کلاینت بیت‌تورنت از صفر در C#</span>
+      </div>
+      <h1>ساخت کلاینت بیت‌تورنت از صفر در C#</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.seanjoflynn.com/research/bittorrent.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «ساخت کلاینت بیت‌تورنت از صفر در C#» (Building a BitTorrent client from scratch in C#) نوشته «Sean J. O&rsquo;Flynn» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.seanjoflynn.com/research/bittorrent.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+
+        <h2>بیت‌تورنت (BitTorrent) چیست؟</h2>
+
+        <p>بیت‌تورنت یک پروتکل به‌اشتراک‌گذاری فایل همتا‌به‌همتا (peer-to-peer) است. این پروتکل به کاربران امکان می‌دهد بدون وجود هیچ سرور مرکزی به‌عنوان واسطه، فایل‌ها را به‌طور مستقیم در اینترنت با یکدیگر به اشتراک بگذارند.</p>
+
+        <p>برای این منظور، فایل‌ها به قطعات کوچک با اندازه یکسان تقسیم می‌شوند. هر کلاینت یا همتا در شبکه می‌تواند یا یک قطعه را درخواست کند (اگر آن را ندارد) یا یک قطعه را ارسال کند (اگر همتای دیگری آن را درخواست کند). همتاها می‌توانند همزمان از چند همتای دیگر قطعه بگیرند و بفرستند تا وقتی همه همتاها فایل کامل را داشته باشند. به همتایی که قطعاتی برای ارسال دارد «seeder» (بذرپاش) و به همتایی که هنوز در حال درخواست قطعه است «leecher» (دانه‌خوار) گفته می‌شود.</p>
+
+        <p>نبودِ یک سرور مرکزی به این معناست که هزینه پهنای باندِ به‌اشتراک‌گذاری محتوا برای تولیدکننده اولیه کاهش می‌یابد. در ابتدا تنها یک seeder وجود خواهد داشت؛ اما به محض اینکه همتاهای دیگر فایل‌ها را دریافت کنند، آن‌ها نیز seeder می‌شوند. این پروتکل به محتوای پرطرفدارتر تمایل دارد: هرچه همتاهای بیشتری فایلی را بخواهند، همتاهای بیشتری هم آن فایل را برای به‌اشتراک‌گذاری خواهند داشت؛ عرضه با تقاضا رشد می‌کند. از این نظر این روش مقاوم‌تر نیز هست، چون شبکه در برابر خرابی یک سیستم مقاوم می‌شود و وقتی چندین seeder وجود داشته باشد، هیچ نقطه شکست واحدی ندارد.</p>
+
+        <p>محتوای کم‌طرفدار اگر تنها تعداد کمی seeder داشته باشد، دانلودش دشوار یا کند خواهد بود. فایل‌های کوچک نیز ممکن است کندتر از سرور سنتی دانلود شوند، چون سربار زمانی مشخصی برای پیدا کردن همتاها وجود دارد. نبودِ سرور مرکزی همچنین می‌تواند به وضعیتی منجر شود که تقریباً همه همتاهای شبکه کامل باشند اما همه یک قطعه یکسان را نداشته باشند (البته این حالت به دلیل الگوریتم‌های انتخاب قطعه برای درخواست، باید نادر باشد).</p>
+
+        <h3>تاریخچه</h3>
+
+        <p>شبکه‌های همتا‌به‌همتا با ایجاد نپستر (Napster) در سال ۱۹۹۹ توسط شان فنینگ (Shawn Fanning) فراگیر شدند. نپستر یک فهرست متمرکز از فایل‌های انتخاب‌شده روی رایانه هر کاربر نگهداری می‌کرد و سپس به کاربران اجازه می‌داد فایل‌ها را جستجو کرده و مستقیم از یکدیگر دانلود کنند.</p>
+
+        <p>پروتکل بیت‌تورنت در سال ۲۰۰۱ توسط برام کوهن (Bram Cohen) ساخته شد و بهبودهای متعددی نسبت به سیستم نپستر داشت. فهرست متمرکز واحد فایل‌ها را حذف کرد و آن را با فهرست‌هایی جایگزین نمود که هر کسی می‌توانست میزبان آن‌ها باشد (به‌نام «tracker»). همچنین فایل‌ها را به قطعاتی تقسیم کرد که هر کدام می‌توانست از کلاینت‌های مختلف دانلود شود، به‌جای اینکه کل فایل از یک همتای واحد گرفته شود (قطعات ترکیب‌شده با استفاده از هش‌ها اعتبارسنجی می‌شوند). بهبودهای بعدی پروتکل نیاز به tracker را کاملاً حذف کرده‌اند.</p>
+
+        <p>مانند نپستر، بیت‌تورنت نیز به‌شدت برای به‌اشتراک‌گذاری غیرقانونی فایل استفاده شد و هر دو مفهوم حقوقی منفی دارند. اما برخلاف نپستر، نبودِ یک مرجع متمرکز باعث شده است در برابر تعطیل شدن بسیار مقاوم‌تر باشد.</p>
+
+        <p>امروزه این پروتکل همچنان برای به‌اشتراک‌گذاری فایل میان کاربران عادی و همچنین برای تحویل محتوا استفاده می‌شود (پروژه‌های مختلف نرم‌افزار متن‌باز و همچنین بازی‌ها) و نیز برای توزیع داخلی کد جدید به سرورها (فیسبوک و توییتر). دیگر سیستم‌های پرطرفداری که از شبکه‌های همتا‌به‌همتا استفاده می‌کنند عبارت‌اند از ارزهای دیجیتال مختلف (بیت‌کوین، اتریوم) و بازارهای غیرمتمرکز (OpenBazaar).</p>
+
+        <h3>اجزاء</h3>
+
+        <p>مشخصات اولیه پروتکل تعدادی مؤلفه را شرح می‌داد:</p>
+
+        <ul><li>فایل تورنت: فایل کوچک و ساده‌ای که ابرداده‌های پایه درباره یک فایل واحد یا گروهی از فایل‌های موجود در تورنت را نگه می‌دارد. مشخص می‌کند فایل چگونه باید به قطعات تقسیم شود و همچنین کدام trackerها این تورنت را ردیابی می‌کنند.</li><li>یک ترکر (tracker): سرور متمرکزی که فهرستی از تورنت‌ها را به همراه فهرست متناظر همتاها برای هر یک نگهداری می‌کند. معروف‌ترین نمونه، The Pirate Bay است.</li><li>کلاینت: برنامه‌ای که می‌تواند فایل‌های تورنت جدید بسازد یا فایل‌های موجود را باز کند. به trackerهای مشخص‌شده متصل می‌شود و شروع به ارسال یا دریافت بخش‌هایی از فایل می‌کند. چند نمونه: Vuze، Transmission، uTorrent و Deluge.</li></ul>
+
+        <p>افزوده‌های اخیر به پروتکل به این معناست که دیگر نه فایل تورنت لازم است و نه tracker — نتیجه‌اش حذف کامل هرگونه تمرکز است.</p>
+
+</section>
+
+
+      <section>
+
+        <h2>این پروژه</h2>
+
+        <h3>کد</h3>
+
+        <p>کد کامل این پروژه را از <a href="https://github.com/cheatdeath/research-bittorrent" target="_blank" rel="noopener">گیت‌هاب من</a> دریافت کنید.</p>
+
+        <h3>محدوده</h3>
+
+        <p>هدف این پروژه، درک بهتر جزئیات فنی پروتکل بیت‌تورنت بود. از نظر عمق تحقیق، دوست دارم به نقطه‌ای برسم که ایده خوبی از آنچه نمی‌دانم داشته باشم. بیت‌تورنت در واقع موضوع فوق‌العاده‌ای است چون حوزه‌های مختلفی را پوشش می‌دهد: HTTP، TCP، کدگذاری سفارشی، هش‌کردن رمزنگاری، ورودی/خروجی فایل و (اختیاری) چندنخی بودن. از C# استفاده کردم چون زبانی است که بیشتر از همه با آن آشنا هستم. اساساً نسخه 1.0 پروتکل را ساختم؛ هرچند پیش از آنکه بتوان در دنیای واقعی آزمایشش کرد، افزودنی‌های بیشتری لازم است (بخش «تحقیقات بیشتر» را ببینید).</p>
+
+        <h3>مراجع</h3>
+
+        <p>می‌توانید <a href="http://www.bittorrent.org/beps/bep_0003.html" target="_blank" rel="noopener">مشخصات رسمی</a> را دریافت کنید، اما مراجع دیگری هم هستند که جزئیات بیشتری دارند (<a href="https://wiki.theory.org/BitTorrentSpecification" target="_blank" rel="noopener">این‌جا</a> و <a href="http://jonas.nitro.dk/bittorrent/bittorrent-rfc.html" target="_blank" rel="noopener">آنجا</a>).</p>
+
+        <h3>ابزارها</h3>
+
+        <p>از موارد زیر استفاده کردم:</p>
+
+        <ul><li>Xamarin Studio به‌عنوان IDE زبان C#</li><li>Deluge به‌عنوان کلاینت بیت‌تورنت</li><li>OpenTracker به‌عنوان ترکر بیت‌تورنت (<a href="https://erdgeist.org/arts/software/opentracker/" target="_blank" rel="noopener">وب‌سایت رسمی</a> یا <a href="https://github.com/masroore/opentracker" target="_blank" rel="noopener">گیت‌هاب</a>)</li><li>اوبونتو روی دو نمونه جداگانه VirtualBox برای تست.</li></ul>
+
+        <h3>تست</h3>
+
+        <p>قبل از اینکه دست‌به‌کار شویم، بیایید با نرم‌افزار موجود یک آزمایش انجام دهیم تا مطمئن شویم همه‌چیز درست کار می‌کند. ابتدا با کلاینت بیت‌تورنت خودمان یک فایل تورنت جدید می‌سازیم. به‌عنوان فایل آزمایش، چند پاراگراف lorem ipsum برداشتم و داخل یک فایل متنی گذاشتم. هنگام افزودن tracker به تورنت، حتماً از آدرس IP ماشینی استفاده کنید که قرار است tracker روی آن اجرا شود. پورت پیش‌فرض trackerها 6969 است.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/create-torrent.png" alt="ساخت فایل تورنت در کلاینت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/test-set-up.png" alt="راه‌اندازی محیط تست" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/clients-ready.png" alt="آماده‌بودن کلاینت‌ها برای تست" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <pre class="code"><span class="lang-tag">bash</span><code>
+./opentracker</code></pre>
+
+        <p>برنامه هیچ آرگومانی نمی‌خواهد و به‌طور پیش‌فرض در آدرس <code>http://localhost:6969/</code> شروع به کار می‌کند. در صورت نیاز می‌توانید <code>http://localhost:6969/stats?mode=everything</code> را در مرورگر باز کنید تا مطمئن شوید در حال اجراست (بعد از چند ثانیه فقط یک خروجی XML بیرون می‌دهد).</p>
+
+        <p>احتمالاً لازم است هر دو کلاینت را پس از راه‌اندازی tracker مکث و دوباره راه‌اندازی کنید. بعد از چند ثانیه فایل باید با موفقیت به ماشین مجازی دوم کپی شده باشد.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/finished-test.png" alt="موفقیت‌آمیز بودن تست انتقال فایل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+</section>
+
+
+      <section>
+
+        <h2>بن‌کدینگ (BEncoding)</h2>
+
+        <p>فایل تورنتی که قبلاً ساختیم را در یک ویرایشگر متن باز کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code>
+d8:announce33:http://192.168.1.74:6969/announce7:comment17:Comment goes here10:created by25:Transmission/2.92 (14714)13:creation datei1460444420e8:encoding5:UTF-84:infod6:lengthi59616e4:name9:lorem.txt12:piece lengthi32768e6:pieces40:L@fR���3�K*Ez�&gt;_YS��86��"�&amp;�p�&lt;�6�C{�9G7:privatei0eee</code></pre>
+
+        <p>داخلش خیلی زشت است؛ واضح است که در قالبی غیرعادی کدگذاری شده است. اگر به مشخصات نگاه کنیم، می‌بینیم که از یک سیستم کدگذاری سفارشی به نام <strong>BEncoding</strong> استفاده می‌کند. خوشبختانه بسیار ساده است؛ فقط چهار نوع داده وجود دارد که می‌توانند کدگذاری شوند.</p>
+
+        <ul><li>رشته‌ها: <code>8:announce</code> — با طول خودشان شروع می‌شوند، سپس <code>:</code> و بعد خود رشته. اصطلاح «string» را این‌جا خیلی ساده‌انگارانه به کار می‌برند — در برخی موارد رشته‌های UTF-8 هستند و در موارد دیگر آرایه‌های خام بایت (هش‌های SHA1). این‌ها را به‌صورت <code>byte[]</code> ذخیره می‌کنیم، چون از قبل راهی برای دانستن اینکه UTF-8 است یا نه وجود ندارد. در C# یک رشته فقط می‌تواند کاراکترهای یونیکد معتبر داشته باشد. استفاده از string برای ذخیره آرایه‌های خام بایت می‌تواند (و تقریباً مطمئناً خواهد) باعث از دست رفتن داده شود، چون هر یونیکد نامعتبر به‌طور برگشت‌ناپذیر با کاراکتر جایگزین U+FFFD (�) تعویض می‌شود. توجه کنید مقدار طول به‌طور خاص به تعداد <em>بایت‌ها</em> اشاره می‌کند، نه تعداد کاراکترها (چون برخی کاراکترها در UTF-8 بیش از یک بایت می‌گیرند).</li><li>اعداد صحیح: <code>i32768e</code> — با <code>i</code> شروع و به <code>e</code> ختم می‌شوند. چون می‌توانند تعداد بایت‌های یک فایل را نمایش دهند و برخی فایل‌ها بزرگ‌تر از 2.14 گیگابایت هستند، این‌ها را به‌صورت <code>long</code> ذخیره می‌کنیم.</li><li>دیکشنری‌ها: <code>d3:key5:valuee</code> — با <code>d</code> شروع و به <code>e</code> ختم می‌شوند و فهرستی از کلیدها و مقادیر متناوب دارند. همه کلیدها باید رشته‌های UTF-8 معتبر باشند. دیکشنری باید بر اساس کلید مرتب شود (بایت‌های خام UTF-8). آن‌ها را به‌صورت <code>Dictionary&lt;string,object&gt;</code> ذخیره می‌کنیم. دیکشنری‌ها در C# قابل مرتب‌سازی نیستند، پس تنها هنگام ذخیره در فایل، کلیدها را مرتب می‌کنیم.</li><li>لیست‌ها: <code>l5:ItemA5:ItemBe</code> — با <code>l</code> شروع و به <code>e</code> ختم می‌شوند و آن‌ها را به‌صورت <code>List&lt;object&gt;</code> ذخیره می‌کنیم.</li></ul>
+
+        <p>اگر به فایل خودمان کمی قالب‌بندی با فاصله اضافه کنیم، ساختار را واضح‌تر می‌بینیم. البته در کدگذاری، فاصله مجاز نیست؛ پس این فقط برای نمایش است.</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code>
+d
+  8:announce            33:http://192.168.1.74:6969/announce
+  7:comment             17:Comment goes here
+  10:created by         25:Transmission/2.92 (14714)
+  13:creation date      i1460444420e
+  8:encoding            5:UTF-8
+  4:info              
+    d
+      6:length          i59616e
+      4:name            9:lorem.txt
+      12:piece length   i32768e
+      6:pieces          40:L@fR���3�K*Ez�&gt;_YS��86��"�&amp;�p�&lt;�6�C{�9G
+      7:private         i0e
+    e
+e</code></pre>
+
+        <p>این تصویر خیلی واضح‌تری از ساختار به ما می‌دهد.</p>
+
+        <h3>رمزگشایی</h3>
+
+        <p>متد <code>Decode()</code> ما یک آرایه بایت می‌گیرد. قرار است آن را یک‌بایت‌-یک‌بایت تجزیه کنیم، پس یک iterator می‌سازیم و آن را به اولین بایت می‌بریم. سپس <code>DecodeNextObject()</code> را صدا می‌زنیم که نوع شیء بعدی را ارزیابی می‌کند و تابع رمزگشایی مربوطه را فراخوانی می‌کند. این بخش را در یک تابع جدا کرده‌ایم تا بتوانیم اشیاء داخل لیست‌ها یا دیکشنری‌های تودرتو را به‌صورت بازگشتی پردازش کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.Text;
+using System.Linq;
+using System.Collections.Generic;
+using System.IO;
+
+namespace BitTorrent
+{
+    public static class BEncoding
+    {
+        private static byte DictionaryStart  = System.Text.Encoding.UTF8.GetBytes("d")[0]; // عدد ASCII کاراکتر «d» (۱۰۰)
+        private static byte DictionaryEnd    = System.Text.Encoding.UTF8.GetBytes("e")[0]; // عدد ASCII کاراکتر «e» (۱۰۱)
+        private static byte ListStart        = System.Text.Encoding.UTF8.GetBytes("l")[0]; // عدد ASCII کاراکتر «l» (۱۰۸)
+        private static byte ListEnd          = System.Text.Encoding.UTF8.GetBytes("e")[0]; // عدد ASCII کاراکتر «e» (۱۰۱)
+        private static byte NumberStart      = System.Text.Encoding.UTF8.GetBytes("i")[0]; // عدد ASCII کاراکتر «i» (۱۰۵)
+        private static byte NumberEnd        = System.Text.Encoding.UTF8.GetBytes("e")[0]; // عدد ASCII کاراکتر «e» (۱۰۱)
+        private static byte ByteArrayDivider = System.Text.Encoding.UTF8.GetBytes(":")[0]; // عدد ASCII کاراکتر «:» (۵۸)
+
+        public static object Decode(byte[] bytes)
+        {
+            IEnumerator&lt;byte&gt; enumerator = ((IEnumerable&lt;byte&gt;)bytes).GetEnumerator();
+            enumerator.MoveNext();
+
+            return DecodeNextObject(enumerator);
+        }
+        private static object DecodeNextObject(IEnumerator&lt;byte&gt; enumerator)
+        {
+            if (enumerator.Current == DictionaryStart)
+                return DecodeDictionary(enumerator);            
+
+            if (enumerator.Current == ListStart)
+                return DecodeList(enumerator);            
+
+            if (enumerator.Current == NumberStart)                       
+                return DecodeNumber(enumerator);
+
+            return DecodeByteArray(enumerator);
+        }
+    }
+}</code></pre>
+
+        <p>همچنین یک متد برای رمزگشایی یک فایل (مثل فایل تورنت) می‌سازیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static object DecodeFile(string path)
+{
+    if (!File.Exists(path))
+        throw new FileNotFoundException("unable to find file: " + path);
+
+    byte[] bytes = File.ReadAllBytes(path);
+
+    return BEncoding.Decode(bytes);
+}</code></pre>
+
+        <h4>اعداد (Numbers)</h4>
+
+        <p>اگر بدانیم شیء بعدی یک عدد است، تا رسیدن به کاراکتری که پایان عدد را نشان می‌دهد (<code>e</code>) در آرایه جلو می‌رویم و در طول مسیر بایت‌ها را جمع می‌کنیم. سپس این بایت‌ها را به string و بعد string را به long تبدیل می‌کنیم. از long استفاده می‌کنیم چون برخی اعداد، تعداد بایت‌های یک فایل را نشان می‌دهند که می‌تواند بزرگ‌تر از حداکثر مقدار int باشد.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static long DecodeNumber(IEnumerator enumerator)
+{
+    List&lt;byte&gt; bytes = new List&lt;byte&gt;();
+
+    // تا رسیدن به پرچم پایان، بایت‌ها را جمع می‌کنیم
+    while (enumerator.MoveNext())
+    {
+        if (enumerator.Current == NumberEnd)
+            break;
+        
+        bytes.Add(enumerator.Current);
+    }
+
+    string numAsString = Encoding.UTF8.GetString(bytes.ToArray());
+
+    return Int64.Parse(numAsString);
+}</code></pre>
+
+        <h4>رشته‌ها (Strings)</h4>
+
+        <p>برای رشته‌ها (آرایه‌های بایت) باید دو بخش جداگانه را تجزیه کنیم: اول عددی که طول آرایه بایت را نشان می‌دهد و بعد خود بایت‌ها. پس اول تا رسیدن به کاراکتری که پایان عدد طول را نشان می‌دهد تکرار می‌کنیم. از حلقه <code>do..while</code> استفاده می‌کنیم چون به اولین کاراکتر نیاز داریم. سپس، همان‌طور که برای رمزگشایی اعداد انجام دادیم، بایت‌ها را به string و بعد string را به int تبدیل می‌کنیم تا طول را به‌دست آوریم. طول، تعداد بایت‌های آرایه را نشان می‌دهد؛ می‌توانیم در آرایه جلو برویم تا بایت‌های لازم را داشته باشیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static byte[] DecodeByteArray(IEnumerator&lt;byte&gt; enumerator)
+{
+    List&lt;byte&gt; lengthBytes = new List&lt;byte&gt;();
+
+    // اسکن تا رسیدن به جداکننده
+    do
+    {
+        if( enumerator.Current == ByteArrayDivider )
+            break;
+
+        lengthBytes.Add(enumerator.Current);
+    }
+    while (enumerator.MoveNext());
+
+    string lengthString = System.Text.Encoding.UTF8.GetString(lengthBytes.ToArray());
+
+    int length;
+    if (!Int32.TryParse(lengthString, out length))
+        throw new Exception("unable to parse length of byte array");
+
+    // حالا خود آرایه بایت را می‌خوانیم
+    byte[] bytes = new byte[length];
+
+    for (int i = 0; i &lt; length; i++)
+    {
+        enumerator.MoveNext();
+        bytes[i] = enumerator.Current;
+    }
+
+    return bytes;
+}</code></pre>
+
+        <h4>لیست‌ها (Lists)</h4>
+
+        <p>برای لیست‌ها کافی است تا رسیدن به کاراکتر پایان، شیء بعدی را برداریم. نیازی به دانستن نوع اشیاء داخل لیست نیست؛ فقط می‌خوریمشان. مشخصات تعیین نمی‌کند که همه آیتم‌ها باید یک نوع باشند و در پیاده‌سازی ما هم بررسی نمی‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static List&lt;object&gt; DecodeList(IEnumerator&lt;byte&gt; enumerator)
+{
+    List&lt;object&gt; list = new List&lt;object&gt;();
+
+    // تا رسیدن به پرچم پایان، اشیاء را رمزگشایی می‌کنیم
+    while (enumerator.MoveNext())
+    {
+        if( enumerator.Current == ListEnd )
+            break;
+
+        list.Add(DecodeNextObject(enumerator));
+    }
+
+    return list;
+}</code></pre>
+
+        <h4>دیکشنری‌ها (Dictionaries)</h4>
+
+        <p>دیکشنری‌ها تقریباً به همان شکل مدیریت می‌شوند؛ تنها تفاوتش این است که هر بار دو شیء برمی‌داریم (یک کلید و یک مقدار) و آن‌ها را در دیکشنری می‌گذاریم. کلیدها باید رشته‌های UTF-8 معتبر باشند.</p>
+
+        <p>آیتم‌های دیکشنری باید بر اساس بایت‌های خام UTF-8 کلید مرتب شوند. مهم است که دوباره بررسی کنیم دیکشنری ورودی درست مرتب شده است، چون بعداً باید فرایند رمزگشایی را معکوس کنیم و خروجی‌ای یکسان با ورودی تولید کنیم. اگر دیکشنری ورودی درست مرتب نشده باشد، اطلاعات مرتب‌سازی (نادرست) را از دست می‌دهیم و در نتیجه قادر به انجام این کار نخواهیم بود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static Dictionary&lt;string,object&gt; DecodeDictionary(IEnumerator&lt;byte&gt; enumerator)
+{            
+    Dictionary&lt;string,object&gt; dict = new Dictionary&lt;string,object&gt;();
+    List&lt;string&gt; keys = new List&lt;string&gt;();
+
+    // تا رسیدن به پرچم پایان، اشیاء را رمزگشایی می‌کنیم
+    while (enumerator.MoveNext())
+    {
+        if( enumerator.Current == DictionaryEnd )
+            break;
+
+        // همه کلیدها رشته‌های UTF8 معتبر هستند
+        string key = Encoding.UTF8.GetString(DecodeByteArray(enumerator));
+        enumerator.MoveNext();
+        object val = DecodeNextObject(enumerator);
+
+        keys.Add(key);
+        dict.Add(key, val);
+    }
+
+    // بررسی می‌کنیم دیکشنری ورودی درست مرتب شده است
+    // در غیر این صورت نمی‌توانیم کدگذاری یکسانی تولید کنیم
+    var sortedKeys = keys.OrderBy(x =&gt; BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
+    if (!keys.SequenceEqual(sortedKeys))
+        throw new Exception("error loading dictionary: keys not sorted");
+
+    return dict;
+}</code></pre>
+
+        <h3>رمزگذاری</h3>
+
+        <p>حالا این فرایند را معکوس می‌کنیم تا بتوانیم از ساختارهای C# خروجی BEncoded بسازیم. برای تولید آرایه بایت از یک <code>MemoryStream</code> استفاده می‌کنیم. از متدی به نام <code>EncodeNextObject()</code> استفاده می‌کنیم که نوع شیء فعلی را شناسایی و متد کدگذاری مربوطه را صدا می‌زند؛ این به ما امکان رمزگذاری بازگشتی می‌دهد.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static byte[] Encode(object obj)
+{
+    MemoryStream buffer = new MemoryStream();
+
+    EncodeNextObject(buffer, obj);
+
+    return buffer.ToArray();
+}
+
+public static void EncodeToFile(object obj, string path)
+{
+    File.WriteAllBytes(path, Encode(obj));
+}
+
+private static void EncodeNextObject(MemoryStream buffer, object obj)
+{
+    if (obj is byte[])                
+        EncodeByteArray(buffer, (byte[])obj);
+    else if (obj is string)
+        EncodeString(buffer, (string)obj);
+    else if (obj is long)
+        EncodeNumber(buffer, (long)obj);
+    else if (obj.GetType() == typeof(List&lt;object&gt;))
+        EncodeList(buffer, (List&lt;object&gt;)obj);
+    else if (obj.GetType() == typeof(Dictionary&lt;string,object&gt;))
+        EncodeDictionary(buffer, (Dictionary&lt;string,object&gt;)obj);
+    else
+        throw new Exception("unable to encode type " + obj.GetType());
+}</code></pre>
+
+        <p>چند متد افزوده (extension) به کلاس <code>MemoryStream</code> اضافه می‌کنیم که نوشتن آرایه‌های بایت را کمی مرتب‌تر می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+// منبع: فردریک مورک (Fredrik Mörk) — http://stackoverflow.com/a/4015634
+public static class MemoryStreamExtensions
+{
+    public static void Append(this MemoryStream stream, byte value)
+    {
+        stream.Append(new[] { value });
+    }
+
+    public static void Append(this MemoryStream stream, byte[] values)
+    {
+        stream.Write(values, 0, values.Length);
+    }
+}</code></pre>
+
+        <h4>اعداد</h4>
+
+        <p>تنها اعداد <code>long</code> قابل کدگذاری هستند. کافی است <code>i</code> آغازین را وارد کنیم، سپس عدد را که به رشته UTF-8 تبدیل شده، و در نهایت <code>e</code> را.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static void EncodeNumber(MemoryStream buffer, long input)
+{
+    buffer.Append(NumberStart);
+    buffer.Append(Encoding.UTF8.GetBytes(Convert.ToString(input)));
+    buffer.Append(NumberEnd);
+}</code></pre>
+
+        <h4>آرایه‌های بایت و رشته‌ها</h4>
+
+        <p>برای <code>byte[]</code>ها، طول آرایه را به‌صورت رشته UTF-8 خروجی می‌دهیم، سپس <code>:</code> و در نهایت خود آرایه خام را. هر رشته را به آرایه بایت کدگذاری‌شده با UTF-8 تبدیل می‌کنیم و به همان شکل مدیریتش می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static void EncodeByteArray(MemoryStream buffer, byte[] body)
+{                        
+    buffer.Append(Encoding.UTF8.GetBytes(Convert.ToString(body.Length)));
+    buffer.Append(ByteArrayDivider);
+    buffer.Append(body);
+}
+
+private static void EncodeString(MemoryStream buffer, string input)
+{   
+    EncodeByteArray(buffer, Encoding.UTF8.GetBytes(input));
+}</code></pre>
+
+        <h4>لیست‌ها</h4>
+
+        <p>لیست‌ها بسیار ساده‌اند: <code>l</code> آغازین را خروجی می‌دهیم، سپس هر عنصر لیست را کد می‌کنیم و با <code>e</code> تمام می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static void EncodeList(MemoryStream buffer, List&lt;object&gt; input)
+{
+    buffer.Append(ListStart);
+    foreach (var item in input)
+        EncodeNextObject(buffer, item);
+    buffer.Append(ListEnd);
+}</code></pre>
+
+        <h4>دیکشنری‌ها</h4>
+
+        <p>دیکشنری‌ها به شکل مشابهی مدیریت می‌شوند: با <code>d</code> شروع، سپس هر کلید و مقدار، و در نهایت <code>e</code>. در C# دیکشنری‌ها قابل مرتب‌سازی نیستند و هنگام تکرار روی یک Dictionary هیچ فرضی درباره ترتیب نمی‌شود کرد؛ پس خودمان کلیدها را مرتب می‌کنیم و با تکرار روی آن‌ها، مقدار موردنیاز هر کدام را انتخاب می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static void EncodeDictionary(MemoryStream buffer, Dictionary&lt;string,object&gt; input)
+{
+    buffer.Append(DictionaryStart);
+
+    // باید کلیدها را بر اساس بایت‌های خام مرتب کنیم، نه بر اساس رشته
+    var sortedKeys = input.Keys.ToList().OrderBy(x =&gt; BitConverter.ToString(Encoding.UTF8.GetBytes(x)));
+
+    foreach (var key in sortedKeys)
+    {
+        EncodeString(buffer, key);
+        EncodeNextObject(buffer, input[key]);
+    }
+    buffer.Append(DictionaryEnd);
+}</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>تورنت‌ها (Torrents)</h2>
+
+        <p>حالا که رمزگشای BEncoding را ساختیم، می‌توانیم به فایل تورنت قبلی برگردیم و آن را به ساختار داده C# تجزیه کنیم. بیایید دوباره به آن نگاه کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code>
+d
+  8:announce            33:http://192.168.1.74:6969/announce
+  7:comment             17:Comment goes here
+  10:created by         25:Transmission/2.92 (14714)
+  13:creation date      i1460444420e
+  8:encoding            5:UTF-8
+  4:info              
+    d
+      6:length          i59616e
+      4:name            9:lorem.txt
+      12:piece length   i32768e
+      6:pieces          40:L@fR���3�K*Ez�&gt;_YS��86��"�&amp;�p�&lt;�6�C{�9G
+      7:private         i0e
+    e
+e</code></pre>
+
+        <p>بیایید آیتم‌ها را یکی‌یکی بررسی کنیم و تصمیم بگیریم چگونه آن‌ها را ذخیره کنیم:</p>
+
+        <ul><li><strong>announce:</strong> آدرس tracker ما. توجه کنید این می‌تواند یک tracker واحد یا فهرستی از trackerها باشد (<code>List&lt;Tracker&gt;</code>).</li><li><strong>comment:</strong> توضیح تعریف‌شده توسط کاربر (string).</li><li><strong>created by:</strong> سازنده (کاربر یا برنامه) (string).</li><li><strong>creation date:</strong> تاریخ ساخت به‌صورت timestamp یونیکس (DateTime).</li><li><strong>encoding:</strong> کدگذاری (System.Text.Encoding).</li><li><strong>info:</strong> اطلاعات مربوط به فایل یا فایل‌هایی که می‌خواهیم به اشتراک بگذاریم.</li><li><strong>length:</strong> اندازه فایل (به بایت) (long). یک تورنت می‌تواند تک‌فایله یا چندفایله باشد، پس از <code>List&lt;FileItem&gt;</code> استفاده می‌کنیم.</li><li><strong>name:</strong> نام فایل (string).</li><li><strong>piece length:</strong> اندازه هر قطعه (به بایت) — معمولاً توانی از ۲ (int).</li><li><strong>pieces:</strong> برای هر قطعه یک هش SHA1 بیست‌کاراکتری تولید می‌شود که همه به هم چسبیده و یک آرایه بایت بزرگ می‌سازند (byte[][]).</li><li><strong>private:</strong> خصوصی بودن یا نبودن فایل (bool).</li></ul>
+
+        <h3>ساختار</h3>
+
+        <p>پس یک کلاس ساده برای نگهداری این اطلاعات می‌سازیم:</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.Linq;
+using System.Text;
+using System.Security.Cryptography;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
+using System.Net;
+
+namespace BitTorrent
+{
+    public class Torrent
+    {
+        public string Name { get; private set; }
+        public bool? IsPrivate { get; private set; }
+        public List&lt;FileItem&gt; Files { get; private set; } = new List&lt;FileItem&gt;();
+        public string FileDirectory { get { return (Files.Count &gt; 1 ? Name + Path.DirectorySeparatorChar : ""); } }
+        public string DownloadDirectory { get; private set; }
+
+        public List&lt;Tracker&gt; Trackers { get; } = new List&lt;Tracker&gt;();
+        public string Comment { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime CreationDate { get; set; }
+        public Encoding Encoding { get; set; }
+
+        public int BlockSize { get; private set; }
+        public int PieceSize { get; private set; }
+
+        public byte[][] PieceHashes { get; private set; }
+    }
+}</code></pre>
+
+        <p>دو کلاس کمکی که بالاتر اشاره شد این‌جا هستند. اولی کلاس <code>FileItem</code> است که مسیر و اندازه هر فایل را به همراه offset آن (یعنی مجموع اندازه فایل‌های قبل از آن) ذخیره می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public class FileItem
+{            
+    public string Path;
+    public long Size;
+    public long Offset;
+
+    public string FormattedSize { get { return Torrent.BytesToString(Size); } }
+}</code></pre>
+
+        <p>دومی کلاس <code>Tracker</code> است که آدرس announce را ذخیره می‌کند. بعداً قابلیت بیشتری به این کلاس اضافه می‌کنیم تا واقعاً با tracker ارتباط برقرار کند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public class Tracker
+{
+    public event EventHandler&lt;List&lt;IPEndPoint&gt;&gt; PeerListUpdated;
+
+    public string Address { get; private set; }
+
+    public Tracker(string address)
+    {
+        Address = address;
+    }
+}</code></pre>
+
+        <h3>هش‌ها</h3>
+
+        <p>یک اطلاعات دیگر هم از فایل تورنت لازم است: <em>infohash</em> که اغلب فقط «hash» نامیده می‌شود. این یک هش SHA1 از بایت‌های خام بخش <code>info</code> فایل تورنت است و برای شناسایی تورنت به کار می‌رود. همچنین چند ویژگی اضافه می‌کنیم برای تبدیل infohash به رشته hex خوانا و نسخه‌ای که هنگام ارتباط با trackerها از طریق HTTP لازم است.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public byte[] Infohash { get; private set; } = new byte[20];
+public string HexStringInfohash { get { return String.Join("", this.Infohash.Select(x =&gt; x.ToString("x2"))); } }
+public string UrlSafeStringInfohash { get { return Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(this.Infohash, 0, 20)); } }</code></pre>
+
+        <h3>قطعه‌ها و بلاک‌ها</h3>
+
+        <p>فایل‌های موجود در تورنت در یک لیست قرار می‌گیرند و سپس به تکه‌های هم‌اندازه به نام «قطعه» (piece) تقسیم می‌شوند (به‌جز احتمالاً آخرین قطعه). یکپارچگی هر قطعه با هش SHA1 بایت‌های آن قطعه (که در فایل تورنت یافت می‌شود) قابل اعتبارسنجی است.</p>
+
+        <p>بلاک‌ها واحدهای کوچک‌تری نسبت به قطعه‌ها هستند. قطعه‌ها ممکن است برای انتقال میان همتاها خیلی بزرگ باشند، پس این تکه‌های کوچک‌تر داده‌اند که واقعاً منتقل می‌شوند. هیچ اندازه مشخصی برای بلاک تعیین نشده است؛ پس ممکن است کلاینت ما از اندازه‌ای متفاوت با یک همتا استفاده کند. مهم نیست اندازه متفاوتی داشته باشیم، چون بلاک‌ها با ایندکس قطعه، یک offset بایتی و یک طول درخواست می‌شوند. بلاک‌ها تنها وقتی می‌توانند درخواست یا ارسال شوند که کل قطعه اعتبارسنجی شده باشد و مشخصاً یک قطعه فقط وقتی قابل اعتبارسنجی است که همه بلاک‌های داخل آن به‌طور کامل به‌دست آمده باشند.</p>
+
+        <p>چند متغیر و متد اضافه می‌کنیم تا اندازه و پیشرفت قطعه‌ها و بلاک‌های تورنت را پیگیری کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public int BlockSize { get; private set; }
+public int PieceSize { get; private set; }
+public long TotalSize { get { return Files.Sum(x =&gt; x.Size); } }
+
+public string FormattedPieceSize { get { return BytesToString(PieceSize); } }
+public string FormattedTotalSize { get { return BytesToString(TotalSize); } }
+
+public int PieceCount { get { return PieceHashes.Length; } }
+
+public byte[][] PieceHashes { get; private set; }
+public bool[] IsPieceVerified { get; private set; }
+public bool[][] IsBlockAcquired { get; private set; }
+
+public string VerifiedPiecesString { get { return String.Join("", IsPieceVerified.Select(x =&gt; x ? 1 : 0)); } }
+public int VerifiedPieceCount { get { return IsPieceVerified.Count(x =&gt; x); } }
+public double VerifiedRatio { get { return VerifiedPieceCount / (double)PieceCount; } }
+public bool IsCompleted { get { return VerifiedPieceCount == PieceCount; } }
+public bool IsStarted { get { return VerifiedPieceCount &gt; 0; } }
+
+public long Uploaded { get; set; } = 0;
+public long Downloaded { get { return PieceSize * VerifiedPieceCount; } } // !! نادرست است
+public long Left { get { return TotalSize - Downloaded; } }
+
+public int GetPieceSize(int piece)
+{            
+    if (piece == PieceCount - 1)
+    { 
+        int remainder = Convert.ToInt32(TotalSize % PieceSize);
+        if (remainder != 0)
+            return remainder;
+    }
+
+    return PieceSize;
+}
+
+public int GetBlockSize(int piece, int block)
+{
+    if (block == GetBlockCount(piece) - 1)
+    {
+        int remainder = Convert.ToInt32(GetPieceSize(piece) % BlockSize);
+        if (remainder != 0)
+            return remainder;
+    }
+
+    return BlockSize;
+}
+
+public int GetBlockCount(int piece)
+{
+    return Convert.ToInt32(Math.Ceiling(GetPieceSize(piece) / (double)BlockSize));
+}</code></pre>
+
+        <h3>راه‌اندازی</h3>
+
+        <p>سازنده کلاس <code>Torrent</code> ما به همه داده‌های بخش <code>info</code> فایل تورنت نیاز دارد. trackerها را راه‌اندازی می‌کند، هش‌های قطعه را بارگذاری یا ایجاد می‌کند، infohash را تولید می‌کند و در نهایت پیشرفت فعلی دانلود را اعتبارسنجی می‌کند.</p>
+
+        <p>همچنین رویدادی به نام <code>PeerListUpdated</code> وجود دارد که هر بار هرکدام از trackerها فهرست همتای به‌روزشده‌ای دریافت کنند، صادر می‌شود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public event EventHandler&lt;List&lt;IPEndPoint&gt;&gt; PeerListUpdated;
+
+private object[] fileWriteLocks;
+private static SHA1 sha1 = SHA1.Create();
+  
+public Torrent(string name, string location, List&lt;FileItem&gt; files, List&lt;string&gt; trackers, int pieceSize, byte[] pieceHashes = null, int blockSize = 16384, bool? isPrivate = false )
+{       
+    Name = name;
+    DownloadDirectory = location;
+    Files = files;
+    fileWriteLocks = new object[Files.Count];
+    for (int i = 0; i &lt; this.Files.Count; i++)
+        fileWriteLocks[i] = new object();   
+
+    if (trackers != null)
+    {
+        foreach (string url in trackers)
+        {
+            Tracker tracker = new Tracker(url);
+            Trackers.Add(tracker);
+            tracker.PeerListUpdated += HandlePeerListUpdated;
+        }
+    }
+
+    PieceSize = pieceSize;
+    BlockSize = blockSize;
+    IsPrivate = isPrivate;
+
+    int count = Convert.ToInt32(Math.Ceiling(TotalSize / Convert.ToDouble(PieceSize)));
+
+    PieceHashes = new byte[count][];
+    IsPieceVerified = new bool[count];
+    IsBlockAcquired = new bool[count][];
+
+    for (int i = 0; i &lt; PieceCount; i++)
+        IsBlockAcquired[i] = new bool[GetBlockCount(i)];            
+
+    if (pieceHashes == null)
+    {
+        // این یک تورنت جدید است؛ پس باید هش‌ها را از روی فایل‌ها بسازیم                 
+        for (int i = 0; i &lt; PieceCount; i++)
+            PieceHashes[i] = GetHash(i);
+    }
+    else
+    {
+        for (int i = 0; i &lt; PieceCount; i++)
+        {
+            PieceHashes[i] = new byte[20];
+            Buffer.BlockCopy(pieceHashes, i * 20, PieceHashes[i], 0, 20);
+        }
+    }
+
+    object info = TorrentInfoToBEncodingObject(this);
+    byte[] bytes =  BEncoding.Encode(info);
+    Infohash = SHA1.Create().ComputeHash(bytes);
+
+    for (int i = 0; i &lt; PieceCount; i++)
+        Verify(i);
+}</code></pre>
+
+        <h3>خواندن و نوشتن</h3>
+
+        <p>همان‌طور که در نمودار زیر می‌بینید، بلاک‌ها و قطعه‌ها اهمیتی نمی‌دهند که یک فایل کجا تمام می‌شود و فایل بعدی کجا شروع می‌شود — هر تعداد فایل می‌تواند داخل یک قطعه قرار بگیرد.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/files.png" alt="نمودار رابطه فایل‌ها با قطعه‌ها و بلاک‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:105px" />
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public byte[] Read(long start, int length)
+{
+    long end = start + length;
+    byte[] buffer = new byte[length];
+
+    for (int i=0; i&lt;Files.Count; i++)
+    {                
+        if ((start &lt; Files[i].Offset &amp;&amp; end &lt; Files[i].Offset) ||
+            (start &gt; Files[i].Offset + Files[i].Size &amp;&amp; end &gt; Files[i].Offset + Files[i].Size))
+            continue;
+
+        string filePath = DownloadDirectory + Path.DirectorySeparatorChar + FileDirectory + Files[i].Path;
+
+        if (!File.Exists(filePath))
+            return null;
+
+        long fstart = Math.Max(0, start - Files[i].Offset);
+        long fend = Math.Min(end - Files[i].Offset, Files[i].Size);
+        int flength = Convert.ToInt32(fend - fstart);
+        int bstart = Math.Max(0, Convert.ToInt32(Files[i].Offset - start));
+
+        using (Stream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+        {                    
+            stream.Seek(fstart, SeekOrigin.Begin);
+            stream.Read(buffer, bstart, flength);
+        }
+    }
+
+    return buffer;
+}
+
+public void Write(long start, byte[] bytes)
+{
+    long end = start + bytes.Length;
+
+    for (int i = 0; i &lt; Files.Count; i++)
+    {                
+        if ((start &lt; Files[i].Offset &amp;&amp; end &lt; Files[i].Offset) ||
+            (start &gt; Files[i].Offset + Files[i].Size &amp;&amp; end &gt; Files[i].Offset + Files[i].Size))
+            continue;
+
+        string filePath = DownloadDirectory + Path.DirectorySeparatorChar + FileDirectory + Files[i].Path;
+
+        string dir = Path.GetDirectoryName(filePath);
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        lock (fileWriteLocks[i])
+        {
+            using (Stream stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                long fstart = Math.Max(0, start - Files[i].Offset);
+                long fend = Math.Min(end - Files[i].Offset, Files[i].Size);
+                int flength = Convert.ToInt32(fend - fstart);
+                int bstart = Math.Max(0, Convert.ToInt32(Files[i].Offset - start));
+
+                stream.Seek(fstart, SeekOrigin.Begin);
+                stream.Write(bytes, bstart, flength);
+            }
+        }
+    }
+}</code></pre>
+
+        <p>توابع کمکی دیگری هم برای خواندن و نوشتن وجود دارند:</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public byte[] ReadPiece(int piece)
+{
+    return Read(piece * PieceSize, GetPieceSize(piece));
+}
+
+public byte[] ReadBlock(int piece, int offset, int length)
+{
+    return Read(piece * PieceSize + offset, length);
+}
+
+public void WriteBlock(int piece, int block, byte[] bytes)
+{            
+    Write(piece * PieceSize + block * BlockSize, bytes);
+    IsBlockAcquired[piece][block] = true;
+    Verify(piece);
+}</code></pre>
+
+        <h3>اعتبارسنجی</h3>
+
+        <p>اعتبارسنجی هر قطعه نسبتاً ساده است. یک نکته مهم: اگر همه بلاک‌های یک قطعه را به‌دست آورده باشیم ولی اعتبارسنجی شکست بخورد، همه بلاک‌ها را بازنشانی می‌کنیم و دوباره سعی می‌کنیم آن‌ها را به‌دست آوریم (چون قطعاً یک بلاک اشتباه از یک همتا دریافت کرده‌ایم).</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public event EventHandler&lt;int&gt; PieceVerified;
+  
+public void Verify(int piece)
+{
+    byte[] hash = GetHash(piece);
+
+    bool isVerified = (hash != null &amp;&amp; hash.SequenceEqual(PieceHashes[piece]));
+
+    if (isVerified)
+    {                
+        IsPieceVerified[piece] = true;
+
+        for (int j = 0; j &lt; IsBlockAcquired[piece].Length; j++)
+            IsBlockAcquired[piece][j] = true;
+
+        var handler = PieceVerified;
+        if (handler != null)
+            handler(this, piece);
+
+        return;
+    }
+
+    IsPieceVerified[piece] = false;
+
+    // کل قطعه را از نو بارگذاری می‌کنیم
+    if (IsBlockAcquired[piece].All(x =&gt; x))
+    {
+        for (int j = 0; j &lt; IsBlockAcquired[piece].Length; j++)
+            IsBlockAcquired[piece][j] = false;
+    }
+}
+
+public byte[] GetHash(int piece)
+{
+    byte[] data = ReadPiece(piece);
+
+    if (data == null)
+        return null;            
+
+    return sha1.ComputeHash(data);
+}</code></pre>
+
+        <h3>واردات و صادرات</h3>
+
+        <p>متدهای بارگذاری و ذخیره تورنت‌ها در فایل ساده هستند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static Torrent LoadFromFile(string filePath, string downloadPath)
+{
+    object obj = BEncoding.DecodeFile(filePath);
+    string name = Path.GetFileNameWithoutExtension(filePath);
+
+    return BEncodingObjectToTorrent(obj, name, downloadPath);
+}
+
+public static void SaveToFile(Torrent torrent)
+{
+    object obj = TorrentToBEncodingObject(torrent);
+
+    BEncoding.EncodeToFile(obj, torrent.Name + ".torrent");
+}</code></pre>
+
+        <p>کار اصلی هنگام تبدیل آن‌ها به/از اشیاء BEncoding انجام می‌شود. کد کدگذاری بخش <code>info</code> جداگانه در متد <code>TorrentInfoToBEncodingObject()</code> تقسیم شده است تا بتوانیم از آن برای تولید infohash استفاده کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static long DateTimeToUnixTimestamp( DateTime time )
+{
+    return Convert.ToInt64((DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
+}
+
+private static object TorrentToBEncodingObject(Torrent torrent)
+{
+    Dictionary&lt;string,object&gt; dict = new Dictionary&lt;string, object&gt;();
+
+    if( torrent.Trackers.Count == 1 )
+        dict["announce"] = Encoding.UTF8.GetBytes(torrent.Trackers[0].Address);
+    else
+        dict["announce"] = torrent.Trackers.Select(x =&gt; (object)Encoding.UTF8.GetBytes(x.Address)).ToList();
+    dict["comment"] = Encoding.UTF8.GetBytes(torrent.Comment);
+    dict["created by"] = Encoding.UTF8.GetBytes(torrent.CreatedBy);
+    dict["creation date"] = DateTimeToUnixTimestamp(torrent.CreationDate);
+    dict["encoding"] = Encoding.UTF8.GetBytes(Encoding.UTF8.WebName.ToUpper());
+    dict["info"] = TorrentInfoToBEncodingObject(torrent);
+
+    return dict;
+}
+
+private static object TorrentInfoToBEncodingObject(Torrent torrent)
+{
+    Dictionary&lt;string,object&gt; dict = new Dictionary&lt;string, object&gt;();
+
+    dict["piece length"] = (long)torrent.PieceSize;
+    byte[] pieces = new byte[20 * torrent.PieceCount];
+    for (int i = 0; i &lt; torrent.PieceCount; i++)
+        Buffer.BlockCopy(torrent.PieceHashes[i], 0, pieces, i * 20, 20);
+    dict["pieces"] = pieces;
+
+    if (torrent.IsPrivate.HasValue)
+        dict["private"] = torrent.IsPrivate.Value ? 1L : 0L;
+
+    if (torrent.Files.Count == 1)
+    {                
+        dict["name"] = Encoding.UTF8.GetBytes(torrent.Files[0].Path);
+        dict["length"] = torrent.Files[0].Size;
+    }
+    else
+    {
+        List&lt;object&gt; files = new List&lt;object&gt;();
+
+        foreach (var f in torrent.Files)
+        {
+            Dictionary&lt;string,object&gt; fileDict = new Dictionary&lt;string, object&gt;();
+            fileDict["path"] = f.Path.Split(Path.DirectorySeparatorChar).Select(x =&gt; (object)Encoding.UTF8.GetBytes(x)).ToList();
+            fileDict["length"] = f.Size;
+            files.Add(fileDict);
+        }
+
+        dict["files"] = files;
+        dict["name"] = Encoding.UTF8.GetBytes(torrent.FileDirectory.Substring(0, torrent.FileDirectory.Length - 1));
+    }
+
+    return dict;
+}</code></pre>
+
+        <p>و جهت عکس:</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static string DecodeUTF8String( object obj )
+{
+    byte[] bytes = obj as byte[];
+
+    if (bytes == null)
+        throw new Exception("unable to decode utf-8 string, object is not a byte array");
+
+    return Encoding.UTF8.GetString(bytes);
+}
+
+public static DateTime UnixTimeStampToDateTime( double unixTimeStamp )
+{
+    // timestamp یونیکس، ثانیه‌های سپری‌شده از مبدأ است
+    System.DateTime dtDateTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc);
+    dtDateTime = dtDateTime.AddSeconds( unixTimeStamp ).ToLocalTime();
+    return dtDateTime;
+}
+
+private static Torrent BEncodingObjectToTorrent(object bencoding, string name, string downloadPath)
+{
+    Dictionary&lt;string,object&gt; obj = (Dictionary&lt;string,object&gt;)bencoding;
+
+    if (obj == null)
+        throw new Exception("not a torrent file");
+    
+    // !! مدیریت فهرست (لیست) trackers
+    List&lt;string&gt; trackers = new List&lt;string&gt;();
+    if (obj.ContainsKey("announce"))                
+        trackers.Add(DecodeUTF8String(obj["announce"]));            
+
+    if (!obj.ContainsKey("info"))
+        throw new Exception("Missing info section");
+
+    Dictionary&lt;string,object&gt; info = (Dictionary&lt;string,object&gt;)obj["info"];
+
+    if (info == null)
+        throw new Exception("error");
+
+    List&lt;FileItem&gt; files = new List&lt;FileItem&gt;();
+
+    if (info.ContainsKey("name") &amp;&amp; info.ContainsKey("length"))
+    {
+        files.Add(new FileItem() {
+            Path = DecodeUTF8String(info["name"]),
+            Size = (long)info["length"]
+        });
+    }
+    else if (info.ContainsKey("files"))
+    {
+        long running = 0;
+
+        foreach (object item in (List&lt;object&gt;)info["files"])
+        {
+            var dict = item as Dictionary&lt;string,object&gt;;
+
+            if (dict == null || !dict.ContainsKey("path") || !dict.ContainsKey("length") )
+                throw new Exception("error: incorrect file specification");
+
+            string path = String.Join(Path.DirectorySeparatorChar.ToString(), ((List&lt;object&gt;)dict["path"]).Select(x =&gt; DecodeUTF8String(x)));
+
+            long size = (long)dict["length"];
+
+            files.Add(new FileItem() {
+                Path = path,
+                Size = size,
+                Offset = running
+            });
+
+            running += size;
+        }
+    }
+    else
+    {
+        throw new Exception("error: no files specified in torrent");
+    }
+        
+    if (!info.ContainsKey("piece length"))
+        throw new Exception("error");
+    int pieceSize = Convert.ToInt32(info["piece length"]);
+
+    if (!info.ContainsKey("pieces"))
+        throw new Exception("error");            
+    byte[] pieceHashes = (byte[])info["pieces"];
+
+    bool? isPrivate = null;
+    if (info.ContainsKey("private"))
+        isPrivate = ((long)info["private"]) == 1L;            
+    
+    Torrent torrent = new Torrent(name, downloadPath, files, trackers, pieceSize, pieceHashes, 16384, isPrivate );
+
+    if (obj.ContainsKey("comment"))
+        torrent.Comment = DecodeUTF8String(obj["comment"]);
+
+    if (obj.ContainsKey("created by"))
+        torrent.CreatedBy = DecodeUTF8String(obj["created by"]);
+
+    if (obj.ContainsKey("creation date"))
+        torrent.CreationDate = UnixTimeStampToDateTime(Convert.ToDouble(obj["creation date"]));
+
+    if (obj.ContainsKey("encoding"))
+        torrent.Encoding = Encoding.GetEncoding(DecodeUTF8String(obj["encoding"]));
+    
+    return torrent;
+}</code></pre>
+
+        <h3>ایجاد</h3>
+
+        <p>اگر بخواهیم خودمان یک تورنت جدید بسازیم، می‌توانیم از متد استاتیک <code>Create()</code> استفاده کنیم؛ می‌توانید مسیر یک فایل یا یک پوشه را وارد کنید.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static Torrent Create(string path, List&lt;string&gt; trackers = null, int pieceSize = 32768, string comment = "")
+{
+    string name = "";
+    List&lt;FileItem&gt; files = new List&lt;FileItem&gt;();
+
+    if (File.Exists(path))
+    {
+        name = Path.GetFileName(path);
+
+        long size = new FileInfo(path).Length;
+        files.Add(new FileItem()
+            {
+                Path = Path.GetFileName(path),
+                Size = size
+            });
+    }
+    else
+    {
+        name = path;
+        string directory = path + Path.DirectorySeparatorChar;
+
+        long running = 0;
+        foreach (string file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
+        {
+            string f = file.Substring(directory.Length);
+
+            if (f.StartsWith("."))
+                continue;
+
+            long size = new FileInfo(file).Length;
+
+            files.Add(new FileItem()
+                {
+                    Path = f,
+                    Size = size,
+                    Offset = running
+                });
+            
+            running += size;
+        }
+    }
+
+    Torrent torrent = new Torrent(name, "", files, trackers, pieceSize);
+    torrent.Comment = comment;
+    torrent.CreatedBy = "TestClient";
+    torrent.CreationDate = DateTime.Now;
+    torrent.Encoding = Encoding.UTF8;
+
+    return torrent;
+}</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>ترکرها (Trackers)</h2>
+
+        <p>خب، وقتی همه اطلاعات تورنت آماده شد، چطور همتاهایی برای اتصال پیدا کنیم؟ به دو دلیل باید به tracker متصل شویم. اول اینکه فهرستی از همتاها به ما می‌دهد که می‌توانیم فوراً برای اتصال به آن‌ها تلاش کنیم. دوم اینکه ما را به فهرست همتاهایش اضافه می‌کند تا همتاهای جدید آینده بتوانند آدرس IP و شماره پورت ما را به‌دست آورند. همچنین پیشرفت فعلی دریافت فایل را به آن اطلاع می‌دهیم تا بتواند تعداد seederها و leecherها را برای اطلاع‌رسانی پیگیری کند.</p>
+
+        <h3>اعلام (Announcing)</h3>
+
+        <p>ابتدایی‌ترین نسخه یک tracker، سرور HTTP با یک endpoint است. tracker opentracker که به‌صورت محلی اجرا می‌کنیم از endpoint ی <code>http://localhost:6969/announce</code> استفاده می‌کند. چند پارامتر وجود دارد که باید به درخواست HTTP GET اضافه کنیم:</p>
+
+        <ul><li><strong>info_hash:</strong> infohash تورنت ما. هر بایت خامی که روی آدرس اثر می‌گذارد باید escape شود؛ ویژگی <code>UrlSafeStringInfohash</code> ما این را فراهم می‌کند.</li><li><strong>peer_id:</strong> رشته ۲۰ بایتی برای شناسایی خودمان. بیشتر کلاینت‌ها از چند کاراکتر اول برای شناسایی برنامه و نسخه‌اش استفاده می‌کنند و بعد چند کاراکتر تصادفی. ما فقط از رشته‌ای از اعداد تصادفی استفاده می‌کنیم.</li><li><strong>port:</strong> پورتی که برای اتصال‌های ورودی به آن گوش می‌دهیم.</li><li><strong>uploaded:</strong> تعداد بایت‌هایی که به همتاهای دیگر فرستاده‌ایم.</li><li><strong>downloaded:</strong> تعداد بایت‌های اعتبارسنجی‌شده‌ای که داریم.</li><li><strong>left:</strong> تعداد بایت‌هایی که برای دانلود باقی مانده است.</li><li><strong>event:</strong> وضعیت فعلی کلاینت: <code>started</code>، <code>paused</code> یا <code>stopped</code>. این‌ها به tracker می‌گویند ما را به فهرست همتاهایش اضافه یا از آن حذف کند.</li><li><strong>compact:</strong> صفر یا یک، که نشان می‌دهد فهرست همتا به‌صورت فشرده (compact) برگردد یا نه. به نظر می‌رسد نرم‌افزار opentracker مورد استفاده ما فقط با حالت فشرده کار می‌کند.</li></ul>
+
+        <p>قبل از اینکه چیزی بسازیم، می‌توانیم درخواست را با curl آزمایش کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">bash</span><code>
+$ curl -v "http://192.168.1.74:6969/announce?info_hash=%3E%09%D0%1CHHCy%CF%27%F23%24%E1%7B%BDijbD&amp;peer_id=76433642664923430920&amp;port=56723&amp;uploaded=0&amp;downloaded=0&amp;left=0&amp;event=started&amp;compact=1"
+*   Trying 192.168.1.74...
+* Connected to 192.168.1.74 (192.168.1.74) port 6969 (#0)
+&gt; GET /announce?info_hash=%3E%09%D0%1CHHCy%CF%27%F23%24%E1%7B%BDijbD&amp;peer_id=76433642664923430920&amp;port=56723&amp;uploaded=0&amp;downloaded=0&amp;left=0&amp;event=started&amp;compact=1 HTTP/1.1
+&gt; Host: 192.168.1.74:6969
+&gt; User-Agent: curl/7.43.0
+&gt; Accept: */*
+&gt; 
+&lt; HTTP/1.1 200 OK
+&lt; Content-Type: text/plain
+&lt; Content-Length: 111
+&lt; 
+* Connection #0 to host 192.168.1.74 left intact
+d8:completei2e10:downloadedi0e10:incompletei1e8:intervali1769e12:min intervali884e5:peers18:??J??Jݓ??J??e</code></pre>
+
+        <p>پاسخ، یک شیء BEncoded است. قالب‌بندی آن با فاصله‌گذاری این‌طور می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code>
+d
+  8:complete        i2e
+  10:downloaded     i0e
+  10:incomplete     i1e
+  8:interval        i1769e
+  12:min interval   i884e
+  5:peers           18:??J??Jݓ??J??
+e</code></pre>
+
+        <p>این پاسخ را آیتم‌به‌آیتم بررسی می‌کنیم:</p>
+
+        <ul><li><strong>complete:</strong> تعداد همتاهایی که فایل کامل را دارند.</li><li><strong>downloaded:</strong> نتوانستم هیچ مستنداتی برای این مورد پیدا کنم.</li><li><strong>incomplete:</strong> تعداد همتاهایی که فایل کامل را ندارند (leecherها).</li><li><strong>interval:</strong> فرکانسی که کلاینت باید فهرست به‌روز همتا را از tracker درخواست کند.</li><li><strong>min interval:</strong> (اختیاری) حداقل فرکانسی که کلاینت باید فهرست به‌روز همتا را درخواست کند.</li><li><strong>peers:</strong> با گزینه فشرده، این یک <code>byte[]</code> است. هر ۶ بایت یک همتاست — چهار تای اول، چهار عدد آدرس IPv4 و دو تای آخر یک عدد big endian هستند که شماره پورت را نشان می‌دهند.</li></ul>
+
+        <p>برویم جلو و این فراخوانی را در کد خودمان بازسازی کنیم. ابتدا یک enum ساده برای انواع رویداد tracker می‌سازیم:</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public enum TrackerEvent
+{
+    Started,
+    Paused,
+    Stopped
+}</code></pre>
+
+        <p>سپس می‌توانیم به کلاس <code>Tracker</code> برگردیم و منطق اعلام را اضافه کنیم. متد <code>Update()</code> ما آدرس url لازم را می‌سازد. یک بررسی اضافه کرده‌ام که از درخواست زیاد و مکرر همتاهای جدید جلوگیری کند. برای بازنشانی این ساعت نیز به یک متد عمومی نیاز خواهیم داشت.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public DateTime LastPeerRequest { get; private set; } = DateTime.MinValue;
+public TimeSpan PeerRequestInterval { get; private set; } = TimeSpan.FromMinutes(30);
+
+public void Update(Torrent torrent, TrackerEvent ev, string id, int port)
+{
+    // قبل از درخواست همتاهای جدید، صبر می‌کنیم بازه درخواست سپری شود
+    if (ev == TrackerEvent.Started &amp;&amp; DateTime.UtcNow &lt; LastPeerRequest.Add(PeerRequestInterval))
+        return;
+
+    LastPeerRequest = DateTime.UtcNow;
+
+    string url = String.Format("{0}?info_hash={1}&amp;peer_id={2}&amp;port={3}&amp;uploaded={4}&amp;downloaded={5}&amp;left={6}&amp;event={7}&amp;compact=1", 
+                     Address, torrent.UrlSafeStringInfohash,
+                     id, port,
+                     torrent.Uploaded, torrent.Downloaded, torrent.Left, 
+                     Enum.GetName(typeof(TrackerEvent), ev).ToLower());
+    
+    Request(url);
+}
+
+public void ResetLastRequest()
+{
+    LastPeerRequest = DateTime.MinValue;
+}</code></pre>
+
+        <p>متد <code>Request()</code> درخواست واقعی HTTP را می‌سازد. متد <code>HttpWebResponse.BeginGetResponse</code> غیرهمزمان است، پس ترد را معلق نمی‌کند. فقط یک متد callback (به نام <code>HandleResponse</code>) تعیین می‌کنیم که وقتی tracker پاسخ داد صدا زده شود. پس از آن، <code>byte[]</code> برگشتی را می‌خوانیم و با <code>BEncoding.Decode()</code> پردازشش می‌کنیم. در پایان، فاصله درخواست و فهرست همتاها را تجزیه می‌کنیم و رویداد <code>PeerListUpdated</code> را صادر می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void Request( string url )
+{
+    httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(url);
+    httpWebRequest.BeginGetResponse(HandleResponse, null);
+}
+
+private void HandleResponse(IAsyncResult result)
+{
+    byte[] data;
+
+    using (HttpWebResponse response = (HttpWebResponse)httpWebRequest.EndGetResponse(result))
+    {
+        if (response.StatusCode != HttpStatusCode.OK)
+        {
+            Console.WriteLine("error reaching tracker " + this + ": " + response.StatusCode + " " + response.StatusDescription);
+            return;
+        }
+    
+        using (Stream stream = response.GetResponseStream())
+        {
+            data = new byte[response.ContentLength];
+            stream.Read(data, 0, Convert.ToInt32(response.ContentLength));
+        }
+    }
+
+    Dictionary&lt;string,object&gt; info = BEncoding.Decode(data) as Dictionary&lt;string,object&gt;;
+
+    if (info == null)
+    {
+        Console.WriteLine("unable to decode tracker announce response");
+        return;
+    }
+
+    PeerRequestInterval = TimeSpan.FromSeconds((long)info["interval"]);
+    byte[] peerInfo = (byte[])info["peers"];
+        
+    List&lt;IPEndPoint&gt; peers = new List&lt;IPEndPoint&gt;();
+    for (int i = 0; i &lt; peerInfo.Length/6; i++)
+    {
+        int offset = i * 6;
+        string address = peerInfo[offset] + "." + peerInfo[offset+1] + "." + peerInfo[offset+2] + "." + peerInfo[offset+3];
+        int port = EndianBitConverter.Big.ToChar(peerInfo, offset + 4);
+
+        peers.Add(new IPEndPoint(IPAddress.Parse(address), port));
+    }
+
+    var handler = PeerListUpdated;
+    if (handler != null)
+        handler(this, peers);
+}</code></pre>
+
+        <p>این‌جا کار کلاس Tracker تمام می‌شود. یک متد به کلاس <code>Torrent</code> اضافه می‌کنیم تا همه trackerهای داخل آن را به‌روز کند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public void UpdateTrackers(TrackerEvent ev, string id, int port)
+{
+    foreach (var tracker in Trackers)
+        tracker.Update(this, ev, id, port);
+}
+
+public void ResetTrackersLastUpdated()
+{}</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>همتاها (Peers)</h2>
+
+        <p>همتاها به‌طور مستقیم با یکدیگر ارتباط برقرار می‌کنند و اتصالات TCP باز می‌کنند که امکان ارسال و دریافت هم‌زمان پیام‌ها را فراهم می‌کند.</p>
+
+        <h3>ساختار</h3>
+
+        <p>چیزهای زیادی داخلش هست، اما وقتی تجزیه‌اش کنید چندان بد نیست. چند رویداد داریم که وقتی همتا قطع می‌شود، وضعیتش تغییر می‌کند یا درخواست‌/رسیدن داده رخ می‌دهد، صادر می‌شوند. چند متغیر شبکه TCP ذخیره می‌کنیم که بایت‌های ورودی از همتا را پردازش می‌کنند. سپس متغیرهایی داریم که وضعیت و پیشرفت همتا را ذخیره می‌کنند. همچنین درخواست‌های داده‌ای را که انجام داده‌ایم و منتظر پاسخشان هستیم پیگیری می‌کنیم. در نهایت هم چند متغیر برای پیگیری حجم داده‌ای که بین ما جابه‌جا شده وجود دارد.</p>
+
+        <p>کتابخانه <code>MiscUtil</code> جان اسکیت (Jon Skeet) را برای برخی متدهای تبدیل import می‌کنم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Linq;
+using System.Text;
+using System.IO;
+using MiscUtil.Conversion;
+
+namespace BitTorrent
+{
+    public class Peer
+    {
+        public event EventHandler Disconnected;
+        public event EventHandler StateChanged;
+        public event EventHandler&lt;DataRequest&gt; BlockRequested;
+        public event EventHandler&lt;DataRequest&gt; BlockCancelled;
+        public event EventHandler&lt;DataPackage&gt; BlockReceived;
+
+        public string LocalId { get; set; }
+        public string Id { get; set; }
+
+        public Torrent Torrent { get; private set; }
+
+        public IPEndPoint IPEndPoint { get; private set; }
+        public string Key { get { return IPEndPoint.ToString(); } }
+
+        private TcpClient TcpClient { get; set; }
+        private NetworkStream stream { get; set; }
+        private const int bufferSize = 256;
+        private byte[] streamBuffer = new byte[bufferSize];
+        private List&lt;byte&gt; data = new List&lt;byte&gt;();
+
+        public bool[] IsPieceDownloaded = new bool[0];
+        public string PiecesDownloaded { get { return String.Join("", IsPieceDownloaded.Select(x =&gt; Convert.ToInt32(x))); } }
+        public int PiecesRequiredAvailable { get { return IsPieceDownloaded.Select((x, i) =&gt; x &amp;&amp; !Torrent.IsPieceVerified[i]).Count(x =&gt; x); } }
+        public int PiecesDownloadedCount { get { return IsPieceDownloaded.Count(x =&gt; x); } }
+        public bool IsCompleted { get { return PiecesDownloadedCount == Torrent.PieceCount; } }
+
+        public bool IsDisconnected;
+
+        public bool IsHandshakeSent;
+        public bool IsPositionSent;
+        public bool IsChokeSent = true;
+        public bool IsInterestedSent = false;
+
+        public bool IsHandshakeReceived;
+        public bool IsChokeReceived = true;
+        public bool IsInterestedReceived = false;
+
+        public bool[][] IsBlockRequested = new bool[0][];
+        public int BlocksRequested { get { return IsBlockRequested.Sum(x =&gt; x.Count(y =&gt; y)); } }
+
+        public DateTime LastActive;
+        public DateTime LastKeepAlive = DateTime.MinValue;
+
+        public long Uploaded;
+        public long Downloaded;
+    }
+}</code></pre>
+
+        <p>یک همتا به دو روش می‌تواند ساخته شود — یا اتصال را ما باز می‌کنیم (پس فقط یک <code>IPEndPoint</code> برای اتصال مشخص می‌کنیم) یا اتصال را آن‌ها باز می‌کنند (پس یک <code>TcpClient</code> جدید می‌پذیریم).</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public Peer(Torrent torrent, string localId, TcpClient client) : this(torrent, localId)
+{            
+    TcpClient = client;
+    IPEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
+}
+
+public Peer(Torrent torrent, string localId, IPEndPoint endPoint): this(torrent, localId)
+{
+    IPEndPoint = endPoint;
+}
+
+private Peer(Torrent torrent, string localId)
+{
+    LocalId = localId;
+    Torrent = torrent;
+
+    LastActive = DateTime.UtcNow;
+    IsPieceDownloaded = new bool[Torrent.PieceCount];
+    IsBlockRequested = new bool[Torrent.PieceCount][];
+    for (int i = 0; i &lt; Torrent.PieceCount; i++)
+        IsBlockRequested[i] = new bool[Torrent.GetBlockCount(i)];
+}</code></pre>
+
+        <h3>پروتکل</h3>
+
+        <p>پروتکل واقعی میان همتاها به اندازه کافی ساده است.</p>
+
+        <h4>دست‌دادن (Handshake)</h4>
+
+        <p>در ابتدا هر دو طرف باید یک پیام دست‌دادن ارسال کنند. این پیام هرگونه توسعه (extension) پروتکلی که می‌توانند استفاده کنند را مشخص می‌کند و همچنین تأیید می‌کند که درباره همان تورنت صحبت می‌کنند.</p>
+
+        <h4>پیشرفت (Progress)</h4>
+
+        <p>بلافاصله بعد از دست‌دادن، هر دو طرف باید پیشرفت دانلود تورنت تا این‌جای کار را به یکدیگر اطلاع دهند. هر تغییر بعدی در پیشرفت نیز باید فوراً اعلام شود.</p>
+
+        <h4>وضعیت (State)</h4>
+
+        <p>همه همتاها با وضعیت «علاقه‌مند نبودن» (not interested) و «خفه» (choked) شروع می‌کنند. اگر همتایی بخواهد داده درخواست کند، به همتای دیگر اطلاع می‌دهد که «علاقه‌مند» (interested) است. اگر آن همتا مایل به پاسخ‌گویی به درخواست‌های داده باشد، اطلاع می‌دهد که «خفه نیست» (unchoked). همتاها از این پرچم‌های وضعیت برای محدود کردن تعداد seederها و leecherهایی که به آن‌ها متصل‌اند استفاده می‌کنند تا از ازدحام جلوگیری کنند و پهنای باند را مدیریت کنند.</p>
+
+        <h4>داده (Data)</h4>
+
+        <p>پس از unchoked شدن، یک همتا می‌تواند درخواست بلاک‌های داده را شروع کند و همتای دیگر با داده درخواستی پاسخ می‌دهد. برخی همتاها ممکن است همان بلاک را از چند همتا درخواست کنند؛ پس اگر قبلاً آن را دریافت کرده باشند، می‌توانند یک درخواست داده را لغو کنند.</p>
+
+        <h3>اتصال‌ها</h3>
+
+        <p>وقتی همتای ما راه‌اندازی شد، به‌صورت غیرهمزمان منتظر داده ورودی می‌مانیم. همچنین فوراً دست‌دادن خودمان را می‌فرستیم (و position یا همان bitfield را اگر دست‌دادنشان را دریافت کرده باشیم).</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public void Connect()
+{
+    if (TcpClient == null)
+    {
+        TcpClient = new TcpClient();
+        try
+        {
+            TcpClient.Connect(IPEndPoint);
+        }
+        catch (Exception e)
+        {
+            Disconnect();
+            return;
+        }
+    }
+
+    Log.WriteLine(this, "connected");
+
+    stream = TcpClient.GetStream();
+    stream.BeginRead(streamBuffer, 0, Peer.bufferSize, new AsyncCallback(HandleRead), null);
+
+    SendHandshake();
+    if (IsHandshakeReceived)
+        SendBitfield(Torrent.IsPieceVerified);
+}</code></pre>
+
+        <p>هیچ پروتکلی برای قطع اتصال از یک همتا وجود ندارد، غیر از بستن اتصال TCP. ما نیز رویداد <code>Disconnected</code> خودمان را صادر می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public void Disconnect()
+{
+    if (!IsDisconnected)
+    {
+        IsDisconnected = true;
+        Log.WriteLine(this, "disconnected, down " + Downloaded + ", up " + Uploaded);
+    }
+
+    if (TcpClient != null)
+        TcpClient.Close();
+
+    if (Disconnected != null)
+        Disconnected(this, new EventArgs());
+}</code></pre>
+
+        <h3>ورودی/خروجی (IO)</h3>
+
+        <p>برای ارسال بایت‌ها کافی است در stream شبکه بنویسیم. هیچ راهی برای تشخیص باز یا بسته بودن اتصال TCP وجود ندارد، پس آن را در <code>try...catch</code> می‌گذاریم تا اگر بسته بود مشکل ایجاد نشود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void SendBytes(byte[] bytes)
+{
+    try
+    {
+        stream.Write(bytes, 0, bytes.Length);
+    }
+    catch(Exception e)
+    {
+        Disconnect();
+    }
+}</code></pre>
+
+        <p>هر بار که از stream می‌خوانیم، بایت‌های ورودی را به یک لیست اضافه می‌کنیم. وقتی بایت‌های کافی داشته باشیم، طول پیام را شناسایی می‌کنیم و منتظر می‌مانیم تا دریافت شود. وقتی یک پیام کامل دریافت شد، آن را برای رمزگشایی و پردازش تحویل می‌دهیم. اگر در یک read چندین پیام دریافت شود، میان آن‌ها حلقه می‌زنیم و همه را پردازش می‌کنیم تا تمام شوند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandleRead( IAsyncResult ar )
+{            
+    int bytes = 0;
+    try
+    {
+        bytes = stream.EndRead(ar);
+    }
+    catch (Exception e)
+    {
+        Disconnect();
+        return;
+    }
+       
+    data.AddRange(streamBuffer.Take(bytes));
+
+    int messageLength = GetMessageLength(data);
+    while (data.Count &gt;= messageLength)
+    {
+        HandleMessage(data.Take(messageLength).ToArray());
+        data = data.Skip(messageLength).ToList();
+
+        messageLength = GetMessageLength(data);
+    }
+
+    try
+    {
+        stream.BeginRead(streamBuffer, 0, Peer.bufferSize, new AsyncCallback(HandleRead), null);
+    }
+    catch (Exception e)
+    {
+        Disconnect();
+    }
+}
+
+private int GetMessageLength(List&lt;byte&gt; data)
+{
+    if (!IsHandshakeReceived)
+        return 68;
+
+    if (data.Count &lt; 4)
+        return int.MaxValue;
+
+    return EndianBitConverter.Big.ToInt32(data.ToArray(), 0) + 4;
+}</code></pre>
+
+        <h3>انواع پیام</h3>
+
+        <p>ده نوع پیام وجود دارد که یک بایت شناسایی‌کننده دارند؛ دو نوع باقی‌مانده بدیهی فرض شده‌اند. نوع پیام با یک بایت تعریف می‌شود. قرار است آن را به‌صورت enum از نوع int اعلام کنیم تا بتوانیم از چند مقدار منفی اول برای نشان دادن یکی از آن دو نوع دیگر استفاده کنیم. نمی‌خواستم آن را byte نگه دارم و از بالاترین مقادیر ممکن (۲۵۵ و پایین‌تر) برای انواع اعلام‌نشده‌مان استفاده کنم، چون ممکن است آن مقادیر برای انواع پیام جدید در یک مشخصات آینده تعریف شوند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public enum MessageType : int
+{
+    Unknown = -3,
+    Handshake = -2,
+    KeepAlive = -1,
+    Choke = 0,
+    Unchoke = 1,
+    Interested = 2,
+    NotInterested = 3,
+    Have = 4,
+    Bitfield = 5,
+    Request = 6,
+    Piece = 7,
+    Cancel = 8,
+    Port = 9,
+}</code></pre>
+
+        <h3>رمزگذاری و رمزگشایی</h3>
+
+        <h4>دست‌دادن</h4>
+
+        <p>اولین پیام دریافت‌شده از یک همتای جدید باید پیام دست‌دادن باشد. این پیام شامل پرچم‌هایی درباره ویژگی‌هایی است که همتا پشتیبانی می‌کند، شناسه کلاینت و تأیید infohash تورنت.</p>
+
+        <p>توجه کنید برخلاف همه پیام‌های دیگر، طول دست‌دادن به‌صورت یک بایت واحد تعریف شده است، نه int (۴ بایت)، و همیشه ۱۹ تنظیم می‌شود، حتی اگر پیام دست‌دادن ۶۸ بایت طول داشته باشد.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/handshake.png" alt="ساختار پیام دست‌دادن (در اتریبیوت‌های هدر: طول، پروتکل، پرچم‌های رزروشده، infohash و peer id)" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:228px" />
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static bool DecodeHandshake(byte[] bytes, out byte[] hash, out string id)
+{
+    hash = new byte[20];
+    id = "";
+
+    if (bytes.Length != 68 || bytes[0] != 19)
+    {
+        Log.WriteLine("invalid handshake, must be of length 68 and first byte must equal 19");
+        return false;
+    }
+
+    if (Encoding.UTF8.GetString(bytes.Skip(1).Take(19).ToArray()) != "BitTorrent protocol")
+    {
+        Log.WriteLine("invalid handshake, protocol must equal \"BitTorrent protocol\"");
+        return false;
+    }
+
+    // پرچم‌ها
+    //byte[] flags = bytes.Skip(20).Take(8).ToArray();
+
+    hash = bytes.Skip(28).Take(20).ToArray();
+
+    id = Encoding.UTF8.GetString(bytes.Skip(48).Take(20).ToArray());
+
+    return true;
+}
+
+public static byte[] EncodeHandshake(byte[] hash, string id)
+{
+    byte[] message = new byte[68];
+    message[0] = 19;
+    Buffer.BlockCopy(Encoding.UTF8.GetBytes("BitTorrent protocol"), 0, message, 1, 19);
+    Buffer.BlockCopy(hash,0, message, 28, 20);
+    Buffer.BlockCopy(Encoding.UTF8.GetBytes(id), 0, message, 48, 20);
+
+    return message;
+}</code></pre>
+
+        <h4>زنده‌نگه‌داشتن (Keep Alive)</h4>
+
+        <p>پیام keep-alive به سادگی پیامی بدون بدنه است؛ یعنی طول آن صفر است.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/keep-alive.png" alt="ساختار پیام keep-alive با طول صفر" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:118px" />
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static bool DecodeKeepAlive(byte[] bytes)
+{            
+    if (bytes.Length != 4 || EndianBitConverter.Big.ToInt32(bytes,0) != 0 )
+    {
+        Log.WriteLine("invalid keep alive");
+        return false;
+    }
+    return true;
+}
+
+public static byte[] EncodeKeepAlive()
+{
+    return EndianBitConverter.Big.GetBytes(0);
+}</code></pre>
+
+        <h4>وضعیت</h4>
+
+        <p>چهار پیام وضعیت، ۱ بایت طول دارند که همین بایت، MessageType و در نتیجه تغییر وضعیت را نشان می‌دهد. پیام زیر یک پیام not-interested است.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/state.png" alt="ساختار پیام‌های وضعیت مانند not-interested" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:123px" />
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static bool DecodeChoke(byte[] bytes)
+{            
+    return DecodeState(bytes, MessageType.Choke);
+}
+
+public static bool DecodeUnchoke(byte[] bytes)
+{            
+    return DecodeState(bytes, MessageType.Unchoke);
+}
+
+public static bool DecodeInterested(byte[] bytes)
+{            
+    return DecodeState(bytes, MessageType.Interested);
+}
+
+public static bool DecodeNotInterested(byte[] bytes)
+{            
+    return DecodeState(bytes, MessageType.NotInterested);
+}
+
+public static bool DecodeState(byte[] bytes, MessageType type)
+{            
+    if (bytes.Length != 5 || EndianBitConverter.Big.ToInt32(bytes, 0) != 1 || bytes[4] != (byte)type)
+    {
+        Log.WriteLine("invalid " + Enum.GetName(typeof(MessageType), type));
+        return false;
+    }
+    return true;
+}
+
+public static byte[] EncodeChoke() 
+{
+    return EncodeState(MessageType.Choke);
+}
+
+public static byte[] EncodeUnchoke() 
+{
+    return EncodeState(MessageType.Unchoke);
+}
+
+public static byte[] EncodeInterested()
+{
+    return EncodeState(MessageType.Interested);
+}
+
+public static byte[] EncodeNotInterested() 
+{
+    return EncodeState(MessageType.NotInterested);
+}
+
+public static byte[] EncodeState(MessageType type) 
+{
+    byte[] message = new byte[5];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(1), 0, message, 0, 4);
+    message[4] = (byte)type;
+    return message;
+}</code></pre>
+
+        <h4>پیشرفت</h4>
+
+        <p>پیام <code>have</code> ایندکس قطعه‌ای را مشخص می‌کند که همتا اعلام می‌کند دانلود و اعتبارسنجی‌اش را تکمیل کرده است.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/have.png" alt="ساختار پیام have با ایندکس قطعه" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:114px" />
+
+        <p>پیام <code>bitfield</code> راه سریعی برای اعلام پیشرفت همتاست و معمولاً درست بعد از دست‌دادن ارسال می‌شود. کمی سخت‌تر است. بعد از بایت نوع، هر بیت مشخص می‌کند که همتا قطعه‌ای را در آن ایندکس دانلود کرده است یا نه.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/bitfield.png" alt="ساختار پیام bitfield با یک بیت برای هر قطعه" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:115px" />
+
+        <p>پس در مثال بالا، مقدار بایت ۲۰۰ است. اگر آن را به باینری تبدیل کنیم، به این می‌رسیم:</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code>
+11001000</code></pre>
+
+        <p>در این مثال خاص، همتا اعلام می‌کند اولین، دومین و پنجمین قطعه را دانلود کرده است. اگر تعداد قطعه‌ها بر ۸ بخش‌پذیر نباشد، انتهای bitfield با صفر پر می‌شود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static bool DecodeHave(byte[] bytes, out int index)
+{
+    index = -1;
+
+    if (bytes.Length != 9 || EndianBitConverter.Big.ToInt32(bytes, 0) != 5)
+    {
+        Log.WriteLine("invalid have, first byte must equal 0x2");
+        return false;
+    }
+
+    index = EndianBitConverter.Big.ToInt32(bytes, 5);
+
+    return true;
+}
+
+public static bool DecodeBitfield(byte[] bytes, int pieces, out bool[] isPieceDownloaded)
+{
+    isPieceDownloaded = new bool[pieces];
+
+    int expectedLength = Convert.ToInt32(Math.Ceiling(pieces / 8.0)) + 1;
+
+    if (bytes.Length != expectedLength + 4 || EndianBitConverter.Big.ToInt32(bytes,0) != expectedLength)
+    {
+        Log.WriteLine("invalid bitfield, first byte must equal " + expectedLength);
+        return false;
+    }
+
+    BitArray bitfield = new BitArray(bytes.Skip(5).ToArray());
+
+    for (int i = 0; i &lt; pieces; i++)
+        isPieceDownloaded[i] = bitfield[bitfield.Length - 1 - i];
+
+    return true;
+}
+
+public static byte[] EncodeHave(int index) 
+{            
+    byte[] message = new byte[9];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(5), 0, message, 0, 4);
+    message[4] = (byte)MessageType.Have;
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(index), 0, message, 5, 4);
+
+    return message;
+}
+
+public static byte[] EncodeBitfield(bool[] isPieceDownloaded) 
+{
+    int numPieces = isPieceDownloaded.Length;
+    int numBytes = Convert.ToInt32(Math.Ceiling(numPieces / 8.0));
+    int numBits = numBytes * 8;
+
+    int length = numBytes + 1;
+
+    byte[] message = new byte[length + 4];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(length), 0, message, 0, 4);
+    message[4] = (byte)MessageType.Bitfield;
+
+    bool[] downloaded = new bool[numBits];
+    for (int i = 0; i &lt; numPieces; i++)
+        downloaded[i] = isPieceDownloaded[i];
+
+    BitArray bitfield = new BitArray(downloaded);
+    BitArray reversed = new BitArray(numBits);
+    for (int i = 0; i &lt; numBits; i++)
+        reversed[i] = bitfield[numBits - i - 1];
+
+    reversed.CopyTo(message, 5);
+
+    return message;
+}</code></pre>
+
+        <h4>داده</h4>
+
+        <p>یک بلاک داده می‌تواند توسط یک همتا درخواست شود؛ همتا ایندکس قطعه، یک offset بایتی و تعداد بایت‌های برگشتی را مشخص می‌کند.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/request.png" alt="ساختار پیام درخواست بلاک (request)" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:115px" />
+
+        <p>پیام <code>cancel</code> با پیام <code>request</code> متناظر یکسان است، به‌جز نوع پیام.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/cancel.png" alt="ساختار پیام لغو درخواست (cancel)" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:116px" />
+
+        <p>یک همتا با پیام <code>piece</code> به درخواست پاسخ می‌دهد. نام‌گذاری کمی گیج‌کننده است، چون در واقع یک بلاک می‌فرستد، نه یک قطعه. همان ایندکس قطعه و offset بایتی را مشخص می‌کند و سپس داده خام را حمل می‌کند.</p>
+
+        <img src="https://media.seanjoflynn.com/images/research/bittorrent/piece.png" alt="ساختار پیام ارسال داده (piece)" style="max-width:100%;border-radius:12px;border:1px solid var(--line);max-height:117px" />
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public static bool DecodeRequest(byte[] bytes, out int index, out int begin, out int length)
+{
+    index = -1;
+    begin = -1;
+    length = -1;
+
+    if (bytes.Length != 17 || EndianBitConverter.Big.ToInt32(bytes,0) != 13)
+    {
+        Log.WriteLine("invalid request message, must be of length 17");
+        return false;
+    }
+
+    index = EndianBitConverter.Big.ToInt32(bytes, 5);
+    begin = EndianBitConverter.Big.ToInt32(bytes, 9);
+    length = EndianBitConverter.Big.ToInt32(bytes, 13);
+
+    return true;
+}
+
+public static bool DecodePiece(byte[] bytes, out int index, out int begin, out byte[] data)
+{
+    index = -1;
+    begin = -1;
+    data = new byte[0];
+
+    if (bytes.Length &lt; 13)
+    {
+        Log.WriteLine("invalid piece message");
+        return false;
+    }
+
+    int length = EndianBitConverter.Big.ToInt32(bytes, 0) - 9;
+    index = EndianBitConverter.Big.ToInt32(bytes, 5);
+    begin = EndianBitConverter.Big.ToInt32(bytes, 9);
+
+    data = new byte[length];
+    Buffer.BlockCopy(bytes, 13, data, 0, length);
+
+    return true;
+}
+
+public static bool DecodeCancel(byte[] bytes, out int index, out int begin, out int length)
+{
+    index = -1;
+    begin = -1;
+    length = -1;
+
+    if (bytes.Length != 17 || EndianBitConverter.Big.ToInt32(bytes,0) != 13)
+    {
+        Log.WriteLine("invalid cancel message, must be of length 17");
+        return false;
+    }
+
+    index = EndianBitConverter.Big.ToInt32(bytes, 5);
+    begin = EndianBitConverter.Big.ToInt32(bytes, 9);
+    length = EndianBitConverter.Big.ToInt32(bytes, 13);
+
+    return true;
+}
+        
+public static byte[] EncodeRequest(int index, int begin, int length) 
+{
+    byte[] message = new byte[17];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(13), 0, message, 0, 4);
+    message[4] = (byte)MessageType.Request;
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(index), 0, message, 5, 4);
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(begin), 0, message, 9, 4);
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(length), 0, message, 13, 4);
+
+    return message;
+}
+
+public static byte[] EncodePiece(int index, int begin, byte[] data) 
+{
+    int length = data.Length + 9;
+
+    byte[] message = new byte[length + 4];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(length), 0, message, 0, 4);
+    message[4] = (byte)MessageType.Piece;
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(index), 0, message, 5, 4);
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(begin), 0, message, 9, 4);
+    Buffer.BlockCopy(data, 0, message, 13, data.Length);
+
+    return message;
+}
+
+public static byte[] EncodeCancel(int index, int begin, int length) 
+{
+    byte[] message = new byte[17];
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(13), 0, message, 0, 4);
+    message[4] = (byte)MessageType.Cancel;
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(index), 0, message, 5, 4);
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(begin), 0, message, 9, 4);
+    Buffer.BlockCopy(EndianBitConverter.Big.GetBytes(length), 0, message, 13, 4);
+
+    return message;
+}</code></pre>
+
+        <h3>ارسال پیام‌ها</h3>
+
+        <p>هر همتا متدهایی برای ارسال هر نوع پیام دارد که عموماً فقط برای به‌روزرسانی وضعیت داخلی و ثبت ارتباط (log) به کار می‌روند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void SendHandshake()
+{
+    if (IsHandshakeSent)
+        return;
+
+    Log.WriteLine(this, "-&gt; handshake" );
+    SendBytes(EncodeHandshake(Torrent.Infohash, LocalId));
+    IsHandshakeSent = true;
+}
+
+public void SendKeepAlive()
+{
+    if( LastKeepAlive &gt; DateTime.UtcNow.AddSeconds(-30) )
+        return;
+
+    Log.WriteLine(this, "-&gt; keep alive" );
+    SendBytes(EncodeKeepAlive());
+    LastKeepAlive = DateTime.UtcNow;
+}
+
+public void SendChoke() 
+{
+    if (IsChokeSent)
+        return;
+    
+    Log.WriteLine(this, "-&gt; choke" );
+    SendBytes(EncodeChoke());
+    IsChokeSent = true;
+}
+
+public void SendUnchoke() 
+{
+    if (!IsChokeSent)
+        return;
+    
+    Log.WriteLine(this, "-&gt; unchoke" );
+    SendBytes(EncodeUnchoke());
+    IsChokeSent = false;
+}
+
+public void SendInterested()
+{
+    if (IsInterestedSent)
+        return;
+    
+    Log.WriteLine(this, "-&gt; interested");
+    SendBytes(EncodeInterested());
+    IsInterestedSent = true;
+}
+
+public void SendNotInterested() 
+{
+    if (!IsInterestedSent)
+        return;
+
+    Log.WriteLine(this, "-&gt; not interested");
+    SendBytes(EncodeNotInterested());
+    IsInterestedSent = false;
+}
+
+public void SendHave(int index) 
+{
+    Log.WriteLine(this, "-&gt; have " + index);
+    SendBytes(EncodeHave(index));
+}
+
+public void SendBitfield(bool[] isPieceDownloaded) 
+{
+    Log.WriteLine(this, "-&gt; bitfield " + String.Join("", isPieceDownloaded.Select(x =&gt; x ? 1 : 0)));
+    SendBytes(EncodeBitfield(isPieceDownloaded));
+}
+
+public void SendRequest(int index, int begin, int length) 
+{
+    Log.WriteLine(this, "-&gt; request " + index + ", " + begin + ", " + length);
+    SendBytes(EncodeRequest(index, begin, length));
+}
+
+public void SendPiece(int index, int begin, byte[] data) 
+{
+    Log.WriteLine(this, "-&gt; piece " + index + ", " + begin + ", " + data.Length);
+    SendBytes(EncodePiece(index, begin, data));
+    Uploaded += data.Length;
+}
+
+public void SendCancel(int index, int begin, int length) 
+{
+    Log.WriteLine(this, "-&gt; cancel");
+    SendBytes(EncodeCancel(index, begin, length));
+}</code></pre>
+
+        <h3>دریافت پیام‌ها</h3>
+
+        <p>ابتدا می‌توانیم متدی بسازیم که <code>byte[]</code> ورودی ما را می‌گیرد و <code>MessageType</code> آن را برمی‌گرداند. بررسی می‌کنیم که پیام ورودی یکی از دو نوعی باشد که به‌صورت ضمنی اعلام نشده‌اند. پیام دست‌دادن باید اولین پیام دریافت‌شده از یک همتا باشد. دومی پیام keep-alive است که به سادگی یک پیام خالی است (یعنی هدر int طول روی ۰ تنظیم شده). در غیر این صورت، بایت بعد از int طول، یعنی بایت پنجم، نوع پیام را شناسایی می‌کند و می‌توانیم آن را به enum <code>MessageType</code> خودمان cast کنیم. اگر نتوانیم نوع پیام را تشخیص دهیم، آن را <code>Unknown</code> اعلام می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private MessageType GetMessageType(byte[] bytes)
+{
+    if (!IsHandshakeReceived)
+        return MessageType.Handshake;
+
+    if (bytes.Length == 4 &amp;&amp; EndianBitConverter.Big.ToInt32(bytes, 0) == 0)
+        return MessageType.KeepAlive;
+
+    if (bytes.Length &gt; 4 &amp;&amp; Enum.IsDefined(typeof(MessageType), (int)bytes[4]))
+        return (MessageType)bytes[4];
+
+    return MessageType.Unknown;
+}</code></pre>
+
+        <p>اینجا بخش اصلی است. این متد پیام ورودی ما را می‌گیرد، نوعش را شناسایی، رمزگشایی و سپس به متد مدیریت‌کننده (handler) مناسب منتقل می‌کند. متوجه خواهید شد که اگر پیام از نوع ناشناس باشد، کافی است نادیده‌اش بگیریم — اگر روی آن exception بیندازیم، برنامه ما نمی‌تواند هیچ نوع پیام احتمالی آینده را مدیریت کند، حتی آن‌هایی که با نسخه‌های قبل سازگارند. برای توابع رمزگشایی از پارامترهای <code>out</code> استفاده می‌کنیم، چون بسیاری از پیام‌ها چند مقدار دارند و از این طریق می‌توانیم یک bool برگردانیم که نشان دهد پیام با موفقیت رمزگشایی شده یا نه. اگر هر پیامی با موفقیت رمزگشایی نشود، فوراً از آن همتا قطع می‌شویم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandleMessage(byte[] bytes)
+{
+    LastActive = DateTime.UtcNow;
+
+    MessageType type = GetMessageType(bytes);
+
+    if (type == MessageType.Unknown)
+    {
+        return;   
+    }
+    else if (type == MessageType.Handshake)
+    {
+        byte[] hash;
+        string id;
+        if (DecodeHandshake(bytes, out hash, out id))
+        {
+            HandleHandshake(hash, id);
+            return;
+        }
+    }
+    else if (type == MessageType.KeepAlive &amp;&amp; DecodeKeepAlive(bytes))
+    {
+        HandleKeepAlive();
+        return;
+    }
+    else if (type == MessageType.Choke &amp;&amp; DecodeChoke(bytes))
+    {
+        HandleChoke();
+        return;
+    }
+    else if (type == MessageType.Unchoke &amp;&amp; DecodeUnchoke(bytes))
+    {
+        HandleUnchoke();
+        return;
+    }
+    else if (type == MessageType.Interested &amp;&amp; DecodeInterested(bytes))
+    {                
+        HandleInterested();
+        return;
+    }
+    else if (type == MessageType.NotInterested &amp;&amp; DecodeNotInterested(bytes))
+    {
+        HandleNotInterested();
+        return;
+    }
+    else if (type == MessageType.Have)
+    {
+        int index;
+        if (DecodeHave(bytes, out index))
+        {
+            HandleHave(index);
+            return;
+        }                
+    }
+    else if (type == MessageType.Bitfield)
+    {
+        bool[] isPieceDownloaded;
+        if (DecodeBitfield(bytes, IsPieceDownloaded.Length, out isPieceDownloaded))
+        {
+            HandleBitfield(isPieceDownloaded);
+            return;
+        }
+    }
+    else if (type == MessageType.Request)
+    {
+        int index;
+        int begin;
+        int length;
+        if (DecodeRequest(bytes, out index, out begin, out length))
+        {
+            HandleRequest(index, begin, length);
+            return;
+        }
+    }
+    else if (type == MessageType.Piece)
+    {
+        int index;
+        int begin;
+        byte[] data;
+        if (DecodePiece(bytes, out index, out begin, out data))
+        {
+            HandlePiece(index, begin, data);
+            return;
+        }
+    }
+    else if (type == MessageType.Cancel)
+    {
+        int index;
+        int begin;
+        int length;
+        if (DecodeCancel(bytes, out index, out begin, out length))
+        {
+            HandleCancel(index, begin, length);
+            return;
+        }
+    }
+    else if (type == MessageType.Port)
+    {
+        Log.WriteLine(this, " &lt;- port: " + String.Join("", bytes.Select(x =&gt; x.ToString("x2"))));
+        return;
+    }
+
+    Log.WriteLine(this, " Unhandled incoming message " + String.Join("", bytes.Select(x =&gt; x.ToString("x2"))));
+    Disconnect();
+}</code></pre>
+
+        <p>متدهای مدیریت هر نوع پیام نسبتاً ساده‌اند. دست‌دادن فقط infohash را تأیید و شناسه همتا را تنظیم می‌کند. متد keep alive هیچ کاری نمی‌کند، چون متغیر <code>LastActive</code> را روی هر نوع پیامی به‌روز می‌کنیم. پیام port را نادیده می‌گیریم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandleHandshake(byte[] hash, string id)
+{
+    Log.WriteLine(this, "&lt;- handshake");
+
+    if (!Torrent.Infohash.SequenceEqual(hash))
+    {
+        Log.WriteLine(this, "invalid handshake, incorrect torrent hash: expecting=" + Torrent.HexStringInfohash + ", received =" + String.Join("", hash.Select(x =&gt; x.ToString("x2"))));
+        Disconnect();
+        return;
+    }
+
+    Id = id;
+
+    IsHandshakeReceived = true;
+    SendBitfield(Torrent.IsPieceVerified);
+}            
+
+private void HandleKeepAlive() 
+{
+    Log.WriteLine(this, "&lt;- keep alive");
+}
+
+private void HandlePort(int port) 
+{
+    Log.WriteLine(this, "&lt;- port");
+}</code></pre>
+
+        <p>انواع پیام وضعیت و پیشرفت فقط پرچم‌های وضعیت یا متغیرهای پیشرفت را به‌روز می‌کنند و بعد رویداد <code>StateChanged</code> را صادر می‌کنند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandleChoke() 
+{
+    Log.WriteLine(this, "&lt;- choke");
+    IsChokeReceived = true;
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}
+
+private void HandleUnchoke() 
+{
+    Log.WriteLine(this, "&lt;- unchoke");
+    IsChokeReceived = false;
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}
+
+private void HandleInterested() 
+{
+    Log.WriteLine(this, "&lt;- interested");
+    IsInterestedReceived = true;
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}
+
+private void HandleNotInterested() 
+{
+    Log.WriteLine(this, "&lt;- not interested");
+    IsInterestedReceived = false;
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}
+
+private void HandleHave(int index)
+{
+    IsPieceDownloaded[index] = true;
+    Log.WriteLine(this, "&lt;- have " + index + " - " + PiecesDownloadedCount + " available (" + PiecesDownloaded + ")");
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}
+
+private void HandleBitfield(bool[] isPieceDownloaded)
+{
+    for (int i = 0; i &lt; Torrent.PieceCount; i++)
+        IsPieceDownloaded[i] = IsPieceDownloaded[i] || isPieceDownloaded[i];
+
+    Log.WriteLine(this, "&lt;- bitfield " + PiecesDownloadedCount + " available (" + PiecesDownloaded + ")");
+
+    var handler = StateChanged;
+    if (handler != null)
+        handler(this, new EventArgs());
+}</code></pre>
+
+        <p>دو کلاس ساده می‌سازیم: یکی برای پیگیری درخواست‌هایی که دریافت می‌کنیم و باید پردازش شوند، و دیگری برای پیگیری داده ورودی‌ای که دریافت کرده‌ایم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public class DataRequest
+{
+    public Peer Peer;
+    public int Piece;
+    public int Begin;
+    public int Length;
+    public bool IsCancelled;
+}
+
+public class DataPackage
+{
+    public Peer Peer;
+    public int Piece;
+    public int Block;
+    public byte[] Data;
+}</code></pre>
+
+        <p>پیام‌های داده، رویدادهای مربوط به خودشان را صادر می‌کنند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandleRequest(int index, int begin, int length)
+{
+    Log.WriteLine(this, "&lt;- request " + index + ", " + begin + ", " + length);
+
+    var handler = BlockRequested;
+    if (handler != null)
+    {
+        handler(this, new DataRequest()
+            {
+                Peer = this,
+                Piece = index,
+                Begin = begin,
+                Length = length
+            });
+    }
+}
+
+private void HandlePiece(int index, int begin, byte[] data) 
+{
+    Log.WriteLine(this, "&lt;- piece " + index + ", " + begin + ", " + data.Length);
+    Downloaded += data.Length;
+
+    var handler = BlockReceived;
+    if (handler != null)
+    {
+        handler(this, new DataPackage()
+            {
+                Peer = this,
+                Piece = index,
+                Block = begin / Torrent.BlockSize,
+                Data = data
+            });
+    }
+}
+
+private void HandleCancel(int index, int begin, int length) 
+{
+    Log.WriteLine(this, " &lt;- cancel");
+
+    var handler = BlockCancelled;
+    if (handler != null)
+    {
+        handler(this, new DataRequest()
+            {
+                Peer = this,
+                Piece = index,
+                Begin = begin,
+                Length = length
+            });
+    }
+}</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>کلاینت (Client)</h2>
+
+        <p>کلاینت پنج هدف اصلی دارد:</p>
+
+        <ul><li>خواندن یک فایل تورنت.</li><li>درخواست فهرست همتا از trackerها و آگاه نگه‌داشتن آن‌ها از پیشرفت ما.</li><li>اتصال به همتاها و پذیرش اتصال‌های ورودی از همتاها. آن‌ها را از پیشرفت خود آگاه نگه می‌دارد.</li><li>انتخاب تعدادی leecher که اجازه می‌دهیم از ما داده درخواست کنند. درخواست‌های داده آن‌ها را پردازش می‌کنیم اما حجم داده آپلودشده را محدود می‌کنیم.</li><li>انتخاب تعدادی seeder برای درخواست داده (در صورت نیاز). وقتی ما را به‌عنوان leecher پذیرفتند، انتخاب می‌کنیم کدام بلاک‌ها را درخواست کنیم، درخواست‌های این بلاک‌ها را می‌فرستیم و هنگام دریافت، پردازششان می‌کنیم.</li></ul>
+
+        <p>بیایید با ساختن یک کلاس ساده <code>Client</code> شروع کنیم. از <code>ConcurrentDictionary&lt;string,Peer&gt;</code> استفاده می‌کنیم چون تردهای مختلفی داریم که روی این فهرست‌ها حلقه می‌زنند و ممکن است در تردهای دیگر بخواهیم همتا اضافه یا حذف کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Linq;
+using System.Threading;
+
+namespace BitTorrent
+{
+    public class Client
+    {
+        public int Port { get; private set; }
+        public Torrent Torrent { get; private set; }
+
+        public string Id { get; private set; }
+
+        private Random random = new Random();
+
+        public Client(int port, string torrentPath, string downloadPath)
+        {
+            // تولید شناسه تصادفی عددی
+            Id = "";
+            for (int i = 0; i &lt; 20; i++)
+                Id += (random.Next(0, 10));
+
+            Port = port;
+
+            Torrent = Torrent.LoadFromFile(torrentPath, downloadPath);
+            Torrent.PieceVerified += HandlePieceVerified;
+            Torrent.PeerListUpdated += HandlePeerListUpdated;
+
+            Log.WriteLine(Torrent);
+        }
+    }
+}</code></pre>
+
+        <h3>رشته‌ها</h3>
+
+        <p>چهار ترد از خودمان در کلاینت راه می‌اندازیم. تردهای مختلف دیگری هم در برنامه اجرا می‌شوند که بیشترشان IO شبکه غیرهمزمان هستند. متدهای <code>Start()</code> و <code>Stop()</code> این چهار ترد را کنترل می‌کنند و هر ترد جنبه متفاوتی از کلاینت را کنترل می‌کند:</p>
+
+        <ul><li>به‌روزرسانی trackerها</li><li>انتخاب leecherها و seederها</li><li>انتخاب قطعه‌ها برای درخواست و محدودسازی دانلودها</li><li>پردازش درخواست‌ها و محدودسازی آپلودها</li></ul>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private bool isStopping;
+private int isProcessPeers = 0;
+private int isProcessUploads = 0;
+private int isProcessDownloads = 0;
+
+public void Start()
+{
+    Log.WriteLine("starting client");
+
+    isStopping = false;
+
+    Torrent.ResetTrackersLastRequest();
+
+    EnablePeerConnections();
+
+    // ترد ترکر
+    new Thread(new ThreadStart(() =&gt;
+            {
+                while (!isStopping)
+                {
+                    Torrent.UpdateTrackers(TrackerEvent.Started, Id, Port);
+                    Thread.Sleep(10000);
+                }
+            })).Start();
+
+    // ترد همتاها
+    new Thread(new ThreadStart(() =&gt;
+            { 
+                while (!isStopping)
+                {
+                    ProcessPeers();
+                    Thread.Sleep(1000);
+                }
+            })).Start();
+
+    // ترد آپلود
+    new Thread(new ThreadStart(() =&gt;
+            { 
+                while (!isStopping)
+                {
+                    ProcessUploads();
+                    Thread.Sleep(1000);
+                }
+            })).Start();
+
+    // ترد دانلود
+    new Thread(new ThreadStart(() =&gt;
+            { 
+                while (!isStopping)
+                {
+                    ProcessDownloads();
+                    Thread.Sleep(1000);
+                }
+            })).Start();
+}
+
+public void Stop()
+{
+    Log.WriteLine("stopping client");
+
+    isStopping = true;
+    DisablePeerConnections();
+    Torrent.UpdateTrackers(TrackerEvent.Stopped, Id, Port);
+}</code></pre>
+
+        <h3>همتاها</h3>
+
+        <p>باید به‌روزرسانی فهرست همتای ورودی از tracker را مدیریت کنیم. ابتدا یک ویژگی کمکی استاتیک داریم که آدرس IP خودمان را می‌دهد — نمی‌خواهیم به خودمان متصل شویم. وقتی فهرست <code>IPEndPoint</code>ها را دریافت می‌کنیم، برای هر کدام یک <code>Peer</code> جدید می‌سازیم که تلاش می‌کند به آن endpoint متصل شود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+public ConcurrentDictionary Peers { get; } = new ConcurrentDictionary();
+public ConcurrentDictionary Seeders { get; } = new ConcurrentDictionary();
+public ConcurrentDictionary Leechers { get; } = new ConcurrentDictionary();
+
+private static IPAddress LocalIPAddress
+{
+    get
+    {
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+                return ip;                
+        }
+        throw new Exception("Local IP Address Not Found!");
+    }
+}
+
+private void HandlePeerListUpdated(object sender, List endPoints)
+{
+    IPAddress local = LocalIPAddress;
+
+    foreach(var endPoint in endPoints)
+    {
+        if (endPoint.Address.Equals(local) &amp;&amp; endPoint.Port == Port)
+            continue;
+        
+        AddPeer(new Peer(Torrent, Id, endPoint));
+    }
+
+    Log.WriteLine("received peer information from " + (Tracker)sender);
+    Log.WriteLine("peer count: " + Peers.Count);
+}</code></pre>
+
+        <p>روش دوم به‌دست آوردن همتاهای جدید این است که آن‌ها به ما متصل شوند. باید پورتی باز کنیم که منتظر اتصال‌های TCP ورودی باشد. از متد غیرهمزمان <code>TcpListener.BeginAcceptTcpClient()</code> استفاده می‌کنیم تا ترد فعلی‌مان مسدود نشود. متد callback ما یعنی <code>HandleNewConnection</code>، <code>TcpClient</code> جدید را دریافت می‌کند و از آن یک <code>Peer</code> جدید می‌سازد. سپس دوباره شروع به گوش دادن به اتصال‌های ورودی جدید می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private TcpListener listener;
+  
+private void EnablePeerConnections()
+{
+    listener = new TcpListener(new IPEndPoint(IPAddress.Any, Port));
+    listener.Start();
+    listener.BeginAcceptTcpClient(new AsyncCallback(HandleNewConnection), null);
+
+    Log.WriteLine("started listening for incoming peer connections on port " + Port);
+}
+
+private void HandleNewConnection(IAsyncResult ar)
+{
+    if (listener == null)
+        return;
+
+    TcpClient client = listener.EndAcceptTcpClient(ar);
+    listener.BeginAcceptTcpClient(new AsyncCallback(HandleNewConnection), null);
+
+    AddPeer(new Peer(Torrent, Id, client));
+}</code></pre>
+
+        <p>متد <code>DisablePeerConnections()</code> به سادگی گوش دادن روی آن پورت را متوقف می‌کند و همه همتاهای متصل را قطع می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void DisablePeerConnections()
+{
+    listener.Stop();
+    listener = null;
+
+    foreach (var peer in Peers)
+        peer.Value.Disconnect();
+
+    Log.WriteLine("stopped listening for incoming peer connections on port " + Port);
+}</code></pre>
+
+        <p>هر وقت همتای جدیدی داریم، باید رویدادهایش را به handlerهای خودمان وصل و به فهرست همتاهایمان اضافه کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void AddPeer(Peer peer)
+{
+    peer.BlockRequested += HandleBlockRequested;
+    peer.BlockCancelled += HandleBlockCancelled;
+    peer.BlockReceived += HandleBlockReceived;
+    peer.Disconnected += HandlePeerDisconnected;
+    peer.StateChanged += HandlePeerStateChanged;
+
+    peer.Connect();
+
+    if (!Peers.TryAdd(peer.Key, peer))
+        peer.Disconnect();
+}</code></pre>
+
+        <p>وقتی همتایی قطع می‌شود (توسط هر یک از دو طرف)، از رویدادهایش unsubscribe می‌کنیم. اگر این کار را نکنیم، شیء توسط زباله‌روب (garbage collector) حذف نخواهد شد.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandlePeerDisconnected(object sender, EventArgs args)
+{            
+    Peer peer = sender as Peer;
+
+    peer.BlockRequested -= HandleBlockRequested;
+    peer.BlockCancelled -= HandleBlockCancelled;
+    peer.BlockReceived -= HandleBlockReceived;
+    peer.Disconnected -= HandlePeerDisconnected;
+    peer.StateChanged -= HandlePeerStateChanged;
+
+    Peer tmp;
+    Peers.TryRemove(peer.Key, out tmp);
+    Seeders.TryRemove(peer.Key, out tmp);
+    Leechers.TryRemove(peer.Key, out tmp);
+}</code></pre>
+
+        <p>وقتی وضعیت یک همتا تغییر می‌کند یا قطعه‌ای را اعتبارسنجی کرده‌ایم، باید فهرست همتاهایمان را دوباره پردازش کنیم. در مورد قطعه اعتبارسنجی‌شده، باید پیشرفتمان را نیز به آن اطلاع دهیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void HandlePeerStateChanged(object sender, EventArgs args)
+{
+    ProcessPeers();
+}
+
+private void HandlePieceVerified (object sender, int index)
+{
+    ProcessPeers();
+
+    foreach (var peer in Peers)
+    {
+        if (!peer.Value.IsHandshakeReceived || !peer.Value.IsHandshakeSent)
+            continue;
+
+        peer.Value.SendHave(index);
+    }
+}</code></pre>
+
+        <p>چند پارامتر hardcode کرده‌ام که احتمالاً باید به‌صورت ویژگی (property) باشند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private static int maxLeechers = 5;
+private static int maxSeeders = 5;
+
+private static int maxUploadBytesPerSecond = 16384;
+private static int maxDownloadBytesPerSecond = 16384;
+
+private static TimeSpan peerTimeout = TimeSpan.FromSeconds(30);</code></pre>
+
+        <p>متد <code>ProcessPeers()</code> وضعیت ما را با هر همتا به‌روز می‌کند و تصمیم می‌گیرد چه کسی برای leech شدن و چه کسی برای seed شدن انتخاب شود.</p>
+
+        <ul><li>همتاهایی را که در یک بازه زمانی مشخص هیچ پیامی برایمان نفرستاده‌اند از بین می‌برد.</li><li>پرچم interested/not interested را بسته به اینکه دانلودمان تمام شده یا نه به‌روز می‌کند.</li><li>اگر هر دو تمام شده باشیم، قطع می‌کند، چون کاری برای انجام دادن نداریم.</li><li>در صورت نیاز پیام keep alive می‌فرستد.</li><li>seederها را تا رسیدن به maxSeeders انتخاب می‌کند. همتاها بر اساس تعداد قطعه‌هایی که دارند و ما همچنان به آن‌ها نیاز داریم مرتب می‌شوند. قبلاً اعلام کرده‌ایم که interested هستیم، پس اگر هرکدام ما را unchoke کند، به فهرست seederهایمان اضافه می‌شود.</li><li>leecherها را تا رسیدن به maxLeechers انتخاب می‌کند. اگر اعلام کرده‌اند که interested هستند، unchokeشان می‌کنیم. مرتب‌سازی همتاها احتمالاً برای انتخاب leecher منصفانه نیست.</li></ul>
+
+        <p>این متد از <code>Interlocked.Exchange</code> استفاده می‌کند تا از اجرای هم‌زمان آن روی بیش از یک ترد جلوگیری شود.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private void ProcessPeers()
+{
+    if (Interlocked.Exchange(ref isProcessPeers, 1) == 1)
+        return;
+
+    foreach (var peer in Peers.OrderByDescending(x =&gt; x.Value.PiecesRequiredAvailable))
+    {
+        if (DateTime.UtcNow &gt; peer.Value.LastActive.Add(peerTimeout))
+        {                    
+            peer.Value.Disconnect();
+            continue;
+        }
+
+        if (!peer.Value.IsHandshakeSent || !peer.Value.IsHandshakeReceived)
+            continue;
+
+        if (Torrent.IsCompleted)
+            peer.Value.SendNotInterested();
+        else
+            peer.Value.SendInterested();
+
+        if (peer.Value.IsCompleted &amp;&amp; Torrent.IsCompleted)
+        {
+            peer.Value.Disconnect();
+            continue;
+        }
+
+        peer.Value.SendKeepAlive();
+
+        // بگذارید از ما leech کنند (داده بگیرند)
+        if (Torrent.IsStarted &amp;&amp; Leechers.Count &lt; maxLeechers)
+        {
+            if (peer.Value.IsInterestedReceived &amp;&amp; peer.Value.IsChokeSent)
+                peer.Value.SendUnchoke();                
+        }
+
+        // درخواست leech کردن (داده گرفتن)
+        if (!Torrent.IsCompleted &amp;&amp; Seeders.Count &lt;= maxSeeders)
+        {
+            if(!peer.Value.IsChokeReceived )
+                Seeders.TryAdd(peer.Key, peer.Value);
+        }
+    }
+
+    Interlocked.Exchange(ref isProcessPeers, 0);
+}</code></pre>
+
+        <h3>محدودساز ترافیک (Throttle)</h3>
+
+        <p>از یک کلاس بسیار ساده به نام <code>Throttle</code> استفاده می‌کنم تا کلاینت از محدودیت‌های پهنای باند تعیین‌شده عبور نکند. حداکثر تعداد بایت در یک بازه زمانی مشخص را تعیین می‌کنید. آیتم‌ها هنگام افزودن به فهرست timestamp می‌شوند و به محض اینکه دیگر در پنجره زمانی نباشند، از فهرست حذف می‌شوند. برای ایمنی ترد از <code>lock</code> استفاده می‌کنم. بررسی اینکه throttle شده‌ایم یا نه، بر عهده کاربر است. همچنین فقط وقتی محدودیت عبور می‌کند پرچم throttle شدن را می‌زند (به‌جای اینکه درست پیش از آنکه آیتمی باعث عبور از محدودیت شود).</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace BitTorrent
+{
+    public class Throttle
+    {
+        public long MaximumSize { get; private set; }
+        public TimeSpan MaximumWindow { get; private set; }
+
+        internal struct Item
+        {
+            public DateTime Time;
+            public long Size;
+        }
+
+        private object itemLock = new object();
+        private List&lt;Item&gt; items = new List&lt;Item&gt;();
+
+        public Throttle(int maxSize, TimeSpan maxWindow)
+        {
+            MaximumSize = maxSize;
+            MaximumWindow = maxWindow;
+        }
+
+        public void Add(long size)
+        {
+            lock (itemLock)
+            {
+                items.Add(new Item() { Time = DateTime.UtcNow, Size = size });
+            }
+        }
+
+        public bool IsThrottled
+        {
+            get
+            { 
+                lock (itemLock)
+                {
+                    DateTime cutoff = DateTime.UtcNow.Add(-this.MaximumWindow);
+                    items.RemoveAll(x =&gt; x.Time &lt; cutoff);
+                    return items.Sum(x =&gt; x.Size) &gt;= MaximumSize;
+                }
+            }
+        }
+    }
+}</code></pre>
+
+        <h3>آپلودها</h3>
+
+        <p>درخواست‌های داده ورودی را در یک <code>ConcurrentQueue&lt;DataRequest&gt;</code> ذخیره می‌کنیم. چون نمی‌توانیم یک آیتم لغوشده را از هر جای صف حذف کنیم، آن را با پرچم <code>IsCancelled</code> علامت‌گذاری می‌کنیم تا هنگام پردازش نادیده‌اش بگیریم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private ConcurrentQueue&lt;DataRequest&gt; OutgoingBlocks = new ConcurrentQueue&lt;DataRequest&gt;();
+  
+private void HandleBlockRequested(object sender, DataRequest block)
+{
+    OutgoingBlocks.Enqueue(block);
+
+    ProcessUploads();
+}
+
+private void HandleBlockCancelled(object sender, DataRequest block)
+{
+    foreach (var item in OutgoingBlocks)
+    {
+        if (item.Peer != block.Peer || item.Piece != block.Piece || item.Begin != block.Begin || item.Length != block.Length)
+            continue;
+
+        item.IsCancelled = true;
+    }
+
+    ProcessUploads();
+}</code></pre>
+
+        <p>پردازش صف خروجی یک حلقه while ساده است که آیتم‌ها را از بالای صف برمی‌دارد، بررسی می‌کند لغو نشده و ما آن قطعه را داریم، سپس آن را می‌خواند و می‌فرستد.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private Throttle uploadThrottle = new Throttle(maxUploadBytesPerSecond, TimeSpan.FromSeconds(1));
+
+private void ProcessUploads()
+{
+    if (Interlocked.Exchange(ref isProcessUploads, 1) == 1)
+        return;
+
+    DataRequest block;
+    while (!uploadThrottle.IsThrottled &amp;&amp; OutgoingBlocks.TryDequeue(out block))
+    {
+        if (block.IsCancelled)
+            continue;
+
+        if (!Torrent.IsPieceVerified[block.Piece])
+            continue;            
+
+        byte[] data = Torrent.ReadBlock(block.Piece, block.Begin, block.Length);
+        if (data == null)
+            continue;
+
+        block.Peer.SendPiece(block.Piece, block.Begin, data);
+        uploadThrottle.Add(block.Length);
+        Torrent.Uploaded += block.Length;
+    }
+
+    Interlocked.Exchange(ref isProcessUploads, 0);
+}</code></pre>
+
+        <h3>دانلودها</h3>
+
+        <p>وقتی بلاک داده‌ای از یک همتا دریافت می‌کنیم، آن را برای پردازش به <code>ConcurrentQueue&lt;DataPackage&gt;</code> می‌فشاریم. همچنین هر درخواست دیگری برای همان بلاک از سایر همتاها را لغو می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private ConcurrentQueue&lt;DataPackage&gt; IncomingBlocks = new ConcurrentQueue&lt;DataPackage&gt;();
+  
+private void HandleBlockReceived(object sender, DataPackage args)
+{
+    IncomingBlocks.Enqueue(args);
+
+    args.Peer.IsBlockRequested[args.Piece][args.Block] = false;
+
+    foreach(var peer in Peers)
+    {
+        if (!peer.Value.IsBlockRequested[args.Piece][args.Block])
+            continue;
+
+        peer.Value.SendCancel(args.Piece, args.Block * Torrent.BlockSize, Torrent.BlockSize);
+        peer.Value.IsBlockRequested[args.Piece][args.Block] = false;
+    }
+
+    ProcessDownloads();
+}</code></pre>
+
+        <p>متد <code>ProcessDownloads()</code> کمی طولانی‌تر از متد آپلود است. ابتدا روی صف ورودی حلقه می‌زنیم و هر داده ورودی را روی دیسک می‌نویسیم. اگر دانلود تمام شده باشد، به کار دیگری نیاز نداریم.</p>
+
+        <p>اگر تمام نشده باشیم، باید قطعه‌هایی را که می‌خواهیم درخواست کنیم رتبه‌بندی کنیم و بعد seederهایی را که از آن‌ها درخواست می‌کنیم رتبه‌بندی کنیم. در این نسخه، درخواست‌های خود را به یک درخواست در هر زمان برای هر کلاینت محدود می‌کنیم. همچنین هر قطعه را فقط از یک کلاینت درخواست می‌کنیم، نه چند کلاینت. بلاک‌های هر قطعه را به‌صورت ترتیبی درخواست می‌کنیم و درخواست‌هایمان محدود (throttle) می‌شوند.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private Throttle downloadThrottle = new Throttle(maxDownloadBytesPerSecond, TimeSpan.FromSeconds(1));
+
+private void ProcessDownloads()
+{
+    if (Interlocked.Exchange(ref isProcessDownloads, 1) == 1)
+        return;
+
+    DataPackage incomingBlock;
+    while (IncomingBlocks.TryDequeue(out incomingBlock))
+        Torrent.WriteBlock(incomingBlock.Piece, incomingBlock.Block, incomingBlock.Data);
+
+    if (Torrent.IsCompleted)
+    {
+        Interlocked.Exchange(ref isProcessDownloads, 0);
+        return;
+    }
+
+    int[] ranked = GetRankedPieces();
+
+    foreach (var piece in ranked)
+    {
+        if (Torrent.IsPieceVerified[piece])
+            continue;
+
+        foreach (var peer in GetRankedSeeders())
+        {
+            if (!peer.IsPieceDownloaded[piece])
+                continue;
+
+            // فقط بلاک‌ها را به ترتیب درخواست می‌کنیم
+            for (int block = 0; block &lt; Torrent.GetBlockCount(piece); block++)
+            {                        
+                if (downloadThrottle.IsThrottled)
+                    continue;
+
+                if(Torrent.IsBlockAcquired[piece][block])
+                    continue;
+
+                // از هر همتا فقط یک بلاک در هر بار درخواست می‌کنیم
+                if (peer.BlocksRequested &gt; 0)
+                    continue;
+
+                // فقط از یک همتا در هر بار درخواست می‌کنیم
+                if (Peers.Count(x =&gt; x.Value.IsBlockRequested[piece][block]) &gt; 0)
+                    continue;
+
+                int size = Torrent.GetBlockSize(piece, block);
+                peer.SendRequest(piece, block * Torrent.BlockSize, size);
+                downloadThrottle.Add(size);
+                peer.IsBlockRequested[piece][block] = true;
+            }
+        }
+    }
+
+    Interlocked.Exchange(ref isProcessDownloads, 0);
+}</code></pre>
+
+        <p>اول به متد رتبه‌بندی seeder نگاه می‌کنیم چون آسان‌تر است: کافی است seederهای انتخاب‌شده را به‌صورت تصادفی مرتب کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private Peer[] GetRankedSeeders()
+{
+    return Seeders.Values.OrderBy(x =&gt; random.Next(0, 100)).ToArray();
+}</code></pre>
+
+        <p>هنگام تصمیم‌گیری درباره قطعه‌هایی که باید دانلود شوند، سه بخش اطلاعات را ترکیب می‌کنیم تا برای هر قطعه امتیازی بگیریم و سپس قطعه‌ها را بر اساس امتیازشان مرتب می‌کنیم. آن سه بخش اطلاعات عبارت‌اند از:</p>
+
+        <ul><li>پیشرفت ما با آن قطعه، یعنی چند بلاک از قطعه را به‌دست آورده‌ایم. می‌خواهیم تکمیل قطعه‌های کامل را اولویت بدهیم تا بتوانیم آن‌ها را اعتبارسنجی و بعد seed کنیم.</li><li>نایابی (کمیابی) قطعه، یعنی چند همتا آن قطعه را دارند. می‌خواهیم قطعه‌های نایاب را اولویت بدهیم، چون ممکن است آن seederها قطع شوند.</li><li>یک مقدار تصادفی تا همه کلاینت‌ها اگر در همان سطح پیشرفت باشند، همان قطعه‌ها را درخواست نکنند.</li></ul>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+private int[] GetRankedPieces()
+{
+    var indexes = Enumerable.Range(0, Torrent.PieceCount).ToArray();
+    var scores = indexes.Select(x =&gt; GetPieceScore(x)).ToArray();
+        
+    Array.Sort(scores, indexes);
+    Array.Reverse(indexes);
+
+    return indexes;
+}
+
+private double GetPieceScore(int piece)
+{
+    double progress = GetPieceProgress(piece);
+    double rarity = GetPieceRarity(piece);
+
+    if( progress == 1.0 )
+        progress = 0;
+
+    double rand = random.Next(0,100) / 1000.0;
+
+    return progress + rarity + rand;
+}
+
+private double GetPieceProgress(int index)
+{
+    return Torrent.IsBlockAcquired[index].Average(x =&gt; x ? 1.0 : 0.0);
+}
+
+private double GetPieceRarity(int index)
+{
+    if(Peers.Count &lt; 1 )
+        return 0.0;
+
+    return Peers.Average(x =&gt; x.Value.IsPieceDownloaded[index] ? 0.0 : 1.0);
+}</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>برنامه (Program)</h2>
+
+        <p>آخر از همه، کد برنامه. یک برنامه خط فرمان است که سه آرگومان می‌گیرد:</p>
+
+        <ul><li>شماره پورت</li><li>فایل تورنت</li><li>مسیر دانلود تورنت</li></ul>
+
+        <p>این برنامه فقط آرگومان‌ها را اعتبارسنجی می‌کند، کلاینت را شروع می‌کند و بعد منتظر می‌ماند تا کاربر آن را متوقف کند. چون روی OS X هستم، از کتابخانه Mono برای گرفتن سیگنال‌های یونیکس استفاده می‌کنم.</p>
+
+        <pre class="code"><span class="lang-tag">cs</span><code>
+using System;
+using System.IO;
+using Mono.Unix;
+using Mono.Unix.Native;
+using BitTorrent;
+
+namespace Program
+{
+    public class Program
+    {
+        public static Client Client;
+
+        public static void Main(string[] args)
+        {
+            int port = -1;
+
+            if (args.Length != 3 || !Int32.TryParse(args[0], out port) || !File.Exists(args[1]))
+            {
+                Console.WriteLine("Error: requires port, torrent file and download directory as first, second and third arguments");
+                return;
+            }
+
+            Client = new Client(port, args[1], args[2]);
+            Client.Start();
+
+            new UnixSignal(Signum.SIGINT).WaitOne();
+            Client.Stop();
+        }
+    }
+}</code></pre>
+
+        <p>تنظیمات پروژه را هم تغییر داده‌ام تا همه باینری‌ها در پوشه <code>..\bin\$(Configuration)</code> خروجی شوند.</p>
+
+        <p>برای اجرای برنامه از ترمینال می‌توانید از این دستور استفاده کنید:</p>
+
+        <pre class="code"><span class="lang-tag">bash</span><code>
+mono client.exe 56723 lorem.torrent tmpdir</code></pre>
+
+</section>
+
+
+      <section>
+
+        <h2>تحقیقات بیشتر</h2>
+
+        <p>چند زمینه وجود دارد که احتمالاً در زمان‌های بعدی روی آن‌ها کار خواهم کرد تا سیستم در یک محیط واقعی کار کند:</p>
+
+        <ul><li>تست بهتر: هر مؤلفه باید کامل‌تر تست شود. قطعاً باگ‌های متعددی داخلش وجود دارد.</li><li>بررسی خطای بهتر: همه اطلاعات ورودی (از فایل‌های تورنت، پاسخ‌های tracker یا ارتباطات همتا) باید کامل‌تر بررسی شوند تا در صورت مخرب بودن، مشکلی ایجاد نکنند.</li><li>ویژگی‌ها و بهبودهای مختلف: توانایی مدیریت چند تورنت، توقف/راه‌اندازی مجدد/اعتبارسنجی دستی تورنت‌ها، الگوریتم‌های بهتر انتخاب قطعه و همتا.</li><li>رمزگذاری: کلاینت‌ها ارتباطاتشان را رمز می‌کنند. می‌فهمم که این بیشتر یک مبهم‌سازی (obfuscation) است تا رمزگذاری کامل، و عمدتاً برای جلوگیری از مسدود کردن یا محدودسازی ترافیک بیت‌تورنت توسط ISP پیاده‌سازی شده است.</li><li>پروتکل انتقال uTorrent (uTP): کلاینت‌ها از یک پروتکل UDP سفارشی استفاده می‌کنند که می‌تواند بدون مختل کردن سایر استفاده‌های اینترنتی کاربر، از پهنای باند موجود به‌طور کامل بهره ببرد.</li><li>تبادل همتا (PEX): همتاها فهرست همتاها را با یکدیگر به اشتراک می‌گذارند.</li><li>درخت‌های هش توزیع‌شده (DHT): همتاها بدون نیاز به tracker می‌توانند یکدیگر را پیدا کنند.</li><li>لینک‌های مغناطیسی (Magnet): فقط infohash یک تورنت برای شروع آن لازم است؛ بقیه اطلاعات تورنت از همتاها دانلود می‌شود.</li></ul>
+
+      </section>
+
+      <!-- بلاک کپیرایت -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Building a BitTorrent client from scratch in C#» اثر «Sean J. O&rsquo;Flynn» است. این صفحه فقط ترجمه فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.seanjoflynn.com/research/bittorrent.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

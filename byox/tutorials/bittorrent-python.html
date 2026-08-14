@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «A BitTorrent client in Python 3.5» (Markus Eliasson)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک کلاینت بیت‌تورنت در پایتون ۳.۵</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">کلاینت بیت‌تورنت</a>
+        <span class="sep">←</span>
+        <span>یک کلاینت بیت‌تورنت در پایتون ۳.۵</span>
+      </div>
+      <h1>یک کلاینت بیت‌تورنت در پایتون ۳.۵</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://markuseliasson.se/article/bittorrent-in-python/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «A BitTorrent client in Python 3.5» نوشته «مارکوس
+          الیاسون (Markus Eliasson)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://markuseliasson.se/article/bittorrent-in-python/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>پایتون ۳.۵ پشتیبانی از ورودی/خروجی ناهمگام (asynchronous IO) را به همراه آورد؛ این قابلیت به‌نظر ترکیبی بی‌نقص
+        برای پیاده‌سازی یک کلاینت بیت‌تورنت است. این مقاله شما را با جزئیات پروتکل بیت‌تورنت آشنا می‌کند و در عین حال نشان
+        می‌دهد که چگونه یک کلاینت کوچک با استفاده از آن پیاده‌سازی شده است.</p>
+        <p>وقتی پایتون ۳.۵ به‌همراه ماژول جدید <code class="inline">asyncio</code> منتشر شد، کنجکاو بودم آن را امتحان کنم.
+        اخیراً تصمیم گرفتم با استفاده از <code class="inline">asyncio</code> یک کلاینت سادهٔ بیت‌تورنت پیاده‌سازی کنم —
+        همیشه به پروتکل‌های همتا‌به‌همتا (peer-to-peer) علاقه داشته‌ام و این ترکیب به‌نظر بی‌نقص می‌رسید.</p>
+        <p>نام پروژه «Pieces» است و تمام کد منبع آن در
+        <a href="https://github.com/eliasson/pieces" target="_blank" rel="noopener">GitHub</a> در دسترس است و تحت
+        مجوز Apache 2 منتشر شده است. آزاد باشید که از آن یاد بگیرید، از آن دزدی کنید، آن را بهبود دهید، به آن بخندید یا
+        آن را کاملاً نادیده بگیرید.</p>
+        <p>قبلاً یک معرفی کوتاه درباره ماژول async پایتون منتشر کرده بودم. اگر این اولین باری است که با
+        <code class="inline">asyncio</code> سروکار دارید، بهتر است ابتدا آن را مطالعه کنید.</p>
+      </section>
+
+      <!-- ==================== معرفی بیت‌تورنت ==================== -->
+      <section>
+        <h2>مقدمه‌ای بر بیت‌تورنت</h2>
+        <p>بیت‌تورنت از سال ۲۰۰۱ وجود دارد؛ زمانی که «برام کوهن» (Bram Cohen) اولین نسخهٔ پروتکل را نوشت. نقطهٔ عطف بزرگ
+        زمانی بود که سایت‌هایی مانند «The Pirate Bay» آن را برای دانلود محتوای دزدی محبوب کردند. سرویس‌های پخش آنلاین،
+        مانند نتفلیکس، شاید باعث کاهش استفادهٔ مردم از بیت‌تورنت برای دانلود فیلم شده باشند؛ اما بیت‌تورنت همچنان در تعدادی
+        از راه‌حل‌های قانونی مختلف که توزیع فایل‌های بزرگ در آن‌ها مهم است، استفاده می‌شود:</p>
+        <ul>
+          <li>فیسبوک از آن برای توزیع به‌روزرسانی‌ها در مراکز دادهٔ عظیم خود استفاده می‌کند.</li>
+          <li>آمازون S3 آن را برای دانلود فایل‌های استاتیک پیاده‌سازی کرده است.</li>
+          <li>هنوز برای دانلودهای سنتی فایل‌های بزرگ مانند توزیع‌های لینوکس استفاده می‌شود.</li>
+        </ul>
+        <p>بیت‌تورنت یک پروتکل همتا‌به‌همتا است؛ در آن، همتاها (peers) به گروهی از همتاهای دیگر (swarm) ملحق می‌شوند تا
+        تکه‌های (pieces) داده را بین یکدیگر مبادله کنند. هر همتا هم‌زمان به چندین همتای دیگر متصل است و در نتیجه هم‌زمان از
+        چندین همتا در حال دانلود یا آپلود است. این موضوع از نظر محدود کردن پهنای‌باند در مقایسه با زمانی که فایل از یک
+        سرور مرکزی دانلود می‌شود، عالی است. همچنین برای در دسترس نگه داشتن یک فایل عالی است، زیرا به آنلاین بودن یک
+        منبع واحد وابسته نیست.</p>
+        <p>یک فایل <code class="inline">.torrent</code> وجود دارد که مشخص می‌کند برای یک فایل (یا فایل‌ها) چقدر قطعه
+        (piece) وجود دارد، این قطعه‌ها چگونه باید بین همتاها مبادله شوند و همچنین کلاینت‌ها چگونه می‌توانند صحت یکپارچگی
+        این قطعه‌ها را تأیید کنند.</p>
+        <p>در طول مطالعهٔ پیاده‌سازی، بهتر است
+        <a href="https://www.bittorrent.org/beps/bep_0003.html" target="_blank" rel="noopener">مشخصات غیررسمی بیت‌تورنت</a>
+        را خوانده باشید یا در تب دیگری باز داشته باشید. بدون شک این بهترین منبع اطلاعات دربارهٔ پروتکل بیت‌تورنت است. مشخصات
+        رسمی مبهم است و برخی جزئیات را ندارد؛ بنابراین همان مشخصات غیررسمی است که باید مطالعه کنید.</p>
+
+        <div class="callout note">
+          <strong>پروژهٔ Pieces:</strong> کل کد منبع این پروژه در
+          <a href="https://github.com/eliasson/pieces" target="_blank" rel="noopener">مخزن GitHub پروژه</a> موجود است؛
+          این مقاله نسخهٔ کوتاه‌شدهٔ پیاده‌سازی را با تمرکز بر مفاهیم اصلی نشان می‌دهد.
+        </div>
+      </section>
+
+      <!-- ==================== تجزیه فایل .torrent ==================== -->
+      <section>
+        <h2>تجزیهٔ یک فایل .torrent</h2>
+        <p>اولین کاری که یک کلاینت باید انجام دهد این است که بفهمد قرار است چه چیزی را و از کجا دانلود کند. این اطلاعات همان
+        چیزی است که در فایل <code class="inline">.torrent</code> که با نام «meta-info» شناخته می‌شود ذخیره شده است. تعدادی
+        ویژگی در meta-info ذخیره می‌شود که برای پیاده‌سازی موفق یک کلاینت به آن‌ها نیاز داریم. مواردی مانند:</p>
+        <ul>
+          <li>نام فایلی که باید دانلود شود</li>
+          <li>اندازهٔ فایلی که باید دانلود شود</li>
+          <li>آدرس URL ترکر (tracker) که باید به آن متصل شویم</li>
+        </ul>
+        <p>همهٔ این ویژگی‌ها در یک فرمت باینری به نام «Bencoding» ذخیره می‌شوند.</p>
+        <p>Bencoding از چهار نوع دادهٔ مختلف پشتیبانی می‌کند: دیکشنری‌ها، لیست‌ها، اعداد صحیح و رشته‌ها — ترجمهٔ آن به
+        عبارت‌های شیء پایتون یا JSON نسبتاً آسان است.</p>
+        <p>در ادامه، bencoding به‌صورت فرم Backus-Naur توسعه‌یافته (ABNF) توصیف شده است؛ با اجازه از کتابخانهٔ Haskell:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>&lt;BE&gt;    ::= &lt;DICT&gt; | &lt;LIST&gt; | &lt;INT&gt; | &lt;STR&gt;
+
+&lt;DICT&gt;  ::= "d" 1 * (&lt;STR&gt; &lt;BE&gt;) "e"
+&lt;LIST&gt;  ::= "l" 1 * &lt;BE&gt;         "e"
+&lt;INT&gt;   ::= "i"     &lt;SNUM&gt;       "e"
+&lt;STR&gt;   ::= &lt;NUM&gt; ":" n * &lt;CHAR&gt;; که در آن n برابر &lt;NUM&gt; است
+
+&lt;SNUM&gt;  ::= "-" &lt;NUM&gt; / &lt;NUM&gt;
+&lt;NUM&gt;   ::= 1 * &lt;DIGIT&gt;
+&lt;CHAR&gt;  ::= %
+&lt;DIGIT&gt; ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"</code></pre>
+        <p>در Pieces، رمزگشایی و رمزگذاری داده‌های bencode در ماژول
+        <code class="inline">pieces.bencoding</code> پیاده‌سازی شده است.</p>
+        <p>در اینجا چند مثال از رمزگشایی دادهٔ bencode به نمایش پایتونی با استفاده از همان ماژول آورده شده است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; from pieces.bencoding import Decoder
+
+# یک مقدار عدد صحیح با کاراکتر 'i' شروع می‌شود و دنباله‌ای از
+# ارقام تا پایان‌یافتن با 'e' ادامه می‌یابد.
+&gt;&gt;&gt; Decoder(b'i123e').decode()
+123
+
+# یک مقدار رشته، با تعریف تعداد کاراکترهای داخل رشته شروع
+# می‌شود و سپس خود رشته می‌آید.
+# توجه کنید که رشتهٔ بازگشتی یک رشتهٔ باینری است، نه unicode.
+&gt;&gt;&gt; Decoder(b'12:Middle Earth').decode()
+b'Middle Earth'
+
+# یک لیست با 'l' شروع می‌شود و با هر تعداد شیء تا پایان‌یافتن
+# با 'e' ادامه می‌یابد.
+# همانند پایتون، یک لیست می‌تواند هر نوع شیئی را در خود داشته باشد.
+&gt;&gt;&gt; Decoder(b'l4:spam4:eggsi123ee').decode()
+[b'spam', b'eggs', 123]
+
+# یک دیکشنری با 'd' شروع و با 'e' پایان می‌یابد. اشیاء بین این
+# دو کاراکتر باید جفت‌هایی از رشته + شیء باشند.
+# ترتیب در دیکشنری مهم است، بنابراین از OrderedDict
+# (از پایتون 3.1) استفاده می‌شود.
+&gt;&gt;&gt; Decoder(b'd3:cow3:moo4:spam4:eggse').decode()
+OrderedDict([(b'cow', b'moo'), (b'spam', b'eggs')])</code></pre>
+        <p>به همین ترتیب، یک ساختار شیء پایتون را می‌توان با همان ماژول به یک رشتهٔ بایتی bencode رمزگذاری کرد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; from collections import OrderedDict
+&gt;&gt;&gt; from pieces.bencoding import Encoder
+
+&gt;&gt;&gt; Encoder(123).encode()
+b'i123e'
+
+&gt;&gt;&gt; Encoder('Middle Earth').encode()
+b'12:Middle Earth'
+
+&gt;&gt;&gt; Encoder(['spam', 'eggs', 123]).encode()
+bytearray(b'l4:spam4:eggsi123ee')
+
+&gt;&gt;&gt; d = OrderedDict()
+&gt;&gt;&gt; d['cow'] = 'moo'
+&gt;&gt;&gt; d['spam'] = 'eggs'
+&gt;&gt;&gt; Encoder(d).encode()
+bytearray(b'd3:cow3:moo4:spam4:eggse')</code></pre>
+        <p>این مثال‌ها را می‌توان در تست‌های واحد (unit tests) نیز یافت.</p>
+        <p>پیاده‌سازی parser کاملاً سرراست است؛ البته در این‌جا از asyncio استفاده نشده است، حتی برای خواندن فایل
+        <code class="inline">.torrent</code> از دیسک هم استفاده نشده است.</p>
+        <p>با استفاده از parser ماژول <code class="inline">pieces.bencoding</code>، بیایید فایل
+        <code class="inline">.torrent</code> توزیع محبوب لینوکس اوبونتو را باز کنیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; with open('tests/data/ubuntu-16.04-desktop-amd64.iso.torrent', 'rb') as f:
+...     meta_info = f.read()
+...     torrent = Decoder(meta_info).decode()
+...
+&gt;&gt;&gt; torrent
+OrderedDict([(b'announce', b'http://torrent.ubuntu.com:6969/announce'), (b'announce-list', [[b'http://torrent.ubuntu.com:6969/announce'], [b'http://ipv6.torrent.ubuntu.com:6969/announce']
+]), (b'comment', b'Ubuntu CD releases.ubuntu.com'), (b'creation date', 1461232732), (b'info', OrderedDict([(b'length', 1485881344), (b'name', b'ubuntu-16.04-desktop-amd64.iso'), (b'piece
+length', 524288), (b'pieces', b'\x1at\xfc\x84\xc8\xfaV\xeb\x12\x1c\xc5\xa4\x1c?\xf0\x96\x07P\x87\xb8\xb2\xa5G1\xc8L\x18\x81\x9bc\x81\xfc8*\x9d\xf4k\xe6\xdb6\xa3\x0b\x8d\xbe\xe3L\xfd\xfd4\...')]))])</code></pre>
+        <p>در این‌جا می‌توانید برخی از متا-داده‌ها را ببینید؛ مانند نام فایل مقصد
+        (<code class="inline">ubuntu-16.04-desktop-amd64.iso</code>) و اندازهٔ کل بر حسب بایت (1485881344).</p>
+        <div class="callout warn">
+          <strong>هشدار:</strong> توجه کنید که کلیدهای استفاده‌شده در OrderedDict رشته‌های باینری هستند. Bencoding یک
+          پروتکل باینری است و استفاده از رشته‌های UTF-8 به‌عنوان کلید کار نخواهد کرد!
+        </div>
+        <p>یک کلاس wrapper به نام <code class="inline">pieces.torrent.Torrent</code> که این ویژگی‌ها را در معرض دید قرار
+        می‌دهد، پیاده‌سازی شده است و رشته‌های باینری و سایر جزئیات را از بقیهٔ کلاینت مخفی می‌کند. این کلاس فقط ویژگی‌های
+        استفاده‌شده در کلاینت pieces را پیاده‌سازی می‌کند.</p>
+        <p>من به تمام ویژگی‌های موجود نمی‌پردازم؛ در عوض، بقیهٔ این مقاله به ویژگی‌هایی که در
+        <code class="inline">.torrent</code> / meta-info استفاده شده‌اند ارجاع می‌دهد.</p>
+      </section>
+
+      <!-- ==================== اتصال به ترکر ==================== -->
+      <section>
+        <h2>اتصال به ترکر (Tracker)</h2>
+        <p>حالا که می‌توانیم فایل <code class="inline">.torrent</code> را رمزگشایی کنیم و نمایش پایتونی از داده‌ها داریم،
+        باید لیستی از همتاها برای اتصال به دست آوریم. اینجاست که ترکر وارد می‌شود. ترکر یک سرور مرکزی است که وضعیت همتاهای
+        موجود برای یک تورنت مشخص را پیگیری می‌کند. یک ترکر هیچ‌کدام از داده‌های تورنت را در خود ندارد؛ فقط مشخص می‌کند
+        کدام همتاها قابل اتصال هستند و آمار آن‌ها را نگه می‌دارد.</p>
+
+        <h4>ساخت درخواست</h4>
+        <p>ویژگی <code class="inline">announce</code> در meta-info، آدرس URL ترکر برای اتصال با استفاده از پارامترهای
+        URL زیر است:</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">پارامتر</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">توضیح</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">info_hash</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">هش SHA1 از دیکشنری info موجود در فایل <code class="inline">.torrent</code></td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">peer_id</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">یک شناسهٔ یکتا که برای این کلاینت تولید شده است</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">uploaded</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">تعداد کل بایت‌های آپلودشده</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">downloaded</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">تعداد کل بایت‌های دانلودشده</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">left</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">تعداد بایت‌های باقی‌مانده برای دانلود این کلاینت</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">port</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">پورت TCP که این کلاینت روی آن گوش می‌دهد</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;direction:ltr;text-align:left"><code class="inline">compact</code></td>
+              <td style="border:1px solid var(--line);padding:8px 12px">اینکه آیا کلاینت لیست فشردهٔ (compacted) همتاها را می‌پذیرد یا نه</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>شناسهٔ <code class="inline">peer_id</code> باید دقیقاً ۲۰ بایت باشد و دو قرارداد اصلی برای نحوهٔ تولید این
+        شناسه وجود دارد. Pieces از سبک Azureus پیروی می‌کند و شناسهٔ همتا را این‌گونه تولید می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; import random
+# -شناسه ۲ کاراکتری><شماره نسخه ۴ رقمی>-<اعداد تصادفی>
+&gt;&gt;&gt; '-PC0001-' + ''.join([str(random.randint(0, 9)) for _ in range(12)])
+'-PC0001-478269329936'</code></pre>
+        <p>یک درخواست ترکر با استفاده از httpie می‌تواند این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>http GET "http://torrent.ubuntu.com:6969/announce?info_hash=%90%28%9F%D3M%FC%1C%F8%F3%16%A2h%AD%D85L%853DX&amp;peer_id=-PC0001-706887310628&amp;uploaded=0&amp;downloaded=0&amp;left=699400192&amp;port=6889&amp;compact=1"
+HTTP/1.0 200 OK
+Content-Length: 363
+Content-Type: text/plain
+Pragma: no-cache
+
+d8:completei3651e10:incompletei385e8:intervali1800e5:peers300:£¬%ËÌyOkÝ.ê@_&lt;K+Ô\ÝÁmb^TnÈÕ^AËO*ÈÕ1*ÈÕ&gt;¥³ÈÕBä)ðþ¸ÐÞ¦Ô/ãÈÕÈuÉæÈÕ
+...</code></pre>
+        <p>داده‌های پاسخ کوتاه‌سازی شده‌اند، زیرا شامل داده‌های باینری هستند که قالب‌بندی Markdown را به‌هم می‌ریزد.</p>
+        <p>از پاسخ ترکر، دو ویژگی مورد توجه هستند:</p>
+        <ul>
+          <li><b>interval</b> — فاصلهٔ زمانی بر حسب ثانیه تا زمانی که کلاینت باید یک فراخوانی announce جدید به ترکر انجام دهد.</li>
+          <li><b>peers</b> — لیست همتاها یک رشتهٔ باینری با طولی مضرب ۶ بایت است. هر همتا شامل یک آدرس IP چهاربایتی و یک
+          شمارهٔ پورت دو بایتی است (چون از فرمت فشرده استفاده می‌کنیم).</li>
+        </ul>
+        <p>بنابراین، یک فراخوانی موفق announce به ترکر، لیستی از همتاها برای اتصال به شما می‌دهد. این ممکن است همهٔ همتاهای
+        موجود در آن swarm نباشد؛ فقط همتاهایی است که ترکر به کلاینت شما برای اتصال اختصاص داده است. یک فراخوانی بعدی به
+        ترکر ممکن است به لیست دیگری از همتاها منجر شود.</p>
+
+        <h4>HTTP ناهمگام (Async HTTP)</h4>
+        <p>پایتون با پشتیبانی داخلی برای HTTP ناهمگام عرضه نمی‌شود و کتابخانهٔ محبوب من یعنی requests نیز asyncio را
+        پیاده‌سازی نکرده است. با جست‌وجو در اینترنت به‌نظر می‌رسد بیشتر افراد از aiohttp استفاده می‌کنند که هم کلاینت و هم
+        سرور HTTP را پیاده‌سازی می‌کند.</p>
+        <p>Pieces از aiohttp در کلاس <code class="inline">pieces.tracker.Tracker</code> برای ارسال درخواست HTTP به آدرس
+        announce ترکر استفاده می‌کند. نسخهٔ کوتاه‌شدهٔ آن کد این است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>async def connect(self,
+                    first: bool=None,
+                    uploaded: int=0,
+                    downloaded: int=0):
+    # ساخت پارامترهای درخواست (مانند info_hash، peer_id و ...)
+    params = { ... }
+    url = self.torrent.announce + '?' + urlencode(params)
+
+    async with self.http_client.get(url) as response:
+        # اگر پاسخ ترکر خطای 200 نبود، اتصال قطع می‌شود
+        if not response.status == 200:
+            raise ConnectionError('Unable to connect to tracker')
+        # خواندن ناهمگام بدنهٔ پاسخ باینری
+        data = await response.read()
+        # رمزگشایی پاسخ bencoded و بسته‌بندی در TrackerResponse
+        return TrackerResponse(bencoding.Decoder(data).decode())</code></pre>
+        <p>متد با استفاده از <code class="inline">async</code> اعلان شده است و از مدیر زمینهٔ ناهمگام جدید
+        <code class="inline">async with</code> استفاده می‌کند تا در حالی که فراخوانی HTTP انجام می‌شود، تعلیق شود. با توجه
+        به یک پاسخ موفق، این متد دوباره هنگام خواندن دادهٔ باینری پاسخ‌ با <code class="inline">await response.read()</code>
+        تعلیق می‌شود. در نهایت، دادهٔ پاسخ درون یک نمونهٔ <code class="inline">TrackerResponse</code> قرار می‌گیرد که لیست
+        همتاها یا در صورت خطا، یک پیام خطا را در خود دارد.</p>
+        <p>نتیجهٔ استفاده از aiohttp این است که حلقهٔ رویداد (event loop) ما آزاد است تا کارهای دیگر را زمان‌بندی کند،
+        وقتی یک درخواست معلق به ترکر داریم.</p>
+        <p>برای جزئیات کامل، کد منبع ماژول <code class="inline">pieces.tracker</code> را ببینید.</p>
+      </section>
+
+      <!-- ==================== حلقهٔ اصلی ==================== -->
+      <section>
+        <h2>حلقهٔ اصلی (The loop)</h2>
+        <p>همه‌چیز تا این‌جا واقعاً می‌توانست به‌صورت همگام (synchronous) انجام شود؛ اما حالا که قرار است به چندین همتا
+        متصل شویم، باید به سمت ناهمگامی برویم.</p>
+        <p>تابع اصلی در <code class="inline">pieces.cli</code> مسئول راه‌اندازی حلقهٔ رویداد asyncio است. اگر برخی جزئیات
+        argparse و مدیریت خطا را کنار بگذاریم، چیزی شبیه به این خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import asyncio
+
+from pieces.torrent import Torrent
+from pieces.client import TorrentClient
+
+# دریافت حلقهٔ رویداد پیش‌فرض برای این نخ
+loop = asyncio.get_event_loop()
+# ساخت کلاینت تورنت با meta-info داده شده (اینجا فایل .torrent تجزیه و اعتبارسنجی می‌شود)
+client = TorrentClient(Torrent(args.torrent))
+# ساخت یک تسک (Future) از متد ناهمگام start
+task = loop.create_task(client.start())
+
+try:
+    # اجرای حلقه رویداد تا پایان تسک
+    loop.run_until_complete(task)
+except CancelledError:
+    logging.warning('Event loop was canceled')</code></pre>
+        <p>ما با دریافت حلقهٔ رویداد پیش‌فرض برای این نخ شروع می‌کنیم. سپس <code class="inline">TorrentClient</code> را با
+        <code class="inline">Torrent</code> (meta-info) داده‌شده می‌سازیم. این کار فایل <code class="inline">.torrent</code>
+        را تجزیه می‌کند و اعتبار همه‌چیز را بررسی می‌کند.</p>
+        <p>متد ناهمگام <code class="inline">client.start()</code> را صدا می‌زنیم، آن را در یک
+        <code class="inline">asyncio.Future</code> قرار می‌دهیم و سپس آن future را اضافه می‌کنیم و به حلقهٔ رویداد
+        می‌گوییم تا زمانی که آن تسک کامل شود به اجرا ادامه دهد.</p>
+        <p>این تمام ماجراست؟ نه، واقعاً نه — ما حلقهٔ خودمان را (نه حلقهٔ رویداد) در
+        <code class="inline">pieces.client.TorrentClient</code> پیاده‌سازی کرده‌ایم که اتصالات همتاها را راه‌اندازی می‌کند،
+        فراخوانی announce را زمان‌بندی می‌کند و غیره.</p>
+        <p><code class="inline">TorrentClient</code> چیزی شبیه یک هماهنگ‌کنندهٔ کار است؛ ابتدا یک
+        <code class="inline">async.Queue</code> می‌سازد که لیست همتاهای موجود و قابل اتصال را در خود نگه می‌دارد.</p>
+        <p>سپس تعداد N نمونهٔ <code class="inline">pieces.protocol.PeerConnection</code> می‌سازد که همتاها را از صف مصرف
+        می‌کنند. این نمونه‌های <code class="inline">PeerConnection</code> منتظر می‌مانند (<code class="inline">await</code>)
+        تا وقتی همتایی در صف موجود باشد که یکی از آن‌ها بتواند به آن متصل شود (بدون مسدود کردن).</p>
+        <p>چون صف در ابتدا خالی است، هیچ <code class="inline">PeerConnection</code> کار واقعی انجام نمی‌دهد تا زمانی که
+        صف را با همتاهایی که می‌توانند به آن‌ها متصل شوند پر کنیم. این کار در یک حلقه درون
+        <code class="inline">TorrentClient.start</code> انجام می‌شود. بیایید به این حلقه نگاه کنیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>async def start(self):
+    # ساخت اتصال‌های اولیه به همتاها (تعداد MAX_PEER_CONNECTIONS)
+    self.peers = [PeerConnection(self.available_peers,
+                                    self.tracker.torrent.info_hash,
+                                    self.tracker.peer_id,
+                                    self.piece_manager,
+                                    self._on_block_retrieved)
+                    for _ in range(MAX_PEER_CONNECTIONS)]
+
+    # زمان آخرین فراخوانی announce (نشانهٔ زمانی)
+    previous = None
+    # فاصلهٔ پیش‌فرض بین فراخوانی‌های announce (بر حسب ثانیه)
+    interval = 30*60
+
+    while True:
+        # اگر همهٔ قطعه‌ها دانلود شده‌اند، توقف
+        if self.piece_manager.complete:
+            break
+        # اگر کاربر دانلود را لغو کرده باشد، توقف
+        if self.abort:
+            break
+
+        current = time.time()
+        if (not previous) or (previous + interval &lt; current):
+            # فراخوانی announce به ترکر در صورت نیاز
+            response = await self.tracker.connect(
+                first=previous if previous else False,
+                uploaded=self.piece_manager.bytes_uploaded,
+                downloaded=self.piece_manager.bytes_downloaded)
+
+            if response:
+                previous = current
+                interval = response.interval
+                self._empty_queue()
+                # افزودن همتاهای دریافتی به صف همتاهای موجود
+                for peer in response.peers:
+                    self.available_peers.put_nowait(peer)
+        else:
+            # خوابیدن ۵ ثانیه قبل از بررسی دوباره
+            await asyncio.sleep(5)
+    self.stop()</code></pre>
+        <p>خلاصه، آنچه آن حلقه انجام می‌دهد این است:</p>
+        <ol>
+          <li>بررسی اینکه آیا همهٔ قطعه‌ها را دانلود کرده‌ایم</li>
+          <li>بررسی اینکه آیا کاربر دانلود را لغو کرده است</li>
+          <li>انجام فراخوانی announce به ترکر در صورت نیاز</li>
+          <li>افزودن هر همتای دریافتی به صف همتاهای موجود</li>
+          <li>خوابیدن ۵ ثانیه</li>
+        </ol>
+        <p>بنابراین، هر بار که یک فراخوانی announce به ترکر انجام می‌شود، لیست همتاها برای اتصال از صفر بازنشانی می‌شود و
+        اگر همتایی دریافت نشود، هیچ <code class="inline">PeerConnection</code>ای اجرا نخواهد شد. این روند تا زمانی که
+        دانلود کامل شود یا لغو شود ادامه می‌یابد.</p>
+      </section>
+
+      <!-- ==================== پروتکل همتا ==================== -->
+      <section>
+        <h2>پروتکل همتا (The peer protocol)</h2>
+        <p>پس از دریافت آدرس IP و شمارهٔ پورت همتا از ترکر، کلاینت ما یک اتصال TCP به آن همتا باز می‌کند. به محض باز شدن
+        اتصال، این همتاها با استفاده از پروتکل همتا شروع به تبادل پیام می‌کنند.</p>
+        <p>اول، اجازه دهید بخش‌های مختلف پروتکل همتا را مرور کنیم و سپس ببینیم چگونه همهٔ آن پیاده‌سازی شده است.</p>
+
+        <h3>Handshake (دست‌دادن)</h3>
+        <p>اولین پیامی که باید ارسال شود، پیام Handshake است و کلاینتی که اتصال را آغاز می‌کند مسئول راه‌اندازی آن است.</p>
+        <p>بلافاصله پس از ارسال Handshake، کلاینت ما باید یک پیام Handshake ارسال‌شده از همتای راه‌دور دریافت کند.</p>
+        <p>پیام Handshake شامل دو میدان مهم است:</p>
+        <ul>
+          <li><b>peer_id</b> — شناسهٔ یکتای هر یک از همتاها</li>
+          <li><b>info_hash</b> — مقدار هش SHA1 برای دیکشنری info</li>
+        </ul>
+        <p>اگر <code class="inline">info_hash</code> با تورنتی که می‌خواهیم دانلود کنیم مطابقت نداشته باشد، اتصال را می‌بندیم.</p>
+        <p>بلافاصله پس از Handshake، همتای راه‌دور ممکن است یک پیام BitField ارسال کند. پیام BitField به کلاینت اطلاع
+        می‌دهد که همتای راه‌دور کدام قطعه‌ها را دارد. Pieces از دریافت پیام BitField پشتیبانی می‌کند و به‌نظر می‌رسد اکثر
+        کلاینت‌های بیت‌تورنت آن را ارسال می‌کنند — اما چون pieces در حال حاضر از سیدینگ (seeding) پشتیبانی نمی‌کند، هرگز
+        ارسال نمی‌شود و فقط دریافت می‌شود.</p>
+        <p>محتوای پیام BitField شامل دنباله‌ای از بایت‌هاست که وقتی به‌صورت باینری خوانده شوند، هر بیت نمایانگر یک قطعه
+        است. اگر بیت برابر ۱ باشد، یعنی همتا آن قطعه را با آن ایندکس دارد؛ در حالی که ۰ یعنی همتا آن قطعه را ندارد. یعنی هر
+        بایت در محتوا نمایانگر حداکثر ۸ قطعه است که بیت‌های اضافی آن ۰ قرار می‌گیرند.</p>
+        <p>هر کلاینت در حالت «choked» (خفه‌شده) و «not interested» (غیرعلاقه‌مند) شروع می‌کند. یعنی کلاینت مجاز نیست از
+        همتای راه‌دور قطعه درخواست کند و همچنین قصد ابراز علاقه‌مندی را ندارد.</p>
+        <ul>
+          <li><b>Choked</b> — یک همتای خفه‌شده مجاز نیست هیچ قطعه‌ای از همتای دیگر درخواست کند.</li>
+          <li><b>Unchoked</b> — یک همتای بازشده (غیرخفه) مجاز است از همتای دیگر قطعه درخواست کند.</li>
+          <li><b>Interested</b> — نشان می‌دهد که یک همتا به درخواست قطعه‌ها علاقه‌مند است.</li>
+          <li><b>Not interested</b> — نشان می‌دهد که همتا به درخواست قطعه‌ها علاقه‌مند نیست.</li>
+        </ul>
+        <p>Choked و Unchoked را قوانین در نظر بگیرید و Interested و Not interested را نیت‌هایی بین دو همتا.</p>
+        <p>پس از handshake، یک پیام Interested به همتای راه‌دور می‌فرستیم؛ با این پیام می‌گوییم دوست داریم unchoke شویم تا
+        بتوانیم درخواست قطعه‌ها را آغاز کنیم.</p>
+        <p>تا زمانی که کلاینت پیام Unchoke دریافت نکند — یعنی نتواند قطعه‌ای از همتای راه‌دور خود درخواست کند — آن
+        <code class="inline">PeerConnection</code> خفه (passive) باقی می‌ماند تا یا unchoke شود یا قطع شود.</p>
+        <p>دنبالهٔ پیام‌های زیر چیزی است که هنگام راه‌اندازی یک <code class="inline">PeerConnection</code> به آن هدف می‌زنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>              Handshake
+    client -------------&gt; peer    ما در حال آغاز کردن handshake هستیم
+
+              Handshake
+    client &lt;-------------- peer    مقایسهٔ info_hash با هش ما
+
+              BitField
+    client &lt;-------------- peer    احتمالاً BitField را دریافت می‌کنیم
+
+             Interested
+    client -------------&gt; peer    به همتا اطلاع می‌دهیم که می‌خواهیم دانلود کنیم
+
+              Unchoke
+    client &lt;-------------- peer    همتا به ما اجازه می‌دهد درخواست قطعه را شروع کنیم</code></pre>
+
+        <h3>درخواست قطعه‌ها (Requesting pieces)</h3>
+        <p>به محض اینکه کلاینت وارد حالت unchoked شد، شروع به درخواست قطعه‌ها از همتای متصل می‌کند. جزئیات مربوط به اینکه
+        کدام قطعه درخواست شود، بعداً در بخش «مدیریت قطعه‌ها» توضیح داده می‌شود.</p>
+        <p>اگر بدانیم همتای دیگر یک قطعهٔ مشخص را دارد، می‌توانیم یک پیام Request بفرستیم و از همتای راه‌دور بخواهیم دادهٔ
+        آن قطعهٔ مشخص را برایمان بفرستد. اگر همتا قبول کند، یک پیام Piece متناظر برای ما می‌فرستد که محتوای آن پیام همان
+        دادهٔ خام است.</p>
+        <p>این کلاینت فقط یک درخواست معلق (outstanding Request) در هر همتا خواهد داشت و مودبانه منتظر یک پیام Piece می‌ماند
+        تا قدم بعدی را بردارد. چون اتصالات به چندین همتا هم‌زمان باز هستند، کلاینت چندین Request معلق خواهد داشت؛ اما فقط
+        یکی در هر اتصال.</p>
+        <p>اگر به هر دلیلی کلاینت دیگر آن قطعه را نمی‌خواهد، می‌تواند یک پیام Cancel به همتای راه‌دور بفرستد تا هر Request
+        ارسال‌شدهٔ قبلی را لغو کند.</p>
+
+        <h3>سایر پیام‌ها</h3>
+        <h4>Have</h4>
+        <p>همتای راه‌دور می‌تواند در هر نقطه‌ای از زمان یک پیام Have برای ما بفرستد. این کار زمانی انجام می‌شود که همتای
+        راه‌دور قطعه‌ای دریافت کرده و آن قطعه را برای همتاهای متصل خود قابل دانلود می‌کند.</p>
+        <p>محتوای پیام Have ایندکس قطعه است.</p>
+        <p>وقتی pieces یک پیام Have دریافت می‌کند، اطلاعات مربوط به قطعه‌هایی که همتا دارد را به‌روزرسانی می‌کند.</p>
+        <h4>KeepAlive</h4>
+        <p>پیام KeepAlive را می‌توان در هر زمانی در هر دو جهت ارسال کرد. این پیام هیچ محتوایی ندارد.</p>
+
+        <h3>پیاده‌سازی (Implementation)</h3>
+        <p><code class="inline">PeerConnection</code> با استفاده از <code class="inline">asyncio.open_connection</code>
+        یک اتصال TCP به همتای راه‌دور باز می‌کند؛ این تابع به‌صورت ناهمگام یک اتصال TCP باز می‌کند و یک تاپل از
+        <code class="inline">StreamReader</code> و <code class="inline">StreamWriter</code> برمی‌گرداند. در صورت موفقیت‌آمیز
+        بودن ایجاد اتصال، <code class="inline">PeerConnection</code> یک پیام Handshake ارسال و دریافت می‌کند.</p>
+        <p>پس از انجام handshake، <code class="inline">PeerConnection</code> از یک iterator ناهمگام (async iterator)
+        استفاده می‌کند تا جریانی از <code class="inline">PeerMessage</code>ها را برگرداند و اقدام مناسب را انجام دهد.</p>
+        <p>استفاده از یک iterator ناهمگام، <code class="inline">PeerConnection</code> را از جزئیات نحوهٔ خواندن از سوکت و
+        نحوهٔ تجزیهٔ پروتکل باینری بیت‌تورنت جدا می‌کند. <code class="inline">PeerConnection</code> می‌تواند روی معناشناسی
+        مربوط به پروتکل تمرکز کند — مانند مدیریت وضعیت همتا، دریافت قطعه‌ها و بستن اتصال.</p>
+        <p>این امکان به کد اصلی در <code class="inline">PeerConnection.start</code> می‌دهد که اساساً این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>async for message in PeerStreamIterator(self.reader, buffer):
+    # اگر پیام BitField بود، به مدير قطعه‌ها اطلاع بده همتا کدام قطعه‌ها را دارد
+    if type(message) is BitField:
+        self.piece_manager.add_peer(self.remote_id, message.bitfield)
+    # اگر پیام Interested بود، وضعیت همتا را به‌روز کن
+    elif type(message) is Interested:
+        self.peer_state.append('interested')
+    elif type(message) is NotInterested:
+        if 'interested' in self.peer_state:
+            self.peer_state.remove('interested')
+    elif type(message) is Choke:
+        ...</code></pre>
+        <p>یک iterator ناهمگام کلاسی است که متدهای <code class="inline">__aiter__</code> و
+        <code class="inline">__anext__</code> را پیاده‌سازی می‌کند؛ این‌ها فقط نسخه‌های ناهمگام iteratorهای استاندارد
+        پایتون هستند که متدهای <code class="inline">__iter__</code> و <code class="inline">next</code> را پیاده‌سازی
+        می‌کنند.</p>
+        <p>هنگام پیمایش (صدازدن next)، <code class="inline">PeerStreamIterator</code> داده‌ها را از
+        <code class="inline">StreamReader</code> می‌خواند و اگر دادهٔ کافی در دسترس باشد، تلاش می‌کند یک
+        <code class="inline">PeerMessage</code> معتبر را تجزیه و برگرداند.</p>
+        <p>پروتکل بیت‌تورنت از پیام‌هایی با طول متغیر استفاده می‌کند که همهٔ آن‌ها به این شکل هستند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>&lt;length&gt;&lt;id&gt;&lt;payload&gt;</code></pre>
+        <ul>
+          <li><b>length</b> — یک مقدار عدد صحیح چهاربایتی است</li>
+          <li><b>id</b> — یک بایت اعشاری منفرد است</li>
+          <li><b>payload</b> — متغیر است و به پیام بستگی دارد</li>
+        </ul>
+        <p>بنابراین به محض اینکه بافر دادهٔ کافی برای پیام بعدی داشته باشد، پیام تجزیه و از iterator برگردانده می‌شود.</p>
+        <p>همهٔ پیام‌ها با استفاده از ماژول <code class="inline">struct</code> پایتون رمزگشایی می‌شوند؛ این ماژول شامل
+        توابعی برای تبدیل از/به مقادیر پایتون و structهای C است. struct از رشته‌های فشرده به‌عنوان توصیف‌گر چیزی که باید
+        تبدیل شود استفاده می‌کند؛ مثلاً <code class="inline">&gt;Ib</code> به‌صورت «Big-Endian، عدد صحیح بدون علامت ۴
+        بایتی، کاراکتر ۱ بایتی» خوانده می‌شود.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> همهٔ پیام‌ها در بیت‌تورنت از Big-Endian استفاده می‌کنند.
+        </div>
+        <p>این کار نوشتن تست‌های واحد برای رمزگذاری و رمزگشایی پیام‌ها را آسان می‌کند. بیایید نگاهی به تست‌های پیام Have
+        بیندازیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class HaveMessageTests(unittest.TestCase):
+    def test_can_construct_have(self):
+        # ساخت پیام Have با ایندکس 33 و بررسی بایت‌های رمزگذاری‌شده
+        have = Have(33)
+        self.assertEqual(
+            have.encode(),
+            b"\x00\x00\x00\x05\x04\x00\x00\x00!")
+
+    def test_can_parse_have(self):
+        # تجزیهٔ پیام Have از رشتهٔ باینری خام
+        have = Have.decode(b"\x00\x00\x00\x05\x04\x00\x00\x00!")
+        self.assertEqual(33, have.index)</code></pre>
+        <p>از رشتهٔ باینری خام می‌توانیم بگوییم که پیام Have طول ۵ بایت دارد
+        (<code class="inline">\x00\x00\x00\x05</code>)، یک id با مقدار ۴ (<code class="inline">\x04</code>) دارد و محتوای
+        آن ۳۳ (<code class="inline">\x00\x00\x00!</code>) است.</p>
+        <p>چون طول پیام ۵ است و ID فقط یک بایت استفاده می‌کند، می‌دانیم که چهار بایت برای تفسیر به‌عنوان مقدار محتوا
+        داریم. با استفاده از <code class="inline">struct.unpack</code> به‌راحتی می‌توانیم آن را به یک عدد صحیح پایتون
+        تبدیل کنیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; import struct
+&gt;&gt;&gt; struct.unpack('&gt;I', b'\x00\x00\x00!')
+(33,)</code></pre>
+        <p>اساساً این تمام ماجرای پروتکل است؛ همهٔ پیام‌ها از همان رویه پیروی می‌کنند و iterator به خواندن از سوکت ادامه
+        می‌دهد تا زمانی که قطع شود. برای جزئیات همهٔ پیام‌ها، کد منبع را ببینید.</p>
+      </section>
+
+      <!-- ==================== مدیریت قطعه‌ها ==================== -->
+      <section>
+        <h2>مدیریت قطعه‌ها (Managing the pieces)</h2>
+        <p>تا این‌جا فقط دربارهٔ قطعه‌ها (pieces) بحث کرده‌ایم — قطعه‌های داده‌ای که توسط دو همتا مبادله می‌شوند. به‌نظر
+        می‌رسد قطعه‌ها کل حقیقت نیستند؛ یک مفهوم دیگر هم وجود دارد — بلاک‌ها (blocks). اگر به هر یک از کدهای منبع نگاه
+        کرده باشید، ممکن است کدی را دیده باشید که به بلاک‌ها اشاره می‌کند؛ پس بیایید ببینیم یک قطعه واقعاً چیست.</p>
+        <p>یک قطعه، بی‌تعجب، بخشی جزئی از داده‌های تورنت است. داده‌های یک تورنت به N قطعهٔ هم‌اندازه تقسیم می‌شود (به‌جز
+        آخرین قطعهٔ یک تورنت که ممکن است از بقیه کوچک‌تر باشد). طول قطعه در فایل <code class="inline">.torrent</code>
+        مشخص شده است. معمولاً قطعه‌ها اندازه‌های ۵۱۲ کیلوبایت یا کمتر دارند و باید توانی از ۲ باشند.</p>
+        <p>قطعه‌ها هنوز برای تبادل کارآمد بین همتاها خیلی بزرگ هستند؛ بنابراین قطعه‌ها بیشتر به چیزی که «بلاک» نامیده
+        می‌شود تقسیم می‌شوند. بلاک‌ها همان تکه‌های داده‌ای هستند که واقعاً بین همتاها درخواست می‌شوند؛ اما قطعه‌ها همچنان
+        برای مشخص کردن اینکه هر همتا کدام قطعه‌ها را دارد استفاده می‌شوند. اگر فقط از بلاک‌ها استفاده می‌شد، سربار پروتکل
+        بسیار افزایش می‌یافت (نتیجه: BitFieldهای طولانی‌تر، پیام‌های Have بیشتر و فایل‌های
+        <code class="inline">.torrent</code> بزرگ‌تر).</p>
+        <p>اندازهٔ یک بلاک ۲^14 (۱۶۳۸۴) بایت است؛ به‌جز بلاک نهایی که به احتمال زیاد اندازهٔ کوچک‌تری دارد.</p>
+        <p>مثالی را در نظر بگیرید که یک فایل <code class="inline">.torrent</code> دانلود یک فایل منفرد به نام
+        <code class="inline">foo.txt</code> را توصیف می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>name: foo.txt
+length: 135168
+piece length: 49152</code></pre>
+        <p>آن تورنت کوچک به ۳ قطعه منجر می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>قطعه 0: 49 152 بایت
+قطعه 1: 49 152 بایت
+قطعه 2: 36 864 بایت (135168 - 49152 - 49152)
+        = 135 168</code></pre>
+        <p>حالا هر قطعه به بلاک‌هایی با اندازهٔ 2^14 بایت تقسیم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>قطعه 0:
+    بلاک 0: 16 384 بایت (2^14)
+    بلاک 1: 16 384 بایت
+    بلاک 2: 16 384 بایت
+          =  49 152 بایت
+
+قطعه 1:
+    بلاک 0: 16 384 بایت
+    بلاک 1: 16 384 بایت
+    بلاک 2: 16 384 بایت
+          =  49 152 بایت
+
+قطعه 2:
+    بلاک 0: 16 384 بایت
+    بلاک 1: 16 384 بایت
+    بلاک 2:  4 096 بایت
+          =  36 864 بایت
+
+مجموع:       49 152 بایت
+          +  49 152 بایت
+          +  36 864 بایت
+          = 135 168 بایت</code></pre>
+        <p>تبادل این بلاک‌ها بین همتاها اساساً همان چیزی است که بیت‌تورنت دربارهٔ آن است. وقتی همهٔ بلاک‌های یک قطعه تمام
+        شوند، آن قطعه کامل است و می‌تواند با همتاهای دیگر به اشتراک گذاشته شود (پیام Have به همتاهای متصل فرستاده
+        می‌شود). و وقتی همهٔ قطعه‌ها کامل شوند، همتا از یک دانلودکننده به یک سیدر (seeder) صرف تبدیل می‌شود.</p>
+        <p>دو نکته دربارهٔ جاهایی که مشخصات رسمی کمی انحراف دارد:</p>
+        <ol>
+          <li>مشخصات رسمی هم به قطعه‌ها و هم به بلاک‌ها فقط به‌عنوان «قطعه» اشاره می‌کند که بسیار گیج‌کننده است. مشخصات
+          غیررسمی و دیگران به‌نظر می‌رسد بر استفاده از اصطلاح «بلاک» برای قطعهٔ کوچک‌تر توافق کرده‌اند؛ ما هم از همین
+          استفاده می‌کنیم.</li>
+          <li>مشخصات رسمی اندازهٔ بلاک دیگری را نسبت به چیزی که ما استفاده می‌کنیم ذکر کرده است. با خواندن مشخصات غیررسمی،
+          به‌نظر می‌رسد 2^14 بایت همان چیزی است که پیاده‌سازان دربارهٔ آن توافق دارند — صرف‌نظر از مشخصات رسمی.</li>
+        </ol>
+      </section>
+
+      <!-- ==================== پیاده‌سازی ==================== -->
+      <section>
+        <h2>پیاده‌سازی (The implementation)</h2>
+        <p>وقتی یک <code class="inline">TorrentClient</code> ساخته می‌شود، یک <code class="inline">PieceManager</code> هم
+        ساخته می‌شود که مسئولیت دارد:</p>
+        <ul>
+          <li>تعیین اینکه کدام بلاک بعداً درخواست شود</li>
+          <li>ذخیره‌سازی بلاک‌های دریافتی در فایل</li>
+          <li>تشخیص اینکه چه زمانی دانلود کامل شده است</li>
+        </ul>
+        <p>وقتی یک <code class="inline">PeerConnection</code> با موفقیت با همتای دیگری handshake می‌کند و یک پیام BitField
+        دریافت می‌کند، به <code class="inline">PieceManager</code> اطلاع می‌دهد که کدام همتا (peer_id) کدام قطعه‌ها را
+        دارد. این اطلاعات با هر پیام Have دریافتی نیز به‌روز می‌شود. با استفاده از این اطلاعات،
+        <code class="inline">PieceManager</code> وضعیت جمعی قطعه‌های موجود در هر یک از همتاها را می‌داند.</p>
+        <p>وقتی اولین <code class="inline">PeerConnection</code> وارد حالت unchoked می‌شود، بلاک بعدی را از همتایش درخواست
+        می‌کند. بلاک بعدی با صدازدن متد <code class="inline">PieceManager.next_request</code> تعیین می‌شود.</p>
+        <p><code class="inline">next_request</code> یک استراتژی بسیار ساده برای انتخاب قطعهٔ بعدی برای درخواست پیاده‌سازی
+        می‌کند:</p>
+        <ol>
+          <li>وقتی <code class="inline">PieceManager</code> ساخته می‌شود، همهٔ قطعه‌ها و بلاک‌ها بر اساس طول قطعه از
+          meta-info فایل <code class="inline">.torrent</code> از قبل ساخته می‌شوند.</li>
+          <li>همهٔ قطعه‌ها در یک لیست «گم‌شده» (missing) قرار می‌گیرند.</li>
+          <li>وقتی <code class="inline">next_request</code> صدا زده می‌شود، مدیر یکی از این‌ها را انجام می‌دهد:
+            <ul>
+              <li>درخواست مجدد هر بلاکی که قبلاً درخواست شده و زمانش منقضی شده است</li>
+              <li>درخواست بلاک بعدی در یک قطعهٔ در حال انجام</li>
+              <li>درخواست اولین بلاک در قطعهٔ گم‌شدهٔ بعدی</li>
+            </ul>
+          </li>
+        </ol>
+        <p>به این ترتیب بلاک‌ها و قطعه‌ها به‌ترتیب درخواست می‌شوند. بااین‌حال، ممکن است چندین قطعه به‌طور هم‌زمان در حال
+        انجام باشند؛ بسته به اینکه همتا چه قطعه‌هایی دارد.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> چون pieces می‌خواهد یک کلاینت ساده باشد، هیچ تلاشی برای پیاده‌سازی یک استراتژی هوشمند یا
+          کارآمد برای انتخاب قطعه‌ها صورت نگرفته است. یک راه‌حل بهتر، درخواست اولین قطعهٔ کمیاب (rarest piece) است که
+          کل swarm را سالم‌تر می‌کند.
+        </div>
+        <p>هر وقت یک بلاک از یک همتا دریافت می‌شود، توسط <code class="inline">PieceManager</code> (در حافظه) ذخیره می‌شود.
+        وقتی همهٔ بلاک‌های یک قطعه بازیابی شوند، یک هش SHA1 از آن قطعه ساخته می‌شود. این هش با هش‌های SHA1 موجود در
+        دیکشنری info فایل <code class="inline">.torrent</code> مقایسه می‌شود — اگر مطابقت داشت، قطعه روی دیسک نوشته می‌شود.</p>
+        <p>وقتی همهٔ قطعه‌ها حساب شوند (هش‌های مطابق)، تورنت کامل در نظر گرفته می‌شود؛ این کار
+        <code class="inline">TorrentClient</code> را متوقف می‌کند، هر اتصال TCP باز را می‌بندد و در نتیجه برنامه با پیامی
+        مبنی بر دانلودشدن تورنت خارج می‌شود.</p>
+      </section>
+
+      <!-- ==================== کارهای آینده ==================== -->
+      <section>
+        <h2>کارهای آینده (Future work)</h2>
+        <p>سیدینگ هنوز پیاده‌سازی نشده است؛ اما پیاده‌سازی آن نباید خیلی سخت باشد. چیزی که لازم است تقریباً این است:</p>
+        <p>هر وقت همتایی متصل می‌شود، باید یک پیام BitField به همتای راه‌دور بفرستیم که نشان می‌دهد کدام قطعه‌ها را داریم.</p>
+        <p>هر وقت یک قطعهٔ جدید دریافت می‌شود (و صحت هش تأیید می‌شود)، هر <code class="inline">PeerConnection</code>
+        باید یک پیام Have به همتای راه‌دور خود بفرستد تا قطعهٔ جدیدی که قابل به اشتراک گذاشتن است را نشان دهد.</p>
+        <p>برای انجام این کار، <code class="inline">PieceManager</code> باید گسترش یابد تا لیستی از ۰ و ۱ برای قطعه‌هایی
+        که داریم برگرداند. و <code class="inline">TorrentClient</code> باید به <code class="inline">PeerConnection</code>
+        بگوید که Have را به همتای راه‌دور خود بفرستد. هر دو پیام BitField و Have باید از رمزگذاری این پیام‌ها پشتیبانی کنند.</p>
+        <p>پیاده‌سازی سیدینگ، Pieces را به یک شهروند خوب تبدیل می‌کند؛ هم از دانلود و هم از آپلود داده‌ها در داخل swarm
+        پشتیبانی می‌کند.</p>
+        <p>ویژگی‌های اضافی که احتمالاً بدون تلاش زیاد می‌توان اضافه کرد عبارت‌اند از:</p>
+        <ul>
+          <li><b>تورنت چندفایله</b> — به <code class="inline">PieceManager</code> برخورد می‌کند، زیرا Pieces و Blocks
+          ممکن است بر چندین فایل امتداد یابند و بر نحوهٔ ذخیره‌سازی فایل‌ها تأثیر بگذارد؛ (یعنی یک بلاک ممکن است دادهٔ
+          بیش از یک فایل را در خود داشته باشد).</li>
+          <li><b>از سرگیری دانلود</b> — با دیدن اینکه کدام بخش‌های فایل (ها) قبلاً دانلود شده‌اند (با ساخت هش‌های SHA1
+          تأیید می‌شود).</li>
+        </ul>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>پیاده‌سازی یک کلاینت بیت‌تورنت واقعاً سرگرم‌کننده بود؛ کار با پروتکل‌های باینری و شبکه‌سازی راهی عالی برای
+        متعادل کردن تمام آن توسعهٔ وب اخیری بود که انجام می‌دادم.</p>
+        <p>پایتون همچنان یکی از زبان‌های برنامه‌نویسی موردعلاقهٔ من است. کار با داده‌های باینری با توجه به ماژول
+        <code class="inline">struct</code> بسیار راحت بود و افزودهٔ اخیر <code class="inline">asyncio</code> بسیار
+        پایتونیک به‌نظر می‌رسد. استفاده از iterator ناهمگام برای پیاده‌سازی پروتکل نیز انتخاب مناسبی از آب درآمد.</p>
+        <p>امیدوارم این مقاله شما را به نوشتن یک کلاینت بیت‌تورنت اختصاصی خودتان یا به نوعی گسترش pieces ترغیب کرده باشد.
+        اگر خطایی در مقاله یا کد منبع پیدا کردید، آزاد باشید که در GitHub یک issue باز کنید.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «A BitTorrent client in Python 3.5» اثر «مارکوس الیاسون (Markus Eliasson)» است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="http://markuseliasson.se/article/bittorrent-in-python/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>
