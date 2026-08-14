@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «راهنمای discord.js» (discordjs.guide)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات دیسکورد با discord.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات دیسکورد با discord.js</span>
+      </div>
+      <h1>ساخت ربات دیسکورد با discord.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://discordjs.guide/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی راهنمای «discord.js Guide» از تیم discord.js است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://discordjs.guide/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>اگر این صفحه را می‌خوانید، احتمالاً می‌خواهید یاد بگیرید که چگونه با discord.js یک ربات بسازید. عالی! در جای درستی
+        هستید. این راهنما چیزهایی مانند این‌ها را به شما می‌آموزد:</p>
+        <ul>
+          <li>چگونه یک ربات را از صفر <a href="https://discordjs.guide/legacy/preparations/app-setup" target="_blank" rel="noopener">راه‌اندازی و اجرا</a> کنید؛</li>
+          <li>چگونه دستورات خود را به‌درستی <a href="https://discordjs.guide/legacy/app-creation/project-setup" target="_blank" rel="noopener">بسازید</a>، <a href="https://discordjs.guide/legacy/app-creation/handling-commands" target="_blank" rel="noopener">سازماندهی</a> و گسترش دهید؛</li>
+          <li>توضیحات و مثال‌های عمیق دربارهٔ موضوعات محبوب (مانند <a href="https://discordjs.guide/legacy/popular-topics/display-components" target="_blank" rel="noopener">کامپوننت‌ها</a>، <a href="https://discordjs.guide/legacy/popular-topics/reactions" target="_blank" rel="noopener">واکنش‌ها</a>، <a href="https://discordjs.guide/legacy/popular-topics/embeds" target="_blank" rel="noopener">embeds</a>، <a href="https://discordjs.guide/legacy/popular-topics/canvas" target="_blank" rel="noopener">canvas</a>)؛</li>
+          <li>کار با پایگاه‌های داده (مانند <a href="https://discordjs.guide/legacy/sequelize/" target="_blank" rel="noopener">sequelize</a> و <a href="https://discordjs.guide/legacy/keyv/keyv" target="_blank" rel="noopener">keyv</a>)؛</li>
+          <li>شروع کار با <a href="https://discordjs.guide/legacy/sharding/" target="_blank" rel="noopener">sharding</a> (تقسیم اپلیکیشن)؛</li>
+          <li>و خیلی بیشتر.</li>
+        </ul>
+        <p>این راهنما همچنین موضوعاتی مانند خطاهای رایج و نحوهٔ حل آن‌ها، تمیز نگه داشتن کد شما، راه‌اندازی یک محیط توسعهٔ
+        مناسب و غیره را پوشش می‌دهد. به‌نظر خوب می‌رسد؟ پس بیایید شروع کنیم.</p>
+
+        <h3>پیش از شروع...</h3>
+        <p>بسیار خب، ساختن ربات باحال است، اما پیش‌نیازهایی هم دارد. برای ساخت ربات با discord.js، باید درک نسبتاً مناسبی از
+        خودِ جاوااسکریپت داشته باشید. گرچه می‌توانید با دانش بسیار کمی از جاوااسکریپت و برنامه‌نویسی ربات بسازید، اما تلاش برای
+        انجام این کار بدون درک زبان، فقط شما را عقب می‌اندازد. ممکن است در بسیاری از مسائل ساده گیر کنید، برای حل مشکلات بسیار
+        آسان تقلا کنید و در نهایت ناامید شوید. به‌نظر خسته‌کننده می‌رسد، نه؟</p>
+        <p>اگر جاوااسکریپت نمی‌دانید اما دوست دارید آن را یاد بگیرید، چند لینک برای شروع در این‌جا هست:</p>
+        <ul>
+          <li><a href="http://eloquentjavascript.net/" target="_blank" rel="noopener">Eloquent JavaScript</a> — یک کتاب آنلاین رایگان</li>
+          <li><a href="https://javascript.info/" target="_blank" rel="noopener">JavaScript.info</a> — یک آموزش مدرن جاوااسکریپت</li>
+          <li><a href="https://www.codecademy.com/learn/introduction-to-javascript" target="_blank" rel="noopener">دورهٔ تعاملی جاوااسکریپت Codecademy</a></li>
+          <li><a href="https://nodeschool.io/" target="_blank" rel="noopener">Nodeschool</a> — هم برای درس‌های جاوااسکریپت و هم Node.js</li>
+          <li><a href="https://developer.mozilla.org/docs/Web/JavaScript" target="_blank" rel="noopener">راهنما و مستندات کامل جاوااسکریپت MDN</a></li>
+          <li><a href="https://google.com" target="_blank" rel="noopener">گوگل</a> — بهترین دوست شما</li>
+        </ul>
+        <p>هر کدام را انتخاب کنید، مقداری جاوااسکریپت یاد بگیرید و وقتی احساس کردید برای ساخت ربات به‌اندازهٔ کافی اعتماد به
+        نفس دارید، برگردید و شروع کنید!</p>
+      </section>
+
+      <!-- ==================== ساخت اپلیکیشن ربات ==================== -->
+      <section>
+        <h2>ساخت اپلیکیشن ربات (Application Setup)</h2>
+        <p>حالا که Node و discord.js را نصب کرده‌اید، تقریباً آمادهٔ شروع کدنویسی هستید! مرحلهٔ بعدی که باید بردارید،
+        راه‌اندازی یک اپلیکیشن واقعی ربات دیسکورد از طریق وب‌سایت دیسکورد است.</p>
+        <p>ساخت آن بسیار ساده است. مراحلی که باید انجام دهید به شرح زیر است:</p>
+        <ol>
+          <li><a href="https://discord.com/developers/applications" target="_blank" rel="noopener">پورتال توسعه‌دهندگان دیسکورد</a> را باز کنید و وارد حساب خود شوید.</li>
+          <li>روی دکمهٔ «New Application» (اپلیکیشن جدید) کلیک کنید.</li>
+          <li>یک نام وارد کنید و با کلیک روی دکمهٔ «Create» (ایجاد) پنجرهٔ بازشونده را تأیید کنید.</li>
+        </ol>
+        <p>باید صفحه‌ای مانند این ببینید:</p>
+        <img src="https://discordjs.guide/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fcreate-app.013qcyaqdnfnq.png&amp;w=3840&amp;q=75" alt="صفحه ایجاد موفقیت‌آمیز اپلیکیشن در پورتال توسعه‌دهندگان" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانید نام، توضیحات و آواتار اپلیکیشن خود را در این‌جا ویرایش کنید. وقتی این کار را انجام دادید، تبریک — حالا
+        مالک افتخاری یک ربات دیسکورد کاملاً نو هستید! اما هنوز کاملاً کارتان تمام نشده است.</p>
+
+        <h3>توکن ربات شما (Your bot's token)</h3>
+        <div class="callout warn">
+          <strong>مهم:</strong> این بخش حیاتی است؛ پس خیلی دقت کنید. این بخش توضیح می‌دهد توکن ربات شما چیست و جنبه‌های
+          امنیتی آن کدام‌اند.
+        </div>
+        <p>پس از ساخت کاربرِ ربات، بخشی مانند این خواهید دید:</p>
+        <img src="https://discordjs.guide/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fcreated-bot.0-nan72f0emy7.png&amp;w=3840&amp;q=75" alt="پنل بخش Bot اپلیکیشن شامل توکن ربات" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این پنل می‌توانید به ربات خود آواتار جذاب بدهید، نام کاربری آن را تعیین کنید و آن را عمومی یا خصوصی کنید. توکن
+        ربات شما وقتی دکمهٔ «Reset Token» (بازنشانی توکن) را فشار دهید و تأیید کنید، نمایان می‌شود. وقتی از شما می‌خواهیم توکن
+        ربات را جایی بچسبانید، این مقداری است که باید وارد کنید. اگر روزی توکن ربات خود را گم کردید، باید به همین صفحه برگردید
+        و دوباره توکن را بازنشانی کنید؛ این کار توکن جدید را نمایان می‌کند و همهٔ توکن‌های قدیمی را بی‌اعتبار می‌کند.</p>
+
+        <h3>به هر حال توکن چیست؟</h3>
+        <p>توکن اساساً رمز عبور ربات شماست؛ همان چیزی است که ربات با آن وارد دیسکورد می‌شود. با این توضیح،
+        <b>حیاتی است که هرگز این توکن را با کسی به اشتراک نگذارید، عمداً یا سهواً</b>. اگر کسی بتواند توکن ربات شما را به
+        دست آورد، می‌تواند از ربات شما طوری استفاده کند که انگار ربات خودش است — یعنی می‌تواند کارهای مخرب با آن انجام دهد.</p>
+        <p>توکن‌ها این‌گونه به نظر می‌رسند: <code class="inline">YOUR-BOT-TOKEN-GOES-HERE</code>
+        (نگران نباشید، ما قبل از انتشار همین‌جا فوراً این توکن را بازنشانی کردیم!). اگر کوتاه‌تر بود و بیشتر به این شکل بود:
+        <code class="inline">YOUR-CLIENT-SECRET-GOES-HERE</code>، یعنی client secret (راز کلاینت) را کپی کرده‌اید.
+        اگر می‌خواهید ربات کار کند، حتماً خودِ توکن را کپی کنید!</p>
+
+        <h3>سناریوی لو رفتن توکن (Token leak)</h3>
+        <p>تصور کنید رباتی دارید که در بیش از ۱۰۰۰ سرور فعال است و ماه‌ها و ماه‌ها کدنویسی و صبوری لازم بوده تا به این تعداد
+        برسد. توکن ربات شما جایی لو می‌رود و حالا شخص دیگری آن را دارد. آن شخص می‌تواند:</p>
+        <ul>
+          <li>در هر سروری که ربات شماست اسپم کند؛</li>
+          <li>به هر تعداد که ممکن است پیام خصوصی (DM) اسپم بفرستد؛</li>
+          <li>تا آنجا که ممکن است کانال حذف کند؛</li>
+          <li>تا آنجا که ممکن است اعضای سرور را اخراج (kick) یا بن (ban) کند؛</li>
+          <li>ربات شما را از همهٔ سرورهایی که به آن ملحق شده خارج کند؛</li>
+        </ul>
+        <p>و همهٔ این‌ها و خیلی بیشتر. خیلی بد به‌نظر می‌رسد، نه؟ پس مطمئن شوید توکن ربات خود را تا حد ممکن امن نگه می‌دارید!</p>
+        <div class="callout note">
+          <strong>بازنشانی توکن اپلیکیشن:</strong> اگر توکن ربات شما به خطر افتاده — مثلاً با کامیت کردن آن در یک مخزن عمومی،
+          ارسال آن در پشتیبانی discord.js یا هر راه دیگری — به همین صفحه برگردید و «Reset Token» را بزنید. این کار همهٔ توکن‌های
+          قدیمی ربات شما را بی‌اعتبار می‌کند. به خاطر داشته باشید که باید توکن ربات را در هر جایی که قبلاً استفاده کرده‌اید،
+          به‌روزرسانی کنید.
+        </div>
+      </section>
+
+      <!-- ==================== افزودن ربات به سرور ==================== -->
+      <section>
+        <h2>افزودن ربات به سرور (Adding Your App)</h2>
+        <p>بعد از راه‌اندازی اپلیکیشن ربات، متوجه خواهید شد که هنوز در هیچ سروری نیست. پس این چگونه کار می‌کند؟</p>
+        <p>قبل از اینکه بتوانید ربات را در سرور خودتان (یا سرورهای دیگر) ببینید، باید آن را با ساخت و استفاده از یک لینک دعوت
+        یکتا (invite link) با استفاده از client id اپلیکیشن ربات خود اضافه کنید.</p>
+
+        <h3>لینک‌های دعوت ربات (Bot invite links)</h3>
+        <p>نسخهٔ پایهٔ یکی از این لینک‌ها به این شکل است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">https://discord.com/api/oauth2/authorize?client_id=123456789012345678&amp;permissions=0&amp;scope=bot%20applications.commands</code></pre>
+        <p>ساختار URL بسیار ساده است:</p>
+        <ul>
+          <li><code class="inline">https://discord.com/api/oauth2/authorize</code> ساختار استاندارد دیسکورد برای مجوزدهی OAuth2
+          به یک اپلیکیشن (مانند اپلیکیشن ربات شما) برای ورود به یک سرور دیسکورد است.</li>
+          <li><code class="inline">client_id=...</code> برای مشخص کردن <em>کدام</em> اپلیکیشن را می‌خواهید مجوز دهید. برای ساخت یک
+          لینک دعوت معتبر باید این بخش را با client id خودتان جایگزین کنید.</li>
+          <li><code class="inline">permissions=...</code> توصیف می‌کند ربات شما در سروری که به آن اضافه می‌شود چه دسترسی‌هایی
+          (permissions) خواهد داشت.</li>
+          <li><code class="inline">scope=bot%20applications.commands</code> مشخص می‌کند که می‌خواهید این اپلیکیشن را به‌عنوان یک
+          ربات دیسکورد اضافه کنید که توانایی ساخت دستورات اسلش را دارد.</li>
+        </ul>
+        <div class="callout note">
+          <strong>توجه:</strong> اگر پیام خطای «Bot requires a code grant» را گرفتید، به تنظیمات اپلیکیشن خود بروید و گزینهٔ
+          «Require OAuth2 Code Grant» را غیرفعال کنید. نباید این گزینه را فعال کنید مگر اینکه بدانید چرا به آن نیاز دارید.
+        </div>
+
+        <h3>ساخت و استفاده از لینک دعوت</h3>
+        <p>برای ساخت لینک دعوت، به <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">پورتال
+        توسعه‌دهندگان</a> در بخش «Applications» برگردید، روی اپلیکیشن ربات خود کلیک کنید و صفحهٔ OAuth2 را باز کنید.</p>
+        <p>در نوار کناری، ابزار تولید URL در بخش OAuth2 (URL generator) را پیدا خواهید کرد. گزینه‌های <code class="inline">bot</code>
+        و <code class="inline">applications.commands</code> را انتخاب کنید. به محض انتخاب گزینهٔ <code class="inline">bot</code>،
+        فهرستی از دسترسی‌ها ظاهر می‌شود که به شما اجازه می‌دهد دسترسی‌های موردنیاز ربات را پیکربندی کنید.</p>
+        <p>لینک را از طریق دکمهٔ «Copy» بردارید و در مرورگر خود وارد کنید. باید چیزی مانند این ببینید (با نام کاربری و آواتار
+        ربات خودتان):</p>
+        <img src="https://discordjs.guide/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbot-auth-page.0y.hzt3i8lhzt.png&amp;w=3840&amp;q=75" alt="صفحه تأیید مجوز افزودن ربات به سرور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>سروری را که می‌خواهید ربات به آن اضافه شود انتخاب کنید و روی «Authorize» (مجوز دادن) کلیک کنید. به خاطر داشته باشید
+        که برای افزودن ربات به یک سرور، به دسترسی «Manage Server» (مدیریت سرور) در آن سرور نیاز دارید. سپس پیام تأیید خوبی
+        نمایش داده می‌شود:</p>
+        <img src="https://discordjs.guide/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbot-authorized.18ass-fgd_p_8.png&amp;w=3840&amp;q=75" alt="پیام موفقیت‌آمیز افزودن ربات به سرور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تبریک! با موفقیت ربات خود را به سرور دیسکورد اضافه کردید. باید در فهرست اعضای سرور شما چیزی شبیه به این دیده شود:</p>
+        <img src="https://discordjs.guide/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbot-in-memberlist.0weqss26r4..t.png&amp;w=3840&amp;q=75" alt="ربات در فهرست اعضای سرور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== نصب Node.js و discord.js ==================== -->
+      <section>
+        <h2>نصب Node.js و discord.js</h2>
+
+        <h3>نصب Node.js</h3>
+        <p>برای استفاده از discord.js، باید آخرین نسخهٔ LTS <a href="https://nodejs.org/" target="_blank" rel="noopener">Node.js</a>
+        را نصب کنید.</p>
+        <p>برای بررسی اینکه از قبل Node روی دستگاه شما نصب است یا نه (مثلاً اگر از VPS استفاده می‌کنید)، در ترمینال خود
+        <code class="inline">node -v</code> را اجرا کنید. توصیه می‌شود از آخرین نسخهٔ LTS نود استفاده کنید.</p>
+
+        <h3>آماده‌سازی ملزومات</h3>
+        <p>برای استفاده از discord.js، باید آن را از طریق npm (مدیر بستهٔ Node) نصب کنید. npm همراه با هر نصب Node ارائه
+        می‌شود، پس نگران نصب آن نباشید. اما قبل از نصب هر چیزی، باید یک پوشهٔ پروژهٔ جدید راه‌اندازی کنید.</p>
+        <p>به جای مناسبی در دستگاه خود بروید و یک پوشهٔ جدید به نام <code class="inline">discord-bot</code> (یا هر اسمی که
+        می‌خواهید) بسازید. سپس باید ترمینال را باز کنید.</p>
+
+        <h3>باز کردن ترمینال</h3>
+        <p>اگر از <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a> استفاده می‌کنید،
+        می‌توانید با فشردن <code class="inline">Ctrl</code> + <code class="inline">`</code> (بک‌تیک) ترمینال داخلی آن را باز کنید.</p>
+        <p>در ویندوز، یا:</p>
+        <ul>
+          <li>Shift را نگه دارید و داخل پوشهٔ پروژه کلیک راست کنید و گزینهٔ «Open command window here» را انتخاب کنید؛</li>
+          <li>یا <code class="inline">Win</code> + <code class="inline">R</code> را بزنید و <code class="inline">cmd.exe</code> را اجرا کنید و سپس با <code class="inline">cd</code> وارد پوشهٔ پروژه شوید.</li>
+        </ul>
+        <p>در macOS، یا:</p>
+        <ul>
+          <li>Launchpad یا Spotlight را باز کنید و دنبال «Terminal» بگردید؛</li>
+          <li>یا در پوشهٔ «Applications» زیر «Utilities»، اپلیکیشن Terminal را باز کنید.</li>
+        </ul>
+        <p>در لینوکس، می‌توانید به‌سرعت ترمینال را با <code class="inline">Ctrl</code> + <code class="inline">Alt</code> + <code class="inline">T</code> باز کنید.</p>
+        <p>با باز بودن ترمینال، دستور <code class="inline">node -v</code> را اجرا کنید تا مطمئن شوید Node.js را با موفقیت
+        نصب کرده‌اید.</p>
+
+        <h3>راه‌اندازی یک پوشهٔ پروژه</h3>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm init</code></pre>
+        <p>این دستور بعدی است که اجرا خواهید کرد. این دستور یک فایل <code class="inline">package.json</code> برای شما می‌سازد که
+        وابستگی‌های استفاده‌شدهٔ پروژه و سایر اطلاعات را پیگیری می‌کند.</p>
+        <p>این دستور دنباله‌ای از سؤال‌ها از شما می‌پرسد — طبق صلاحدید خودتان آن‌ها را پر کنید. اگر دربارهٔ چیزی مطمئن نیستید یا
+        می‌خواهید کلاً از آن بگذرید، خالی بگذارید و Enter بزنید.</p>
+        <p>برای شروع سریع، می‌توانید دستور زیر را اجرا کنید تا همه‌چیز را به‌جای شما پر کند.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm init -y</code></pre>
+        <p>وقتی این کار تمام شد، آمادهٔ نصب discord.js هستید!</p>
+
+        <h3>نصب discord.js</h3>
+        <p>حالا که Node.js را نصب کرده‌اید و می‌دانید چگونه کنسول را باز کنید و دستورات را اجرا کنید، بالاخره می‌توانید
+        discord.js را نصب کنید! دستور زیر را در ترمینال خود اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install discord.js</code></pre>
+        <p>و تمام! با نصب شدن همهٔ ملزومات، تقریباً آمادهٔ شروع کدنویسی ربات خود هستید.</p>
+
+        <h3>نصب یک لینتر</h3>
+        <p>در حین کدنویسی ممکن است با خطاهای نحوی متعدد یا کدی با سبک ناسازگار مواجه شوید. باید یک
+        <a href="https://discordjs.guide/legacy/preparations/linter" target="_blank" rel="noopener">لینتر</a> نصب کنید تا این
+        مشکلات آسان‌تر شوند. گرچه ویرایشگرهای کد معمولاً می‌توانند خطاهای نحوی را نشان دهند، لینترها کد شما را به سبکی مشخص،
+        طبق آنچه در پیکربندی تعریف شده، وادار می‌کنند. گرچه اجباری نیست، اما توصیه می‌شود.</p>
+      </section>
+
+      <!-- ==================== پیکربندی پروژه ==================== -->
+      <section>
+        <h2>پیکربندی پروژه (Project Setup)</h2>
+        <p>همان‌طور که در بخش «توکن به هر حال چیست؟» توضیح داده شد، توکن شما اساساً رمز عبور ربات شماست و باید تا حد ممکن از آن
+        محافظت کنید. این کار را می‌توان از طریق یک فایل <code class="inline">config.json</code> یا با استفاده از متغیرهای محیطی
+        (environment variables) انجام داد.</p>
+        <p>اپلیکیشن خود را در <a href="https://discord.com/developers/applications" target="_blank" rel="noopener">پورتال توسعه‌دهندگان دیسکورد</a>
+        باز کنید و برای کپی کردن توکن به صفحهٔ «Bot» بروید.</p>
+
+        <h3>استفاده از فایل <code class="inline">config.json</code></h3>
+        <p>ذخیرهٔ داده‌ها در یک فایل <code class="inline">config.json</code> راهی رایج برای امن نگه داشتن مقادیر حساس شماست. در
+        پوشهٔ پروژه یک فایل <code class="inline">config.json</code> بسازید و توکن خود را در آن بچسبانید. می‌توانید از داخل
+        فایل‌های دیگر با استفاده از <code class="inline">require()</code> به توکن خود دسترسی پیدا کنید.</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+	"token": "your-token-goes-here"
+}</code></pre>
+        <div class="callout warn">
+          <strong>خطر:</strong> اگر از Git استفاده می‌کنید، نباید فایل‌های حاوی اطلاعات حساس را کامیت کنید. در ادامه بخوانید که
+          چگونه با استفاده از <a href="#git-and-gitignore">فایل <code class="inline">.gitignore</code></a> آن‌ها را از
+          نسخه‌گذاری (versioning) حذف کنید.
+        </div>
+
+        <h3>استفاده از متغیرهای محیطی</h3>
+        <p>متغیرهای محیطی، همان‌طور که از نامشان پیداست، مقادیری هستند که می‌توانید به محیط خود (مثلاً جلسهٔ ترمینال، کانتینر
+        Docker، فرایند Node) منتقل کنید. مزیت این کار این است که می‌توانید کد خود را برای زمینه‌های اجرای مختلف یکسان نگه دارید.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">A=Hello World
+B=123
+DISCORD_TOKEN=MTI3NDMxMjA3PDQ3ODIxNzIzNg.G6uEbl.IpA3-9YeScYr9pu9K1utMlpP4p-KJwNxcIAbi8</code></pre>
+        <div class="callout warn">
+          <strong>خطر:</strong> اگر از Git استفاده می‌کنید، نباید فایل <code class="inline">.env</code> یا سایر فایل‌های
+          محیطی حاوی اطلاعات حساس را کامیت کنید. در ادامه بخوانید که چگونه با استفاده از
+          <a href="#git-and-gitignore">فایل <code class="inline">.gitignore</code></a> آن‌ها را از نسخه‌گذاری حذف کنید.
+        </div>
+        <p>برای استفاده از متغیرهای محیطی در Node.js، توصیه می‌کنیم از پرچم رابط خط فرمان <code class="inline">--env-file</code>
+        برای اشاره به فایل <code class="inline">.env</code> موردنظرتان استفاده کنید. توجه کنید که نام فایل <code class="inline">.env</code>
+        فقط یک قرارداد است. برای مثال می‌توانید فایل‌های <code class="inline">.env.development</code> و <code class="inline">.env.production</code>
+        با مقادیر مختلف داشته باشید، بسته به اینکه می‌خواهید کدتان با کدام اپلیکیشن دیسکورد اجرا شود.</p>
+        <p>همچنین می‌توانید با استفادهٔ چندباره از پرچم <code class="inline">--env-file</code> چندین فایل محیطی را بخوانید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">node --env-file=.env index.js</code></pre>
+        <p>اگر از Bun استفاده می‌کنید، نیازی به پرچم خاصی نیست! Bun فایل‌های <code class="inline">.env</code> را به‌صورت خودکار
+        می‌خواند.</p>
+        <p>مقادیری که این‌گونه در فایل‌های <code class="inline">.env</code> مشخص می‌کنید، از طریق متغیر سراسری
+        <code class="inline">process.env</code> در هر فایلی در دسترس هستند. توجه کنید که مقادیر منتقل‌شده به این روش همیشه
+        رشته هستند. اگر می‌خواهید روی اعداد محیطی محاسبه کنید، باید آن‌ها را تجزیه کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">console.log(process.env.A);
+console.log(process.env.B + 9); // 1239 (this concatenates the number to the string!)
+console.log(Number(process.env.C) + 9); // 132
+console.log(process.env.DISCORD_TOKEN);</code></pre>
+
+        <h3>ویرایشگرهای آنلاین</h3>
+        <p>گرچه ما عموماً استفاده از ویرایشگرهای آنلاین را به‌عنوان راه‌حل میزبانی توصیه نمی‌کنیم و ترجیح می‌دهیم روی یک سرور
+        خصوصی مجازی (VPS) مناسب سرمایه‌گذاری کنید، این سرویس‌ها نیز راه‌هایی برای امن نگه داشتن اعتبارنامه‌های شما ارائه
+        می‌دهند! لطفاً برای اطلاعات بیشتر دربارهٔ چگونگی امن نگه داشتن مقادیر حساس، مستندات و مقالات کمکی هر سرویس را ببینید:</p>
+        <ul>
+          <li><a href="https://help.glitch.com/s/article/Adding-Private-Data" target="_blank" rel="noopener">Glitch</a> — دربارهٔ ذخیره‌سازی secrets در فایل‌های <code class="inline">.env</code> با استفاده از Glitch بیشتر بدانید</li>
+          <li><a href="https://devcenter.heroku.com/articles/config-vars" target="_blank" rel="noopener">Heroku</a> — دربارهٔ متغیرهای پیکربندی در Heroku بیشتر بدانید</li>
+          <li><a href="https://docs.replit.com/replit-workspace/workspace-features/secrets#secrets" target="_blank" rel="noopener">Replit</a> — دربارهٔ secrets و متغیرهای محیطی در Replit بیشتر بدانید</li>
+        </ul>
+
+        <h3 id="git-and-gitignore">Git و فایل <code class="inline">.gitignore</code></h3>
+        <p>Git ابزار فوق‌العاده‌ای برای پیگیری تغییرات کد شماست و به شما اجازه می‌دهد پیشرفت را در سرویس‌هایی مانند
+        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>، <a href="https://about.gitlab.com/" target="_blank" rel="noopener">GitLab</a>
+        یا <a href="https://bitbucket.org/product" target="_blank" rel="noopener">Bitbucket</a> آپلود کنید. گرچه این برای
+        اشتراک‌گذاری کد با دیگر توسعه‌دهندگان بسیار مفید است، اما خطر آپلود فایل‌های پیکربندی با مقادیر حساس را هم دارد!</p>
+        <p>می‌توانید فایل‌هایی که Git باید در سیستم نسخه‌گذاری خود نادیده بگیرد را با یک فایل <code class="inline">.gitignore</code>
+        مشخص کنید. در پوشهٔ پروژه یک فایل <code class="inline">.gitignore</code> بسازید و نام فایل‌ها و پوشه‌هایی را که می‌خواهید
+        نادیده گرفته شوند به آن اضافه کنید. مثال زیر فایل‌های <code class="inline">config.json</code> و <code class="inline">.env</code>
+        و همچنین پوشهٔ <code class="inline">node_modules</code> را نادیده می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">node_modules
+.env
+config.json</code></pre>
+        <p>فایل‌های <code class="inline">.gitignore</code> می‌توانند الگوهای پیچیده‌ای را مشخص کنند و به جریان توسعهٔ کلی شما
+        کمک کنند. جدا از امن نگه داشتن اعتبارنامه‌ها، باید <code class="inline">node_modules</code> را نیز از کنترل نسخه حذف
+        کنید؛ محتوای آن را می‌توان از ورودی‌های فایل‌های <code class="inline">package.json</code> و <code class="inline">package-lock.json</code>
+        بازسازی کرد.</p>
+      </section>
+
+      <!-- ==================== فایل اصلی ==================== -->
+      <section>
+        <h2>فایل اصلی (The Main File)</h2>
+        <p>این صفحه فرض می‌کند که <a href="https://discordjs.guide/legacy/app-creation/project-setup" target="_blank" rel="noopener">فایل‌های پیکربندی</a>
+        صفحهٔ قبل را آماده کرده‌اید. ما از روش <code class="inline">config.json</code> استفاده می‌کنیم، اما آزادید روش خودتان
+        را جایگزین کنید!</p>
+
+        <h3>ساخت فایل اصلی</h3>
+        <p>ویرایشگر کد خود را باز کنید و یک فایل جدید بسازید. پیشنهاد می‌کنیم فایل را با نام <code class="inline">index.js</code>
+        ذخیره کنید، اما می‌توانید هر نامی که می‌خواهید به آن بدهید.</p>
+        <p>این کد پایه است که به شما شروع می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بارگذاری کلاس‌های لازم discord.js
+const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.json');
+
+// ساخت یک نمونهٔ جدید از کلاینت
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+// وقتی کلاینت آماده شد، این کد را اجرا کن (فقط یک بار).
+// تفاوت بین `client: Client&lt;boolean&gt;` و `readyClient: Client&lt;true&gt;` برای توسعه‌دهندگان TypeScript مهم است.
+// برخی از ویژگی‌ها را غیرصفر (non-nullable) می‌کند.
+client.once(Events.ClientReady, (readyClient) => {
+	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
+// ورود به دیسکورد با توکن کلاینت
+client.login(token);</code></pre>
+        <p>این روش ساختن یک نمونهٔ کلاینت برای ربات دیسکورد شما و ورود به دیسکورد است. گزینهٔ intents با مقدار
+        <code class="inline">GatewayIntentBits.Guilds</code> برای اینکه کلاینت discord.js همان‌طور که انتظار دارید کار کند لازم
+        است؛ زیرا تضمین می‌کند که کش (cache) گیلدها، کانال‌ها و نقش‌ها پر شود و برای استفادهٔ داخلی در دسترس باشد.</p>
+        <p>اصطلاح «guild» (گیلد) توسط API دیسکورد و در discord.js برای اشاره به یک سرور دیسکورد استفاده می‌شود.</p>
+        <p>Intents همچنین مشخص می‌کنند دیسکورد کدام رویدادها را باید به ربات شما بفرستد، و ممکن است بخواهید بیشتر از حداقل
+        موردنیاز فعال کنید. می‌توانید دربارهٔ سایر intents در
+        <a href="https://discordjs.guide/legacy/popular-topics/intents" target="_blank" rel="noopener">مبحث Intents</a> بیشتر
+        بخوانید.</p>
+
+        <h3>اجرای اپلیکیشن شما</h3>
+        <p>ترمینال خود را باز کنید و برای شروع فرایند، <code class="inline">node index.js</code> را اجرا کنید. اگر بعد از چند
+        ثانیه «Ready!» را دیدید، آماده‌اید! قدم بعدی شروع اضافه کردن دستورات اسلش برای توسعهٔ عملکرد اپلیکیشن شماست.</p>
+        <p>می‌توانید فایل <code class="inline">package.json</code> خود را باز کنید و فیلد <code class="inline">"main": "index.js"</code>
+        را طوری ویرایش کنید که به فایل اصلی شما اشاره کند. سپس می‌توانید <code class="inline">node .</code> را در ترمینال اجرا
+        کنید تا فرایند شروع شود!</p>
+        <p>بعد از بستن فرایند با Ctrl C، می‌توانید با کلید پیکان رو به بالای کیبورد، آخرین دستوراتی را که اجرا کرده‌اید بیاورید.
+        فشردن پیکان بالا و سپس Enter بعد از بستن فرایند، راهی سریع برای دوباره شروع کردن آن است.</p>
+      </section>
+
+      <!-- ==================== ساخت دستورات اسلش ==================== -->
+      <section>
+        <h2>ساخت دستورات اسلش (Creating Slash Commands)</h2>
+        <p>دیسکورد به توسعه‌دهندگان اجازه می‌دهد <a href="https://discord.com/developers/docs/interactions/application-commands" target="_blank" rel="noopener">دستورات اسلش</a>
+        را ثبت کنند، که راهی درجه‌یک برای تعامل مستقیم کاربران با اپلیکیشن شما فراهم می‌کنند.</p>
+        <p>دستورات اسلش نسبت به تجزیهٔ دستی پیام‌ها، مزایای بسیار زیادی دارند، از جمله:</p>
+        <ul>
+          <li>ادغام با رابط کاربری کلاینت دیسکورد.</li>
+          <li>تشخیص خودکار دستورات و تجزیهٔ گزینه‌ها/آرگومان‌های مرتبط.</li>
+          <li>ورودی‌های آرگومانی نوع‌دار برای گزینه‌های دستور، مثلاً «String»، «User» یا «Role».</li>
+          <li>انتخاب‌های معتبر یا پویا برای گزینه‌های دستور.</li>
+          <li>پاسخ‌های خصوصی درون کانال (پیام‌های ephemeral).</li>
+          <li>ورودی‌های فرم‌مانند پنجره‌ای برای جمع‌آوری اطلاعات اضافی.</li>
+        </ul>
+        <p>...و خیلی بیشتر!</p>
+
+        <h3>پیش از ادامه</h3>
+        <p>با فرض اینکه تا این‌جا از راهنما پیروی کرده‌اید، پوشهٔ پروژهٔ شما باید چیزی شبیه این باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">discord-bot
+├── node_modules
+├── config.json
+├── index.js
+├── package-lock.json
+└── package.json</code></pre>
+        <p>برای دستورات اسلش کاملاً کاربردی، به سه قطعه کد مهم نیاز دارید:</p>
+        <ul>
+          <li><b>فایل‌های دستورات (Command Files):</b> فایل‌های دستورات جداگانه، شامل تعریف‌ها و عملکرد دستورات اسلش.</li>
+          <li><b>مدیر دستورات (Command Handler):</b> <a href="https://discordjs.guide/legacy/app-creation/handling-commands" target="_blank" rel="noopener">مدیر دستورات</a>،
+          فایل‌های دستورات را به‌صورت پویا می‌خواند و دستورات را اجرا می‌کند.</li>
+          <li><b>ثبت دستورات (Command Deployment):</b> اسکریپت <a href="https://discordjs.guide/legacy/app-creation/deploying-commands" target="_blank" rel="noopener">ثبت دستورات</a>
+          برای ثبت دستورات اسلش در دیسکورد.</li>
+        </ul>
+        <p>این مراحل را می‌توان به هر ترتیبی دنبال کرد، اما همهٔ آن‌ها برای کار کردن ربات لازم‌اند. این صفحه مرحلهٔ
+        <b>۱</b> را شرح می‌دهد. حتماً صفحات لینک‌شدهٔ دیگر را هم ببینید.</p>
+
+        <h3>فایل‌های دستورات جداگانه</h3>
+        <p>یک پوشهٔ جدید به نام <code class="inline">commands</code> و یک زیرپوشه به نام <code class="inline">utility</code>
+        داخل آن بسازید؛ جایی که همهٔ فایل‌های دستورات کاربردی (utility) خود را نگه می‌دارید. برای ساخت تعریف‌های دستور از کلاس
+        استفاده خواهید کرد.</p>
+        <p>حداقل، تعریف یک دستور اسلش باید یک نام و یک توضیح (description) داشته باشد. نام دستورات اسلش باید بین ۱ تا ۳۲
+        کاراکتر باشد و هیچ حرف بزرگ، فاصله یا نمادی غیر از <code class="inline">-</code> و <code class="inline">_</code> نداشته
+        باشد. با استفاده از builder، تعریف یک دستور سادهٔ <code class="inline">ping</code> به این شکل خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!');</code></pre>
+        <p>یک دستور اسلش همچنین به یک تابع برای اجرا در هنگام استفاده از دستور نیاز دارد تا به interaction پاسخ دهد. استفاده از
+        یک متد پاسخ به interaction به دیسکورد تأیید می‌کند که ربات شما interaction را با موفقیت دریافت کرده و به کاربر پاسخ
+        داده است. دیسکورد این را الزامی می‌کند تا اطمینان حاصل شود همهٔ دستورات اسلش تجربهٔ کاربری (UX) خوبی ارائه می‌دهند.
+        اگر پاسخ ندهید، دیسکورد نشان می‌دهد دستور شکست خورده است، حتی اگر ربات شما در نتیجهٔ آن کارهای دیگری انجام دهد.</p>
+        <p>ساده‌ترین راه برای تأیید و پاسخ به یک interaction، متد <code class="inline">interaction.reply()</code> است. سایر
+        روش‌های پاسخ در <a href="https://discordjs.guide/legacy/slash-commands/response-methods" target="_blank" rel="noopener">صفحهٔ روش‌های پاسخ</a>
+        در ادامهٔ این بخش پوشش داده می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">async execute(interaction) {
+	await interaction.reply('Pong!')
+}</code></pre>
+        <p>این دو را کنار هم بگذارید و برای اولین دستور خود یک فایل <code class="inline">ping.js</code> در پوشهٔ
+        <code class="inline">commands/utility</code> بسازید. داخل این فایل، دو آیتم را تعریف و خروجی می‌گیرید:</p>
+        <ul>
+          <li>ویژگی <code class="inline">data</code> که تعریف دستور نشان‌داده‌شده در بالا را برای ثبت در دیسکورد فراهم می‌کند.</li>
+          <li>متد <code class="inline">execute</code> که عملکردی را که قرار است از داخل مدیر رویداد ما هنگام استفاده از دستور
+          اجرا شود، در خود دارد.</li>
+        </ul>
+        <p>این‌ها داخل <code class="inline">module.exports</code> قرار می‌گیرند تا توسط فایل‌های دیگر خوانده شوند؛ یعنی
+        بارگذار دستورات و اسکریپت‌های ثبت دستورات که قبلاً ذکر شدند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { SlashCommandBuilder } = require('discord.js');
+
+module.exports = {
+	data: new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!'),
+	async execute(interaction) {
+		await interaction.reply('Pong!');
+	},
+};</code></pre>
+        <p><a href="https://nodejs.org/api/modules.html#modules_module_exports" target="_blank" rel="noopener"><code class="inline">module.exports</code></a>
+        روشی است که در Node.js داده را خروجی می‌گیرید تا بتوانید آن را در فایل‌های دیگر <a href="https://nodejs.org/api/modules.html#modules_require_id" target="_blank" rel="noopener"><code class="inline">require()</code></a> کنید.</p>
+        <p>اگر لازم است از داخل یک فایل دستور به نمونهٔ کلاینت خود دسترسی پیدا کنید، می‌توانید از طریق
+        <code class="inline">interaction.client</code> به آن دسترسی داشته باشید. اگر لازم است به فایل‌ها، بسته‌ها و... خارجی
+        دسترسی پیدا کنید، باید آن‌ها را در ابتدای فایل <code class="inline">require()</code> کنید.</p>
+        <p>این تمام ماجرای دستور پایهٔ ping شماست. در ادامه مثال‌هایی از دو دستور دیگر آورده شده که در طول راهنما روی آن‌ها
+        خواهیم ساخت؛ پس قبل از ادامهٔ مطالعه، دو فایل دیگر برای این‌ها بسازید.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { SlashCommandBuilder } = require('discord.js');
+
+module.exports = {
+	data: new SlashCommandBuilder().setName('user').setDescription('Provides information about the user.'),
+	async execute(interaction) {
+		// interaction.user شیء نمایانگر کاربری است که دستور را اجرا کرده است
+		// interaction.member شیء GuildMember است که کاربر را در گیلد خاص نمایش می‌دهد
+		await interaction.reply(
+			`This command was run by ${interaction.user.username}, who joined on ${interaction.member.joinedAt}.`,
+		);
+	},
+};</code></pre>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { SlashCommandBuilder } = require('discord.js');
+
+module.exports = {
+	data: new SlashCommandBuilder().setName('server').setDescription('Provides information about the server.'),
+	async execute(interaction) {
+		// interaction.guild شیء نمایانگر گیلدی است که دستور در آن اجرا شده است
+		await interaction.reply(`This server is ${interaction.guild.name} and has ${interaction.guild.memberCount} members.`);
+	},
+};</code></pre>
+
+        <h3>قدم‌های بعدی</h3>
+        <p>می‌توانید با ساخت فایل‌های جدید در یک زیرپوشهٔ اختصاصی داخل پوشهٔ <code class="inline">commands</code> دستورات بیشتری
+        پیاده‌سازی کنید، اما این سه دستور همان‌هایی هستند که در مثال‌های ادامه استفاده خواهیم کرد. فعلاً برویم سراغ کدی که برای
+        مدیریت دستورات لازم دارید؛ یعنی بارگذاری فایل‌ها و پاسخ به interactionهای ورودی.</p>
+      </section>
+
+      <!-- ==================== مدیریت دستورات ==================== -->
+      <section>
+        <h2>مدیریت دستورات (Command Handling)</h2>
+        <p>مگر اینکه پروژهٔ ربات شما کوچک باشد، ایدهٔ خوبی نیست که یک فایل واحد با زنجیرهٔ غول‌پیکری از
+        <code class="inline">if</code>/<code class="inline">else if</code> برای دستورات داشته باشید. اگر می‌خواهید قابلیت‌هایی
+        در ربات خود پیاده‌سازی کنید و فرایند توسعه را بسیار کم‌دردسرتر کنید، باید یک مدیر دستورات (command handler)
+        پیاده‌سازی کنید. بیایید شروع کنیم!</p>
+        <p>برای دستورات اسلش کاملاً کاربردی، به سه قطعه کد مهم نیاز دارید:</p>
+        <ul>
+          <li><b>فایل‌های دستورات (Command Files):</b> فایل‌های دستورات جداگانه، شامل <a href="https://discordjs.guide/legacy/app-creation/creating-commands" target="_blank" rel="noopener">تعریف‌ها و عملکرد دستورات اسلش</a>.</li>
+          <li><b>مدیر دستورات (Command Handler):</b> مدیر دستورات، فایل‌های دستورات را به‌صورت پویا می‌خواند و دستورات را اجرا می‌کند.</li>
+          <li><b>ثبت دستورات (Command Deployment):</b> <a href="https://discordjs.guide/legacy/app-creation/deploying-commands" target="_blank" rel="noopener">اسکریپت ثبت دستورات</a> برای ثبت دستورات اسلش در دیسکورد.</li>
+        </ul>
+        <p>این مراحل را می‌توان به هر ترتیبی دنبال کرد، اما همهٔ آن‌ها برای کار کردن ربات لازم‌اند. این صفحه مرحلهٔ
+        <b>۲</b> را شرح می‌دهد. حتماً صفحات لینک‌شدهٔ دیگر را هم ببینید.</p>
+
+        <h3>بارگذاری فایل‌های دستورات</h3>
+        <p>حالا که فایل‌های دستورات شما ساخته شده‌اند، ربات شما باید این فایل‌ها را هنگام راه‌اندازی (startup) بارگذاری کند.</p>
+        <p>در فایل <code class="inline">index.js</code> خود، این افزوده‌ها را به قالب پایه اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
+const { token } = require('./config.json');
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+client.once(Events.ClientReady, (readyClient) => {
+	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
+client.commands = new Collection(); </code></pre>
+        <p>توصیه می‌کنیم یک ویژگی <code class="inline">.commands</code> به نمونهٔ کلاینت خود بچسبانید تا بتوانید در فایل‌های دیگر
+        به دستورات خود دسترسی داشته باشید. بقیهٔ مثال‌های این راهنما از همین قرارداد پیروی می‌کنند. برای کاربران TypeScript،
+        توصیه می‌کنیم کلاس پایهٔ Client را برای افزودن این ویژگی گسترش دهید، <a href="https://www.typescripttutorial.net/typescript-tutorial/type-casting/" target="_blank" rel="noopener">تبدیل نوع</a> انجام دهید،
+        یا <a href="https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation" target="_blank" rel="noopener">نوع ماژول را افزوده</a> کنید.</p>
+        <ul>
+          <li>ماژول <a href="https://nodejs.org/api/fs.html" target="_blank" rel="noopener"><code class="inline">fs</code></a>
+          ماژول بومی سیستم فایل نود است. از <code class="inline">fs</code> برای خواندن پوشهٔ <code class="inline">commands</code>
+          و شناسایی فایل‌های دستورات شما استفاده می‌شود.</li>
+          <li>ماژول <a href="https://nodejs.org/api/path.html" target="_blank" rel="noopener"><code class="inline">path</code></a>
+          ماژول بومی ابزار مسیر نود است. <code class="inline">path</code> به ساخت مسیرها برای دسترسی به فایل‌ها و پوشه‌ها کمک
+          می‌کند. یکی از مزیت‌های ماژول <code class="inline">path</code> این است که به‌صورت خودکار سیستم‌عامل را تشخیص می‌دهد و
+          از جداکننده‌های مناسب استفاده می‌کند.</li>
+          <li>کلاس <code class="inline">Collection</code> کلاس بومی <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map" target="_blank" rel="noopener"><code class="inline">Map</code></a>
+          جاوااسکریپت را گسترش می‌دهد و عملکرد مفید و گسترده‌تری دارد. از <code class="inline">Collection</code> برای ذخیره و
+          بازیابی کارآمد دستورات برای اجرا استفاده می‌شود.</li>
+        </ul>
+        <p>سپس، با استفاده از ماژول‌های ایمپورت‌شدهٔ بالا، فایل‌های دستورات خود را با چند افزودهٔ دیگر به فایل
+        <code class="inline">index.js</code> به‌صورت پویا بازیابی کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.commands = new Collection();
+
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		// افزودن یک آیتم جدید به Collection با کلیدِ نام دستور و مقدارِ ماژول خروجی‌گرفته‌شده
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}</code></pre>
+        <p>اول، <a href="https://nodejs.org/api/path.html#pathjoinpaths" target="_blank" rel="noopener"><code class="inline">path.join()</code></a>
+        به ساخت مسیری به پوشهٔ <code class="inline">commands</code> کمک می‌کند. متد اول <a href="https://nodejs.org/api/fs.html#fs_fs_readdirsync_path_options" target="_blank" rel="noopener"><code class="inline">fs.readdirSync()</code></a>
+        مسیر پوشه را می‌خواند و آرایه‌ای از همهٔ نام پوشه‌های داخل آن برمی‌گرداند که فعلاً <code class="inline">['utility']</code>
+        است. متد دوم <code class="inline">fs.readdirSync()</code> مسیر این پوشه را می‌خواند و آرایه‌ای از همهٔ نام فایل‌های داخل
+        آن برمی‌گرداند که فعلاً <code class="inline">['ping.js', 'server.js', 'user.js']</code> است. برای اطمینان از اینکه فقط
+        فایل‌های دستور پردازش می‌شوند، <code class="inline">Array.filter()</code> هر فایل غیر جاوااسکریپتی را از آرایه حذف
+        می‌کند.</p>
+        <p>با شناسایی فایل‌های درست، آخرین مرحله این است که هر دستور را به‌صورت پویا در Collection با نام
+        <code class="inline">client.commands</code> قرار دهیم. برای هر فایل بارگذاری‌شده، بررسی کنید که حداقل ویژگی‌های
+        <code class="inline">data</code> و <code class="inline">execute</code> را داشته باشد. این کار به جلوگیری از خطاهای ناشی
+        از بارگذاری فایل‌های دستور خالی، ناتمام یا نادرست در حالی که هنوز در حال توسعه هستید کمک می‌کند.</p>
+
+        <h3>دریافت interactionهای دستورات</h3>
+        <p>برای هر دستور اسلش اجراشده، یک interaction دریافت خواهید کرد. برای پاسخ به یک دستور، باید شنونده‌ای (listener) برای
+        رویداد <code class="inline">interactionCreate</code> بسازید که وقتی اپلیکیشن شما یک interaction دریافت می‌کند، کدی را
+        اجرا کند. کد زیر را در فایل <code class="inline">index.js</code> که قبلاً ساختید قرار دهید.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, (interaction) => {
+	console.log(interaction);
+});</code></pre>
+        <p>هر interaction یک دستور اسلش نیست (مثلاً interactionهای <code class="inline">MessageComponent</code>). مطمئن شوید
+        در این تابع فقط دستورات اسلش را مدیریت می‌کنید؛ با استفاده از متد <code class="inline">BaseInteraction#isChatInputCommand</code>
+        اگر نوع دیگری باشد از ادامهٔ تابع خارج می‌شوید. این متد همچنین برای کاربران TypeScript محافظت نوع (typeguarding) فراهم
+        می‌کند و نوع را از <code class="inline">BaseInteraction</code> به <code class="inline">ChatInputCommandInteraction</code>
+        محدود می‌کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, (interaction) => {
+	if (!interaction.isChatInputCommand()) return; 
+	console.log(interaction);
+});</code></pre>
+
+        <h3>اجرای دستورات</h3>
+        <p>وقتی ربات شما یک رویداد <code class="inline">interactionCreate</code> دریافت می‌کند، شیء interaction شامل تمام
+        اطلاعاتی است که برای بازیابی و اجرای پویای دستورات شما لازم دارید!</p>
+        <p>بیایید دوباره به دستور <code class="inline">ping</code> نگاه کنیم. به تابع <code class="inline">execute()</code>
+        توجه کنید که با «Pong!» به interaction پاسخ می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">module.exports = {
+	data: new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!'),
+	async execute(interaction) {
+		await interaction.reply('Pong!');
+	},
+};</code></pre>
+        <p>اول، باید دستور متناظر را از Collection با نام <code class="inline">client.commands</code> بر اساس
+        <code class="inline">interaction.commandName</code> به دست آورید. نمونهٔ <code class="inline">Client</code> شما همیشه از
+        طریق <code class="inline">interaction.client</code> در دسترس است. اگر دستور متناظری پیدا نشد، خطا را در کنسول ثبت کنید و
+        رویداد را نادیده بگیرید.</p>
+        <p>با شناسایی دستور درست، تنها کاری که می‌ماند صدازدن متد <code class="inline">.execute()</code> دستور و پاس دادن
+        متغیر <code class="inline">interaction</code> به‌عنوان آرگومان آن است. در صورت بروز هر مشکلی، هر خطایی را بگیرید و در
+        کنسول ثبت کنید.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+	const command = interaction.client.commands.get(interaction.commandName);
+
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({
+				content: 'There was an error while executing this command!',
+				flags: MessageFlags.Ephemeral,
+			});
+		} else {
+			await interaction.reply({
+				content: 'There was an error while executing this command!',
+				flags: MessageFlags.Ephemeral,
+			});
+		}
+	}
+});</code></pre>
+
+        <h3>قدم‌های بعدی</h3>
+        <p>فایل‌های دستورات شما حالا در ربات بارگذاری شده‌اند و شنوندهٔ رویداد آماده و مهیای پاسخ است. در بخش بعد، مرحلهٔ
+        نهایی را پوشش می‌دهیم: یک اسکریپت ثبت دستورات که برای ظاهر شدن دستورات در کلاینت دیسکورد لازم دارید.</p>
+      </section>
+
+      <!-- ==================== ثبت دستورات ==================== -->
+      <section>
+        <h2>ثبت دستورات (Registering Commands)</h2>
+        <p>برای دستورات اسلش کاملاً کاربردی، به سه قطعه کد مهم نیاز دارید:</p>
+        <ul>
+          <li><b>فایل‌های دستورات (Command Files):</b> فایل‌های دستورات جداگانه، شامل <a href="https://discordjs.guide/legacy/app-creation/creating-commands" target="_blank" rel="noopener">تعریف‌ها و عملکرد دستورات اسلش</a>.</li>
+          <li><b>مدیر دستورات (Command Handler):</b> <a href="https://discordjs.guide/legacy/app-creation/handling-commands" target="_blank" rel="noopener">مدیر دستورات</a>، فایل‌های دستورات را به‌صورت پویا می‌خواند و دستورات را اجرا می‌کند.</li>
+          <li><b>ثبت دستورات (Command Deployment):</b> اسکریپت ثبت دستورات برای ثبت دستورات اسلش در دیسکورد.</li>
+        </ul>
+        <p>این مراحل را می‌توان به هر ترتیبی دنبال کرد، اما همهٔ آن‌ها برای کار کردن ربات لازم‌اند. این صفحه مرحلهٔ
+        <b>۳</b> را شرح می‌دهد. حتماً صفحات لینک‌شدهٔ دیگر را هم ببینید.</p>
+
+        <h3>ثبت دستورات</h3>
+        <p>دستورات اسلش را می‌توان به دو روش ثبت کرد؛ در یک گیلد خاص، یا برای همهٔ گیلدهایی که ربات در آن‌هاست. اول به ثبت
+        تک‌گیلدی نگاه می‌کنیم، زیرا این راه خوبی برای توسعه و تست دستورات شما قبل از انتشار سراسری است.</p>
+        <p>اپلیکیشن شما برای اینکه هر یک از دستورات اسلشش ظاهر شوند و بتوانید آن‌ها را بدون خطا در یک گیلد خاص ثبت کنید، به
+        مجوزِ scope با نام <code class="inline">applications.commands</code> در آن گیلد نیاز دارد.</p>
+        <p>دستورات اسلش فقط باید یک بار ثبت شوند و هنگام تغییر تعریف (توضیح، گزینه‌ها و...) به‌روزرسانی شوند. چون محدودیت روزانه
+        برای ساخت دستورات وجود دارد، نه لازم است و نه مطلوب که یک کلاینت کامل را به گیت‌وی متصل کنید یا این کار را در هر رویداد
+        <code class="inline">ready</code> انجام دهید. در عوض، یک اسکریپت مستقل با استفاده از مدیر سبک‌تر REST ترجیح داده می‌شود.</p>
+        <p>این اسکریپت قرار است جداگانه اجرا شود، فقط وقتی لازم است در <b>تعریف‌های</b> دستورات اسلش خود تغییری ایجاد کنید — آزادید
+        بخش‌هایی مانند تابع execute را بدون ثبت مجدد، هر چقدر می‌خواهید تغییر دهید.</p>
+
+        <h3>دستورات گیلد</h3>
+        <p>در پوشهٔ پروژه خود یک فایل <code class="inline">deploy-commands.js</code> بسازید. از این فایل برای ثبت و
+        به‌روزرسانی دستورات اسلش اپلیکیشن ربات خود استفاده می‌شود.</p>
+        <p>دو ویژگی دیگر به فایل <code class="inline">config.json</code> خود اضافه کنید که در اسکریپت ثبت به آن‌ها نیاز داریم:</p>
+        <ul>
+          <li><code class="inline">clientId</code>: client id اپلیکیشن شما (<a href="https://discord.com/developers/applications" target="_blank" rel="noopener">پورتال توسعه‌دهندگان دیسکورد</a> &gt; «General Information» &gt; application id)</li>
+          <li><code class="inline">guildId</code>: شناسهٔ سرور توسعهٔ شما (<a href="https://support.discord.com/hc/articles/206346498" target="_blank" rel="noopener">فعال کردن حالت توسعه‌دهنده</a> &gt; کلیک راست روی عنوان سرور &gt; «Copy ID»)</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+	"token": "your-token-goes-here",
+	"clientId": "your-application-id-goes-here",
+	"guildId": "your-server-id-goes-here"
+}</code></pre>
+        <p>با تعریف این‌ها، می‌توانید از اسکریپت ثبت زیر استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { REST, Routes } = require('discord.js');
+const { clientId, guildId, token } = require('./config.json');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const commands = [];
+// دریافت همهٔ پوشه‌های دستورات از پوشهٔ commands که قبلاً ساخته‌اید
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+	// دریافت همهٔ فایل‌های دستورات از پوشهٔ commands
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
+	// دریافت خروجی SlashCommandBuilder#toJSON() از data هر دستور برای ثبت
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			commands.push(command.data.toJSON());
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
+
+// ساخت و آماده‌سازی یک نمونه از ماژول REST
+const rest = new REST().setToken(token);
+
+// و دستورات خود را ثبت کنید!
+(async () => {
+	try {
+		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+
+		// متد put برای بازنویسی کامل همهٔ دستورات گیلد با مجموعهٔ فعلی استفاده می‌شود
+		const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+
+		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+	} catch (error) {
+		// و البته، مطمئن شوید هر خطایی را می‌گیرید و ثبت می‌کنید!
+		console.error(error);
+	}
+})();</code></pre>
+        <p>وقتی این مقادیر را پر کردید، برای ثبت دستورات در گیلد مشخص‌شده، <code class="inline">node deploy-commands.js</code> را
+        در پوشهٔ پروژه خود اجرا کنید. اگر پیام موفقیت را دیدید، با تایپ کردن <code class="inline">/</code> دستورات را در سرور
+        بررسی کنید! اگر همه‌چیز خوب پیش برود، باید بتوانید آن‌ها را اجرا کنید و پاسخ ربات خود را در دیسکورد ببینید!</p>
+
+        <h3>دستورات سراسری (Global commands)</h3>
+        <p>دستورات سراسری اپلیکیشن در همهٔ گیلدهایی که اپلیکیشن شما scope با نام <code class="inline">applications.commands</code>
+        را در آن‌ها مجاز کرده است و به‌صورت پیش‌فرض در پیام‌های مستقیم در دسترس خواهند بود.</p>
+        <p>برای ثبت دستورات سراسری، می‌توانید از همان اسکریپت بخش دستورات گیلد استفاده کنید و فقط مسیر (route) را در اسکریپت به
+        <code class="inline">.applicationCommands(clientId)</code> تغییر دهید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">await rest.put(Routes.applicationCommands(clientId), { body: commands });</code></pre>
+
+        <h3>کجا ثبت کنیم؟</h3>
+        <p>ثبت دستورات مبتنی بر گیلد برای توسعه و تست در سرور شخصی خودتان مناسب‌ترین حالت است. وقتی مطمئن شدید آماده است،
+        دستور را به‌صورت سراسری ثبت کنید تا در همهٔ گیلدهایی که ربات شما در آن‌هاست منتشر شود.</p>
+        <p>ممکن است بخواهید برای اپلیکیشن توسعهٔ خود، یک اپلیکیشن و توکن جداگانه در پورتال توسعه‌دهندگان دیسکورد داشته باشید تا
+        از تداخل بین دستورات مبتنی بر گیلد و ثبت سراسری جلوگیری کنید.</p>
+      </section>
+
+      <!-- ==================== مدیریت رویدادها ==================== -->
+      <section>
+        <h2>مدیریت رویدادها (Event Handling)</h2>
+        <p>Node.js از یک معماری رویدادمحور استفاده می‌کند که اجرای کد را هنگام وقوع یک رویداد خاص ممکن می‌سازد. کتابخانهٔ
+        discord.js نهایت استفاده را از این قابلیت می‌برد. می‌توانید برای دیدن فهرست کامل رویدادها به مستندات
+        <code class="inline">Client</code> مراجعه کنید.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> این صفحه فرض می‌کند تا این نقطه از راهنما را دنبال کرده‌اید و فایل <code class="inline">index.js</code>
+          و دستورات اسلش جداگانه خود را طبق آن صفحات ساخته‌اید.
+        </div>
+        <p>در این مرحله، فایل <code class="inline">index.js</code> شما شنونده‌هایی برای دو رویداد دارد: <code class="inline">ClientReady</code>
+        و <code class="inline">InteractionCreate</code>.</p>
+        <p>فعلاً، شنونده‌های رویداد در فایل <code class="inline">index.js</code> هستند. <code class="inline">Client#ready</code>
+        وقتی <code class="inline">Client</code> آمادهٔ استفاده می‌شود یک بار emit می‌شود، و <code class="inline">Client#interactionCreate</code>
+        هر بار که یک interaction دریافت می‌شود emit می‌شود. انتقال کد شنوندهٔ رویداد به فایل‌های جداگانه ساده است و رویکردی
+        مشابه مدیر دستورات را در پیش می‌گیریم.</p>
+        <p>شما فقط این دو رویداد را از <code class="inline">index.js</code> منتقل می‌کنید. کد <a href="https://discordjs.guide/legacy/app-creation/handling-commands#loading-command-files" target="_blank" rel="noopener">بارگذاری فایل‌های دستورات</a>
+        همین‌جا می‌ماند!</p>
+
+        <h3>فایل‌های رویداد جداگانه</h3>
+        <p>پوشهٔ پروژهٔ شما باید چیزی شبیه این باشد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">discord-bot
+├── commands
+├── node_modules
+├── config.json
+├── deploy-commands.js
+├── index.js
+├── package-lock.json
+└── package.json</code></pre>
+        <p>در همین پوشه یک پوشهٔ <code class="inline">events</code> بسازید. سپس می‌توانید کد شنونده‌های رویداد را از
+        <code class="inline">index.js</code> به فایل‌های جداگانه منتقل کنید: <code class="inline">events/ready.js</code> و
+        <code class="inline">events/interactionCreate.js</code>.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { Events } = require('discord.js');
+
+module.exports = {
+	name: Events.ClientReady,
+	once: true,
+	execute(client) {
+		console.log(`Ready! Logged in as ${client.user.tag}`);
+	},
+};</code></pre>
+        <p>ویژگی <code class="inline">name</code> مشخص می‌کند این فایل برای کدام رویداد است، و ویژگی <code class="inline">once</code>
+        یک مقدار بولی دارد که مشخص می‌کند آیا رویداد فقط یک بار باید اجرا شود. لازم نیست این را در
+        <code class="inline">interactionCreate.js</code> مشخص کنید، زیرا رفتار پیش‌فرض اجرا شدن در هر نمونهٔ رویداد است. تابع
+        <code class="inline">execute</code> منطق رویداد شما را در خود دارد و هر وقت رویداد emit شود توسط مدیر رویداد صدا زده
+        می‌شود.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const { Events } = require('discord.js');
+
+module.exports = {
+	name: Events.InteractionCreate,
+	async execute(interaction) {
+		if (!interaction.isChatInputCommand()) return;
+
+		const command = interaction.client.commands.get(interaction.commandName);
+
+		if (!command) {
+			console.error(`No command matching ${interaction.commandName} was found.`);
+			return;
+		}
+
+		try {
+			await command.execute(interaction);
+		} catch (error) {
+			console.error(error);
+			if (interaction.replied || interaction.deferred) {
+				await interaction.followUp({
+					content: 'There was an error while executing this command!',
+					flags: MessageFlags.Ephemeral,
+				});
+			} else {
+				await interaction.reply({
+					content: 'There was an error while executing this command!',
+					flags: MessageFlags.Ephemeral,
+				});
+			}
+		}
+	},
+};</code></pre>
+
+        <h3>خواندن فایل‌های رویداد</h3>
+        <p>بعد، کدی بنویسیم که همهٔ فایل‌های رویداد پوشهٔ <code class="inline">events</code> را به‌صورت پویا بازیابی کند.
+        رویکردی مشابه <a href="https://discordjs.guide/legacy/app-creation/handling-commands" target="_blank" rel="noopener">مدیر دستورات</a>
+        خود در پیش می‌گیریم. کد جدیدِ هایلایت‌شده را در <code class="inline">index.js</code> خود قرار دهید.</p>
+        <p><code class="inline">fs.readdirSync().filter()</code> آرایه‌ای از همهٔ نام فایل‌های پوشهٔ داده‌شده برمی‌گرداند و فقط
+        فایل‌های <code class="inline">.js</code> را فیلتر می‌کند، یعنی <code class="inline">['ready.js', 'interactionCreate.js']</code>.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.json');
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+client.commands = new Collection();
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
+
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter((file) => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+}
+
+client.login(token);</code></pre>
+        <p>متوجه خواهید شد که کد بسیار شبیه به بارگذاری دستورات بالای آن است — فایل‌های پوشهٔ رویدادها را بخوانید و هر یک را
+        جداگانه بارگذاری کنید.</p>
+        <p>کلاس <code class="inline">Client</code> در discord.js کلاس <a href="https://nodejs.org/api/events.html#events_class_eventemitter" target="_blank" rel="noopener"><code class="inline">EventEmitter</code></a>
+        را گسترش می‌دهد. بنابراین، شیء <code class="inline">client</code> متدهای <a href="https://nodejs.org/api/events.html#events_emitter_on_eventname_listener" target="_blank" rel="noopener"><code class="inline">.on()</code></a>
+        و <a href="https://nodejs.org/api/events.html#events_emitter_once_eventname_listener" target="_blank" rel="noopener"><code class="inline">.once()</code></a>
+        را در معرض دید قرار می‌دهد که برای ثبت شنونده‌های رویداد استفاده می‌شوند. این متدها دو آرگومان می‌گیرند: نام رویداد و
+        یک تابع بازگشتی (callback). این‌ها در فایل‌های رویداد جداگانه شما به‌صورت <code class="inline">name</code> و
+        <code class="inline">execute</code> تعریف شده‌اند.</p>
+        <p>تابع بازگشتی پاس‌داده‌شده، آرگومان(های) برگشتی توسط رویداد متناظرش را می‌گیرد، با استفاده از
+        <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Functions/rest_parameters" target="_blank" rel="noopener">سینتکس پارامتر rest</a> (سه‌نقطه) آن‌ها را در آرایهٔ <code class="inline">args</code> جمع می‌کند و سپس با استفاده از
+        <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/Spread_syntax" target="_blank" rel="noopener">سینتکس spread</a>
+        (سه‌نقطه) آرایهٔ <code class="inline">args</code> را به <code class="inline">event.execute()</code> پاس می‌دهد. آن‌ها
+        این‌جا استفاده شده‌اند چون رویدادهای مختلف در discord.js تعداد آرگومان‌های متفاوتی دارند. پارامتر rest این تعداد متغیر
+        آرگومان را در یک آرایهٔ واحد جمع می‌کند و سینتکس spread سپس این عناصر را برداشته و به تابع <code class="inline">execute</code>
+        پاس می‌دهد.</p>
+        <p>بعد از این، گوش دادن به رویدادهای دیگر به سادگی ساخت یک فایل جدید در پوشهٔ <code class="inline">events</code> است.
+        مدیر رویدادها به‌صورت خودکار هر بار که ربات را راه‌اندازی مجدد می‌کنید آن را بازیابی و ثبت می‌کند.</p>
+        <p>در بیشتر موارد، می‌توانید نمونهٔ <code class="inline">client</code> خود را در فایل‌های دیگر با به دست آوردن آن از یکی
+        از ساختارهای دیگر discord.js به دست آورید؛ مثلاً <code class="inline">interaction.client</code> در رویداد
+        <code class="inline">interactionCreate</code>. نیازی به پاس دادن دستی آن به رویدادهایتان نیست.</p>
+      </section>
+
+      <!-- ==================== روش‌های پاسخ به دستورات ==================== -->
+      <section>
+        <h2>روش‌های پاسخ به دستورات (Command Responses)</h2>
+        <p>رایج‌ترین روش ارسال پاسخ، استفاده از متد <code class="inline">ChatInputCommandInteraction#reply()</code> است، همان‌طور
+        که در مثال‌های قبلی انجام دادید. این متد interaction را تأیید می‌کند و یک پیام جدید در پاسخ می‌فرستد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">module.exports = {
+	data: new SlashCommandBuilder().setName('ping').setDescription('Replies with Pong!'),
+	async execute(interaction) {
+		await interaction.reply('Pong!'); 
+	},
+};</code></pre>
+        <p>در ابتدا، توکن یک interaction فقط برای سه ثانیه معتبر است؛ پس این بازهٔ زمانی‌ای است که می‌توانید از متد
+        <code class="inline">ChatInputCommandInteraction#reply()</code> استفاده کنید. پاسخ‌هایی که به زمان بیشتری نیاز دارند
+        («پاسخ‌های معوق» / Deferred Responses) بعداً در همین صفحه توضیح داده می‌شوند.</p>
+
+        <h3>پاسخ‌های محرمانه (Ephemeral responses)</h3>
+        <p>ممکن است همیشه نخواهید همهٔ کسانی که به کانال دسترسی دارند، پاسخ یک دستور اسلش را ببینند. قبلاً برای رسیدن به این
+        هدف مجبور بودید به کاربر پیام خصوصی بدهید؛ با محدودیت نرخ (rate limit) بالای پیام‌های خصوصی مواجه شوید، یا اگر پیام‌های
+        خصوصی کاربر غیرفعال بود اصلاً نتوانید این کار را انجام دهید.</p>
+        <p>خوشبختانه، دیسکورد راهی برای مخفی کردن پیام‌های پاسخ از همه به‌جز اجراکنندهٔ دستور اسلش فراهم می‌کند. به این کار
+        «پیام محرمانه» (ephemeral message) می‌گویند و با ارائهٔ <code class="inline">flags: MessageFlags.Ephemeral</code> در
+        <code class="inline">InteractionReplyOptions</code> تنظیم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+
+	if (interaction.commandName === 'ping') {
+		await interaction.reply('Pong!'); 
+		await interaction.reply({ content: 'Secret Pong!', flags: MessageFlags.Ephemeral }); 
+	}
+});</code></pre>
+        <p>پاسخ‌های محرمانه <em>فقط</em> برای پاسخ‌های interaction در دسترس هستند؛ این هم دلیل خوب دیگری برای استفاده از رابط
+        کاربری جدید و بهبودیافتهٔ دستورات اسلش است.</p>
+
+        <h3>ویرایش پاسخ‌ها</h3>
+        <p>بعد از ارسال پاسخ اولیه، ممکن است به دلایل مختلف بخواهید آن پاسخ را ویرایش کنید. این کار با متد
+        <code class="inline">ChatInputCommandInteraction#editReply()</code> انجام می‌شود:</p>
+        <p>بعد از پاسخ اولیه، توکن interaction برای <b>۱۵ دقیقه</b> معتبر است؛ پس این بازهٔ زمانی‌ای است که می‌توانید پاسخ را
+        ویرایش کنید و پیام‌های بعدی (follow-up) بفرستید. همچنین <b>نمی‌توانید</b> حالت محرمانه بودن (ephemeral) یک پیام را
+        ویرایش کنید؛ پس مطمئن شوید اولین پاسخ شما این حالت را درست تنظیم می‌کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+
+	if (interaction.commandName === 'ping') {
+		await interaction.reply('Pong!');
+		// کاری که به زمان نیاز دارد انجام بده (پرس‌وجوهای دیتابیس، درخواست‌های API و ...)
+		await interaction.editReply('Pong again!'); 
+	}
+});</code></pre>
+
+        <h3>پاسخ‌های معوق (Deferred responses)</h3>
+        <p>همان‌طور که قبلاً ذکر شد، دیسکورد نیاز دارد ربات شما ظرف سه ثانیه تأیید کند که interaction دریافت شده است. در غیر
+        این صورت دیسکورد interaction را ناموفق در نظر می‌گیرد و توکن بی‌اعتبار می‌شود. اما اگر دستوری داشته باشید که کاری را
+        انجام می‌دهد و قبل از اینکه بتوانید پاسخ دهید بیشتر از سه ثانیه طول می‌کشد چه؟</p>
+        <p>در این حالت، می‌توانید از متد <code class="inline">ChatInputCommandInteraction#deferReply()</code> استفاده کنید که
+        پیام «<code class="inline">&lt;application&gt; is thinking...</code>» را نمایش می‌دهد. این همچنین به‌عنوان پاسخ اولیه
+        عمل می‌کند؛ به دیسکورد تأیید می‌کند که interaction با موفقیت دریافت شده و به شما <b>بازهٔ ۱۵ دقیقه‌ای برای کامل کردن
+        کارهایتان</b> قبل از پاسخ دادن می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+
+	if (interaction.commandName === 'ping') {
+		await interaction.deferReply(); 
+		// اینجا می‌توانید کارهایی که زمان می‌برند را انجام دهید (پرس‌وجوهای دیتابیس، درخواست‌های API و ...)
+		// تا ۱۵ دقیقه فرصت دارید؛ بعد از آن توکن interaction بی‌اعتبار می‌شود!
+		await interaction.editReply('Pong!'); 
+	}
+});</code></pre>
+        <p>اگر دستوری دارید که کارهای طولانی‌تری انجام می‌دهد، حتماً <code class="inline">deferReply()</code> را در اولین
+        فرصت صدا بزنید.</p>
+        <p>توجه کنید که اگر می‌خواهید پاسخ شما محرمانه باشد، از <code class="inline">flags</code> در
+        <code class="inline">InteractionDeferReplyOptions</code> استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">await interaction.deferReply({ flags: MessageFlags.Ephemeral });</code></pre>
+        <p>پس از ارسال، امکان تغییر حالت محرمانهٔ یک پاسخ وجود ندارد.</p>
+
+        <h3>پیام‌های بعدی (Follow-ups)</h3>
+        <p>متدهای <code class="inline">reply()</code> و <code class="inline">deferReply()</code> هر دو پاسخ‌های <em>اولیه</em>
+        هستند که به دیسکورد می‌گویند ربات شما interaction را با موفقیت دریافت کرده است، اما برای ارسال پیام‌های اضافی قابل
+        استفاده نیستند. اینجا است که پیام‌های بعدی (follow-up) وارد می‌شوند. بعد از اینکه ابتدا به یک interaction پاسخ دادید،
+        می‌توانید از <code class="inline">ChatInputCommandInteraction#followUp()</code> برای ارسال پیام‌های اضافی استفاده
+        کنید:</p>
+        <p>بعد از پاسخ اولیه، توکن interaction برای <b>۱۵ دقیقه</b> معتبر است؛ پس این بازهٔ زمانی‌ای است که می‌توانید پاسخ را
+        ویرایش کنید و پیام‌های بعدی بفرستید.</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">client.on(Events.InteractionCreate, async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+
+	if (interaction.commandName === 'ping') {
+		await interaction.reply('Pong!');
+		await interaction.followUp('Pong again!');
+	}
+});</code></pre>
+        <p>همچنین می‌توانید پرچم محرمانه بودن را به <code class="inline">InteractionReplyOptions</code> پاس دهید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">await interaction.followUp({ content: 'Pong again!', flags: MessageFlags.Ephemeral });</code></pre>
+        <p>توجه کنید که اگر بعد از <code class="inline">deferReply()</code> از <code class="inline">followUp()</code> استفاده
+        کنید، اولین پیام بعدی به‌جای فرستادن پیام جدید، پیام «<code class="inline">&lt;application&gt; is thinking</code>» را
+        ویرایش می‌کند.</p>
+        <p>این تمام ماجراست؛ حالا هر آنچه باید دربارهٔ پاسخ دادن به دستورات اسلش بدانید، می‌دانید!</p>
+
+        <h3>بازیابی و حذف پاسخ‌ها</h3>
+        <p>علاوه بر پاسخ به یک دستور اسلش، ممکن است بخواهید پاسخ اولیه را حذف کنید. برای این کار می‌توانید از
+        <code class="inline">ChatInputCommandInteraction#deleteReply()</code> استفاده کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">await interaction.reply('Pong!');
+await interaction.deleteReply();</code></pre>
+        <p>در نهایت، ممکن است به هر دلیلی (مثلاً برای افزودن واکنش‌ها) به شیء <code class="inline">Message</code> پاسخ نیاز
+        داشته باشید. <code class="inline">withResponse: true</code> را پاس دهید تا <code class="inline">InteractionCallbackResponse</code>
+        را به دست آورید. سپس می‌توانید به شیء <code class="inline">Message</code> این‌گونه دسترسی پیدا کنید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const response = await interaction.reply({ content: 'Pong!', withResponse: true });
+console.log(response.resource.message);</code></pre>
+        <p>همچنین می‌توانید از متد <code class="inline">ChatInputCommandInteraction#fetchReply()</code> برای دریافت نمونهٔ
+        <code class="inline">Message</code> استفاده کنید. توجه کنید که این کار در مقایسه با <code class="inline">withResponse: true</code>
+        یک فراخوانی API اضافی را متحمل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">await interaction.reply('Pong!');
+const message = await interaction.fetchReply();
+console.log(message);</code></pre>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> محتوای این صفحه ترجمهٔ فارسی «راهنمای discord.js» (discordjs.guide) اثر «تیم discord.js» است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="https://discordjs.guide/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

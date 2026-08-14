@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build a Reddit Bot Part 1» (Shantnu Tiwari — Python for Engineers)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات ردیت — بخش ۱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات ردیت — بخش ۱</span>
+      </div>
+      <h1>ساخت ربات ردیت — بخش ۱</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://pythonforengineers.com/blog/build-a-reddit-bot-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build a Reddit Bot Part 1» نوشته «شانتنو تیواری
+          (Shantnu Tiwari)» از وبسایت Python for Engineers است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://pythonforengineers.com/blog/build-a-reddit-bot-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>پس قصد داریم یک ربات سادهٔ ردیت (Reddit bot) بسازیم که دو کار انجام می‌دهد:</p>
+        <ul>
+          <li>یک زیرردیت (subreddit) خاص را برای پست‌های جدید زیر نظر می‌گیرد و وقتی کسی پستی با عنوان «I love Python» (عاشق پایتون هستم) بگذارد، با پیام «Me too!» (من هم!) پاسخ می‌دهد.</li>
+          <li>همچنین همهٔ کامنت‌های پست‌های اخیر را زیر نظر می‌گیرد و اگر کامنتی حاوی «I hate Python» (از پایتون متنفرم) پیدا کند، لینکی به /r/learnpython می‌گذارد و از کامنت‌گذار می‌خواهد سؤالش را آنجا بپرسد.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== پیش‌نیازها ==================== -->
+      <section>
+        <h2>دانش پیش‌نیاز</h2>
+        <p>فقط دانش پایه‌ای از پایتون کافی است، زیرا ساختن ربات‌ها کار نسبتاً آسانی است.</p>
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>بخش ۱</h2>
+        <p>در بخش یک می‌بینیم که چگونه می‌توانیم با استفاده از رابط برنامه‌نویسی اپلیکیشن (API) ردیت، داده‌ها را از ردیت بخوانیم. کد منبع در
+        <a href="https://github.com/shantnu/RedditBot/blob/master/Part1/bot_read.py" target="_blank" rel="noopener">گیت‌هاب (Github)</a>
+        در دسترس است:</p>
+
+        <div class="callout note">
+          <strong>نظر خواننده:</strong> «فرید» (Farid) گزارش کرده است که <em>ردیت ظاهر وب‌سایت خود را به‌روز کرده است. اگر به لینکی برخورد کردید که کار نمی‌کند، باید آدرس URL را تغییر دهید. برای مثال لینک
+          <a href="https://www.reddit.com/dev/api" target="_blank" rel="noopener">https://www.reddit.com/dev/api</a>
+          پیام «پیدا نشد» می‌دهد. اگر لینک را به
+          <a href="https://old.reddit.com/dev/api" target="_blank" rel="noopener">https://old.reddit.com/dev/api</a>
+          تغییر دهیم، لینک باید کار کند.</em> به‌طور خلاصه، اگر لینک ردیت کار نکرد، «www» را به «old» تغییر دهید تا لینک به‌شکل «old.reddit.com» درآید.
+        </div>
+      </section>
+
+      <!-- ==================== ربات نرم‌افزاری ==================== -->
+      <section>
+        <h2>ربات نرم‌افزاری</h2>
+        <p>ربات نرم‌افزاری (software bot) برنامه‌ای است که می‌تواند به‌صورت خودمختار با وب‌سایت‌ها تعامل کند. آن‌ها می‌توانند به هر اندازه‌ای که بخواهید ساده یا پیچیده باشند.</p>
+        <p>ربات در پس‌زمینه اجرا می‌شود و یک وب‌سایت را زیر نظر می‌گیرد. وقتی تغییری می‌بیند (مانند یک پست در ردیت)، می‌تواند به آن پاسخ دهد، رأی مثبت (upvote) بدهد یا هر کار دیگری که برایش برنامه‌ریزی شده انجام دهد.</p>
+      </section>
+
+      <!-- ==================== پایش وب‌سایت‌ها ==================== -->
+      <section>
+        <h2>پایش وب‌سایت‌ها</h2>
+        <p>راه‌های زیادی برای پایش وب‌سایت‌ها وجود دارد. می‌توانید از ابزارهای وب‌خزشی (web scraping) مانند
+        <code class="inline">urllib</code> یا بیوتی‌سوپ (Beautifulsoup) یا هر چیز مشابه دیگری استفاده کنید. اما یک مشکل کوچک در این کار وجود دارد. ربات‌ها می‌توانند هزاران درخواست در ثانیه ارسال کنند و این می‌تواند سرورها را بیش از حد بارگذاری کند. به همین دلیل، بیشتر وب‌سایت‌های بزرگ ربات‌ها را مسدود می‌کنند. <em>این کار را با مسئولیت خودتان نادیده بگیرید</em>. من برای ساعت‌ها از گوگل مسدود شده‌ام، جیمیل‌ام قفل شده تا وقتی دوجین کپچا (captcha) وارد کردم، شمارهٔ موبایلم و نام اولین گربه‌ام را هم وارد کردم.</p>
+        <p>اگر می‌خواهید این کار را به‌درستی انجام دهید، به هر قانونی که وب‌سایت تعیین کرده پایبند باشید.</p>
+      </section>
+
+      <!-- ==================== API ردیت ==================== -->
+      <section>
+        <h2>رابط برنامه‌نویسی ردیت (The Reddit API)</h2>
+        <p>ردیت یک رابط برنامه‌نویسی اپلیکیشن فراهم کرده است و برخلاف برخی وب‌سایت‌ها، واقعاً استفاده از آن آسان است. این API بر پایهٔ REST و JSON است؛ بنابراین در تئوری به هیچ راه‌اندازی خاصی نیاز ندارد.</p>
+        <p><a href="https://www.reddit.com/dev/api" target="_blank" rel="noopener">https://www.reddit.com/dev/api</a></p>
+        <p>نکتهٔ مهم این است که قوانین تعیین‌شدهٔ آن‌ها را رعایت کنید. دو مورد از مهم‌ترین آن‌ها عبارت‌اند از:</p>
+        <ul>
+          <li>نمی‌توانید بیش از ۱ درخواست در هر ۲ ثانیه (یا ۳۰ درخواست در دقیقه) ارسال کنید</li>
+          <li>نباید دربارهٔ شناسهٔ کاربر-عامل (user agent) خود دروغ بگویید</li>
+        </ul>
+        <p>بقیهٔ قوانین را
+        <a href="https://github.com/reddit/reddit/wiki/API" target="_blank" rel="noopener">اینجا</a>
+        بخوانید.</p>
+        <p>شناسهٔ کاربر-عامل همان چیزی است که مرورگر شما را شناسایی می‌کند. کتابخانه‌هایی مانند <code class="inline">urllib</code> پایتون به‌شدت توسط ردیت محدود شده‌اند تا از سوءاستفاده جلوگیری شود. ردیت توصیه می‌کند که از شناسهٔ کاربر-عامل اختصاصی خودتان استفاده کنید و ما هم دقیقاً همین کار را انجام می‌دهیم.</p>
+      </section>
+
+      <!-- ==================== استفاده از API ==================== -->
+      <section>
+        <h2>استفاده از رابط برنامه‌نویسی</h2>
+        <p>همان‌طور که گفتم، استفاده از این API بسیار آسان است. شما یک درخواست REST ارسال می‌کنید و این کار را می‌توان با
+        <code class="inline">urllib2</code> انجام داد (تا زمانی که شناسهٔ کاربر-عامل را درست تنظیم کرده باشید). این‌گونه این کار را انجام می‌دهید. من دو لینک زیر را گذاشته‌ام. هر دو را در یک تب جدید باز کنید:</p>
+        <p><a href="https://www.reddit.com/r/learnPython/" target="_blank" rel="noopener">https://www.reddit.com/r/learnPython/</a></p>
+        <p><a href="https://www.reddit.com/r/learnPython/hot/.json" target="_blank" rel="noopener">https://www.reddit.com/r/learnPython/hot/.json</a></p>
+        <p>اولی همان چیزی است که یک انسان می‌بیند. دومی همان چیزی است که کد شما می‌بیند. همان‌طور که می‌بینید، گرفتن JSON کار نسبتاً آسانی است.</p>
+        <p>مشکل این رویکرد این است که باز هم باید مطمئن شوید درخواست‌های خود را محدود کرده‌اید (rate limit). همچنین باید خودتان JSON را تجزیه کنید. تجزیهٔ JSON در پایتون آسان است، زیرا در اصل یک دیکشنری پایتون است؛ اما اگر واقعاً به JSON نگاه کنید، داده‌های زیادی در آن وجود دارد.</p>
+      </section>
+
+      <!-- ==================== معرفی PRAW ==================== -->
+      <section>
+        <h2>معرفی PRAW</h2>
+        <p>[<em>به‌روزرسانی دسامبر ۲۰۱۶: ردیت و پراو (Praw) حالا شما را مجبور می‌کنند از OAuth استفاده کنید. مقاله را برای استفاده از آن به‌روز کرده‌ام</em>]</p>
+        <p>پراو (Praw) کتابخانه‌ای است که بسیاری از این مشکلات را برای شما حل می‌کند. این کتابخانه تعداد درخواست‌هایی را که می‌توانید ارسال کنید محدود می‌کند و استخراج JSON را آسان می‌کند. آن را این‌گونه نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">pip install praw</code></pre>
+        <p>باید اول چند کار راه‌اندازی انجام دهید.</p>
+      </section>
+
+      <!-- ==================== ایجاد اپلیکیشن ردیت ==================== -->
+      <section>
+        <h2>ایجاد اپلیکیشن ردیت (Create Reddit App)</h2>
+        <p>به این آدرس بروید:
+        <a href="https://www.reddit.com/prefs/apps/" target="_blank" rel="noopener">https://www.reddit.com/prefs/apps/</a></p>
+        <p>و گزینهٔ <em>Create App</em> (ایجاد اپلیکیشن) را انتخاب کنید:</p>
+        <img src="https://pythonforengineers.com/content/images/2021/08/redditbot1-1.jpg" alt="صفحهٔ ساخت اپلیکیشن جدید در تنظیمات apps ردیت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا یک شناسهٔ کلاینت (client_id) (جعبهٔ قرمز پایین) و یک راز (secret) (جعبهٔ آبی پایین) دریافت خواهید کرد. آن‌ها را یادداشت کنید، اما مخفی نگه دارید.</p>
+        <img src="https://pythonforengineers.com/content/images/2021/08/redditbot2-1.jpg" alt="نمایش شناسهٔ کلاینت و راز اپلیکیشن ساخته‌شده در صفحهٔ apps ردیت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این صفحه نحوهٔ تغییر فایل‌های praw.ini را توضیح می‌دهد:
+        <a href="https://praw.readthedocs.io/en/v4.0.0/getting_started/configuration/prawini.html" target="_blank" rel="noopener">https://praw.readthedocs.io/en/v4.0.0/getting_started/configuration/prawini.html</a></p>
+        <p>این فایل را در پوشهٔ نصب پایتون خود، در مسیر <em>Lib\Site-Packages\praw\praw.ini</em> پیدا خواهید کرد.</p>
+
+        <div class="callout note">
+          <strong>نظر خواننده:</strong> همان‌طور که «برایس» (Bryce) در نظرات اشاره می‌کند: <em>توصیه نمی‌کنم
+          <code class="inline">praw.ini</code> سطح پکیج را تغییر دهید، زیرا هر بار که پکیج به‌روزرسانی شود، این تغییرات از بین می‌روند. در عوض،
+          <code class="inline">praw.ini</code> باید در دایرکتوری‌ای قرار گیرد که برنامه از آن اجرا می‌شود (معمولاً همان دایرکتوری فایل).</em>
+          سایر گزینه‌ها
+          <a href="https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html#praw-ini-files" target="_blank" rel="noopener">اینجا</a>
+          مشخص شده‌اند.
+        </div>
+
+        <p>مقادیری که یادداشت کرده‌ایم را اضافه کنید:</p>
+        <img src="https://pythonforengineers.com/content/images/2021/08/redditbot3-1.jpg" alt="پر کردن مقادیر client_id و secret در فایل praw.ini" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک فیلد جدید وجود دارد: <code class="inline">user_agent</code>.</p>
+        <p>یادتان هست گفتم قوانین ردیت می‌گویند باید شناسهٔ کاربر-عامل اختصاصی داشته باشید؟ من نام <em>_PyEng Bot</em> را انتخاب می‌کنم. <em>عدد انتهای آن، نسخه است.</em> این کار توصیه می‌شود، زیرا وقتی کد شما بیرون می‌رود، ممکن است مردم از آن سوءاستفاده کنند. اگر کسی با کد شما در ردیت اسپم ارسال کند، ردیت آن شناسهٔ کاربر-عامل را مسدود می‌کند.</p>
+        <p>در آن صورت، فقط شمارهٔ نسخه را بالا می‌برید. ایده‌آل نیست، اما باید بپذیرید که ممکن است از کد شما توسط اسپمرها سوءاستفاده شود.</p>
+      </section>
+
+      <!-- ==================== مرور کد ==================== -->
+      <section>
+        <h2>مرور کد</h2>
+        <p>حالا به سراغ کد برویم. آن را از
+        <a href="https://github.com/shantnu/RedditBot/blob/master/Part1/bot_read.py" target="_blank" rel="noopener">گیت‌هاب (Github)</a>
+        دانلود کنید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import praw</code></pre>
+        <p>ما praw را import می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">reddit = praw.Reddit('bot1')
+
+subreddit = r.subreddit("learnpython")</code></pre>
+        <p>با استفاده از مقادیری که زیر نام <em>bot1</em> ذخیره کرده‌ایم، یک نمونهٔ (instance) ردیت می‌سازیم.</p>
+        <p>سپس زیرردیت <em>learnpython</em> را می‌گیریم.</p>
+        <p>حالا اگر به زیرردیت نگاه کنید، می‌بینید که یک تب <em>hot</em> (داغ) وجود دارد. این نشان‌دهندهٔ این نیست که دمای آنجا بالاست یا مدل‌های شناگر با لباس شنا جنجال‌برانگیز وجود دارند. یعنی محبوب‌ترین پست‌ها. این همان چیزی است که حالا می‌خوانیم. تابع انجام این کار <em>get_hot()</em> است.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">for submission in subreddit.hot(limit=5):</code></pre>
+        <p>۵ پست داغ (hot) برتر را می‌گیریم. در این مرحله می‌توانید این کار را انجام دهید تا ببینید کدام توابع در دسترس هستند (می‌توانید در هر مرحله‌ای این کار را انجام دهید یا به مستندات پراو (Praw) نگاه کنید).</p>
+        <p>دیدن یک لیست کوتاه‌شده:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"> dir(submission)
+
+['approve',
+'approved_by',
+'author',
+
+'domain',
+'downs',
+'downvote',
+'edit',
+'edited',
+
+'saved',
+
+'score',
+'secure_media',
+'secure_media_embed',
+'selftext',
+'selftext_html',
+
+'title',
+
+'ups',
+'upvote',
+'url',
+'user_reports',
+'visited',
+'vote']</code></pre>
+        <p>چند مورد مهم را برایتان مشخص می‌کنم. <em>Title</em> عنوان پست است، همان‌طور که در صفحهٔ اصلی ردیت دیده می‌شود. <em>Selftext</em> متن اختیاری‌ای است که می‌توانید روی پست‌ها بگذارید — بیشتر پست‌ها این را ندارند. <em>learnpython</em> از این نظر منحصربه‌فرد است که بیشتر پست‌های آن متن دارند (معمولاً سؤال سؤال‌کننده)، به همین دلیل آن را انتخاب کرده‌ام. <em>score</em> امتیاز کل است که از جمع رأی‌های مثبت و منفی (downvote) به‌دست می‌آید (هر دوی آن‌ها نیز در دسترس هستند).</p>
+        <p>این سه مورد را چاپ می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">for submission in subreddit.hot(limit=5):
+    print("Title: ", submission.title)
+    print("Text: ", submission.selftext)
+    print("Score: ", submission.score)
+    print("---------------------------------\n")</code></pre>
+        <p>تمام شد. اسکریپت را اجرا کنید و هم‌زمان ردیت را در مرورگر باز کنید. بررسی کنید که نتایج درستی می‌گیرید.</p>
+      </section>
+
+      <!-- ==================== زمان بعدی ==================== -->
+      <section>
+        <h2>زمان بعدی</h2>
+        <p>زمان بعدی به این می‌پردازیم که چگونه به یک پست در ردیت پاسخ بفرستیم.
+        <a href="https://pythonforengineers.com/blog/build-a-reddit-bot-part-2-reply-to-posts/" target="_blank" rel="noopener">بخش بعدی</a></p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build a Reddit Bot Part 1» اثر «شانتنو تیواری (Shantnu Tiwari)» از وبسایت
+        Python for Engineers است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی
+        است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://pythonforengineers.com/blog/build-a-reddit-bot-part-1/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

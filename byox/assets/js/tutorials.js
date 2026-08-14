@@ -470,14 +470,14 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-rust-substrate.html"
 },
 {
-"id": "",
+"id": "haskell-irc",
 "category": "ربات",
 "lang": "Haskell",
 "title": "ربات IRC خودت را بساز",
 "url": "https://wiki.haskell.org/Roll_your_own_IRC_bot",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/haskell-irc.html"
 },
 {
 "id": "",
@@ -490,24 +490,24 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "telegram-bot-node",
 "category": "ربات",
 "lang": "Node.js",
 "title": "چگونه یک ربات تلگرام پاسخگو بسازیم",
 "url": "https://www.sohamkamani.com/blog/2016/09/21/making-a-telegram-bot/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/telegram-bot-node.html"
 },
 {
-"id": "",
+"id": "discord-js-guide",
 "category": "ربات",
 "lang": "Node.js",
 "title": "ساخت ربات دیسکورد",
 "url": "https://discordjs.guide/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/discord-js-guide.html"
 },
 {
 "id": "",
@@ -530,14 +530,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "slack-bot-python",
 "category": "ربات",
 "lang": "Python",
 "title": "چگونه اولین ربات Slack خود را با پایتون بسازی",
 "url": "https://www.fullstackpython.com/blog/build-first-slack-bot-python.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/slack-bot-python.html"
 },
 {
 "id": "",
@@ -550,14 +550,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "reddit-bot-python",
 "category": "ربات",
 "lang": "Python",
 "title": "ساخت ربات Reddit",
 "url": "https://pythonforengineers.com/blog/build-a-reddit-bot-part-1/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/reddit-bot-python.html"
 },
 {
 "id": "",
@@ -570,14 +570,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "telegram-bot-python",
 "category": "ربات",
 "lang": "Python",
 "title": "چگونه با پایتون ربات تلگرام بسازیم",
 "url": "https://www.freecodecamp.org/news/how-to-create-a-telegram-bot-using-python/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/telegram-bot-python.html"
 },
 {
 "id": "",

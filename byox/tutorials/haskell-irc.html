@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Roll your own IRC bot» (Don Stewart / HaskellWiki)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ربات IRC خودت را با هسکل بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ربات IRC خودت را با هسکل بساز</span>
+      </div>
+      <h1>ربات IRC خودت را با هسکل بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Haskell</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://wiki.haskell.org/Roll_your_own_IRC_bot" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «Roll your own IRC bot» نوشته «دان استوارت (Don Stewart)»
+          از ویکی هسکل (HaskellWiki) است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://wiki.haskell.org/Roll_your_own_IRC_bot" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>این آموزش به‌عنوان یک راهنمای عملی برای نوشتن کدِ دنیای واقعی در
+        <a href="http://haskell.org" target="_blank" rel="noopener">هسکل (Haskell)</a> طراحی شده است و امیدوار است برخی از
+        ویژگی‌های پیشرفتهٔ هسکل را به‌صورت شهودی به برنامه‌نویس تازه‌کار معرفی و ترغیب کند. هدف ما نوشتن یک ربات
+        <a href="http://haskell.org/haskellwiki/IRC_channel" target="_blank" rel="noopener">IRC</a> موجز (concise)، مقاوم و زیبا در هسکل است.</p>
+        <p>یک نسخهٔ بسته‌بندی‌شده از کد در
+        <a href="https://github.com/Lysxia/roll-your-own-irc-bot" target="_blank" rel="noopener">گیت‌هاب (GitHub)</a> در دسترس است.</p>
+      </section>
+
+      <!-- ==================== شروع کار ==================== -->
+      <section>
+        <h2>شروع کار (Getting started)</h2>
+        <p>به نسخهٔ نسبتاً جدیدی از <a href="http://haskell.org/ghc" target="_blank" rel="noopener">GHC</a> نیاز دارید. اولین قدم ما
+        این است که وارد شبکه شویم. پس بیایید با وارد کردن (import) ماژول‌ها از کتابخانهٔ استاندارد و بستهٔ
+        <code class="inline">network</code> شروع کنیم و سروری را که به آن متصل می‌شویم تعریف نماییم.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- فایل 1.hs
+
+import System.IO                      -- کتابخانهٔ پایه (base)
+import qualified Network.Socket as N  -- بستهٔ network
+
+-- گزینه‌های پیکربندی
+myServer = "irc.libera.chat" :: String
+myPort   = 6667 :: N.PortNumber
+
+-- برنامهٔ سطح‌بالا (Toplevel)
+main :: IO ()
+main = do
+    h &lt;- connectTo myServer myPort
+    t &lt;- hGetContents h
+    hSetBuffering stdout NoBuffering
+    print t
+
+-- اتصال به یک سرور با نام و شمارهٔ پورت آن
+connectTo :: N.HostName -&gt; N.PortNumber -&gt; IO Handle
+connectTo host port = do
+    addr : _ &lt;- N.getAddrInfo Nothing (Just host) (Just (show port))
+    sock &lt;- N.socket (N.addrFamily addr) (N.addrSocketType addr) (N.addrProtocol addr)
+    N.connect sock (N.addrAddress addr)
+    N.socketToHandle sock ReadWriteMode</code></pre>
+        <p>نکتهٔ کلیدی در این‌جا تابع <code class="inline">main</code> است. این نقطهٔ ورود به یک برنامهٔ هسکلی است. ابتدا به
+        سرور متصل می‌شویم و یک سوکت <code class="inline">h</code> (به‌صورت یک <code class="inline">Handle</code>
+        بسته‌بندی‌شده) دریافت می‌کنیم. سپس می‌توانیم هر داده‌ای را که دریافت می‌کنیم بخوانیم و چاپ کنیم. بافرینگ
+        (buffering) را روی خروجی استاندارد با <code class="inline">hSetBuffering</code> غیرفعال می‌کنیم؛ زیرا
+        <code class="inline">print</code> رشته‌ها را در یک خط واحد رندر می‌کند و کاراکترهای خط جدید (newline) در آن
+        escape می‌شوند.</p>
+        <p>این کد را در ماژول <code class="inline">1.hs</code> قرار دهید؛ سپس می‌توانیم آن را اجرا کنیم. از هر سیستمی که
+        دوست دارید استفاده کنید:</p>
+        <p>با استفاده از runhaskell:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   $ runhaskell 1.hs
+   "NOTICE AUTH :*** Looking up your hostname...\r\nNOTICE AUTH :***
+   Checking ident\r\nNOTICE AUTH :*** Found your hostname\r\n ...</code></pre>
+        <p>یا می‌توانیم آن را با GHC به یک فایل اجرایی کامپایل کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   $ ghc --make 1.hs -o tutbot
+   Chasing modules from: 1.hs
+   Compiling Main             ( 1.hs, 1.o )
+   Linking ...
+   $ ./tutbot
+   "NOTICE AUTH :*** Looking up your hostname...\r\nNOTICE AUTH :***
+   Checking ident\r\nNOTICE AUTH :*** Found your hostname\r\n ...</code></pre>
+        <p>یا با استفاده از GHCi:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   $ ghci 1.hs
+   *Main&gt; main
+   "NOTICE AUTH :*** Looking up your hostname...\r\nNOTICE AUTH :***
+   Checking ident\r\nNOTICE AUTH :*** Found your hostname\r\n ...</code></pre>
+        <p>عالی! ما در شبکه هستیم.</p>
+      </section>
+
+      <!-- ==================== مکالمه با IRC ==================== -->
+      <section>
+        <h2>مکالمه با IRC (Talking IRC)</h2>
+        <p>حالا که به سرور گوش می‌دهیم، بهتر است شروع به ارسال اطلاعات به عقب کنیم. سه جزئیات مهم‌اند: نام نمایشی (nick)،
+        نام کاربری (user name) و کانالی که باید به آن بپیوندیم. پس بیایید این‌ها را ارسال کنیم.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- فایل 2.hs
+
+import System.IO                      -- کتابخانهٔ پایه (base)
+import qualified Network.Socket as N  -- بستهٔ network
+
+-- گزینه‌های پیکربندی
+myServer = "irc.libera.chat" :: String
+myPort   = 6667 :: N.PortNumber
+myChan   = "#tutbot-testing" :: String
+myNick   = "tutbot" :: String
+
+-- برنامهٔ سطح‌بالا (Toplevel)
+main :: IO ()
+main = do
+    h &lt;- connectTo myServer myPort
+    write h "NICK" myNick
+    write h "USER" (myNick ++ " 0 * :tutorial bot")
+    write h "JOIN" myChan
+    listen h
+
+-- اتصال به یک سرور با نام و شمارهٔ پورت آن
+connectTo :: N.HostName -&gt; N.PortNumber -&gt; IO Handle
+connectTo host port = do
+    addr : _ &lt;- N.getAddrInfo Nothing (Just host) (Just (show port))
+    sock &lt;- N.socket (N.addrFamily addr) (N.addrSocketType addr) (N.addrProtocol addr)
+    N.connect sock (N.addrAddress addr)
+    N.socketToHandle sock ReadWriteMode
+
+-- ارسال یک پیام به یک handle
+write :: Handle -&gt; String -&gt; String -&gt; IO ()
+write h cmd args = do
+    let msg = cmd ++ " " ++ args ++ "\r\n"
+    hPutStr h msg          -- ارسال پیام روی سیم (شبکه)
+    putStr ("&gt; " ++ msg)   -- نمایش پیام ارسال‌شده در خط فرمان
+
+-- پردازش هر خط دریافتی از سرور
+listen :: Handle -&gt; IO ()
+listen h = forever $ do
+    line &lt;- hGetLine h
+    putStrLn line
+  where
+    forever :: IO () -&gt; IO ()
+    forever a = do a; forever a</code></pre>
+        <p>حالا کارهای زیادی انجام داده‌ایم. اول، یک نام کانال و یک نام نمایشی برای ربات تنظیم کردیم. تابع
+        <code class="inline">main</code> گسترش یافته است تا با استفاده از یک تابع <code class="inline">write</code> پیام‌هایی را
+        به سرور IRC بازگرداند. بیایید کمی دقیق‌تر به آن نگاه کنیم:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- ارسال یک پیام به یک handle
+write :: Handle -&gt; String -&gt; String -&gt; IO ()
+write h cmd args = do
+    let msg = cmd ++ " " ++ args ++ "\r\n"
+    hPutStr h msg          -- ارسال پیام روی سیم (شبکه)
+    putStr ("&gt; " ++ msg)   -- نمایش پیام ارسال‌شده در خط فرمان</code></pre>
+        <p>تابع <code class="inline">write</code> سه آرگومان می‌گیرد: یک handle (سوکت ما) و سپس دو رشته که یکی یک کنش
+        (action) پروتکل IRC را نشان می‌دهد و دیگری آرگومان‌های آن کنش. سپس <code class="inline">write</code> با به‌هم‌چسباندن
+        (concatenation) رشته‌ها یک پیام IRC می‌سازد و آن را روی سیم به سرور می‌نویسد. برای اهداف اشکال‌زدایی، پیامی را که
+        می‌فرستیم نیز در خروجی استاندارد چاپ می‌کنیم.</p>
+        <p>دومین تابع ما، <code class="inline">listen</code>، به این شکل است:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- پردازش هر خط دریافتی از سرور
+listen :: Handle -&gt; IO ()
+listen h = forever $ do
+    line &lt;- hGetLine h
+    putStrLn line
+  where
+    forever :: IO () -&gt; IO ()
+    forever a = do a; forever a</code></pre>
+        <p>این تابع یک آرگومان <code class="inline">Handle</code> می‌گیرد و در یک حلقهٔ بی‌نهایت می‌ماند؛ خطوط متن را از
+        شبکه می‌خواند و آن‌ها را چاپ می‌کند. ما از دو ویژگی قدرتمند بهره می‌بریم: ارزیابی تنبل (lazy evaluation) و توابع
+        مرتبه‌بالا (higher-order functions) تا ساختار کنترلی حلقهٔ خودمان، یعنی <code class="inline">forever</code>، را
+        به‌صورت یک تابع معمولی بسازیم! <code class="inline">forever</code> یک تکه‌کد را به‌عنوان آرگومان می‌گیرد، آن را
+        ارزیابی می‌کند و بازگشت می‌زند — یک تابع حلقهٔ بی‌نهایت. بسیار رایج است که در هسکل ساختارهای کنترلی را به همین
+        شکل و با استفاده از توابع مرتبه‌بالا خودمان بسازیم. هیچ نیازی به افزودن نحو (syntax) جدید به زبان، ماکروهای
+        شبیه لیسپ (lisp) یا فرابرنامه‌نویسی (meta programming) نیست — شما فقط یک تابع معمولی می‌نویسید تا هر جریان
+        کنترلی که می‌خواهید را پیاده‌سازی کنید. همچنین می‌توانیم از do-notation صرف‌نظر کنیم و مستقیماً بنویسیم:
+        <code class="inline">forever a = a &gt;&gt; forever a</code>. توجه کنید که <code class="inline">forever</code> را
+        همچنین می‌توان در کتابخانهٔ استاندارد <code class="inline">base</code> و در ماژول
+        <a href="https://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html#v:forever" target="_blank" rel="noopener"><code class="inline">Control.Monad</code></a>
+        یافت (با نوعی عمومی‌تر).</p>
+        <p>بیایید این چیز را اجرا کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ runhaskell 2.hs
+&gt; NICK tutbot
+&gt; USER tutbot 0 * :tutorial bot
+&gt; JOIN #tutbot-testing
+NOTICE AUTH :*** Looking up your hostname...
+NOTICE AUTH :*** Found your hostname, welcome back
+NOTICE AUTH :*** Checking ident
+NOTICE AUTH :*** No identd (auth) response
+:copper.libera.chat NOTICE * :*** Checking Ident
+:copper.libera.chat NOTICE * :*** Looking up your hostname...
+...
+:tutbot MODE tutbot :+iw
+:tutbot!~tutbot@aa.bb.cc.dd JOIN :#tutbot-testing
+:copper.libera.chat 353 tutbot @ #tutbot-testing :tutbot @dons
+:copper.libera.chat 366 tutbot #tutbot-testing :End of /NAMES list.</code></pre>
+        <p>و کار راه افتاد! از یک کلاینت IRC می‌توانیم اتصال ربات را تماشا کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   15:02 -- tutbot [n=tutbot@aa.bb.cc.dd] has joined #tutbot-testing
+   15:02  dons&gt; hello</code></pre>
+        <p>و ربات در خروجی استاندارد ثبت (log) می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   :dons!i=dons@my.net PRIVMSG #tutbot-testing :hello</code></pre>
+        <p>حالا می‌توانیم برخی فرمان‌ها را پیاده‌سازی کنیم.</p>
+      </section>
+
+      <!-- ==================== یک مفسر ساده ==================== -->
+      <section>
+        <h2>یک مفسر ساده (A simple interpreter)</h2>
+        <p>این ایمپورت‌های اضافی را قبل از تغییر تابع <code class="inline">listen</code> اضافه کنید.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">import Data.List
+import System.Exit</code></pre>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- پردازش هر خط دریافتی از سرور
+listen :: Handle -&gt; IO ()
+listen h = forever $ do
+    line &lt;- hGetLine h
+    putStrLn line
+    let s = init line
+    if isPing s then pong s else eval h (clean s)
+  where
+    forever :: IO () -&gt; IO ()
+    forever a = do a; forever a
+
+    clean :: String -&gt; String
+    clean = drop 1 . dropWhile (/= ':') . drop 1
+
+    isPing :: String -&gt; Bool
+    isPing x = "PING :" `isPrefixOf` x
+
+    pong :: String -&gt; IO ()
+    pong x = write h "PONG" (':' : drop 6 x)</code></pre>
+        <p>با اصلاح <code class="inline">listen</code> سه قابلیت به ربات اضافه می‌کنیم. اول، به پیام‌های
+        <code class="inline">PING</code> پاسخ می‌دهد: <code class="inline">if ping s then pong s ...</code>.
+        این برای سرورهایی مفید است که برای متصل نگه‌داشتن کلاینت‌ها پیام ping می‌خواهند. قبل از اینکه بتوانیم یک فرمان را
+        پردازش کنیم، به یاد داشته باشید که پروتکل IRC خطوط ورودی را به این شکل تولید می‌کند:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">:dons!i=dons@my.net PRIVMSG #tutbot-testing :!id foo</code></pre>
+        <p>بنابراین به یک تابع <code class="inline">clean</code> نیاز داریم که به‌سادگی کاراکتر «:» ابتدایی و سپس هر چیزی
+        را تا «:» بعدی حذف کند و تنها محتوای واقعی فرمان را باقی بگذارد. سپس این رشتهٔ تمیز شده را به
+        <code class="inline">eval</code> می‌سپاریم که فرمان‌های ربات را توزیع (dispatch) می‌کند.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- توزیع یک فرمان
+eval :: Handle -&gt; String -&gt; IO ()
+eval h "!quit"                   = write h "QUIT" ":Exiting" &gt;&gt; exitSuccess
+eval h x | "!id " `isPrefixOf` x = privmsg h (drop 4 x)
+eval _   _                       = return () -- هر چیز دیگری را نادیده بگیر</code></pre>
+        <p>پس، اگر رشتهٔ واحد <code class="inline">"!quit"</code> دریافت شود، به سرور اطلاع می‌دهیم و از برنامه خارج
+        می‌شویم. اگر رشته‌ای که با <code class="inline">"!id "</code> آغاز می‌شود ظاهر شود، هر رشتهٔ آرگومانی را به سرور
+        بازتاب (echo) می‌کنیم (نام فرمان برگرفته از تابع همانی (identity function) یعنی <code class="inline">id</code> است
+        که فقط آرگومان خودش را برمی‌گرداند). در نهایت، اگر هیچ تطابق دیگری رخ ندهد، هیچ کاری انجام نمی‌دهیم.</p>
+        <p>تابع <code class="inline">privmsg</code> را اضافه می‌کنیم — یک لفاف (wrapper) مفید بر روی
+        <code class="inline">write</code> برای ارسال خطوط <code class="inline">PRIVMSG</code> به سرور.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- ارسال privmsg به کانال
+privmsg :: Handle -&gt; String -&gt; IO ()
+privmsg h s = write h "PRIVMSG" (chan ++ " :" ++ s)</code></pre>
+        <p>در این‌جا گزارش جلسه (transcript) ربات حداقلی ما در حال اجرا در کانال آمده است:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   15:12 -- tutbot [n=tutbot@aa.bb.cc.dd] has joined #tutbot-testing
+   15:13  dons&gt; !id hello, world!
+   15:13  tutbot&gt; hello, world!
+   15:13  dons&gt; !id very pleased to meet you.
+   15:13  tutbot&gt; very pleased to meet you.
+   15:13  dons&gt; !quit
+   15:13 -- tutbot [n=tutbot@aa.bb.cc.dd] has quit [Client Quit]</code></pre>
+        <p>حالا، قبل از اینکه جلوتر برویم، بیایید کد را کمی بازسازی (refactor) کنیم.</p>
+      </section>
+
+      <!-- ==================== موناد خودت را بساز ==================== -->
+      <section>
+        <h2>موناد خودت را بساز (Roll your own monad)</h2>
+        <p>یک ناراحتی کوچک تا این‌جا این بود که مجبور بودیم سوکت‌مان را به هر تابعی که نیاز به صحبت با شبکه دارد پاس بدهیم.
+        سوکت اساساً یک <em>وضعیت تغییرناپذیر</em> (immutable state) است که در زبان‌های دیگر می‌توان آن را یک مقدار سراسری
+        فقط‌خواندنی در نظر گرفت. در هسکل می‌توانیم چنین ساختاری را با یک <em>موناد خواندن</em> (reader monad)
+        پیاده‌سازی کنیم. مونادها انتزاع (abstraction) بسیار قدرتمندی هستند و ما در این‌جا فقط به آن‌ها اشاره می‌کنیم.
+        خوانندهٔ علاقه‌مند به
+        <a href="http://www.haskell.org/haskellwiki/All_About_Monads" target="_blank" rel="noopener">All About Monads</a>
+        ارجاع داده می‌شود. ما از یک موناد سفارشی مخصوصاً برای پیاده‌سازی یک وضعیت سراسری فقط‌خواندنی برای رباتمان استفاده
+        خواهیم کرد.</p>
+        <p>نیاز کلیدی این است که بخواهیم بتوانیم کنش‌های IO را اجرا کنیم و در عین حال یک مقدار وضعیت کوچک را به‌صورت شفاف
+        در کل برنامه دنبال (thread) کنیم. از آنجا که این هسکل است، می‌توانیم قدم اضافه‌ای برداریم و کدِ دارای وضعیت
+        (stateful) خود را با استفاده از یک نوع جدید از همهٔ کدهای دیگر برنامه جدا کنیم.</p>
+        <p>پس بیایید یک موناد خواندن کوچک تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- موناد «Net»، یک لفاف بر روی IO که وضعیت تغییرناپذیر ربات را حمل می‌کند.
+data Bot = Bot { botSocket :: Handle }
+type Net = ReaderT Bot IO</code></pre>
+        <p>اول، یک نوع داده (data type) برای وضعیت سراسری تعریف می‌کنیم. در این مورد، نوع <code class="inline">Bot</code>
+        است؛ یک struct ساده که سوکت شبکهٔ ما را ذخیره می‌کند. سپس این نوع داده را با یک <em>ترانسفورمر موناد</em> (monad
+        transformer) روی کد IO موجودمان لایه‌بندی می‌کنیم. این به آن اندازه که به نظر می‌رسد ترسناک نیست و نتیجه‌اش این است
+        که می‌توانیم در هر جایی که نیاز داریم، سوکت را به‌عنوان یک مقدار سراسری فقط‌خواندنی در نظر بگیریم. این ساختار جدید
+        «IO + وضعیت» را موناد <code class="inline">Net</code> می‌نامیم. <code class="inline">ReaderT</code> یک <em>سازندهٔ
+        نوع</em> (type constructor) است؛ در اصل یک تابع نوعی که دو نوع را به‌عنوان آرگومان می‌گیرد و یک نوع حاصل می‌سازد:
+        نوع موناد <code class="inline">Net</code>.</p>
+        <p>حالا می‌توانیم همهٔ آن پاس‌دادن‌های سوکت را کنار بگذاریم و هر وقت لازم شد سوکت را برداریم. گام‌های کلیدی عبارت‌اند
+        از اتصال به سرور، سپس مقداردهی اولیهٔ موناد خواندن جدیدمان، و بعد اجرای حلقهٔ اصلی ربات با آن مقدار سراسری. یک
+        تابع کوچک اضافه می‌کنیم که وضعیت اولیهٔ ربات را می‌گیرد و حلقهٔ <code class="inline">run</code> ربات را «درون»
+        موناد Net و با استفاده از تابع <code class="inline">runReaderT</code> موناد Reader ارزیابی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">loop st = runReaderT run st</code></pre>
+        <p>که در آن <code class="inline">run</code> یک تابع کوچک برای ثبت نام نمایشی ربات، پیوستن به یک کانال و شروع
+        گوش‌دادن به فرمان‌هاست.</p>
+        <p>در همین حین می‌توانیم تابع <code class="inline">main</code> را کمی مرتب کنیم: با استفاده از
+        <a href="https://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Exception.html" target="_blank" rel="noopener"><code class="inline">Control.Exception.bracket</code></a>
+        فازهای اتصال، قطع اتصال و حلقهٔ اصلی برنامه را به‌صورت صریح از هم جدا کنیم — تکنیکی مفید.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- برنامهٔ سطح‌بالا (Toplevel)
+main :: IO ()
+main = bracket connect disconnect loop
+  where
+    disconnect = hClose . socket
+    loop st    = runReaderT run st</code></pre>
+        <p>یعنی تابع مرتبه‌بالای <code class="inline">bracket</code> سه آرگومان می‌گیرد: تابعی برای اتصال به سرور، تابعی
+        برای قطع اتصال و یک حلقهٔ اصلی که در بین آن‌ها اجرا می‌شود. هر وقت بخواهیم کدی را قبل و بعد از یک کنش خاص اجرا
+        کنیم می‌توانیم از <code class="inline">bracket</code> استفاده کنیم — مانند <code class="inline">forever</code>،
+        این نیز ساختار کنترلی دیگری است که به‌صورت یک تابع معمولی هسکل پیاده‌سازی شده است.</p>
+        <p>به‌جای پاس‌دادن سوکت به همه‌جا، حالا می‌توانیم به‌سادگی هر وقت لازم شد آن را بخواهیم. توجه کنید که نوع
+        <code class="inline">write</code> تغییر می‌کند — اکنون در موناد <code class="inline">Net</code> است، که به ما
+        می‌گوید ربات باید از قبل به یک سرور متصل باشد (و بنابراین استفاده از سوکت مجاز است، چون مقداردهی شده است).</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- ارسال پیام به سروری که در حال حاضر به آن متصل هستیم
+write :: String -&gt; String -&gt; Net ()
+write cmd args = do
+    h &lt;- asks botSocket
+    let msg = cmd ++ " " ++ args ++ "\r\n"
+    liftIO $ hPutStr h msg          -- ارسال پیام روی سیم (شبکه)
+    liftIO $ putStr ("&gt; " ++ msg)   -- نمایش پیام ارسال‌شده در خط فرمان</code></pre>
+        <p>برای اینکه هم وضعیت و هم IO را استفاده کنیم، از تابع <code class="inline">liftIO</code> برای <em>بالابردن</em>
+        (lift) یک عبارت IO به درون موناد <code class="inline">Net</code> استفاده می‌کنیم؛ این کار آن تابع IO را در دسترس
+        کدِ درون موناد <code class="inline">Net</code> قرار می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- واردشده از Control.Monad.IO.Class
+liftIO :: IO a -&gt; Net a</code></pre>
+        <p>ربات مونادیک، دارای وضعیت و مجهز به مدیریت استثنا (exception)، در تمام شکوهش:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- فایل 4.hs
+
+import Control.Exception              -- کتابخانهٔ پایه (base)
+import Control.Monad.IO.Class         --
+import Data.List                      --
+import System.Exit                    --
+import System.IO                      --
+import qualified Network.Socket as N  -- بستهٔ network
+import Control.Monad.Trans.Reader     -- بستهٔ transformers
+
+-- گزینه‌های پیکربندی
+myServer = "irc.libera.chat" :: String
+myPort   = 6667 :: N.PortNumber
+myChan   = "#tutbot-testing" :: String
+myNick   = "tutbot" :: String
+
+-- برپایی کنش‌های آغاز و پایان، و اجرای حلقهٔ اصلی
+main :: IO ()
+main = bracket connect disconnect loop
+  where
+    disconnect = hClose . botSocket
+    loop st = runReaderT run st
+
+-- موناد «Net»، یک لفاف بر روی IO که وضعیت تغییرناپذیر ربات را حمل می‌کند.
+data Bot = Bot { botSocket :: Handle }
+type Net = ReaderT Bot IO
+
+-- اتصال به سرور و بازگرداندن وضعیت اولیهٔ ربات
+connect :: IO Bot
+connect = notify $ do
+    h &lt;- connectTo myServer myPort
+    return (Bot h)
+  where
+    notify a = bracket_
+      (putStrLn ("Connecting to " ++ myServer ++ " ...") &gt;&gt; hFlush stdout)
+      (putStrLn "done.")
+      a
+
+-- اتصال به سرور و بازگرداندن یک Handle (کمکی برای connect)
+connectTo :: N.HostName -&gt; N.PortNumber -&gt; IO Handle
+connectTo host port = do
+    addr : _ &lt;- N.getAddrInfo Nothing (Just host) (Just (show port))
+    sock &lt;- N.socket (N.addrFamily addr) (N.addrSocketType addr) (N.addrProtocol addr)
+    N.connect sock (N.addrAddress addr)
+    N.socketToHandle sock ReadWriteMode
+
+-- حالا در موناد Net هستیم؛ یعنی با موفقیت متصل شده‌ایم
+-- پیوستن به یک کانال و شروع پردازش فرمان‌ها
+run :: Net ()
+run = do
+    write "NICK" myNick
+    write "USER" (myNick ++ " 0 * :tutorial bot")
+    write "JOIN" myChan
+    listen
+
+-- ارسال پیام به سروری که در حال حاضر به آن متصل هستیم
+write :: String -&gt; String -&gt; Net ()
+write cmd args = do
+    h &lt;- asks botSocket
+    let msg = cmd ++ " " ++ args ++ "\r\n"
+    liftIO $ hPutStr h msg          -- ارسال پیام روی سیم (شبکه)
+    liftIO $ putStr ("&gt; " ++ msg)   -- نمایش پیام ارسال‌شده در خط فرمان
+
+-- پردازش هر خط دریافتی از سرور
+listen :: Net ()
+listen = forever $ do
+    h &lt;- asks botSocket
+    line &lt;- liftIO $ hGetLine h
+    liftIO (putStrLn line)
+    let s = init line
+    if isPing s then pong s else eval (clean s)
+  where
+    forever :: Net () -&gt; Net ()
+    forever a = do a; forever a
+
+    clean :: String -&gt; String
+    clean = drop 1 . dropWhile (/= ':') . drop 1
+
+    isPing :: String -&gt; Bool
+    isPing x = "PING :" `isPrefixOf` x
+
+    pong :: String -&gt; Net ()
+    pong x = write "PONG" (':' : drop 6 x)
+
+-- توزیع یک فرمان
+eval :: String -&gt; Net ()
+eval "!quit" = write "QUIT" ":Exiting" &gt;&gt; liftIO exitSuccess
+eval x | "!id " `isPrefixOf` x = privmsg (drop 4 x)
+eval _ = return ()  -- هر چیز دیگری را نادیده بگیر
+
+-- ارسال یک privmsg به کانال و سرور فعلی
+privmsg :: String -&gt; Net ()
+privmsg msg = write "PRIVMSG" (myChan ++ " :" ++ msg)</code></pre>
+        <p>توجه کنید که برای تفریح یک ساختار کنترلی جدید به نام <code class="inline">notify</code> هم اضافه کردیم. حالا
+        تقریباً تمام شده‌ایم! بیایید این ربات را اجرا کنیم. با استفاده از runhaskell:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   $ runhaskell 4.hs</code></pre>
+        <p>یا با استفاده از GHC:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   $ ghc --make 4.hs -o tutbot
+   Chasing modules from: 4.hs
+   Compiling Main             ( 4.hs, 4.o )
+   Linking ...
+   $ ./tutbot</code></pre>
+        <p>و از یک کلاینت IRC می‌توانیم اتصال آن را تماشا کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   15:26 -- tutbot [n=tutbot@aa.bb.cc.dd] has joined #tutbot-testing
+   15:28  dons&gt; !id all good?
+   15:28  tutbot&gt; all good?
+   15:28  dons&gt; !quit
+   15:28 -- tutbot [n=tutbot@aa.bb.cc.dd] has quit [Client Quit]</code></pre>
+        <p>پس حالا رباتی داریم با وضعیت مونادیک فقط‌خواندنیِ صریح، مدیریت خطا و برخی عملیات پایهٔ IRC. اگر بخواهیم وضعیت
+        خواندن-نوشتن (read-write) اضافه کنیم، فقط کافی است ترانسفورمر <code class="inline">ReaderT</code> را به
+        <code class="inline">StateT</code> تغییر دهیم.</p>
+      </section>
+
+      <!-- ==================== گسترش ربات ==================== -->
+      <section>
+        <h2>گسترش ربات (Extending the bot)</h2>
+        <p>بیایید یک فرمان پایهٔ جدید پیاده‌سازی کنیم: پیگیری زمان کار (uptime). از نظر مفهومی، باید زمانی را که ربات شروع
+        به کار می‌کند به خاطر بسپاریم. سپس، اگر کاربری درخواست داد، مجموع زمان اجرا را حساب می‌کنیم و آن را به‌صورت یک
+        رشته چاپ می‌کنیم. راه زیبایی برای این کار این است که وضعیت ربات را با یک فیلد زمان شروع گسترش دهیم:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">import Data.Time</code></pre>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- نوع به‌روزشدهٔ Bot
+data Bot = Bot { botSocket :: Handle, startTime :: UTCTime }</code></pre>
+        <p>سپس می‌توانیم تابع <code class="inline">connect</code> اولیه را نیز اصلاح کنیم تا زمان شروع را هم تنظیم کند.</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- اتصال به سرور و بازگرداندن وضعیت اولیهٔ ربات
+connect :: IO Bot
+connect = notify $ do
+    t &lt;- getCurrentTime
+    h &lt;- connectTo myServer myPort
+    return (Bot h t)</code></pre>
+        <p>سپس یک مورد جدید به تابع <code class="inline">eval</code> اضافه می‌کنیم تا درخواست‌های uptime را مدیریت کند:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">eval "!uptime" = uptime &gt;&gt;= privmsg
+eval ...</code></pre>
+        <p>این کار تابع <code class="inline">uptime</code> را اجرا می‌کند و نتیجه را به سرور بازمی‌گرداند. خود
+        <code class="inline">uptime</code> به این شکل است:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- دریافت زمان کار (uptime) فعلی
+uptime :: Net String
+uptime = do
+  now &lt;- liftIO getCurrentTime
+  zero &lt;- asks startTime
+  return (pretty (diffUTCTime now zero))</code></pre>
+        <p>یعنی، در موناد <code class="inline">Net</code>، زمان فعلی و زمان شروع را پیدا می‌کنیم و سپس تفاضل را محاسبه
+        می‌کنیم و آن عدد را به‌صورت یک رشته برمی‌گردانیم. به‌جای استفاده از نمایش معمول تاریخ‌ها، قالب‌بند سفارشی خودمان را
+        برای تاریخ‌ها می‌نویسیم:</p>
+        <pre class="code"><span class="lang-tag">hs</span><code style="direction:ltr;text-align:left">-- نمایش زیبای تاریخ در قالب '1d 9h 9m 17s'
+pretty :: NominalDiffTime -&gt; String
+pretty diff =
+    unwords
+      . map (\(t, unit) -&gt; show t ++ unit)
+      $ if null diffs then [(0, "s")] else diffs
+  where
+    diffs :: [(Integer, String)]
+    diffs = filter ((/= 0) . fst)
+      $ decompose [(86400, "d"), (3600, "h"), (60, "m"), (1, "s")] (floor diff)
+    decompose [] _ = []
+    decompose ((secs, unit) : metrics) t =
+      let (n, t') = t `divMod` secs
+      in (n, unit) : decompose metrics t'</code></pre>
+        <p>و تمام. اجرای ربات با این فرمان جدید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">   16:03 -- tutbot [n=tutbot@aa.bb.cc.dd] has joined #tutbot-testing
+   16:03  dons&gt; !uptime
+   16:03  tutbot&gt; 51s
+   16:03  dons&gt; !uptime
+   16:03  tutbot&gt; 1m 1s
+   16:12  dons&gt; !uptime
+   16:12  tutbot&gt; 9m 46s</code></pre>
+      </section>
+
+      <!-- ==================== از اینجا به کجا؟ ==================== -->
+      <section>
+        <h2>از اینجا به کجا؟ (Where to now?)</h2>
+        <p>این فقط یک نمونهٔ کوچک از برنامه‌نویسی کاربردی (application programming) در هسکل است و تنها به گوشه‌ای از قدرت
+        ارزیابی تنبل، تایپ ایستا (static typing)، افکت‌های مونادیک و توابع مرتبه‌بالای هسکل اشاره می‌کند. دربارهٔ این
+        موضوعات بسیار بسیار بیشتر برای گفتن وجود دارد. چند نقطهٔ شروع:</p>
+        <ul>
+          <li>یک <a href="https://wiki.haskell.org/Roll_your_own_IRC_bot/Transcript" target="_blank" rel="noopener">گزارش جلسهٔ کامل (transcript)</a>.</li>
+          <li><a href="https://wiki.haskell.org/Haskell" target="_blank" rel="noopener">Haskell.org</a></li>
+          <li><a href="https://wiki.haskell.org/Example_code" target="_blank" rel="noopener">کدهای هسکل بیشتر</a></li>
+          <li><a href="https://wiki.haskell.org/Books_and_tutorials" target="_blank" rel="noopener">یادگیری هسکل</a></li>
+          <li>گالری‌ای از <a href="https://wiki.haskell.org/Libraries_and_tools/Network" target="_blank" rel="noopener">برنامه‌های شبکه‌ای</a> در هسکل</li>
+        </ul>
+        <p>یا ربات را به خانه ببرید و دستکاری (hack) کنید! چند پیشنهاد:</p>
+        <ul>
+          <li>از <code class="inline">forkIO</code> برای افزودن یک واسط خط فرمان (command line interface) استفاده کنید؛
+          آن‌وقت با فقط ۴ خط کد بیشتر، یک کلاینت IRC برای خودتان دارید.</li>
+          <li>برخی فرمان‌ها را از <a href="https://wiki.haskell.org/Lambdabot" target="_blank" rel="noopener">لامبدابات (Lambdabot)</a> منتقل (port) کنید.</li>
+        </ul>
+        <p>نویسنده: دان استوارت (Don Stewart)</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Roll your own IRC bot» نوشتهٔ «دان استوارت (Don Stewart)» در ویکی هسکل
+        (HaskellWiki) است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="https://wiki.haskell.org/Roll_your_own_IRC_bot" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

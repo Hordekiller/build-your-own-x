@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to Build Your First Slack Bot with Python» (Matt Makai / Full Stack Python)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت اولین ربات اسلک خود با پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت اولین ربات اسلک خود با پایتون</span>
+      </div>
+      <h1>ساخت اولین ربات اسلک خود با پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.fullstackpython.com/blog/build-first-slack-bot-python.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to Build Your First Slack Bot with Python» نوشته «مت
+          مکای (Matt Makai)» از سایت Full Stack Python است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.fullstackpython.com/blog/build-first-slack-bot-python.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>ربات‌ها (bots) راهی کاربردی برای تعامل با سرویس‌های پیام‌رسانی مانند
+        <a href="https://slack.com/" target="_blank" rel="noopener">اسلک (Slack)</a> هستند. اگر قبلاً هرگز ربات نساخته‌اید،
+        این نوشته یک آموزش شروع ساده برای ترکیب
+        <a href="https://api.slack.com/" target="_blank" rel="noopener">Slack API</a> با پایتون و ساخت اولین ربات شما
+        فراهم می‌کند.</p>
+        <p>ما گام‌به‌گام راه‌اندازی محیط توسعه (development environment)، به‌دست آوردن توکن ربات Slack API (bot token) و
+        کدنویسی ربات سادهٔ خودمان با پایتون را مرور خواهیم کرد.</p>
+      </section>
+
+      <!-- ==================== ابزارهای مورد نیاز ==================== -->
+      <section>
+        <h2>ابزارهای مورد نیاز</h2>
+        <p>ربات ما که نامش را «StarterBot» می‌گذاریم، به پایتون و Slack API نیاز دارد. برای اجرای کد پایتون‌مان به این
+        موارد نیاز داریم:</p>
+        <ul>
+          <li>یا <a href="https://www.fullstackpython.com/python-2-or-3.html" target="_blank" rel="noopener">پایتون ۲ یا پایتون ۳</a></li>
+          <li><a href="https://pip.pypa.io/en/stable/" target="_blank" rel="noopener">pip</a> و
+          <a href="https://virtualenv.pypa.io/en/stable/" target="_blank" rel="noopener">virtualenv</a> برای مدیریت
+          <a href="https://www.fullstackpython.com/application-dependencies.html" target="_blank" rel="noopener">وابستگی‌های
+          برنامه (application dependencies)</a></li>
+          <li><a href="https://slack.com/" target="_blank" rel="noopener">حساب رایگان Slack</a> — باید حداقل در یک فضای
+          کاری (workspace) که در آن به ساخت برنامه‌ها (apps) دسترسی دارید، وارد شده باشید.</li>
+        </ul>
+        <p>همچنین مفید است که
+        <a href="https://api.slack.com/" target="_blank" rel="noopener">مستندات Slack API</a> را هنگام ساخت این آموزش در
+        دسترس داشته باشید.</p>
+        <p>تمام کد این آموزش به‌صورت متن‌باز (open source) و تحت مجوز MIT در مخزن عمومی
+        <a href="https://github.com/mattmakai/slack-starterbot" target="_blank" rel="noopener">slack-starterbot</a> در
+        دسترس است.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی محیط ==================== -->
+      <section>
+        <h2>راه‌اندازی محیط</h2>
+        <p>حالا می‌دانیم به چه ابزارهایی برای پروژهٔ خود نیاز داریم؛ پس بیایید محیط توسعه‌مان را آماده کنیم. به ترمینال
+        (یا Command Prompt در ویندوز) بروید و به دایرکتوری‌ای که می‌خواهید پروژه در آن ذخیره شود تغییر مسیر دهید. داخل آن
+        دایرکتوری، یک virtualenv جدید بسازید تا وابستگی‌های اپلیکیشن خود را از سایر پروژه‌های پایتون جدا نگه دارید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">virtualenv starterbot</code></pre>
+        <p>virtualenv را فعال کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">source starterbot/bin/activate</code></pre>
+        <p>حالا اعلان (prompt) شما باید شبیه اعلان موجود در این تصویر به نظر برسد.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/virtualenv-activate.png" alt="اعلان فرمان با virtualenv استارتربات فعال‌شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>کتابخانهٔ کمکی رسمی <code class="inline">slackclient</code> که توسط خود Slack ساخته شده است، می‌تواند پیام‌ها را
+        از یک کانال اسلک ارسال و دریافت کند. کتابخانهٔ slackclient را با دستور <code class="inline">pip</code> نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">pip install slackclient==1.3.2</code></pre>
+        <p>وقتی <code class="inline">pip</code> کارش تمام شد، باید خروجی‌ای مانند این ببینید و دوباره به اعلان برگردید.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/pip-install-slackclient.png" alt="خروجی دستور pip install slackclient با virtualenv فعال" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ما همچنین باید یک
+        <a href="https://api.slack.com/apps/new" target="_blank" rel="noopener">Slack App بسازیم</a> تا برای ربات‌مان یک
+        توکن API (API token) دریافت کنیم. از «Starter Bot» به‌عنوان نام App استفاده کنید. اگر در بیش از یک فضای کاری وارد
+        شده‌اید، از منوی کشویی یک «Development Workspace» انتخاب کنید.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/create-slack-app.png" alt="فرم ساخت Slack App پر شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>پس از ارسال فرم، صفحهٔ پیکربندی برنامه را باز نگه دارید.</p>
+      </section>
+
+      <!-- ==================== Slack APIs و پیکربندی برنامه ==================== -->
+      <section>
+        <h2>Slack APIs و پیکربندی برنامه</h2>
+        <p>ما می‌خواهیم Starter Bot مانند هر کاربر دیگری در تیم شما به نظر برسد — در گفتگوهای داخل کانال‌ها (channels)،
+        گروه‌ها (groups) و پیام‌های مستقیم (DMs) شرکت کند. در یک Slack App، این «کاربر ربات»
+        <a href="https://api.slack.com/bot-users" target="_blank" rel="noopener">(bot user)</a> نامیده می‌شود که با انتخاب
+        «Bot Users» در بخش «Features» آن را تنظیم می‌کنیم. پس از کلیک روی «Add a Bot User»، باید یک نام نمایشی انتخاب
+        کنید، یک نام کاربری پیش‌فرض برگزینید و انتخاب‌های خود را با کلیک روی «Add Bot User» ذخیره کنید. در پایان صفحه‌ای
+        خواهید داشت شبیه به صفحهٔ زیر:</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/add-bot-user.png" alt="افزودن کاربر ربات به Slack App" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>کتابخانهٔ <code class="inline">slackclient</code> استفاده از
+        <a href="https://api.slack.com/rtm" target="_blank" rel="noopener">RTM API</a> و
+        <a href="https://api.slack.com/web" target="_blank" rel="noopener">Web API</a> اسلک را ساده می‌کند. ما از هر دو
+        برای پیاده‌سازی Starter Bot استفاده خواهیم کرد و هر کدام احراز هویت (authentication) جداگانه‌ای نیاز دارند.
+        خوشبختانه، کاربر رباتی که قبلاً ساختیم می‌تواند برای احراز هویت هر دو API استفاده شود.</p>
+        <p>روی «Install App» در بخش «Settings» کلیک کنید. دکمهٔ این صفحه، App را در Development Workspace ما نصب می‌کند.
+        وقتی App نصب شد، یک <em>توکن دسترسی OAuth کاربر ربات</em> (bot user oauth access token) برای احراز هویت
+        به‌عنوان کاربر ربات نمایش می‌دهد.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/copy-bot-access-token.png" alt="پس از نصب در فضای کاری توسعه، می‌توانید توکن دسترسی OAuth کاربر ربات را کپی کنید" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>روش رایج توسعه‌دهندگان پایتون، صادر کردن توکن‌های محرمانه به‌عنوان متغیرهای محیطی (environment variables)
+        است. دوباره در ترمینال، توکن اسلک را با نام <code class="inline">SLACK_BOT_TOKEN</code> صادر کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">export SLACK_BOT_TOKEN='your bot user access token here'</code></pre>
+        <p>عالی، حالا مجازیم به‌عنوان کاربر ربات از Slack RTM و Web APIs استفاده کنیم.</p>
+      </section>
+
+      <!-- ==================== کدنویسی Starter Bot ==================== -->
+      <section>
+        <h2>کدنویسی Starter Bot</h2>
+        <p>همه‌چیزهایی را که برای نوشتن کد Starter Bot نیاز داریم در اختیار داریم. فایل جدیدی به نام
+        <code class="inline">starterbot.py</code> بسازید و کد زیر را داخل آن قرار دهید.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+import time
+import re
+from slackclient import SlackClient</code></pre>
+        <p>با وابستگی‌های واردشده می‌توانیم مقادیر متغیرهای محیطی را به‌دست آوریم و سپس کلاینت Slack را نمونه‌سازی
+        (instantiate) کنیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># نمونه‌سازی کلاینت Slack
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+# شناسهٔ کاربری starterbot در اسلک: مقدار پس از راه‌اندازی ربات نسبت داده می‌شود
+starterbot_id = None
+
+# ثابت‌ها
+RTM_READ_DELAY = 1  # تاخیر ۱ ثانیه‌ای بین خواندن از RTM
+EXAMPLE_COMMAND = "do"
+MENTION_REGEX = "^&lt;@(|[WU].+?)&gt;(.*)"</code></pre>
+        <p>این کد کلاینت <code class="inline">SlackClient</code> را با <code class="inline">SLACK_BOT_TOKEN</code> که
+        به‌عنوان متغیر محیطی صادر شده است، نمونه‌سازی می‌کند. همچنین متغیری را اعلان می‌کند که می‌توانیم برای ذخیرهٔ
+        شناسهٔ کاربری Slack استارتربات از آن استفاده کنیم. چند ثابت (constant) نیز اعلان شده‌اند که هرکدام هنگام استفاده
+        در کدِ در ادامه، توضیح داده می‌شوند.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">if __name__ == "__main__":
+    if slack_client.rtm_connect(with_team_state=False):
+        print("Starter Bot connected and running!")
+        # خواندن شناسهٔ کاربری ربات با فراخوانی متد Web API به نام `auth.test`
+        starterbot_id = slack_client.api_call("auth.test")["user_id"]
+        while True:
+            command, channel = parse_bot_commands(slack_client.rtm_read())
+            if command:
+                handle_command(command, channel)
+            time.sleep(RTM_READ_DELAY)
+    else:
+        print("Connection failed. Exception traceback printed above.")</code></pre>
+        <p>کلاینت Slack به RTM API اسلک متصل می‌شود. پس از اتصال، یک متد Web API
+        (<a href="https://api.slack.com/methods/auth.test" target="_blank" rel="noopener"><code class="inline">auth.test</code></a>)
+        را برای یافتن شناسهٔ کاربری Starter Bot فراخوانی می‌کند.</p>
+        <p>هر کاربر ربات برای هر فضای کاری‌ای که Slack App در آن نصب شده است، یک شناسهٔ کاربری دارد. ذخیرهٔ این شناسهٔ
+        کاربری به برنامه کمک می‌کند بفهمد آیا کسی در یک پیام، ربات را اشاره (mention) کرده است یا نه.</p>
+        <p>سپس برنامه وارد یک حلقهٔ بی‌نهایت (infinite loop) می‌شود؛ در هر بار اجرای حلقه، کلاینت هر رویدادی (event) را
+        که از RTM API اسلک رسیده است دریافت می‌کند. توجه کنید که قبل از پایان حلقه، برنامه یک ثانیه مکث می‌کند تا خیلی
+        سریع لوپ نزند و زمان پردازندهٔ شما را هدر ندهد.</p>
+        <p>برای هر رویدادی که خوانده می‌شود، تابع <code class="inline">parse_bot_commands()</code> تعیین می‌کند که آیا
+        رویداد شامل یک دستور برای Starter Bot است یا نه. اگر باشد، <code class="inline">command</code> مقداری خواهد داشت
+        و تابع <code class="inline">handle_command()</code> تعیین می‌کند با دستور چه کاری انجام دهد.</p>
+        <p>ما زمینهٔ پردازش رویدادهای اسلک و فراخوانی متدهای اسلک را در برنامه فراهم کرده‌ایم. حالا سه تابع جدید بالای
+        قطعهٔ کد قبلی اضافه کنید تا مدیریت دستورها کامل شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def parse_bot_commands(slack_events):
+    """
+        فهرستی از رویدادهای دریافتی از RTM API اسلک را تجزیه می‌کند تا دستورهای ربات را پیدا کند.
+        اگر یک دستور ربات پیدا شود، این تابع یک تاپل (tuple) از دستور و کانال برمی‌گرداند.
+        اگر پیدا نشود، این تابع None, None برمی‌گرداند.
+    """
+    for event in slack_events:
+        if event["type"] == "message" and not "subtype" in event:
+            user_id, message = parse_direct_mention(event["text"])
+            if user_id == starterbot_id:
+                return message, event["channel"]
+    return None, None
+
+def parse_direct_mention(message_text):
+    """
+        یک اشارهٔ مستقیم (اشاره‌ای که در ابتدای پیام است) را در متن پیام پیدا می‌کند
+        و شناسهٔ کاربری را که اشاره شده است برمی‌گرداند. اگر اشارهٔ مستقیمی وجود نداشته باشد، None برمی‌گرداند
+    """
+    matches = re.search(MENTION_REGEX, message_text)
+    # گروه اول شامل نام کاربری و گروه دوم شامل بقیهٔ پیام است
+    return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
+
+def handle_command(command, channel):
+    """
+        اگر دستور شناخته شده باشد، آن را اجرا می‌کند
+    """
+    # پاسخ پیش‌فرض، متن راهنما برای کاربر است
+    default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+
+    # دستور داده‌شده را پیدا و اجرا می‌کند و پاسخ را پر می‌کند
+    response = None
+    # اینجاست که شروع به پیاده‌سازی دستورهای بیشتر می‌کنید!
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
+
+    # ارسال پاسخ به کانال
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response or default_response
+    )</code></pre>
+        <p>تابع <code class="inline">parse_bot_commands()</code> رویدادها را از اسلک می‌گیرد و تعیین می‌کند که آیا
+        دستورهایی هستند که به Starter Bot هدف گرفته شده‌اند. انواع رویدادهای بسیاری وجود دارد که ربات ما با آن‌ها مواجه
+        خواهد شد، اما برای یافتن دستورها فقط می‌خواهیم
+        <a href="https://api.slack.com/events" target="_blank" rel="noopener">رویدادهای پیام</a>
+        (<a href="https://api.slack.com/events/message" target="_blank" rel="noopener">message events</a>) را در نظر
+        بگیریم. رویدادهای پیام همچنین زیرنوع‌هایی (subtypes) دارند، اما دستورهایی که می‌خواهیم پیدا کنیم هیچ زیرنوع
+        تعریف‌شده‌ای ندارند. این تابع رویدادهای بی‌اهمیت را با بررسی این ویژگی‌ها فیلتر می‌کند. حالا می‌دانیم رویداد
+        نمایانگر یک پیام با مقداری متن است، اما می‌خواهیم بفهمیم آیا Starter Bot در متن اشاره شده است یا نه. تابع
+        <code class="inline">parse_direct_mention()</code> تشخیص می‌دهد که آیا متن پیام با یک اشاره شروع می‌شود و سپس آن
+        را با شناسهٔ کاربری‌ای که قبلاً برای Starter Bot ذخیره کرده‌ایم مقایسه می‌کنیم. اگر یکسان بودند، می‌دانیم که این
+        یک دستور ربات است و متن دستور را به‌همراه شناسهٔ کانال برمی‌گردانیم.</p>
+        <p>تابع <code class="inline">parse_direct_mention()</code> از یک عبارت منظم (regular expression) استفاده می‌کند
+        تا تشخیص دهد آیا کاربری در <em>ابتدای</em> پیام اشاره شده است یا نه. شناسهٔ کاربری و بقیهٔ پیام را برمی‌گرداند
+        (و اگر اشاره‌ای پیدا نشود، <code class="inline">None, None</code> برمی‌گرداند).</p>
+        <p>آخرین تابع، <code class="inline">handle_command()</code>، جایی است که در آینده همهٔ دستورهای جالب، شوخی‌ها و
+        شخصیت Starter Bot را اضافه خواهید کرد. فعلاً فقط یک دستور نمونه دارد: <em>do</em>. اگر دستور با یک دستور شناخته‌شده
+        شروع شود، پاسخ مناسبی خواهد داشت. اگر نه، از یک پاسخ پیش‌فرض استفاده می‌شود. پاسخ با فراخوانی متد Web API
+        <a href="https://api.slack.com/methods/chat.postMessage" target="_blank" rel="noopener"><code class="inline">chat.postMessage</code></a>
+        با کانال، به اسلک بازگردانده می‌شود.</p>
+        <p>در این‌جا برنامهٔ کامل باید وقتی همه‌چیز سر جای خود قرار گرفت به این شکل باشد (همچنین می‌توانید
+        <a href="https://github.com/mattmakai/slack-starterbot/blob/master/starterbot.py" target="_blank" rel="noopener">فایل را
+        در GitHub مشاهده کنید</a>):</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+import time
+import re
+from slackclient import SlackClient
+
+
+# نمونه‌سازی کلاینت Slack
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+# شناسهٔ کاربری starterbot در اسلک: مقدار پس از راه‌اندازی ربات نسبت داده می‌شود
+starterbot_id = None
+
+# ثابت‌ها
+RTM_READ_DELAY = 1  # تاخیر ۱ ثانیه‌ای بین خواندن از RTM
+EXAMPLE_COMMAND = "do"
+MENTION_REGEX = "^&lt;@(|[WU].+?)&gt;(.*)"
+
+def parse_bot_commands(slack_events):
+    """
+        فهرستی از رویدادهای دریافتی از RTM API اسلک را تجزیه می‌کند تا دستورهای ربات را پیدا کند.
+        اگر یک دستور ربات پیدا شود، این تابع یک تاپل (tuple) از دستور و کانال برمی‌گرداند.
+        اگر پیدا نشود، این تابع None, None برمی‌گرداند.
+    """
+    for event in slack_events:
+        if event["type"] == "message" and not "subtype" in event:
+            user_id, message = parse_direct_mention(event["text"])
+            if user_id == starterbot_id:
+                return message, event["channel"]
+    return None, None
+
+def parse_direct_mention(message_text):
+    """
+        یک اشارهٔ مستقیم (اشاره‌ای که در ابتدای پیام است) را در متن پیام پیدا می‌کند
+        و شناسهٔ کاربری را که اشاره شده است برمی‌گرداند. اگر اشارهٔ مستقیمی وجود نداشته باشد، None برمی‌گرداند
+    """
+    matches = re.search(MENTION_REGEX, message_text)
+    # گروه اول شامل نام کاربری و گروه دوم شامل بقیهٔ پیام است
+    return (matches.group(1), matches.group(2).strip()) if matches else (None, None)
+
+def handle_command(command, channel):
+    """
+        اگر دستور شناخته شده باشد، آن را اجرا می‌کند
+    """
+    # پاسخ پیش‌فرض، متن راهنما برای کاربر است
+    default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+
+    # دستور داده‌شده را پیدا و اجرا می‌کند و پاسخ را پر می‌کند
+    response = None
+    # اینجاست که شروع به پیاده‌سازی دستورهای بیشتر می‌کنید!
+    if command.startswith(EXAMPLE_COMMAND):
+        response = "Sure...write some more code then I can do that!"
+
+    # ارسال پاسخ به کانال
+    slack_client.api_call(
+        "chat.postMessage",
+        channel=channel,
+        text=response or default_response
+    )
+
+if __name__ == "__main__":
+    if slack_client.rtm_connect(with_team_state=False):
+        print("Starter Bot connected and running!")
+        # خواندن شناسهٔ کاربری ربات با فراخوانی متد Web API به نام `auth.test`
+        starterbot_id = slack_client.api_call("auth.test")["user_id"]
+        while True:
+            command, channel = parse_bot_commands(slack_client.rtm_read())
+            if command:
+                handle_command(command, channel)
+            time.sleep(RTM_READ_DELAY)
+    else:
+        print("Connection failed. Exception traceback printed above.")</code></pre>
+        <p>حالا که همهٔ کدمان سر جای خود است، می‌توانیم Starter Bot را با دستور
+        <code class="inline">python starterbot.py</code> در خط فرمان اجرا کنیم.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/starterbot-running.png" alt="خروجی کنسول وقتی StarterBot در حال اجرا و متصل به API است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در اسلک، یک کانال جدید بسازید و Starter Bot را دعوت کنید، یا آن را به یک کانال موجود دعوت کنید.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/create-channel.png" alt="در رابط کاربری اسلک یک کانال جدید بسازید و StarterBot را دعوت کنید" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا در کانال خود به Starter Bot دستور بدهید.</p>
+        <img src="https://www.fullstackpython.com/img/160604-simple-python-slack-bot/working-starterbot.png" alt="دادن دستور به StarterBot در کانال اسلک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>یادداشت تکمیلی</h3>
+        <div class="callout warn">
+          <strong>یادداشت تکمیلی:</strong> در حال حاضر یک
+          <a href="https://github.com/slackapi/python-slackclient/issues/334" target="_blank" rel="noopener">مشکل</a>
+          شناخته‌شده بین بستهٔ <code class="inline">websocket</code> و گواهی CA که استفاده می‌کند وجود دارد؛ بنابراین اگر
+          با خطایی مانند این مواجه شدید:
+          <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">...
+ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1045)
+...
+slackclient.server.SlackConnectionError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1045)
+Connection failed. Exception traceback printed above.</code></pre>
+          چند کار می‌توانید انجام دهید:
+          <ol>
+            <li>کاهش نسخهٔ کتابخانهٔ <code class="inline">websocket-client</code> به <code class="inline">0.47.0</code></li>
+            <li>یا دانلود گواهی
+            (<code class="inline">wget https://www.tbs-certificats.com/issuerdata/DigiCertGlobalRootCA.crt</code>) و سپس
+            تنظیم متغیر محیطی <code class="inline">export WEBSOCKET_CLIENT_CA_BUNDLE=DigiCertGlobalRootCA.crt</code></li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>خوب، حالا یک Starter Bot ساده دارید که جاهای زیادی در کد دارد که می‌توانید هر ویژگی که می‌خواهید بسازید را
+        به آن اضافه کنید.</p>
+        <p>کارهای بسیار بیشتری می‌توان با RTM API اسلک و پایتون انجام داد. این نوشته‌ها را ببینید تا یاد بگیرید چه
+        کارهایی می‌توانید انجام دهید:</p>
+        <ul>
+          <li>پیوستن یک <a href="https://www.fullstackpython.com/databases.html" target="_blank" rel="noopener">پایگاه‌دادهٔ رابط‌ای</a>
+          (relational database) یا <a href="https://www.fullstackpython.com/no-sql-datastore.html" target="_blank" rel="noopener">پشتیبان NoSQL</a>
+          مانند <a href="https://www.fullstackpython.com/postgresql.html" target="_blank" rel="noopener">PostgreSQL</a>،
+          <a href="https://www.fullstackpython.com/mysql.html" target="_blank" rel="noopener">MySQL</a> یا
+          <a href="https://www.fullstackpython.com/sqlite.html" target="_blank" rel="noopener">SQLite</a> برای ذخیره و
+          بازیابی داده‌های کاربران</li>
+          <li>افزودن کانال دیگری برای تعامل با ربات <a href="https://www.twilio.com/blog/2016/05/build-sms-slack-bot-python.html" target="_blank" rel="noopener">از طریق پیامک (SMS)</a> یا
+          <a href="https://www.twilio.com/blog/2016/05/add-phone-calling-slack-python.html" target="_blank" rel="noopener">تماس تلفنی</a></li>
+          <li><a href="https://www.fullstackpython.com/api-integration.html" target="_blank" rel="noopener">یکپارچه‌سازی سایر
+          Web APIها</a> مانند <a href="https://developer.github.com/v3/" target="_blank" rel="noopener">GitHub</a> یا
+          <a href="https://www.fullstackpython.com/twilio.html" target="_blank" rel="noopener">Twilio</a></li>
+          <li>بررسی سایر <a href="https://api.slack.com" target="_blank" rel="noopener">Slack Platform APIs</a> و
+          <a href="https://medium.com/slack-developer-blog/getting-started-with-slacks-apis-f930c73fc889" target="_blank" rel="noopener">دلایل استفاده از یکی به‌جای دیگری</a></li>
+          <li>ساخت یک <a href="https://github.com/slackapi/Slack-Python-Onboarding-Tutorial" target="_blank" rel="noopener">ربات
+          خوشامدگویی (onboarding bot) با استفاده از Slack Events API</a></li>
+        </ul>
+        <p>سؤال دارید؟ از طریق توییتر <a href="https://twitter.com/fullstackpython" target="_blank" rel="noopener">@fullstackpython</a>
+        یا <a href="https://twitter.com/mattmakai" target="_blank" rel="noopener">@mattmakai</a> با من در تماس باشید. من
+        همچنین در GitHub با نام کاربری <a href="https://github.com/mattmakai" target="_blank" rel="noopener">mattmakai</a>
+        هستم.</p>
+        <p>چیز اشتباهی در این نوشته می‌بینید؟
+        <a href="https://github.com/mattmakai/fullstackpython.com/blob/master/content/posts/160604-build-first-slack-bot-python.markdown" target="_blank" rel="noopener">منبع این
+        صفحه را در GitHub فورک کنید</a> و یک pull request ارسال کنید.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Build Your First Slack Bot with Python» اثر «مت مکای (Matt Makai)» از
+        سایت Full Stack Python است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://www.fullstackpython.com/blog/build-first-slack-bot-python.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

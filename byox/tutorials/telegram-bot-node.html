@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Making (and deploying) an Interactive Telegram Bot in Node.js» (Soham Kamani)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت (و استقرار) یک ربات تلگرام تعاملی در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت (و استقرار) یک ربات تلگرام تعاملی در Node.js</span>
+      </div>
+      <h1>ساخت (و استقرار) یک ربات تلگرام تعاملی در Node.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.sohamkamani.com/blog/2016/09/21/making-a-telegram-bot/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Making (and deploying) an Interactive Telegram Bot in Node.js»
+          نوشته «سوهام کامانی (Soham Kamani)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.sohamkamani.com/blog/2016/09/21/making-a-telegram-bot/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <div class="callout note">
+          <strong>خلاصه:</strong> این آموزش شما را با گام‌های ساده و سرراست، از صفر تا راه‌اندازی یک ربات تلگرام
+          (Telegram Bot) پاسخگو پیش می‌برد.
+        </div>
+        <img src="https://www.sohamkamani.com/_astro/banner.Dy_fhfBt_1Fmdxl.webp" alt="بنر مقاله ساخت ربات تلگرام در نود.جی‌اس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>من زمان قابل توجهی صرف کردم تا بفهمم چطور می‌شود یک ربات تلگرام کاربردی ساخت. مسلماً
+        <a href="https://core.telegram.org/bots" target="_blank" rel="noopener">معرفی رسمی تلگرام</a> خوب است؛ اما چیزهای
+        زیادی دربارهٔ اینکه ربات‌ها چیستند و چند دستورالعمل پراکنده‌وار دربارهٔ API می‌گوید، بدون اینکه ساختار کافی برای
+        یک مبتدی فراهم کند تا سریع راه بیفتد.</p>
+        <p>بنابراین، این‌جا روش ساخت یک ربات تلگرام پاسخگو در Node.js را با کمترین دردسر می‌بینید.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر می‌خواهید ساخت ربات تلگرام با زبان Go را یاد بگیرید، می‌توانید
+          <a href="https://www.sohamkamani.com/golang/telegram-bot/" target="_blank" rel="noopener">پست دیگر من</a> را بخوانید.
+        </div>
+      </section>
+
+      <!-- ==================== ساخت ربات ==================== -->
+      <section>
+        <h2>ربات خود را بسازید</h2>
+        <p>برای این مرحله نیازی به نوشتن هیچ کدی نیست؛ در واقع حتی به کامپیوتر هم نیاز ندارید! به اپلیکیشن تلگرام روی
+        گوشی‌تان بروید و…</p>
+        <ol>
+          <li>
+            ربات تلگرامی «botfather» را جست‌وجو کنید (همان‌که در ایجاد و مدیریت ربات شما را یاری می‌کند).
+            <br />
+            <img src="https://www.sohamkamani.com/_astro/sc-0.8R-jfNMs_1fgEEt.webp" alt="جست‌وجوی ربات botfather در تلگرام" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+          </li>
+          <li>
+            <code class="inline">/help</code> را تایپ کنید تا همهٔ فرمان‌هایی را که botfather می‌تواند انجام دهد ببینید.
+            <br />
+            <img src="https://www.sohamkamani.com/_astro/sc-1.Dbp4CoXZ_ZNVOn6.webp" alt="نمایش فهرست فرمان‌های botfather با /help" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+          </li>
+          <li>
+            روی <code class="inline">/newbot</code> کلیک کنید یا آن را تایپ کنید تا یک ربات جدید بسازید.
+            <br />
+            <img src="https://www.sohamkamani.com/_astro/sc-2.haKRdeX2_Z1mHE7u.webp" alt="فرمان /newbot برای ساخت ربات جدید" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+            <br />
+            دستورالعمل‌ها را دنبال کنید و یک نام جدید برای ربات خود بگذارید. اگر ربات را فقط برای آزمایش می‌سازید، بهتر
+            است در نام کاربری (username) آن، نام خودتان را هم بیاورید؛ چون نام کاربری باید یکتا باشد. البته نام نمایشی
+            (screen name) آن می‌تواند هرچه دوست دارید باشد. من «Marco Polo Bot» را به‌عنوان نام نمایشی و
+            «my_marco_polo_bot» را به‌عنوان نام کاربری انتخاب کرده‌ام.
+          </li>
+          <li>
+            تبریک! اولین ربات خود را ساخته‌اید. باید یک توکن API (API token) جدید برای آن تولید شده باشد (برای نمونه، در
+            تصویر قبلی می‌توانید توکن تازه‌تولیدشدهٔ من را ببینید:
+            <code class="inline">777845702:AAFdPS_taJ3pTecEFv2jXkmbQfeOqVZGER</code>). حالا می‌توانید ربات تازه‌ساختهٔ
+            خود را در تلگرام جست‌وجو کنید:
+            <br />
+            <img src="https://www.sohamkamani.com/_astro/sc-3.BA9z89ny_1aKgFj.webp" alt="توکن API تولیدشده برای ربات جدید" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+          </li>
+          <li>
+            بروید و شروع به گفت‌وگو با ربات خود کنید!
+            <br />
+            <img src="https://www.sohamkamani.com/_astro/sc-4.D5mNWxQ3_2nASUa.webp" alt="شروع گفت‌وگو با ربات تازه ساخته‌شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+            <br />
+            خب، کاملاً ناامیدکننده است! ربات ما ظاهراً احمق است؛ به این معنا که نمی‌تواند واقعاً پاسخ بدهد یا چیزی
+            برگرداند. بیایید با ساختن یک سرور ربات که در پس‌زمینه (back end) اجرا می‌شود، این مشکل را حل کنیم.
+          </li>
+        </ol>
+      </section>
+
+      <!-- ==================== راه‌اندازی سرور ربات ==================== -->
+      <section>
+        <h2>سرور ربات خود را راه‌اندازی کنید</h2>
+        <p>هر بار که به یک ربات پیام می‌دهید، پیام شما در قالب یک فراخوانی API (API call) به یک سرور ارسال می‌شود. این
+        سرور همان چیزی است که همهٔ پیام‌های ارسالی شما به ربات را پردازش و به آن‌ها پاسخ می‌دهد.</p>
+        <p>برای دریافت به‌روزرسانی‌ها (updates) هر زمان که کسی به ربات ما پیام می‌فرستد، دو راه در پیش داریم:</p>
+        <ol>
+          <li><b>پولینگ طولانی (Long polling):</b> به‌صورت دوره‌ای برای یافتن پیام‌های احتمالی جست‌وجو می‌کند. توصیه نمی‌شود.</li>
+          <li><b>وبهوک (Webhook):</b> هر بار که ربات پیامی دریافت می‌کند، API صدا زده می‌شود. بسیار سریع‌تر و پاسخگوتر.</li>
+        </ol>
+        <p>در این آموزش از وبهوک استفاده می‌کنیم. هر وبهوک با یک
+        <a href="https://core.telegram.org/bots/api#update" target="_blank" rel="noopener">شیء به‌روزرسانی (update object)</a>
+        صدا زده می‌شود. برویم سرورمان را برای مدیریت این به‌روزرسانی بسازیم.</p>
+        <p>سرور خود را با
+        <a href="https://nodejs.org/en/" target="_blank" rel="noopener">نود.جی‌اس (Node.js)</a> می‌سازیم؛ اما می‌توانید از
+        هر آنچه برای ساخت سرور مناسب شماست استفاده کنید. پس از نصب node و npm:</p>
+        <p>ابتدا پروژه خود را راه‌اندازی (initialize) کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">## ساخت یک پوشه جدید و ورود به آن
+mkdir my-telegram-bot
+cd my-telegram-bot
+
+## راه‌اندازی پروژه npm
+npm init</code></pre>
+        <p>پس از دنبال کردن دستورالعمل‌ها، به یک فایل <code class="inline">package.json</code> خواهید رسید.</p>
+        <p>سپس با اجرای دستور زیر، وابستگی‌های خود را نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install --save express axios body-parser</code></pre>
+        <ul>
+          <li><code class="inline">express</code> سرور اپلیکیشن ماست</li>
+          <li><code class="inline">axios</code> یک کلاینت HTTP است</li>
+          <li><code class="inline">body-parser</code> به ما کمک می‌کند بدنهٔ پاسخ (response body) دریافت‌شده از هر درخواست را تجزیه کنیم</li>
+        </ul>
+        <p>یک فایل جدید به نام <code class="inline">index.js</code> بسازید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">var express = require("express")
+var app = express()
+var bodyParser = require("body-parser")
+const axios = require("axios")
+
+app.use(bodyParser.json()) // برای تجزیه application/json
+app.use(
+	bodyParser.urlencoded({
+		extended: true,
+	})
+) // برای تجزیه application/x-www-form-urlencoded
+
+//این مسیری است که API صدا خواهد زد
+app.post("/new-message", function(req, res) {
+	const { message } = req.body
+
+	//هر پیام شامل "text" و یک شیء "chat" است که "id" آن، شناسه چت است
+
+	if (!message || message.text.toLowerCase().indexOf("marco") &lt; 0) {
+		// اگر پیامی وجود نداشته باشد، یا پیام ما کلمه marco را نداشته باشد،
+		// هیچ کاری نکن و یک پاسخ خالی برگردان
+		return res.end()
+	}
+
+	// اگر به اینجا رسیده باشیم، یعنی پیامی حاوی کلمه "marco" دریافت کرده‌ایم.
+	// با صدا زدن API ربات تلگرام و پاسخ دادن به chat_id مناسب با کلمه "Polo!!" پاسخ بده
+	// به یاد داشته باشید به جای توکن زیر، از توکن API خودتان استفاده کنید
+	// "https://api.telegram.org/bot&lt;your_api_token&gt;/sendMessage"
+	axios
+		.post(
+			"https://api.telegram.org/bot777845702:AAFdPS_taJ3pTecEFv2jXkmbQfeOqVZGER/sendMessage",
+			{
+				chat_id: message.chat.id,
+				text: "Polo!!",
+			}
+		)
+		.then((response) => {
+			// اگر پیام با موفقیت ارسال شد به اینجا می‌رسیم
+			console.log("Message posted")
+			res.end("ok")
+		})
+		.catch((err) => {
+			// ...و اگر ارسال نشد به اینجا
+			console.log("Error :", err)
+			res.end("Error :" + err)
+		})
+})
+
+// در نهایت، سرور خود را راه‌اندازی می‌کنیم
+app.listen(3000, function() {
+	console.log("Telegram app listening on port 3000!")
+})</code></pre>
+        <p>می‌توانید این سرور را روی ماشین محلی خود با اجرای <code class="inline">node index.js</code> اجرا کنید.</p>
+        <p>اگر همه‌چیز خوب پیش برود، باید پیام «Telegram app listening on port 3000!» را روی کنسول خود ببینید.</p>
+        <p>اما این کافی نیست. اگر ربات روی ماشین محلی شما اجرا شود، نمی‌تواند API را صدا بزند؛ به یک نام دامنهٔ عمومی
+        (public domain name) نیاز دارد. یعنی باید اپلیکیشن خود را استقرار (deploy) دهیم.</p>
+      </section>
+
+      <!-- ==================== استقرار سرویس ==================== -->
+      <section>
+        <h2>سرویس خود را مستقر کنید</h2>
+        <p>می‌توانید سرور خود را به هر شکلی که می‌خواهید مستقر کنید؛ اما به‌نظر من استفاده از سرویسی به نام
+        <a href="https://zeit.co/now" target="_blank" rel="noopener">now</a> بسیار سریع و آسان است.</p>
+        <p>now را روی سیستم خود نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install -g now</code></pre>
+        <p>یک اسکریپت شروع (start script) به فایل <code class="inline">package.json</code> خود اضافه کنید.</p>
+        <p>فایل <code class="inline">package.json</code> اصلی من این‌گونه است:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Soham Kamani &lt;soham@sohamkamani.com&gt; (http://sohamkamani.com)",
+  "license": "ISC"
+}</code></pre>
+        <p>یک اسکریپت شروع اضافه کنید تا به این شکل درآید:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start" : "node index.js"
+  },
+  "author": "Soham Kamani &lt;soham@sohamkamani.com&gt; (http://sohamkamani.com)",
+  "license": "ISC"
+}</code></pre>
+        <p>پس از افزودن اسکریپت، دستور زیر را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">now</code></pre>
+        <p>(به یاد داشته باشید آن را در ریشهٔ پوشهٔ پروژه، یعنی جایی که فایل <code class="inline">package.json</code> قرار
+        دارد، اجرا کنید.)</p>
+        <p>اگر اولین بار است که از «now» استفاده می‌کنید، چند دستورالعمل برای ورود به حساب (signing in) خواهید دید؛ اما
+        پس از آن باید چیزی شبیه این ببینید:</p>
+        <img src="https://www.sohamkamani.com/_astro/now-dep.B6zoUC-P_Z1ywiEQ.webp" alt="نمایش استقرار موفق سرویس با now و آدرس عمومی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>عالی! یعنی سرور شما روی <code class="inline" dir="ltr">https://my-telegram-bot-tanvxponxj.now.sh</code> مستقر شده
+        است (یا هر لینکی که شما می‌بینید) و API شما روی
+        <code class="inline" dir="ltr">https://my-telegram-bot-tanvxponxj.now.sh/new-message</code> در دسترس خواهد بود
+        (همان‌طور که در <code class="inline">index.js</code> تعریف شد).</p>
+        <p>حالا فقط باید به تلگرام اطلاع دهیم که ربات ما هر وقت پیامی دریافت کرد، باید با این آدرس صحبت کند. این کار را
+        از طریق API تلگرام انجام می‌دهیم. این را در ترمینال خود وارد کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">curl -F "url=https://my-telegram-bot-tanvxponxj.now.sh/new-message"  https://api.telegram.org/bot&lt;your_api_token&gt;/setWebhook</code></pre>
+        <p>…و تقریباً کار تمام است! با ربات تازه‌ساختهٔ خود گفت‌وگو کنید و ببینید چه اتفاقی می‌افتد!</p>
+        <img src="https://www.sohamkamani.com/_astro/result.BMWFKfKX_ZPSuHI.webp" alt="پاسخ ربات به پیام حاوی کلمه marco" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Making (and deploying) an Interactive Telegram Bot in Node.js» اثر
+        «سوهام کامانی (Soham Kamani)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://www.sohamkamani.com/blog/2016/09/21/making-a-telegram-bot/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

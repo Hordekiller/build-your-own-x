@@ -53,10 +53,23 @@ DONE = {
     "lhartikk.github.io": "naivecoin-ts",
     "naivecoinstake.learn.uno": "naivecoinstake-ts",
     "building-a-blockchain-in-rust-and-substrate": "blockchain-rust-substrate",
+    "Roll_your_own_IRC_bot": "haskell-irc",
+    "making-a-telegram-bot": "telegram-bot-node",
+    "discordjs.guide": "discord-js-guide",
+    "gifbot-github-integration": "gifbot-github",
+    "ai-chatbot-web-speech-api-node-js": "chatbot-web-speech",
+    "build-first-slack-bot-python": "slack-bot-python",
+    "build-a-slack-bot-with-python": "slack-bot-django",
+    "build-a-reddit-bot-part-1": "reddit-bot-python",
+    "watch?v=krTUf7BpTc0": "reddit-bot-youtube",
+    "how-to-create-a-telegram-bot-using-python": "telegram-bot-python",
+    "creating-a-twitter-bot-in-python-with-tweepy": "twitter-bot-tweepy",
+    "playlist?list=PLIFBTFgFpoJ9vmYYlfxRFV6U_XhG-4fpP": "reddit-bot-praw",
+    "build-a-cryptocurrency-trading-bot-with-r": "crypto-trading-bot-r",
+    "habr.com/en/post/436254": "starcraft-bot-rust",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}
-
 line_re = re.compile(r"^[-*] \[\*\*(.+?)\*\*: _(.+)_\]\((https?://[^\s)]+)\)(\s*\[(.+?)\])?$")
 
 tutorials = []

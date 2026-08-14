@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to Create a Telegram Bot using Python» (Ashutosh Krishna / freeCodeCamp)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت ربات تلگرام با پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ربات</a>
+        <span class="sep">←</span>
+        <span>ساخت ربات تلگرام با پایتون</span>
+      </div>
+      <h1>ساخت ربات تلگرام با پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: ربات</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.freecodecamp.org/news/how-to-create-a-telegram-bot-using-python/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to Create a Telegram Bot using Python» (ساخت ربات
+          تلگرام با پایتون) نوشته «اشوتوش کریشنا (Ashutosh Krishna)» در سایت freeCodeCamp است. نسخه کامل و به‌روز را
+          از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.freecodecamp.org/news/how-to-create-a-telegram-bot-using-python/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>چت‌بات‌های خودکار برای برقراری تعاملات مفید هستند. ما می‌توانیم چت‌بات‌هایی برای اسلک (Slack)، دیسکورد
+        (Discord) و سایر پلتفرم‌ها بسازیم.</p>
+        <p>در این مقاله، به شما یاد می‌دهم که چگونه یک چت‌بات تلگرام بسازید که طالع‌بینی (horoscope) شما را به شما می‌گوید.
+        پس بیایید شروع کنیم!</p>
+      </section>
+
+      <!-- ==================== دریافت توکن ربات ==================== -->
+      <section>
+        <h2>چگونه توکن ربات خود را دریافت کنید</h2>
+        <p>برای راه‌اندازی یک ربات جدید، باید با بات‌فادر (BotFather) صحبت کنید. نه، او یک انسان نیست — او هم یک ربات است و
+        او رئیس همهٔ ربات‌های تلگرام است.</p>
+        <ol>
+          <li>در تلگرام دنبال <code class="inline">@botfather</code> بگردید.</li>
+        </ol>
+        <img src="https://www.freecodecamp.org/news/content/images/2022/12/Screenshot-2022-12-16-092357.png" alt="ربات تلگرامی بات‌فادر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)"><em>ربات بات‌فادر در تلگرام</em></p>
+        <ol start="2">
+          <li>با کلیک روی دکمهٔ Start یک گفت‌وگو با بات‌فادر شروع کنید.</li>
+        </ol>
+        <img src="https://www.freecodecamp.org/news/content/images/2022/12/Screenshot-2022-12-16-092531.png" alt="کلیک روی دکمه Start" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)"><em>کلیک روی دکمهٔ Start</em></p>
+        <ol start="3">
+          <li><code class="inline">/newbot</code> را تایپ کنید و برای راه‌اندازی یک ربات جدید از راهنمایی‌ها پیروی کنید.
+          بات‌فادر به شما یک توکن (token) می‌دهد که از آن برای احراز هویت (authenticate) ربات خود و اعطای دسترسی آن به
+          API تلگرام استفاده خواهید کرد.</li>
+        </ol>
+        <img src="https://www.freecodecamp.org/news/content/images/2022/12/Screenshot-2022-12-16-093337.png" alt="دریافت توکن دسترسی از بات‌فادر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)"><em>دریافت توکن دسترسی</em></p>
+        <div class="callout warn">
+          <strong>توجه:</strong> مطمئن شوید توکن را به‌صورت امن نگهداری می‌کنید. هر کسی که به توکن شما دسترسی داشته باشد
+          می‌تواند به‌راحتی ربات شما را دستکاری کند.
+        </div>
+      </section>
+
+      <!-- ==================== راه‌اندازی محیط کدنویسی ==================== -->
+      <section>
+        <h2>چگونه محیط کدنویسی خود را راه‌اندازی کنید</h2>
+        <p>بیایید محیط کدنویسی را راه‌اندازی کنیم. در حالی که کتابخانه‌های مختلفی برای ساخت ربات تلگرام وجود دارد، ما از
+        کتابخانهٔ <a href="https://pypi.org/project/pyTelegramBotAPI/" target="_blank" rel="noopener">pyTelegramBotAPI</a>
+        استفاده خواهیم کرد. این کتابخانه یک پیاده‌سازی ساده اما قابل توسعهٔ (extensible) پایتون از API ربات تلگرام با
+        قابلیت‌های همگام (synchronous) و ناهمگام (asynchronous) است.</p>
+        <p>کتابخانهٔ pyTelegramBotAPI را با استفاده از pip نصب کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">pip install pyTelegramBotAPI</code></pre>
+        <p>در مرحلهٔ بعد، ویرایشگر کد موردعلاقهٔ خود را باز کنید و یک فایل <code class="inline">.env</code> برای ذخیرهٔ
+        توکن خود به‌صورت زیر بسازید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">export BOT_TOKEN=your-bot-token-here</code></pre>
+        <p>پس از آن، دستور <code class="inline">source .env</code> را اجرا کنید تا متغیرهای محیطی از فایل
+        <code class="inline">.env</code> خوانده شوند.</p>
+      </section>
+
+      <!-- ==================== ساخت اولین ربات ==================== -->
+      <section>
+        <h2>چگونه اولین ربات خود را بسازید</h2>
+        <p>تمام پیاده‌سازی‌های API در یک کلاس واحد به نام <code class="inline">TeleBot</code> ذخیره شده‌اند. این کلاس راه‌های
+        زیادی برای گوش دادن به پیام‌های ورودی و همچنین توابعی مانند <code class="inline">send_message()</code>،
+        <code class="inline">send_document()</code> و موارد دیگر برای ارسال پیام ارائه می‌دهد.</p>
+        <p>یک فایل جدید <code class="inline">bot.py</code> بسازید و کد زیر را در آن قرار دهید:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+
+import telebot
+
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+
+bot = telebot.TeleBot(BOT_TOKEN)</code></pre>
+        <p>در کد بالا، از کتابخانهٔ <code class="inline">os</code> برای خواندن متغیرهای محیطی ذخیره‌شده در سیستم خود
+        استفاده می‌کنیم.</p>
+        <p>اگر به یاد داشته باشید، در مرحلهٔ قبل یک متغیر محیطی به نام <code class="inline">BOT_TOKEN</code> را export
+        کردیم. مقدار <code class="inline">BOT_TOKEN</code> در متغیری به نام <code class="inline">BOT_TOKEN</code> خوانده
+        می‌شود. علاوه بر آن، از کلاس <code class="inline">TeleBot</code> برای ایجاد یک نمونهٔ (instance) ربات استفاده
+        می‌کنیم و <code class="inline">BOT_TOKEN</code> را به آن پاس می‌دهیم.</p>
+        <p>سپس باید مدیریت‌کننده‌های پیام (message handlers) را ثبت کنیم. این مدیریت‌کننده‌های پیام شامل فیلترهایی هستند
+        که یک پیام باید از آن‌ها عبور کند. اگر پیامی از فیلتر عبور کند، تابع تزئین‌شده (decorated) فراخوانی می‌شود و
+        پیام ورودی به‌عنوان آرگومان به آن داده می‌شود.</p>
+        <p>بیایید یک مدیریت‌کنندهٔ پیام تعریف کنیم که دستورهای ورودی <code class="inline">/start</code> و
+        <code class="inline">/hello</code> را مدیریت کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@bot.message_handler(commands=['start', 'hello'])
+def send_welcome(message):
+    bot.reply_to(message, "Howdy, how are you doing?")</code></pre>
+        <p>هر نامی برای تابعی که توسط مدیریت‌کنندهٔ پیام تزئین شده است قابل قبول است، اما تابع فقط می‌تواند یک پارامتر
+        داشته باشد (خود پیام).</p>
+        <p>بیایید مدیریت‌کنندهٔ دیگری اضافه کنیم که همهٔ پیام‌های متنی ورودی را به فرستنده بازتاب (echo) می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@bot.message_handler(func=lambda msg: True)
+def echo_all(message):
+    bot.reply_to(message, message.text)</code></pre>
+        <p>کد بالا از یک عبارت <code class="inline">lambda</code> برای آزمایش یک پیام استفاده می‌کند. از آنجا که باید همهٔ
+        پیام‌ها را بازتاب کنیم، همیشه <code class="inline">True</code> را از تابع <code class="inline">lambda</code>
+        برمی‌گردانیم.</p>
+        <p>اکنون یک ربات ساده دارید که به دستورهای <code class="inline">/start</code> و <code class="inline">/hello</code>
+        با یک پیام ثابت پاسخ می‌دهد و همهٔ سایر پیام‌های ارسال‌شده را بازتاب می‌کند. موارد زیر را به انتهای فایل خود
+        اضافه کنید تا ربات راه‌اندازی شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">bot.infinity_polling()</code></pre>
+        <p>همین! ما یک ربات تلگرام آماده داریم. بیایید فایل پایتون را اجرا کنیم و به تلگرام برویم تا ربات را آزمایش کنیم.</p>
+        <p>اگر نتوانستید ربات را پیدا کنید، با نام کاربری آن جست‌وجو کنید. می‌توانید آن را با ارسال دستورهایی مانند
+        <code class="inline">/hello</code> و <code class="inline">/start</code> و سایر متن‌های تصادفی آزمایش کنید.</p>
+        <img src="https://www.freecodecamp.org/news/content/images/2022/12/Screenshot-2022-12-16-101334.png" alt="آزمایش ربات در تلگرام" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="font-size:0.85rem;color:var(--muted)"><em>آزمایش ربات</em></p>
+        <div class="callout note">
+          <strong>نکته:</strong> همهٔ مدیریت‌کننده‌های پیام به همان ترتیبی که در فایل منبع اعلام شده‌اند آزمایش می‌شوند.
+        </div>
+        <p>برای اطلاعات بیشتر دربارهٔ استفاده از کتابخانهٔ pyTelegramBotAPI، می‌توانید به
+        <a href="https://github.com/eternnoir/pyTelegramBotAPI" target="_blank" rel="noopener"><strong>مستندات</strong></a>
+        آن مراجعه کنید.</p>
+      </section>
+
+      <!-- ==================== کدنویسی ربات طالع‌بینی ==================== -->
+      <section>
+        <h2>چگونه ربات طالع‌بینی را کدنویسی کنیم</h2>
+        <p>حالا توجه خود را به ساخت ربات طالع‌بینی معطوف کنیم. ما در ربات از زنجیره‌سازی پیام (message chaining) استفاده
+        خواهیم کرد. ربات ابتدا علامت زودیاک (zodiac sign) شما را می‌پرسد، سپس روز را می‌پرسد و در پایان با طالع‌بینی همان
+        روز خاص پاسخ می‌دهد.</p>
+        <p>در پس‌زمینه، ربات برای دریافت داده‌های طالع‌بینی با یک API تعامل می‌کند.</p>
+        <p>ما از <a href="https://horoscope-app-api.vercel.app/" target="_blank" rel="noopener">API طالع‌بینی</a> استفاده
+        خواهیم کرد که آن را در یک آموزش دیگر ساخته‌ام. اگر می‌خواهید یاد بگیرید چگونه یکی را بسازید، می‌توانید
+        <a href="https://ashutoshkrris.hashnode.dev/how-to-create-a-horoscope-api-with-beautiful-soup-and-flask" target="_blank" rel="noopener">این آموزش</a>
+        را دنبال کنید. قبل از شروع، مطمئن شوید APIها را
+        <a href="https://horoscope-app-api.vercel.app/" target="_blank" rel="noopener">اینجا</a> بررسی می‌کنید.</p>
+
+        <h3>نحوهٔ دریافت داده‌های طالع‌بینی</h3>
+        <p>بیایید یک تابع کمکی (utility function) برای دریافت داده‌های طالع‌بینی یک روز خاص ایجاد کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import requests
+
+def get_daily_horoscope(sign: str, day: str) -> dict:
+    """دریافت طالع‌بینی روزانه برای یک علامت زودیاک.
+    آرگومان‌های کلیدواژه‌ای:
+    sign:str - علامت زودیاک
+    day:str - تاریخ با قالب (YYYY-MM-DD) یا TODAY یا TOMORROW یا YESTERDAY
+    بازگشت:dict - داده‌های JSON
+    """
+    url = "https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily"
+    params = {"sign": sign, "day": day}
+    response = requests.get(url, params)
+
+    return response.json()</code></pre>
+        <p>در کد پایتون بالا، تابعی ایجاد کردیم که دو آرگومان رشته‌ای — <code class="inline">sign</code> و
+        <code class="inline">day</code> — را می‌پذیرد و داده‌های JSON را برمی‌گرداند. ما یک درخواست GET به آدرس URL ارسال
+        می‌کنیم و <code class="inline">sign</code> و <code class="inline">day</code> را به‌عنوان پارامترهای جست‌وجو
+        (query parameters) پاس می‌دهیم.</p>
+        <p>اگر تابع را آزمایش کنید، خروجی مشابه زیر دریافت خواهید کرد:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+   "data":{
+      "date": "Dec 15, 2022",
+      "horoscope_data": "Lie low during the day and try not to get caught up in the frivolous verbiage that dominates the waking hours. After sundown, feel free to speak your mind. You may notice that there is a sober tone and restrictive sensation today that leaves you feeling like you will never be able to break free from your current situation. Don't get caught in this negative mindset."
+   },
+   "status": 200,
+   "success": true
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> می‌توانید در
+          <a href="https://ashutoshkrris.hashnode.dev/how-to-interact-with-web-services-using-python" target="_blank" rel="noopener">این آموزش</a>
+          دربارهٔ کتابخانهٔ <code class="inline">requests</code> در پایتون بیشتر کاوش کنید.
+        </div>
+
+        <h3>نحوهٔ افزودن یک مدیریت‌کنندهٔ پیام</h3>
+        <p>حالا که تابعی داریم که داده‌های طالع‌بینی را برمی‌گرداند، بیایید در ربات خود یک مدیریت‌کنندهٔ پیام ایجاد کنیم که
+        علامت زودیاک کاربر را می‌پرسد:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">@bot.message_handler(commands=['horoscope'])
+def sign_handler(message):
+    text = "What's your zodiac sign?\nChoose one: *Aries*, *Taurus*, *Gemini*, *Cancer,* *Leo*, *Virgo*, *Libra*, *Scorpio*, *Sagittarius*, *Capricorn*, *Aquarius*, and *Pisces*."
+    sent_msg = bot.send_message(message.chat.id, text, parse_mode="Markdown")
+    bot.register_next_step_handler(sent_msg, day_handler)</code></pre>
+        <p>تابع بالا کمی با توابع دیگری که قبلاً تعریف کردیم متفاوت است. عملکرد طالع‌بینی ربات با دستور
+        <code class="inline">/horoscope</code> فراخوانی می‌شود. ما یک پیام متنی به کاربر ارسال می‌کنیم، اما توجه کنید که هنگام
+        ارسال پیام، <code class="inline">parse_mode</code> را روی <strong>Markdown</strong> تنظیم کرده‌ایم.</p>
+        <p>از آنجا که از زنجیره‌سازی پیام استفاده می‌کنیم، از متد <code class="inline">register_next_step_handler()</code>
+        استفاده کردیم. این متد دو پارامتر می‌پذیرد: <strong>پیامی</strong> که توسط کاربر ارسال شده و <strong>تابع
+        بازخوانی</strong> (callback function) که باید پس از پیام فراخوانی شود. بنابراین، متغیر
+        <code class="inline">sent_msg</code> و یک تابع جدید <code class="inline">day_handler</code> که در ادامه تعریف
+        خواهیم کرد را پاس می‌دهیم.</p>
+        <p>بیایید تابع <code class="inline">day_handler()</code> را که پیام را می‌پذیرد تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def day_handler(message):
+    sign = message.text
+    text = "What day do you want to know?\nChoose one: *TODAY*, *TOMORROW*, *YESTERDAY*, or a date in format YYYY-MM-DD."
+    sent_msg = bot.send_message(
+        message.chat.id, text, parse_mode="Markdown")
+    bot.register_next_step_handler(
+        sent_msg, fetch_horoscope, sign.capitalize())</code></pre>
+        <p>علامت زودیاک را از ویژگی <code class="inline">message.text</code> دریافت می‌کنیم. مشابه تابع قبلی، روزی را نیز
+        می‌پرسد که می‌خواهید طالع‌بینی آن را بدانید.</p>
+        <p>در پایان، از همان متد <code class="inline">register_next_step_handler()</code> استفاده می‌کنیم و
+        <code class="inline">sent_msg</code>، تابع بازخوانی <code class="inline">fetch_horoscope</code> و
+        <code class="inline">sign</code> را پاس می‌دهیم.</p>
+        <p>حالا بیایید تابع <code class="inline">fetch_horoscope()</code> را تعریف کنیم که پیام و علامت را می‌پذیرد:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">def fetch_horoscope(message, sign):
+    day = message.text
+    horoscope = get_daily_horoscope(sign, day)
+    data = horoscope["data"]
+    horoscope_message = f'*Horoscope:* {data["horoscope_data"]}\\n*Sign:* {sign}\\n*Day:* {data["date"]}'
+    bot.send_message(message.chat.id, "Here's your horoscope!")
+    bot.send_message(message.chat.id, horoscope_message, parse_mode="Markdown")</code></pre>
+        <p>این تابع پایانی است که در آن علامت را از پارامتر تابع و روز را از ویژگی <code class="inline">message.text</code>
+        دریافت می‌کنیم.</p>
+        <p>سپس با استفاده از تابع <code class="inline">get_daily_horoscope()</code> طالع‌بینی را دریافت می‌کنیم و پیام خود
+        را می‌سازیم. در پایان، پیام را با داده‌های طالع‌بینی ارسال می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== نمایش ربات ==================== -->
+      <section>
+        <h2>نمایش ربات</h2>
+        <p>به محض اجرای فایل پایتون، می‌توانید این قابلیت را آزمایش کنید. در اینجا نمایش آن آمده است:</p>
+        <div class="callout tip">
+          <strong>ویدیوی نمایش:</strong> برای مشاهدهٔ دموی عملکرد ربات طالع‌بینی، ویدیوی یوتیوب اصلی مقاله را تماشا کنید:
+          <a class="btn solid" href="https://www.youtube.com/watch?v=nTHI2rPV_RE" target="_blank" rel="noopener">▶ مشاهده ویدیوی نمایش ربات در یوتیوب</a>
+        </div>
+      </section>
+
+      <!-- ==================== مراحل پیشنهادی بعدی ==================== -->
+      <section>
+        <h2>مراحل پیشنهادی بعدی</h2>
+        <p>در حال حاضر، به محض اینکه برنامهٔ پایتون خود را متوقف کنیم ربات از کار می‌افتد. برای اینکه همیشه اجرا شود،
+        می‌توانید ربات را روی پلتفرم‌هایی مانند Heroku، Render و موارد دیگر استقرار (deploy) دهید.</p>
+        <p>این لینک
+        <a href="https://github.com/ashutoshkrris/Telegram-Horoscope-Bot" target="_blank" rel="noopener">مخزن GitHub این پروژه</a>
+        است — راحت باشید و آن را بررسی کنید.</p>
+        <p>همچنین می‌توانید با کاوش در
+        <a href="https://core.telegram.org/" target="_blank" rel="noopener">APIهای تلگرام</a> قابلیت‌های بیشتری به ربات
+        اضافه کنید.</p>
+        <p>از خواندن این مطلب متشکریم! می‌توانید من را در
+        <a href="https://twitter.com/ashutoshkrris" target="_blank" rel="noopener">توییتر</a> دنبال کنید.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Create a Telegram Bot using Python» اثر «اشوتوش کریشنا (Ashutosh Krishna)»
+        در سایت freeCodeCamp است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://www.freecodecamp.org/news/how-to-create-a-telegram-bot-using-python/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
