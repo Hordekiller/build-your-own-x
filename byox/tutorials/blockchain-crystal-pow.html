@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Write your own blockchain and PoW algorithm using Crystal!»
+  (Bradford Lamson-Scribner — Medium)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بلاک‌چین و الگوریتم اثبات کار (PoW) با کریستال</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بلاک‌چین و الگوریتم اثبات کار با کریستال</span>
+      </div>
+      <h1>بلاک‌چین و الگوریتم اثبات کار (PoW) خودت را با کریستال بنویس!</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Crystal</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@bradford_hamilton/write-your-own-blockchain-and-pow-algorithm-using-crystal-d53d5d9d0c52" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Write your own blockchain and PoW algorithm using Crystal!»
+          نوشته «برادفورد لمسون-اسکریبنر (Bradford Lamson-Scribner)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/@bradford_hamilton/write-your-own-blockchain-and-pow-algorithm-using-crystal-d53d5d9d0c52" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*Nj-RrwQVwB8vW5HfDKSWpQ.png" alt="تصویر روی جلد مقاله؛ نمایشی از بلاک‌چین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این آموزش از این <a href="https://medium.com/@mycoralhealth/code-your-own-blockchain-in-less-than-200-lines-of-go-e296282bcffc" target="_blank" rel="noopener">پست عالی وبلاگ</a> درباره نوشتن یک بلاک‌چین پایه با زبان Go الهام گرفته شده است و من آن را به زبان کریستال (Crystal) منتقل کرده‌ام. ابتدا با دو توضیح شروع می‌کنم: یک بلاک‌چین (blockchain) اساساً یک پایگاه‌داده توزیع‌شده و غیرمتمرکز از تراکنش‌های مرتب‌شده است که با رمزنگاری، این «دفتر کل» (ledger) را ایمن و تغییرناپذیر نگه می‌دارد. کریستال یک زبان برنامه‌نویسی <a href="https://en.wikipedia.org/wiki/General-purpose_programming_language" target="_blank" rel="noopener">همه‌منظوره</a>، کامپایل‌شونده و شیءگرا با بررسی ایستای نوع (static type-checking) است. <em>یادداشت کوتاه:</em> اگر تا به حال روبی (Ruby) نوشته‌اید، عاشق کریستال خواهید شد :)</p>
+
+        <p><strong>بعد از این آموزش، باید درک بهتری از این موارد داشته باشید:</strong></p>
+        <ul>
+          <li>بلاک‌چین چگونه در سطح بالا کار می‌کند</li>
+          <li>هشینگ (hashing) چگونه زنجیره را حفظ و ایمن می‌کند</li>
+          <li>چگونه یک الگوریتم ساده اثبات کار (proof-of-work یا PoW) پیاده‌سازی کنیم و معنای آن چیست</li>
+          <li>بلوک‌ها چگونه به یک بلاک‌چین اضافه می‌شوند</li>
+          <li>کریستال و کارهایی که می‌تواند انجام دهد</li>
+        </ul>
+
+        <p>در پایان می‌توانید بلاک‌چین خود را در مرورگر و ترمینال بخوانید و همچنین از طریق درخواست‌های HTTP بلوک‌های جدید بسازید! برای ساده نگه داشتن این پست، لطفاً در نظر داشته باشید که این یک پیاده‌سازی «واقعی/کامل» بلاک‌چین نیست، بلکه مقدمه‌ای بر مبانی آن است :) جنبه شبکه‌ای بلاک‌چین‌ها اصلاً در اینجا پوشش داده نخواهد شد. در انتهای این پست لینکی به کد کامل وجود دارد تا اگر در هر نقطه‌ای گیج شدید به آن مراجعه کنید.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی ==================== -->
+      <section>
+        <h2>راه‌اندازی (Setup)</h2>
+        <p>اولین قدم نصب کریستال است. من روی macOS هستم و از روش نصب <a href="https://crystal-lang.org/docs/installation/on_mac_osx_using_homebrew.html" target="_blank" rel="noopener">Homebrew</a> استفاده کردم. این زبان «هنوز» روی ویندوز پشتیبانی نمی‌شود (البته یک راه‌حل جایگزین هم وجود دارد). می‌توانید درباره آن مطالعه کنید و دستورالعمل‌های نصب برای macOS و توزیع‌های لینوکس را <a href="https://crystal-lang.org/docs/installation/" target="_blank" rel="noopener">اینجا</a> ببینید. بعد از نصب کامپایلر، یک باینری <code class="inline">crystal</code> در اختیار خواهید داشت. توصیه می‌کنم نگاهی گذرا به <a href="https://crystal-lang.org/docs/using_the_compiler/" target="_blank" rel="noopener">استفاده از کامپایلر</a> بیندازید و آماده‌اید!</p>
+
+        <p>یک اپ جدید به این صورت می‌سازیم:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">crystal init app crystal-blockchain
+cd crystal-blockchain</code></pre>
+
+        <p>بعد Kemal را به وابستگی‌هایمان اضافه می‌کنیم. Kemal یک فریم‌ورک ساده وب است که با کریستال نوشته شده است. از آن برای خواندن و نوشتن در بلاک‌چین خود از طریق درخواست‌های HTTP استفاده می‌کنیم. در فایل <code class="inline">shard.yml</code> خود موارد زیر را اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">yml</span><code style="direction:ltr;text-align:left">dependencies:
+  kemal:
+    github: kemalcr/kemal</code></pre>
+
+        <p>بعد از آن دستور زیر را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">shards install</code></pre>
+
+        <p>شاردها (Shards) قالب استاندارد توزیع برنامه‌ها و کتابخانه‌ها هستند (در قالبی مستقل به نام «shard»). آن‌ها شباهت زیادی به «gems» در روبی دارند. در طول این آموزش مقایسه‌هایی با روبی خواهید شنید، چون نحو (syntax) کریستال <em>به شدت</em> تحت تأثیر روبی است.</p>
+      </section>
+
+      <!-- ==================== بلوک چیست؟ ==================== -->
+      <section>
+        <h2>بلوک چیست؟</h2>
+        <p>بیایید یک مدل داده‌ای خام و ابتدایی برای شکل ظاهری بلوک‌هایمان بسازیم. داخل فایل <code class="inline">crystal-blockchain.cr</code> و در ماژول <code class="inline">Crystal::Blockchain</code> خود موارد زیر را اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">blockchain = [] of NamedTuple(
+  index: Int32,
+  timestamp: String,
+  data: String,
+  hash: String,
+  prev_hash: String
+)</code></pre>
+
+        <p>در اینجا یک متغیر سراسری بلاک‌چین تعریف می‌کنیم که یک آرایه از <a href="https://crystal-lang.org/docs/syntax_and_semantics/literals/named_tuple.html" target="_blank" rel="noopener">NamedTuple</a> خواهد بود. برای هر کلید، نوع آن را اعلام می‌کنیم. من بین چند نوع داده مختلف تردید کردم و در نهایت به آرایه‌ای از NamedTuple رسیدم، به دلیل سهولت آن در تبدیل به JSON وقتی بلاک‌چین را از یک درخواست GET برمی‌گردانیم. در ادامه نموداری برای نشان دادن رابطه بین بلوک‌ها آمده است.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*4-Ou9zLmWkjrMVLTMbNSjQ.png" alt="نمودار رابطه بین بلوک‌ها؛ هر بلوک هش بلوک قبلی را ذخیره می‌کند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:8px">هر بلوک، هش بلوک قبلی را ذخیره می‌کند تا یکپارچگی زنجیره حفظ شود.</p>
+
+        <p>این مدل نظم و یکپارچگی را تضمین می‌کند. بعد، فایل دیگری داخل <code class="inline">src/</code> به نام <code class="inline">Block.cr</code> می‌سازیم. این را یک ماژول (module) در نظر می‌گیریم، اگرچه به همین راحتی می‌توانست یک کلاس (class) باشد. در پایان احساس کردم برای این پیاده‌سازی یک ماژول منطقی‌تر است و کاملاً خوب کار می‌کند. پس در فایل جدید <code class="inline">Block.cr</code> با این شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">module Block
+  extend self
+end</code></pre>
+
+        <p>اگر هنوز با کریستال یا روبی آشنایی ندارید، توصیه می‌کنم حداقل اطلاعاتی اجمالی درباره <a href="https://crystal-lang.org/docs/syntax_and_semantics/classes_and_methods.html" target="_blank" rel="noopener">کلاس‌ها</a> و <a href="https://crystal-lang.org/docs/syntax_and_semantics/modules.html" target="_blank" rel="noopener">ماژول‌ها</a> مطالعه کنید.</p>
+
+        <p>یک ماژول می‌تواند ماژول دیگری را extend کند و کد <code class="inline">extend self</code> بالا معادل نوشتن <code class="inline">extend Block</code> است. در هسته آن، این صرفاً راهی برای اجتناب از نوشتن <code class="inline">self.</code> قبل از هر تعریف متد در یک ماژول است. اطلاعات بیشتر <a href="https://blog.bigbinary.com/2012/06/28/extend-self-in-ruby.html" target="_blank" rel="noopener">اینجا</a> — که لینکی به یک توضیح روبی است؛ متأسفانه هنوز مثال‌های زیادی برای کریستال وجود ندارد.</p>
+
+        <p>اکنون می‌توانیم اولین متد کریستال خود را اضافه کنیم.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*tl7cnZnTkIsboxA3mgtQuw.png" alt="متد create که بلوک را می‌سازد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>متدی به نام «create» اضافه می‌کنیم که بلوک را می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def create(index, timestamp, data, prev_hash)
+  block = {
+    index: index,
+    timestamp: timestamp,
+    data: data,
+    prev_hash: prev_hash
+  }
+
+  block.merge({ hash: self.calculate_hash(block) })
+end</code></pre>
+
+        <p>NamedTupleها تغییرناپذیر (immutable) هستند، بنابراین از <code class="inline">.merge</code> برای افزودن یک جفت کلید-مقدار استفاده می‌کنیم. در این حالت یک NamedTuple جدید برمی‌گرداند که جفت جدید را هم شامل می‌شود. همان‌طور که می‌بینید، در اینجا <code class="inline">self.calculate_hash</code> را صدا می‌زنیم که هنوز تعریف نکرده‌ایم. این متد داده‌های بلوک را درون یک رشته به هم الحاق (concatenate) کرده و هش می‌کند.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def calculate_hash(block)
+  plain_text = "
+    #{block[:index]}
+    #{block[:timestamp]}
+    #{block[:data]}
+    #{block[:prev_hash]}
+  "
+  sha256 = OpenSSL::Digest.new("SHA256")
+  sha256.update(plain_text)
+  sha256.to_s
+end</code></pre>
+
+        <p>بیایید نگاهی گذرا به مبانی هش‌های رمزنگاری یک‌طرفه بیندازیم. در بالا از الگوریتم <a href="https://en.wikipedia.org/wiki/SHA-2" target="_blank" rel="noopener">SHA-256</a> استفاده کردیم. مفهوم آن این است که با ورودی یکسان با هر طولی، همیشه خروجی یکسانی برمی‌گردد. مثلاً اگر «Hello World!» را هش کنید، همیشه همان خروجی را می‌گیرید.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*xLFHtK2RgOzJTYpUYqPqYA.png" alt="نمونه‌ای از هش کردن رشته Hello World! با SHA-256" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>تشویق می‌شوم با آن بازی کنید. <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank" rel="noopener">اینجا</a> یک ابزار آنلاین خوب برای این کار است. سوی دیگر این مفهوم آن است که تأیید آن آسان اما مهندسی معکوس آن <em>فوق‌العاده</em> دشوار است.</p>
+
+        <p>این کار حجم فضای زیادی را هم ذخیره می‌کند. اگر از نمایش هگزادسیمال (hexadecimal) استفاده کنید (همان‌طور که ما می‌کنیم)، می‌توانید «Hello World!» یا کل کتابخانه کنگره را هش کنید و همیشه یک رشته ۲۵۶ بیتی و ۶۴ کاراکتری به دست می‌آورید. سعی کنید فقط یک کاراکتر را تغییر دهید و ببینید کل هش تغییر می‌کند.</p>
+
+        <p>این هش‌ها بلوک‌ها را به هم پیوند می‌دهند و یکپارچگی بلاک‌چین را حفظ می‌کنند. اگر یک عامل بدخواه بخواهد داده‌ها را دستکاری کند، هش‌ها تغییر می‌کنند و در نتیجه زنجیره می‌شکند. <a href="https://www.youtube.com/watch?v=_160oMzblY8" target="_blank" rel="noopener">این</a> ویدیوی فوق‌العاده‌ای درباره هشینگ و استخراج (mining) است و اگر هنوز با آن راحت نیستید، اکیداً تماشایش را توصیه می‌کنم.</p>
+      </section>
+
+      <!-- ==================== ساخت بلوک و مشاهده بلاک‌چین ==================== -->
+      <section>
+        <h2>ساخت یک بلوک و مشاهده بلاک‌چین</h2>
+        <p>دوباره به <code class="inline">crystal-blockchain.cr</code> برمی‌گردیم و اولین بلوک خود را می‌سازیم و آن را به آرایه بلاک‌چین اضافه (push) می‌کنیم. داخل ماژول ما و درست زیر اعلان بلاک‌چین، یک endpoint تعریف می‌کنیم تا بلاک‌چین را در قالب JSON بخوانیم و سپس سرور را راه‌اندازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">get "/" do
+  blockchain.to_json
+end
+
+Kemal.run</code></pre>
+
+        <p>همچنین باید Kemal و ماژول Block خود را require کنیم؛ پس در ابتدای <code class="inline">crystal-blockchain.cr</code> اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">require "kemal"
+
+require "./Block"</code></pre>
+
+        <p>به ترمینال بروید و <code class="inline">crystal src/crystal-blockchain.cr</code> را اجرا کنید تا سرور شروع شود. مرورگر خود را باز کنید و به <code class="inline">http://localhost:3000</code> بروید؛ باید بلاک‌چین خود را با اولین بلوک ساخته‌شده ببینید! اگر هنوز از افزونه مرورگر برای مشاهده JSON استفاده نمی‌کنید، من این <a href="https://github.com/tulios/json-viewer" target="_blank" rel="noopener">یک</a> را خیلی دوست دارم. می‌توانید آن را در <a href="https://chrome.google.com/webstore/detail/json-viewer/gbmdgpbipfallnflgajpaliibnhdgobh" target="_blank" rel="noopener">وب‌استور کروم</a> پیدا کنید. یا اگر به زندگی در ترمینال عادت دارید، فقط از curl استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== افزودن بلوک‌ها به بلاک‌چین ==================== -->
+      <section>
+        <h2>افزودن بلوک‌ها به بلاک‌چین</h2>
+        <p>برای اینکه بلوک‌هایی به بلاک‌چین اضافه شوند، باید «استخراج» (mined) شوند. در این پیاده‌سازی روی الگوریتم اجماع <a href="https://en.wikipedia.org/wiki/Proof-of-work_system" target="_blank" rel="noopener">اثبات کار</a> (PoW) تمرکز خواهیم کرد. این الگوریتم برای تأیید تراکنش‌ها و تولید بلوک‌های جدید روی زنجیره استفاده می‌شود. با PoW، استخراج‌کنندگان (miners) برای تکمیل تراکنش‌ها روی شبکه با یکدیگر رقابت می‌کنند و پاداش می‌گیرند. این اثبات نشان می‌دهد که یک استخراج‌کننده واقعاً زمان و منابعی برای حل مسئله صرف کرده است. این فرآیند سرعت ساخته‌شدن بلوک‌ها و انتشار دارایی دیجیتال یک بلاک‌چین را از طریق پاداش بلوک (block rewards) تنظیم می‌کند.</p>
+
+        <p>همان‌طور که در ابتدا اشاره کردم، این پست هیچ‌کدام از بحث‌های شبکه بین گره‌ها (nodes) و غیره را پوشش نمی‌دهد. اما فکر می‌کنم ذکر این نکته مهم است که در هر لحظه باید تنها یک مجموعه صریح از بلوک‌ها در زنجیره وجود داشته باشد. در مورد تعارض‌ها (دو گره هر دو بلوک شماره ۱۰ را تولید کنند) زنجیره‌ای را انتخاب می‌کنیم که تعداد بلوک‌های بیشتری دارد. این‌جا هم جای دیگری است که اگر هنوز راحت نیستید توصیه می‌کنم عمیق‌تر بررسی کنید. <a href="https://www.bitcoinmining.com/" target="_blank" rel="noopener">این</a> اطلاعات/توصیف‌های نسبتاً خوبی درباره فرآیند استخراج بیت‌کوین دارد.</p>
+
+        <p>روشی که برای پیاده‌سازی PoW استفاده می‌کنیم نسخه ساده‌تری از روش بیت‌کوین است. بیت‌کوین این کار را با واداشتن اعضای شبکه به هش کردن ترکیب‌هایی از حروف و اعداد همراه با هش بلوک انجام می‌دهد تا زمانی که نتیجه شامل تعداد مشخصی «0» در ابتدا باشد. تعداد «0»های ابتدایی را سختی (difficulty) می‌نامیم. ترکیب حروف و اعدادی که با موفقیت پیشوند درست «0»ها را به ما داد، nonce خواهد بود.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*tNNXiYYyHX6js6oTkhsGfA.png" alt="مثال کار با رشته Hello, world! و یافتن nonce با صفرهای ابتدایی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:8px">مثال کار با رشته «Hello, world!»</p>
+
+        <p>دقت کنید مدخل آخر بالا با ۴ عدد صفر شروع می‌شود. اگر سختی ۴ باشد، این جواب است. nonce در اینجا «4250» است — این همان داده هش‌شده همراه با بلوک است که ۴ صفر ابتدایی تولید کرد. باز هم، تأیید آن به آسانی اجرای «Hello, world!4250» با الگوریتم SHA-256 است، اما یافتن جواب در ابتدا فوق‌العاده دشوار است. اساساً یک بازی حدس‌زدن و بررسی است.</p>
+      </section>
+
+      <!-- ==================== بیایید کد را بنویسیم! ==================== -->
+      <section>
+        <h2>بیایید کد را بنویسیم!</h2>
+        <p>اول دو جفت کلید-مقدار جدید به انتهای اعلان NamedTuple خود اضافه کنید — difficulty و nonce.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">blockchain = [] of NamedTuple(
+  index: Int32,
+  timestamp: String,
+  data: String,
+  hash: String,
+  prev_hash: String,
+  difficulty: Int32,
+  nonce: String
+)</code></pre>
+
+        <p>همان‌طور که می‌بینید، برای index و difficulty خود از یک عدد صحیح ۳۲ بیتی استفاده می‌کنیم. در کریستال، یک <a href="https://crystal-lang.org/docs/syntax_and_semantics/literals/integers.html" target="_blank" rel="noopener">لیترال عدد صحیح</a> یک علامت اختیاری <code class="inline">+</code> یا <code class="inline">-</code> دارد و به دنبال آن دنباله‌ای از ارقام و زیرخط‌ها می‌آید و به‌صورت اختیاری با یک پسوند (suffix) تمام می‌شود. اگر پسوندی وجود نداشته باشد، نوع لیترال پایین‌ترین نوع از بین <code class="inline">Int32</code>، <code class="inline">Int64</code> و <code class="inline">UInt64</code> است که عدد در آن جا بگیرد.</p>
+
+        <p>بنابراین برای سادگی، index و difficulty به‌صورت پیش‌فرض <code class="inline">Int32</code> خواهند بود (ما پسوندی مشخص نمی‌کنیم و آن‌ها از «0» و «3» شروع می‌شوند). می‌توانید استدلال کنید که برای این پروژه می‌توانیم از یک <code class="inline">UInt8</code> برای difficulty استفاده کنیم، چون هرگز یک عدد صحیح بدون علامت یا عددی بزرگ‌تر از ۲۵۵ نخواهیم داشت. به همین شکل می‌توانید استدلال کنید که می‌توانیم برای index هم از یک عدد صحیح بدون علامت استفاده کنیم. هرچند یک int بدون علامت ۳۲ بیتی احتمالاً بیش از حد کافی است تا وقتی انتظار بیش از ۴,۲۹۴,۹۶۷,۲۹۵ بلوک نداشته باشیم :) برای سادگی، وقتی یک NamedTuple می‌سازیم نوع عدد صحیح را مشخص نمی‌کنیم و می‌گذاریم خودش تصمیم بگیرد و <code class="inline">Int32</code> ما را بدهد که کاملاً خوب کار می‌کند.</p>
+
+        <p>فراموش نکنیم که باید کاری مشابه داخل متد <code class="inline">create</code> خود انجام دهیم. فعلاً می‌توانیم nonce را یک رشته خالی قرار دهیم و difficulty را <code class="inline">self.difficulty</code> بگذاریم.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def create(index, timestamp, data, prev_hash)
+  block = {
+    index: index,
+    timestamp: timestamp,
+    data: data,
+    prev_hash: prev_hash,
+    difficulty: self.difficulty,
+    nonce: ""
+  }
+end</code></pre>
+
+        <p>یک difficulty کدنویسی‌شده (hardcoded) به ماژول Block اضافه کنید تا با آن کار کنیم. در یک بلاک‌چین کارآمد، این مقدار قابل تنظیم می‌بود تا به تنظیم زمان لازم برای افزودن یک بلوک به زنجیره کمک کند.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def difficulty
+  3
+end</code></pre>
+
+        <p>در نهایت، <code class="inline">#{block[:nonce]}</code> را به آخرین موقعیت در درون‌یابی (interpolation) <code class="inline">plain_text</code> داخل <code class="inline">calculate_hash</code> اضافه کنید. این تضمین می‌کند که nonce را همراه با هش بلوک هش کنیم.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def calculate_hash(block)
+  plain_text = "
+    #{block[:index]}
+    #{block[:timestamp]}
+    #{block[:data]}
+    #{block[:prev_hash]}
+    #{block[:nonce]}
+  "
+  sha256 = OpenSSL::Digest.new("SHA256")
+  sha256.update(plain_text)
+  sha256.to_s
+end</code></pre>
+
+        <p>حالا متد <code class="inline">generate</code> داخل <code class="inline">Block.cr</code>.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def generate(last_block, data)
+  new_block = self.create(
+    last_block[:index] + 1,
+    Time.now.to_s,
+    data,
+    last_block[:hash]
+  )
+
+  i = 0
+
+  loop do
+    hex = i.to_s(16)
+    new_block = new_block.merge({ nonce: hex })
+
+    if !self.is_hash_valid?(self.calculate_hash(new_block), new_block[:difficulty])
+      puts "Mining: trying another nonce... #{self.calculate_hash(new_block)}"
+      i += 1
+      # sleep 25.milliseconds
+      next
+    else
+      puts "\nMining complete! Nonce for this block is #{new_block[:nonce]}."
+      new_block = new_block.merge({ hash: self.calculate_hash(new_block) })
+      break
+    end
+  end
+
+  new_block
+end</code></pre>
+
+        <p>داخل <code class="inline">generate</code>، با صدا زدن <code class="inline">create</code> شروع کنید که بلوک ما را می‌سازد. سپس یک حلقه شروع می‌کنیم. داخل حلقه، اندیس فعلی تکرار حلقه (i) را از متد <code class="inline">to_s</code> (به رشته تبدیل کن) با آرگومان ۱۶ (مبنای ۱۶) عبور می‌دهیم. این کار رشته هگزادسیمال ما را می‌دهد. سپس در هر تکرار، آن hex را تحت کلید <code class="inline">nonce</code> در بلوکمان merge می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== تقریباً رسیدیم! ==================== -->
+      <section>
+        <h2>تقریباً رسیدیم!</h2>
+        <p>حالا داخل حلقه، هش بلوک را با nonce جدید و سختی را از متد <code class="inline">is_hash_valid?</code> عبور می‌دهیم. بیایید آن متد را هم روی ماژول Block تعریف کنیم.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def is_hash_valid?(hash, difficulty)
+  prefix = "0" * difficulty
+  hash.starts_with?(prefix)
+end</code></pre>
+
+        <p>این بررسی می‌کند که مطابق سختی ما، تعداد درستی «0» در ابتدای هش وجود داشته باشد.</p>
+
+        <p>پس حالا داخل حلقه در <code class="inline">generate</code> آن بررسی را اجرا می‌کنیم و اگر true برگردد، جواب را پیدا کرده‌ایم! اگر نه، <code class="inline">i</code> را افزایش می‌دهیم و همه چیز را دوباره انجام می‌دهیم. فراخوانی sleep که در کامنت قرار دارد برای افزودن زمانی بین حلقه‌ها است. می‌توانید آن را فعال کنید و زمان را تنظیم کنید تا تکرارها را یکی‌یکی در کنسول خود ببینید.</p>
+      </section>
+
+      <!-- ==================== آخرین ولی نه کم‌اهمیت‌ترین: POST کردن بلوک جدید ==================== -->
+      <section>
+        <h2>آخرین ولی نه کم‌اهمیت‌ترین: POST کردن یک بلوک جدید</h2>
+        <p>دوباره به <code class="inline">crystal-blockchain.cr</code> برگردید و route handler خود را برای افزودن یک بلوک اضافه می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">post "/new-block" do |env|
+  data = env.params.json["data"].as(String)
+
+  new_block = Block.generate(blockchain[blockchain.size - 1], data)
+
+  if Block.is_valid?(new_block, blockchain[blockchain.size - 1])
+    blockchain << new_block
+    puts "\n"
+    p new_block
+    puts "\n"
+  end
+
+  new_block.to_json
+end</code></pre>
+
+        <p>در اینجا درخواست‌های POST به <code class="inline">/new-block</code> را مدیریت می‌کنیم و محتوای آمده از کلید <code class="inline">data</code> را جدا می‌کنیم. یک بلوک جدید می‌سازیم و آخرین بلوک روی زنجیره و داده جدید خود را به آن پاس می‌دهیم.</p>
+
+        <p>قبل از اینکه بلوک جدید را به زنجیره اضافه کنیم، بررسی می‌کنیم که بلوک دستکاری نشده باشد. متد جدید خود را در <code class="inline">Block.cr</code> اضافه کنید.</p>
+        <pre class="code"><span class="lang-tag">cr</span><code style="direction:ltr;text-align:left">def is_valid?(new_block, old_block)
+  if old_block[:index] + 1 != new_block[:index]
+    return false
+  elsif old_block[:hash] != new_block[:prev_hash]
+    return false
+  elsif self.calculate_hash(new_block) != new_block[:hash]
+    return false
+  end
+
+  true
+end</code></pre>
+
+        <p>در اینجا سه چیز را بررسی می‌کنیم:</p>
+        <ul>
+          <li>آیا اندیس بلوک جدید یک واحد بیشتر از آخرین بلوک زنجیره است؟</li>
+          <li>آیا هش قبلی بلوک جدید برابر با هش آخرین بلوک است؟</li>
+          <li>اگر <code class="inline">calculate_hash</code> را روی بلوک جدید اجرا کنیم، آیا برابر با هش ذخیره‌شده داخل بلوک جدید است؟</li>
+        </ul>
+        <p>تا وقتی این شرایط را پاس کند، با موفقیت یک بلوک جدید ساخته‌ایم!</p>
+      </section>
+
+      <!-- ==================== ببینیدش در عمل ==================== -->
+      <section>
+        <h2>ببینیدش در عمل</h2>
+        <p>بیایید سرور خود را شروع کنیم و به <code class="inline">http://localhost:3000</code> برویم. باید بلوک اولیه خود را ببینید.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*ky7ruBNcZdo4rNSIN6Nnog.png" alt="نمایش JSON بلاک‌چین در مرورگر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:8px">نمایش JSON بلاک‌چین در مرورگر</p>
+
+        <p>عالی، به نظر می‌رسد آن‌طور که باید اجرا می‌شود. حالا بیایید بلوک‌هایی اضافه کنیم. من برای تست فراخوانی‌های API خیلی از <a href="https://www.getpostman.com/" target="_blank" rel="noopener">Postman</a> استفاده می‌کنم.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*usYbHlJN_s9Ofo2h0r-Gbg.png" alt="درخواست POST به /new-block با بدنه JSON در Postman" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>در اینجا یک درخواست POST به <code class="inline">http://localhost:3000/new-block</code> با بدنه JSON <code class="inline">{ "data": "Some new data for the second block" }</code> می‌فرستم. اگر همه چیز خوب پیش برود، باید بلوک تازه‌ساخته‌شده را در پاسخ Postman ببینید. همچنین چند لاگ هم اضافه کرده‌ام تا بتوانید در ترمینال دنبال کنید. تمام تلاش‌های ناموفق برای استخراج بلوک جدید را چاپ می‌کند تا زمانی که جواب را پیدا کند. سپس nonce موفق و بلوک جدید را چاپ می‌کند.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*Hfwow72vBEVW53L9JlHihA.png" alt="لاگ‌های استخراج بلوک در ترمینال با تکرار nonceهای مختلف" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>این‌جا جایی است که می‌توانید برگردید و در تکرارهای استخراج تأخیر اضافه کنید، اگر می‌خواهید آن‌ها را کمی آرام‌تر در ترمینال ببینید.</p>
+
+        <p>در نهایت اگر برگردید و بلاک‌چین را در مرورگر ببینید، بلوک‌های اضافه‌شده را مشاهده خواهید کرد.</p>
+
+        <img src="https://miro.medium.com/v2/resize:fit:640/1*lH6wLyFfrhemgOD2HrDy5A.png" alt="بلاک‌چین در مرورگر با بلوک‌های اضافه‌شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>دقت کردید که هش‌های بعد از بلوک اولیه همگی با سه «0» شروع می‌شوند؟ می‌توانید سختی را تنظیم کنید و ببینید آن‌ها تغییر می‌کنند. اما موقع افزایش بیش از حد سختی احتیاط کنید، چون ممکن است ببینید یافتن جواب <em>خیلی</em> طول می‌کشد. همچنین حالا می‌توانید پیوندهای بین <code class="inline">previous_hash</code> هر بلوک و <code class="inline">hash</code> بلوک قبلی را به‌صورت تصویری ببینید.</p>
+
+        <p>این لینکی به کد کامل است:
+        <a href="https://github.com/bradford-hamilton/crystal-blockchain" target="_blank" rel="noopener">bradford-hamilton/crystal-blockchain</a> — همین مخزنی که کد کامل این آموزش در آن قرار دارد.</p>
+      </section>
+
+      <!-- ==================== وووو! ==================== -->
+      <section>
+        <h2>وووو! (Wooo!)</h2>
+        <p>تبریک! شما همین الان بلاک‌چین خودتان را با یک الگوریتم PoW در کریستال ساختید. امیدوارم این به ساخت پایه‌ای برای شما کمک کرده باشد. برخی گام‌های خوب بعدی شامل کندوکاو عمیق‌تر در این مفاهیم، یادگیری بخش شبکه (broadcast همتا‌به‌همتا (P2P) بین گره‌ها و غیره) و آشنایی با سایر الگوریتم‌های اجماع است.</p>
+
+        <p>چیزی که واقعاً می‌خواهم بگویم این است که به شدت یادگیری <a href="https://www.ethereum.org/" target="_blank" rel="noopener">اتریوم (Ethereum)</a> را توصیه می‌کنم :) فقط شوخی کردم؛ باید به سمت چیزی جذب شوید که برایتان جذاب‌ترین است. اما می‌گویم که در فضای بلاک‌چین، من بیشتر زمانم را روی اتریوم می‌گذارم. بعد از درک برخی از مبانی بلاک‌چین، این می‌تواند گام بزرگ بعدی دیگری برای شما باشد.</p>
+
+        <p>برای محتوای مربوط به قراردادهای هوشمند (smart contracts)، ماشین مجازی اتریوم (Ethereum Virtual Machine) و توسعه Dapp مرا در توییتر دنبال کنید.</p>
+
+        <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+        <div class="callout note">
+          <strong>کپیرایت:</strong> مقاله «Write your own blockchain and PoW algorithm using Crystal!» اثر
+          «برادفورد لمسون-اسکریبنر (Bradford Lamson-Scribner)» است و در Medium منتشر شده است. این صفحه فقط ترجمه فارسی آن است و
+          تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+          <a href="https://medium.com/@bradford_hamilton/write-your-own-blockchain-and-pow-algorithm-using-crystal-d53d5d9d0c52" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

@@ -270,14 +270,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "blockchain-crystal-pow",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Crystal",
 "title": "بلاکچین و الگوریتم PoW خودت را با Crystal بنویس",
 "url": "https://medium.com/@bradford_hamilton/write-your-own-blockchain-and-pow-algorithm-using-crystal-d53d5d9d0c52",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-crystal-pow.html"
 },
 {
 "id": "blockchain-go-jeiwan",
@@ -290,24 +290,24 @@ window.TUTORIALS = [
 "file": "tutorials/blockchain-go-jeiwan.html"
 },
 {
-"id": "",
+"id": "blockchain-go-200lines",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Go",
 "title": "بلاکچین خودت را در کمتر از ۲۰۰ خط Go بنویس",
 "url": "https://medium.com/@mycoralhealth/code-your-own-blockchain-in-less-than-200-lines-of-go-e296282bcffc",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-go-200lines.html"
 },
 {
-"id": "",
+"id": "blockchain-java-first",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Java",
 "title": "ساخت اولین بلاکچین خود با جاوا",
 "url": "https://medium.com/programmers-blockchain/create-simple-blockchain-java-tutorial-from-scratch-6eeed3cb03fa",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-java-first.html"
 },
 {
 "id": "",

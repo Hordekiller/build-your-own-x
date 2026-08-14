@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Creating Your First Blockchain with Java. Part 1.» (Kass / CryptoKass)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت اولین بلاک‌چین خود با جاوا — بخش ۱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>ساخت اولین بلاک‌چین خود با جاوا — بخش ۱</span>
+      </div>
+      <h1>ساخت اولین بلاک‌چین خود با جاوا — بخش ۱</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">📁 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/programmers-blockchain/create-simple-blockchain-java-tutorial-from-scratch-6eeed3cb03fa" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Creating Your First Blockchain with Java. Part 1.» نوشته «کاس
+          (Kass)» با نام کاربری CryptoKass است که در انتشارات «برنامه‌نویسان بلاک‌چین (Programmers Blockchain)» در Medium
+          منتشر شده است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/programmers-blockchain/create-simple-blockchain-java-tutorial-from-scratch-6eeed3cb03fa" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>هدف این مجموعه آموزش‌ها این است که با توسعه‌دادنِ یک بلاک‌چین، به شما در درک فناوری بلاک‌چین کمک کند. اگر
+        می‌خواهید یک ارز دیجیتال واقعی بسازید، چیزی مانند
+        <a href="https://coinmechanic.io" target="_blank" rel="noopener">coinmechanic.io</a> جایگزین بسیار باهوش‌تری
+        است!</p>
+        <p>در این آموزش ما:</p>
+        <ul>
+          <li>اولین بلاک‌چین «بسیار» ابتدایی خود را می‌سازیم.</li>
+          <li>یک سیستم سادهٔ <b>اثبات کار</b> (proof of work / استخراج) را پیاده‌سازی می‌کنیم.</li>
+          <li>در برابر امکانات، <b>شگفت‌زده می‌شویم</b>.</li>
+        </ul>
+        <p>(فرض می‌کنم درک پایه‌ای از
+        <a href="https://docs.oracle.com/javase/tutorial/java/concepts/" target="_blank" rel="noopener">برنامه‌نویسی
+        شیءگرا (Object Oriented Programming)</a> دارید.)</p>
+        <p>شایان ذکر است که این یک بلاک‌چین کاملاً کاربردی و آمادهٔ تولید نخواهد بود. در عوض، این یک پیاده‌سازیِ
+        اثباتِ-مفهوم (proof of concept) است تا به شما کمک کند بفهمید بلاک‌چین برای آموزش‌های آینده چیست.</p>
+        <p><b>این بخشی از</b>
+        <a href="https://medium.com/@cryptokass/blockchain-development-mega-guide-5a316e6d10df" target="_blank" rel="noopener">راهنمای بزرگ توسعه بلاک‌چین (The Blockchain Development Mega Guide)</a>
+        است.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی ==================== -->
+      <section>
+        <h2>راه‌اندازی (Setting Up)</h2>
+        <p>ما از جاوا استفاده خواهیم کرد؛ اما شما باید بتوانید در هر زبان برنامه‌نویسی شیءگرای دیگری نیز همراه بیایید. من از
+        Eclipse استفاده می‌کنم، اما شما می‌توانید از هر ویرایشگر متن مدرن و شیکی استفاده کنید (اگرچه بسیاری از مزخرفات خوب را
+        از دست خواهید داد).</p>
+        <p>شما نیاز دارید:</p>
+        <ul>
+          <li>جاوا و JDK نصب‌شده (معلوم است).</li>
+          <li>Eclipse (یا یک IDE/ویرایشگر متن دیگر).</li>
+        </ul>
+        <img src="https://miro.medium.com/v2/resize:fit:400/1*3rE0ahnLzfQ7JHyxNJAH7Q.gif" alt="نمایش محیط Eclipse با تم تیره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر Eclipse شما با من فرق دارد نگران نباشید. من از تم تیره در Eclipse استفاده می‌کنم، چون ^</p>
+        <p>به‌صورت اختیاری، می‌توانید
+        <a href="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar" target="_blank" rel="noopener">کتابخانهٔ GSON ساخت گوگل</a>
+        (آن‌ها دیگر چه کسانی هستند؟!!!) را بردارید. این کتابخانه به ما امکان می‌دهد یک شیء را به Json تبدیل کنیم \o/. این یک
+        کتابخانهٔ بسیار کاربردی است که بعداً نیز برای مسائل همتا-به-همتا (peer2peer) از آن استفاده خواهیم کرد؛ اما در استفاده
+        از یک روش جایگزین آزادید.</p>
+        <p>در Eclipse یک پروژهٔ جاوا بسازید (file &gt; new &gt;). من پروژه‌ام را «noobchain» می‌نامم و یک <i>کلاس</i> جدید
+        با همان نام (NoobChain) می‌سازم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:519/1*VPKiJWgOiZszGvLgPNiqLA.png" alt="ایجاد پروژه جاوا به نام noobchain در Eclipse" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا نام پروژهٔ مرا کپی نکنید! ( ͠° ͟ ͜ʖ ͡°)</p>
+        <p>حالا آمادهٔ کارید :)</p>
+      </section>
+
+      <!-- ==================== ساخت بلاک‌چین ==================== -->
+      <section>
+        <h2>ساخت بلاک‌چین (Making the Blockchain)</h2>
+        <p>بلاک‌چین فقط یک زنجیره/لیست از بلاک‌هاست. هر بلاک در بلاک‌چین اثر انگشت دیجیتال (digital fingerprint) خودش را
+        دارد، اثر انگشت دیجیتال بلاک قبلی را در خود دارد و مقداری داده دارد (این داده می‌تواند مثلاً تراکنش‌ها باشد).</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*627BG-7qMtaXNsX0n41C6Q.png" alt="نمودار زنجیره‌ای از بلاک‌ها که هر کدام هش بلاک قبلی را در خود دارند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>امیدوارم ناکاموتو (Nakamoto) هرگز این را نبیند.</p>
+        <blockquote><b>هش (Hash) = اثر انگشت دیجیتال.</b></blockquote>
+        <p><b>هر بلاک فقط هش بلاک قبل از خود را در خود ندارد؛ بلکه هش خودش نیز تا حدی از هش قبلی محاسبه می‌شود.</b> اگر دادهٔ
+        بلاک قبلی تغییر کند، هش بلاک قبلی تغییر خواهد کرد (زیرا تا حدی از روی داده محاسبه می‌شود) و به نوبهٔ خود همهٔ هش‌های
+        بلاک‌های پس از آن را تحت تأثیر قرار می‌دهد. <b>محاسبه و مقایسهٔ هش‌ها به ما امکان می‌دهد ببینیم آیا یک بلاک‌چین
+        نامعتبر است.</b></p>
+        <p>این یعنی چه؟ …تغییر هر داده‌ای در این لیست، امضا را تغییر می‌دهد و <b>زنجیره را می‌شکند</b>.</p>
+
+        <h3>پس اول بیایید کلاس Block را بسازیم که بلاک‌چین را تشکیل می‌دهد:</h3>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import java.util.Date;
+
+public class Block {
+
+	public String hash;
+	public String previousHash;
+	private String data; //داده ما یک پیام ساده است.
+	private long timeStamp; //به صورت تعداد میلی‌ثانیه از 1/1/1970.
+
+	//سازنده بلاک.
+	public Block(String data,String previousHash ) {
+		this.data = data;
+		this.previousHash = previousHash;
+		this.timeStamp = new Date().getTime();
+	}
+}</code></pre>
+        <p>همان‌طور که می‌بینید، <b>Block</b> ابتدایی ما شامل یک <code class="inline">String hash</code> است که امضای
+        دیجیتال ما را نگه می‌دارد. متغیر <code class="inline">previousHash</code> برای نگه‌داشتن هش بلاک قبلی و
+        <code class="inline">String data</code> برای نگه‌داشتن دادهٔ بلاک ماست.</p>
+
+        <h3>در ادامه به راهی برای تولید یک اثر انگشت دیجیتال نیاز خواهیم داشت</h3>
+        <p>الگوریتم‌های رمزنگاری زیادی وجود دارند که می‌توانید از میان آن‌ها انتخاب کنید؛ با این‌حال SHA256 برای این مثال کاملاً
+        کافی است. ما می‌توانیم با <code class="inline">import java.security.MessageDigest;</code> به الگوریتم SHA256 دسترسی
+        پیدا کنیم.</p>
+        <p>بعداً در ادامه به SHA256 نیاز خواهیم داشت، پس بیایید یک متد کمکیِ به‌دردبخور در یک کلاس «ابزار» (utility) جدید به
+        نام <b>StringUtil</b> بسازیم:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import java.security.MessageDigest;
+
+public class StringUtil {
+	//الگوریتم Sha256 را روی یک رشته اعمال می‌کند و نتیجه را برمی‌گرداند.
+	public static String applySha256(String input){
+		
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");	        
+			//sha256 را روی ورودی ما اعمال می‌کند،
+			byte[] hash = digest.digest(input.getBytes("UTF-8"));	        
+			StringBuffer hexString = new StringBuffer(); // این رشته هش را به صورت هگزادسیمال نگه می‌دارد
+			for (int i = 0; i&lt;hash.length; i++) {
+				String hex = Integer.toHexString(0xff&amp;hash[i]);
+				if(hex.length() == 1) hexString.append('0');
+				hexString.append(hex);
+			}
+			return hexString.toString();
+		}
+		catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}	
+}</code></pre>
+        <p>این تا حد زیادی کپی از
+        <a href="http://www.baeldung.com/sha-256-hashing-java" target="_blank" rel="noopener">http://www.baeldung.com/sha-256-hashing-java</a>
+        است.</p>
+        <p>اگر محتوای این متد کمکی را متوجه نمی‌شوید خیلی نگران نباشید؛ <i>تنها چیزی که باید بدانید این است که یک رشته می‌گیرد
+        و الگوریتم SHA256 را روی آن اعمال می‌کند و امضای تولیدشده را به‌صورت یک رشته برمی‌گرداند.</i></p>
+        <p>حالا بیایید از متد کمکی <code class="inline">applySha256</code> خود، در یک متد جدید در کلاس <b>Block</b> برای
+        محاسبهٔ هش استفاده کنیم. ما باید هش را از تمام بخش‌های بلاکی که نمی‌خواهیم دستکاری شوند محاسبه کنیم. پس برای بلاک
+        خود، <code class="inline">previousHash</code>، <code class="inline">data</code> و <code class="inline">timeStamp</code>
+        را لحاظ می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public String calculateHash() {
+	String calculatedhash = StringUtil.applySha256( 
+			previousHash +
+			Long.toString(timeStamp) +
+			data 
+			);
+	return calculatedhash;
+}</code></pre>
+        <p>و بیایید این متد را به <i>سازندهٔ</i> <b>Block</b> نیز اضافه کنیم…</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public Block(String data,String previousHash ) {
+	this.data = data;
+	this.previousHash = previousHash;
+	this.timeStamp = new Date().getTime();
+	this.hash = calculateHash(); //مطمئن می‌شویم این کار را بعد از مقداردهی سایر مقادیر انجام می‌دهیم.
+}</code></pre>
+      </section>
+
+      <!-- ==================== زمان آزمایش ==================== -->
+      <section>
+        <h2>زمان کمی آزمایش…</h2>
+        <p>در کلاس اصلی <b>NoobChain</b> بیایید چند بلاک بسازیم و هش‌ها را روی صفحه چاپ کنیم تا ببینیم همه‌چیز درست کار
+        می‌کند یا نه.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:350/1*I6k_gZJ0KRZYR4KU22Okig.gif" alt="اجرای برنامه و چاپ هش بلاک‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید این را آزمایش کنیم…</p>
+        <p>اولین بلاک، بلاک جنسیس (genesis block) نامیده می‌شود و چون بلاک قبلی وجود ندارد، فقط «0» را به‌عنوان هش قبلی وارد
+        می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public class NoobChain {
+
+	public static void main(String[] args) {
+
+		Block genesisBlock = new Block("Hi im the first block", "0");
+		System.out.println("Hash for block 1 : " + genesisBlock.hash);
+
+		Block secondBlock = new Block("Yo im the second block",genesisBlock.hash);
+		System.out.println("Hash for block 2 : " + secondBlock.hash);
+
+		Block thirdBlock = new Block("Hey im the third block",secondBlock.hash);
+		System.out.println("Hash for block 3 : " + thirdBlock.hash);
+
+	}
+}</code></pre>
+        <p>خروجی باید چیزی شبیه به این باشد:</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/0*uRnxW_CqB6FqWiUd.png" alt="خروجی برنامه: هش سه بلاک چاپ شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مقادیر شما متفاوت خواهند بود، زیرا برچسب زمانی (timestamp) شما متفاوت است.</p>
+        <p>هر بلاک اکنون امضای دیجیتال خودش را بر اساس اطلاعاتش و امضای بلاک قبلی دارد.</p>
+        <p>در حال حاضر این زیاد یک بلاک‌چین (block<i>chain</i>) نیست، پس بیایید بلاک‌هایمان را در یک <code class="inline">ArrayList</code>
+        ذخیره کنیم و برای مشاهده به‌صورت Json، gson را هم import کنیم.
+        (<a href="https://medium.com/@cryptokass/importing-gson-into-eclipse-ec8cf678ad52" target="_blank" rel="noopener">برای
+        یادگیری نحوهٔ import کردن کتابخانهٔ gson اینجا کلیک کنید</a>)</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import java.util.ArrayList;
+import com.google.gson.GsonBuilder;
+
+public class NoobChain {
+
+	public static ArrayList&lt;Block&gt;blockchain = new ArrayList&lt;Block&gt;();
+
+	public static void main(String[] args) {
+		//بلاک‌هایمان را به آرایه‌لیست بلاک‌چین اضافه می‌کنیم:
+		blockchain.add(new Block("Hi im the first block", "0"));
+		blockchain.add(new Block("Yo im the second block",blockchain.get(blockchain.size()-1).hash));
+		blockchain.add(new Block("Hey im the third block",blockchain.get(blockchain.size()-1).hash));
+
+		String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
+		System.out.println(blockchainJson);
+	}
+
+}</code></pre>
+        <p>حالا خروجی ما باید به چیزی نزدیک‌تر به آنچه انتظار داریم یک بلاک‌چین شبیه آن باشد، باشد.</p>
+      </section>
+
+      <!-- ==================== بررسی یکپارچگی ==================== -->
+      <section>
+        <h2>حالا به راهی برای بررسی یکپارچگی بلاک‌چین خود نیاز داریم</h2>
+        <p>بیایید یک متد <code class="inline">Boolean</code> به نام <code class="inline">isChainValid()</code> در کلاس
+        <b>NoobChain</b> بسازیم که در تمام بلاک‌های زنجیره حلقه بزند و هش‌ها را مقایسه کند. این متد باید بررسی کند که متغیر
+        hash واقعاً با هش محاسبه‌شده برابر است و هش بلاک قبلی با متغیر <code class="inline">previousHash</code> برابر است.</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public static Boolean isChainValid() {
+	Block currentBlock;
+	Block previousBlock;
+
+	//حلقه روی بلاک‌چین برای بررسی هش‌ها:
+	for(int i=1; i&lt;blockchain.size(); i++) {
+		currentBlock = blockchain.get(i);
+		previousBlock = blockchain.get(i-1);
+		//مقایسه هش ثبت‌شده و هش محاسبه‌شده:
+		if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+			System.out.println("Current Hashes not equal");
+			return false;
+		}
+		//مقایسه هش قبلی و هش قبلی ثبت‌شده
+		if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+			System.out.println("Previous Hashes not equal");
+			return false;
+		}
+	}
+	return true;
+}</code></pre>
+        <p>هر تغییری در بلاک‌های بلاک‌چین باعث می‌شود این متد false برگرداند.</p>
+        <p>در شبکهٔ بیت‌کوین، نودها (nodes) بلاک‌چین‌های خود را به اشتراک می‌گذارند و <b>طولانی‌ترین زنجیرهٔ معتبر توسط شبکه
+        پذیرفته می‌شود</b>. چه چیزی جلوی کسی را می‌گیرد که داده‌ها را در یک بلاک قدیمی دستکاری کند و سپس یک بلاک‌چین کاملاً
+        جدید و طولانی‌تر بسازد و آن را به شبکه ارائه دهد؟ <b>اثبات کار (Proof of work)</b>. سیستم اثبات کارِ هش‌کش (hashcash)
+        به این معناست که ساخت بلاک‌های جدید زمان و توان محاسباتی قابل‌توجهی می‌برد. از این رو، مهاجم به توان محاسباتی
+        بیشتری نسبت به مجموع بقیهٔ همتاها نیاز خواهد داشت.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:452/1*R_bfhtxuHqM6aJYCZiQA9g.gif" alt="انیمیشن اثر انگشت دیجیتال هش‌کش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>hashcash، بسیار عالی.</p>
+      </section>
+
+      <!-- ==================== استخراج بلاک‌ها ==================== -->
+      <section>
+        <h2>بیایید استخراج بلاک‌ها را شروع کنیم!!!</h2>
+        <p>ما از <i>استخراج‌کننده‌ها</i> (miners) می‌خواهیم اثبات کار را با <b>امتحان‌کردن مقادیر متغیر مختلف در بلاک انجام
+        دهند، تا زمانی که هش آن با تعداد مشخصی 0 شروع شود.</b></p>
+        <p>بیایید یک <code class="inline">int</code> به نام <b>nonce</b> اضافه کنیم تا در متد <code class="inline">calculateHash()</code>
+        ما لحاظ شود، و متدِ به‌شدت موردنیازِ <code class="inline">mineBlock()</code>:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import java.util.Date;
+
+public class Block {
+
+	public String hash;
+	public String previousHash;
+	private String data; //داده ما یک پیام ساده است.
+	private long timeStamp; //به صورت تعداد میلی‌ثانیه از 1/1/1970.
+	private int nonce;
+
+	//سازنده بلاک.
+	public Block(String data,String previousHash ) {
+		this.data = data;
+		this.previousHash = previousHash;
+		this.timeStamp = new Date().getTime();
+
+		this.hash = calculateHash(); //مطمئن می‌شویم این کار را بعد از مقداردهی سایر مقادیر انجام می‌دهیم.
+	}
+
+	//محاسبه هش جدید بر اساس محتوای بلاک
+	public String calculateHash() {
+		String calculatedhash = StringUtil.applySha256(
+				previousHash +
+				Long.toString(timeStamp) +
+				Integer.toString(nonce) +
+				data
+				);
+		return calculatedhash;
+	}
+
+	public void mineBlock(int difficulty) {
+		String target = new String(new char[difficulty]).replace('\0', '0'); //رشته‌ای با تعداد difficulty صفر بساز
+		while(!hash.substring( 0, difficulty).equals(target)) {
+			nonce ++;
+			hash = calculateHash();
+		}
+		System.out.println("Block Mined!!! : " + hash);
+	}
+}</code></pre>
+        <p>در واقعیت، هر استخراج‌کننده از یک نقطهٔ تصادفی شروع به تکرار (iterate) می‌کند. برخی استخراج‌کننده‌ها حتی ممکن است
+        برای nonce اعداد تصادفی را امتحان کنند. همچنین شایان ذکر است که در سختی‌های بالاتر، راه‌حل‌ها ممکن است به بیشتر از
+        integer.MAX_VALUE نیاز داشته باشند؛ در این صورت استخراج‌کننده‌ها می‌توانند تغییر برچسب زمانی را امتحان کنند.</p>
+        <p>متد <code class="inline">mineBlock()</code> یک <code class="inline">int</code> به نام difficulty می‌گیرد؛ این
+        تعداد صفرهایی است که باید حل کنند. سختیِ پایین مانند ۱ یا ۲ تقریباً فوراً در بیشتر رایانه‌ها حل می‌شود؛ من چیزی در
+        حدود ۴ تا ۶ را برای آزمایش پیشنهاد می‌کنم. در زمان نوشتن این مقاله، سختی لایت‌کوین (Litecoin) حدود 442,592 است.</p>
+        <p>بیایید difficulty را به‌عنوان یک متغیر استاتیک (static) به کلاس NoobChain اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public static int difficulty = 5;</code></pre>
+        <p>ما باید کلاس <b>NoobChain</b> را به‌روزرسانی کنیم تا برای هر بلاک جدید متد <code class="inline">mineBlock()</code>
+        را فعال کند. متد <code class="inline">Boolean</code> یِ <code class="inline">isChainValid()</code> نیز باید بررسی
+        کند که آیا هر بلاک هشِ حل‌شده (با استخراج) دارد یا نه.</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import java.util.ArrayList;
+import com.google.gson.GsonBuilder;
+
+public class NoobChain {
+
+	public static ArrayList&lt;Block&gt;blockchain = new ArrayList&lt;Block&gt;();
+	public static int difficulty = 5;
+
+	public static void main(String[] args) {	
+		//بلاک‌هایمان را به آرایه‌لیست بلاک‌چین اضافه می‌کنیم:
+
+		blockchain.add(new Block("Hi im the first block", "0"));
+		System.out.println("Trying to Mine block 1... ");
+		blockchain.get(0).mineBlock(difficulty);
+
+		blockchain.add(new Block("Yo im the second block",blockchain.get(blockchain.size()-1).hash));
+		System.out.println("Trying to Mine block 2... ");
+		blockchain.get(1).mineBlock(difficulty);
+
+		blockchain.add(new Block("Hey im the third block",blockchain.get(blockchain.size()-1).hash));
+		System.out.println("Trying to Mine block 3... ");
+		blockchain.get(2).mineBlock(difficulty);	
+		
+		System.out.println("\n Blockchain is Valid: " + isChainValid());
+
+		String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
+		System.out.println("\n The block chain: ");
+		System.out.println(blockchainJson);
+	}
+
+	public static Boolean isChainValid() {
+		Block currentBlock; 
+		Block previousBlock;
+		String hashTarget = new String(new char[difficulty]).replace('\0', '0');
+
+		//حلقه روی بلاک‌چین برای بررسی هش‌ها:
+		for(int i=1; i&lt;blockchain.size(); i++) {
+			currentBlock = blockchain.get(i);
+			previousBlock = blockchain.get(i-1);
+			//مقایسه هش ثبت‌شده و هش محاسبه‌شده:
+			if(!currentBlock.hash.equals(currentBlock.calculateHash()) ){
+				System.out.println("Current Hashes not equal");			
+				return false;
+			}
+			//مقایسه هش قبلی و هش قبلی ثبت‌شده
+			if(!previousBlock.hash.equals(currentBlock.previousHash) ) {
+				System.out.println("Previous Hashes not equal");
+				return false;
+			}
+			//بررسی اینکه آیا هش حل شده است
+			if(!currentBlock.hash.substring( 0, difficulty).equals(hashTarget)) {
+				System.out.println("This block hasn't been mined");
+				return false;
+			}
+		}
+		return true;
+	}
+}</code></pre>
+        <p>توجه کنید که اینجا <code class="inline">isChainValid</code> را نیز بررسی و چاپ می‌کنیم.</p>
+        <p>اجرای این کد، نتایج شما باید شبیه این باشد:</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*qzjPDdgOESJSwDSP0peEEg.png" alt="خروجی برنامه با استخراج سه بلاک و بررسی اعتبار زنجیره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>استخراج هر بلاک کمی زمان برد! (حدود ۳ ثانیه) باید با مقدار difficulty بازی کنید تا ببینید چه‌طور بر زمان استخراج هر
+        بلاک اثر می‌گذارد ;)</p>
+        <p>اگر کسی داده‌ها را در سیستم بلاک‌چین شما <b>دستکاری</b> 😒 کند:</p>
+        <ul>
+          <li>بلاک‌چین او نامعتبر خواهد بود.</li>
+          <li>آن‌ها قادر نخواهند بود بلاک‌چین طولانی‌تری بسازند.</li>
+          <li>بلاک‌چین‌های صادق در شبکهٔ شما در زنجیرهٔ طولانی‌تر مزیت زمانی خواهند داشت.</li>
+        </ul>
+        <p><b>یک بلاک‌چین دستکاری‌شده قادر نخواهد بود به یک زنجیرهٔ طولانی‌تر و معتبر برسد.</b>*</p>
+        <p>*مگر اینکه سرعت محاسباتی آن‌ها بسیار بیشتر از مجموع سرعت محاسباتی تمام نودهای دیگر شبکهٔ شما باشد. یک رایانهٔ
+        کوانتومیِ آینده یا چیزی شبیه به آن.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>شما با بلاک‌چین ابتدایی خود کارتان تمام شد!</h2>
+        <img src="https://miro.medium.com/v2/resize:fit:500/1*9K4pVMSdI7A0YZH-g47I2w.gif" alt="انیمیشن تبریک و دست‌زدن به پشت خود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برو به پشت خودت بزن.</p>
+        <p>بلاک‌چین شما:</p>
+        <ul>
+          <li>از بلاک‌هایی تشکیل شده است که داده ذخیره می‌کنند.</li>
+          <li>امضای دیجیتالی دارد که بلاک‌های شما را به هم زنجیر می‌کند.</li>
+          <li>برای اعتبارسنجی بلاک‌های جدید به استخراجِ اثباتِ کار نیاز دارد.</li>
+          <li>قابل بررسی است که داده‌های درون آن معتبر و تغییرناپذیرند.</li>
+        </ul>
+        <p>می‌توانید این فایل‌های پروژه را در
+        <a href="https://github.com/CryptoKass/NoobChain-Tutorial-Part-1" target="_blank" rel="noopener">Github</a>
+        دانلود کنید.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:480/1*ZbFDb_ml08yDSRXyzhFGxA.gif" alt="انیمیشن دنبال‌کردن برای دریافت آموزش‌های بعدی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانید <b>دنبال‌کردن (follow)</b> را فعال کنید تا وقتی آموزش‌های بعدی و سایر مقاله‌های توسعهٔ بلاک‌چین منتشر
+        می‌شوند، مطلع شوید. هر بازخوردی نیز بسیار قدردانی می‌شود. متشکرم.</p>
+
+        <div class="callout note">
+          <strong>بخش ۲:</strong> مقالهٔ «Creating Your First Blockchain with Java. Part 2» به موضوعات تراکنش‌ها،
+          امضاها و کیف پول‌ها (Transactions, Signatures and Wallets) می‌پردازد که می‌توانید در ادامهٔ همان مقالهٔ اصلی
+          در Medium مطالعه کنید.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Creating Your First Blockchain with Java. Part 1» اثر «کاس (Kass) / CryptoKass»
+        است و در انتشارات «برنامه‌نویسان بلاک‌چین» در Medium منتشر شده است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/programmers-blockchain/create-simple-blockchain-java-tutorial-from-scratch-6eeed3cb03fa" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

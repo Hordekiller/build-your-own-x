@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Code your own blockchain in less than 200 lines of Go!» (Coral Health)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code (کد از گیس‌های تعبیه‌شده در مقالهٔ اصلی و دقیقاً مطابق آن‌ها) | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بلاکچین خودت را در کمتر از ۲۰۰ خط کدِ گو بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاکچین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بلاکچین خودت را در کمتر از ۲۰۰ خط کدِ گو بساز</span>
+      </div>
+      <h1>بلاکچین خودت را در کمتر از ۲۰۰ خط کدِ گو بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: بلاکچین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@mycoralhealth/code-your-own-blockchain-in-less-than-200-lines-of-go-e296282bcffc" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Code your own blockchain in less than 200 lines of Go!» (بلاکچین خودت را در کمتر از ۲۰۰ خط کد گو بساز) از «کورال هلث (Coral Health)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/@mycoralhealth/code-your-own-blockchain-in-less-than-200-lines-of-go-e296282bcffc" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+
+        <img src="https://miro.medium.com/v2/resize:fit:585/1*Elzguv8ycXYcphhD7M95hQ.jpeg" alt="تصویر معرفی مقالهٔ بلاکچین با گو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <div class="callout note">
+          <strong>نکته:</strong> اگر اولین بار نیست که این مقاله را می‌خوانید، بخش دوم یعنی «شبکه‌سازی» را
+          <a href="https://medium.com/@mycoralhealth/part-2-networking-code-your-own-blockchain-in-less-than-200-lines-of-go-17fe1dad46e1" target="_blank" rel="noopener">از این‌جا</a>
+          مطالعه کنید!
+        </div>
+
+        <p>این آموزش از این پست عالی دربارهٔ نوشتن یک بلاکچین پایه با جاوااسکریپت
+        <a href="https://medium.com/@lhartikk/a-blockchain-in-200-lines-of-code-963cc1cc0e54" target="_blank" rel="noopener">اقتباس شده</a> است.
+        ما آن را به گو منتقل کرده‌ایم و چند خوراکی اضافه هم به آن افزوده‌ایم؛ مثل مشاهدهٔ بلاکچین در مرورگر وب.</p>
+        <p>مثال‌های داده در این آموزش بر اساس ضربان قلب شما هنگام استراحت خواهد بود. ما بالاخره یک شرکت سلامتیم :-)
+        برای سرگرمی، یک دقیقه <a href="https://www.webmd.com/heart-disease/heart-failure/watching-rate-monitor#1" target="_blank" rel="noopener">نبض</a> خود را
+        بشمارید (ضربان در دقیقه) و آن عدد را در تمام طول آموزش در ذهن نگه دارید.</p>
+        <p>تقریباً هر توسعه‌دهنده‌ای در جهان نام بلاکچین را شنیده است؛ اما بیشتر آن‌ها هنوز نمی‌دانند چگونه کار می‌کند.
+        شاید آن‌ها فقط به‌خاطر بیت‌کوین و چیزهایی مثل قراردادهای هوشمند (smart contracts) دربارهٔ آن شنیده باشند. این
+        پست تلاشی است برای ابهام‌زدایی از بلاکچین با کمک به شما در نوشتن بلاکچین سادهٔ خودتان در گو، با کمتر از ۲۰۰ خط
+        کد! در پایان این آموزش، می‌توانید به‌صورت محلی یک بلاکچین را اجرا کنید و به آن بنویسید و آن را در مرورگر وب
+        ببینید.</p>
+        <p>چه راهی بهتر از اینکه بلاکچین خودتان را بسازید برای یادگیری بلاکچین؟</p>
+
+        <h3>چیزی که می‌توانید انجام دهید</h3>
+        <ul>
+          <li>بلاکچین خودتان را بسازید</li>
+          <li>بفهمید هش‌کردن (hashing) چگونه در حفظ یکپارچگی بلاکچین نقش دارد</li>
+          <li>ببینید بلاک‌های جدید چگونه اضافه می‌شوند</li>
+          <li>ببینید وقتی چند گره هم‌زمان بلاک تولید می‌کنند، تساوی‌ها (tiebreakers) چگونه حل‌وفصل می‌شوند</li>
+          <li>بلاکچین خود را در مرورگر وب ببینید</li>
+          <li>بلاک‌های جدید بنویسید</li>
+          <li>درکی بنیادین از بلاکچین به‌دست آورید تا خودتان تصمیم بگیرید سفرتان از این‌جا به کجا برود!</li>
+        </ul>
+
+        <h3>چیزی که نمی‌توانید انجام دهید</h3>
+        <p>برای ساده نگه‌داشتن این پست، با مفاهیم پیشرفته‌تر اجماع (consensus) مانند اثبات کار (proof of work) در برابر
+        اثبات سهام (proof of stake) سروکار نخواهیم داشت. تعاملات شبکه شبیه‌سازی می‌شوند تا بتوانید بلاکچین خود را ببینید
+        و بلاک‌های اضافه‌شده را مشاهده کنید؛ اما پخش در شبکه (network broadcasting) برای یک پست آینده نگه داشته
+        می‌شود.</p>
+      </section>
+
+      <!-- ==================== شروع کنیم ==================== -->
+      <section>
+        <h2>بیایید شروع کنیم!</h2>
+
+        <h3>راه‌اندازی (Setup)</h3>
+        <p>چون قرار است کدمان را در گو بنویسیم، فرض می‌کنیم تجربه‌ای با گو داشته‌اید. پس از
+        <a href="https://golang.org/dl/" target="_blank" rel="noopener">نصب</a> و پیکربندی گو، بسته‌های زیر را هم می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">go get github.com/davecgh/go-spew/spew</code></pre>
+        <p><i>Spew</i> به ما اجازه می‌دهد <code class="inline">struct</code>ها و <code class="inline">slice</code>ها را
+        به‌صورت مرتب و قالب‌بندی‌شده در کنسول ببینیم. این قابلیت خوبی است.</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">go get github.com/gorilla/mux</code></pre>
+        <p><a href="https://github.com/gorilla/mux" target="_blank" rel="noopener"><i>Gorilla/mux</i></a> یک بستهٔ محبوب
+        برای نوشتن هندلرهای وب (web handlers) است. به این نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left">go get github.com/joho/godotenv</code></pre>
+        <p><i>Godotenv</i> به ما اجازه می‌دهد از یک فایل <code class="inline">.env</code> که در ریشهٔ دایرکتوری خود
+        نگه می‌داریم بخوانیم؛ تا مجبور نباشیم چیزهایی مثل پورت‌های http را هاردکد کنیم. به این هم نیاز داریم.</p>
+        <p>بیایید در ریشهٔ دایرکتوری، یک فایل <code class="inline">.env</code> هم بسازیم که پورت سرویس‌دهی درخواست‌های
+        http را تعریف کند. فقط یک خط به این فایل اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">env</span><code style="direction:ltr;text-align:left">PORT=8080</code></pre>
+        <p>یک فایل <code class="inline">main.go</code> بسازید. از این به بعد همه‌چیز در همین فایل نوشته می‌شود و کمتر
+        از ۲۰۰ خط کد خواهد بود. بیایید کدنویسی را شروع کنیم!</p>
+      </section>
+
+      <!-- ==================== ایمپورت‌ها ==================== -->
+      <section>
+        <h2>ایمپورت‌ها (Imports)</h2>
+        <p>ایمپورت‌هایی که نیاز داریم به‌همراه اعلان بسته (package declaration) در این‌جا آمده است. این‌ها را در
+        <code class="inline">main.go</code> بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/davecgh/go-spew/spew"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+)</code></pre>
+      </section>
+
+      <!-- ==================== مدل داده ==================== -->
+      <section>
+        <h2>مدل داده (Data model)</h2>
+        <p>بیایید <code class="inline">struct</code> هر یک از بلاک‌هایی که بلاکچین را می‌سازند تعریف کنیم. نگران نباشید؛
+        یک دقیقهٔ دیگر همهٔ این فیلدها را توضیح می‌دهیم.</p>
+        <p>هر <code class="inline">Block</code> حاوی داده‌هایی است که روی بلاکچین نوشته می‌شود و نمایانگر هر بار
+        گرفتن ضربان نبض شماست (یادتان هست اول مقاله این کار را کردید؟).</p>
+        <ul>
+          <li><code class="inline">Index</code> موقعیت رکورد داده در بلاکچین است</li>
+          <li><code class="inline">Timestamp</code> به‌صورت خودکار تعیین می‌شود و زمان نوشته‌شدن داده است</li>
+          <li><code class="inline">BPM</code> یا ضربان در دقیقه (beats per minute)، ضربان نبض شماست</li>
+          <li><code class="inline">Hash</code> یک شناسهٔ SHA256 است که این رکورد داده را نمایندگی می‌کند</li>
+          <li><code class="inline">PrevHash</code> شناسهٔ SHA256 رکورد قبلی در زنجیره است</li>
+        </ul>
+        <p>بیایید خود بلاکچین را هم مدل کنیم؛ که به‌سادگی یک <code class="inline">slice</code> از
+        <code class="inline">Block</code> است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Block struct {
+	Index     int
+	Timestamp string
+	BPM       int
+	Hash      string
+	PrevHash  string
+}</code></pre>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">var Blockchain []Block</code></pre>
+        <p>پس هش چگونه در بلاک‌ها و بلاکچین جا می‌گیرد؟ ما از هش‌ها برای شناسایی و نگه‌داشتن بلاک‌ها در ترتیب درست
+        استفاده می‌کنیم. با اطمینان از اینکه <code class="inline">PrevHash</code> در هر <code class="inline">Block</code>
+        با <code class="inline">Hash</code> در <code class="inline">Block</code> قبلی یکسان است، ترتیب درست بلاک‌های
+        سازندهٔ زنجیره را می‌دانیم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*VwT5d8NPjUpI7HiwPa--cQ.png" alt="نمودار زنجیرهٔ بلاک‌ها؛ هر بلاک با هش خود و هش بلاک قبلی (PrevHash) به بلاک‌های قبلی متصل است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== هش‌کردن و تولید بلاک‌های جدید ==================== -->
+      <section>
+        <h2>هش‌کردن و تولید بلاک‌های جدید</h2>
+        <p>پس چرا به هش‌کردن نیاز داریم؟ داده‌ها را به دو دلیل اصلی هش می‌کنیم:</p>
+        <ul>
+          <li><b>صرفه‌جویی در فضا.</b> هش‌ها از تمام داده‌های موجود روی بلاک مشتق می‌شوند. در مورد ما فقط چند نقطهٔ
+          داده داریم؛ اما تصور کنید داده‌هایی از صدها، هزاران یا میلیون‌ها بلاک قبلی داشته باشیم. هش‌کردن آن داده‌ها در
+          یک رشتهٔ SHA256 واحد — یا «هش‌کردنِ هش‌ها» — بسیار کارآمدتر از کپی‌کردن دوباره‌ودوبارهٔ تمام داده‌های
+          بلاک‌های قبلی است.</li>
+          <li><b>حفظ یکپارچگی بلاکچین.</b> با ذخیرهٔ هش‌های قبلی همان‌طور که در نمودار بالا می‌بینید، می‌توانیم مطمئن
+          شویم بلاک‌های بلاکچین در ترتیب درست قرار دارند. اگر فردی مخرب بیاید و بخواهد داده‌ها را دستکاری کند (مثلاً
+          ضربان قلب ما را تغییر دهد تا قیمت بیمهٔ عمر را دستکاری کند)، هش‌ها به‌سرعت تغییر می‌کنند و زنجیره «می‌شکند»؛
+          و همه می‌دانند که نباید به آن زنجیرهٔ مخرب اعتماد کنند.</li>
+        </ul>
+        <p>بیایید تابعی بنویسیم که دادهٔ <code class="inline">Block</code> ما را بگیرد و یک هش SHA256 از آن بسازد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func calculateHash(block Block) string {
+	record := string(block.Index) + block.Timestamp + string(block.BPM) + block.PrevHash
+	h := sha256.New()
+	h.Write([]byte(record))
+	hashed := h.Sum(nil)
+	return hex.EncodeToString(hashed)
+}</code></pre>
+        <p>این تابع <code class="inline">calculateHash</code> فیلدهای <code class="inline">Index</code>،
+        <code class="inline">Timestamp</code>، <code class="inline">BPM</code> و <code class="inline">PrevHash</code>
+        از <code class="inline">Block</code>ای که به‌عنوان آرگومان می‌دهیم را به هم می‌چسباند و هش SHA256 را به‌صورت
+        رشته برمی‌گرداند. حالا می‌توانیم با تابع جدید <code class="inline">generateBlock</code> یک
+        <code class="inline">Block</code> جدید با همهٔ عناصر موردنیاز تولید کنیم. باید بلاک قبلی را به آن بدهیم تا هش
+        آن را بگیرد و ضربان نبض خود را بر حسب BPM. نگران آرگومان <code class="inline">BPM int</code> که ارسال می‌شود
+        نباشید؛ بعداً به آن می‌پردازیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func generateBlock(oldBlock Block, BPM int) (Block, error) {
+
+	var newBlock Block
+
+	t := time.Now()
+
+	newBlock.Index = oldBlock.Index + 1
+	newBlock.Timestamp = t.String()
+	newBlock.BPM = BPM
+	newBlock.PrevHash = oldBlock.Hash
+	newBlock.Hash = calculateHash(newBlock)
+
+	return newBlock, nil
+}</code></pre>
+        <p>توجه کنید که زمان فعلی به‌صورت خودکار با <code class="inline">time.Now()</code> در بلاک نوشته می‌شود. همچنین
+        توجه کنید که تابع <code class="inline">calculateHash</code> قبلی ما فراخوانی شده است.
+        <code class="inline">PrevHash</code> از هش بلاک قبلی کپی می‌شود. <code class="inline">Index</code> از
+        <code class="inline">Index</code> بلاک قبلی افزایش می‌یابد.</p>
+      </section>
+
+      <!-- ==================== اعتبارسنجی بلاک ==================== -->
+      <section>
+        <h2>اعتبارسنجی بلاک (Block Validation)</h2>
+        <p>حالا باید چند تابع بنویسیم تا مطمئن شویم بلاک‌ها دستکاری نشده‌اند. این کار را با بررسی
+        <code class="inline">Index</code> انجام می‌دهیم تا مطمئن شویم طبق انتظار افزایش یافته‌اند. همچنین بررسی می‌کنیم
+        که <code class="inline">PrevHash</code> ما واقعاً با <code class="inline">Hash</code> بلاک قبلی یکسان باشد.
+        در آخر می‌خواهیم هش بلاک فعلی را با اجرای دوبارهٔ تابع <code class="inline">calculateHash</code> روی بلاک فعلی
+        دوباره‌چک کنیم. بیایید تابع <code class="inline">isBlockValid</code> را بنویسیم که همهٔ این‌ها را انجام می‌دهد
+        و یک <code class="inline">bool</code> برمی‌گرداند. اگر از همهٔ بررسی‌های ما عبور کند
+        <code class="inline">true</code> برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func isBlockValid(newBlock, oldBlock Block) bool {
+	if oldBlock.Index+1 != newBlock.Index {
+		return false
+	}
+
+	if oldBlock.Hash != newBlock.PrevHash {
+		return false
+	}
+
+	if calculateHash(newBlock) != newBlock.Hash {
+		return false
+	}
+
+	return true
+}</code></pre>
+        <p>چه می‌شود اگر به مشکلی بربخوریم که دو گره (node) از اکوسیستم بلاکچین ما هر دو بلاک‌هایی به زنجیره‌های خود
+        اضافه کرده باشند و ما هر دو را دریافت کنیم؟ کدام یک را به‌عنوان منبع حقیقت (source of truth) انتخاب می‌کنیم؟
+        ما طولانی‌ترین زنجیره را انتخاب می‌کنیم. این یک مسئلهٔ کلاسیک بلاکچین است و هیچ ارتباطی با عوامل بدخواه ندارد.</p>
+        <p>دو گرهٔ خوش‌نیت ممکن است به‌سادگی طول‌های زنجیرهٔ متفاوتی داشته باشند؛ بنابراین طبیعتاً زنجیرهٔ طولانی‌تر
+        به‌روزترین است و جدیدترین بلاک‌ها را دارد. پس بیایید مطمئن شویم زنجیرهٔ جدیدی که می‌گیریم از زنجیرهٔ فعلی ما
+        طولانی‌تر است. اگر بود، می‌توانیم زنجیرهٔ خود را با زنجیرهٔ جدیدی که بلاک(های) جدید دارد بازنویسی کنیم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*H1fCp0NLun0Knw0Iy0dyEA.png" alt="مقایسهٔ طول دو زنجیره؛ زنجیرهٔ طولانی‌تر به‌عنوان منبع حقیقت انتخاب می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای رسیدن به این هدف، کافی است طول <code class="inline">slice</code>های دو زنجیره را مقایسه کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func replaceChain(newBlocks []Block) {
+	if len(newBlocks) > len(Blockchain) {
+		Blockchain = newBlocks
+	}
+}</code></pre>
+        <p>اگر تا این‌جا آمده‌اید، به خودتان آفرین بگویید! ما در اصل هستهٔ اصلی بلاکچین خود را با همهٔ توابعی که
+        نیاز داشتیم نوشته‌ایم.</p>
+        <p>حالا راهی راحت می‌خواهیم برای مشاهدهٔ بلاکچین و نوشتن در آن؛ ترجیحاً در مرورگر وب تا بتوانیم به دوستانمان
+        نشانش دهیم!</p>
+      </section>
+
+      <!-- ==================== وب‌سرور ==================== -->
+      <section>
+        <h2>وب‌سرور (Web Server)</h2>
+        <p>فرض می‌کنیم از قبل با نحوهٔ کار وب‌سرورها آشنا هستید و کمی تجربهٔ راه‌اندازی آن‌ها در گو دارید. حالا شما را
+        در این فرایند همراهی می‌کنیم.</p>
+        <p>برای انجام کارهای سنگین از بستهٔ
+        <a href="https://github.com/gorilla/mux" target="_blank" rel="noopener">Gorilla/mux</a> که قبلاً دانلود کردید
+        استفاده می‌کنیم.</p>
+        <p>بیایید سرور خود را در تابع <code class="inline">run</code> بسازیم که بعداً آن را فراخوانی می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func run() error {
+	mux := makeMuxRouter()
+	httpAddr := os.Getenv("ADDR")
+	log.Println("Listening on ", os.Getenv("ADDR"))
+	s := &http.Server{
+		Addr:           ":" + httpAddr,
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if err := s.ListenAndServe(); err != nil {
+		return err
+	}
+
+	return nil
+}</code></pre>
+        <p>توجه کنید که پورتی که انتخاب می‌کنیم از فایل <code class="inline">.env</code> ما می‌آید که قبلاً ساختیم. با
+        <code class="inline">log.Println</code> یک پیام سریع کنسول به خودمان می‌دهیم تا بدانیم سرور بالا آمده و در حال
+        اجراست. سرور را کمی پیکربندی می‌کنیم و سپس <code class="inline">ListenAndServe</code> می‌کنیم. چیز استانداردی
+        در گو است.</p>
+        <p>حالا باید تابع <code class="inline">makeMuxRouter</code> را بنویسیم که همهٔ هندلرهای ما را تعریف می‌کند.
+        برای مشاهده و نوشتن در بلاکچین در مرورگر، فقط به ۲ روت (route) نیاز داریم و آن‌ها را ساده نگه می‌داریم. اگر
+        درخواست <code class="inline">GET</code> به <code class="inline">localhost</code> بفرستیم، بلاکچین خود را
+        می‌بینیم. اگر درخواست <code class="inline">POST</code> به آن بفرستیم، می‌توانیم در آن بنویسیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func makeMuxRouter() http.Handler {
+	muxRouter := mux.NewRouter()
+	muxRouter.HandleFunc("/", handleGetBlockchain).Methods("GET")
+	muxRouter.HandleFunc("/", handleWriteBlock).Methods("POST")
+	return muxRouter
+}</code></pre>
+        <p>در این‌جا هندلر <code class="inline">GET</code> ما آمده است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func handleGetBlockchain(w http.ResponseWriter, r *http.Request) {
+	bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	io.WriteString(w, string(bytes))
+}</code></pre>
+        <p>ما به‌سادگی کل بلاکچین را به‌صورت JSON برمی‌گردانیم که می‌توانید در هر مرورگری با بازدید از
+        <code class="inline">localhost:8080</code> ببینید. متغیر <code class="inline">PORT</code> ما در فایل
+        <code class="inline">.env</code> روی ۸۰۸۰ تنظیم شده است؛ پس اگر آن را تغییر دادید، مطمئن شوید به پورت درست خود
+        سر می‌زنید.</p>
+        <p>درخواست <code class="inline">POST</code> ما کمی پیچیده‌تر است؛ اما نه خیلی. برای شروع، به یک
+        <code class="inline">struct</code> تازه به نام <code class="inline">Message</code> نیاز داریم. یک لحظهٔ دیگر
+        توضیح می‌دهیم چرا به آن نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">type Message struct {
+	BPM int
+}</code></pre>
+        <p>در این‌جا کد هندلری است که بلاک‌های جدید را می‌نویسد. بعد از اینکه آن را خواندید، مرحله‌به‌مرحله توضیحش
+        می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
+	var m Message
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&m); err != nil {
+		respondWithJSON(w, r, http.StatusBadRequest, r.Body)
+		return
+	}
+	defer r.Body.Close()
+
+	newBlock, err := generateBlock(Blockchain[len(Blockchain)-1], m.BPM)
+	if err != nil {
+		respondWithJSON(w, r, http.StatusInternalServerError, m)
+		return
+	}
+	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+		newBlockchain := append(Blockchain, newBlock)
+		replaceChain(newBlockchain)
+		spew.Dump(Blockchain)
+	}
+
+	respondWithJSON(w, r, http.StatusCreated, newBlock)
+
+}</code></pre>
+        <p>دلیلی که از <code class="inline">struct</code> جداگانهٔ <code class="inline">Message</code> استفاده کردیم این
+        است که بدنهٔ درخواست (request body) درخواست JSON از نوع <code class="inline">POST</code> را که برای نوشتن بلاک‌های
+        جدید استفاده می‌کنیم، دریافت کند. این به ما اجازه می‌دهد به‌سادگی یک درخواست POST با بدنهٔ زیر بفرستیم و هندلر ما
+        بقیهٔ بلاک را برایمان پر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{"BPM":50}</code></pre>
+        <p>عدد <code class="inline">50</code> یک مثال از ضربان نبض بر حسب ضربان در دقیقه است. با تغییر این عدد به ضربان
+        نبض خودتان، از عدد خودتان استفاده کنید.</p>
+        <p>بعد از اینکه بدنهٔ درخواست را در <code class="inline">struct</code> خودمان یعنی
+        <code class="inline">var m Message</code> رمزگشایی کردیم، با عبور دادن بلاک قبلی و ضربان نبض جدید به تابع
+        <code class="inline">generateBlock</code> که قبلاً نوشتیم، یک بلاک جدید می‌سازیم. این تمام چیزی است که تابع برای
+        ساخت یک بلاک جدید نیاز دارد. با استفاده از تابع <code class="inline">isBlockValid</code> که قبلاً ساختیم، یک
+        بررسی سریع انجام می‌دهیم تا مطمئن شویم بلاک جدید درست و سالم است.</p>
+
+        <div class="callout note">
+          <strong>چند یادداشت:</strong>
+          <ul>
+            <li><code class="inline">spew.Dump</code> یک تابع کاربردی است که <code class="inline">struct</code>های ما را
+            به‌صورت زیبا در کنسول چاپ می‌کند. برای دیباگ مفید است.</li>
+            <li>برای تست درخواست‌های POST، دوست داریم از
+            <a href="https://www.getpostman.com/apps" target="_blank" rel="noopener">Postman</a> استفاده کنیم.
+            <code class="inline">curl</code> هم به‌خوبی کار می‌کند، اگر به‌سادگی نمی‌توانید از ترمینال دست بکشید.</li>
+          </ul>
+        </div>
+        <p>وقتی درخواست‌های POST ما موفق یا ناموفق هستند، می‌خواهیم به‌شکل متناسب مطلع شویم. برای اینکه بدانیم چه
+        اتفاقی افتاده از یک تابع پوششی (wrapper function) کوچک به نام <code class="inline">respondWithJSON</code>
+        استفاده می‌کنیم. به یاد داشته باشید، در گو هرگز خطاها را نادیده نگیرید. آن‌ها را
+        <a href="https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully" target="_blank" rel="noopener">با ظرافت مدیریت کنید</a>.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload interface{}) {
+	response, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("HTTP 500: Internal Server Error"))
+		return
+	}
+	w.WriteHeader(code)
+	w.Write(response)
+}</code></pre>
+      </section>
+
+      <!-- ==================== تقریباً تمام شد ==================== -->
+      <section>
+        <h2>تقریباً تمام شد!</h2>
+        <p>بیایید همهٔ این توابع بلاکچین، هندلرهای وب و وب‌سرور را در یک تابع <code class="inline">main</code> کوتاه و
+        تمیز به هم وصل کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		t := time.Now()
+		genesisBlock := Block{0, t.String(), 0, "", ""}
+		spew.Dump(genesisBlock)
+		Blockchain = append(Blockchain, genesisBlock)
+	}()
+	log.Fatal(run())
+
+}</code></pre>
+        <p>پس این‌جا چه خبر است؟</p>
+        <ul>
+          <li><code class="inline">godotenv.Load()</code> به ما اجازه می‌دهد متغیرهایی مثل شمارهٔ پورت خود را از فایل
+          <code class="inline">.env</code> که در ریشهٔ دایرکتوری‌مان قرار داده‌ایم بخوانیم؛ تا مجبور نباشیم آن‌ها را در
+          سراسر برنامه هاردکد کنیم (بد فرم!).</li>
+          <li><code class="inline">genesisBlock</code> مهم‌ترین بخش تابع <code class="inline">main</code> است. باید
+          بلاکچین خود را با یک بلاک اولیه (initial block) تأمین کنیم؛ وگرنه یک بلاک جدید نمی‌تواند هش قبلی خود را با
+          چیزی مقایسه کند، چون اصلاً هش قبلی‌ای وجود ندارد.</li>
+          <li>بلاک جنسیس (genesis block) را در یک گوروتین (go routine) جداگانه منزوی می‌کنیم تا جداسازی دغدغه‌ها
+          (separation of concerns) بین منطق بلاکچین و منطق وب‌سرور داشته باشیم. این کار بدون گوروتین هم اجرا می‌شود؛ اما
+          به این شکل تمیزتر است.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== تمام شد ==================== -->
+      <section>
+        <h2>تمام شد!</h2>
+        <p>در این‌جا کد کامل آمده است:</p>
+        <div class="callout note">
+          <strong>کد کامل:</strong> کد کامل و به‌روز این آموزش در
+          <a href="https://github.com/mycoralhealth/blockchain-tutorial/blob/master/main.go" target="_blank" rel="noopener">مخزن GitHub پروژهٔ
+          mycoralhealth/blockchain-tutorial</a> با توصیف «بلاکچین خودت را در کمتر از ۲۰۰ خط گو بنویس و منتشر کن» در دسترس
+          است.
+        </div>
+        <p><i>حالا قسمت بامزه‌اش.</i> بیایید امتحانش کنیم :-)</p>
+        <p>برنامهٔ خود را از ترمینال با <code class="inline">go run main.go</code> روشن کنید:</p>
+        <p>در ترمینال می‌بینیم که وب‌سرور بالا آمده و در حال اجراست و ما پرینتی از بلاک جنسیس خود می‌گیریم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*sAkFOcjHxX9WnjGPud84rQ.png" alt="خروجی ترمینال: وب‌سرور در حال اجراست و بلاک جنسیس با spew.Dump چاپ شده است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا با شمارهٔ پورت خود به <code class="inline">localhost</code> سر بزنید که برای ما ۸۰۸۰ است. همان‌طور که
+        انتظار می‌رفت، همان بلاک جنسیس را می‌بینیم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:622/1*4HRKAkMy1smgB9xpGLj6RA.png" alt="مرورگر وب: بلاکچین حاوی بلاک جنسیس به‌صورت JSON نمایش داده شده است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا چند درخواست POST برای افزودن بلاک بفرستیم. با Postman می‌خواهیم چند بلاک جدید با BPMهای گوناگون اضافه
+        کنیم.</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*eYfFp1lqJUiAS1S6K8ZHbQ.png" alt="ارسال درخواست‌های POST با Postman برای افزودن بلاک‌های جدید با BPMهای مختلف" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید مرورگرمان را رفرش کنیم. بنگر و بنگر، حالا همهٔ بلاک‌های جدیدمان را در زنجیره می‌بینیم و
+        <code class="inline">PrevHash</code> بلاک‌های جدیدمان با <code class="inline">Hash</code> بلاک‌های قدیمی
+        مطابقت دارد؛ دقیقاً همان‌طور که انتظار داشتیم!</p>
+        <img src="https://miro.medium.com/v2/resize:fit:700/1*Qo4eZ0hQ1gMdXrsvBGSnxg.png" alt="مرورگر وب: بلاک‌های جدید به زنجیره اضافه شده و PrevHash هر بلاک با Hash بلاک قبلی یکی است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== گام‌های بعدی ==================== -->
+      <section>
+        <h2>گام‌های بعدی (Next Steps)</h2>
+        <p>تبریک!! شما همین حالا بلاکچین خودتان را با هش‌کردن درست و اعتبارسنجی بلاک نوشتید. حالا باید بتوانید سفر
+        بلاکچین خود را در دست بگیرید و موضوعات پیچیده‌تری مثل اثبات کار (Proof of Work)، اثبات سهام (Proof of Stake)،
+        قراردادهای هوشمند (Smart Contracts)، اپ‌های غیرمتمرکز (Dapps)، زنجیره‌های جانبی (Side Chains) و موارد بیشتر را
+        کاوش کنید.</p>
+        <p>چیزی که این آموزش به آن نمی‌پردازد این است که بلاک‌های جدید چگونه با اثبات کار استخراج (mine) می‌شوند. این
+        یک آموزش جداگانه خواهد بود؛ اما بلاک‌چین‌های زیادی بدون مکانیزم‌های اثبات کار وجود دارند. علاوه بر این، پخش در
+        شبکه در حال حاضر با نوشتن و مشاهدهٔ بلاکچین در یک وب‌سرور شبیه‌سازی می‌شود. در این آموزش هیچ مؤلفهٔ همتا‌به‌همتا
+        (P2P) وجود ندارد.</p>
+        <p>بنا به تقاضای محبوب، دنباله‌هایی به این آموزش اضافه کرده‌ایم! آن‌ها را بررسی کنید:</p>
+        <ul>
+          <li><a href="https://medium.com/@mycoralhealth/part-2-networking-code-your-own-blockchain-in-less-than-200-lines-of-go-17fe1dad46e1" target="_blank" rel="noopener">شبکه‌سازی بلاکچین</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/code-your-own-blockchain-mining-algorithm-in-go-82c6a71aba1f" target="_blank" rel="noopener">الگوریتم استخراج بلاکچین خودت را کدنویسی کن!</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/learn-to-securely-share-files-on-the-blockchain-with-ipfs-219ee47df54c" target="_blank" rel="noopener">یاد بگیر داده‌ها را از طریق بلاکچین با IPFS ذخیره کنی</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/code-your-own-proof-of-stake-blockchain-in-go-610cd99aa658" target="_blank" rel="noopener">الگوریتم اثبات سهام خودت را کدنویسی کن!</a></li>
+          <li><a href="https://medium.com/coinmonks/code-a-simple-p2p-blockchain-in-go-46662601f417" target="_blank" rel="noopener">یک بلاکچین سادهٔ P2P در گو کدنویسی کن!</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/advanced-blockchain-concepts-for-beginners-32887202afad" target="_blank" rel="noopener">مفاهیم پیشرفتهٔ بلاکچین برای مبتدیان</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/start-your-own-hyperledger-blockchain-the-easy-way-5758cb4ed2d1" target="_blank" rel="noopener">بلاکچین هایپرلجر خودت را راه‌اندازی کن</a></li>
+          <li><a href="https://medium.com/@mycoralhealth/build-a-dapp-on-hyperledger-the-easy-way-178c39e503fa" target="_blank" rel="noopener">یک DApp روی هایپرلجر بساز</a></li>
+        </ul>
+        <p>برای آشنایی بیشتر با کورال هلث (Coral Health) و اینکه چگونه از بلاکچین برای پیشبرد تحقیقات پزشکی شخصی
+        استفاده می‌کنیم، از <a href="https://mycoralhealth.com/" target="_blank" rel="noopener">وب‌سایت ما</a> دیدن
+        کنید.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Code your own blockchain in less than 200 lines of Go!» اثر «کورال هلث
+        (Coral Health)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی
+        است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/@mycoralhealth/code-your-own-blockchain-in-less-than-200-lines-of-go-e296282bcffc" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
