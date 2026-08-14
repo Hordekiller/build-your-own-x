@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی ویکی TinyRenderer (ssloy)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه OpenGL کار می‌کند — رندر نرم‌افزاری در ۵۰۰ خط کد</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">رندر سه‌بعدی</a>
+        <span class="sep">←</span>
+        <span>چگونه OpenGL کار می‌کند</span>
+      </div>
+      <h1>چگونه OpenGL کار می‌کند — رندر نرم‌افزاری در ۵۰۰ خط کد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/ssloy/tinyrenderer/wiki" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی ویکی «TinyRenderer — how OpenGL works: software rendering in
+          500 lines of code» نوشته «دیمیتری سوکولوف (Dmitry Sokolov / ssloy)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/ssloy/tinyrenderer/wiki" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== صفحه اصلی ویکی ==================== -->
+      <section>
+        <h2>از صفحه اصلی ویکی</h2>
+        <p><b>رندرر کوچک (Tiny renderer) — یا چگونه OpenGL کار می‌کند: رندر نرم‌افزاری در ۵۰۰ خط کد.</b></p>
+        <p>اگر این پروژه برایتان جالب است، شاید بخواهید بقیه مخزن‌های tiny* من را هم ببینید؛ ساخت آن‌ها برای من سرگرم‌کننده بود و امیدوارم خواندنشان برای شما هم سرگرم‌کننده باشد (قابل کلیک):</p>
+        <h3>TinyCompiler</h3>
+        <a href="https://github.com/ssloy/tinycompiler" target="_blank" rel="noopener">
+          <img src="https://ssloy.github.io/tinycompiler/home/compiler.png" alt="تصویر صفحه اصلی پروژه TinyCompiler — یک کامپایلر کوچک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <p>خانواده پروژه‌های tiny-نویسنده:</p>
+        <a href="https://github.com/ssloy/tinyraytracer/wiki" target="_blank" rel="noopener">
+          <img src="https://raw.githubusercontent.com/ssloy/tinyraycaster/master/doc/tinyraytracer.jpg" alt="بنر پروژه tinyraytracer — یک ردگیر پرتو (ray tracer) نرم‌افزاری کوچک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <a href="https://github.com/ssloy/tinyraycaster/wiki" target="_blank" rel="noopener">
+          <img src="https://raw.githubusercontent.com/ssloy/tinyraycaster/master/doc/tinyraycaster.jpg" alt="بنر پروژه tinyraycaster — یک ray caster کوچک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-0:-getting-started" target="_blank" rel="noopener">
+          <img src="https://raw.githubusercontent.com/ssloy/tinyraycaster/master/doc/tinyrenderer_border.jpg" alt="بنر پروژه tinyrenderer — همان پروژه‌ای که این درس‌ها درباره آن است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <a href="https://github.com/ssloy/tinykaboom/wiki" target="_blank" rel="noopener">
+          <img src="https://raw.githubusercontent.com/ssloy/tinyraycaster/master/doc/tinykaboom.jpg" alt="بنر پروژه tinykaboom — رندرر کوچک انفجار" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        </a>
+        <div class="callout note">
+          <strong>توجه:</strong> متن درس‌های زیر طبق اعلام نویسنده در بالای هر صفحه ویکی «منسوخ» شده است؛ ویرایش دوم
+          دوره در <a href="https://haqr.eu/tinyrenderer/" target="_blank" rel="noopener">https://haqr.eu/tinyrenderer/</a>
+          در دسترس است. بااین‌حال، درس‌های اصلی همچنان مرجع آموزشی ارزشمندی برای درک OpenGL هستند و در اینجا به‌صورت کامل ترجمه شده‌اند.
+        </div>
+      </section>
+
+      <!-- ==================== درس ۰ ==================== -->
+      <section>
+        <h2>درس ۰: شروع به کار</h2>
+        <p>این یک رسترایزر (rasterizer) نرم‌افزاری کوچک است؛ اگر دنبال یک ردگیر پرتو (ray tracer) نرم‌افزاری کوچک هستید،
+        می‌توانید آن را <a href="https://github.com/ssloy/tinyraytracer" target="_blank" rel="noopener">اینجا</a> پیدا کنید.</p>
+        <p>کد منبع من بی‌اهمیت است. ویکی را بخوانید و رندرر خودتان را پیاده‌سازی کنید. فقط وقتی از تمام جزئیات ریز عبور
+        کنید، درخواهید یافت چه اتفاقی در حال رخ دادن است.</p>
+        <p>من واقعاً از دریافت ایمیل برای بازخورد استقبال می‌کنم
+        (dmitry.sokolov@univ-lorraine.fr)؛ اگر سؤالی دارید، در تماس با من تردید نکنید.</p>
+        <p>اگر معلم هستید و می‌خواهید این مطالب را برای کلاس خود استفاده/اقتباس کنید، خوش‌آمدید؛ نیازی به مجوز نیست.
+        فقط با ایمیل به من اطلاع دهید تا به بهبود دوره کمک کنم.</p>
+
+        <h3>چرا این دوره؟</h3>
+        <p>در این سری مقاله‌ها می‌خواهم با نوشتن یک کلون (نسخه بسیار ساده‌شده) از OpenGL نشان دهم که OpenGL چطور کار
+        می‌کند. به‌اندازه کافی جالب است که من اغلب با افرادی روبرو می‌شوم که نمی‌توانند بر مانع اولیه یادگیری OpenGL/DirectX
+        غلبه کنند. از این رو، یک سری سخنرانی کوتاه آماده کرده‌ام که پس از آن، دانشجویانم رندررهای کاملاً خوبی نشان می‌دهند.</p>
+        <p>بنابراین، وظیفه این‌گونه فرموله می‌شود: بدون استفاده از هیچ کتابخانه شخص ثالث (به‌ویژه کتابخانه‌های گرافیکی)،
+        چیزی شبیه به این تصویر به دست آورید:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/africanhead.png" alt="سر مدل آفریقایی رندر شده با رندرر نرم‌افزاری در پایان دوره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>هشدار:</strong> این یک مطلب آموزشی است که ساختار کتابخانه OpenGL را تقریباً تکرار می‌کند. این یک
+          رندرر نرم‌افزاری خواهد بود. <b>نمی‌خواهم نشان دهم چطور برنامه‌هایی برای OpenGL بنویسید؛ می‌خواهم نشان دهم
+          OpenGL چگونه کار می‌کند.</b> عمیقاً متقاعد شده‌ام که بدون درک این موضوع، نوشتن برنامه‌های کارآمد با کتابخانه‌های
+          سه‌بعدی غیرممکن است.
+        </div>
+        <p>سعی خواهم کرد کد نهایی را حدود ۵۰۰ خط نگه دارم. دانشجویان من برای شروع ساخت چنین رندررهایی به ۱۰ تا ۲۰ ساعت
+        برنامه‌نویسی نیاز دارند. در ورودی، یک فایل تست با پلی‌گون سیمی + تصاویر بافت دریافت می‌کنیم. در خروجی، یک مدل
+        رندر شده به دست می‌آوریم. هیچ رابط گرافیکی وجود ندارد؛ برنامه به‌سادگی یک تصویر تولید می‌کند.</p>
+        <p>از آنجا که هدف به حداقل رساندن وابستگی‌های خارجی است، فقط یک کلاس به دانشجویانم می‌دهم که امکان کار با فایل‌های
+        <a href="http://en.wikipedia.org/wiki/Truevision_TGA" target="_blank" rel="noopener">TGA</a> را فراهم می‌کند. این یکی
+        از ساده‌ترین فرمت‌هایی است که از تصاویر RGB/RGBA و سیاه‌وسفید پشتیبانی می‌کند. بنابراین، به‌عنوان نقطه شروع، راهی
+        ساده برای کار با تصاویر به دست می‌آوریم. باید توجه داشته باشید که تنها قابلیت موجود در ابتدا (علاوه بر بارگذاری و
+        ذخیره تصاویر)، توانایی تنظیم رنگ یک پیکسل است.</p>
+        <p>هیچ تابعی برای رسم پاره‌خط و مثلث وجود ندارد. باید همه این کارها را با دست انجام دهیم. من کد منبعی را ارائه
+        می‌دهم که به موازات دانشجویان می‌نویسم؛ اما توصیه نمی‌کنم از آن استفاده کنید، زیرا منطقی ندارد. کل کد روی گیت‌هاب در
+        دسترس است و <a href="https://github.com/ssloy/tinyrenderer/tree/909fe20934ba5334144d2c748805690a1fa4c89f" target="_blank" rel="noopener">اینجا</a>
+        کد منبعی را می‌یابید که به دانشجویانم می‌دهم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">#include "tgaimage.h"
+const TGAColor white = TGAColor(255, 255, 255, 255);
+const TGAColor red   = TGAColor(255, 0,   0,   255);
+int main(int argc, char** argv) {
+        TGAImage image(100, 100, TGAImage::RGB);
+        image.set(52, 41, red);
+        image.flip_vertically(); // می‌خواهم مبدأ در گوشه پایین-چپ تصویر باشد
+        image.write_tga_file("output.tga");
+        return 0;
+}</code></pre>
+        <p>فایل output.tga باید چیزی شبیه به این باشد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/reddot.png" alt="خروجی برنامه آغازین: یک نقطه قرمز روی تصویر ۱۰۰ در ۱۰۰" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>پیش‌نمایش: چند نمونه ساخته‌شده با رندرر</h3>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/demon.png" alt="نمونه رندر: مدل یک دیو با رندرر نرم‌افزاری" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-glow.png" alt="نمونه رندر: مدل دیابلو با درخشش و رنگ‌آمیزی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/boggie.png" alt="نمونه رندر: مدل بوگی با نورپردازی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-ssao.png" alt="نمونه رندر: مدل دیابلو با محیط‌پوشی (ambient occlusion)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== درس ۱ ==================== -->
+      <section>
+        <h2>درس ۱: الگوریتم رسم خط برسنهام</h2>
+        <h3>تلاش اول</h3>
+        <p>هدف درس اول رندر مش سیمی (wire mesh) است. برای این کار باید یاد بگیریم پاره‌خط رسم کنیم. می‌توانیم به سادگی
+        بخوانیم الگوریتم خط برسنهام چیست، اما بیایید خودمان کد بنویسیم. ساده‌ترین کدی که یک پاره‌خط بین نقاط (x0, y0) و
+        (x1, y1) رسم می‌کند چطور به نظر می‌رسد؟ ظاهراً چیزی شبیه به این:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void line(int x0, int y0, int x1, int y1, TGAImage &amp;image, TGAColor color) {
+    for (float t=0.; t&lt;1.; t+=.01) {
+        int x = x0 + (x1-x0)*t;
+        int y = y0 + (y1-y0)*t;
+        image.set(x, y, color);
+    }
+}</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/01-bresenham/c3c2ea8819.png" alt="خروجی تلاش اول: یک پاره‌خط مورب که از گام کوچک ۰٫۰۱ استفاده می‌کند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>نسخه‌ای از کد در <a href="https://github.com/ssloy/tinyrenderer/tree/d0703acf18c48f2f7d00e552697d4797e0669ade" target="_blank" rel="noopener">اینجا</a> در دسترس است.</p>
+
+        <h3>تلاش دوم</h3>
+        <p>مشکل این کد (علاوه بر ناکارآمدی آن) انتخاب ثابت است که آن را برابر ۰٫۰۱ گرفتم. اگر آن را برابر ۰٫۱ بگیریم،
+        پاره‌خط ما به این شکل خواهد بود:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/01-bresenham/62a16a5321.png" alt="خروجی با گام ۰٫۱: پاره‌خطی با فاصله‌های خالی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم به‌راحتی گام لازم را پیدا کنیم: آن چیزی نیست جز تعداد پیکسل‌هایی که باید رسم شوند. ساده‌ترین (اما غلط) کد
+        چیزی شبیه به موارد زیر است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void line(int x0, int y0, int x1, int y1, TGAImage &amp;image, TGAColor color) {
+    for (int x=x0; x&lt;=x1; x++) {
+        float t = (x-x0)/(float)(x1-x0);
+        int y = y0*(1.-t) + y1*t;
+        image.set(x, y, color);
+    }
+}</code></pre>
+        <p>احتیاط! اولین منبع خطا در کدهای دانشجویان من در چنین مواردی، تقسیم صحیح (integer division) است، مانند
+        <code>(x-x0)/(x1-x0)</code>. سپس اگر با این کد بخواهیم خطوط زیر را رسم کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">line(13, 20, 80, 40, image, white);
+line(20, 13, 40, 80, image, red);
+line(80, 40, 13, 20, image, red);</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/01-bresenham/097a691f9e.png" alt="مشکل تقارن: خط اول درست رسم می‌شود، خط دوم سوراخ دارد و خط سوم اصلاً دیده نمی‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>معلوم می‌شود که یک خط خوب است، خط دوم سوراخ دارد و اصلاً خط سومی وجود ندارد. توجه کنید که خط اول و سوم (در کد) همان
+        خط را با رنگ‌های مختلف و در جهت‌های مختلف رسم می‌کنند (با جابه‌جایی نقطه مبدأ و مقصد). خط سفید را قبلاً دیده‌ایم، خوب
+        رسم شده است. امیدوار بودم رنگ خط سفید را به قرمز تغییر دهم، اما نتوانستم. این یک تست برای تقارن است: نتیجه رسم یک
+        پاره‌خط نباید به ترتیب نقاط بستگی داشته باشد؛ پاره‌خط (a,b) باید دقیقاً همان پاره‌خط (b,a) باشد.</p>
+
+        <h3>تلاش سوم</h3>
+        <p>خط قرمز گم‌شده را با جابه‌جایی نقاط طوری که x0 همیشه کمتر از x1 باشد، درست می‌کنیم.</p>
+        <p>سوراخ‌ها در یکی از پاره‌خط‌ها به این دلیل است که ارتفاع آن بیشتر از عرضش است. دانشجویان من اغلب راه‌حل زیر را
+        پیشنهاد می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">if (dx&gt;dy) {for (int x)} else {for (int y)}</code></pre>
+        <p>عجب!</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void line(int x0, int y0, int x1, int y1, TGAImage &amp;image, TGAColor color) {
+    bool steep = false;
+    if (std::abs(x0-x1)&lt;std::abs(y0-y1)) { // اگر خط تند است، تصویر را ترانهاده می‌کنیم
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+        steep = true;
+    }
+    if (x0&gt;x1) { // آن را چپ‌به‌راست می‌کنیم
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    for (int x=x0; x&lt;=x1; x++) {
+        float t = (x-x0)/(float)(x1-x0);
+        int y = y0*(1.-t) + y1*t;
+        if (steep) {
+            image.set(y, x, color); // اگر ترانهاده شده بود، ترانهاده‌ی معکوس
+        } else {
+            image.set(x, y, color);
+        }
+    }
+}</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/01-bresenham/3e8e5c7d26.png" alt="نتیجه تلاش سوم: هر سه پاره‌خط بدون سوراخ و به‌درستی رسم شده‌اند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>زمان‌بندی: تلاش چهارم</h3>
+        <div class="callout note">
+          <strong>هشدار:</strong> بهینه‌ساز کامپایلر (g++ -O3) اغلب در تولید کد سریع از شما (و من) بهتر است. این بخش به
+          دلایل تاریخی/فرهنگی اینجا آمده است.
+        </div>
+        <p>این کد عالی کار می‌کند. دقیقاً همین سطح از پیچیدگی را در نسخه نهایی رندررمان می‌خواهم. قطعاً ناکارآمد است (تقسیم‌های
+        متعدد و چیزهایی از این دست)، اما کوتاه و خوانا است. توجه کنید که هیچ assert و بررسی‌ای برای خارج‌نشدن از مرزها ندارد،
+        که بد است. در این مقاله‌ها سعی می‌کنم این کد خاص را بیش از حد شلوغ نکنم، چون زیاد خوانده می‌شود. در عین حال، به‌طور
+        سیستماتیک به لزوم انجام بررسی‌ها یادآوری می‌کنم.</p>
+        <p>پس کد قبلی خوب کار می‌کند، اما می‌توانیم آن را بهینه کنیم. بهینه‌سازی چیز خطرناکی است. باید در مورد پلتفرمی که کد
+        روی آن اجرا می‌شود شفاف باشیم. بهینه‌سازی کد برای یک کارت گرافیک یا فقط برای CPU — دو چیز کاملاً متفاوت هستند. قبل و
+        در حین هر بهینه‌سازی، کد باید پروفایل شود. سعی کنید حدس بزنید کدام عملیات در اینجا بیشترین منابع را مصرف می‌کند؟</p>
+        <p>برای تست، ۱٬۰۰۰٬۰۰۰ بار سه پاره‌خطی را رسم می‌کنم که قبلاً رسم کردیم. CPU من Intel® Core™ i5-3450 با فرکانس
+        3.10GHz است. برای هر پیکسل، این کد سازنده کپی کلاس TGAColor را صدا می‌زند. یعنی 1000000 * 3 پاره‌خط * تقریباً ۵۰
+        پیکسل برای هر پاره‌خط. تعداد تماس‌های زیادی است، نه؟ از کجا بهینه‌سازی را شروع کنیم؟ پروفایلر به ما خواهد گفت.</p>
+        <p>کد را با کلیدهای g++ -ggdb -g -pg -O0 کامپایل کردم و سپس gprof را اجرا کردم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">%   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 69.16      2.95     2.95  3000000     0.00     0.00  line(int, int, int, int, TGAImage, TGAColor)
+ 19.46      3.78     0.83 204000000     0.00     0.00  TGAImage::set(int, int, TGAColor)
+  8.91      4.16     0.38 207000000     0.00     0.00  TGAColor::TGAColor(TGAColor const)
+  1.64      4.23     0.07        2    35.04    35.04  TGAColor::TGAColor(unsigned char, unsigned char, unsigned char, unsigned char)
+  0.94      4.27     0.04                             TGAImage::get(int, int)</code></pre>
+        <p>۱۰٪ از زمان صرف کپی‌کردن رنگ می‌شود. اما ۷۰٪ صرف صدا زدن line() می‌شود! همان جایی است که بهینه‌سازی خواهیم کرد.</p>
+
+        <h3>ادامه تلاش چهارم</h3>
+        <p>باید توجه داشته باشیم که هر تقسیم، مقسوم‌علیه یکسانی دارد. آن را از حلقه خارج کنیم. متغیر خطا (error) فاصله تا
+        بهترین خط راست را از پیکسل فعلی (x, y) به ما می‌دهد. هر بار که خطا از یک پیکسل بیشتر شود، y را یک واحد افزایش
+        (یا کاهش) می‌دهیم و خطا را هم یک واحد کم می‌کنیم.</p>
+        <p>کد در <a href="https://github.com/ssloy/tinyrenderer/tree/2086cc7c082f4aec536661d7b4ab8a469eb0ce06" target="_blank" rel="noopener">اینجا</a> در دسترس است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void line(int x0, int y0, int x1, int y1, TGAImage &amp;image, TGAColor color) {
+    bool steep = false;
+    if (std::abs(x0-x1)&lt;std::abs(y0-y1)) {
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+        steep = true;
+    }
+    if (x0&gt;x1) {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    int dx = x1-x0;
+    int dy = y1-y0;
+    float derror = std::abs(dy/float(dx));
+    float error = 0;
+    int y = y0;
+    for (int x=x0; x&lt;=x1; x++) {
+        if (steep) {
+            image.set(y, x, color);
+        } else {
+            image.set(x, y, color);
+        }
+        error += derror;
+        if (error&gt;.5) {
+            y += (y1&gt;y0?1:-1);
+            error -= 1.;
+        }
+    }
+}</code></pre>
+        <p>خروجی gprof:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">%   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 38.79      0.93     0.93  3000000     0.00     0.00  line(int, int, int, int, TGAImage, TGAColor)
+ 37.54      1.83     0.90 204000000     0.00     0.00  TGAImage::set(int, int, TGAColor)
+ 19.60      2.30     0.47 204000000     0.00     0.00  TGAColor::TGAColor(int, int)
+  2.09      2.35     0.05        2    25.03    25.03  TGAColor::TGAColor(unsigned char, unsigned char, unsigned char, unsigned char)
+  1.25      2.38     0.03                             TGAImage::get(int, int)</code></pre>
+
+        <h3>زمان‌بندی: تلاش پنجم و پایانی</h3>
+        <p>چرا به اعداد شناور نیاز داریم؟ تنها دلیل، یک تقسیم بر dx و مقایسه با ۰٫۵ در بدنه حلقه است. می‌توانیم با جایگزینی
+        متغیر خطا با متغیری دیگر از شر اعداد شناور خلاص شویم. بیایید آن را error2 بنامیم و فرض کنیم برابر است با
+        error * dx * 2. این <a href="https://github.com/ssloy/tinyrenderer/tree/28b766abe59b8635c912ed78b8a6e938a7ef29f2" target="_blank" rel="noopener">کد معادل</a> است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void line(int x0, int y0, int x1, int y1, TGAImage &amp;image, TGAColor color) {
+    bool steep = false;
+    if (std::abs(x0-x1)&lt;std::abs(y0-y1)) {
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+        steep = true;
+    }
+    if (x0&gt;x1) {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    int dx = x1-x0;
+    int dy = y1-y0;
+    int derror2 = std::abs(dy)*2;
+    int error2 = 0;
+    int y = y0;
+    for (int x=x0; x&lt;=x1; x++) {
+        if (steep) {
+            image.set(y, x, color);
+        } else {
+            image.set(x, y, color);
+        }
+        error2 += derror2;
+        if (error2 &gt; dx) {
+            y += (y1&gt;y0?1:-1);
+            error2 -= dx*2;
+        }
+    }
+}</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">%   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 42.77      0.91     0.91 204000000     0.00     0.00  TGAImage::set(int, int, TGAColor)
+ 30.08      1.55     0.64  3000000     0.00     0.00  line(int, int, int, int, TGAImage, TGAColor)
+ 21.62      2.01     0.46 204000000     0.00     0.00  TGAColor::TGAColor(int, int)
+  1.88      2.05     0.04        2    20.02    20.02  TGAColor::TGAColor(unsigned char, unsigned char, unsigned char, unsigned char)</code></pre>
+        <p>اکنون کافی است کپی‌های غیرضروری هنگام فراخوانی تابع را با عبور دادن رنگ توسط مرجع حذف کنیم (یا فقط پرچم
+        کامپایل -O3 را فعال کنیم) و تمام. هیچ ضرب یا تقسیمی در کد نیست. زمان اجرا از ۲٫۹۵ به ۰٫۶۴ ثانیه کاهش یافته است.</p>
+        <p>همچنین توصیه می‌کنم <a href="https://github.com/ssloy/tinyrenderer/issues/28" target="_blank" rel="noopener">این issue</a>
+        را بررسی کنید. بهینه‌سازی فریبنده است!</p>
+
+        <h3>رندر سیمی</h3>
+        <p>پس حالا آماده‌ایم یک رندر سیمی بسازیم. نسخه‌ای از <a href="https://github.com/ssloy/tinyrenderer/tree/f6fecb7ad493264ecd15e230411bfb1cca539a12" target="_blank" rel="noopener">کد و مدل تست را اینجا</a> می‌یابید.</p>
+        <p>برای ذخیره مدل از فرمت فایل <a href="http://en.wikipedia.org/wiki/Wavefront_.obj_file" target="_blank" rel="noopener">wavefront obj</a>
+        استفاده کردم. تنها چیزی که برای رندر نیاز داریم، خواندن آرایه رئوس از فایل از این نوع است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">v 0.608654 -0.568839 -0.416318</code></pre>
+        <p>این مختصات x,y,z است؛ در هر خط فایل یک رأس داریم — و وجه‌ها:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">f 1193/1240/1193 1180/1227/1180 1179/1226/1179</code></pre>
+        <p>ما به اولین عدد بعد از هر فاصله علاقه‌مندیم. این عدد، شماره رأس در آرایه‌ای است که قبلاً خوانده‌ایم. بنابراین، این
+        خط می‌گوید رئوس 1193 و 1180 و 1179 یک مثلث می‌سازند. توجه کنید که در فایل‌های obj ایندکس‌ها از ۱ شروع می‌شوند، یعنی
+        باید به ترتیب به دنبال رئوس 1192 و 1179 و 1178 بگردید. فایل model.cpp شامل یک پارسر ساده است. حلقه زیر را در
+        main.cpp بنویسیم و بفرمایید، رندرر سیمی ما آماده است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">for (int i=0; i&lt;model-&gt;nfaces(); i++) {
+    std::vector&lt;int&gt; face = model-&gt;face(i);
+    for (int j=0; j&lt;3; j++) {
+        Vec3f v0 = model-&gt;vert(face[j]);
+        Vec3f v1 = model-&gt;vert(face[(j+1)%3]);
+        int x0 = (v0.x+1.)*width/2.;
+        int y0 = (v0.y+1.)*height/2.;
+        int x1 = (v1.x+1.)*width/2.;
+        int y1 = (v1.y+1.)*height/2.;
+        line(x0, y0, x1, y1, image, white);
+    }
+}</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/01-bresenham/5da6818190.png" alt="رندر سیمی سر مدل آفریقایی با الگوریتم خط برسنهام" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>دفعه بعد مثلث‌های دوبعدی رسم خواهیم کرد و رندررمان را بهبود می‌بخشیم.</p>
+      </section>
+      <!-- ==================== درس ۲ ==================== -->
+      <section>
+        <h2>درس ۲: شطرنجی‌سازی مثلث و حذف وجه پشتی</h2>
+        <h3>پر کردن مثلث‌ها</h3>
+        <p>سلام به همه. منم.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/cfa0f3a9d9.png" alt="مدل چهره نویسنده رندر شده با برنامه‌ای که در این درس ساخته می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>دقیق‌تر بگویم، این مدل چهره من است که با برنامه‌ای رندر شده که در یکی دو ساعت آینده خواهیم ساخت. دفعه قبل مش سیمی
+        یک مدل سه‌بعدی را رسم کردیم. این بار پلی‌گون‌ها یا بهتر بگوییم مثلث‌ها را پر می‌کنیم. در واقع، OpenGL تقریباً هر
+        پلی‌گونی را مثلثی‌سازی می‌کند، پس نیازی به بررسی موارد پیچیده نیست.</p>
+        <div class="callout note">
+          <strong>یادآوری:</strong> این سری مقاله‌ها طوری طراحی شده که خودتان برنامه‌نویسی کنید. وقتی گفتم در دو ساعت
+          می‌توانید تصویری مثل تصویر بالا رسم کنید، منظورم زمان خواندن کد من نبود. این زمان، زمان ساختن کد خودتان از صفر
+          است. کد من صرفاً برای مقایسه برنامه (کارکننده) شما با برنامه من اینجا آمده است. من برنامه‌نویس وحشتناکی هستم؛
+          به‌احتمال زیاد شما بهتر از من هستید. کد من را فقط کپی-پیست نکنید. هر نظر و سؤالی خوش‌آمد است.
+        </div>
+        <p>بنابراین، وظیفه رسم مثلث‌های دوبعدی است. برای دانشجویان باانگیزه معمولاً چند ساعت زمان می‌برد، حتی اگر برنامه‌نویس
+        بدی باشند. دفعه قبل الگوریتم رسم خط برسنهام را دیدیم. کار امروز رسم یک مثلث پُر است. به‌اندازه کافی خنده‌دار است که
+        این کار اصلاً پیش‌پاافتاده نیست. نمی‌دانم چرا، اما می‌دانم که این درست است. بیشتر دانشجویان من با این کار ساده
+        دست‌وپنجه نرم می‌کنند. پس، اسکلت اولیه به این شکل خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &amp;image, TGAColor color) {
+    line(t0, t1, image, color);
+    line(t1, t2, image, color);
+    line(t2, t0, image, color);
+}
+
+// ...
+
+Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
+Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
+Vec2i t2[3] = {Vec2i(180, 150), Vec2i(120, 160), Vec2i(130, 180)};
+triangle(t0[0], t0[1], t0[2], image, red);
+triangle(t1[0], t1[1], t1[2], image, white);
+triangle(t2[0], t2[1], t2[2], image, green);</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/41060d3251.png" alt="سه مثلث برای تست اولیه کد: قرمز، سفید و سبز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مثل همیشه، کامیت مربوطه در گیت‌هاب <a href="https://github.com/ssloy/tinyrenderer/tree/7e46cc57fa3f5a41129d6b6fefe4e77f77b8aa84" target="_blank" rel="noopener">اینجا</a>
+        در دسترس است. کد ساده است: سه مثلث برای اشکال‌زدایی اولیه کدتان می‌دهم. اگر تابع line() را داخل تابع triangle صدا
+        بزنیم، خط دور مثلث را می‌گیریم. چطور یک مثلث پُر رسم کنیم؟</p>
+        <p>یک روش خوب رسم مثلث باید ویژگی‌های زیر را داشته باشد:</p>
+        <ul>
+          <li>باید (سورپرایز!) ساده و سریع باشد.</li>
+          <li>باید متقارن باشد: تصویر نباید به ترتیب رئوسِ وردی به تابع رسم بستگی داشته باشد.</li>
+          <li>اگر دو مثلث دو رأس مشترک داشته باشند، به دلیل گردشدن رسترایزیشن نباید بین آن‌ها سوراخی باشد.</li>
+          <li>می‌توانستیم الزامات بیشتری اضافه کنیم، اما به همین‌ها اکتفا می‌کنیم. روش سنتی، جاروب خطی (line sweeping) است:</li>
+          <li>رئوس مثلث را بر اساس مختصات y مرتب کنید؛</li>
+          <li>ضلع چپ و راست مثلث را هم‌زمان رسترایز کنید؛</li>
+          <li>بین نقاط مرزی چپ و راست، یک پاره‌خط افقی رسم کنید.</li>
+        </ul>
+        <p>در این نقطه دانشجویان من شروع به از دست دادن زمین محکم می‌کنند: کدام پاره‌خط چپی است و کدام‌یک راستی؟ علاوه بر این،
+        مثلث سه پاره‌خط دارد... معمولاً بعد از این مقدمه، حدود یک ساعت دانشجویانم را رها می‌کنم: باز هم می‌گویم خواندن کد من
+        بسیار کم‌ارزش‌تر از مقایسه کد خودتان با کد من است.</p>
+        <p>[یک ساعت می‌گذرد]</p>
+        <p>من مثلث را چطور رسم می‌کنم؟ باز هم می‌گویم اگر روش بهتری دارید، خوشحال می‌شوم آن را بپذیرم. فرض کنیم سه نقطه مثلث
+        t0، t1، t2 را داریم که بر اساس مختصات y به ترتیب صعودی مرتب شده‌اند. آن‌گاه مرز A بین t0 و t2 است، مرز B بین t0 و
+        t1 و سپس بین ۱t و t2.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &amp;image, TGAColor color) {
+    // مرتب‌سازی رئوس: t0، t1، t2 از پایین به بالا (مرتب‌سازی حبابی، هورا!)
+    if (t0.y&gt;t1.y) std::swap(t0, t1);
+    if (t0.y&gt;t2.y) std::swap(t0, t2);
+    if (t1.y&gt;t2.y) std::swap(t1, t2);
+    line(t0, t1, image, green);
+    line(t1, t2, image, green);
+    line(t2, t0, image, red);
+}</code></pre>
+        <p>اینجا مرز A قرمز و مرز B سبز است.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/3a5643f513.png" alt="مرز A قرمز و مرز B سبز پس از مرتب‌سازی رئوس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>متأسفانه مرز B از دو بخش ساخته شده است. نیمه پایینی مثلث را با برش افقی رسم کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &amp;image, TGAColor color) {
+    // مرتب‌سازی رئوس: t0، t1، t2 از پایین به بالا (مرتب‌سازی حبابی، هورا!)
+    if (t0.y&gt;t1.y) std::swap(t0, t1);
+    if (t0.y&gt;t2.y) std::swap(t0, t2);
+    if (t1.y&gt;t2.y) std::swap(t1, t2);
+    int total_height = t2.y-t0.y;
+    for (int y=t0.y; y&lt;=t1.y; y++) {
+        int segment_height = t1.y-t0.y+1;
+        float alpha = (float)(y-t0.y)/total_height;
+        float beta  = (float)(y-t0.y)/segment_height; // مراقب تقسیم بر صفر باشید
+        Vec2i A = t0 + (t2-t0)*alpha;
+        Vec2i B = t0 + (t1-t0)*beta;
+        image.set(A.x, y, red);
+        image.set(B.x, y, green);
+    }
+}</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/d8e0575a00.png" alt="سمت چپ مثلث با نقطه‌های قرمز و سمت راست با نقطه‌های سبز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>توجه کنید پاره‌خط‌ها پیوسته نیستند. دفعه قبل وقتی خطوط صاف می‌کشیدیم برای پاره‌خط‌های پیوسته تقلا می‌کردیم و اینجا
+        زحمت چرخاندن تصویر (جابه‌جایی x و y یادتان هست؟) را به خودم ندادم. چرا؟ چون بعداً مثلث‌ها را پر می‌کنیم، برای همین است.
+        اگر جفت‌نقطه‌های متناظر را با خطوط افقی به هم وصل کنیم، فاصله‌ها از بین می‌روند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/c1f95127ad.png" alt="اتصال نقاط متناظر با خطوط افقی، فاصله‌ها را از بین می‌برد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا نیمه دوم (بالایی) مثلث را رسم کنیم. می‌توانیم با افزودن یک حلقه دوم این کار را بکنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &amp;image, TGAColor color) {
+    // مرتب‌سازی رئوس: t0، t1، t2 از پایین به بالا (مرتب‌سازی حبابی، هورا!)
+    if (t0.y&gt;t1.y) std::swap(t0, t1);
+    if (t0.y&gt;t2.y) std::swap(t0, t2);
+    if (t1.y&gt;t2.y) std::swap(t1, t2);
+    int total_height = t2.y-t0.y;
+    for (int y=t0.y; y&lt;=t1.y; y++) {
+        int segment_height = t1.y-t0.y+1;
+        float alpha = (float)(y-t0.y)/total_height;
+        float beta  = (float)(y-t0.y)/segment_height; // مراقب تقسیم بر صفر باشید
+        Vec2i A = t0 + (t2-t0)*alpha;
+        Vec2i B = t0 + (t1-t0)*beta;
+        if (A.x&gt;B.x) std::swap(A, B);
+        for (int j=A.x; j&lt;=B.x; j++) {
+            image.set(j, y, color); // توجه: به دلیل تبدیل int، t0.y+i برابر با A.y نیست
+        }
+    }
+    for (int y=t1.y; y&lt;=t2.y; y++) {
+        int segment_height =  t2.y-t1.y+1;
+        float alpha = (float)(y-t0.y)/total_height;
+        float beta  = (float)(y-t1.y)/segment_height; // مراقب تقسیم بر صفر باشید
+        Vec2i A = t0 + (t2-t0)*alpha;
+        Vec2i B = t1 + (t2-t1)*beta;
+        if (A.x&gt;B.x) std::swap(A, B);
+        for (int j=A.x; j&lt;=B.x; j++) {
+            image.set(j, y, color); // توجه: به دلیل تبدیل int، t0.y+i برابر با A.y نیست
+        }
+    }
+}</code></pre>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/b1a0fce5f1.png" alt="مثلث کاملاً پر شده با دو حلقه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این می‌تواند کافی باشد، اما من دوست ندارم همان کد را دوبار ببینم. برای همین آن را کمی کمتر خوانا، اما برای
+        تغییرات/نگهداری راحت‌تر می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &amp;image, TGAColor color) {
+    if (t0.y==t1.y &amp;&amp; t0.y==t2.y) return; // به مثلث‌های منحط کاری ندارم
+    // مرتب‌سازی رئوس: t0، t1، t2 از پایین به بالا (مرتب‌سازی حبابی، هورا!)
+    if (t0.y&gt;t1.y) std::swap(t0, t1);
+    if (t0.y&gt;t2.y) std::swap(t0, t2);
+    if (t1.y&gt;t2.y) std::swap(t1, t2);
+    int total_height = t2.y-t0.y;
+    for (int i=0; i&lt;total_height; i++) {
+        bool second_half = i&gt;t1.y-t0.y || t1.y==t0.y;
+        int segment_height = second_half ? t2.y-t1.y : t1.y-t0.y;
+        float alpha = (float)i/total_height;
+        float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/segment_height; // مراقب باشید: با شرایط بالا اینجا تقسیم بر صفر رخ نمی‌دهد
+        Vec2i A =               t0 + (t2-t0)*alpha;
+        Vec2i B = second_half ? t1 + (t2-t1)*beta : t0 + (t1-t0)*beta;
+        if (A.x&gt;B.x) std::swap(A, B);
+        for (int j=A.x; j&lt;=B.x; j++) {
+            image.set(j, t0.y+i, color); // توجه: به دلیل تبدیل int، t0.y+i برابر با A.y نیست
+        }
+    }
+}</code></pre>
+        <p><a href="https://github.com/ssloy/tinyrenderer/tree/024ad4619b824f9179c86dc144145e2b8b155f52" target="_blank" rel="noopener">کامیت</a>
+        رسم مثلث‌های دوبعدی همین‌جاست.</p>
+
+        <h3>روشی که در کد خودم به کار می‌گیرم</h3>
+        <p>هرچند چندان پیچیده نیست، کد منبع جاروب خطی کمی شلوغ است. علاوه بر این، این واقعاً یک رویکرد قدیمی است که برای
+        برنامه‌نویسی تک‌ریسه‌ای CPU طراحی شده. بیایید به شبه‌کد زیر نگاه کنیم:</p>
+        <pre class="code"><span class="lang-tag">pseudo</span><code style="direction:ltr;text-align:left">triangle(vec2 points[3]) {
+    vec2 bbox[2] = find_bounding_box(points);
+    for (each pixel in the bounding box) {
+        if (inside(points, pixel)) {
+            put_pixel(pixel);
+        }
+    }
+}</code></pre>
+        <p>دوستش دارید؟ من دارم. پیدا کردن جعبه محدودکننده واقعاً آسان است. بررسی اینکه آیا نقطه‌ای به یک مثلث دوبعدی (یا هر
+        پلی‌گون محدب) تعلق دارد، قطعاً مشکلی نیست.</p>
+        <div class="callout tip">
+          <strong>حاشیه‌رو:</strong> اگر بخواهم کدی برای بررسی تعلق نقطه به پلی‌گون پیاده‌سازی کنم و این برنامه روی یک هواپیما
+          اجرا شود، هرگز سوار آن هواپیما نمی‌شوم. معلوم شده حل قابل‌اعتماد این مسئله به‌طرز شگفت‌آوری دشوار است. اما اینجا ما
+          فقط پیکسل نقاشی می‌کنیم. با این کار کنار می‌آیم.
+        </div>
+        <p>یک چیز دیگر درباره این شبه‌کد دوست دارم: تازه‌کار در برنامه‌نویسی آن را با اشتیاق می‌پذیرد؛ برنامه‌نویسان
+        باتجربه‌تر اغلب پوزخند می‌زنند: «کدام احمقی این را نوشته؟». و متخصص گرافیک رایانه‌ای شانه‌هایش را بالا می‌اندازد و
+        می‌گوید: «خب، در زندگی واقعی این‌طور کار می‌کند». محاسبات موازی انبوه با هزاران ریسه (اینجا از رایانه‌های معمولی مصرفی
+        حرف می‌زنم) طرز فکر را عوض می‌کند.</p>
+        <p>بسیار خب، شروع کنیم: اول از همه باید بدانیم <a href="https://en.wikipedia.org/wiki/Barycentric_coordinate_system" target="_blank" rel="noopener">مختصات باری‌سنتریک</a>
+        چیست. یک مثلث دوبعدی ABC و نقطه P، همه در مختصات دکارتی خوب قدیمی (xy) داده شده‌اند. هدف ما یافتن مختصات باری‌سنتریک
+        نقطه P نسبت به مثلث ABC است. یعنی به دنبال سه عدد (1 − u − v, u, v) هستیم به‌گونه‌ای که بتوانیم نقطه P را این‌طور
+        پیدا کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index0x.png" alt="فرمول: P برابر است با (1-u-v)A + uB + vC" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>هرچند در نگاه اول کمی ترسناک است، واقعاً ساده است: تصور کنید سه وزن (1 −u−v, u, v) را به‌ترتیب روی رئوس A و B و C
+        می‌گذاریم. آن‌گاه مرکز جرم سیستم دقیقاً در نقطه P قرار دارد. می‌توانیم همان را با کلمات دیگر بگوییم: نقطه P مختصات
+        (u,v) را در پایه (مورب)
+        (A, <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index1x.png" alt="بردار پایه: AB" style="max-height:2.2em;vertical-align:middle;border-radius:6px;border:1px solid var(--line)" />,
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index2x.png" alt="بردار پایه: AC" style="max-height:2.2em;vertical-align:middle;border-radius:6px;border:1px solid var(--line)" />)
+        دارد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index3x.png" alt="فرمول برداری: P برابر است با A + u در (B منهای A) + v در (C منهای A)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>پس بردارهای
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index4x.png" alt="بردار AB" style="max-height:2.2em;vertical-align:middle;border-radius:6px;border:1px solid var(--line)" />،
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index5x.png" alt="بردار AC" style="max-height:2.2em;vertical-align:middle;border-radius:6px;border:1px solid var(--line)" />
+        و
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index6x.png" alt="بردار PA" style="max-height:2.2em;vertical-align:middle;border-radius:6px;border:1px solid var(--line)" />
+        را داریم و باید دو عدد حقیقی u و v را پیدا کنیم که قید زیر را برآورده کنند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index7x.png" alt="قید: PA برابر است با u در AB + v در AC" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این یک معادله برداری ساده است، یا یک دستگاه خطی دو معادله و دو مجهول:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index8x.png" alt="دستگاه خطی دو معادله دوبعدی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>من تنبلم و نمی‌خواهم دستگاه‌های خطی را به روش مدرسه‌ای حل کنم. بیایید آن را به صورت ماتریسی بنویسیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/index9x.png" alt="شکل ماتریسی: سطرهای 2x3 شامل AB، AC و PA" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یعنی به دنبال برداری (u,v,1) هستیم که هم‌زمان با (ABx, ACx, PAx) و (ABy, ACy, PAy) متعامد است! امیدوارم ببینید
+        <a href="https://en.wikipedia.org/wiki/Cross_product" target="_blank" rel="noopener">به کجا می‌روم</a>. این یک راهنمای
+        کوچک است: برای یافتن تقاطع دو خط راست در صفحه (دقیقاً همان کاری که اینجا کردیم)، محاسبه یک ضرب خارجی کافی است. ضمناً،
+        خودتان را بیازمایید: معادله خطی را که از دو نقطه داده‌شده می‌گذرد چطور پیدا می‌کنیم؟</p>
+        <p>پس، روتین رسترایزیشن جدیدمان را برنامه‌نویسی کنیم: روی همه پیکسل‌های جعبه محدودکننده برای یک مثلث معین تکرار
+        می‌کنیم. برای هر پیکسل مختصات باری‌سنتریکش را حساب می‌کنیم. اگر حداقل یک مؤلفه منفی داشته باشد، پیکسل خارج از مثلث
+        است. احتمالاً دیدن مستقیم برنامه واضح‌تر است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">#include &lt;vector&gt;
+#include &lt;iostream&gt;
+#include "geometry.h"
+#include "tgaimage.h"
+
+const int width  = 200;
+const int height = 200;
+
+Vec3f barycentric(Vec2i *pts, Vec2i P) {
+    Vec3f u = Vec3f(pts[2][0]-pts[0][0], pts[1][0]-pts[0][0], pts[0][0]-P[0])^Vec3f(pts[2][1]-pts[0][1], pts[1][1]-pts[0][1], pts[0][1]-P[1]);
+    /* `pts` و `P` مختصات صحیح دارند؛
+       پس اگر `abs(u[2])` کمتر از ۱ باشد یعنی `u[2]` صفر است، یعنی
+       مثلث منحط است؛ در این حالت چیزی با مختصات منفی برمی‌گردانیم */
+    if (std::abs(u.z)&lt;1) return Vec3f(-1,1,1);
+    return Vec3f(1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
+}
+
+void triangle(Vec2i *pts, TGAImage &amp;image, TGAColor color) {
+    Vec2i bboxmin(image.get_width()-1,  image.get_height()-1);
+    Vec2i bboxmax(0, 0);
+    Vec2i clamp(image.get_width()-1, image.get_height()-1);
+    for (int i=0; i&lt;3; i++) {
+        bboxmin.x = std::max(0, std::min(bboxmin.x, pts[i].x));
+        bboxmin.y = std::max(0, std::min(bboxmin.y, pts[i].y));
+
+        bboxmax.x = std::min(clamp.x, std::max(bboxmax.x, pts[i].x));
+        bboxmax.y = std::min(clamp.y, std::max(bboxmax.y, pts[i].y));
+    }
+    Vec2i P;
+    for (P.x=bboxmin.x; P.x&lt;=bboxmax.x; P.x++) {
+        for (P.y=bboxmin.y; P.y&lt;=bboxmax.y; P.y++) {
+            Vec3f bc_screen  = barycentric(pts, P);
+            if (bc_screen.x&lt;0 || bc_screen.y&lt;0 || bc_screen.z&lt;0) continue;
+            image.set(P.x, P.y, color);
+        }
+    }
+}
+
+int main(int argc, char** argv) {
+    TGAImage frame(200, 200, TGAImage::RGB);
+    Vec2i pts[3] = {Vec2i(10,10), Vec2i(100, 30), Vec2i(190, 160)};
+    triangle(pts, frame, TGAColor(255, 0, 0));
+    frame.flip_vertically(); // برای قرار دادن مبدأ در گوشه پایین-چپ تصویر
+    frame.write_tga_file("framebuffer.tga");
+    return 0;
+}</code></pre>
+        <p>تابع <code>barycentric()</code> مختصات نقطه P را در یک مثلث معین محاسبه می‌کند؛ جزئیات را قبلاً دیدیم. حالا ببینیم
+        تابع <code>triangle()</code> چطور کار می‌کند. اول از همه یک جعبه محدودکننده محاسبه می‌کند که با دو نقطه توصیف می‌شود:
+        پایین-چپ و بالا-راست. برای یافتن این گوشه‌ها روی رئوس مثلث تکرار و مختصات min/max را انتخاب می‌کنیم. همچنین برش جعبه
+        محدودکننده با مستطیل صفحه را اضافه کردم تا وقت CPU برای مثلث‌های خارج از صفحه هدر نرود. تبریک، حالا می‌دانید چطور
+        یک مثلث رسم کنید!</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/0ba3f3e659f5feff80a78840fb927a71.png" alt="مثلث قرمز پر شده با روش جعبه محدودکننده و مختصات باری‌سنتریک" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>رندر سایه‌زنی تخت (Flat shading)</h3>
+        <p>ما قبلاً می‌دانیم چطور مدلی با مثلث‌های توخالی رسم کنیم. بیایید آن‌ها را با یک رنگ تصادفی پر کنیم. این به ما کمک
+        می‌کند ببینیم پرکردن مثلث‌ها را چقدر خوب نوشته‌ایم. کد زیر است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">for (int i=0; i&lt;model-&gt;nfaces(); i++) {
+    std::vector&lt;int&gt; face = model-&gt;face(i);
+    Vec2i screen_coords[3];
+    for (int j=0; j&lt;3; j++) {
+        Vec3f world_coords = model-&gt;vert(face[j]);
+        screen_coords[j] = Vec2i((world_coords.x+1.)*width/2., (world_coords.y+1.)*height/2.);
+    }
+    triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+}</code></pre>
+        <p>ساده است: درست مثل قبل، همه مثلث‌ها را پیمایش می‌کنیم، مختصات دنیا را به مختصات صفحه تبدیل و مثلث‌ها را رسم
+        می‌کنیم. توصیف مفصل دستگاه‌های مختصاتی مختلف را در مقاله‌های بعدی ارائه می‌دهم. تصویر فعلی چیزی شبیه به این است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/0c58d8a735.png" alt="سر مدل با مثلث‌هایی با رنگ‌های تصادفی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید از شر این رنگ‌های دلقکی خلاص و کمی نورپردازی اضافه کنیم. کاپیتان واضح: «در شدت نور یکسان، پلی‌گون وقتی
+        بیشترین روشنایی را دارد که بر جهت نور عمود باشد.»</p>
+        <p>مقایسه کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/5371a416d1.jpg" alt="روشنایی پلی‌گون عمود بر جهت نور در مقابل موازی با آن" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/97e210ee08.jpg" alt="مقایسه دو حالت روشنایی پلی‌گون" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر پلی‌گون موازی با بردار نور باشد، روشنایی صفر می‌گیریم. به عبارت دیگر: شدت روشنایی برابر است با ضرب داخلی بردار
+        نور و نرمالِ مثلث مذکور. نرمال مثلث را می‌توان به‌سادگی به‌عنوان <a href="https://en.wikipedia.org/wiki/Cross_product" target="_blank" rel="noopener">ضرب خارجی</a>
+        دو ضلع آن محاسبه کرد.</p>
+        <p>به‌عنوان یک نکته کناری، در این دوره محاسبات خطی را روی رنگ‌ها انجام می‌دهیم. بااین‌حال رنگ (128,128,128) نصف روشنایی
+        (255, 255, 255) نیست. تصحیح گاما را نادیده می‌گیریم و نادرستی روشنایی رنگ‌هایمان را تحمل می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">Vec3f light_dir(0,0,-1); // تعریف جهت نور
+
+for (int i=0; i&lt;model-&gt;nfaces(); i++) {
+    std::vector&lt;int&gt; face = model-&gt;face(i);
+    Vec2i screen_coords[3];
+    Vec3f world_coords[3];
+    for (int j=0; j&lt;3; j++) {
+        Vec3f v = model-&gt;vert(face[j]);
+        screen_coords[j] = Vec2i((v.x+1.)*width/2., (v.y+1.)*height/2.);
+        world_coords[j]  = v;
+    }
+    Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
+    n.normalize();
+    float intensity = n*light_dir;
+    if (intensity&gt;0) {
+        triangle(screen_coords[0], screen_coords[1], screen_coords[2], image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+    }
+}</code></pre>
+        <p>اما ضرب داخلی می‌تواند منفی باشد. یعنی چه؟ یعنی نور از پشت پلی‌گون می‌آید. اگر صحنه خوب مدل‌سازی شده باشد
+        (معمولاً این‌طور است)، می‌توانیم به‌سادگی این مثلث را کنار بگذاریم. این به ما اجازه می‌دهد سریع بعضی مثلث‌های نامرئی را
+        حذف کنیم. به این کار <a href="http://en.wikipedia.org/wiki/Back-face_culling" target="_blank" rel="noopener">حذف وجه پشتی (Back-face culling)</a>
+        می‌گویند.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/02-triangle/d5223f9b93.png" alt="سر مدل با سایه‌زنی تخت و حذف وجه پشتی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>توجه کنید که حفره داخلی دهان روی لب‌ها رسم شده است. این به دلیل برش کثیف مثلث‌های نامرئی ماست: این روش فقط برای
+        اشکال محدب عالی کار می‌کند. دفعه بعد که z-buffer را کدنویسی کنیم، از شر این آرتیفکت خلاص می‌شویم.</p>
+        <p><a href="https://github.com/ssloy/tinyrenderer/tree/e1a3f2b0f9638fa6db9e0437c621132e1baa3fb1" target="_blank" rel="noopener">نسخه فعلی رندر اینجاست.</a>
+        آیا فکر می‌کنید تصویر چهره من جزئیات بیشتری داشت؟ خب، کمی تقلب کردم: یک‌چهارم میلیون مثلث در آن هست، در برابر تقریباً
+        هزار مثلث در این مدل سر مصنوعی. اما چهره من واقعاً با کد بالا رندر شده بود. قول می‌دهم در مقاله‌های بعدی جزئیات خیلی
+        بیشتری به این تصویر اضافه کنیم.</p>
+      </section>
+
+      <!-- ==================== درس ۳ ==================== -->
+      <section>
+        <h2>درس ۳: حذف وجه‌های پنهان (z-buffer)</h2>
+        <h3>مقدمه</h3>
+        <p>سلام، بگذارید دوستم z-bufferِ آقای سیاه‌پوست را معرفی کنم. او کمکمان می‌کند از شر آرتیفکت‌های بصری حذف وجه‌های
+        پنهان که در درس قبل داشتیم خلاص شویم.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/3f057a75601d8ac34555e72ea03ef711.png" alt="نمای جلو از مدل مرد سیاه‌پوست که در درس‌ها استفاده می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در ضمن، دوست دارم اشاره کنم این مدلی که زیاد در دوره استفاده می‌کنم توسط
+        <a href="https://se.linkedin.com/in/vidarrapp" target="_blank" rel="noopener">ویدار راپ (Vidar Rapp)</a> ساخته شده است.
+        او مهربانانه به من اجازه داد برای آموزش مبانی رندر از آن استفاده کنم و من آن را تخریب کردم، اما قول می‌دهم چشم‌هایش را
+        به آقا برگردانم.</p>
+        <p>خب، برگردیم سر موضوع. در تئوری، می‌توانستیم همه مثلث‌ها را بدون کنارگذاشتن هیچ‌کدام رسم کنیم. اگر آن‌ها را به‌درستی
+        از عقب به جلو رسم کنیم، وجه‌های جلویی وجه‌های پشتی را پاک می‌کنند. به این کار
+        <a href="http://en.wikipedia.org/wiki/Painter%27s_algorithm" target="_blank" rel="noopener">الگوریتم نقاش</a> می‌گویند.
+        متأسفانه، هزینه محاسباتی بالایی دارد: برای هر حرکت دوربین باید کل صحنه را دوباره مرتب کنیم. و بعد صحنه‌های پویا را
+        در نظر بگیرید... و این حتی مشکل اصلی نیست. مشکل اصلی این است که تعیین ترتیب درست همیشه ممکن نیست.</p>
+
+        <h3>بیایید یک صحنه ساده رندر کنیم</h3>
+        <p>صحنه‌ای ساده از سه مثلث تصور کنید: دوربین از بالا به پایین نگاه می‌کند، ما مثلث‌های رنگی را روی صفحه سفید
+        تصویر می‌کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/d493c52da4cabe9a057c26f696784956.png" alt="صحنه ساده: سه مثلث رنگی که از بالا دیده می‌شوند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>رندر باید این‌طور باشد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/023668cb8ea97f59bf87d982c1e8b030.png" alt="نتیجه درست رندر صحنه با سه مثلث" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>وجه آبی — پشت وجه قرمز است یا جلوی آن؟ الگوریتم نقاش اینجا کار نمی‌کند. می‌شود وجه آبی را به دو بخش تقسیم کرد (یکی
+        جلوی وجه قرمز و یکی پشت آن). و بعد آن یکی که جلوی وجه قرمز است را به دو بخش تقسیم کرد — یکی جلوی مثلث سبز و یکی پشت...
+        فکر کنم مشکل را می‌فهمید: در صحنه‌هایی با میلیون‌ها مثلث، محاسبه این کار واقعاً گران است. برای انجامش می‌شود از
+        <a href="https://en.wikipedia.org/wiki/Binary_space_partitioning" target="_blank" rel="noopener">درخت‌های BSP</a>
+        استفاده کرد. اتفاقاً، این ساختار داده برای دوربین متحرک ثابت است، اما واقعاً کثیف است. و زندگی برای کثیف‌شدن کوتاه
+        است.</p>
+
+        <h3>حتی ساده‌تر: یک بُعد را کم کنیم. Y-buffer!</h3>
+        <p>برای مدتی یک بُعد را کم کنیم و صحنه بالا را در راستای صفحه زرد برش بزنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/d673f40bcadbe53f4b3cb29bbbcfb461.png" alt="برش صحنه با صفحه زرد برای کاهش به یک بُعد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>منظورم این است که حالا صحنه ما از سه پاره‌خط (برخورد صفحه زرد با هر یک از مثلث‌ها) ساخته شده است و رندر نهایی عرض
+        عادی اما ارتفاع ۱ پیکسلی دارد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/3d4c4a1710b8e2558beb5c72ea52a61a.png" alt="رندر یک‌پیکسلی از سه پاره‌خط" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مثل همیشه، یک <a href="https://github.com/ssloy/tinyrenderer/tree/d9c4b14c0d8c385937bc87cee1178f1e42966b7c" target="_blank" rel="noopener">کامیت</a>
+        در دسترس است. صحنه ما دوبعدی است، پس رسم آن با تابع line() که در همان درس اول برنامه‌نویسی کردیم آسان است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">{ // فقط برای نمایش صحنه دوبعدی (هورا، به اندازه کافی بُعد داریم!)
+        TGAImage scene(width, height, TGAImage::RGB);
+
+        // صحنه «مش دوبعدی»
+        line(Vec2i(20, 34),   Vec2i(744, 400), scene, red);
+        line(Vec2i(120, 434), Vec2i(444, 400), scene, green);
+        line(Vec2i(330, 463), Vec2i(594, 200), scene, blue);
+
+        // خط صفحه
+        line(Vec2i(10, 10), Vec2i(790, 10), scene, white);
+
+        scene.flip_vertically(); // می‌خواهم مبدأ در گوشه پایین-چپ تصویر باشد
+        scene.write_tga_file("scene.tga");
+    }</code></pre>
+        <p>صحنه دوبعدی ما اگر از پهلو نگاه کنیم به این شکل است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/20e9d8742d17979ec70e45cafacd63a5.png" alt="صحنه دوبعدی دیده‌شده از پهلو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید آن را رندر کنیم. یادتان باشد رندر ۱ پیکسل ارتفاع دارد. در کد منبعم، برای خوانایی راحت روی صفحه‌های با وضوح
+        بالا، تصاویر را ۱۶ پیکسل ارتفاع می‌سازم. تابع <code>rasterize()</code> فقط در اولین خط تصویر <code>render</code>
+        می‌نویسد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">TGAImage render(width, 16, TGAImage::RGB);
+        int ybuffer[width];
+        for (int i=0; i&lt;width; i++) {
+            ybuffer[i] = std::numeric_limits&lt;int&gt;::min();
+        }
+        rasterize(Vec2i(20, 34),   Vec2i(744, 400), render, red,   ybuffer);
+        rasterize(Vec2i(120, 434), Vec2i(444, 400), render, green, ybuffer);
+        rasterize(Vec2i(330, 463), Vec2i(594, 200), render, blue,  ybuffer);</code></pre>
+        <p>پس، یک آرایه جادویی <code>ybuffer</code> با ابعاد (width, 1) اعلام کردم. این آرایه با منهای بی‌نهایت مقداردهی
+        اولیه می‌شود. بعد تابع <code>rasterize()</code> را با این آرایه و تصویر <code>render</code> به‌عنوان آرگومان صدا
+        می‌زنم. تابع چه شکلی است؟</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void rasterize(Vec2i p0, Vec2i p1, TGAImage &amp;image, TGAColor color, int ybuffer[]) {
+    if (p0.x&gt;p1.x) {
+        std::swap(p0, p1);
+    }
+    for (int x=p0.x; x&lt;=p1.x; x++) {
+        float t = (x-p0.x)/(float)(p1.x-p0.x);
+        int y = p0.y*(1.-t) + p1.y*t;
+        if (ybuffer[x]&lt;y) {
+            ybuffer[x] = y;
+            image.set(x, 0, color);
+        }
+    }
+}</code></pre>
+        <p>واقعاً ساده است: روی همه مختصات x بین p0.x و p1.x تکرار می‌کنم و مختصات y متناظر پاره‌خط را محاسبه می‌کنم. سپس بررسی
+        می‌کنم در آرایه <code>ybuffer</code> با ایندکس x فعلی چه داریم. اگر مقدار y فعلی به دوربین نزدیک‌تر از مقدارِ درون
+        <code>ybuffer</code> است، آن را روی صفحه رسم و <code>ybuffer</code> را به‌روزرسانی می‌کنم.</p>
+        <p>قدم‌به‌قدم ببینیم. بعد از صدا زدن <code>rasterize()</code> روی اولین پاره‌خط (قرمز)، حافظه ما این‌گونه است:</p>
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>صفحه:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/01694d604755b68c406998c03db374d9.png" alt="صفحه پس از رسم پاره‌خط قرمز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>ybuffer:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/65ddaf2b4d87f9b80127ecc6b02d0f72.png" alt="مقادیر ybuffer پس از رسم پاره‌خط قرمز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اینجا رنگ سرخابی نشان‌دهنده منهای بی‌نهایت است؛ این‌ها جاهایی از صفحه‌اند که به آن‌ها دست نزده‌ایم. بقیه با سایه‌های
+        خاکستری نشان داده شده‌اند: رنگ‌های روشن نزدیک به دوربین‌اند و رنگ‌های تیره دور از دوربین.</p>
+        <p>سپس پاره‌خط سبز را رسم می‌کنیم.</p>
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>صفحه:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/6f081ac5fc77e2ec4bc733c945b16615.png" alt="صفحه پس از رسم پاره‌خط سبز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>ybuffer:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/bae97132fc4ae67584b46b03d7350944.png" alt="مقادیر ybuffer پس از رسم پاره‌خط سبز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و در نهایت آبی.</p>
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>صفحه:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/d6fdb1d49161923ac91796967afa766e.png" alt="صفحه پس از رسم پاره‌خط آبی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p style="color:var(--muted);font-size:.85rem;margin-top:6px;"><b>ybuffer:</b></p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/8f430d7de76bdcbda73b8de2986fbe49.png" alt="مقادیر ybuffer پس از رسم پاره‌خط آبی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تبریک، ما تازه یک صحنه دوبعدی را روی یک صفحه یک‌بعدی رسم کردیم! بیایید یک‌بار دیگر رندر را تحسین کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/24935d71a1b0023ee3cb48934fae175d.png" alt="رندر نهایی یک‌بعدی از صحنه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بازگشت به سه‌بعدی</h3>
+        <p>پس برای رسم روی صفحه دوبعدی، z-buffer باید دوبعدی باشد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">int *zbuffer = new int[width*height];</code></pre>
+        <p>من شخصاً بافر دوبعدی را در یک بافر یک‌بعدی می‌بندم؛ تبدیل، پیش‌پاافتاده است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">int idx = x + y*width;</code></pre>
+        <p>و تبدیل معکوس:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">int x = idx % width;
+int y = idx / width;</code></pre>
+        <p>سپس در کد به‌سادگی روی همه مثلث‌ها تکرار می‌کنم و تابع رسترایزر را با مثلث فعلی و یک ارجاع به z-buffer صدا
+        می‌زنم.</p>
+        <p>تنها دشواری، محاسبه مقدار z پیکسلی است که می‌خواهیم رسم کنیم. بیایید یادآوری کنیم مقدار y را در مثال y-buffer
+        چطور حساب کردیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">int y = p0.y*(1.-t) + p1.y*t;</code></pre>
+        <p>ماهیت متغیر <code>t</code> چیست؟ معلوم می‌شود (1-t, t) مختصات باری‌سنتریک نقطه (x,y) نسبت به پاره‌خط p0, p1 است:
+        (x,y) = p0*(1-t) + p1*t. پس ایده این است که نسخه‌ای از رسترایزیشن مثلث را برداریم که مختصات باری‌سنتریک می‌دهد و برای
+        هر پیکسلی که می‌خواهیم رسم کنیم، صرفاً مختصات باری‌سنتریکش را در مقادیر z رئوسِ مثلثی که رسترایز می‌کنیم ضرب کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">triangle(screen_coords, float *zbuffer, image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+
+[...]
+
+void triangle(Vec3f *pts, float *zbuffer, TGAImage &amp;image, TGAColor color) {
+    Vec2f bboxmin( std::numeric_limits&lt;float&gt;::max(),  std::numeric_limits&lt;float&gt;::max());
+    Vec2f bboxmax(-std::numeric_limits&lt;float&gt;::max(), -std::numeric_limits&lt;float&gt;::max());
+    Vec2f clamp(image.get_width()-1, image.get_height()-1);
+    for (int i=0; i&lt;3; i++) {
+        for (int j=0; j&lt;2; j++) {
+            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts[i][j]));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+        }
+    }
+    Vec3f P;
+    for (P.x=bboxmin.x; P.x&lt;=bboxmax.x; P.x++) {
+        for (P.y=bboxmin.y; P.y&lt;=bboxmax.y; P.y++) {
+            Vec3f bc_screen  = barycentric(pts[0], pts[1], pts[2], P);
+            if (bc_screen.x&lt;0 || bc_screen.y&lt;0 || bc_screen.z&lt;0) continue;
+            P.z = 0;
+            for (int i=0; i&lt;3; i++) P.z += pts[i][2]*bc_screen[i];
+            if (zbuffer[int(P.x+P.y*width)]&lt;P.z) {
+                zbuffer[int(P.x+P.y*width)] = P.z;
+                image.set(P.x, P.y, color);
+            }
+        }
+    }
+}</code></pre>
+        <p>شگفت‌انگیز است که برای حذف قسمت‌های پنهان، چقدر تغییرات کوچکی در کد منبع درس قبلی دادیم! این هم رندر:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/f93a1fc1cbaebb9c4670ae0003e62947.png" alt="سر مدل آفریقایی رندر شده با z-buffer" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>کد منبع را می‌توانید <a href="https://github.com/ssloy/tinyrenderer/tree/68a5ae382135d679891423fb5285fdd582ca389d" target="_blank" rel="noopener">اینجا</a> پیدا کنید.</p>
+
+        <h3>خوب، فقط مقادیر z را درونیابی کردیم. چه کار دیگری می‌توانیم بکنیم؟</h3>
+        <p>بافت! این تکلیف خانه ما خواهد بود.</p>
+        <p>در فایل .obj خطوطی داریم که با «vt u v» شروع می‌شوند؛ آن‌ها آرایه‌ای از مختصات بافت می‌دهند. عدد وسطی (بین
+        اسلش‌ها) در خطوط وجه «f x/x/x x/x/x x/x/x» مختصات بافتِ این رأسِ این مثلث است. آن را داخل مثلث درونیابی کنید، در
+        عرض-ارتفاع تصویر بافت ضرب کنید و رنگی به دست می‌آورید که در رندرت بگذارید.</p>
+        <p>بافت دیفیوز را می‌توانید <a href="https://github.com/ssloy/tinyrenderer/raw/master/obj/african_head/african_head_diffuse.tga" target="_blank" rel="noopener">اینجا</a> بگیرید.</p>
+        <p>نمونه‌ای از آنچه از شما انتظار دارم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/03-zbuffer/73714966ad4a4377b8c4df60bef03777.png" alt="نمونه خروجی مورد انتظار: سر مدل با بافت دیفیوز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== درس ۴ ==================== -->
+      <section>
+        <h2>درس ۴: تصویربرداری پرسپکتیو</h2>
+        <h3>هدف</h3>
+        <p>در درس‌های قبلی مدلمان را در تصویربرداری متعامد (orthographic) و صرفاً با فراموش‌کردن مختصات z رندر کردیم. هدف
+        امروز یادگیری رسم در پرسپکتیو است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/39467dda61fdb644e68bdafc1e1f17f1.png" alt="مقایسه رندر متعامد و رندر پرسپکتیو از سر مدل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>هندسه دوبعدی</h3>
+        <h4>تبدیل‌های خطی</h4>
+        <p>یک تبدیل خطی روی صفحه را می‌توان با یک ماتریس متناظر نشان داد. اگر نقطه (x,y) را برداریم، تبدیل آن را می‌توان
+        این‌گونه نوشت:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f00.png" alt="فرمول: (x,y) تبدیل‌شده برابر با ماتریس 2x2 ضرب در (x,y)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ساده‌ترین تبدیل (غیرمنحط) تبدیل همانی (identity) است که هیچ نقطه‌ای را جابه‌جا نمی‌کند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f01.png" alt="فرمول: ماتریس همانی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ضرایب مورب ماتریس مقیاس‌گذاری در راستای محورهای مختصات می‌دهند. بیایید با مثال نشان دهیم؛ اگر تبدیل زیر را بگیریم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f02.png" alt="فرمول: ماتریس مقیاس با درایه‌های مورب" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آن‌گاه شیء سفید (مربع سفید با یک گوشه بریده) به شیء زرد تبدیل می‌شود. پاره‌خط‌های قرمز و سبز بردارهای واحد را در
+        راستای x و y می‌دهند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/2aa8b671e124f1511c3b47a37c47f150.png" alt="تأثیر مقیاس‌گذاری: مربع سفید به زرد تبدیل می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همه تصاویر این مقاله با <a href="https://github.com/ssloy/tinyrenderer/tree/a175be75a8a9a773bdfae7543a372e3bc859e02f" target="_blank" rel="noopener">این کد</a> تولید شده‌اند.</p>
+        <p>چرا خودمان را با ماتریس‌ها اذیت می‌کنیم؟ چون دست‌به‌نواست. اول از همه، در فرم ماتریسی می‌توانیم تبدیل کل یک شیء را
+        این‌گونه بیان کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f03.png" alt="فرمول: ماتریس تبدیل 2x2 ضرب در ماتریس 2x5 از رئوس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این عبارت، ماتریس تبدیل همان ماتریس قبلی است، اما ماتریس 2x5 چیزی نیست جز رئوس شیء مربع‌مانند ما. صرفاً همه رئوس
+        را در یک آرایه گرفتیم، در ماتریس تبدیل ضرب کردیم و شیء تبدیل‌یافته را به دست آوردیم. باحال است، نه؟</p>
+        <p>خب، دلیل واقعی این‌جا پنهان است: خیلی‌وقت‌ها می‌خواهیم شیءمان را با تبدیل‌های متعدد پشت سر هم تبدیل کنیم. تصور کنید
+        در کد منبع‌تان توابع تبدیلی مثل زیر می‌نویسید:</p>
+        <pre class="code"><span class="lang-tag">pseudo</span><code style="direction:ltr;text-align:left">vec2 foo(vec2 p) return vec2(ax+by, cx+dy);
+vec2 bar(vec2 p) return vec2(ex+fy, gx+hy);
+[..]
+for (each p in object) {
+    p = foo(bar(p));
+}</code></pre>
+        <p>این کد برای هر رأس شیء ما دو تبدیل خطی انجام می‌دهد و اغلب این رئوس را به میلیون‌ها می‌شماریم. و ده‌ها تبدیل پشت سر
+        هم هم چیز نادری نیست، که نتیجه‌اش ده‌ها میلیون عملیات است؛ واقعاً گران است. در فرم ماتریسی می‌توانیم همه ماتریس‌های
+        تبدیل را از قبل در هم ضرب کنیم و شیء را یک‌بار تبدیل کنیم. در عبارتی که فقط ضرب دارد، می‌توانیم پرانتزها را هر جایی
+        بگذاریم که دوست داریم، نه؟</p>
+        <p>خوب، ادامه دهیم. می‌دانیم ضرایب مورب ماتریس دنیایمان را در راستای محورهای مختصات مقیاس می‌کنند. سایر ضرایب مسئول
+        چه‌اند؟ تبدیل زیر را در نظر بگیریم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f04.png" alt="فرمول: ماتریس برش با درایه غیرمورب" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تأثیر آن روی شیء ما:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/bb13159ffc0656ee622f9c4ebd108fed.png" alt="تأثیر برش در راستای محور x روی مربع" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این یک برش ساده در راستای محور x است. عضو دیگر ضد-مورب فضا را در راستای محور y برش می‌دهد. پس دو تبدیل خطی پایه روی
+        صفحه داریم: مقیاس‌گذاری و برش. بسیاری از خوانندگان واکنش می‌دهند: صبر کن، چرخش‌ها چه؟!</p>
+        <p>معلوم می‌شود هر چرخشی (دور مبدأ) را می‌توان به‌صورت ترکیب سه برش نشان داد؛ در این‌جا شیء سفید به قرمز، سپس به سبز و
+        در نهایت به آبی تبدیل می‌شود:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/8723ca291b463b6eb44b9a91f5cbd26f.png" alt="نمایش چرخش به‌صورت ترکیب سه برش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اما این‌ها جزئیات پیچیده‌اند؛ برای ساده نگه‌داشتن ماجرا، ماتریس چرخش را می‌توان مستقیم نوشت (ترفند ضرب قبلی یادتان
+        هست؟):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f05.png" alt="فرمول: ماتریس چرخش دوبعدی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم ماتریس‌ها را در هر ترتیبی ضرب کنیم، اما به یاد داشته باشیم که ضرب ماتریس‌ها جابه‌جایی‌پذیر نیست:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f06.png" alt="فرمول: AB با BA برابر نیست" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>منطقی است: برش دادن یک شیء و سپس چرخاندنش، همان چرخاندن و سپس برش دادن نیست!</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/7a85ee0ebed76be99ba9f97f0c89c5a4.png" alt="تفاوت ترتیب برش و چرخش روی شکل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>تبدیل‌های وابین (آفین) دوبعدی</h3>
+        <p>پس هر تبدیل خطی روی صفحه، ترکیبی از تبدیل‌های مقیاس و برش است. و این یعنی هر تبدیل خطی که بخواهیم را می‌توانیم
+        انجام دهیم، اما مبدأ هرگز جابه‌جا نمی‌شود! این قابلیت‌ها عالی‌اند، اما اگر نتوانیم جابه‌جایی (translation) ساده انجام
+        دهیم، زندگیمان بدبختانه خواهد بود. می‌توانیم؟ خوب، جابه‌جایی‌ها خطی نیستند، اشکالی ندارد؛ بیایید بعد از انجام بخش خطی،
+        جابه‌جایی‌ها را اضافه کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f07.png" alt="فرمول: تبدیل آفین، ضرب ماتریس خطی بعلاوه بردار جابه‌جایی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این عبارت واقعاً باحال است. می‌توانیم بچرخانیم، مقیاس کنیم، برش دهیم و جابه‌جا کنیم. بااین‌حال، یادمان باشد ما به
+        ترکیب تبدیل‌های متعدد علاقه‌مندیم. ترکیب دو تبدیل این‌گونه به نظر می‌رسد (یادتان باشد باید ده‌ها تا از آن‌ها را
+        ترکیب کنیم):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f08.png" alt="فرمول: ترکیب دو تبدیل آفین به‌صورت تو در تو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حتی برای یک ترکیب تنها هم زشت می‌شود؛ بیشتر اضافه کنید و اوضاع بدتر هم می‌شود.</p>
+
+        <h3>مختصات همگن</h3>
+        <p>خوب، حالا وقت جادوی سیاه است. تصور کنید یک ستون و یک سطر به ماتریس تبدیل‌مان اضافه می‌کنم (پس آن را 3x3 می‌کنم) و
+        یک مختصه که همیشه برابر ۱ است به بردارِ در حال تبدیل اضافه می‌کنم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f09.png" alt="فرمول: ماتریس 3x3 با سطر آخر 0،0،1 و بردار (x,y,1)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر این ماتریس را در برداری که با ۱ افزایش یافته ضرب کنیم، بردار دیگری با ۱ در مؤلفه آخر می‌گیریم، اما دو مؤلفه
+        دیگر دقیقاً همان شکلی دارند که می‌خواهیم! جادو.</p>
+        <p>در واقع، ایده واقعاً ساده است. جابه‌جایی‌های موازی در فضای دوبعدی خطی نیستند. پس فضای دوبعدی‌مان را در فضای سه‌بعدی
+        جاسازی می‌کنیم (با اضافه‌کردن ساده ۱ به‌عنوان مؤلفه سوم). یعنی فضای دوبعدی ما صفحه z=1 در فضای سه‌بعدی است. سپس یک
+        تبدیل خطی سه‌بعدی انجام می‌دهیم و نتیجه را روی صفحه فیزیکی دوبعدی‌مان تصویر می‌کنیم. جابه‌جایی‌های موازی خطی نشده‌اند،
+        اما خط لوله ساده است.</p>
+        <p>چطور سه‌بعدی را دوباره روی صفحه دوبعدی تصویر می‌کنیم؟ صرفاً با تقسیم بر مؤلفه سوم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f10.png" alt="فرمول: تصویر نقطه (x,y,z) برابر است با (x/z, y/z)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h4>یک لحظه، تقسیم بر صفر ممنوع است!</h4>
+        <p>کی این را گفت؟ [تیراندازی] بیایید خط لوله را یادآوری کنیم:</p>
+        <ul>
+          <li>دوبعدی را با گذاشتن آن داخل صفحه z=1 در سه‌بعدی جاسازی می‌کنیم؛</li>
+          <li>هر کاری خواستیم در سه‌بعدی می‌کنیم؛</li>
+          <li>برای هر نقطه‌ای که می‌خواهیم از سه‌بعدی به دوبعدی تصویر کنیم، یک خط راست بین مبدأ و آن نقطه می‌کشیم و تقاطع آن را
+          با صفحه z=1 پیدا می‌کنیم.</li>
+        </ul>
+        <p>در این تصویر صفحه دوبعدی ما سرخابی است؛ نقطه (x,y,z) روی (x/z, y/z) تصویر می‌شود:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/47cf05bf642df13f9b738e2c3040f648.png" alt="نمودار تصویر مرکزی نقطه روی صفحه z=1" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک ریل عمودی را از نقطه (x,y,1) بگذرانیم. نقطه (x,y,1) کجا تصویر می‌شود؟ معلوم است، روی (x,y):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/0c054967a27e66bf020844118a1750d8.png" alt="تصویر نقطه (x,y,1) روی (x,y)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا روی ریل پایین بیاییم؛ مثلاً نقطه (x,y,1/2) روی (2x, 2y) تصویر می‌شود:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/ed24b22a0542f9f930e0386c598d5a77.png" alt="تصویر نقطه (x,y,1/2) روی (2x,2y)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ادامه دهیم؛ نقطه (x,y,1/4) می‌شود (4x, 4y):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/9e9658d91a6c8198606a8603012f048a.png" alt="تصویر نقطه (x,y,1/4) روی (4x,4y)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر فرایند را ادامه دهیم و به z=0 نزدیک شویم، تصویر در جهت (x,y) از مبدأ دورتر و دورتر می‌شود. به عبارت دیگر، نقطه
+        (x,y,0) روی نقطه‌ای بی‌نهایت دور در جهت (x,y) تصویر می‌شود. آن چیست؟ درست است، صرفاً یک بردار است!</p>
+        <p>مختصات همگن امکان تمایز بین بردار و نقطه را می‌دهند. اگر برنامه‌نویسی بنویسد vec2(x,y)، این بردار است یا نقطه؟
+        سخت است بگوییم. در مختصات همگن، همه چیزهایی‌که z=0 دارند بردارند و بقیه نقطه. ببینید: بردار + بردار = بردار. بردار −
+        بردار = بردار. نقطه + بردار = نقطه. عالی است، نه؟</p>
+
+        <h4>یک تبدیل ترکیبی</h4>
+        <p>همان‌طور که گفتم، باید بتوانیم ده‌ها تبدیل را انباشته کنیم. چرا؟ تصور کنید باید یک شیء (دوبعدی) را دور نقطه (x0,y0)
+        بچرخانیم. چطور؟ خب، می‌توانیم فرمول‌ها را جایی پیدا کنیم، یا می‌توانیم با دست این کار را بکنیم؛ همه ابزارهای لازم را
+        داریم!</p>
+        <p>می‌دانیم چطور دور مبدأ بچرخانیم و چطور جابه‌جا کنیم. به همین‌ها نیاز داریم: (x0,y0) را به مبدأ جابه‌جا کن، بچرخان،
+        جابه‌جایی را برگردان، تمام:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f11.png" alt="فرمول: چرخش دور نقطه دلخواه با سه ماتریس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در سه‌بعدی دنباله اعمال کمی طولانی‌تر خواهد بود، اما ایده همان است: باید چند تبدیل پایه را بدانیم و با کمک آن‌ها
+        می‌توانیم هر عمل ترکیبی را نمایش دهیم.</p>
+
+        <h3>یک لحظه، می‌توانم این ردیف جادویی پایین ماتریس 3x3 را لمس کنم؟</h3>
+        <p>البته! تبدیل زیر را روی شیء مربع‌مانند استانداردمان اعمال کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f12.png" alt="فرمول: ماتریس پرسپکتیو با درایه -1/5 در سطر آخر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یادآوری: شیء اصلی سفید است و بردارهای محور واحد قرمز و سبز:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/7f36ab01dad4a2937599de236c8d4d28.png" alt="شیء اصلی سفید با بردارهای واحد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>شیء تبدیل‌یافته:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/ff8f6a2130986fed747e55a26e054c6f.png" alt="شیء پس از تبدیل پرسپکتیو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و اینجا نوع دیگری از جادو (سفید!) رخ می‌دهد. تمرین y-buffer را یادتان هست؟ اینجا همان کار را می‌کنیم: شیء دوبعدی‌مان
+        را روی خط عمودی x=0 تصویر می‌کنیم. قوانین را کمی سخت‌تر کنیم: باید از تصویر مرکزی استفاده کنیم؛ دوربین ما در نقطه (5,0)
+        است و به سمت مبدأ نشانه گرفته. برای یافتن تصویر، باید خطوط راست بین دوربین و نقاطِ در حال تصویر (زرد) را رسم و تقاطعشان
+        را با خط صفحه (عمودی سفید) پیدا کنیم.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/a7081e13ad5016aa33f87edb50b218f0.png" alt="تصویر مرکزی شیء روی خط صفحه با دوربین در نقطه (5,0)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا شیء اصلی را با شیء تبدیل‌یافته جایگزین می‌کنم، اما خطوط زردِ قبلاً رسم‌شده را دست نمی‌زنم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/2b9f233797ca0a8b2d9d9f9750c29a36.png" alt="تصویر شیء تبدیل‌یافته با همان خطوط زرد قبلی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر شیء قرمز را با تصویربرداری متعامد استاندارد روی صفحه تصویر کنیم، دقیقاً همان نقاط را پیدا می‌کنیم! بیایید دقیق
+        نگاه کنیم تبدیل چگونه کار می‌کند: همه پاره‌خط‌های عمودی به پاره‌خط‌های عمودی تبدیل می‌شوند، اما آن‌هایی که به دوربین
+        نزدیک‌اند کشیده و آن‌هایی که دوراند جمع می‌شوند. اگر ضریب را درست انتخاب کنیم (در ماتریس تبدیلمان ضریب −1/5 است)، یک
+        تصویر در تصویربرداری پرسپکتیو (مرکزی) به دست می‌آوریم!</p>
+
+        <h3>وقت کار در سه‌بعدی کامل</h3>
+        <p>بگذارید جادو را توضیح دهیم. همان‌طور که برای تبدیل‌های آفین دوبعدی، برای تبدیل‌های آفین سه‌بعدی هم از مختصات همگن
+        استفاده می‌کنیم: نقطه (x,y,z) با ۱ افزایش می‌یابد (x,y,z,1)، سپس آن را در چهاربعدی تبدیل و دوباره به سه‌بعدی تصویر
+        می‌کنیم. مثلاً اگر تبدیل زیر را بگیریم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f13.png" alt="فرمول: ماتریس 4x4 برای تصویربرداری پرسپکتیو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تصویر معکوس مختصات سه‌بعدی زیر را به ما می‌دهد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f14.png" alt="فرمول: مختصات حاصل از بازتصویربرداری" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این نتیجه را به یاد بسپاریم، اما فعلاً کنارش بگذاریم. به تعریف استاندارد تصویر مرکزی برگردیم، بدون هیچ چیز
+        فانتزی مثل تبدیل‌های چهاربعدی. نقطه P=(x,y,z) را در نظر بگیرید و می‌خواهیم آن را روی صفحه z=0 تصویر کنیم؛ دوربین روی
+        محور z و در نقطه (0,0,c) قرار دارد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/525d3930435c3be900e4c7956edb5a1c.png" alt="نمودار مثلث‌های مشابه برای تصویر مرکزی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مثلث‌های ABC و ODC متشابه‌اند. یعنی می‌توانیم بنویسیم: |AB|/|AC|=|OD|/|OC| = x/(c−z) = x′/c. به عبارت دیگر:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f15.png" alt="فرمول: x' برابر با xc/(c-z)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>با استدلال مشابه برای مثلث‌های CPB و CP′D، یافتن عبارت زیر آسان است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f16.png" alt="فرمول: y' برابر با yc/(c-z)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این واقعاً شبیه نتیجه‌ای است که لحظاتی پیش کنار گذاشتیم، اما آنجا نتیجه را با یک ضرب ماتریسی تنها به دست آوردیم.
+        قانون ضریب را گرفتیم: r = −1/c.</p>
+
+        <h3>جمع‌بندی: فرمول اصلی امروز</h3>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر این فرمول را بدون درک مطالب بالا صرفاً کپی-پیست کنید، از شما متنفرم.
+        </div>
+        <p>پس اگر می‌خواهیم تصویر مرکزی را با دوربینی محاسبه کنیم <b>(مهم!) که روی محور z و در فاصله c از مبدأ قرار دارد</b>،
+        نقطه را با افزودن ۱ در چهاربعدی جاسازی می‌کنیم، سپس آن را در ماتریس زیر ضرب و دوباره به سه‌بعدی بازتصویربرداری
+        می‌کنیم.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/04-perspective-projection/f17.png" alt="فرمول نهایی: ماتریس تصویربرداری پرسپکتیو کامل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>شیءمان را طوری تغییر شکل دادیم که با فراموش‌کردن ساده مختصات z آن، تصویری در پرسپکتیو بگیریم. اگر می‌خواهیم از
+        z-buffer استفاده کنیم، طبیعتاً z را فراموش نکنید. کد در <a href="https://github.com/ssloy/tinyrenderer/tree/1cce85258d1f1cf75fd10fe4d62ebfdb669f8cf9" target="_blank" rel="noopener">اینجا</a>
+        در دسترس است و نتیجه‌اش در همان ابتدای مقاله دیده می‌شود.</p>
+        <p>راه‌حل سریع خطای کامپایل (C++ 14/17) کد بالا:</p>
+        <p>در <code>geometry.cpp</code>، از:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">template &lt;&gt; template &lt;&gt; Vec3&lt;int&gt;::Vec3&lt;&gt;(const Vec3&lt;float&gt; &amp;v) : x(int(v.x+.5)), y(int(v.y+.5)), z(int(v.z+.5)) {}
+template &lt;&gt; template &lt;&gt; Vec3&lt;float&gt;::Vec3&lt;&gt;(const Vec3&lt;int&gt; &amp;v) : x(v.x), y(v.y), z(v.z) {}</code></pre>
+        <p>به:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">template &lt;&gt; template &lt;&gt; Vec3&lt;int&gt;::Vec3(const Vec3&lt;float&gt;&amp; v) : x(int(v.x + .5)), y(int(v.y + .5)), z(int(v.z + .5)) {}
+template &lt;&gt; template &lt;&gt; Vec3&lt;float&gt;::Vec3(const Vec3&lt;int&gt;&amp; v) : x(v.x), y(v.y), z(v.z) {}</code></pre>
+      </section>
+
+      <!-- ==================== درس ۵ ==================== -->
+      <section>
+        <h2>درس ۵: جابه‌جایی دوربین</h2>
+        <h3>آخرین بخش لازم از هندسه</h3>
+        <p>امروز بخشی را تمام می‌کنیم که من خیلی دوستش دارم، اما بسیاری از خوانندگان کسل‌کننده می‌یابند. وقتی مطالب امروز را
+        مسلط شدید، می‌توانید به درس بعدی بروید و آنجا واقعاً رندر انجام می‌دهیم. برای اینکه حوصله‌تان سر نرود، این همان سری است
+        که از قبل می‌شناسید، رندر شده با <a href="https://en.wikipedia.org/wiki/Gouraud_shading" target="_blank" rel="noopener">سایه‌زنی گورو</a>:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/bcdf0bba53495b4ebc86ba45f03d255e.png" alt="سر آفریقایی رندر شده با سایه‌زنی گورو و بدون بافت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همه بافت‌ها را حذف کردم. سایه‌زنی گورو واقعاً ساده است. هنرمندان سه‌بعدی مهربان ما برای هر رأس مدل بردار نرمال
+        داده‌اند؛ آن‌ها را می‌توان در خطوط «vn x y z» فایل .obj یافت. شدت نور را به‌ازای هر رأس محاسبه می‌کنیم (و نه به‌ازای هر
+        مثلث مثل قبل در سایه‌زنی تخت) و سپس به‌سادگی شدت را داخل هر مثلث درونیابی می‌کنیم، درست همان‌طور که برای مختصات z یا uv
+        انجام دادیم.</p>
+        <p>اتفاقاً، در مواردی که هنرمندان سه‌بعدی این‌قدر مهربان نیستند، می‌توانید بردارهای نرمال را به‌عنوان میانگین نرمال‌های
+        همه وجوهِ وابسته به رأس دوباره محاسبه کنید. کد فعلی‌ای که برای تولید این تصویر استفاده کردم را می‌توانید
+        <a href="https://github.com/ssloy/tinyrenderer/tree/10723326bb631d081948e5346d2a64a0dd738557" target="_blank" rel="noopener">اینجا</a> پیدا کنید.</p>
+
+        <h3>تغییر پایه در فضای سه‌بعدی</h3>
+        <p>در فضای اقلیدسی، مختصات را یک نقطه (مبدأ) و یک پایه می‌دهند. اینکه نقطه P مختصات (x,y,z) را در چهارچوب (O, i,j,k)
+        دارد یعنی چه؟ یعنی بردار OP را می‌توان این‌گونه بیان کرد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f00.png" alt="فرمول: برداری OP برابر با ترکیب خطی پایه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا تصور کنید چهارچوب دیگری (O′، i′، j′، k′) داریم. مختصات داده‌شده در یک چهارچوب را چطور به چهارچوب دیگر تبدیل
+        می‌کنیم؟ اول از همه توجه کنیم چون (i,j,k) و (i′,j′,k′) پایه‌های سه‌بعدی‌اند، ماتریس (غیرمنحط) M وجود دارد که:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f01.png" alt="فرمول: ماتریس تغییر پایه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک تصویرسازی رسم کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f66a0139058ab1d1025dbfd8cd401389.png" alt="دو چهارچوب مختصات مختلف در فضا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا بردار OP را دوباره بیان می‌کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f02.png" alt="فرمول: بردار OP با دو پایه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا در سمت راست، (i′,j′,k′) را با ماتریس تغییر پایه جایگزین می‌کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f03.png" alt="فرمول: جایگزینی ماتریس تغییر پایه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و این فرمول تبدیل مختصات از یک چهارچوب به چهارچوب دیگر را به ما می‌دهد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f04.png" alt="فرمول نهایی تغییر پایه مختصات" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بیایید gluLookAt خودمان را بسازیم</h3>
+        <p>OpenGL و در نتیجه رندرر کوچک ما، صحنه‌ها را <b>فقط با دوربینی که روی محور z قرار دارد</b> می‌توانند رسم کنند. اگر
+        می‌خواهیم دوربین را حرکت دهیم، مشکلی نیست؛ می‌توانیم کل صحنه را حرکت دهیم و دوربین را بی‌حرکت بگذاریم.</p>
+        <p>مسئله را این‌طور بگذاریم: می‌خواهیم صحنه‌ای را با دوربینی که در نقطه <b>e</b> (eye/چشم) قرار دارد رسم کنیم؛ دوربین
+        باید به سمت نقطه <b>c</b> (center/مرکز) نشانه گرفته باشد، به‌گونه‌ای که بردار داده‌شده <b>u</b> (up/بالا) در رندر نهایی
+        عمودی باشد.</p>
+        <p>تصویرسازی:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/b94dd4a591514fd66a91a6e4cc065644.png" alt="نمودار دوربین با بردارهای چشم، مرکز و بالا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یعنی می‌خواهیم رندر را در چهارچوب (c, x′,y′,z′) انجام دهیم. اما مدل ما در چهارچوب (O, x,y,z) داده شده است... مشکلی
+        نیست؛ تنها چیزی که نیاز داریم محاسبه تبدیل مختصات است. این کد ++C ماتریس 4x4 لازم ModelView را محاسبه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void lookat(Vec3f eye, Vec3f center, Vec3f up) {
+    Vec3f z = (eye-center).normalize();
+    Vec3f x = cross(up,z).normalize();
+    Vec3f y = cross(z,x).normalize();
+    Matrix Minv = Matrix::identity();
+    Matrix Tr   = Matrix::identity();
+    for (int i=0; i&lt;3; i++) {
+        Minv[0][i] = x[i];
+        Minv[1][i] = y[i];
+        Minv[2][i] = z[i];
+        Tr[i][3] = -eye[i];
+    }
+    ModelView = Minv*Tr;
+}</code></pre>
+        <p>توجه کنید z′ با بردار <b>ce</b> داده می‌شود (فراموش نکنید نرمال‌سازی کنید؛ بعداً کمک می‌کند). x′ را چطور حساب
+        می‌کنیم؟ صرفاً با یک ضرب خارجی بین <b>u</b> و z′. سپس y′ را طوری حساب می‌کنیم که بر x′ و z′ از قبل محاسبه‌شده عمود باشد
+        (یادآوری می‌کنم در صورت‌بندی مسئله ما <b>ce</b> و <b>u</b> لزوماً متعامد نیستند). آخرین گام، انتقال مبدأ به نقطه
+        ناظر <b>e</b> است و ماتریس تبدیل‌مان آماده است. حالا کافی است هر نقطه با مختصات (x,y,z,1) در چهارچوب مدل را برداریم،
+        در ماتریس ModelView ضرب کنیم و مختصات را در چهارچوب دوربین بگیریم! اتفاقاً، نام ModelView از اصطلاحات OpenGL آمده
+        است.</p>
+
+        <h3>گذرگاه دید (Viewport)</h3>
+        <p>اگر از ابتدای این دوره همراه بوده‌اید، باید خطوط عجیبی مثل این را به یاد بیاورید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">screen_coords[j] = Vec2i((v.x+1.)*width/2., (v.y+1.)*height/2.);</code></pre>
+        <p>یعنی چه؟ یعنی نقطه Vec2f v را دارم که به مربع [1,1-]×[1,1-] تعلق دارد. می‌خواهم آن را در تصویری با ابعاد (width,
+        height) رسم کنم. مقدار (v.x+1) بین ۰ و ۲ تغییر می‌کند، (v.x+1)/2 بین ۰ و ۱ و (v.x+1)*width/2 کل تصویر را می‌پیماید.
+        پس در عمل مربع دو-واحدی را روی تصویر نگاشت کردیم.</p>
+        <p>اما حالا از شر این ساختارهای زشت خلاص می‌شویم و می‌خواهم همه محاسبات را به فرم ماتریسی بازنویسی کنم. کد ++C زیر را
+        در نظر بگیریم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">Matrix viewport(int x, int y, int w, int h) {
+    Matrix m = Matrix::identity(4);
+    m[0][3] = x+w/2.f;
+    m[1][3] = y+h/2.f;
+    m[2][3] = depth/2.f;
+
+    m[0][0] = w/2.f;
+    m[1][1] = h/2.f;
+    m[2][2] = depth/2.f;
+    return m;
+}</code></pre>
+        <p>این کد این ماتریس را می‌سازد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f08.png" alt="فرمول: ماتریس گذرگاه دید (viewport)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یعنی مکعب دو-واحدی [1,1-]×[1,1-]×[1,1-] روی مکعب صفحه [x,x+w]×[y,y+h]×[0,d] نگاشت می‌شود. درست است، مکعب و نه
+        مستطیل، این به دلیل محاسبات عمق با z-buffer است. این‌جا d وضوح z-buffer است. دوست دارم برابر ۲۵۵ باشد، چون برای
+        اشکال‌زدایی، خروجی تصاویر سیاه‌وسفیدِ z-buffer ساده می‌شود.</p>
+        <p>در اصطلاحات OpenGL به این ماتریس «ماتریس گذرگاه دید» (viewport matrix) می‌گویند.</p>
+
+        <h3>زنجیره تبدیل‌های مختصاتی</h3>
+        <p>پس جمع‌بندی کنیم. مدل‌های ما (مثلاً شخصیت‌ها) در چهارچوب محلی خودشان ساخته می‌شوند (<b>مختصات شیء</b>). آن‌ها در
+        صحنه‌ای که با <b>مختصات دنیا</b> بیان شده وارد می‌شوند. تبدیل از یکی به دیگری با ماتریس <b>Model</b> انجام می‌شود.
+        سپس می‌خواهیم آن را در چهارچوب دوربین (<b>مختصات چشم</b>) بیان کنیم؛ این تبدیل <b>View</b> نام دارد. سپس صحنه را برای
+        ایجاد تغییر شکل پرسپکتیو با ماتریس <b>Projection</b> تغییر شکل می‌دهیم
+        (<a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-4:-perspective-projection" target="_blank" rel="noopener">درس ۴</a>)؛
+        این ماتریس صحنه را به اصطلاح <b>مختصات برش (clip coordinates)</b> تبدیل می‌کند. در نهایت صحنه را رسم می‌کنیم و ماتریسی
+        که مختصات برش را به <b>مختصات صفحه</b> تبدیل می‌کند <b>Viewport</b> نام دارد.</p>
+        <p>باز هم، اگر نقطه <b>v</b> را از فایل .obj بخوانیم، برای رسم آن روی صفحه این زنجیره تبدیل‌ها را طی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Viewport * Projection * View * Model * v.</code></pre>
+        <p>اگر به <a href="https://github.com/ssloy/tinyrenderer/blob/10723326bb631d081948e5346d2a64a0dd738557/main.cpp" target="_blank" rel="noopener">این</a>
+        کامیت نگاه کنید، خطوط زیر را می‌بینید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">Vec3f v = model-&gt;vert(face[j]);
+screen_coords[j] =  Vec3f(ViewPort*Projection*ModelView*Matrix(v));</code></pre>
+        <p>چون فقط یک شیء رسم می‌کنم، ماتریس Model برابر با همانی است و آن را با ماتریس View ادغام کرده‌ام.</p>
+
+        <h3>تبدیل بردارهای نرمال</h3>
+        <p>یک واقعیت مشهور است:</p>
+        <ul>
+          <li>اگر مدلی داشته باشیم و بردارهای نرمالش را هنرمند داده باشد <b>و</b> این مدل با یک نگاشت آفین تبدیل شود، آن‌گاه
+          بردارهای نرمال باید با نگاشتی برابر با ترانهاده معکوس ماتریسِ نگاشت اصلی تبدیل شوند.</li>
+        </ul>
+        <p>چی‌چی‌چی؟! با برنامه‌نویسان زیادی برخورد کرده‌ام که این واقعیت را می‌دانند، اما برایشان جادوی سیاه مانده. در واقع،
+        چندان پیچیده نیست. یک مداد بردارید و مثلث دوبعدی (0,0)، (0,1)، (1,0) و بردار <b>n</b> عمود بر وتر را رسم کنید. طبیعتاً
+        <b>n</b> برابر (1,1) است. حالا همه مختصات y را با ضریب ۲ بکشیم و مختصات x را دست‌نخورده بگذاریم. پس مثلث ما
+        (0,0)، (0,2)، (1,0) می‌شود. اگر بردار <b>n</b> را هم به همین شکل تبدیل کنیم، (1, 2) می‌شود و دیگر بر لبه تبدیل‌یافته
+        مثلث عمود نیست.</p>
+        <p>پس برای رفع تمام آن مه جادویی، باید یک چیز ساده را بفهمیم: <b>نیازی به تبدیل صرف بردارهای نرمال نیست (چون ممکن است
+        دیگر نرمال نباشند)؛ باید بردارهای نرمال (جدید)ِ مدل تبدیل‌یافته را محاسبه کنیم.</b></p>
+        <p>برگردیم به سه‌بعدی؛ بردار <b>n</b> = (A,B,C) داریم. می‌دانیم صفحه‌ای که از مبدأ می‌گذرد و <b>n</b> را به‌عنوان نرمال
+        دارد، معادله‌اش Ax+By+Cz=0 است. آن را به فرم ماتریسی بنویسیم (از همان ابتدا در مختصات همگن انجامش می‌دهم):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f05.png" alt="فرمول: معادله صفحه به فرم ماتریسی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یادآوری: (A,B,C) یک بردار است، پس هنگام جاسازی در چهاربعدی آن را با ۰ افزایش می‌دهیم و (x,y,z) چون نقطه است با ۱.</p>
+        <p>ماتریس همانی را وسط قرار دهیم (معکوس M ضربدر M برابر همانی است):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f06.png" alt="فرمول: درج ماتریس همانی در معادله" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>عبارت داخل پرانتز راست — برای نقاط تبدیل‌یافته شیء است. سمت چپ — برای بردارهای نرمالِ شیء تبدیل‌یافته است! طبق
+        قرارداد استاندارد معمولاً مختصات را به‌صورت ستون می‌نویسیم (لطفاً بحث بردارهای هم‌وردا و پادوردا را باز نکنیم)، پس
+        می‌توانیم عبارت قبلی را این‌گونه بازنویسی کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/05-camera/f07.png" alt="فرمول: معادله به فرم ستونی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و پرانتز سمت چپ به ما می‌گوید نرمالِ شیء تبدیل‌یافته را می‌توان از نرمال قدیمی با اعمال ماتریسِ ترانهاده معکوسِ
+        نگاشت آفین محاسبه کرد.</p>
+        <p>لطفاً توجه کنید اگر ماتریس تبدیل M ترکیبی از مقیاس‌های یکنواخت، چرخش‌ها و جابه‌جایی‌ها باشد (یک هم‌ریختی فضای
+        اقلیدسی)، آن‌گاه M با ترانهاده معکوسش برابر است، چون در این حالت معکوس و ترانهاده یکدیگر را خنثی می‌کنند. اما چون
+        ماتریس‌های ما تغییر شکل‌های پرسپکتیو را شامل می‌شوند، معمولاً این ترفند فایده‌ای ندارد.</p>
+        <p>در کد فعلی از تبدیل بردارهای نرمال استفاده نمی‌کنیم، اما در درس بعدی خیلی‌خیلی به کارمان می‌آید.</p>
+        <p>کدنویسی خوش!</p>
+      </section>
+
+      <!-- ==================== درس ۶ ==================== -->
+      <section>
+        <h2>درس ۶: شیدرها برای رندرر نرم‌افزاری</h2>
+        <div class="callout note">
+          <strong>یادآوری:</strong> همه کد منبع من در اینجا برای مقایسه با کد خودتان است. از کد من استفاده نکنید؛ کد خودتان
+          را بنویسید. من برنامه‌نویس بدی هستم. لطفاً دیوانه‌وارترین شیدرها را بسازید و تصاویر را برایم بفرستید؛ اینجا
+          پستشان می‌کنم.
+        </div>
+        <p>وقت تفریح! اول از همه، وضعیت فعلی <a href="https://github.com/ssloy/tinyrenderer/tree/f037c7a0517a632c7391b35131f9746a8f8bb235" target="_blank" rel="noopener">کد منبع</a> را بررسی کنیم:</p>
+        <ul>
+          <li>geometry.cpp+h — ۲۱۸ خط</li>
+          <li>model.cpp+h — ۱۳۹ خط</li>
+          <li>our_gl.cpp+h — ۱۰۲ خط</li>
+          <li>main.cpp — ۶۶ خط</li>
+        </ul>
+        <p>در مجموع ۵۲۵ خط، دقیقاً همان‌چیزی که می‌خواستیم. لطفاً توجه کنید تنها فایل‌هایی که مسئول رندر واقعی‌اند در
+        our_gl.* و main.cpp با <b>در مجموع ۱۶۸ خط</b> هستند.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/e3cd704925f52b5466ab3c4f9fbab899.png" alt="رندر سر آفریقایی با شیدر گورو از برنامه ۵۲۵ خطی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بازآرایی (Refactoring) کد منبع</h3>
+        <p>خوب، main.cpp ما دارد بیش از حد بزرگ می‌شود؛ بیایید آن را به دو بخش تقسیم کنیم:</p>
+        <ul>
+          <li>our_gl.cpp+h — این بخش را برنامه‌نویس نمی‌تواند لمس کند؛ تقریباً، دودویی کتابخانه OpenGL است</li>
+          <li>main.cpp — اینجا هر چه بخواهیم برنامه‌نویسی می‌کنیم.</li>
+        </ul>
+        <p>حالا چه چیزی در our_gl گذاشتم؟ ماتریس‌های ModelView و Viewport و Projection به‌همراه توابع مقداردهی اولیه و
+        رسترایزر مثلث. همین و بس!</p>
+        <p>محتوای فایل our_gl.h این است (ساختار IShader را بعداً پوشش می‌دهم):</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">#include "tgaimage.h"
+#include "geometry.h"
+
+extern Matrix ModelView;
+extern Matrix Viewport;
+extern Matrix Projection;
+
+void viewport(int x, int y, int w, int h);
+void projection(float coeff=0.f); // coeff = -1/c
+void lookat(Vec3f eye, Vec3f center, Vec3f up);
+
+struct IShader {
+    virtual ~IShader();
+    virtual Vec3i vertex(int iface, int nthvert) = 0;
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) = 0;
+};
+
+void triangle(Vec4f *pts, IShader &amp;shader, TGAImage &amp;image, TGAImage &amp;zbuffer);</code></pre>
+        <p>فایل main.cpp حالا فقط ۶۶ خط دارد، پس لیست کاملش را می‌دهم (ببخشید برای کد بلند، اما آن را کامل می‌نویسم چون
+        خیلی‌اش دوست دارم):</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+#include "tgaimage.h"
+#include "model.h"
+#include "geometry.h"
+#include "our_gl.h"
+
+Model *model     = NULL;
+const int width  = 800;
+const int height = 800;
+
+Vec3f light_dir(1,1,1);
+Vec3f       eye(1,1,3);
+Vec3f    center(0,0,0);
+Vec3f        up(0,1,0);
+
+struct GouraudShader : public IShader {
+    Vec3f varying_intensity; // توسط شیدر رأس نوشته می‌شود، توسط شیدر فرگمنت خوانده می‌شود
+
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_intensity[nthvert] = std::max(0.f, model-&gt;normal(iface, nthvert)*light_dir); // شدت نور پخش (دیفیوز) را بگیر
+        Vec4f gl_Vertex = embed&lt;4&gt;(model-&gt;vert(iface, nthvert)); // رأس را از فایل .obj بخوان
+        return Viewport*Projection*ModelView*gl_Vertex; // آن را به مختصات صفحه تبدیل کن
+    }
+
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        float intensity = varying_intensity*bar;   // شدت را برای پیکسل جاری درونیابی کن
+        color = TGAColor(255, 255, 255)*intensity; // خب معلوم است
+        return false;                              // نه، این پیکسل را دور نمی‌اندازیم
+    }
+};
+
+int main(int argc, char** argv) {
+    if (2==argc) {
+        model = new Model(argv[1]);
+    } else {
+        model = new Model("obj/african_head.obj");
+    }
+
+    lookat(eye, center, up);
+    viewport(width/8, height/8, width*3/4, height*3/4);
+    projection(-1.f/(eye-center).norm());
+    light_dir.normalize();
+
+    TGAImage image  (width, height, TGAImage::RGB);
+    TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
+
+    GouraudShader shader;
+    for (int i=0; i&lt;model-&gt;nfaces(); i++) {
+        Vec4f screen_coords[3];
+        for (int j=0; j&lt;3; j++) {
+            screen_coords[j] = shader.vertex(i, j);
+        }
+        triangle(screen_coords, shader, image, zbuffer);
+    }
+
+    image.  flip_vertically(); // برای قرار دادن مبدأ در گوشه پایین-چپ تصویر
+    zbuffer.flip_vertically();
+    image.  write_tga_file("output.tga");
+    zbuffer.write_tga_file("zbuffer.tga");
+
+    delete model;
+    return 0;
+}</code></pre>
+        <p>ببینیم چطور کار می‌کند. با نادیده‌گرفتن هدرها، چند ثابت سراسری اعلام می‌کنیم: ابعاد صفحه، موقعیت دوربین و غیره.
+        ساختار GouraudShader را در پاراگراف بعد توضیح می‌دهم، پس فعلاً از آن بگذریم. بعد تابع اصلی main() است:</p>
+        <ul>
+          <li>پارس فایل .obj</li>
+          <li>مقداردهی اولیه ماتریس‌های ModelView و Projection و Viewport (یادآوری: نمونه‌های واقعی این ماتریس‌ها در ماژول
+          our_gl هستند)</li>
+          <li>پیمایش همه مثلث‌های مدل و رسترایز هر مثلث.</li>
+        </ul>
+        <p>آخرین مرحله جالب‌ترین است. حلقه بیرونی همه مثلث‌ها را پیمایش می‌کند. حلقه داخلی همه رئوس مثلث جاری را پیمایش و
+        برای هر رأس یک شیدر رأس (vertex shader) صدا می‌زند.</p>
+        <p><b>هدف اصلی شیدر رأس، تبدیل مختصات رئوس است. هدف ثانویه، آماده‌کردن داده برای شیدر فرگمنت.</b></p>
+        <p>بعد از آن چه اتفاقی می‌افتد؟ روتین رسترایزیشن را صدا می‌زنیم. درون رسترایزر چه می‌گذرد را نمی‌دانیم (خب، می‌دانیم،
+        چون خودمان برنامه‌اش کردیم!) با یک استثنا. می‌دانیم که رسترایزر برای هر پیکسل <b>روتین ما</b> یعنی شیدر فرگمنت را صدا
+        می‌زند. باز هم می‌گویم: برای هر پیکسل داخل مثلث، رسترایزر «کال‌بک» (نقطه تماس) خودمان یعنی شیدر فرگمنت را صدا می‌زند.</p>
+        <p><b>هدف اصلی شیدر فرگمنت تعیین رنگ پیکسل جاری است. هدف ثانویه — با برگرداندن true می‌توانیم پیکسل جاری را دور
+        بیندازیم.</b></p>
+        <p>خط لوله رندر برای OpenGL 2 را می‌توان این‌گونه نشان داد (در واقع، برای نسخه‌های جدیدتر هم کم‌وبیش همین است):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/OpenGL-2.0-Programmable-Shader-Pipeline.png" alt="نمودار خط لوله رندر برنامه‌پذیر OpenGL 2" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>به دلیل محدودیت زمانی دوره‌ام، به خط لوله OpenGL 2 و در نتیجه فقط شیدرهای فرگمنت و رأس اکتفا می‌کنم. در نسخه‌های
+        جدیدتر OpenGL شیدرهای دیگری هم هست که مثلاً اجازه تولید هندسه در لحظه را می‌دهند.</p>
+        <p>خوب، در تصویر بالا همه مرحله‌هایی که نمی‌توانیم لمس کنیم آبی نشان داده شده‌اند و کال‌بک‌های ما نارنجی. در واقع،
+        تابع main() ما روتین <b>پردازش بدوی</b> است. شیدر رأس را صدا می‌زند. اسمبلی بدوی در اینجا نداریم، چون فقط مثلث‌های
+        احمق می‌کشیم (در کد ما با پردازش بدوی ادغام شده). تابع triangle() <b>رسترایزر</b> است؛ برای هر نقطه داخل مثلث
+        <b>شیدر فرگمنت</b> را صدا می‌زند، سپس بررسی‌های عمق (z-buffer) و چیزهایی از این دست را انجام می‌دهد.</p>
+        <p>همین. حالا می‌دانید شیدرها چی‌اند و می‌توانید شیدرهای خودتان را بسازید.</p>
+
+        <h3>پیاده‌سازی من از شیدرها، روی سایه‌زنی گورو</h3>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/output.png" alt="خروجی شیدر گورو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>شیدری که در main.cpp بالا لیست کردم را بررسی کنیم. مطابق نامش، یک شیدر گورو است. کد را دوباره لیست می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">Vec3f varying_intensity; // توسط شیدر رأس نوشته می‌شود، توسط شیدر فرگمنت خوانده می‌شود
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_intensity[nthvert] = std::max(0.f, model-&gt;normal(iface, nthvert)*light_dir); // شدت نور پخش (دیفیوز) را بگیر
+        Vec4f gl_Vertex = embed&lt;4&gt;(model-&gt;vert(iface, nthvert)); // رأس را از فایل .obj بخوان
+        return Viewport*Projection*ModelView*gl_Vertex; // آن را به مختصات صفحه تبدیل کن
+    }</code></pre>
+        <p><b>varying</b> یک کلمه کلیدی رزروشده در زبان GLSL است؛ من عنوان varying_intensity را برای نشان‌دادن تناظر انتخاب
+        کرده‌ام (در <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-9:-Real-OpenGL-(GLSL)-application" target="_blank" rel="noopener">درس ۹</a>
+        درباره GLSL صحبت خواهیم کرد). در متغیرهای varying داده‌ای را ذخیره می‌کنیم که باید داخل مثلث درونیابی شود و شیدرهای
+        فرگمنت مقدار درونیابی‌شده (برای پیکسل جاری) را می‌گیرند.</p>
+        <p>شیدر فرگمنت را دوباره لیست کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">Vec3f varying_intensity; // توسط شیدر رأس نوشته می‌شود، توسط شیدر فرگمنت خوانده می‌شود
+// [...]
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        float intensity = varying_intensity*bar;   // شدت را برای پیکسل جاری درونیابی کن
+        color = TGAColor(255, 255, 255)*intensity; // خب معلوم است
+        return false;                              // نه، این پیکسل را دور نمی‌اندازیم
+    }</code></pre>
+        <p>این روتین برای هر پیکسل داخل مثلثی که رسم می‌کنیم صدا زده می‌شود؛ به‌عنوان ورودی
+        <a href="https://en.wikipedia.org/wiki/Barycentric_coordinate_system" target="_blank" rel="noopener">مختصات باری‌سنتریک</a>
+        را برای درونیابی داده‌های varying_ دریافت می‌کند. پس شدت درونیابی‌شده را می‌توان به‌صورت
+        varying_intensity[0]*bar[0]+varying_intensity[1]*bar[1]+varying_intensity[2]*bar[2] یا به‌سادگی به‌صورت ضرب داخلی دو
+        بردار varying_intensity*bar محاسبه کرد. در GLSL واقعی، طبیعتاً شیدرهای فرگمنت مقادیر آماده درونیابی‌شده دریافت
+        می‌کنند.</p>
+        <p>توجه کنید شیدر یک مقدار bool برمی‌گرداند. اگر به درون رسترایزر نگاه کنیم (our_gl.cpp، تابع triangle())، فهمیدن
+        کارش آسان است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">TGAColor color;
+            bool discard = shader.fragment(c, color);
+            if (!discard) {
+                zbuffer.set(P.x, P.y, TGAColor(P.z));
+                image.set(P.x, P.y, color);
+            }</code></pre>
+        <p>شیدر فرگمنت می‌تواند رسم پیکسل جاری را کنار بگذارد؛ در آن صورت رسترایزر به‌سادگی از آن می‌گذرد. اگر بخواهیم ماسک
+        دودویی یا هر چیز دیگری بسازیم، به کار می‌آید (برای یک مثال خیلی باحال از کنارگذاشتن پیکسل‌ها به
+        <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-9:-Real-OpenGL-(GLSL)-application" target="_blank" rel="noopener">درس ۹</a>
+        مراجعه کنید).</p>
+        <p>البته رسترایزر نمی‌تواند همه چیزهای عجیبوغریبِ برنامه‌پذیرِ شما را تصور کند، پس نمی‌تواند از قبل با شیدرتان
+        کامپایل شود. اینجا از کلاس انتزاعی IShader به‌عنوان واسط بین این دو استفاده می‌کنیم. وای، خیلی کم پیش می‌آید از
+        کلاس‌های انتزاعی استفاده کنم، اما بدون آن اینجا زجر می‌کشیدیم. اشاره‌گرهای توابع زشت‌اند.</p>
+
+        <h3>اولین تغییر شیدرها</h3>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        float intensity = varying_intensity*bar;
+        if (intensity&gt;.85) intensity = 1;
+        else if (intensity&gt;.60) intensity = .80;
+        else if (intensity&gt;.45) intensity = .60;
+        else if (intensity&gt;.30) intensity = .45;
+        else if (intensity&gt;.15) intensity = .30;
+        else intensity = 0;
+        color = TGAColor(255, 155, 0)*intensity;
+        return false;
+    }</code></pre>
+        <p>تغییر ساده سایه‌زنی گورو که در آن شدت‌ها فقط ۶ مقدار مجاز دارند؛ نتیجه این است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/f2bf83c5994b9051aaba499cb05e65bf.png" alt="رندر با شدت‌های کمی‌شده به شش سطح نارنجی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بافت‌ها</h3>
+        <p><a href="https://en.wikipedia.org/wiki/Phong_shading" target="_blank" rel="noopener">سایه‌زنی فونگ</a> را رد می‌کنم،
+        اما مقاله را نگاه کنید. تکلیف خانه‌ای که برای بافت‌گذاری داده بودم را یادتان هست؟ باید مختصات uv را درونیابی
+        می‌کردیم. پس یک ماتریس 2x3 می‌سازم. ۲ سطر برای u و v، ۳ ستون (یکی برای هر رأس).</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">struct Shader : public IShader {
+    Vec3f          varying_intensity; // توسط شیدر رأس نوشته می‌شود، توسط شیدر فرگمنت خوانده می‌شود
+    mat&lt;2,3,float&gt; varying_uv;        // درست مثل بالا
+
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_uv.set_col(nthvert, model-&gt;uv(iface, nthvert));
+        varying_intensity[nthvert] = std::max(0.f, model-&gt;normal(iface, nthvert)*light_dir); // شدت نور پخش (دیفیوز) را بگیر
+        Vec4f gl_Vertex = embed&lt;4&gt;(model-&gt;vert(iface, nthvert)); // رأس را از فایل .obj بخوان
+        return Viewport*Projection*ModelView*gl_Vertex; // آن را به مختصات صفحه تبدیل کن
+    }
+
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        float intensity = varying_intensity*bar;   // شدت را برای پیکسل جاری درونیابی کن
+        Vec2f uv = varying_uv*bar;                 // uv را برای پیکسل جاری درونیابی کن
+        color = model-&gt;diffuse(uv)*intensity;      // خب معلوم است
+        return false;                              // نه، این پیکسل را دور نمی‌اندازیم
+    }
+};</code></pre>
+        <p>نتیجه این است:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/51f723ffe99f4c6888a13091796da8f7.png" alt="سر آفریقایی با بافت دیفیوز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>نگاشت نرمال (Normalmapping)</h3>
+        <p>خوب، حالا مختصات بافت داریم. در تصاویر بافت چه چیزهایی می‌توانیم ذخیره کنیم؟ در واقع تقریباً هر چیزی. می‌تواند رنگ،
+        جهت، دما و غیره باشد. این بافت را بارگذاری کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/african_head_nm.png" alt="بافت نگاشت نرمال سر آفریقایی در دستگاه مختصات سراسری" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر مقادیر RGB را به‌عنوان جهت‌های xyz تفسیر کنیم، این تصویر بردارهای نرمال را <b>برای هر پیکسل</b> رندرمان می‌دهد،
+        نه فقط به‌ازای هر رأس مثل قبل.</p>
+        <p>اتفاقاً، این تصویر را با یکی دیگر مقایسه کنید؛ دقیقاً همان اطلاعات را می‌دهد، اما در چهارچوبی دیگر:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/african_head_nm_tangent.png" alt="بافت نگاشت نرمال سر آفریقایی در فضای مماس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یکی از تصاویر بردارهای نرمال را در دستگاه مختصات سراسری (دکارتی) می‌دهد و دیگری در
+        <a href="https://en.wikipedia.org/wiki/Darboux_frame" target="_blank" rel="noopener">چهارچوب داربو</a> (به اصطلاح
+        فضای مماس). در چهارچوب داربو بردار z بر شیء عمود است، x جهت انحنای اصلی و y ضرب خارجی آن‌هاست.</p>
+        <p><b>تمرین ۱:</b> می‌توانید بگویید کدام تصویر در چهارچوب داربو و کدام در دستگاه مختصات سراسری است؟</p>
+        <p><b>تمرین ۲:</b> می‌توانید بگویید کدام بازنمایی بهتر است و اگر بله، چرا؟</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">struct Shader : public IShader {
+    mat&lt;2,3,float&gt; varying_uv;  // درست مثل بالا
+    mat&lt;4,4,float&gt; uniform_M;   //  Projection*ModelView
+    mat&lt;4,4,float&gt; uniform_MIT; // (Projection*ModelView).invert_transpose()
+
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_uv.set_col(nthvert, model-&gt;uv(iface, nthvert));
+        Vec4f gl_Vertex = embed&lt;4&gt;(model-&gt;vert(iface, nthvert)); // رأس را از فایل .obj بخوان
+        return Viewport*Projection*ModelView*gl_Vertex; // آن را به مختصات صفحه تبدیل کن
+   }
+
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        Vec2f uv = varying_uv*bar;                 // uv را برای پیکسل جاری درونیابی کن
+        Vec3f n = proj&lt;3&gt;(uniform_MIT*embed&lt;4&gt;(model-&gt;normal(uv))).normalize();
+        Vec3f l = proj&lt;3&gt;(uniform_M  *embed&lt;4&gt;(light_dir        )).normalize();
+        float intensity = std::max(0.f, n*l);
+        color = model-&gt;diffuse(uv)*intensity;      // خب معلوم است
+        return false;                              // نه، این پیکسل را دور نمی‌اندازیم
+    }
+};
+[...]
+    Shader shader;
+    shader.uniform_M   =  Projection*ModelView;
+    shader.uniform_MIT = (Projection*ModelView).invert_transpose();
+    for (int i=0; i&lt;model-&gt;nfaces(); i++) {
+        Vec4f screen_coords[3];
+        for (int j=0; j&lt;3; j++) {
+            screen_coords[j] = shader.vertex(i, j);
+        }
+        triangle(screen_coords, shader, image, zbuffer);
+    }</code></pre>
+        <p><b>Uniform</b> یک کلمه کلیدی رزروشده در GLSL است؛ اجازه می‌دهد ثابت‌ها را به شیدرها پاس دهیم. اینجا ماتریس
+        Projection*ModelView و ترانهاده معکوسش را برای تبدیل بردارهای نرمال پاس می‌دهم (به انتهای
+        <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-5:-Moving-the-camera" target="_blank" rel="noopener">درس ۵</a>
+        مراجعه کنید). پس محاسبه شدت نور مثل قبل است با یک استثنا: به‌جای درونیابی بردارهای نرمال، اطلاعات را از بافت نگاشت
+        نرمال می‌گیریم (فراموش نکنید بردار نور و بردارهای نرمال را تبدیل کنید).</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/161ecc7c4f0147ca8ae66f0eb21baf29.png" alt="سر آفریقایی با نگاشت نرمال در دستگاه سراسری" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>نگاشت براقیت (Specular mapping)</h3>
+        <p>خوب، به تفریح ادامه دهیم. تمام علم گرافیک رایانه‌ای هنر فریب‌دادن است. برای فریب (ارزان) چشم از
+        <a href="https://en.wikipedia.org/wiki/Phong_reflection_model" target="_blank" rel="noopener">تقریب فونگ</a> از مدل
+        نورپردازی استفاده می‌کنیم. فونگ پیشنهاد کرد نورپردازی نهایی را به‌صورت مجموع (موزون) سه شدت نور در نظر بگیریم:
+        نور محیطی (ثابت برای کل صحنه)، نور پخش/دیفیوز (همانی که تا این لحظه محاسبه می‌کردیم) و نور براق/اسپکولار.</p>
+        <p>به تصویر زیر نگاه کنید؛ خودش گویاست:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/e3720a5dfedc49edb0bf70f8bc64204a.png" alt="نمودار اجزای مدل نورپردازی فونگ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>نور دیفیوز را به‌صورت کسینوس زاویه بین بردار نرمال و بردار جهت نور محاسبه می‌کنیم. یعنی فرض می‌کنیم نور به‌طور
+        یکنواخت در همه جهت‌ها بازتاب می‌شود. با سطوح براق چه اتفاقی می‌افتد؟ در حالت حدی (آینه)، پیکسل روشن می‌شود اگر و فقط
+        اگر بتوانیم بازتاب منبع نور را از این پیکسل ببینیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/d58cd3bbab46463e87b782a12a147fbb.png" alt="نمودار بازتاب آینه‌ای نور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای نور دیفیوز (کسینوس) زاویه بین بردارهای <b>n</b> و <b>l</b> را محاسبه کردیم و حالا به (کسینوس) زاویه بین
+        بردارهای <b>r</b> (جهت نور بازتابیده) و <b>v</b> (جهت دید) علاقه‌مندیم.</p>
+        <p><b>تمرین ۳:</b> با بردارهای <b>n</b> و <b>l</b>، بردار <b>r</b> را پیدا کنید.</p>
+        <p><i>پاسخ:</i> اگر <b>n</b> و <b>l</b> نرمال‌شده باشند، آن‌گاه <b>r</b> = 2<b>n</b><b>n</b>·<b>l</b> − <b>l</b></p>
+        <p>برای نور دیفیوز شدت نور را به‌صورت کسینوس محاسبه کردیم. اما سطح براق در یک جهت خیلی بیشتر از جهت‌های دیگر بازتاب
+        می‌کند! خوب، اگر توان دهم کسینوس را بگیریم چه اتفاقی می‌افتد؟ یادآوری: هر عددی که کمتر از ۱ باشد با به‌توان‌رساندن
+        کوچک‌تر می‌شود. یعنی توان دهم کسینوس شعاع کوچک‌تری برای پرتو بازتاب‌شده می‌دهد. و توان صدم شعاع پرتو <b>خیلی</b>
+        کوچک‌تری می‌دهد. این توان در یک بافت مخصوص (بافت نگاشت براقیت) ذخیره می‌شود که برای هر نقطه می‌گوید آن نقطه براق
+        است یا نه.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">struct Shader : public IShader {
+    mat&lt;2,3,float&gt; varying_uv;  // درست مثل بالا
+    mat&lt;4,4,float&gt; uniform_M;   //  Projection*ModelView
+    mat&lt;4,4,float&gt; uniform_MIT; // (Projection*ModelView).invert_transpose()
+
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_uv.set_col(nthvert, model-&gt;uv(iface, nthvert));
+        Vec4f gl_Vertex = embed&lt;4&gt;(model-&gt;vert(iface, nthvert)); // رأس را از فایل .obj بخوان
+        return Viewport*Projection*ModelView*gl_Vertex; // آن را به مختصات صفحه تبدیل کن
+    }
+
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        Vec2f uv = varying_uv*bar;
+        Vec3f n = proj&lt;3&gt;(uniform_MIT*embed&lt;4&gt;(model-&gt;normal(uv))).normalize();
+        Vec3f l = proj&lt;3&gt;(uniform_M  *embed&lt;4&gt;(light_dir        )).normalize();
+        Vec3f r = (n*(n*l*2.f) - l).normalize();   // نور بازتابیده
+        float spec = pow(std::max(r.z, 0.0f), model-&gt;specular(uv));
+        float diff = std::max(0.f, n*l);
+        TGAColor c = model-&gt;diffuse(uv);
+        color = c;
+        for (int i=0; i&lt;3; i++) color[i] = std::min&lt;float&gt;(5 + c[i]*(diff + .6*spec), 255);
+        return false;
+    }
+};</code></pre>
+        <p>فکر می‌کنم به‌جز ضرایب، نیازی به توضیح هیچ‌چیز در کد بالا نیست.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">for (int i=0; i&lt;3; i++) color[i] = std::min&lt;float&gt;(5 + c[i]*(diff + .6*spec), 255);</code></pre>
+        <p>برای مؤلفه محیطی ۵ گرفتم، برای مؤلفه دیفیوز ۱ و برای مؤلفه براق ۰٫۶. انتخاب ضرایب با شماست. انتخاب‌های متفاوت
+        ظاهر متفاوتی به شیء می‌دهند. معمولاً این انتخاب بر عهده هنرمند است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> لطفاً توجه کنید که معمولاً مجموع ضرایب باید برابر ۱ باشد، اما می‌دانید... من دوست دارم نور
+          بسازم.
+        </div>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/5ac94044fb2b405f9b9c1647e5b86feb.png" alt="سر آفریقایی با مدل نورپردازی کامل فونگ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06-shaders/boggie.png" alt="مدل بوگی رندر شده با شیدر فونگ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>نتیجه‌گیری</h3>
+        <p>می‌دانیم چطور صحنه‌های کاملاً خوبی رندر کنیم، اما نورپردازی‌مان از واقعیت خیلی دور است. در مقاله‌های بعدی درباره
+        سایه‌ها صحبت خواهم کرد.</p>
+        <p>لذت ببرید!</p>
+      </section>
+
+      <!-- ==================== درس ۶bis ==================== -->
+      <section>
+        <h2>درس ۶bis: نگاشت نرمال با فضای مماس</h2>
+        <p>موضوع امروز <a href="https://en.wikipedia.org/wiki/Normal_mapping" target="_blank" rel="noopener">نگاشت نرمال</a>
+        است. تفاوت اصلی نگاشت نرمال با سایه‌زنی فونگ چیست؟ کلید، چگالی اطلاعاتی است که داریم. برای سایه‌زنی فونگ از بردارهای
+        نرمال داده‌شده به‌ازای هر رأس مش مثلثی استفاده می‌کنیم (و داخل مثلث‌ها درونیابی‌شان می‌کنیم)، در حالی‌که بافت‌های
+        نگاشت نرمال اطلاعات متراکم فراهم می‌کنند و جزئیات رندر را به‌طور چشمگیری بهبود می‌دهند.</p>
+        <p>خب، ما از قبل نگاشت نرمال را در <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-6:-Shaders-for-the-software-renderer" target="_blank" rel="noopener">درس قبلی</a>
+        اعمال کردیم، اما برای ذخیره بافت از دستگاه مختصات سراسری استفاده کردیم. امروز درباره نگاشت نرمال
+        <a href="https://en.wikipedia.org/wiki/Darboux_frame" target="_blank" rel="noopener">فضای مماس</a> صحبت می‌کنیم.</p>
+        <p>پس، دو بافت داریم؛ سمت چپی در چهارچوب سراسری داده شده (تبدیل مستقیم RGB به نرمال XYZ) و سمت راستی در چهارچوب
+        داربو:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/nm_textures.jpg" alt="مقایسه بافت نرمال در چهارچوب سراسری و چهارچوب داربو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای استفاده از بافت راست، برای هر پیکسلی که رسم می‌کنیم چهارچوب فضای مماس (داربو) را محاسبه می‌کنیم. در این پایه،
+        یک بردار (معمولاً z) بر سطح عمود است و دو تای دیگر صفحه مماس در نقطه جاری را می‌دهند. سپس یک بردار نرمال (آشفته‌شده)
+        را از بافت‌مان می‌خوانیم، مختصاتش را از چهارچوب داربو به دستگاه مختصات سراسری تبدیل می‌کنیم و تمام. معمولاً نگاشت‌های
+        نرمال اختلالات کوچکی در بردارهای نرمال می‌دهند؛ بنابراین بافت‌ها رنگ آبی غالب دارند.</p>
+        <p>خب، این همه شلوغی برای چیست؟ چرا مثل قبل از دستگاه سراسری استفاده نمی‌کنیم؟ تصور کنید می‌خواهیم مدلمان را متحرک
+        کنیم. مثلاً مدل آقای سیاه‌پوست را برداشتم و دهانش را باز کردم. واضح است که بردارهای نرمال باید تغییر کنند.</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/global_vs_tangent.jpg" alt="مقایسه نگاشت نرمال سراسری و فضای مماس هنگام بازکردن دهان مدل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تصویر چپ سر را با دهان باز می‌دهد، اما با بافت نرمال (چهارچوب سراسری) تغییرنیافته. داخل لب پایین را دقیق نگاه
+        کنید. نور مستقیم به صورتش می‌تابد؛ وقتی دهان بسته بود، پشت لب پایین طبیعتاً روشن نبود. حالا دهان باز است، اما لب روشن
+        نیست... تصویر راست با نگاشت نرمال فضای مماس محاسبه شد.</p>
+        <p>بنابراین، اگر مدل متحرکی داشته باشیم، برای نگاشت نرمال درست در چهارچوب سراسری به یک بافت برای هر فریم انیمیشن
+        نیاز داریم، در حالی‌که فضای مماس با مدل تغییر شکل می‌دهد و فقط به یک بافت نیاز داریم!</p>
+        <p>مثال دیگری:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/global_vs_tangent_diablo.jpg" alt="مقایسه نگاشت نرمال سراسری و فضای مماس برای مدل دیابلو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این‌ها بافت‌های مدل دیابلو هستند. توجه کنید فقط یک دست در بافت رسم شده و فقط یک طرفِ دم. هنرمند از همان بافت برای
+        هر دو بازو و هر دو طرف دم استفاده کرده. یعنی در دستگاه مختصات سراسری می‌توانم بردارهای نرمال را یا برای طرف چپ دم
+        فراهم کنم یا برای طرف راست، اما نه برای هر دو! برای بازوها هم همین طور. و برای چپ و راست به اطلاعات متفاوتی نیاز
+        دارم؛ مثلاً استخوان‌های گونه چپ و راست را در تصویر چپ بررسی کنید؛ طبیعتاً بردارهای نرمال در جهت‌های مخالف‌اند!</p>
+        <p>با بخش انگیزه‌سازی تمام کنیم و مستقیم برویم سر محاسبات.</p>
+
+        <h3>نقطه شروع: سایه‌زنی فونگ</h3>
+        <p>خوب، این <a href="https://github.com/ssloy/tinyrenderer/tree/e30ff353121460557e29dced5708652171dbc7d2" target="_blank" rel="noopener">نقطه شروع</a>
+        است. شیدر واقعاً ساده است؛ همان سایه‌زنی فونگ است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">struct Shader : public IShader {
+    mat&lt;2,3,float&gt; varying_uv;  // مختصات uv مثلث؛ توسط شیدر رأس نوشته و توسط شیدر فرگمنت خوانده می‌شود
+    mat&lt;3,3,float&gt; varying_nrm; // نرمال هر رأس که شیدر فرگمنت باید درونیابی کند
+
+    virtual Vec4f vertex(int iface, int nthvert) {
+        varying_uv.set_col(nthvert, model-&gt;uv(iface, nthvert));
+        varying_nrm.set_col(nthvert, proj&lt;3&gt;((Projection*ModelView).invert_transpose()*embed&lt;4&gt;(model-&gt;normal(iface, nthvert), 0.f)));
+        Vec4f gl_Vertex = Projection*ModelView*embed&lt;4&gt;(model-&gt;vert(iface, nthvert));
+        varying_tri.set_col(nthvert, gl_Vertex);
+        return gl_Vertex;
+    }
+
+    virtual bool fragment(Vec3f bar, TGAColor &amp;color) {
+        Vec3f bn = (varying_nrm*bar).normalize();
+        Vec2f uv = varying_uv*bar;
+
+        float diff = std::max(0.f, bn*light_dir);
+        color = model-&gt;diffuse(uv)*diff;
+        return false;
+    }
+};</code></pre>
+        <p>تصویر رندر شده:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/starting_point_a.jpg" alt="نقطه شروع: سر آفریقایی با سایه‌زنی فونگ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای مقاصد آموزشی و اشکال‌زدایی، بافت پوست را حذف و <a href="https://github.com/ssloy/tinyrenderer/raw/master/obj/grid.tga" target="_blank" rel="noopener">یک شبکه منظم</a>
+        با خط‌های افقی قرمز و عمودی آبی اعمال می‌کنم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/starting_point_b.jpg" alt="سر آفریقایی با بافت شبکه برای اشکال‌زدایی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یادمان باشد سایه‌زنی فونگ چطور کار می‌کند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/grid_texture.png" alt="نمودار بافت شبکه با خطوط u و v" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای هر رأس مثلث مختصاتش p، مختصات بافت uv و بردارهای نرمال را داریم. برای سایه‌زنی فرگمنت جاری، رسترایزر
+        نرم‌افزاری‌مان مختصات باری‌سنتریک فرگمنت (alpha, beta, gamma) را می‌دهد. یعنی مختصات فرگمنت را می‌توان به‌صورت
+        p = alpha p0 + beta p1 + gamma p2 به دست آورد. بعد به همین شکل مختصات بافت و بردار نرمال را درونیابی می‌کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f00.png" alt="فرمول: درونیابی باری‌سنتریک مختصات بافت و نرمال" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>توجه کنید خطوط آبی و قرمز به‌ترتیب خطوط هم‌تراز u و v هستند. پس برای هر نقطه از سطح تعریف به اصطلاح چهارچوب داربو
+        می‌کنیم که محورهای x و y موازی خطوط آبی و قرمزند و محور z عمود بر سطح. این چهارچوب همان‌جایی است که نگاشت نرمال
+        فضای مماس زندگی می‌کند.</p>
+
+        <h3>چگونه یک تابع خطی (سه‌بعدی) را از سه نمونه بازسازی کنیم</h3>
+        <p>خوب، هدف ما محاسبه سه بردار (پایه مماس) برای هر پیکسلی است که رسم می‌کنیم. فعلاً کنارش بگذاریم و تابع خطی f را
+        تصور کنیم که برای هر نقطه (x,y,z) عدد حقیقی f(x,y,z) = Ax + By + Cz + D می‌دهد. تنها مشکل این است که A و B و C و D را
+        نمی‌دانیم، اما سه مقدار تابع را در سه نقطه متفاوت فضا می‌دانیم (p0, p1, p2):</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f01.png" alt="فرمول: سه نقطه نمونه با مقادیر تابع" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/gradient_a.png" alt="نمودار سطح شیب‌دار با خطوط هم‌تراز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>راحت است f را به‌عنوان نقشه ارتفاع یک صفحه شیب‌دار تصور کنیم. سه نقطه متفاوت (غیرهم‌خط) روی صفحه ثابت می‌کنیم و
+        مقادیر f را در آن نقاط می‌دانیم. خطوط قرمز داخل مثلث هم‌ارتفاع‌های f0، f0 + ۱ متر، f0 + ۲ متر و همین‌طور را نشان
+        می‌دهند. برای تابع خطی، خطوط هم‌تراز خطوط (راست) موازی‌اند.</p>
+        <p>در واقع من بیشتر به جهتِ عمود بر خطوط هم‌تراز علاقه‌مندم. اگر در امتداد یک هم‌تراز حرکت کنیم، ارتفاع تغییر
+        نمی‌کند (خب معلوم است، هم‌تراز است!). اگر کمی از هم‌تراز منحرف شویم، ارتفاع شروع به تغییر می‌کند. تندترین صعود وقتی
+        عمود بر خطوط هم‌تراز حرکت کنیم به دست می‌آید.</p>
+        <p>یادآوری: جهت تندترین صعود برای یک تابع چیزی نیست جز <a href="https://en.wikipedia.org/wiki/Gradient" target="_blank" rel="noopener">گرادیان</a>
+        آن. برای تابع خطی f(x,y,z) = Ax + By + Cz + D، گرادیان آن بردار ثابت (A, B, C) است. یادآوری: مقادیر (A,B,C) را
+        نمی‌دانیم. فقط سه نمونه از تابع را می‌دانیم. آیا می‌توانیم A و B و C را بازسازی کنیم؟ البته.</p>
+        <p>پس سه نقطه p0, p1, p2 و سه مقدار f0, f1, f2 داریم. باید بردار تندترین صعود (A,B,C) را پیدا کنیم. تابع دیگری بگذاریم
+        که با g(p) = f(p) − f(p0) تعریف می‌شود:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/gradient_b.png" alt="نمودار تابع g با شیب انتقال‌یافته" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>واضح است که به‌سادگی صفحه شیب‌دارمان را بدون تغییر شیبش انتقال داده‌ایم؛ پس جهت تندترین صعود برای f و g یکی
+        است.</p>
+        <p>تعریف g را بازنویسی کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f02.png" alt="فرمول: g(p) برابر ضرب داخلی (p-p0) در (A,B,C)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>لطفاً توجه کنید بالانویس x در p^x یعنی مختصه x نقطه p و نه توان. پس تابع g به‌سادگی ضرب داخلی بردار (p−p0) و
+        (ABC) است. و هنوز (A,B,C) را نمی‌دانیم!</p>
+        <p>خوب، یادآوری کنیم چه می‌دانیم. می‌دانیم اگر از نقطه p0 به نقطه p2 برویم، تابع g از صفر به f2−f0 می‌رود. به عبارت
+        دیگر، ضرب داخلی بردارهای (p2−p0) و (ABC) برابر f2−f0 است. برای (p1−p0) هم همین. پس به دنبال بردار ABC هستیم که بر
+        نرمال n عمود است و دو قید ضرب داخلی را برآورده می‌کند:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f03.png" alt="فرمول: دستگاه معادلات برای (A,B,C)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این را به فرم ماتریسی بازنویسی کنیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f04.png" alt="فرمول: فرم ماتریسی دستگاه معادلات" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>پس یک معادله ماتریسی خطی به‌سادگی‌قابل‌حل Ax = b گرفتیم:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f05.png" alt="فرمول: معادله ماتریسی Ax = b" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>لطفاً توجه کنید از حرف A برای دو چیز متفاوت استفاده کردم؛ معنی‌اش باید از بافت معلوم باشد. پس ماتریس 3x3 ما A که
+        در بردار مجهول x=(A,B,C) ضرب می‌شود، بردار b = (f1−f0, f2−f0, 0) را می‌دهد. بردار مجهول x وقتی معلوم می‌شود که معکوس
+        A را در b ضرب کنیم.</p>
+        <p>همچنین توجه کنید در ماتریس A هیچ‌چیز مربوط به تابع f نیست. فقط شامل اطلاعاتی درباره مثلث ماست.</p>
+
+        <h3>بیایید پایه داربو را محاسبه و اختلال نرمال‌ها را اعمال کنیم</h3>
+        <p>پس پایه داربو سه‌تایی از بردارهاست (i,j,n) که n بردار نرمال اصلی است و i و j را می‌توان این‌گونه محاسبه کرد:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/f06.png" alt="فرمول: محاسبه بردارهای i و j پایه داربو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><a href="https://github.com/ssloy/tinyrenderer/tree/907bb561c38e7bd86db8d99678c0108f2e53d54d" target="_blank" rel="noopener">این کامیت</a>
+        با استفاده از نگاشت‌های نرمال در فضای مماس است و <a href="https://github.com/ssloy/tinyrenderer/commit/907bb561c38e7bd86db8d99678c0108f2e53d54d" target="_blank" rel="noopener">اینجا</a>
+        تفاوت‌ها را با نقطه شروع (سایه‌زنی فونگ) بررسی کنید.</p>
+        <p>همه‌چیز کاملاً سرراست است؛ ماتریس A را محاسبه می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">mat&lt;3,3,float&gt; A;
+        A[0] = ndc_tri.col(1) - ndc_tri.col(0);
+        A[1] = ndc_tri.col(2) - ndc_tri.col(0);
+        A[2] = bn;</code></pre>
+        <p>سپس دو بردار مجهول (i,j) پایه داربو را محاسبه می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">mat&lt;3,3,float&gt; AI = A.invert();
+        Vec3f i = AI * Vec3f(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
+        Vec3f j = AI * Vec3f(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);</code></pre>
+        <p>وقتی تمام پایه مماس را داریم، نرمال آشفته‌شده را از بافت می‌خوانم و تغییر پایه از پایه مماس به مختصات سراسری را
+        اعمال می‌کنم. یادآوری: <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-5:-Moving-the-camera#change-of-basis-in-3d-space" target="_blank" rel="noopener">قبلاً توضیح داده‌ام</a>
+        چطور تغییر پایه انجام دهیم.</p>
+        <p>تصویر نهایی رندر شده؛ جزئیات را با <a href="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/starting_point_a.jpg" target="_blank" rel="noopener">سایه‌زنی فونگ</a>
+        مقایسه کنید:</p>
+        <img src="https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/06b-tangent-space/normalmapping.jpg" alt="سر آفریقایی با نگاشت نرمال فضای مماس" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>توصیه اشکال‌زدایی</h3>
+        <p>حالا وقت مناسبی است یادآوری کنیم چطور <a href="https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm" target="_blank" rel="noopener">پاره‌خط راست</a>
+        رسم کنیم. شبکه قرمز-آبی را به‌عنوان بافت اعمال و بردارهای (i,j) را برای هر رأس مش رسم کنید. معمولاً باید با خطوط بافت
+        منطبق شوند.</p>
+
+        <h3>حواس‌تان بود؟</h3>
+        <p>متوجه شده‌اید که یک مثلث (تخت) به‌طور کلی یک بردار نرمال ثابت دارد، در حالی که من در سطر آخر ماتریس A از نرمال
+        درونیابی‌شده استفاده کردم؟ چرا این کار را کردم؟</p>
+        <p>کدنویسی خوش!</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی سری مقاله‌های «TinyRenderer — how OpenGL works: software rendering
+        in 500 lines of code» اثر «دیمیتری سوکولوف (Dmitry Sokolov / ssloy)» است. تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/ssloy/tinyrenderer/wiki" target="_blank" rel="noopener">ویکی TinyRenderer در گیت‌هاب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

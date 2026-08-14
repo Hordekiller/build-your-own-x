@@ -1,39 +1,39 @@
 <!--
-Thanks for your contribution! If you're submitting a tutorial, please ensure it includes a guided path for learners, either through a step-by-step article or by breaking down code into digestible parts that are easy to follow. Please submit only programming tutorials that build something interesting from scratch; no frameworks, libraries, guides for frameworks/libraries or tutorials that glue just other libraries together. 
+از مشارکت شما سپاسگزاریم! اگر آموزش ارسال می‌کنید، لطفاً مطمئن شوید که مسیر هدایت‌شده‌ای برای یادگیرندگان دارد؛ یا به شکل مقاله گام‌به‌گام و یا با شکستن کد به بخش‌های قابل‌فهم و آسان. لطفاً فقط آموزش‌های برنامه‌نویسی ارسال کنید که چیزی جالب را از صفر می‌سازند؛ نه فریم‌ورک، نه کتابخانه، نه راهنمای فریم‌ورک/کتابخانه و نه آموزش‌هایی که صرفاً کتابخانه‌ها را به هم می‌چسبانند.
 -->
 
-### Main programming language
-<!-- max. 1 -->
+### زبان برنامه‌نویسی اصلی
+<!-- حداکثر ۱ مورد -->
 
-### Tutorial title
-<!-- the original title from the article, repository, ... -->
+### عنوان آموزش
+<!-- عنوان اصلی از مقاله، مخزن و ... -->
 
-### Tutorial URL
+### آدرس (URL) آموزش
 
-### Category
-* [ ] 3D Renderer
-* [ ] Augmented Reality
-* [ ] BitTorrent Client
-* [ ] Blockchain / Cryptocurrency
-* [ ] Bot
-* [ ] Command-Line Tool
-* [ ] Database
-* [ ] Docker
-* [ ] Emulator / Virtual Machine
-* [ ] Front-end Framework / Library
-* [ ] Game
-* [ ] Git
-* [ ] Network Stack
-* [ ] Neural Network
-* [ ] Operating System
-* [ ] Physics Engine
-* [ ] Programming Language
-* [ ] Regex Engine
-* [ ] Search Engine
-* [ ] Shell
-* [ ] Template Engine
-* [ ] Visual Recognition System
-* [ ] Voxel Engine
-* [ ] Web Search Engine
-* [ ] Web Server
-* [ ] Uncategorized
+### دسته‌بندی
+* [ ] 3D Renderer — رندر سه‌بعدی
+* [ ] Augmented Reality — واقعیت افزوده
+* [ ] BitTorrent Client — کلاینت بیت‌تورنت
+* [ ] Blockchain / Cryptocurrency — بلاکچین / ارز دیجیتال
+* [ ] Bot — ربات
+* [ ] Command-Line Tool — ابزار خط فرمان
+* [ ] Database — پایگاه داده
+* [ ] Docker — داکر
+* [ ] Emulator / Virtual Machine — شبیه‌ساز / ماشین مجازی
+* [ ] Front-end Framework / Library — فریم‌ورک / کتابخانه فرانت‌اند
+* [ ] Game — بازی
+* [ ] Git — گیت
+* [ ] Network Stack — پشته شبکه
+* [ ] Neural Network — شبکه عصبی
+* [ ] Operating System — سیستم‌عامل
+* [ ] Physics Engine — موتور فیزیک
+* [ ] Programming Language — زبان برنامه‌نویسی
+* [ ] Regex Engine — موتور عبارت باقاعده
+* [ ] Search Engine — موتور جست‌وجو
+* [ ] Shell — شل
+* [ ] Template Engine — موتور قالب
+* [ ] Visual Recognition System — سیستم تشخیص تصویر
+* [ ] Voxel Engine — موتور وکسل
+* [ ] Web Search Engine — موتور جست‌وجوی وب
+* [ ] Web Server — وب سرور
+* [ ] Uncategorized — دسته‌بندی نشده

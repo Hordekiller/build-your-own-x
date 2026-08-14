@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Ray Tracing در یک آخر هفته</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">رندر سه‌بعدی</a>
+        <span class="sep">←</span>
+        <span>Ray Tracing در یک آخر هفته</span>
+      </div>
+      <h1>Ray Tracing در یک آخر هفته</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://raytracing.github.io/books/RayTracingInOneWeekend.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی کتاب «Ray Tracing in One Weekend» نوشتهٔ
+          Peter Shirley، Trevor David Black و Steve Hollasch است. نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://raytracing.github.io/books/RayTracingInOneWeekend.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مرور کلی (Overview)</h2>
+        <p>در طول سال‌ها کلاس‌های گرافیک زیادی برگزار کرده‌ام. اغلب آن‌ها را با ردیابی پرتو (ray tracing) برگزار می‌کنم، چون مجبور می‌شوید همهٔ کد را خودتان بنویسید، اما بدون هیچ API هم می‌توانید تصاویر جذابی بسازید. تصمیم گرفتم یادداشت‌های درس‌هایم را به یک آموزش «چگونه» تبدیل کنم تا در سریع‌ترین زمان ممکن به یک برنامهٔ جذاب برسید. این برنامه یک ردیاب پرتوی کامل‌ویژگی نخواهد بود، اما روشنایی غیرمستقیم (indirect lighting) را دارد که ردیابی پرتو را به ستون اصلی فیلم‌ها تبدیل کرده است. این مراحل را دنبال کنید؛ معماری ردیاب پرتویی که می‌سازید آن‌قدر خوب است که اگر هیجان‌زده شدید و خواستید ادامه بدهید، بستر مناسبی برای گسترش به یک ردیاب پرتوی کامل‌تر خواهد بود.</p>
+        <p>وقتی کسی می‌گوید «ردیابی پرتو» می‌تواند معانی زیادی داشته باشد. چیزی که من توصیف می‌کنم از نظر فنی یک ردیاب مسیر (path tracer) است، و یک ردیاب مسیر تقریباً عمومی. هرچند کد بسیار ساده خواهد بود (بگذارید کامپیوتر کار را انجام دهد!) فکر می‌کنم از تصاویری که می‌توانید بسازید بسیار خوشحال خواهید شد.</p>
+        <p>شما را قدم‌به‌قدم در نوشتن یک ردیاب پرتو همراهی می‌کنم — دقیقاً به همان ترتیبی که خودم می‌نویسم — همراه با چند نکتهٔ اشکال‌زدایی. در پایان، یک ردیاب پرتو خواهید داشت که تصاویر عالی تولید می‌کند. باید بتوانید این کار را در یک آخر هفته انجام دهید. اگر بیشتر طول کشید، نگران نباشید. من از C++ به‌عنوان زبان اصلی استفاده می‌کنم، اما شما مجبور نیستید. با این‌حال پیشنهاد می‌کنم همین کار را بکنید، چون سریع و قابل‌انتقال است و بیشتر رندررهای فیلم‌های سینمایی و بازی‌های ویدیویی با C++ نوشته می‌شوند. توجه کنید که من بیشتر «ویژگی‌های مدرن» C++ را کنار می‌گذارم، اما وراثت (inheritance) و سرریز عملگر (operator overloading) آن‌قدر برای ردیاب‌های پرتو مفید هستند که نمی‌شود از آن‌ها گذشت.</p>
+        <div class="callout note"><strong>توجه نویسنده:</strong> «من کد را به‌صورت آنلاین ارائه نمی‌دهم، اما کد واقعی است و همه‌اش را نشان می‌دهم به‌جز چند عملگر ساده در کلاس <code>vec3</code>. من عمیقاً به تایپ‌کردن کد برای یادگیری اعتقاد دارم، اما وقتی کد در دسترس باشد از آن استفاده می‌کنم؛ پس فقط وقتی کد در دسترس نیست به حرف خودم عمل می‌کنم. پس نپرسید!»</div>
+        <p>آن بخش آخر را نگه داشته‌ام چون خنده‌دار است که چقدر نظر من ۱۸۰ درجه چرخیده است. چند خواننده به خطاهای ظریفی خوردند که با مقایسهٔ کدها برطرف شد. پس لطفاً کدها را تایپ کنید، اما می‌توانید کد نهایی هر کتاب را در <a href="https://github.com/RayTracing/raytracing.github.io/" target="_blank" rel="noopener">پروژهٔ RayTracing در گیت‌هاب</a> پیدا کنید.</p>
+        <p>نکته‌ای دربارهٔ کدهای همراه این کتاب‌ها — فلسفهٔ ما برای کدهای همراه، اولویت‌بندی اهداف زیر است:</p>
+        <ul>
+          <li>کد باید مفاهیم پوشش‌داده‌شده در کتاب‌ها را پیاده‌سازی کند.</li>
+          <li>ما از C++ استفاده می‌کنیم، اما تا حد ممکن ساده. سبک برنامه‌نویسی ما بسیار شبیه به C است، اما هرجا که ویژگی‌های مدرن، استفاده یا درک کد را آسان‌تر کند، از آن‌ها بهره می‌بریم.</li>
+          <li>سبک کدنویسی ما تا حد ممکن از سبکی که در کتاب‌های اصلی تثبیت شده پیروی می‌کند تا پیوستگی حفظ شود.</li>
+          <li>طول خط‌ها ۹۶ کاراکتر نگه داشته می‌شود تا خط‌ها بین مخزن کد و فهرست‌های کدِ کتاب‌ها یکسان باشند.</li>
+        </ul>
+        <p>بنابراین کد یک پیاده‌سازی پایه فراهم می‌کند و کلی بهبود باقی می‌ماند که خواننده از آن لذت ببرد. راه‌های بی‌شماری برای بهینه‌سازی و مدرن‌کردن کد وجود دارد؛ ما راه‌حل ساده را در اولویت قرار می‌دهیم.</p>
+        <p>کمی آشنایی با بردارها (مثل ضرب داخلی و جمع برداری) را پیش‌فرض می‌گیریم. اگر این‌ها را بلد نیستید، کمی مرور کنید. اگر به مرور نیاز دارید یا برای اولین بار می‌خواهید یاد بگیرید، به <a href="https://graphicscodex.com/" target="_blank" rel="noopener"><em>Graphics Codex</em></a> آنلاین نوشتهٔ Morgan McGuire، کتاب <em>Fundamentals of Computer Graphics</em> نوشتهٔ Steve Marschner و Peter Shirley، یا <em>Computer Graphics: Principles and Practice</em> نوشتهٔ J.D. Foley و Andy Van Dam مراجعه کنید.</p>
+        <p>برای اطلاعات دربارهٔ این پروژه — مخزن گیت‌هاب، ساختار پوشه‌ها، ساخت و اجرا، و روش ارائه یا ارجاع به اصلاحات و مشارکت‌ها — به <a href="../README.md" target="_blank" rel="noopener">فایل README پروژه</a> مراجعه کنید.</p>
+        <p>برای منابع اضافی مرتبط با پروژه، به <a href="https://github.com/RayTracing/raytracing.github.io/wiki/Further-Readings" target="_blank" rel="noopener">صفحهٔ ویکی «مطالعهٔ بیشتر»</a> ما سر بزنید.</p>
+        <p>این کتاب‌ها طوری قالب‌بندی شده‌اند که مستقیم از مرورگر شما خوب چاپ شوند. ما همچنین نسخهٔ PDF هر کتاب را <a href="https://github.com/RayTracing/raytracing.github.io/releases/" target="_blank" rel="noopener">در هر انتشار</a>، در بخش «Assets» قرار می‌دهیم.</p>
+        <p>اگر می‌خواهید با ما ارتباط بگیرید، راحت ایمیل بزنید:</p>
+        <ul>
+          <li>Peter Shirley — ptrshrl@gmail.com</li>
+          <li>Steve Hollasch — steve@hollasch.net</li>
+          <li>Trevor David Black — trevordblack@trevord.black</li>
+        </ul>
+        <p>در نهایت، اگر در پیاده‌سازی‌تان به مشکل خوردید، سؤال عمومی دارید یا می‌خواهید ایده‌ها یا کارهای خودتان را به اشتراک بگذارید، به <a href="https://github.com/RayTracing/raytracing.github.io/discussions/" target="_blank" rel="noopener">فروم بحث‌های گیت‌هاب</a> در پروژهٔ گیت‌هاب سر بزنید.</p>
+        <p>از همهٔ کسانی که در این پروژه دستی بر آتش داشتند سپاسگزاریم. می‌توانید آن‌ها را در بخش قدردانی‌ها در انتهای این کتاب بیابید.</p>
+        <p>بزن بریم!</p>
+      </section>
+
+      <section>
+        <h2>خروجی تصویر</h2>
+
+        <h3>فرمت تصویر PPM</h3>
+        <p>وقتی یک رندرر را شروع می‌کنید، به راهی برای دیدن تصویر نیاز دارید. سرراست‌ترین راه، نوشتن آن در یک فایل است. مشکل این است که فرمت‌ها بسیار زیادند و بسیاری از آن‌ها پیچیده. من همیشه با یک فایل متنی سادهٔ <code>ppm</code> شروع می‌کنم. این هم یک توصیف خوب از ویکی‌پدیا:</p>
+        <img src="https://raytracing.github.io/images/fig-1.01-ppm.jpg" alt="مثال فرمت PPM از ویکی‌پدیا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید کدی در C++ بنویسیم که چنین چیزی را خروجی بدهد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;iostream&gt;
+
+int main() {
+
+    // تصویر
+    int image_width = 256;
+    int image_height = 256;
+
+    // رندر
+    std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+    for (int j = 0; j &lt; image_height; j++) {
+        for (int i = 0; i &lt; image_width; i++) {
+            auto r = double(i) / (image_width-1);
+            auto g = double(j) / (image_height-1);
+            auto b = 0.0;
+
+            int ir = int(255.999 * r);
+            int ig = int(255.999 * g);
+            int ib = int(255.999 * b);
+
+            std::cout &lt;&lt; ir &lt;&lt; ' ' &lt;&lt; ig &lt;&lt; ' ' &lt;&lt; ib &lt;&lt; '\n';
+        }
+    }
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — ساختن اولین تصویر شما]</p>
+        <p>نکاتی در این کد وجود دارد:</p>
+        <ol>
+          <li>پیکسل‌ها به‌صورت ردیفی نوشته می‌شوند.</li>
+          <li>هر ردیف از پیکسل‌ها از چپ به راست نوشته می‌شود.</li>
+          <li>این ردیف‌ها از بالا به پایین نوشته می‌شوند.</li>
+          <li>طبق قرارداد، هر یک از مؤلفه‌های قرمز/سبز/آبی به‌صورت داخلی با متغیرهای حقیقی‌مقدار در بازهٔ ۰.۰ تا ۱.۰ نمایش داده می‌شوند. این مؤلفه‌ها باید پیش از چاپ، به مقادیر صحیح بین ۰ تا ۲۵۵ مقیاس شوند.</li>
+          <li>قرمز از چپ به راست از خاموشِ کامل (سیاه) به روشنِ کامل (قرمز روشن) می‌رود، و سبز از بالا (سیاه) به پایین (سبز روشن) از خاموش به روشن می‌رود. جمع نور قرمز و سبز زرد می‌سازد، پس باید انتظار داشته باشیم گوشهٔ پایین‌راست زرد باشد.</li>
+        </ol>
+
+        <h3>ساخت فایل تصویر</h3>
+        <p>چون خروجی در جریان خروجی استاندارد (standard output) نوشته می‌شود، باید آن را به یک فایل تصویر هدایت کنید. معمولاً این کار از خط فرمان با عملگر هدایت <code>&gt;</code> انجام می‌شود.</p>
+        <p>در ویندوز، بیلد دیباگ را با CMake و این دستور می‌گیرید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>cmake -B build
+cmake --build build</code></pre>
+        <p>سپس برنامهٔ تازه‌ساخته‌شده را این‌طور اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>build\Debug\inOneWeekend.exe &gt; image.ppm</code></pre>
+        <p>بعداً، برای سرعت بهتر است بیلدهای بهینه (optimized) اجرا کنید. در آن صورت این‌طور می‌سازید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>cmake --build build --config release</code></pre>
+        <p>و برنامهٔ بهینه را این‌طور اجرا می‌کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>build\Release\inOneWeekend.exe &gt; image.ppm</code></pre>
+        <p>مثال‌های بالا فرض می‌کنند که با CMake می‌سازید و از همان شیوهٔ فایل <code>CMakeLists.txt</code> در کدهای همراه استفاده می‌کنید. از هر محیط ساخت (و زبانی) که با آن راحت‌ترید استفاده کنید.</p>
+        <p>در مک یا لینوکس، برای بیلد release برنامه را این‌طور اجرا می‌کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>build/inOneWeekend &gt; image.ppm</code></pre>
+        <p>دستورالعمل کامل ساخت و اجرا را در <a href="../README.md" target="_blank" rel="noopener">README پروژه</a> می‌یابید.</p>
+        <p>بازکردن فایل خروجی (در <code>ToyViewer</code> روی مکِ من؛ اما آن را در نمایشگر تصویر موردعلاقهٔ خودتان امتحان کنید؛ اگر نمایشگرتان پشتیبانی نکرد، «ppm viewer» را جست‌وجو کنید) این نتیجه را نشان می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.01-first-ppm-image.png" alt="تصویر اول PPM — گرادیان دو بعدی قرمز و سبز با گوشهٔ پایین‌راست زرد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>هورا! این «سلام دنیا»ی گرافیک است. اگر تصویر شما این‌طور نیست، فایل خروجی را در یک ویرایشگر متن باز کنید و ببینید چه شکلی است. باید چیزی شبیه این شروع شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>P3
+256 256
+255
+0 0 0
+1 0 0
+2 0 0
+3 0 0
+4 0 0
+5 0 0
+6 0 0
+7 0 0
+8 0 0
+9 0 0
+10 0 0
+11 0 0
+12 0 0
+...</code></pre>
+        <p class="listing-label">[فهرست — خروجی اولین تصویر]</p>
+        <p>اگر فایل PPM شما این‌طور نیست، کد قالب‌بندی‌تان را دوباره چک کنید. اگر این‌طور بود اما رندر نشد، احتمالاً تفاوت انتهای خط یا چیزی شبیه آن دارید که نمایشگر تصویرتان را گیج می‌کند. برای کمک به اشکال‌زدایی، می‌توانید فایل <code>test.ppm</code> را در پوشهٔ <code>images</code> پروژهٔ گیت‌هاب پیدا کنید. این فایل باید به اطمینان از اینکه نمایشگرتان فرمت PPM را پشتیبانی می‌کند کمک کند و برای مقایسه با فایل PPM تولیدی‌تان به کار می‌رود.</p>
+        <p>برخی خواننده‌ها از مشکلات دیدن فایل‌های تولیدی‌شان روی ویندوز گزارش داده‌اند. در این موارد مشکل اغلب این است که PPM به‌صورت UTF-16 — معمولاً توسط PowerShell — نوشته شده است. اگر به این مشکل خوردید، به <a href="https://github.com/RayTracing/raytracing.github.io/discussions/1114" target="_blank" rel="noopener">گفت‌وگو ۱۱۱۴</a> برای کمک مراجعه کنید.</p>
+        <p>اگر همه‌چیز درست نمایش داده می‌شود، تقریباً از شر مشکلات سیستم و IDE راحت شده‌اید — همهٔ بقیهٔ این مجموعه از همین سازوکار ساده برای تولید تصاویر رندر استفاده می‌کند.</p>
+        <p>اگر می‌خواهید فرمت‌های تصویر دیگری تولید کنید، من طرفدار <code>stb_image.h</code> هستم؛ یک کتابخانهٔ تصویری فقط-هدر که در گیت‌هاب در <a href="https://github.com/nothings/stb" target="_blank" rel="noopener">https://github.com/nothings/stb</a> در دسترس است.</p>
+
+        <h3>افزودن نشانگر پیشرفت</h3>
+        <p>پیش از ادامه، بیایید یک نشانگر پیشرفت به خروجی‌مان اضافه کنیم. این یک راه کاربردی برای پیگیری پیشرفت یک رندر طولانی است و همچنین می‌تواند اجرایی را که به‌دلیل حلقهٔ بی‌نهایت یا مشکل دیگر متوقف شده شناسایی کند.</p>
+        <p>برنامهٔ ما تصویر را به جریان خروجی استاندارد (<code>std::cout</code>) می‌نویسد؛ پس آن را دست‌نخورده بگذارید و به جریان خروجی لاگ (<code>std::clog</code>) بنویسید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>for (int j = 0; j &lt; image_height; ++j) {
+    std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+    for (int i = 0; i &lt; image_width; i++) {
+        auto r = double(i) / (image_width-1);
+        auto g = double(j) / (image_height-1);
+        auto b = 0.0;
+
+        int ir = int(255.999 * r);
+        int ig = int(255.999 * g);
+        int ib = int(255.999 * b);
+
+        std::cout &lt;&lt; ir &lt;&lt; ' ' &lt;&lt; ig &lt;&lt; ' ' &lt;&lt; ib &lt;&lt; '\n';
+    }
+}
+
+std::clog &lt;&lt; "\rDone.                 \n";</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — حلقهٔ اصلی رندر با گزارش پیشرفت]</p>
+        <p>حالا هنگام اجرا، شمارندهٔ متحرکی از تعداد خطوط اسکن باقی‌مانده می‌بینید. امیدواریم آن‌قدر سریع اجرا شود که اصلاً نبینیدش! نگران نباشید — در آینده وقت فراوانی برای تماشای خط پیشرفتِ کُند دارید؛ وقتی ردیاب پرتومان را گسترش می‌دهیم.</p>
+      </section><section>
+        <h2>کلاس vec3</h2>
+        <p>تقریباً همهٔ برنامه‌های گرافیک کلاس‌هایی برای ذخیرهٔ بردارهای هندسی و رنگ‌ها دارند. در بسیاری از سیستم‌ها این بردارها چهاربعدی هستند (موقعیت سه‌بعدی به‌علاوهٔ مختصات همگن برای هندسه، یا RGB به‌علاوهٔ مؤلفهٔ شفافیت آلفا برای رنگ‌ها). برای منظور ما، سه مختصه کافی است. ما از یک کلاس برای همه‌چیز استفاده می‌کنیم: رنگ‌ها، مکان‌ها، جهت‌ها، جابه‌جایی‌ها. بعضی‌ها این را دوست ندارند چون جلوی کارهای احمقانه را نمی‌گیرد، مثلاً کم‌کردن یک موقعیت از یک رنگ. حرف درستی دارند، اما ما همیشه وقتی اشتباهِ واضحی نیست، مسیر «کد کمتر» را می‌رویم. با این‌حال، دو نام مستعار برای <code>vec3</code> تعریف می‌کنیم: <code>point3</code> و <code>color</code>. چون این دو نوع فقط نام مستعار <code>vec3</code> هستند، اگر یک <code>color</code> به تابعی بدهید که منتظر <code>point3</code> است هشدار نمی‌گیرید، و هیچ‌چیز شما را از جمع‌کردن یک <code>point3</code> با یک <code>color</code> باز نمی‌دارد؛ اما این کار خواندن و فهمیدن کد را کمی آسان‌تر می‌کند.</p>
+        <p>کلاس <code>vec3</code> را در نیمهٔ بالایی فایل هدر جدید <code>vec3.h</code> تعریف می‌کنیم و مجموعه‌ای از توابع کمکی برداری را در نیمهٔ پایینی:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef VEC3_H
+#define VEC3_H
+
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+
+class vec3 {
+  public:
+    double e[3];
+
+    vec3() : e{0,0,0} {}
+    vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
+
+    double x() const { return e[0]; }
+    double y() const { return e[1]; }
+    double z() const { return e[2]; }
+
+    vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
+    double operator[](int i) const { return e[i]; }
+    double&amp; operator[](int i) { return e[i]; }
+
+    vec3&amp; operator+=(const vec3&amp; v) {
+        e[0] += v.e[0];
+        e[1] += v.e[1];
+        e[2] += v.e[2];
+        return *this;
+    }
+
+    vec3&amp; operator*=(double t) {
+        e[0] *= t;
+        e[1] *= t;
+        e[2] *= t;
+        return *this;
+    }
+
+    vec3&amp; operator/=(double t) {
+        return *this *= 1/t;
+    }
+
+    double length() const {
+        return std::sqrt(length_squared());
+    }
+
+    double length_squared() const {
+        return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+    }
+};
+
+// point3 فقط نام مستعاری برای vec3 است، اما برای وضوح هندسی در کد مفید است.
+using point3 = vec3;
+
+
+// توابع کمکی بردار
+
+inline std::ostream&amp; operator&lt;&lt;(std::ostream&amp; out, const vec3&amp; v) {
+    return out &lt;&lt; v.e[0] &lt;&lt; ' ' &lt;&lt; v.e[1] &lt;&lt; ' ' &lt;&lt; v.e[2];
+}
+
+inline vec3 operator+(const vec3&amp; u, const vec3&amp; v) {
+    return vec3(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
+}
+
+inline vec3 operator-(const vec3&amp; u, const vec3&amp; v) {
+    return vec3(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
+}
+
+inline vec3 operator*(const vec3&amp; u, const vec3&amp; v) {
+    return vec3(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
+}
+
+inline vec3 operator*(double t, const vec3&amp; v) {
+    return vec3(t*v.e[0], t*v.e[1], t*v.e[2]);
+}
+
+inline vec3 operator*(const vec3&amp; v, double t) {
+    return t * v;
+}
+
+inline vec3 operator/(const vec3&amp; v, double t) {
+    return (1/t) * v;
+}
+
+inline double dot(const vec3&amp; u, const vec3&amp; v) {
+    return u.e[0] * v.e[0]
+         + u.e[1] * v.e[1]
+         + u.e[2] * v.e[2];
+}
+
+inline vec3 cross(const vec3&amp; u, const vec3&amp; v) {
+    return vec3(u.e[1] * v.e[2] - u.e[2] * v.e[1],
+                u.e[2] * v.e[0] - u.e[0] * v.e[2],
+                u.e[0] * v.e[1] - u.e[1] * v.e[0]);
+}
+
+inline vec3 unit_vector(const vec3&amp; v) {
+    return v / v.length();
+}
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تعریف‌های vec3 و توابع کمکی]</p>
+        <p>اینجا از <code>double</code> استفاده می‌کنیم، اما برخی ردیاب‌های پرتو از <code>float</code> استفاده می‌کنند. <code>double</code> دقت و بازهٔ بزرگ‌تری دارد، اما دو برابر <code>float</code> حجم دارد. این افزایش حجم ممکن است در شرایط حافظهٔ محدود (مثل شیدرهای سخت‌افزاری) مهم باشد. هرکدام خوب است — سلیقهٔ خودتان را دنبال کنید.</p>
+
+        <h3>توابع کمکی رنگ</h3>
+        <p>با استفاده از کلاس جدید <code>vec3</code>، یک فایل هدر جدید <code>color.h</code> می‌سازیم و یک تابع کمکی تعریف می‌کنیم که رنگ یک پیکسل را به جریان خروجی استاندارد می‌نویسد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef COLOR_H
+#define COLOR_H
+
+#include "vec3.h"
+
+#include &lt;iostream&gt;
+
+using color = vec3;
+
+void write_color(std::ostream&amp; out, const color&amp; pixel_color) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    // مقادیر مؤلفه‌های [0,1] را به بازهٔ بایتی [0,255] ترجمه کن.
+    int rbyte = int(255.999 * r);
+    int gbyte = int(255.999 * g);
+    int bbyte = int(255.999 * b);
+
+    // مؤلفه‌های رنگ پیکسل را بنویس.
+    out &lt;&lt; rbyte &lt;&lt; ' ' &lt;&lt; gbyte &lt;&lt; ' ' &lt;&lt; bbyte &lt;&lt; '\n';
+}
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[color.h]</code> — توابع کمکی رنگ]</p>
+        <p>حالا می‌توانیم <code>main</code> را طوری تغییر دهیم که از هر دوی این‌ها استفاده کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "color.h"
+#include "vec3.h"
+
+#include &lt;iostream&gt;
+
+int main() {
+
+    // تصویر
+    int image_width = 256;
+    int image_height = 256;
+
+    // رندر
+    std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+    for (int j = 0; j &lt; image_height; j++) {
+        std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+        for (int i = 0; i &lt; image_width; i++) {
+            auto pixel_color = color(double(i)/(image_width-1), double(j)/(image_height-1), 0);
+            write_color(std::cout, pixel_color);
+        }
+    }
+
+    std::clog &lt;&lt; "\rDone.                 \n";
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — کد نهایی برای اولین تصویر PPM]</p>
+        <p>و باید دقیقاً همان تصویر قبلی را بگیرید.</p>
+      </section>
+
+      <section>
+        <h2>پرتوها، یک دوربین ساده و پس‌زمینه</h2>
+
+        <h3>کلاس پرتو (ray)</h3>
+        <p>تنها چیزی که همهٔ ردیاب‌های پرتو دارند، یک کلاس پرتو و محاسبهٔ رنگِ دیده‌شده در طول پرتو است. پرتو را تابعی در نظر بگیریم: P(t) = A + t·b. در این‌جا P یک موقعیت سه‌بعدی در طول یک خط در فضای سه‌بعدی است. A مبدأ پرتو و b جهت پرتو است. پارامتر t عددی حقیقی است (در کد <code>double</code>). با جای‌گذاری tهای مختلف، P(t) نقطه را در طول پرتو جابه‌جا می‌کند. با tهای منفی، می‌توانید به هر جای خط سه‌بعدی بروید. با t مثبت، فقط بخش‌های جلوی A را می‌گیرید؛ به همین چیزی معمولاً نیم‌خط یا پرتو می‌گویند.</p>
+        <img src="https://raytracing.github.io/images/fig-1.02-lerp.jpg" alt="شکل: درون‌یابی خطی — نقطهٔ P(t) در طول پرتو از مبدأ A با جهت b" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم ایدهٔ پرتو را به‌صورت یک کلاس نمایش دهیم و تابع P(t) را به‌صورت تابعی که نامش را <code>ray::at(t)</code> می‌گذاریم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef RAY_H
+#define RAY_H
+
+#include "vec3.h"
+
+class ray {
+  public:
+    ray() {}
+
+    ray(const point3&amp; origin, const vec3&amp; direction) : orig(origin), dir(direction) {}
+
+    const point3&amp; origin() const  { return orig; }
+    const vec3&amp; direction() const { return dir; }
+
+    point3 at(double t) const {
+        return orig + t*dir;
+    }
+
+  private:
+    point3 orig;
+    vec3 dir;
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[ray.h]</code> — کلاس پرتو]</p>
+        <p>(برای آن‌هایی که با C++ آشنا نیستند: توابع <code>ray::origin()</code> و <code>ray::direction()</code> هر دو یک ارجاع تغییرناپذیر (immutable) به اعضای خود برمی‌گردانند. فراخوان‌ها بسته به نیازشان می‌توانند مستقیماً از همان ارجاع استفاده کنند یا یک کپی قابل‌تغییر بسازند.)</p>
+
+        <h3>فرستادن پرتوها به صحنه</h3>
+        <p>حالا آماده‌ایم که دور را بزنیم و یک ردیاب پرتو بسازیم. در هستهٔ خود، یک ردیاب پرتو پرتوهایی از میان پیکسل‌ها می‌فرستد و رنگِ دیده‌شده در جهتِ آن پرتوها را محاسبه می‌کند. مراحل دخیل عبارت‌اند از:</p>
+        <ol>
+          <li>محاسبهٔ پرتو از «چشم» به‌طرف پیکسل،</li>
+          <li>تعیین اینکه پرتو با کدام اشیا برخورد می‌کند، و</li>
+          <li>محاسبهٔ رنگ برای نزدیک‌ترین نقطهٔ برخورد.</li>
+        </ol>
+        <p>وقتی برای اولین بار یک ردیاب پرتو می‌سازم، همیشه برای راه‌اندازی سریع کد، یک دوربین ساده می‌سازم.</p>
+        <p>اغلب با تصویرهای مربعی به دردسر افتاده‌ام چون زیاد x و y را جابه‌جا می‌کنم؛ پس از یک تصویر غیرمربعی استفاده می‌کنیم. تصویر مربع نسبت تصویر ۱:۱ دارد چون عرضش با ارتفاعش برابر است. از آن‌جایی که تصویر غیرمربعی می‌خواهیم، ۱۶:۹ را انتخاب می‌کنیم چون خیلی رایج است. نسبت تصویر ۱۶:۹ یعنی نسبت عرض تصویر به ارتفاع آن ۱۶:۹ است. به بیان دیگر، برای تصویری با نسبت تصویر ۱۶:۹:</p>
+        <p style="text-align:center"><code>width / height = 16 / 9 = 1.7778</code></p>
+        <p>برای یک مثال عملی، تصویری با عرض ۸۰۰ پیکسل و ارتفاع ۴۰۰ پیکسل نسبت تصویر ۲:۱ دارد.</p>
+        <p>نسبت تصویر را می‌توان از نسبت عرض به ارتفاع تعیین کرد. اما چون یک نسبت تصویر مشخص در نظر داریم، آسان‌تر است که عرض تصویر و نسبت تصویر را بگذاریم و از آن ارتفاع را محاسبه کنیم. این‌طور می‌توانیم با تغییر عرض، تصویر را بزرگ یا کوچک کنیم و نسبت تصویر موردنظرمان به هم نمی‌خورد. فقط باید مطمئن شویم هنگام محاسبهٔ ارتفاع تصویر، ارتفاع حاصل حداقل ۱ باشد.</p>
+        <p>علاوه بر تنظیم ابعاد پیکسلی تصویر رندر، باید یک <em>viewport</em> (دریچهٔ دید) مجازی هم تنظیم کنیم که پرتوهای صحنه از آن عبور می‌کنند. viewport یک مستطیل مجازی در دنیای سه‌بعدی است که شبکهٔ مکان‌های پیکسلی تصویر را در بر می‌گیرد. اگر پیکسل‌ها در جهت افقی و عمودی به یک فاصله از هم باشند، viewportی که آن‌ها را محصور می‌کند همان نسبت تصویر تصویرِ رندرشده را خواهد داشت. فاصلهٔ بین دو پیکسل مجاور را فاصلهٔ پیکسل می‌نامند و پیکسل مربعی استاندارد است.</p>
+        <p>برای شروع، یک ارتفاع دلخواه ۲.۰ برای viewport انتخاب می‌کنیم و عرض viewport را طوری مقیاس می‌کنیم که نسبت تصویر موردنظرمان به دست آید. این هم یک تکه از کدی است که خواهیم داشت:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>auto aspect_ratio = 16.0 / 9.0;
+int image_width = 400;
+
+// ارتفاع تصویر را حساب کن و مطمئن شو حداقل ۱ باشد.
+int image_height = int(image_width / aspect_ratio);
+image_height = (image_height &lt; 1) ? 1 : image_height;
+
+// عرض‌های viewport کمتر از ۱ مشکلی نیستند چون حقیقی‌مقدارند.
+auto viewport_height = 2.0;
+auto viewport_width = viewport_height * (double(image_width)/image_height);</code></pre>
+        <p class="listing-label">[فهرست — تنظیم تصویر رندرشده]</p>
+        <p>اگر می‌پرسید چرا برای محاسبهٔ <code>viewport_width</code> از خودِ <code>aspect_ratio</code> استفاده نمی‌کنیم، علتش این است که مقدارِ نسبتِ ایده‌آل است؛ ممکن است نسبت <em>واقعی</em> بین <code>image_width</code> و <code>image_height</code> نباشد. اگر <code>image_height</code> می‌توانست حقیقی‌مقدار باشد — به‌جای اینکه فقط صحیح باشد — استفاده از <code>aspect_ratio</code> درست بود. اما نسبت <em>واقعی</em> بین <code>image_width</code> و <code>image_height</code> می‌تواند به‌خاطر دو بخش از کد تغییر کند. اول، <code>image_height</code> به نزدیک‌ترین عدد صحیح گرد پایین می‌شود که می‌تواند نسبت را زیاد کند. دوم، اجازه نمی‌دهیم <code>image_height</code> کمتر از ۱ باشد که آن هم می‌تواند نسبت تصویر واقعی را تغییر دهد.</p>
+        <p>توجه کنید که <code>aspect_ratio</code> یک نسبت ایده‌آل است که با نسبت صحیح‌مبنای عرض به ارتفاع تصویر تا حد ممکن تقریبش می‌زنیم. برای اینکه تناسب viewport دقیقاً با تناسب تصویرمان جور شود، از نسبت تصویر محاسبه‌شدهٔ تصویر برای تعیین عرض نهایی viewport استفاده می‌کنیم.</p>
+        <p>بعد، مرکز دوربین را تعریف می‌کنیم: نقطه‌ای در فضای سه‌بعدی که همهٔ پرتوهای صحنه از آنجا شروع می‌شوند (که معمولاً <em>نقطهٔ چشم</em> هم نامیده می‌شود). بردارِ از مرکز دوربین به مرکز viewport عمود بر viewport خواهد بود. ابتدا فاصلهٔ بین viewport و مرکز دوربین را یک واحد می‌گذاریم. به این فاصله معمولاً <em>فاصلهٔ کانونی</em> می‌گویند.</p>
+        <p>برای سادگی، مرکز دوربین را در (0,0,0) می‌گذاریم. همچنین محور y را رو به بالا، محور x را به راست و محور z منفی را در جهت دید قرار می‌دهیم. (به این معمولاً <em>مختصات راست‌دست</em> می‌گویند.)</p>
+        <img src="https://raytracing.github.io/images/fig-1.03-cam-geom.jpg" alt="شکل: هندسهٔ دوربین — مرکز در مبدأ، viewport با فاصلهٔ کانونی یک در جهت منفی z" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا بخش ناگزیرِ پیچیده. در حالی که فضای سه‌بعدی ما قراردادهای بالا را دارد، این با مختصات تصویرمان در تعارض است، جایی که می‌خواهیم پیکسل صفرم در بالا-چپ باشد و تا آخرین پیکسل در پایین-راست ادامه دهیم. یعنی محور Y مختصات تصویر معکوس است: Y با پایین‌رفتن در تصویر افزایش می‌یابد.</p>
+        <p>وقتی تصویرمان را اسکن می‌کنیم، از پیکسل بالا-چپ (پیکسل 0,0) شروع می‌کنیم، در هر ردیف از چپ به راست اسکن می‌کنیم و بعد ردیف‌به‌ردیف از بالا به پایین. برای پیمایش شبکهٔ پیکسل‌ها از بردار V<sub>u</sub> (از لبهٔ چپ به لبهٔ راست) و بردار V<sub>v</sub> (از لبهٔ بالا به لبهٔ پایین) استفاده می‌کنیم.</p>
+        <p>شبکهٔ پیکسل‌هایمان به‌اندازهٔ نصف فاصلهٔ پیکسل‌به‌پیکسل از لبه‌های viewport فاصله می‌گیرد. این‌طور، مساحت viewport به‌طور یکنواخت به منطقه‌های یکسانِ عرض×ارتفاع تقسیم می‌شود. viewport و شبکهٔ پیکسلی ما این‌طور به نظر می‌رسند:</p>
+        <img src="https://raytracing.github.io/images/fig-1.04-pixel-grid.jpg" alt="شکل: viewport و شبکهٔ پیکسلی — بردارهای viewport_u و viewport_v و پیکسل‌های میانی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این شکل داریم: viewport، شبکهٔ پیکسلی برای تصویر با وضوح 7×5، گوشهٔ بالا-چپ viewport یعنی Q، مکان پیکسل P<sub>0,0</sub>، بردار viewport یعنی V<sub>u</sub> (<code>viewport_u</code>)، بردار viewport یعنی V<sub>v</sub> (<code>viewport_v</code>) و بردارهای دلتای پیکسل Δu و Δv.</p>
+        <p>با استفاده از همهٔ این‌ها، این کدی است که دوربین را پیاده‌سازی می‌کند. یک تابع <code>ray_color(const ray&amp; r)</code> را به‌صورت استاب (stub) می‌گذاریم که رنگ یک پرتوی صحنه را برمی‌گرداند — فعلاً همیشه سیاه برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "color.h"
+#include "ray.h"
+#include "vec3.h"
+
+#include &lt;iostream&gt;
+
+
+color ray_color(const ray&amp; r) {
+    return color(0,0,0);
+}
+
+int main() {
+
+    // تصویر
+    auto aspect_ratio = 16.0 / 9.0;
+    int image_width = 400;
+
+    // ارتفاع تصویر را حساب کن و مطمئن شو حداقل ۱ باشد.
+    int image_height = int(image_width / aspect_ratio);
+    image_height = (image_height &lt; 1) ? 1 : image_height;
+
+    // دوربین
+    auto focal_length = 1.0;
+    auto viewport_height = 2.0;
+    auto viewport_width = viewport_height * (double(image_width)/image_height);
+    auto camera_center = point3(0, 0, 0);
+
+    // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+    auto viewport_u = vec3(viewport_width, 0, 0);
+    auto viewport_v = vec3(0, -viewport_height, 0);
+
+    // بردارهای دلتای افقی و عمودی پیکسل‌به‌پیکسل را حساب کن.
+    auto pixel_delta_u = viewport_u / image_width;
+    auto pixel_delta_v = viewport_v / image_height;
+
+    // مکان پیکسل بالا-چپ را حساب کن.
+    auto viewport_upper_left = camera_center
+                             - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+    auto pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+    // رندر
+    std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; " " &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+    for (int j = 0; j &lt; image_height; j++) {
+        std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+        for (int i = 0; i &lt; image_width; i++) {
+            auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+            auto ray_direction = pixel_center - camera_center;
+            ray r(camera_center, ray_direction);
+
+            color pixel_color = ray_color(r);
+            write_color(std::cout, pixel_color);
+        }
+    }
+
+    std::clog &lt;&lt; "\rDone.                 \n";
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — ساختن پرتوهای صحنه]</p>
+        <p>توجه کنید در کد بالا، <code>ray_direction</code> را بردار واحد نکردم، چون فکر می‌کنم نکردنِ آن کد ساده‌تر و کمی سریع‌تر می‌کند.</p>
+        <p>حالا تابع <code>ray_color(ray)</code> را برای پیاده‌سازی یک گرادیان ساده پر می‌کنیم. این تابع بسته به ارتفاع مختصهٔ y — <em>بعد از</em> مقیاس‌کردن جهت پرتو به طول واحد (یعنی −1.0 &lt; y &lt; 1.0) — سفید و آبی را خطی ترکیب می‌کند. چون به ارتفاع y بعد از نرمال‌سازی بردار نگاه می‌کنیم، علاوه بر گرادیان عمودی، یک گرادیان افقی در رنگ هم می‌بینید.</p>
+        <p>از یک ترفند استاندارد گرافیک برای مقیاس خطی 0.0 ≤ a ≤ 1.0 استفاده می‌کنم. وقتی a = 1.0، آبی می‌خواهم. وقتی a = 0.0، سفید می‌خواهم. در بینِ‌شان، ترکیبی می‌خواهم. این یک «ترکیب خطی» یا «درون‌یابی خطی» می‌سازد که معمولاً به آن <em>lerp</em> بین دو مقدار می‌گویند. یک lerp همیشه به این شکل است:</p>
+        <p style="text-align:center"><code>blendedValue = (1−a)·startValue + a·endValue</code></p>
+        <p>طوری که a از صفر تا یک می‌رود.</p>
+        <p>با کنار هم گذاشتن همهٔ این‌ها، این‌جا به این می‌رسیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "color.h"
+#include "ray.h"
+#include "vec3.h"
+
+#include &lt;iostream&gt;
+
+
+color ray_color(const ray&amp; r) {
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+}
+
+...</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — رندر یک گرادیان آبی-به-سفید]</p>
+        <p>در مورد ما این نتیجه را می‌سازد:</p>
+        <img src="https://raytracing.github.io/images/img-1.02-blue-to-white.png" alt="تصویر ۲: گرادیان آبی به سفید بر اساس مختصهٔ Y پرتو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section><section>
+        <h2>افزودن یک کره</h2>
+        <p>بیایید یک شیء منفرد به ردیاب پرتومان اضافه کنیم. مردم اغلب در ردیاب‌های پرتو از کره استفاده می‌کنند چون محاسبهٔ اینکه آیا پرتو به کره برخورد می‌کند نسبتاً ساده است.</p>
+
+        <h3>برخورد پرتو و کره</h3>
+        <p>معادلهٔ کره‌ای به شعاع r که در مبدأ مختصات متمرکز است، یک معادلهٔ ریاضی مهم است:</p>
+        <p style="text-align:center"><code>x² + y² + z² = r²</code></p>
+        <p>همچنین می‌توانید این‌طور فکر کنید: اگر نقطهٔ داده‌شدهٔ (x, y, z) روی سطح کره باشد، آن‌گاه x² + y² + z² = r². اگر نقطهٔ داده‌شدهٔ (x, y, z) <em>داخل</em> کره باشد، x² + y² + z² &lt; r²، و اگر نقطهٔ داده‌شدهٔ (x, y, z) <em>خارج</em> کره باشد، x² + y² + z² &gt; r².</p>
+        <p>اگر بخواهیم مرکز کره در نقطهٔ دلخواه (C<sub>x</sub>, C<sub>y</sub>, C<sub>z</sub>) باشد، معادله خیلی کمتر زیبا می‌شود:</p>
+        <p style="text-align:center"><code>(Cₓ − x)² + (Cᵧ − y)² + (C_z − z)² = r²</code></p>
+        <p>در گرافیک تقریباً همیشه می‌خواهید فرمول‌هایتان برحسب بردار باشند تا همهٔ چیزهای x/y/z به‌سادگی با کلاس <code>vec3</code> نمایش داده شوند. شاید متوجه شده باشید که بردارِ از نقطهٔ P = (x, y, z) به مرکز C = (Cₓ, Cᵧ, C_z) برابر (C − P) است.</p>
+        <p>اگر از تعریف ضرب داخلی (dot product) استفاده کنیم:</p>
+        <p style="text-align:center"><code>(C − P)·(C − P) = (Cₓ − x)² + (Cᵧ − y)² + (C_z − z)²</code></p>
+        <p>آن‌گاه می‌توانیم معادلهٔ کره را به شکل برداری بازنویسی کنیم:</p>
+        <p style="text-align:center"><code>(C − P)·(C − P) = r²</code></p>
+        <p>می‌توانیم این‌طور بخوانیمش: «هر نقطهٔ P که این معادله را برآورده کند روی کره است». می‌خواهیم بدانیم آیا پرتوی P(t) = Q + t·d اصلاً جایی به کره برخورد می‌کند یا نه. اگر برخورد کند، یک t وجود دارد که برای آن P(t) معادلهٔ کره را برآورده می‌کند. پس دنبال هر t می‌گردیم که این درست باشد:</p>
+        <p style="text-align:center"><code>(C − P(t))·(C − P(t)) = r²</code></p>
+        <p>که با جای‌گذاری شکل بسط‌یافتهٔ P(t) پیدا می‌شود:</p>
+        <p style="text-align:center"><code>(C − (Q + t·d))·(C − (Q + t·d)) = r²</code></p>
+        <p>در سمت چپ سه بردار داریم که در سه بردار سمت راست ضرب داخلی شده‌اند. اگر ضرب داخلی کامل را حل کنیم، نه بردار می‌گرفتیم. مطمئناً می‌توانید همه‌چیز را بنویسید و باز کنید، اما لازم نیست این‌قدر زحمت بکشیم. اگر یادتان باشد، می‌خواهیم t را به دست آوریم؛ پس عبارت‌ها را بر اساس اینکه t دارند یا نه جدا می‌کنیم:</p>
+        <p style="text-align:center"><code>(−t·d + (C − Q))·(−t·d + (C − Q)) = r²</code></p>
+        <p>و حالا طبق قواعد جبر برداری، ضرب داخلی را پخش می‌کنیم:</p>
+        <p style="text-align:center"><code>t²·(d·d) − 2t·(d·(C − Q)) + (C − Q)·(C − Q) = r²</code></p>
+        <p>مربع شعاع را به سمت چپ می‌بریم:</p>
+        <p style="text-align:center"><code>t²·(d·d) − 2t·(d·(C − Q)) + (C − Q)·(C − Q) − r² = 0</code></p>
+        <p>تشخیص اینکه این معادله دقیقاً چیست سخت است، اما بردارها و r در آن معادله همگی ثابت و معلوم‌اند. علاوه بر این، تنها بردارهایی که داریم با ضرب داخلی به اسکالر کاهش یافته‌اند. تنها مجهول t است و یک t² هم داریم، یعنی این معادله درجه دوم است. می‌توانید معادلهٔ درجه دوم ax² + bx + c = 0 را با فرمول درجه دوم حل کنید:</p>
+        <p style="text-align:center"><code>(−b ± √(b² − 4ac)) / 2a</code></p>
+        <p>پس حل t در معادلهٔ برخورد پرتو-کره این مقادیر را برای a، b و c می‌دهد:</p>
+        <p style="text-align:center"><code>a = d·d</code></p>
+        <p style="text-align:center"><code>b = −2·d·(C − Q)</code></p>
+        <p style="text-align:center"><code>c = (C − Q)·(C − Q) − r²</code></p>
+        <p>با استفاده از همهٔ موارد بالا می‌توانید t را حل کنید، اما یک بخش رادیکال وجود دارد که می‌تواند مثبت باشد (یعنی دو جواب حقیقی)، منفی (یعنی بدون جواب حقیقی) یا صفر (یعنی یک جواب حقیقی). در گرافیک، جبر تقریباً همیشه خیلی مستقیم به هندسه ربط دارد. چیزی که داریم این است:</p>
+        <img src="https://raytracing.github.io/images/fig-1.05-ray-sphere.jpg" alt="شکل: نتایج برخورد پرتو و کره — دو برخورد، یک برخورد، یا هیچ برخوردی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>ساختن اولین تصویر ردیابی‌شدهٔ ما</h3>
+        <p>اگر آن ریاضی را برداریم و مستقیم در برنامه‌مان سخت‌کد کنیم، می‌توانیم کدمان را با قراردادن یک کرهٔ کوچک در −۱ روی محور z و قرمزرنگ‌کردن هر پیکسلی که به آن برخورد می‌کند، آزمایش کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>bool hit_sphere(const point3&amp; center, double radius, const ray&amp; r) {
+    vec3 oc = center - r.origin();
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), oc);
+    auto c = dot(oc, oc) - radius*radius;
+    auto discriminant = b*b - 4*a*c;
+    return (discriminant &gt;= 0);
+}
+
+
+color ray_color(const ray&amp; r) {
+    if (hit_sphere(point3(0,0,-1), 0.5, r))
+        return color(1, 0, 0);
+
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — رندر یک کرهٔ قرمز]</p>
+        <p>چیزی که می‌گیریم این است:</p>
+        <img src="https://raytracing.github.io/images/img-1.03-red-sphere.png" alt="تصویر ۳: یک کرهٔ قرمز ساده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالا این از همه‌جور چیز بی‌بهره است — مثل سایه‌زنی، پرتوهای بازتاب و بیش از یک شیء — اما به نیمهٔ راه نزدیک‌تریم تا به شروع! یک نکته که باید از آن آگاه باشید این است که با حل معادلهٔ درجه دوم و دیدنِ وجودِ جواب، آزمایش می‌کنیم که آیا پرتو با کره برخورد می‌کند یا نه؛ اما جواب‌های با t منفی هم خوب کار می‌کنند. اگر مرکز کره را به z = +1 تغییر دهید، دقیقاً همان تصویر را می‌گیرید، چون این راه‌حل بین اشیایی که <em>جلوی دوربین</em> هستند و اشیایی که <em>پشت دوربین</em> هستند تمایز قائل نمی‌شود. این یک ویژگی نیست! این مشکلات را بخش بعدی درست می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>نرمال‌های سطح و چند شیء</h2>
+
+        <h3>سایه‌زنی با نرمال سطح</h3>
+        <p>اول، بگذارید یک نرمال سطح به دست بیاوریم تا بتوانیم سایه بزنیم. این بردارِ عمود بر سطح در نقطهٔ برخورد است.</p>
+        <p>برای بردارهای نرمال در کدمان یک تصمیم طراحی کلیدی داریم: آیا بردارهای نرمال طول دلخواه خواهند داشت یا به طول واحد نرمال می‌شوند.</p>
+        <p>وسوسه‌انگیز است که عملیات گرانِ ریشهٔ دومِ دخیل در نرمال‌سازی بردار را نادیده بگیریم، چون شاید لازم نباشد. اما در عمل سه مشاهدهٔ مهم وجود دارد. اول، اگر نرمالِ واحد <em>هرگز</em> لازم شود، بهتر است همین اول یک‌بار انجامش دهید، به‌جای اینکه «فقط احتیاطاً» برای هر جا که به طول واحد نیاز است، بارها و بارها انجامش دهید. دوم، در چندین جای کد <em>واقعاً</em> به نرمال واحد نیاز داریم. سوم، اگر بردارهای نرمال را واحدِ اجباری کنید، اغلب می‌توانید با درک کلاس هندسیِ خاص، آن بردار را کارآمد تولید کنید — در سازنده‌اش یا در تابع <code>hit()</code>. مثلاً نرمال کره را می‌توان به‌سادگی با تقسیم بر شعاع کره واحد کرد و کاملاً از ریشهٔ دوم اجتناب کرد.</p>
+        <p>با توجه به همهٔ این‌ها، این سیاست را می‌پذیریم که همهٔ بردارهای نرمال طول واحد داشته باشند.</p>
+        <p>برای کره، نرمال رو به بیرون در جهتِ نقطهٔ برخورد منهاي مرکز است:</p>
+        <img src="https://raytracing.github.io/images/fig-1.06-sphere-normal.jpg" alt="شکل: هندسهٔ نرمال سطح کره — بردار از مرکز به نقطهٔ برخورد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>روی زمین، این یعنی بردارِ از مرکز زمین به شما مستقیم رو به بالا اشاره می‌کند. بگذارید الآن این را در کد بیندازیم و سایه‌زنی‌اش کنیم. هنوز هیچ نور یا چیزی نداریم، پس فقط بیایید نرمال‌ها را با یک نقشهٔ رنگی بصری کنیم. یک ترفند رایج برای بصری‌سازی نرمال‌ها (چون ساده است و تا حدی شهودی فرض کنیم n بردار واحد است — پس هر مؤلفه بین −۱ و ۱ است) این است که هر مؤلفه را به بازهٔ ۰ تا ۱ نگاشت کنیم و سپس (x, y, z) را به (قرمز، سبز، آبی) نگاشت کنیم. برای نرمال، به نقطهٔ برخورد نیاز داریم، نه فقط برخورد کردن یا نکردن (که فعلاً تنها چیزی است که محاسبه می‌کنیم). فقط یک کره در صحنه داریم و دقیقاً جلوی دوربین است؛ پس فعلاً نگران مقادیر منفی t نیستیم. فقط فرض می‌کنیم نزدیک‌ترین نقطهٔ برخورد (کوچک‌ترین t) همانی است که می‌خواهیم. این تغییرهای کد به ما امکان می‌دهند n را محاسبه و بصری کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>double hit_sphere(const point3&amp; center, double radius, const ray&amp; r) {
+    vec3 oc = center - r.origin();
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), oc);
+    auto c = dot(oc, oc) - radius*radius;
+    auto discriminant = b*b - 4*a*c;
+
+    if (discriminant &lt; 0) {
+        return -1.0;
+    } else {
+        return (-b - std::sqrt(discriminant) ) / (2.0*a);
+    }
+}
+
+color ray_color(const ray&amp; r) {
+    auto t = hit_sphere(point3(0,0,-1), 0.5, r);
+    if (t &gt; 0.0) {
+        vec3 N = unit_vector(r.at(t) - vec3(0,0,-1));
+        return 0.5*color(N.x()+1, N.y()+1, N.z()+1);
+    }
+
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — رندر نرمال‌های سطح روی یک کره]</p>
+        <p>و این تصویر را به دست می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.04-normals-sphere.png" alt="تصویر ۴: کره‌ای که بر اساس بردارهای نرمالش رنگ‌آمیزی شده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>ساده‌سازی کد برخورد پرتو-کره</h3>
+        <p>بیایید دوباره به تابع پرتو-کره سر بزنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>double hit_sphere(const point3&amp; center, double radius, const ray&amp; r) {
+    vec3 oc = center - r.origin();
+    auto a = dot(r.direction(), r.direction());
+    auto b = -2.0 * dot(r.direction(), oc);
+    auto c = dot(oc, oc) - radius*radius;
+    auto discriminant = b*b - 4*a*c;
+
+    if (discriminant &lt; 0) {
+        return -1.0;
+    } else {
+        return (-b - std::sqrt(discriminant) ) / (2.0*a);
+    }
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — کد برخورد پرتو-کره (قبل)]</p>
+        <p>اول، به یاد آورید که ضرب داخلی یک بردار در خودش برابر مربع طول آن بردار است.</p>
+        <p>دوم، ببینید معادلهٔ b چه ضریب منفیِ دویی دارد. در نظر بگیرید چه بر سر معادلهٔ درجه دوم می‌آید اگر b = −2h:</p>
+        <p style="text-align:center"><code>(−b ± √(b² − 4ac)) / 2a</code></p>
+        <p style="text-align:center"><code>= (−(−2h) ± √((−2h)² − 4ac)) / 2a</code></p>
+        <p style="text-align:center"><code>= (2h ± 2√(h² − ac)) / 2a</code></p>
+        <p style="text-align:center"><code>= (h ± √(h² − ac)) / a</code></p>
+        <p>این به‌خوبی ساده می‌شود، پس از آن استفاده می‌کنیم. پس حل h:</p>
+        <p style="text-align:center"><code>b = −2·d·(C − Q)</code></p>
+        <p style="text-align:center"><code>b = −2h</code></p>
+        <p style="text-align:center"><code>h = b/−2 = d·(C − Q)</code></p>
+        <p>با استفاده از این مشاهدات، حالا می‌توانیم کد برخورد کره را به این ساده کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>double hit_sphere(const point3&amp; center, double radius, const ray&amp; r) {
+    vec3 oc = center - r.origin();
+    auto a = r.direction().length_squared();
+    auto h = dot(r.direction(), oc);
+    auto c = oc.length_squared() - radius*radius;
+    auto discriminant = h*h - a*c;
+
+    if (discriminant &lt; 0) {
+        return -1.0;
+    } else {
+        return (h - std::sqrt(discriminant)) / a;
+    }
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — کد برخورد پرتو-کره (بعد)]</p>
+
+        <h3>یک انتزاع برای اشیای قابل‌برخورد (Hittable)</h3>
+        <p>حالا، چطور است بیش از یک کره؟ با اینکه داشتن یک آرایه از کره‌ها وسوسه‌انگیز است، یک راه‌حل خیلی تمیز ساختن یک «کلاس انتزاعی» برای هر چیزی است که پرتو ممکن است به آن برخورد کند، و ساختنِ همِ کره و همِ لیستِ کره‌ها به‌عنوان چیزی که «قابل‌برخورد» است. این که آن کلاس چه نامیده شود یک معماست — اگر برنامه‌نویسیِ «شیء‌گرا» نبود، نامیدنش «object» خوب بود. «Surface» (سطح) اغلب استفاده می‌شود، با این ضعف که شاید ما حجم‌ها را بخواهیم (مه، ابر، چیزهایی از این دست). «hittable» (قابل‌برخورد) بر تابعِ عضوی که آن‌ها را متحد می‌کند تأکید دارد. هیچ‌کدام از این‌ها را دوست ندارم، اما با «hittable» می‌رویم.</p>
+        <p>این کلاس انتزاعی <code>hittable</code> یک تابع <code>hit</code> خواهد داشت که یک پرتو می‌گیرد. بیشتر ردیاب‌های پرتو افزودن یک بازهٔ معتبر برای برخوردها از t<sub>min</sub> تا t<sub>max</sub> را راحت یافته‌اند، طوری که برخورد فقط وقتی «به حساب می‌آید» که t<sub>min</sub> &lt; t &lt; t<sub>max</sub>. برای پرتوهای اولیه این t مثبت است، اما همان‌طور که خواهیم دید، داشتن یک بازهٔ t<sub>min</sub> تا t<sub>max</sub> می‌تواند کدمان را ساده کند. یک سؤال طراحی این است که آیا کارهایی مثل محاسبهٔ نرمال را وقتی به چیزی برخورد کردیم انجام بدهیم یا نه. ممکن است در جست‌وجومان به چیزی نزدیک‌تر برخورد کنیم و فقط به نرمالِ نزدیک‌ترین چیز نیاز داشته باشیم. من با راه‌حل ساده می‌روم و یک بستهٔ چیز که در ساختاری ذخیره می‌کنم محاسبه می‌کنم. کلاس انتزاعی این است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef HITTABLE_H
+#define HITTABLE_H
+
+#include "ray.h"
+
+class hit_record {
+  public:
+    point3 p;
+    vec3 normal;
+    double t;
+};
+
+class hittable {
+  public:
+    virtual ~hittable() = default;
+
+    virtual bool hit(const ray&amp; r, double ray_tmin, double ray_tmax, hit_record&amp; rec) const = 0;
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable.h]</code> — کلاس hittable]</p>
+        <p>و این هم کره:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef SPHERE_H
+#define SPHERE_H
+
+#include "hittable.h"
+#include "vec3.h"
+
+class sphere : public hittable {
+  public:
+    sphere(const point3&amp; center, double radius) : center(center), radius(std::fmax(0,radius)) {}
+
+    bool hit(const ray&amp; r, double ray_tmin, double ray_tmax, hit_record&amp; rec) const override {
+        vec3 oc = center - r.origin();
+        auto a = r.direction().length_squared();
+        auto h = dot(r.direction(), oc);
+        auto c = oc.length_squared() - radius*radius;
+
+        auto discriminant = h*h - a*c;
+        if (discriminant &lt; 0)
+            return false;
+
+        auto sqrtd = std::sqrt(discriminant);
+
+        // نزدیک‌ترین ریشه‌ای را پیدا کن که در بازهٔ قابل‌قبول باشد.
+        auto root = (h - sqrtd) / a;
+        if (root &lt;= ray_tmin || ray_tmax &lt;= root) {
+            root = (h + sqrtd) / a;
+            if (root &lt;= ray_tmin || ray_tmax &lt;= root)
+                return false;
+        }
+
+        rec.t = root;
+        rec.p = r.at(rec.t);
+        rec.normal = (rec.p - center) / radius;
+
+        return true;
+    }
+
+  private:
+    point3 center;
+    double radius;
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — کلاس sphere]</p>
+        <p>(توجه کنید این‌جا از تابع استاندارد C++ یعنی <code>std::fmax()</code> استفاده می‌کنیم که بیشترینِ دو آرگومان ممیز شناور را برمی‌گرداند. به‌طور مشابه، بعداً از <code>std::fmin()</code> استفاده می‌کنیم که کمترینِ دو آرگومان ممیز شناور را برمی‌گرداند.)</p>
+
+        <h3>رویِ جلو در برابر رویِ پشت</h3>
+        <p>دومین تصمیم طراحی برای نرمال‌ها این است که آیا باید همیشه به سمت بیرون باشند. در حال حاضر، نرمالِ پیدا‌شده همیشه در جهتِ مرکز به نقطهٔ برخورد خواهد بود (نرمال به بیرون اشاره می‌کند). اگر پرتو از بیرون به کره برخورد کند، نرمال خلاف پرتو است. اگر پرتو از داخل به کره برخورد کند، نرمال (که همیشه به بیرون اشاره می‌کند) هم‌جهت با پرتو است. از طرف دیگر، می‌توانیم نرمال را همیشه خلاف پرتو کنیم. اگر پرتو خارج کره باشد، نرمال به بیرون اشاره می‌کند، اما اگر پرتو داخل کره باشد، نرمال به داخل اشاره می‌کند.</p>
+        <img src="https://raytracing.github.io/images/fig-1.07-normal-sides.jpg" alt="شکل: جهت‌های ممکن برای هندسهٔ نرمال سطح کره — بیرون‌رو یا خلاف پرتو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>باید یکی از این امکان‌ها را انتخاب کنیم، چون در نهایت می‌خواهیم تعیین کنیم پرتو از کدام سمت سطح می‌آید. این برای اشیایی مهم است که هر طرفشان متفاوت رندر می‌شود — مثل متن روی یک برگ کاغذ دوطرفه — یا اشیایی که داخل و خارج دارند، مثل گوی شیشه‌ای.</p>
+        <p>اگر تصمیم بگیریم نرمال‌ها همیشه به بیرون باشند، باید وقتی پرتو را رنگ می‌کنیم تعیین کنیم پرتو در کدام سمت است. می‌توانیم این را با مقایسهٔ پرتو و نرمال بفهمیم. اگر پرتو و نرمال در یک جهت باشند، پرتو داخل شیء است؛ اگر پرتو و نرمال در جهت‌های مخالف باشند، پرتو خارج از شیء است. این را می‌توان با ضرب داخلی دو بردار تعیین کرد؛ اگر ضرب داخلی‌شان مثبت باشد، پرتو داخل کره است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>if (dot(ray_direction, outward_normal) &gt; 0.0) {
+    // پرتو داخل کره است
+    ...
+} else {
+    // پرتو خارج از کره است
+    ...
+}</code></pre>
+        <p class="listing-label">[فهرست — مقایسهٔ پرتو و نرمال]</p>
+        <p>اگر تصمیم بگیریم نرمال‌ها همیشه خلاف پرتو باشند، نمی‌توانیم از ضرب داخلی برای تعیین اینکه پرتو در کدام سمت سطح است استفاده کنیم. در عوض باید آن اطلاعات را ذخیره کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>bool front_face;
+if (dot(ray_direction, outward_normal) &gt; 0.0) {
+    // پرتو داخل کره است
+    normal = -outward_normal;
+    front_face = false;
+} else {
+    // پرتو خارج از کره است
+    normal = outward_normal;
+    front_face = true;
+}</code></pre>
+        <p class="listing-label">[فهرست — به‌خاطر سپردن سمتِ سطح]</p>
+        <p>می‌توانیم طوری تنظیم کنیم که نرمال‌ها همیشه از سطح به «بیرون» اشاره کنند، یا همیشه خلاف پرتو تابشی باشند. این تصمیم با این تعیین می‌شود که می‌خواهید سمت سطح را زمان برخورد هندسی تعیین کنید یا زمان رنگ‌آمیزی. در این کتاب، تعداد نوعِ ماده‌ها بیشتر از نوعِ هندسه‌هاست، پس به سمت کارِ کمتر می‌رویم و تعیین را می‌گذاریم سر زمان هندسه. این صرفاً یک سلیقه است و هر دو پیاده‌سازی را در ادبیات خواهید دید.</p>
+        <p>بولیِ <code>front_face</code> را به کلاس <code>hit_record</code> اضافه می‌کنیم. همچنین تابعی اضافه می‌کنیم که این محاسبه را برایمان حل کند: <code>set_face_normal()</code>. برای راحتی فرض می‌کنیم برداری که به تابع جدید <code>set_face_normal()</code> داده می‌شود طول واحد دارد. همیشه می‌توانیم پارامتر را صریحاً نرمال کنیم، اما اگر کد هندسه این کار را بکند کارآمدتر است، چون وقتی دربارهٔ هندسهٔ خاص بیشتر بدانید، معمولاً آسان‌تر است.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class hit_record {
+  public:
+    point3 p;
+    vec3 normal;
+    double t;
+    bool front_face;
+
+    void set_face_normal(const ray&amp; r, const vec3&amp; outward_normal) {
+        // بردار نرمال سابقهٔ برخورد را تنظیم می‌کند.
+        // توجه: پارامتر `outward_normal` فرض می‌شود طول واحد دارد.
+
+        front_face = dot(r.direction(), outward_normal) &lt; 0;
+        normal = front_face ? outward_normal : -outward_normal;
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable.h]</code> — افزودن ردیابی رویِ جلو به hit_record]</p>
+        <p>و سپس تعیین سمتِ سطح را به کلاس اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class sphere : public hittable {
+  public:
+    ...
+    bool hit(const ray&amp; r, double ray_tmin, double ray_tmax, hit_record&amp; rec) const {
+        ...rec.t = root;
+            rec.p = r.at(rec.t);
+            vec3 outward_normal = (rec.p - center) / radius;
+            rec.set_face_normal(r, outward_normal);
+
+            return true;
+        }
+        ...
+    };
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — کلاس sphere با تعیین نرمال]</p>
+
+        <h3>یک لیست از اشیای قابل‌برخورد</h3>
+        <p>یک شیء عمومی داریم به نام <code>hittable</code> که پرتو می‌تواند با آن برخورد کند. حالا کلاسی اضافه می‌کنیم که یک لیست از <code>hittable</code>ها را ذخیره می‌کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef HITTABLE_LIST_H
+#define HITTABLE_LIST_H
+
+#include "hittable.h"
+
+#include &lt;memory&gt;
+#include &lt;vector&gt;
+
+using std::make_shared;
+using std::shared_ptr;
+
+class hittable_list : public hittable {
+  public:
+    std::vector&lt;shared_ptr&lt;hittable&gt;&gt; objects;
+
+    hittable_list() {}
+    hittable_list(shared_ptr&lt;hittable&gt; object) { add(object); }
+
+    void clear() { objects.clear(); }
+
+    void add(shared_ptr&lt;hittable&gt; object) {
+        objects.push_back(object);
+    }
+
+    bool hit(const ray&amp; r, double ray_tmin, double ray_tmax, hit_record&amp; rec) const override {
+        hit_record temp_rec;
+        bool hit_anything = false;
+        auto closest_so_far = ray_tmax;
+
+        for (const auto&amp; object : objects) {
+            if (object-&gt;hit(r, ray_tmin, closest_so_far, temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
+        }
+
+        return hit_anything;
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable_list.h]</code> — کلاس hittable_list]</p>
+
+        <h3>چند ویژگی جدید C++</h3>
+        <p>کد کلاس <code>hittable_list</code> از چند ویژگی C++ استفاده می‌کند که اگر معمولاً برنامه‌نویس C++ نیستید ممکن است به آن‌ها گیر بدهید: <code>vector</code>، <code>shared_ptr</code> و <code>make_shared</code>.</p>
+        <p><code>shared_ptr&lt;type&gt;</code> یک اشاره‌گر به یک نوع تخصیص‌داده‌شده با معناشناسی شمارش ارجاع (reference counting) است. هر بار که مقدارش را به یک اشاره‌گر اشتراکی دیگر نسبت دهید (معمولاً با یک تخصیص ساده)، شمارندهٔ ارجاع افزایش می‌یابد. وقتی اشاره‌گرهای اشتراکی از دامنه خارج می‌شوند (مثل انتهای یک بلاک یا تابع)، شمارندهٔ ارجاع کاهش می‌یابد. وقتی شمارنده به صفر برسد، شیء با خیال راحت حذف می‌شود.</p>
+        <p>معمولاً یک اشاره‌گر اشتراکی ابتدا با یک شیء تازه‌تخصیص‌یافته مقداردهی اولیه می‌شود، چیزی شبیه این:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>shared_ptr&lt;double&gt; double_ptr = make_shared&lt;double&gt;(0.37);
+shared_ptr&lt;vec3&gt;   vec3_ptr   = make_shared&lt;vec3&gt;(1.414214, 2.718281, 1.618034);
+shared_ptr&lt;sphere&gt; sphere_ptr = make_shared&lt;sphere&gt;(point3(0,0,0), 1.0);</code></pre>
+        <p class="listing-label">[فهرست — یک مثال تخصیص با shared_ptr]</p>
+        <p><code>make_shared&lt;thing&gt;(params...)</code> یک نمونهٔ جدید از نوع <code>thing</code> را با استفاده از پارامترهای سازنده تخصیص می‌دهد و یک <code>shared_ptr&lt;thing&gt;</code> برمی‌گرداند.</p>
+        <p>چون نوع را می‌توان به‌طور خودکار از نوع بازگشتیِ <code>make_shared&lt;type&gt;(...)</code> استنتاج کرد، خطوط بالا را می‌توان با مشخص‌کنندهٔ نوع <code>auto</code> در C++ ساده‌تر نوشت:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>auto double_ptr = make_shared&lt;double&gt;(0.37);
+auto vec3_ptr   = make_shared&lt;vec3&gt;(1.414214, 2.718281, 1.618034);
+auto sphere_ptr = make_shared&lt;sphere&gt;(point3(0,0,0), 1.0);</code></pre>
+        <p class="listing-label">[فهرست — یک مثال تخصیص با shared_ptr و نوع auto]</p>
+        <p>در کدمان از اشاره‌گرهای اشتراکی استفاده می‌کنیم، چون به چند هندسه اجازه می‌دهد یک نمونهٔ مشترک را شریک شوند (مثلاً یک دسته کره که همه از همان مادهٔ رنگی استفاده می‌کنند) و چون مدیریت حافظه را خودکار و استدلال‌کردن درباره‌اش را آسان‌تر می‌کند.</p>
+        <p><code>std::shared_ptr</code> با هدر <code>&lt;memory&gt;</code> ارائه می‌شود.</p>
+        <p>دومین ویژگی C++ که شاید با آن آشنا نباشید <code>std::vector</code> است. این یک مجموعهٔ عمومی شبه‌آرایه از یک نوع دلخواه است. در بالا، از یک مجموعه از اشاره‌گرها به <code>hittable</code> استفاده کردیم. <code>std::vector</code> به‌طور خودکار با افزودن مقادیر بیشتر رشد می‌کند: <code>objects.push_back(object)</code> یک مقدار به انتهای متغیر عضو <code>std::vector</code> یعنی <code>objects</code> اضافه می‌کند.</p>
+        <p><code>std::vector</code> با هدر <code>&lt;vector&gt;</code> ارائه می‌شود.</p>
+        <p>در نهایت، عبارت‌های <code>using</code> در فهرست [hittable-list-initial] به کامپایلر می‌گویند که <code>shared_ptr</code> و <code>make_shared</code> را از کتابخانهٔ <code>std</code> می‌گیریم؛ پس لازم نیست هر بار پیشوند <code>std::</code> را بگذاریم.</p>
+
+        <h3>ثابت‌ها و توابع کمکی رایج</h3>
+        <p>به چند ثابت ریاضی نیاز داریم که به‌راحتی در فایل هدر اختصاصی خودشان تعریف می‌کنیم. فعلاً فقط به بی‌نهایت نیاز داریم، اما تعریف خودمان از پی را هم آن‌جا می‌گذاریم که بعداً لازمش خواهیم داشت. ثابت‌های مفید رایج و توابع کمکی آینده را هم همین‌جا می‌اندازیم. این هدر جدید، <code>rtweekend.h</code>، هدر اصلی عمومی ما خواهد بود.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef RTWEEKEND_H
+#define RTWEEKEND_H
+
+#include &lt;cmath&gt;
+#include &lt;iostream&gt;
+#include &lt;limits&gt;
+#include &lt;memory&gt;
+
+
+// استفاده‌های استاندارد C++
+using std::make_shared;
+using std::shared_ptr;
+
+// ثابت‌ها
+const double infinity = std::numeric_limits&lt;double&gt;::infinity();
+const double pi = 3.1415926535897932385;
+
+// توابع کمکی
+inline double degrees_to_radians(double degrees) {
+    return degrees * pi / 180.0;
+}
+
+// هدرهای رایج
+#include "color.h"
+#include "ray.h"
+#include "vec3.h"
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[rtweekend.h]</code> — هدر عمومی rtweekend.h]</p>
+        <p>فایل‌های برنامه اول <code>rtweekend.h</code> را include می‌کنند تا همهٔ فایل‌های هدر دیگر (جایی که بخش عمدهٔ کدمان در آن‌هاست) بتوانند تلویحاً فرض کنند <code>rtweekend.h</code> قبلاً include شده است. فایل‌های هدر همچنان باید هر فایل هدرِ لازمِ دیگر را صریحاً include کنند. چند به‌روزرسانی با این فرض‌ها در نظر می‌آوریم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;iostream&gt;</code></pre>
+        <p class="listing-label">[فهرست <code>[color.h]</code> — فرض include شدن rtweekend.h برای color.h — این خط حذف می‌شود]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "ray.h"</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable.h]</code> — فرض include شدن rtweekend.h برای hittable.h — این خط حذف می‌شود]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;vector&gt;</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable_list.h]</code> — فرض include شدن rtweekend.h برای hittable_list.h — خطوط <code>&lt;memory&gt;</code> و <code>using</code> حذف می‌شوند]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "vec3.h"</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — فرض include شدن rtweekend.h برای sphere.h — این خط حذف می‌شود]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;cmath&gt;
+#include &lt;iostream&gt;</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — فرض include شدن rtweekend.h برای vec3.h — این خطوط حذف می‌شوند]</p>
+        <p>و حالا main جدید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "rtweekend.h"
+
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
+
+
+color ray_color(const ray&amp; r, const hittable&amp; world) {
+    hit_record rec;
+    if (world.hit(r, 0, infinity, rec)) {
+        return 0.5 * (rec.normal + color(1,1,1));
+    }
+
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+}
+
+int main() {
+
+    // تصویر
+    auto aspect_ratio = 16.0 / 9.0;
+    int image_width = 400;
+
+    // ارتفاع تصویر را حساب کن و مطمئن شو حداقل ۱ باشد.
+    int image_height = int(image_width / aspect_ratio);
+    image_height = (image_height &lt; 1) ? 1 : image_height;
+
+    // دنیا
+    hittable_list world;
+
+    world.add(make_shared&lt;sphere&gt;(point3(0,0,-1), 0.5));
+    world.add(make_shared&lt;sphere&gt;(point3(0,-100.5,-1), 100));
+
+    // دوربین
+    auto focal_length = 1.0;
+    auto viewport_height = 2.0;
+    auto viewport_width = viewport_height * (double(image_width)/image_height);
+    auto camera_center = point3(0, 0, 0);
+
+    // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+    auto viewport_u = vec3(viewport_width, 0, 0);
+    auto viewport_v = vec3(0, -viewport_height, 0);
+
+    // بردارهای دلتای افقی و عمودی پیکسل‌به‌پیکسل را حساب کن.
+    auto pixel_delta_u = viewport_u / image_width;
+    auto pixel_delta_v = viewport_v / image_height;
+
+    // مکان پیکسل بالا-چپ را حساب کن.
+    auto viewport_upper_left = camera_center
+                             - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+    auto pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+    // رندر
+    std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+    for (int j = 0; j &lt; image_height; j++) {
+        std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+        for (int i = 0; i &lt; image_width; i++) {
+            auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+            auto ray_direction = pixel_center - camera_center;
+            ray r(camera_center, ray_direction);
+
+            color pixel_color = ray_color(r, world);
+            write_color(std::cout, pixel_color);
+        }
+    }
+
+    std::clog &lt;&lt; "\rDone.                 \n";
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — main جدید با hittableها]</p>
+        <p>این تصویری می‌دهد که واقعاً فقط بصری‌سازیِ مکان‌های کره‌ها به‌همراه نرمال سطحشان است. این اغلب راهی عالی برای دیدن هر نقص یا ویژگی خاص یک مدل هندسی است.</p>
+        <img src="https://raytracing.github.io/images/img-1.05-normals-sphere-ground.png" alt="تصویر ۵: رندر حاصل از کرهٔ رنگ‌شده با نرمال به‌همراه زمین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>یک کلاس بازه (Interval)</h3>
+        <p>پیش از ادامه، یک کلاس بازه پیاده‌سازی می‌کنیم تا بازه‌های حقیقی‌مقدار با یک حداقل و یک حداکثر را مدیریت کند. در ادامهٔ کار خیلی وقت‌ها از این کلاس استفاده خواهیم کرد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef INTERVAL_H
+#define INTERVAL_H
+
+class interval {
+  public:
+    double min, max;
+
+    interval() : min(+infinity), max(-infinity) {} // بازهٔ پیش‌فرض خالی است
+
+    interval(double min, double max) : min(min), max(max) {}
+
+    double size() const {
+        return max - min;
+    }
+
+    bool contains(double x) const {
+        return min &lt;= x &amp;&amp; x &lt;= max;
+    }
+
+    bool surrounds(double x) const {
+        return min &lt; x &amp;&amp; x &lt; max;
+    }
+
+    static const interval empty, universe;
+};
+
+const interval interval::empty    = interval(+infinity, -infinity);
+const interval interval::universe = interval(-infinity, +infinity);
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[interval.h]</code> — معرفی کلاس بازهٔ جدید]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// هدرهای رایج
+#include "color.h"
+#include "interval.h"
+#include "ray.h"
+#include "vec3.h"</code></pre>
+        <p class="listing-label">[فهرست <code>[rtweekend.h]</code> — include کردن کلاس بازهٔ جدید]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class hittable {
+  public:
+    ...
+    virtual bool hit(const ray&amp; r, interval ray_t, hit_record&amp; rec) const = 0;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable.h]</code> — hittable::hit() با استفاده از interval]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class hittable_list : public hittable {
+  public:
+    ...
+    bool hit(const ray&amp; r, interval ray_t, hit_record&amp; rec) const override {
+        hit_record temp_rec;
+        bool hit_anything = false;
+        auto closest_so_far = ray_t.max;
+
+        for (const auto&amp; object : objects) {
+            if (object-&gt;hit(r, interval(ray_t.min, closest_so_far), temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
+        }
+
+        return hit_anything;
+    }
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable_list.h]</code> — hittable_list::hit() با استفاده از interval]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class sphere : public hittable {
+  public:
+    ...
+    bool hit(const ray&amp; r, interval ray_t, hit_record&amp; rec) const override {
+        ...
+
+        // نزدیک‌ترین ریشه‌ای را پیدا کن که در بازهٔ قابل‌قبول باشد.
+        auto root = (h - sqrtd) / a;
+        if (!ray_t.surrounds(root)) {
+            root = (h + sqrtd) / a;
+            if (!ray_t.surrounds(root))
+                return false;
+        }
+        ...
+    }
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — sphere با استفاده از interval]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>color ray_color(const ray&amp; r, const hittable&amp; world) {
+    hit_record rec;
+    if (world.hit(r, interval(0, infinity), rec)) {
+        return 0.5 * (rec.normal + color(1,1,1));
+    }
+
+    vec3 unit_direction = unit_vector(r.direction());
+    auto a = 0.5*(unit_direction.y() + 1.0);
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — main جدید با استفاده از interval]</p>
+      </section>
+
+      <section>
+        <h2>انتقال کد دوربین به کلاس خودش</h2>
+        <p>پیش از ادامه، حالا وقت خوبی است که کد دوربین و رندر صحنه‌مان را در یک کلاس جدید واحد تثبیت کنیم: کلاس <code>camera</code>. کلاس دوربین مسئول دو کار مهم خواهد بود:</p>
+        <ol>
+          <li>ساخت و پرتاب پرتوها به دنیا.</li>
+          <li>استفاده از نتایج این پرتوها برای ساخت تصویر رندرشده.</li>
+        </ol>
+        <p>در این بازسازی (refactoring)، تابع <code>ray_color()</code> را به‌همراه بخش‌های تصویر، دوربین و رندر برنامهٔ اصلی‌مان جمع می‌کنیم. کلاس دوربین جدید دو متد عمومی <code>initialize()</code> و <code>render()</code> خواهد داشت، به‌علاوهٔ دو متد کمکی خصوصی <code>get_ray()</code> و <code>ray_color()</code>.</p>
+        <p>در نهایت، دوربین ساده‌ترین الگوی استفاده‌ای که به ذهنمان رسید را دنبال می‌کند: بدون آرگومان به‌صورت پیش‌فرض ساخته می‌شود، سپس کد مالک با تخصیص ساده، متغیرهای عمومی دوربین را تغییر می‌دهد، و در پایان همه‌چیز با فراخوانی تابع <code>initialize()</code> مقداردهی می‌شود. این الگو به‌جای اینکه مالک با سازنده‌ای با انبوهی پارامتر صدا بزند یا یک دسته متد setter تعریف و صدا بزند، انتخاب شده است. در عوض، کد مالک فقط باید چیزی را بگذارد که صریحاً به آن اهمیت می‌دهد. در نهایت، می‌توانیم یا کد مالک <code>initialize()</code> را صدا بزند، یا فقط دوربین این تابع را به‌طور خودکار در شروع <code>render()</code> صدا بزند. ما از روش دوم استفاده می‌کنیم.</p>
+        <p>بعد از اینکه main یک دوربین می‌سازد و مقادیر پیش‌فرض می‌گذارد، متد <code>render()</code> را صدا می‌زند. متد <code>render()</code> دوربین را برای رندر آماده می‌کند و سپس حلقهٔ رندر را اجرا می‌کند.</p>
+        <p>این اسکلت کلاس جدید <code>camera</code> ماست:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef CAMERA_H
+#define CAMERA_H
+
+#include "hittable.h"
+
+class camera {
+  public:
+    /* پارامترهای عمومی دوربین این‌جا */
+
+    void render(const hittable&amp; world) {
+        ...
+    }
+
+  private:
+    /* متغیرهای خصوصی دوربین این‌جا */
+
+    void initialize() {
+        ...
+    }
+
+    color ray_color(const ray&amp; r, const hittable&amp; world) const {
+        ...
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — اسکلت کلاس camera]</p>
+        <p>برای شروع، تابع <code>ray_color()</code> را از <code>main.cc</code> پر می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  ...
+
+  private:
+    ...
+
+
+    color ray_color(const ray&amp; r, const hittable&amp; world) const {
+        hit_record rec;
+
+        if (world.hit(r, interval(0, infinity), rec)) {
+            return 0.5 * (rec.normal + color(1,1,1));
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — تابع camera::ray_color]</p>
+        <p>حالا تقریباً همه‌چیز را از تابع <code>main()</code> به کلاس دوربین جدیدمان منتقل می‌کنیم. تنها چیزی که در تابع <code>main()</code> باقی می‌ماند ساخت دنیاست. این هم کلاس دوربین با کد تازه‌مهاجرت‌کرده:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width  = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+
+    void render(const hittable&amp; world) {
+        initialize();
+
+        std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+        for (int j = 0; j &lt; image_height; j++) {
+            std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+            for (int i = 0; i &lt; image_width; i++) {
+                auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+                auto ray_direction = pixel_center - center;
+                ray r(center, ray_direction);
+
+                color pixel_color = ray_color(r, world);
+                write_color(std::cout, pixel_color);
+            }
+        }
+
+        std::clog &lt;&lt; "\rDone.                 \n";
+    }
+
+  private:
+    int    image_height;   // ارتفاع تصویر رندرشده
+    point3 center;         // مرکز دوربین
+    point3 pixel00_loc;    // مکان پیکسل ۰، ۰
+    vec3   pixel_delta_u;  // جابه‌جایی به پیکسل سمت راست
+    vec3   pixel_delta_v;  // جابه‌جایی به پیکسل پایین
+
+    void initialize() {
+        image_height = int(image_width / aspect_ratio);
+        image_height = (image_height &lt; 1) ? 1 : image_height;
+
+        center = point3(0, 0, 0);
+
+        // ابعاد viewport را تعیین کن.
+        auto focal_length = 1.0;
+        auto viewport_height = 2.0;
+        auto viewport_width = viewport_height * (double(image_width)/image_height);
+
+        // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+        auto viewport_u = vec3(viewport_width, 0, 0);
+        auto viewport_v = vec3(0, -viewport_height, 0);
+
+        // بردارهای دلتای افقی و عمودی پیکسل‌به‌پیکسل را حساب کن.
+        pixel_delta_u = viewport_u / image_width;
+        pixel_delta_v = viewport_v / image_height;
+
+        // مکان پیکسل بالا-چپ را حساب کن.
+        auto viewport_upper_left =
+            center - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+        pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+    }
+
+    color ray_color(const ray&amp; r, const hittable&amp; world) const {
+        ...
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — کلاس camera کارا]</p>
+        <p>و این هم main خیلی کوچک‌شده:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "rtweekend.h"
+
+#include "camera.h"
+#include "hittable.h"
+#include "hittable_list.h"
+#include "sphere.h"
+
+
+int main() {
+    hittable_list world;
+
+    world.add(make_shared&lt;sphere&gt;(point3(0,0,-1), 0.5));
+    world.add(make_shared&lt;sphere&gt;(point3(0,-100.5,-1), 100));
+
+    camera cam;
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width  = 400;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — main جدید با استفاده از دوربین جدید]</p>
+        <p>اجرای این برنامهٔ تازه‌بازسازی‌شده باید همان تصویر رندرشدهٔ قبل را به ما بدهد.</p>
+      </section>
+
+      <section>
+        <h2>ضدآلیاسینگ (Antialiasing)</h2>
+        <p>اگر تا حالا در تصاویر رندرشده بزرگ‌نمایی کنید، ممکن است ماهیت خشنِ «پلکانی» لبه‌ها را در تصاویر رندرشدهٔ ما ببینید. به این پلکانی‌شدن معمولاً «آلیاسینگ» یا «دندانه‌دارگی» (jaggies) می‌گویند. وقتی یک دوربین واقعی عکس می‌گیرد، معمولاً در لبه‌ها دندانه‌دارگی نیست، چون پیکسل‌های لبه ترکیبی از مقداری پیش‌زمینه و مقداری پس‌زمینه‌اند. در نظر بگیرید که برخلاف تصاویر رندرشدهٔ ما، یک تصویر واقعی از دنیا پیوسته است. به بیان دیگر، دنیا (و هر تصویر واقعی از آن) به‌طور مؤثر وضوح بی‌نهایت دارد. می‌توانیم با میانگین‌گیریِ یک دسته نمونه برای هر پیکسل، همان اثر را بگیریم.</p>
+        <p>با یک پرتوی تکی از مرکز هر پیکسل، کاری انجام می‌دهیم که معمولاً <em>نمونه‌برداری نقطه‌ای</em> نامیده می‌شود. مشکل نمونه‌برداری نقطه‌ای را می‌توان با رندر یک صفحهٔ شطرنجی کوچکِ دور نشان داد. اگر این صفحهٔ شطرنجی از یک شبکهٔ 8×8 از خانه‌های سیاه و سفید تشکیل شده باشد، اما فقط چهار پرتو به آن بخورند، هر چهار پرتو ممکن است فقط به خانه‌های سفید برخورد کنند، یا فقط سیاه، یا ترکیبی عجیب. در دنیای واقعی، وقتی با چشم‌هایمان یک صفحهٔ شطرنجی را از دور می‌بینیم، آن را به‌صورت یک رنگ خاکستری درک می‌کنیم، نه نقطه‌های تیز سیاه و سفید. علتش این است که چشم‌هایمان به‌طور طبیعی همان کاری را می‌کنند که می‌خواهیم ردیاب پرتومان بکند: انتگرال‌گیری از (تابع پیوستهٔ) نوری که روی یک ناحیهٔ (گسستهٔ) خاص از تصویر رندرشده‌مان می‌افتد.</p>
+        <p>به‌وضوح با نمونه‌برداری دوبارهٔ همان پرتو از مرکز پیکسل چند بار چیزی به دست نمی‌آوریم — هر بار همان نتیجه را می‌گرفتیم. در عوض، می‌خواهیم از نوری که <em>اطراف</em> پیکسل می‌افتد نمونه برداریم و سپس آن نمونه‌ها را انتگرال بگیریم تا نتیجهٔ پیوستهٔ واقعی تقریب زده شود. پس، چطور نورِ اطراف پیکسل را انتگرال می‌گیریم؟</p>
+        <p>ساده‌ترین مدل را می‌پذیریم: نمونه‌برداری از ناحیهٔ مربعیِ متمرکز بر پیکسل که تا نیمهٔ راه به هر چهار پیکسل همسایه امتداد می‌یابد. این رویکرد بهینه نیست، اما سرراست‌ترین است. (برای غواصی عمیق‌تر در این موضوع به مقالهٔ <a href="https://www.researchgate.net/publication/244986797" target="_blank" rel="noopener"><em>A Pixel is Not a Little Square</em></a> مراجعه کنید.)</p>
+        <img src="https://raytracing.github.io/images/fig-1.08-pixel-samples.jpg" alt="شکل: نمونه‌های پیکسل — نقاط تصادفی در مربع اطراف پیکسل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>ابزارهای عدد تصادفی</h3>
+        <p>به یک مولد عدد تصادفی نیاز داریم که اعداد تصادفی حقیقی برمی‌گرداند. این تابع باید یک عدد تصادفی استاندارد (canonical) برگرداند که طبق قرارداد در بازهٔ 0 ≤ n &lt; 1 است. «کمتر از» قبل از ۱ مهم است، چون گاهی از آن بهره می‌بریم.</p>
+        <p>یک رویکرد ساده برای این کار استفاده از تابع <code>std::rand()</code> است که در <code>&lt;cstdlib&gt;</code> یافت می‌شود و یک عدد صحیح تصادفی در بازهٔ ۰ تا <code>RAND_MAX</code> برمی‌گرداند. بنابراین می‌توانیم یک عدد تصادفی حقیقی به دلخواه با این تکه‌کد که به <code>rtweekend.h</code> اضافه می‌شود بگیریم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;cmath&gt;
+#include &lt;cstdlib&gt;
+#include &lt;iostream&gt;
+#include &lt;limits&gt;
+#include &lt;memory&gt;
+...
+
+// توابع کمکی
+inline double degrees_to_radians(double degrees) {
+    return degrees * pi / 180.0;
+}
+
+inline double random_double() {
+    // یک عدد حقیقی تصادفی در [0,1) برمی‌گرداند.
+    return std::rand() / (RAND_MAX + 1.0);
+}
+
+inline double random_double(double min, double max) {
+    // یک عدد حقیقی تصادفی در [min,max) برمی‌گرداند.
+    return min + (max-min)*random_double();
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[rtweekend.h]</code> — توابع random_double()]</p>
+        <p>C++ به‌طور سنتی مولد عدد تصادفی استاندارد نداشت، اما نسخه‌های جدیدتر C++ این مشکل را با هدر <code>&lt;random&gt;</code> حل کرده‌اند (هرچند به عقیدهٔ برخی کارشناسان نه بی‌نقص). اگر می‌خواهید از این استفاده کنید، می‌توانید عدد تصادفی را با شرایطی که نیاز داریم این‌طور به دست آورید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+#include &lt;random&gt;
+
+...
+
+inline double random_double() {
+    static std::uniform_real_distribution&lt;double&gt; distribution(0.0, 1.0);
+    static std::mt19937 generator;
+    return distribution(generator);
+}
+
+inline double random_double(double min, double max) {
+    // یک عدد حقیقی تصادفی در [min,max) برمی‌گرداند.
+    return min + (max-min)*random_double();
+}
+
+...</code></pre>
+        <p class="listing-label">[فهرست <code>[rtweekend.h]</code> — random_double()، پیاده‌سازی جایگزین]</p>
+
+        <h3>تولید پیکسل‌ها با چند نمونه</h3>
+        <p>برای یک پیکسلِ متشکل از چند نمونه، از ناحیهٔ اطراف پیکسل نمونه انتخاب می‌کنیم و مقادیر نور (رنگ) حاصل را با هم میانگین می‌گیریم.</p>
+        <p>اول تابع <code>write_color()</code> را به‌روزرسانی می‌کنیم تا تعداد نمونه‌های استفاده‌شده را در نظر بگیرد: باید میانگین را در میان همهٔ نمونه‌هایی که می‌گیریم بیابیم. برای این کار، رنگ کامل هر تکرار را جمع می‌کنیم و در پایان، قبل از نوشتن رنگ، با یک تقسیم واحد (بر تعداد نمونه‌ها) تمامش می‌کنیم. برای اطمینان از اینکه مؤلفه‌های رنگِ نتیجهٔ نهایی در مرزهای درست [0,1] باقی می‌مانند، یک تابع کمکی کوچک اضافه و استفاده می‌کنیم: <code>interval::clamp(x)</code>.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class interval {
+  public:
+    ...
+
+    bool surrounds(double x) const {
+        return min &lt; x &amp;&amp; x &lt; max;
+    }
+
+    double clamp(double x) const {
+        if (x &lt; min) return min;
+        if (x &gt; max) return max;
+        return x;
+    }
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[interval.h]</code> — تابع کمکی interval::clamp()]</p>
+        <p>این تابع به‌روزشدهٔ <code>write_color()</code> است که تابع بازه‌ایِ محدودکننده (clamping) را در خود جای داده:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "interval.h"
+#include "vec3.h"
+
+using color = vec3;
+
+void write_color(std::ostream&amp; out, const color&amp; pixel_color) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    // مقادیر مؤلفه‌های [0,1] را به بازهٔ بایتی [0,255] ترجمه کن.
+    static const interval intensity(0.000, 0.999);
+    int rbyte = int(256 * intensity.clamp(r));
+    int gbyte = int(256 * intensity.clamp(g));
+    int bbyte = int(256 * intensity.clamp(b));
+
+    // مؤلفه‌های رنگ پیکسل را بنویس.
+    out &lt;&lt; rbyte &lt;&lt; ' ' &lt;&lt; gbyte &lt;&lt; ' ' &lt;&lt; bbyte &lt;&lt; '\n';
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[color.h]</code> — تابع write_color() چندنمونه‌ای]</p>
+        <p>حالا کلاس دوربین را به‌روزرسانی می‌کنیم تا تابع جدید <code>camera::get_ray(i,j)</code> را تعریف و استفاده کند که برای هر پیکسل نمونه‌های متفاوت تولید می‌کند. این تابع از یک تابع کمکی جدید <code>sample_square()</code> استفاده می‌کند که یک نقطهٔ نمونهٔ تصادفی را در مربع واحدِ متمرکز بر مبدأ تولید می‌کند. سپس نمونهٔ تصادفی را از این مربع ایده‌آل به همان پیکسلِ خاصی که فعلاً نمونه‌برداری می‌کنیم تبدیل می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio      = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width       = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+    int    samples_per_pixel = 10;   // تعداد نمونه‌های تصادفی برای هر پیکسل
+
+    void render(const hittable&amp; world) {
+        initialize();
+
+        std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+        for (int j = 0; j &lt; image_height; j++) {
+            std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+            for (int i = 0; i &lt; image_width; i++) {
+                color pixel_color(0,0,0);
+                for (int sample = 0; sample &lt; samples_per_pixel; sample++) {
+                    ray r = get_ray(i, j);
+                    pixel_color += ray_color(r, world);
+                }
+                write_color(std::cout, pixel_samples_scale * pixel_color);
+            }
+        }
+
+        std::clog &lt;&lt; "\rDone.                 \n";
+    }
+    ...
+  private:
+    int    image_height;         // ارتفاع تصویر رندرشده
+    double pixel_samples_scale;  // ضریب مقیاس رنگ برای جمع نمونه‌های پیکسل
+    point3 center;               // مرکز دوربین
+    point3 pixel00_loc;          // مکان پیکسل ۰، ۰
+    vec3   pixel_delta_u;        // جابه‌جایی به پیکسل سمت راست
+    vec3   pixel_delta_v;        // جابه‌جایی به پیکسل پایین
+
+    void initialize() {
+        image_height = int(image_width / aspect_ratio);
+        image_height = (image_height &lt; 1) ? 1 : image_height;
+
+        pixel_samples_scale = 1.0 / samples_per_pixel;
+
+        center = point3(0, 0, 0);
+        ...
+    }
+
+    ray get_ray(int i, int j) const {
+        // یک پرتوی دوربین بساز که از مبدأ می‌آید و به نقطهٔ تصادفیِ نمونه‌شده
+        // اطراف مکان پیکسل i, j هدف گرفته است.
+
+        auto offset = sample_square();
+        auto pixel_sample = pixel00_loc
+                          + ((i + offset.x()) * pixel_delta_u)
+                          + ((j + offset.y()) * pixel_delta_v);
+
+        auto ray_origin = center;
+        auto ray_direction = pixel_sample - ray_origin;
+
+        return ray(ray_origin, ray_direction);
+    }
+
+    vec3 sample_square() const {
+        // بردار به یک نقطهٔ تصادفی در مربع واحد [-.5,-.5]-[+.5,+.5] برمی‌گرداند.
+        return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+    }
+
+    color ray_color(const ray&amp; r, const hittable&amp; world) const {
+        ...
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — دوربین با پارامتر نمونه‌برپیکسل]</p>
+        <p>(علاوه بر تابع جدید <code>sample_square()</code> بالا، تابع <code>sample_disk()</code> را هم در کد منبع گیت‌هاب می‌یابید. این تابع برای این گنجانده شده که اگر خواستید با پیکسل‌های غیرمربعی آزمایش کنید؛ اما در این کتاب از آن استفاده نمی‌کنیم. <code>sample_disk()</code> به تابع <code>random_in_unit_disk()</code> وابسته است که بعداً تعریف می‌شود.)</p>
+        <p>Main برای تنظیم پارامتر جدید دوربین به‌روزرسانی می‌شود.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    ...
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — تنظیم پارامتر جدید نمونه‌برپیکسل]</p>
+        <p>با بزرگ‌نمایی در تصویر تولیدشده، می‌توانیم تفاوت را در پیکسل‌های لبه ببینیم.</p>
+        <img src="https://raytracing.github.io/images/img-1.06-antialias-before-after.png" alt="تصویر ۶: قبل و بعد از ضدآلیاسینگ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>مواد مات (Diffuse)</h2>
+        <p>حالا که اشیا و چند پرتو بر پیکسل داریم، می‌توانیم مواد واقع‌نمایی بسازیم.</p>با مواد مات شروع می‌کنیم (که به آن‌ها <em>مت</em> (matte) هم می‌گویند). یک سؤال این است که آیا هندسه و مواد را جداگانه نگه می‌داریم (طوری که بتوانیم یک ماده را به چند کره اختصاص دهیم، یا برعکس) یا هندسه و مواد به‌هم گره می‌خورند (که برای اشیای رویه‌ای (procedural) که هندسه و ماده در آن‌ها پیوند دارند می‌تواند مفید باشد). ما با حالت جداگانه می‌رویم — که در بیشتر رندررها معمول است — اما توجه داشته باشید رویکردهای جایگزین هم وجود دارند.
+
+        <h3>یک مادهٔ مات ساده</h3>
+        <p>اشیای ماتِ بدونِ نوردهیِ خود، صرفاً رنگ محیط‌شان را می‌گیرند، اما آن را با رنگ ذاتی خودشان تعدیل می‌کنند. نوری که از یک سطح مات بازمی‌تابد، جهت‌اش تصادفی می‌شود؛ پس اگر سه پرتو به یک شکاف بین دو سطح مات بفرستیم، هرکدام رفتار تصادفی متفاوتی خواهند داشت:</p>
+        <img src="https://raytracing.github.io/images/fig-1.09-light-bounce.jpg" alt="شکل: برخوردهای پرتو نور — سه پرتو با جهات بازتاب تصادفی مختلف" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آن‌ها ممکن است به‌جای بازتاب، جذب شوند. هرچه سطح تیره‌تر باشد، احتمال جذب پرتو بیشتر است (به همین دلیل تیره است!). واقعاً هر الگوریتمی که جهت را تصادفی کند، سطوحی می‌سازد که مت به نظر می‌رسند. با شهودی‌ترین حالت شروع می‌کنیم: سطحی که پرتو را به‌طور یکسان در همهٔ جهت‌ها بازمی‌تاباند. برای این ماده، پرتویی که به سطح برخورد می‌کند احتمال یکسانی برای بازتاب در هر جهتی دور از سطح دارد.</p>
+        <img src="https://raytracing.github.io/images/fig-1.10-random-vec-horizon.jpg" alt="شکل: بازتاب برابر بالای افق — پرتوهای بازتاب‌شده در همهٔ جهات نیم‌کره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این مادهٔ بسیار شهودی ساده‌ترین نوع مات است و — در واقع — بسیاری از اولین مقاله‌های ردیابی پرتو از همین روش مات استفاده می‌کردند (قبل از پذیرش روش دقیق‌تری که کمی بعد پیاده‌سازی می‌کنیم). فعلاً راهی برای بازتاب تصادفی پرتو نداریم؛ پس باید چند تابع به هدر ابزارهای برداری‌مان اضافه کنیم. اولین چیزی که نیاز داریم توانایی تولید بردارهای تصادفی دلخواه است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class vec3 {
+  public:
+    ...
+
+    double length_squared() const {
+        return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+    }
+
+    static vec3 random() {
+        return vec3(random_double(), random_double(), random_double());
+    }
+
+    static vec3 random(double min, double max) {
+        return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — توابع تصادفی vec3]</p>
+        <p>بعد باید بفهمیم چطور یک بردار تصادفی را طوری دستکاری کنیم که فقط نتایجی بگیریم که روی سطح یک نیم‌کره هستند. روش‌های تحلیلی برای این کار وجود دارد، اما درک آن‌ها واقعاً به‌شکل حیرت‌آوری پیچیده است و پیاده‌سازی‌شان هم کاملاً پیچیده. در عوض، از چیزی استفاده می‌کنیم که معمولاً آسان‌ترین الگوریتم است: روش طرد (rejection). روش طرد با تولید مکرر نمونه‌های تصادفی کار می‌کند تا وقتی نمونه‌ای تولید کنیم که معیارهای خواسته‌شده را برآورده کند. به بیان دیگر، به طردِ نمونه‌های بد ادامه بده تا یک نمونهٔ خوب پیدا کنی.</p>
+        <p>روش‌های به‌یکسان معتبر بسیاری برای تولید یک بردار تصادفی روی نیم‌کره با روش طرد وجود دارد، اما برای مقصود ما با ساده‌ترین‌شان می‌رویم که این است:</p>
+        <ol>
+          <li>یک بردار تصادفی داخل کرهٔ واحد تولید کن</li>
+          <li>این بردار را نرمال کن تا به سطح کره برسد</li>
+          <li>اگر بردار نرمال‌شده روی نیم‌کرهٔ اشتباه افتاد، معکوسش کن</li>
+        </ol>
+        <p>اول، برای تولید بردار تصادفی داخل کرهٔ واحد (یعنی کره‌ای با شعاع ۱) از روش طرد استفاده می‌کنیم. یک نقطهٔ تصادفی داخل مکعبی که کرهٔ واحد را در بر می‌گیرد انتخاب کن (یعنی جایی که x، y و z همه در بازهٔ [−1,+1] هستند). اگر این نقطه خارج از کرهٔ واحد باشد، تا وقتی یکی پیدا کنیم که داخل یا روی کرهٔ واحد باشد، یکی جدید تولید کن.</p>
+        <img src="https://raytracing.github.io/images/fig-1.11-sphere-vec.jpg" alt="شکل: دو بردار قبل از پیدا شدن بردار خوب طرد شدند (قبل از نرمال‌سازی)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://raytracing.github.io/images/fig-1.12-sphere-unit-vec.jpg" alt="شکل: بردار تصادفی پذیرفته‌شده نرمال می‌شود تا بردار واحد بسازد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این پیش‌نویس اول تابع است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+inline vec3 unit_vector(const vec3&amp; v) {
+    return v / v.length();
+}
+
+inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1,1);
+        auto lensq = p.length_squared();
+        if (lensq &lt;= 1)
+            return p / sqrt(lensq);
+    }
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تابع random_unit_vector()، نسخهٔ اول]</p>
+        <p>متأسفانه، یک نشتی کوچک انتزاعِ ممیز شناور داریم که باید حلش کنیم. چون اعداد ممیز شناور دقت متناهی دارند، یک مقدار خیلی کوچک ممکن است هنگام مربع‌شدن به صفر زیرریز (underflow) شود. پس اگر هر سه مختصه به‌اندازهٔ کافی کوچک باشند (یعنی خیلی نزدیک مرکز کره)، نرم بردار صفر خواهد شد و در نتیجه نرمال‌سازی بردار جعلی [±∞, ±∞, ±∞] می‌سازد. برای درست‌کردن این، نقطه‌هایی را هم که داخل این «سیاهچاله» دور مرکز هستند طرد می‌کنیم. با دقت دوگانه (floatهای ۶۴ بیتی)، می‌توانیم با خیال راحت مقادیر بزرگ‌تر از ۱۰<sup>−۱۶۰</sup> را پشتیبانی کنیم.</p>
+        <p>این نسخهٔ مقاوم‌تر تابع است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1,1);
+        auto lensq = p.length_squared();
+        if (1e-160 &lt; lensq &amp;&amp; lensq &lt;= 1)
+            return p / sqrt(lensq);
+    }
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تابع random_unit_vector()، نسخهٔ دوم]</p>
+        <p>حالا که بردار واحد تصادفی داریم، می‌توانیم با مقایسه با نرمال سطح تعیین کنیم آیا روی نیم‌کرهٔ درست است:</p>
+        <img src="https://raytracing.github.io/images/fig-1.13-surface-normal.jpg" alt="شکل: بردار نرمال به ما می‌گوید به کدام نیم‌کره نیاز داریم" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم ضرب داخلی نرمال سطح و بردار تصادفی‌مان را بگیریم تا تعیین کنیم آیا در نیم‌کرهٔ درست است. اگر ضرب داخلی مثبت باشد، بردار در نیم‌کرهٔ درست است. اگر ضرب داخلی منفی باشد، باید بردار را معکوس کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+inline vec3 random_unit_vector() {
+    while (true) {
+        auto p = vec3::random(-1,1);
+        auto lensq = p.length_squared();
+        if (1e-160 &lt; lensq &amp;&amp; lensq &lt;= 1)
+            return p / sqrt(lensq);
+    }
+}
+
+inline vec3 random_on_hemisphere(const vec3&amp; normal) {
+    vec3 on_unit_sphere = random_unit_vector();
+    if (dot(on_unit_sphere, normal) &gt; 0.0) // در همان نیم‌کره‌ای که نرمال است
+        return on_unit_sphere;
+    else
+        return -on_unit_sphere;
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تابع random_on_hemisphere()]</p>
+        <p>اگر پرتویی از یک ماده بازتاب کند و ۱۰۰٪ رنگش را نگه دارد، می‌گوییم ماده <em>سفید</em> است. اگر پرتویی از ماده بازتاب کند و ۰٪ از رنگش را نگه دارد، می‌گوییم ماده سیاه است. به‌عنوان اولین نمایش مادهٔ مات جدیدمان، تابع <code>ray_color</code> را طوری می‌گذاریم که ۵۰٪ از رنگ را از یک بازتاب برگرداند. باید انتظار داشته باشیم یک رنگ خاکستری خوب بگیریم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  ...
+  private:
+    ...
+    color ray_color(const ray&amp; r, const hittable&amp; world) const {
+        hit_record rec;
+
+        if (world.hit(r, interval(0, infinity), rec)) {
+            vec3 direction = random_on_hemisphere(rec.normal);
+            return 0.5 * ray_color(ray(rec.p, direction), world);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — ray_color() با جهت پرتوی تصادفی]</p>
+        <p>... در واقع کره‌های خاکستری نسبتاً خوبی می‌گیریم:</p>
+        <img src="https://raytracing.github.io/images/img-1.07-first-diffuse.png" alt="تصویر ۷: اولین رندر یک کرهٔ مات" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>محدودکردن تعداد پرتوهای فرزند</h3>
+        <p>یک مشکل بالقوه این‌جا در کمین است. توجه کنید تابع <code>ray_color</code> بازگشتی است. چه زمانی بازگشت‌اش متوقف می‌شود؟ وقتی به چیزی برخورد نکند. اما در برخی موارد ممکن است مدت طولانی‌ای طول بکشد — آن‌قدر طولانی که پشته را منفجر کند. برای محافظت در برابر آن، حداکثر عمق بازگشت را محدود می‌کنیم و در حداکثر عمق سهم نوری برنمی‌گردانیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio      = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width       = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+    int    samples_per_pixel = 10;   // تعداد نمونه‌های تصادفی برای هر پیکسل
+    int    max_depth         = 10;   // حداکثر تعداد بازتاب پرتو در صحنه
+
+    void render(const hittable&amp; world) {
+        initialize();
+
+        std::cout &lt;&lt; "P3\n" &lt;&lt; image_width &lt;&lt; ' ' &lt;&lt; image_height &lt;&lt; "\n255\n";
+
+        for (int j = 0; j &lt; image_height; j++) {
+            std::clog &lt;&lt; "\rScanlines remaining: " &lt;&lt; (image_height - j) &lt;&lt; ' ' &lt;&lt; std::flush;
+            for (int i = 0; i &lt; image_width; i++) {
+                color pixel_color(0,0,0);
+                for (int sample = 0; sample &lt; samples_per_pixel; sample++) {
+                    ray r = get_ray(i, j);
+                    pixel_color += ray_color(r, max_depth, world);
+                }
+                write_color(std::cout, pixel_samples_scale * pixel_color);
+            }
+        }
+
+        std::clog &lt;&lt; "\rDone.                 \n";
+    }
+    ...
+  private:
+    ...
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        // اگر از حد بازتاب پرتو فراتر رفته‌ایم، نور بیشتری جمع نمی‌شود.
+        if (depth &lt;= 0)
+            return color(0,0,0);
+
+        hit_record rec;
+
+        if (world.hit(r, interval(0, infinity), rec)) {
+            vec3 direction = random_on_hemisphere(rec.normal);
+            return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — camera::ray_color() با محدودیت عمق]</p>
+        <p>تابع main() را برای استفاده از این حد عمق جدید به‌روزرسانی کنید:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    ...
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — استفاده از محدودیت عمق پرتوی جدید]</p>
+        <p>برای این صحنهٔ بسیار ساده باید اساساً همان نتیجه را بگیریم:</p>
+        <img src="https://raytracing.github.io/images/img-1.08-second-diffuse.png" alt="تصویر ۸: رندر دوم یک کرهٔ مات با بازتاب‌های محدود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>درست‌کردن آکنهٔ سایه (Shadow Acne)</h3>
+        <p>همچنین یک باگ ظریف هست که باید به آن رسیدگی کنیم. یک پرتو وقتی با سطحی برخورد می‌کند، تلاش می‌کند نقطهٔ برخورد را دقیق محاسبه کند. متأسفانه برای ما، این محاسبه مستعد خطاهای گردکردن ممیز شناور است که می‌تواند باعث شود نقطهٔ برخورد به‌سختیِ ناچیز جا به‌جا شود. این یعنی مبدأ پرتوی بعدی — پرتویی که به‌طور تصادفی از سطح پراکنده می‌شود — به‌احتمال زیاد کاملاً هم‌سطح با سطح نخواهد بود. شاید کمی بالای سطح باشد. شاید کمی پایین سطح. اگر مبدأ پرتو کمی پایین سطح باشد، ممکن است دوباره با همان سطح برخورد کند. یعنی نزدیک‌ترین سطح را در t=0.00000001 یا هر تقریب ممیز شناوری که تابع برخورد به ما می‌دهد پیدا می‌کند. ساده‌ترین هک برای رفع این، نادیده‌گرفتن برخوردهایی است که خیلی به نقطهٔ برخوردِ محاسبه‌شده نزدیک‌اند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  ...
+  private:
+    ...
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        // اگر از حد بازتاب پرتو فراتر رفته‌ایم، نور بیشتری جمع نمی‌شود.
+        if (depth &lt;= 0)
+            return color(0,0,0);
+
+        hit_record rec;
+
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            vec3 direction = random_on_hemisphere(rec.normal);
+            return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — محاسبهٔ مبدأ پرتوهای بازتابی با تلورانس]</p>
+        <p>این از شر مشکل آکنهٔ سایه خلاص می‌شود. بله واقعاً به این نام است. نتیجه:</p>
+        <img src="https://raytracing.github.io/images/img-1.09-no-acne.png" alt="تصویر ۹: کرهٔ مات بدون آکنهٔ سایه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بازتاب واقعی لامبرتین</h3>
+        <p>پراکندن یکنواخت پرتوهای بازتابی دور نیم‌کره، یک مدل مات نرمِ خوب می‌سازد، اما قطعاً می‌توانیم بهتر انجامش دهیم. نمایش دقیق‌تر اشیای مات واقعی توزیع <em>لامبرتین</em> است. این توزیع پرتوهای بازتابی را به‌نسبت cos(φ) پراکنده می‌کند، جایی که φ زاویهٔ بین پرتوی بازتابی و نرمال سطح است. این یعنی پرتوی بازتابی به‌احتمال زیاد در جهتی نزدیک به نرمال سطح پراکنده می‌شود و به‌احتمال کمتر در جهت‌های دور از نرمال. این توزیع لامبرتین غیریکنواخت کار بهتری در مدل‌کردن بازتاب ماده در دنیای واقعی می‌کند تا پراکندگی یکنواخت قبلی‌مان.</p>
+        <p>می‌توانیم این توزیع را با اضافه‌کردن یک بردار واحد تصادفی به بردار نرمال بسازیم. در نقطهٔ برخورد روی سطح، نقطهٔ برخورد p را داریم و نرمال سطح n را. در نقطهٔ برخورد، این سطح دقیقاً دو طرف دارد؛ پس فقط می‌توانند دو کرهٔ واحدِ یکتا مماس بر هر نقطهٔ برخورد باشند (برای هر طرف سطح یک کرهٔ یکتا). این دو کرهٔ واحد به اندازهٔ طول شعاع‌شان از سطح جابه‌جا خواهند شد که برای کرهٔ واحد دقیقاً یک است.</p>
+        <p>یک کره در جهت نرمال سطح (n) جابه‌جا می‌شود و کرهٔ دیگر در جهت مخالف (−n). این ما را با دو کرهٔ واحد می‌گذارد که فقط در نقطهٔ برخورد <em>دقیقاً</em> سطح را لمس می‌کنند. از این‌جا، یکی از کره‌ها مرکزش در (P + n) و دیگری مرکزش در (P − n) خواهد بود. کره‌ای که مرکز آن در (P − n) است <em>داخل</em> سطح در نظر گرفته می‌شود، در حالی که کرهٔ با مرکز (P + n) <em>خارج</em> سطح در نظر گرفته می‌شود.</p>
+        <p>می‌خواهیم کرهٔ واحد مماسی را انتخاب کنیم که در همان سمت سطحِ مبدأ پرتو است. یک نقطهٔ تصادفی S روی این کرهٔ واحدِ شعاع‌دار انتخاب کن و پرتویی از نقطهٔ برخورد P به نقطهٔ تصادفی S بفرست (این بردار (S−P) است):</p>
+        <img src="https://raytracing.github.io/images/fig-1.14-rand-unitvec.jpg" alt="شکل: تولید تصادفی بردار طبق توزیع لامبرتین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تغییر در واقع نسبتاً کوچک است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+    ...
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        // اگر از حد بازتاب پرتو فراتر رفته‌ایم، نور بیشتری جمع نمی‌شود.
+        if (depth &lt;= 0)
+            return color(0,0,0);
+
+        hit_record rec;
+
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            vec3 direction = rec.normal + random_unit_vector();
+            return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — ray_color() با ماتِ جایگزین]</p>
+        <p>بعد از رندر تصویر مشابهی می‌گیریم:</p>
+        <img src="https://raytracing.github.io/images/img-1.10-correct-lambertian.png" alt="تصویر ۱۰: رندر درست کره‌های لامبرتین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تشخیص تفاوت بین این دو روش مات سخت است، چون صحنهٔ ما از دو کره این‌قدر ساده است، اما باید بتوانید دو تفاوت بصری مهم را ببینید:</p>
+        <ol>
+          <li>بعد از تغییر، سایه‌ها برجسته‌ترند</li>
+          <li>بعد از تغییر، هر دو کره از آسمان رنگ آبی گرفته‌اند</li>
+        </ol>
+        <p>هر دوی این تغییرها به‌خاطر پراکندگیِ کمترِ یکنواخت پرتوهای نور است — پرتوهای بیشتری در جهت نرمال پراکنده می‌شوند. این یعنی برای اشیای مات، آن‌ها <em>تیره‌تر</em> ظاهر می‌شوند چون نور کمتری به‌سوی دوربین بازمی‌تابد. برای سایه‌ها، نور بیشتری مستقیم به بالا بازمی‌تابد؛ پس ناحیهٔ زیر کره تیره‌تر است.</p>
+        <p>بسیاری از اشیای روزمرهٔ عادی کاملاً مات نیستند؛ پس شهود بصریِ ما از رفتار این اشیا زیر نور می‌تواند ضعیف شکل گرفته باشد. هرچه صحنه‌ها در طول کتاب پیچیده‌تر می‌شوند، تشویق می‌شوید بین رندررهای ماتِ متفاوتی که این‌جا ارائه شده‌اند جابه‌جا شوید. بیشتر صحنه‌های جالب مقدار زیادی مواد مات دارند. با درک اثر روش‌های مختلف مات بر نورپردازی یک صحنه می‌توانید بینش ارزشمندی به دست آورید.</p>
+
+        <h3>استفاده از تصحیح گاما برای شدت رنگ دقیق</h3>
+        <p>به سایه‌اندازی زیر کره توجه کنید. تصویر خیلی تیره است، اما کره‌های ما فقط نیمی از انرژی هر بازتاب را جذب می‌کنند؛ پس بازتاب‌دهندهٔ ۵۰٪ هستند. کره‌ها باید نسبتاً روشن به نظر برسند (در زندگی واقعی، خاکستری روشن)، اما نسبتاً تیره ظاهر می‌شوند. اگر در کل طیف روشناییِ مادهٔ مات‌مان قدم بزنیم، می‌توانیم این را واضح‌تر ببینیم. با تنظیم بازتاب‌دهندگی تابع <code>ray_color</code> از ۰.۵ (۵۰٪) به ۰.۱ (۱۰٪) شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+    ...
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        // اگر از حد بازتاب پرتو فراتر رفته‌ایم، نور بیشتری جمع نمی‌شود.
+        if (depth &lt;= 0)
+            return color(0,0,0);
+
+        hit_record rec;
+
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            vec3 direction = rec.normal + random_unit_vector();
+            return 0.1 * ray_color(ray(rec.p, direction), depth-1, world);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — ray_color() با بازتاب‌دهندگی ۱۰٪]</p>
+        <p>با این بازتاب‌دهندگی جدیدِ ۱۰٪ رندر خروجی می‌گیریم. سپس بازتاب‌دهندگی را ۳۰٪ می‌گذاریم و دوباره رندر می‌کنیم. برای ۵۰٪، ۷۰٪ و در نهایت ۹۰٪ تکرار می‌کنیم. می‌توانید این تصاویر را در ویرایشگر عکس دلخواهتان از چپ به راست روی هم بیندازید و باید یک نمایش بصری بسیار خوب از روشناییِ فزایندهٔ طیف انتخابی‌تان بگیرید. این همانی است که تا حالا با آن کار می‌کردیم:</p>
+        <img src="https://raytracing.github.io/images/img-1.11-linear-gamut.png" alt="تصویر ۱۱: طیف رندرر ما تا این‌جا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اگر دقیق نگاه کنید، یا اگر از رنگ‌چین (color picker) استفاده کنید، باید متوجه شوید رندر بازتاب‌دهندگیِ ۵۰٪ (آن که وسط است) برای اینکه نصفِ راهِ بین سفید و سیاه باشد (خاکستریِ میانی) خیلی تیره است. در واقع بازتاب‌دهندهٔ ۷۰٪ به خاکستریِ میانی نزدیک‌تر است. دلیل این است که تقریباً همهٔ برنامه‌های کامپیوتری فرض می‌کنند تصویر قبل از نوشته‌شدن در فایل تصویر «تصحیح گاما» شده است. این یعنی مقادیر ۰ تا ۱ پیش از ذخیره به‌صورت بایت، تبدیلی رویشان اعمال می‌شود. به تصویرهایی که داده‌هایشان بدون تبدیل نوشته می‌شوند می‌گویند در <em>فضای خطی</em> هستند، در حالی که تصویرهایی که تبدیل شده‌اند در <em>فضای گاما</em> هستند. به‌احتمال زیاد نمایشگر تصویری که استفاده می‌کنید انتظار تصویری در فضای گاما دارد، اما ما به آن تصویری در فضای خطی می‌دهیم. به همین دلیل است که تصویرمان به‌درستیِ نادرستی تیره می‌نماید.</p>
+        <p>دلایل خوب زیادی برای اینکه تصویرها باید در فضای گاما ذخیره شوند وجود دارد، اما برای مقصود ما فقط باید از آن آگاه باشیم. داده‌هایمان را به فضای گاما تبدیل می‌کنیم تا نمایشگر تصویرمان بتواند تصویر را دقیق‌تر نمایش دهد. به‌عنوان یک تقریب ساده، می‌توانیم از «گامای ۲» به‌عنوان تبدیل‌مان استفاده کنیم، که توانی است که هنگام رفتن از فضای گاما به فضای خطی استفاده می‌کنید. ما باید از فضای خطی به فضای گاما برویم، یعنی معکوس «گامای ۲» را بگیریم، یعنی توان ۱/گاما، که فقط ریشهٔ دوم است. همچنین می‌خواهیم مطمئن شویم ورودی‌های منفی را به‌طور مقاوم مدیریت می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>inline double linear_to_gamma(double linear_component)
+{
+    if (linear_component &gt; 0)
+        return std::sqrt(linear_component);
+
+    return 0;
+}
+
+void write_color(std::ostream&amp; out, const color&amp; pixel_color) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    // برای گامای ۲ یک تبدیل خطی به گاما اعمال کن
+    r = linear_to_gamma(r);
+    g = linear_to_gamma(g);
+    b = linear_to_gamma(b);
+
+    // مقادیر مؤلفه‌های [0,1] را به بازهٔ بایتی [0,255] ترجمه کن.
+    static const interval intensity(0.000, 0.999);
+    int rbyte = int(256 * intensity.clamp(r));
+    int gbyte = int(256 * intensity.clamp(g));
+    int bbyte = int(256 * intensity.clamp(b));
+
+    // مؤلفه‌های رنگ پیکسل را بنویس.
+    out &lt;&lt; rbyte &lt;&lt; ' ' &lt;&lt; gbyte &lt;&lt; ' ' &lt;&lt; bbyte &lt;&lt; '\n';
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[color.h]</code> — write_color() با تصحیح گاما]</p>
+        <p>با این تصحیح گاما، حالا یک پلکان خیلی سازگارتر از تاریکی به روشنایی می‌گیریم:</p>
+        <img src="https://raytracing.github.io/images/img-1.12-gamma-gamut.png" alt="تصویر ۱۲: طیف رندرر ما، با تصحیح گاما" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>فلز</h2>
+        <p>اگر بخواهیم اشیای مختلف مواد متفاوت داشته باشند، یک تصمیم طراحی داریم. می‌توانیم یک نوع مادهٔ جهانی با کلی پارامتر داشته باشیم، طوری که هر نوع مادهٔ خاص بتواند پارامترهایی را که رویش اثر نمی‌گذارند نادیده بگیرد. این رویکرد بدی نیست. یا می‌توانیم یک کلاس مادهٔ انتزاعی داشته باشیم که رفتار یکتا را در خود محصور کند. من طرفدار رویکرد دومم. برای برنامهٔ ما، ماده دو کار باید بکند:</p>
+        <ol>
+          <li>یک پرتوی پراکنده تولید کند (یا بگوید پرتوی تابشی را جذب کرده است).</li>
+          <li>اگر پراکنده شد، بگوید پرتو چقدر باید تضعیف شود.</li>
+        </ol>
+        <p>این کلاس انتزاعی را پیشنهاد می‌کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#ifndef MATERIAL_H
+#define MATERIAL_H
+
+#include "hittable.h"
+
+class material {
+  public:
+    virtual ~material() = default;
+
+    virtual bool scatter(
+        const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered
+    ) const {
+        return false;
+    }
+};
+
+#endif</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — کلاس material]</p>
+
+        <h3>یک ساختمان داده برای توصیف برخوردهای پرتو-شیء</h3>
+        <p><code>hit_record</code> برای این است که از یک دسته آرگومان جلوگیری کنیم و هر اطلاعاتی که می‌خواهیم را در آن‌جا جا دهیم. می‌توانید به‌جای نوع محصورشده از آرگومان استفاده کنید؛ صرفاً یک سلیقه است. hittableها و materialها باید بتوانند در کد به نوعِ دیگری ارجاع دهند؛ پس نوعی چرخه در ارجاع‌ها وجود دارد. در C++ خط <code>class material;</code> را اضافه می‌کنیم تا به کامپایلر بگوییم <code>material</code> کلاسی است که بعداً تعریف می‌شود. چون فقط یک اشاره‌گر به کلاس مشخص می‌کنیم، کامپایلر نیازی به دانستن جزئیات کلاس ندارد و مشکل ارجاع چرخه‌ای حل می‌شود.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class material;
+
+class hit_record {
+  public:
+    point3 p;
+    vec3 normal;
+    shared_ptr&lt;material&gt; mat;
+    double t;
+    bool front_face;
+
+    void set_face_normal(const ray&amp; r, const vec3&amp; outward_normal) {
+        front_face = dot(r.direction(), outward_normal) &lt; 0;
+        normal = front_face ? outward_normal : -outward_normal;
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[hittable.h]</code> — سابقهٔ برخورد با اشاره‌گر مادهٔ افزوده‌شده]</p>
+        <p><code>hit_record</code> فقط راهی است برای جا دادن یک دسته آرگومان در یک کلاس تا بتوانیم آن‌ها را به‌صورت گروهی بفرستیم. وقتی پرتو به سطحی برخورد می‌کند (مثلاً یک کرهٔ مشخص)، اشاره‌گر ماده در <code>hit_record</code> طوری تنظیم می‌شود که به اشاره‌گر ماده‌ای اشاره کند که موقع راه‌اندازی در <code>main()</code> به کره داده شده است. وقتی روال <code>ray_color()</code> <code>hit_record</code> را می‌گیرد، می‌تواند توابع عضو اشاره‌گر ماده را صدا بزند تا بفهمد چه پرتویی، اگر پرتویی باشد، پراکنده می‌شود.</p>
+        <p>برای رسیدن به این، به <code>hit_record</code> باید ماده‌ای که به کره تخصیص یافته گفته شود.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class sphere : public hittable {
+  public:
+    sphere(const point3&amp; center, double radius) : center(center), radius(std::fmax(0,radius)) {
+        // TODO: اشاره‌گر مادهٔ `mat` را مقداردهی کن.
+    }
+
+    bool hit(const ray&amp; r, interval ray_t, hit_record&amp; rec) const override {
+        ...
+
+        rec.t = root;
+        rec.p = r.at(rec.t);
+        vec3 outward_normal = (rec.p - center) / radius;
+        rec.set_face_normal(r, outward_normal);
+        rec.mat = mat;
+
+        return true;
+    }
+
+  private:
+    point3 center;
+    double radius;
+    shared_ptr&lt;material&gt; mat;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — برخورد پرتو-کره با اطلاعات مادهٔ افزوده‌شده]</p>
+
+        <h3>مدل‌سازی پراکندگی نور و بازتاب‌دهندگی</h3>
+        <p>اینجا و در سراسر این کتاب‌ها از واژهٔ <em>albedo</em> (لاتین به معنی «سفیدی») استفاده می‌کنیم. آلبدو در برخی رشته‌ها اصطلاح فنی دقیقی است، اما در همهٔ موارد برای تعریف نوعی <em>بازتاب‌دهندگی کسری</em> استفاده می‌شود. آلبدو با رنگ ماده تغییر می‌کند و (همان‌طور که بعداً برای مواد شیشه‌ای پیاده‌سازی می‌کنیم) می‌تواند با جهت دیدِ تابشی (جهت پرتوی ورودی) هم تغییر کند.</p>
+        <p>بازتاب‌دهندگی لامبرتین (مات) می‌تواند یا همیشه نور را طبق بازتاب‌دهندگی‌اش R پراکنده و تضعیف کند، یا گاهی با احتمال ۱−R پراکنده کند و تضعیفی نداشته باشد (جایی که پرتوی پراکنده‌نشده فقط جذب ماده می‌شود). همچنین می‌تواند ترکیبی از هر دو استراتژی باشد. ما همیشه پراکندن را انتخاب می‌کنیم، پس پیاده‌سازی مواد لامبرتین کار ساده‌ای می‌شود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class material {
+    ...
+};
+
+
+class lambertian : public material {
+  public:
+    lambertian(const color&amp; albedo) : albedo(albedo) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        auto scatter_direction = rec.normal + random_unit_vector();
+        scattered = ray(rec.p, scatter_direction);
+        attenuation = albedo;
+        return true;
+    }
+
+  private:
+    color albedo;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — کلاس مادهٔ لامبرتین جدید]</p>
+        <p>به گزینهٔ سوم توجه کنید: می‌توانیم با احتمال ثابت p پراکنده کنیم و تضعیف <em>albedo/p</em> باشد. انتخاب با شما.</p>
+        <p>اگر کد بالا را با دقت بخوانید، احتمال کوچکی از خرابکاری خواهید دید. اگر بردار واحد تصادفی‌ای که تولید می‌کنیم دقیقاً مخالف بردار نرمال باشد، این دو در جمع صفر می‌شوند که نتیجه‌اش بردار جهتِ پراکندگیِ صفر است. این بعداً منجر به سناریوهای بد می‌شود (بی‌نهایت‌ها و NaNها)؛ پس باید شرط را قبل از ردکردنش رهگیری کنیم.</p>
+        <p>در خدمت این کار، یک متد برداری جدید می‌سازیم — <code>vec3::near_zero()</code> — که اگر بردار در همهٔ ابعاد خیلی به صفر نزدیک باشد true برمی‌گرداند.</p>
+        <p>تغییرات زیر از تابع کتابخانهٔ استاندارد C++ یعنی <code>std::fabs</code> استفاده خواهند کرد که قدر مطلق ورودی‌اش را برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class vec3 {
+    ...
+
+    double length_squared() const {
+        return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+    }
+
+    bool near_zero() const {
+        // اگر بردار در همهٔ ابعاد نزدیک صفر بود true برمی‌گرداند.
+        auto s = 1e-8;
+        return (std::fabs(e[0]) &lt; s) &amp;&amp; (std::fabs(e[1]) &lt; s) &amp;&amp; (std::fabs(e[2]) &lt; s);
+    }
+
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — متد vec3::near_zero()]</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class lambertian : public material {
+  public:
+    lambertian(const color&amp; albedo) : albedo(albedo) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        auto scatter_direction = rec.normal + random_unit_vector();
+
+        // جهت پراکندگی انحطاط‌یافته را بگیر
+        if (scatter_direction.near_zero())
+            scatter_direction = rec.normal;
+
+        scattered = ray(rec.p, scatter_direction);
+        attenuation = albedo;
+        return true;
+    }
+
+  private:
+    color albedo;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — پراکندگی لامبرتین، ضدگلوله]</p>
+
+        <h3>بازتاب نور آینه‌ای</h3>
+        <p>برای فلزهای صیقلی، پرتو تصادفی پراکنده نمی‌شود. سؤال کلیدی این است: پرتو چگونه از آینهٔ فلزی بازتاب می‌شود؟ ریاضی برداری دوست ماست:</p>
+        <img src="https://raytracing.github.io/images/fig-1.15-reflection.jpg" alt="شکل: بازتاب پرتو — پرتوی بازتابی v+2b" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>جهت پرتوی بازتابیِ قرمز فقط v + 2b است. در طراحی ما، n بردار واحد است (طول یک)، اما v شاید نباشد. برای به‌دست‌آوردن بردار b، بردار نرمال را در طولِ تصویرِ v روی n مقیاس می‌کنیم که با ضرب داخلی v·n داده می‌شود. (اگر n بردار واحد نبود، باید این ضرب داخلی را بر طول n هم تقسیم می‌کردیم.) در نهایت، چون v به <em>داخل</em> سطح اشاره می‌کند و می‌خواهیم b به <em>خارج</em> سطح اشاره کند، باید این طولِ تصویر را منفی کنیم.</p>
+        <p>با کنار هم گذاشتن همه‌چیز، محاسبهٔ زیر را برای بردار بازتابی می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+inline vec3 random_on_hemisphere(const vec3&amp; normal) {
+    ...
+}
+
+inline vec3 reflect(const vec3&amp; v, const vec3&amp; n) {
+    return v - 2*dot(v,n)*n;
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تابع بازتاب vec3]</p>
+        <p>مادهٔ فلز فقط پرتوها را با آن فرمول بازتاب می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+class lambertian : public material {
+    ...
+};
+
+
+class metal : public material {
+  public:
+    metal(const color&amp; albedo) : albedo(albedo) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        vec3 reflected = reflect(r_in.direction(), rec.normal);
+        scattered = ray(rec.p, reflected);
+        attenuation = albedo;
+        return true;
+    }
+
+  private:
+    color albedo;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — مادهٔ فلز با تابع بازتاب‌دهندگی]</p>
+        <p>باید تابع <code>ray_color()</code> را برای همهٔ تغییرات‌مان اصلاح کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "hittable.h"
+#include "material.h"
+...
+
+class camera {
+  ...
+  private:
+    ...
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        // اگر از حد بازتاب پرتو فراتر رفته‌ایم، نور بیشتری جمع نمی‌شود.
+        if (depth &lt;= 0)
+            return color(0,0,0);
+
+        hit_record rec;
+
+        if (world.hit(r, interval(0.001, infinity), rec)) {
+            ray scattered;
+            color attenuation;
+            if (rec.mat-&gt;scatter(r, rec, attenuation, scattered))
+                return attenuation * ray_color(scattered, depth-1, world);
+            return color(0,0,0);
+        }
+
+        vec3 unit_direction = unit_vector(r.direction());
+        auto a = 0.5*(unit_direction.y() + 1.0);
+        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — رنگ پرتو با بازتاب‌دهندگی پراکنده]</p>
+        <p>حالا سازندهٔ <code>sphere</code> را به‌روزرسانی می‌کنیم تا اشاره‌گر مادهٔ <code>mat</code> را مقداردهی کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class sphere : public hittable {
+  public:
+    sphere(const point3&amp; center, double radius, shared_ptr&lt;material&gt; mat)
+      : center(center), radius(std::fmax(0,radius)), mat(mat) {}
+
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[sphere.h]</code> — مقداردهی کره با یک ماده]</p>
+
+        <h3>یک صحنه با کره‌های فلزی</h3>
+        <p>حالا چند کرهٔ فلزی به صحنه‌مان اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include "rtweekend.h"
+
+#include "camera.h"
+#include "hittable.h"
+#include "hittable_list.h"
+#include "material.h"
+#include "sphere.h"
+
+int main() {
+    hittable_list world;
+
+    auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+    auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+    auto material_left   = make_shared&lt;metal&gt;(color(0.8, 0.8, 0.8));
+    auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2));
+
+    world.add(make_shared&lt;sphere&gt;(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(make_shared&lt;sphere&gt;(point3( 0.0,    0.0, -1.2),   0.5, material_center));
+    world.add(make_shared&lt;sphere&gt;(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(make_shared&lt;sphere&gt;(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — صحنهٔ با کره‌های فلزی]</p>
+        <p>که می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.13-metal-shiny.png" alt="تصویر ۱۳: فلز براق" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بازتاب فازی (Fuzzy)</h3>
+        <p>همچنین می‌توانیم جهت بازتابی را با استفاده از یک کرهٔ کوچک و انتخاب یک نقطهٔ پایانی جدید برای پرتو تصادفی کنیم. از یک نقطهٔ تصادفی از سطح کره‌ای که روی نقطهٔ پایانی اصلی متمرکز است، مقیاس‌شده با ضریب فازی (fuzz) استفاده می‌کنیم.</p>
+        <img src="https://raytracing.github.io/images/fig-1.16-reflect-fuzzy.jpg" alt="شکل: تولید پرتوهای بازتابی فازی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>هرچه کرهٔ فازی بزرگ‌تر باشد، بازتاب‌ها فازی‌تر خواهند بود. این افزودن یک پارامتر فازی‌بودن را پیشنهاد می‌کند که فقط شعاع کره است (پس صفر یعنی بدون اختلال). مشکل این است که برای کره‌های بزرگ یا پرتوهای مماسی (grazing)، ممکن است پایین سطح پراکنده شویم. می‌توانیم فقط سطح آن‌ها را جذب کند.</p>
+        <p>همچنین توجه کنید که برای اینکه کرهٔ فازی معنا بدهد، باید در مقایسه با بردار بازتابی — که طولش می‌تواند دلخواه باشد — پیوسته مقیاس شود. برای رسیدگی به این، باید پرتوی بازتابی را نرمال کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class metal : public material {
+  public:
+    metal(const color&amp; albedo, double fuzz) : albedo(albedo), fuzz(fuzz &lt; 1 ? fuzz : 1) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        vec3 reflected = reflect(r_in.direction(), rec.normal);
+        reflected = unit_vector(reflected) + (fuzz * random_unit_vector());
+        scattered = ray(rec.p, reflected);
+        attenuation = albedo;
+        return (dot(scattered.direction(), rec.normal) &gt; 0);
+    }
+
+  private:
+    color albedo;
+    double fuzz;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — فازی‌بودن مادهٔ فلز]</p>
+        <p>می‌توانیم این را با افزودن فازی‌بودن ۰.۳ و ۱.۰ به فلزها امتحان کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    ...
+    auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+    auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+    auto material_left   = make_shared&lt;metal&gt;(color(0.8, 0.8, 0.8), 0.3);
+    auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2), 1.0);
+    ...
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — کره‌های فلزی با فازی‌بودن]</p>
+        <img src="https://raytracing.github.io/images/img-1.14-metal-fuzz.png" alt="تصویر ۱۴: فلز فازی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>دیالکتریک‌ها (Dielectrics)</h2>
+        <p>مواد شفافی مثل آب، شیشه و الماس دیالکتریک هستند. وقتی پرتوی نور به آن‌ها می‌خورد، به یک پرتوی بازتابی و یک پرتوی شکستی (عبورکرده) تقسیم می‌شود. ما با انتخاب تصادفی بین بازتاب و شکست به آن رسیدگی می‌کنیم و فقط یک پرتوی پراکنده بر هر برهم‌کنش تولید می‌کنیم.</p>
+        <p>به‌عنوان مرور سریع اصطلاح‌ها: پرتوی <em>بازتابی</em> به سطح می‌خورد و بعد در جهت جدیدی «بازمی‌پرد».</p>
+        <p>پرتوی <em>شکستی</em> وقتی از محیط اطراف ماده وارد خود ماده می‌شود خم می‌شود (مثل شیشه یا آب). به همین دلیل است که مداد وقتی تا نیمه در آب فرو می‌رود، خم‌دیده به نظر می‌رسد.</p>
+        <p>میزان خم‌شدن پرتوی شکستی با <em>ضریب شکست</em> ماده تعیین می‌شود. عموماً این یک مقدار واحد است که توصیف می‌کند نور وقتی از خلأ وارد ماده می‌شود چقدر خم می‌شود. شیشه ضریب شکستی حدود ۱.۵ تا ۱.۷ دارد، الماس حدود ۲.۴، و هوا ضریب شکست کوچکی معادل ۱.۰۰۰۲۹۳ دارد.</p>
+        <p>وقتی یک مادهٔ شفاف در مادهٔ شفافِ دیگری جاسازی شده است، می‌توانید شکست را با یک ضریب شکست نسبی توصیف کنید: ضریب شکستِ مادهٔ شیء تقسیم بر ضریب شکست مادهٔ اطراف. مثلاً اگر بخواهید یک گوی شیشه‌ای زیر آب رندر کنید، گوی شیشه‌ای ضریب شکست مؤثری معادل ۱.۱۲۵ خواهد داشت. این از تقسیم ضریب شکست شیشه (۱.۵) بر ضریب شکست آب (۱.۳۳۳) به دست می‌آید.</p>
+        <p>ضریب شکست بیشتر مواد رایج را می‌توانید با یک جست‌وجوی سریع اینترنتی پیدا کنید.</p>
+
+        <h3>شکست (Refraction)</h3>
+        <p>سخت‌ترین بخش برای اشکال‌زدایی پرتوی شکستی است. معمولاً اول کاری که می‌کنم این است که اگر اصلاً پرتوی شکستی وجود داشته باشد، همهٔ نور را شکست بدهم. برای این پروژه، سعی کردم دو گوی شیشه‌ای در صحنه‌مان بگذارم و این را گرفتم (هنوز به شما نگفته‌ام چطور این کار را درست یا غلط انجام دهید، اما به‌زودی!):</p>
+        <img src="https://raytracing.github.io/images/img-1.15-glass-first.png" alt="تصویر ۱۵: شیشه برای اولین بار" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آیا این درست است؟ گوی‌های شیشه‌ای در زندگی واقعی عجیب به نظر می‌رسند. اما نه، درست نیست. دنیا باید وارونه شود و هیچ چیز سیاهِ عجیبی نباشد. من فقط پرتو را مستقیم از وسط تصویر چاپ کردم و به‌وضوح غلط بود. این کار اغلب جواب می‌دهد.</p>
+
+        <h3>قانون اسنل (Snell's Law)</h3>
+        <p>شکست با قانون اسنل توصیف می‌شود:</p>
+        <p style="text-align:center"><code>η·sinθ = η′·sinθ′</code></p>
+        <p>جایی که θ و θ′ زاویه‌های از نرمال هستند و η و η′ (تلفظ «اتا» و «اتای اول») ضریب‌های شکست‌اند. هندسه این است:</p>
+        <img src="https://raytracing.github.io/images/fig-1.17-refraction.jpg" alt="شکل: شکست پرتو — پرتوی ورودی، پرتوی شکستی و زاویه‌ها نسبت به نرمال" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای تعیین جهت پرتوی شکستی، باید sinθ′ را حل کنیم:</p>
+        <p style="text-align:center"><code>sinθ′ = (η/η′)·sinθ</code></p>
+        <p>در سمت شکستی سطح، یک پرتوی شکستی R′ و یک نرمال n′ وجود دارد و زاویهٔ θ′ بین آن‌ها برقرار است. می‌توانیم R′ را به بخش‌هایِ عمود بر n′ و موازی با n′ پرتو تجزیه کنیم:</p>
+        <p style="text-align:center"><code>R′ = R′⊥ + R′∥</code></p>
+        <p>اگر برای R′⊥ و R′∥ حل کنیم به این می‌رسیم:</p>
+        <p style="text-align:center"><code>R′⊥ = (η/η′)·(R + |R|·cos(θ)·n)</code></p>
+        <p style="text-align:center"><code>R′∥ = −√(1 − |R′⊥|²)·n</code></p>
+        <p>اگر خواستید، می‌توانید خودتان این را اثبات کنید، اما ما آن را به‌عنوان یک واقعیت می‌پذیریم و ادامه می‌دهیم. بقیهٔ کتاب از شما نمی‌خواهد اثبات را بفهمید.</p>
+        <p>مقدار هر جملهٔ سمت راست را می‌دانیم به‌جز cosθ. به‌خوبی معلوم است که ضرب داخلی دو بردار را می‌توان برحسب کسینوس زاویهٔ بین آن‌ها توضیح داد:</p>
+        <p style="text-align:center"><code>a·b = |a|·|b|·cosθ</code></p>
+        <p>اگر a و b را به بردارهای واحد محدود کنیم:</p>
+        <p style="text-align:center"><code>a·b = cosθ</code></p>
+        <p>حالا می‌توانیم R′⊥ را برحسب کمیت‌های معلوم بازنویسی کنیم:</p>
+        <p style="text-align:center"><code>R′⊥ = (η/η′)·(R + (−R·n)·n)</code></p>
+        <p>وقتی آن‌ها را دوباره ترکیب کنیم، می‌توانیم تابعی بنویسیم که R′ را محاسبه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+inline vec3 reflect(const vec3&amp; v, const vec3&amp; n) {
+    return v - 2*dot(v,n)*n;
+}
+
+inline vec3 refract(const vec3&amp; uv, const vec3&amp; n, double etai_over_etat) {
+    auto cos_theta = std::fmin(dot(-uv, n), 1.0);
+    vec3 r_out_perp =  etai_over_etat * (uv + cos_theta*n);
+    vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n;
+    return r_out_perp + r_out_parallel;
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تابع شکست]</p>
+        <p>و مادهٔ دی‌الکتریکی که همیشه شکست می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+class metal : public material {
+    ...
+};
+
+
+class dielectric : public material {
+  public:
+    dielectric(double refraction_index) : refraction_index(refraction_index) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        attenuation = color(1.0, 1.0, 1.0);
+        double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
+
+        vec3 unit_direction = unit_vector(r_in.direction());
+        vec3 refracted = refract(unit_direction, rec.normal, ri);
+
+        scattered = ray(rec.p, refracted);
+        return true;
+    }
+
+  private:
+    // ضریب شکست در خلأ یا هوا، یا نسبت ضریب شکست ماده بر ضریب شکست محیطِ دربرگیرنده
+    double refraction_index;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — کلاس مادهٔ دی‌الکتریک که همیشه شکست می‌دهد]</p>
+        <p>حالا صحنه را به‌روزرسانی می‌کنیم تا شکست را نشان بدهیم: کرهٔ چپ را به شیشه — که ضریب شکستش تقریباً ۱.۵ است — تغییر می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+auto material_left   = make_shared&lt;dielectric&gt;(1.50);
+auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2), 1.0);</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — تغییر کرهٔ چپ به شیشه]</p>
+        <p>این نتیجهٔ زیر را به ما می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.16-glass-always-refract.png" alt="تصویر ۱۶: کرهٔ شیشه‌ای که همیشه شکست می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>بازتاب داخلی کلی (Total Internal Reflection)</h3>
+        <p>یک مسئلهٔ عملی دردسرساز در شکست این است که زاویه‌های پرتویی وجود دارند که با قانون اسنل هیچ راه‌حلی ممکن نیست. وقتی پرتویی با زاویهٔ به‌اندازهٔ کافیِ مماسی وارد محیطی با ضریب شکست پایین‌تر می‌شود، می‌تواند با زاویه‌ای بیش از ۹۰ درجه شکست بخورد. اگر به قانون اسنل و اشتقاق sinθ′ برگردیم:</p>
+        <p style="text-align:center"><code>sinθ′ = (η/η′)·sinθ</code></p>
+        <p>اگر پرتو داخل شیشه باشد و خارجش هوا باشد (η = 1.5 و η′ = 1.0):</p>
+        <p style="text-align:center"><code>sinθ′ = (1.5/1.0)·sinθ</code></p>
+        <p>مقدار sinθ′ نمی‌تواند بزرگ‌تر از ۱ باشد. پس اگر:</p>
+        <p style="text-align:center"><code>(1.5/1.0)·sinθ &gt; 1.0</code></p>
+        <p>برابری بین دو سمت معادله از بین می‌رود و راه‌حلی نمی‌تواند وجود داشته باشد. اگر راه‌حلی وجود نداشته باشد، شیشه نمی‌تواند شکست بدهد و بنابراین باید پرتو را بازتاب کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>if (ri * sin_theta &gt; 1.0) {
+    // باید بازتاب کند
+    ...
+} else {
+    // می‌تواند شکست بدهد
+    ...
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — تعیین اینکه پرتو می‌تواند شکست بدهد یا نه]</p>
+        <p>اینجا همهٔ نور بازتاب می‌شود و چون در عمل معمولاً داخل اشیای توپُر است، به آن <em>بازتاب داخلی کلی</em> می‌گویند. به همین دلیل است که گاهی مرز آب-به-هوا وقتی زیر آب هستید مثل یک آینهٔ کامل عمل می‌کند — اگر زیر آب باشید و به بالا نگاه کنید، می‌توانید چیزهای بالای آب را ببینید، اما وقتی نزدیک سطح باشید و به پهلو نگاه کنید، سطح آب شبیه آینه است.</p>
+        <p>می‌توانیم <code>sin_theta</code> را با اتحادهای مثلثاتی حل کنیم:</p>
+        <p style="text-align:center"><code>sinθ = √(1 − cos²θ)</code></p>
+        <p>و</p>
+        <p style="text-align:center"><code>cosθ = R·n</code></p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+
+if (ri * sin_theta &gt; 1.0) {
+    // باید بازتاب کند
+    ...
+} else {
+    // می‌تواند شکست بدهد
+    ...
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — تعیین اینکه پرتو می‌تواند شکست بدهد یا نه]</p>
+        <p>و مادهٔ دی‌الکتریکی که همیشه شکست می‌دهد (وقتی ممکن باشد):</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class dielectric : public material {
+  public:
+    dielectric(double refraction_index) : refraction_index(refraction_index) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        attenuation = color(1.0, 1.0, 1.0);
+        double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
+
+        vec3 unit_direction = unit_vector(r_in.direction());
+        double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+        double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+
+        bool cannot_refract = ri * sin_theta &gt; 1.0;
+        vec3 direction;
+
+        if (cannot_refract)
+            direction = reflect(unit_direction, rec.normal);
+        else
+            direction = refract(unit_direction, rec.normal, ri);
+
+        scattered = ray(rec.p, direction);
+        return true;
+    }
+
+  private:
+    // ضریب شکست در خلأ یا هوا، یا نسبت ضریب شکست ماده بر ضریب شکست محیطِ دربرگیرنده
+    double refraction_index;
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — کلاس مادهٔ دی‌الکتریک با بازتاب]</p>
+        <p>تضعیف همیشه ۱ است — سطح شیشه هیچ‌چیز را جذب نمی‌کند.</p>
+        <p>اگر صحنهٔ قبلی را با تابع جدید <code>dielectric::scatter()</code> رندر کنیم... تغییری نمی‌بینیم. هان؟</p>
+        <p>خب، معلوم می‌شود با توجه به کره‌ای از ماده‌ای با ضریب شکست بیشتر از هوا، هیچ زاویهٔ تابشی وجود ندارد که بازتاب داخلی کلی بدهد — نه در نقطهٔ ورود پرتو به کره، نه در نقطهٔ خروج. این به خاطر هندسهٔ کره‌هاست، چون پرتوی ورودی مماسی همیشه به زاویهٔ کوچک‌تری خم می‌شود و بعد در خروج به زاویهٔ اصلی برگردانده می‌شود.</p>
+        <p>پس چطور می‌توانیم بازتاب داخلی کلی را نشان بدهیم؟ خب، اگر کره ضریب شکستی <em>کمتر</em> از محیطش داشته باشد، می‌توانیم با زاویه‌های مماسیِ کم‌عمق به آن بخوریم و بازتاب کلیِ <em>خارجی</em> بگیریم. این باید برای مشاهدهٔ اثر کافی باشد.</p>
+        <p>دنیایی پر از آب (ضریب شکست تقریباً ۱.۳۳) مدل می‌کنیم و مادهٔ کره را به هوا (ضریب شکست ۱.۰۰) تغییر می‌دهیم — یک حباب هوا! برای این کار، ضریب شکست مادهٔ کرهٔ چپ را به این تغییر دهید:</p>
+        <p style="text-align:center"><code>ضریب شکست هوا / ضریب شکست آب</code></p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+auto material_left   = make_shared&lt;dielectric&gt;(1.00 / 1.33);
+auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2), 1.0);</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — کرهٔ چپ یک حباب هوا در آب است]</p>
+        <p>این تغییر رندر زیر را به دست می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.17-air-bubble-total-reflection.png" alt="تصویر ۱۷: حباب هوا گاهی شکست می‌دهد، گاهی بازتاب می‌کند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اینجا می‌بینید که پرتوهای کم‌وبیش مستقیم شکست می‌خورند، در حالی که پرتوهای مماسی بازتاب می‌شوند.</p>
+
+        <h3>تقریب شلیک (Schlick)</h3>
+        <p>حالا شیشهٔ واقعی بازتاب‌دهندگی‌ای دارد که با زاویه تغییر می‌کند — به پنجره از یک زاویهٔ تند نگاه کنید و آینه می‌شود. یک معادلهٔ بزرگ و زشت برای آن وجود دارد، اما تقریباً همه از یک تقریب چندجمله‌ای ارزان و به‌طور شگفت‌آوری دقیق از کریستف شلیک استفاده می‌کنند. این مادهٔ شیشهٔ کامل ما را می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class dielectric : public material {
+  public:
+    dielectric(double refraction_index) : refraction_index(refraction_index) {}
+
+    bool scatter(const ray&amp; r_in, const hit_record&amp; rec, color&amp; attenuation, ray&amp; scattered)
+    const override {
+        attenuation = color(1.0, 1.0, 1.0);
+        double ri = rec.front_face ? (1.0/refraction_index) : refraction_index;
+
+        vec3 unit_direction = unit_vector(r_in.direction());
+        double cos_theta = std::fmin(dot(-unit_direction, rec.normal), 1.0);
+        double sin_theta = std::sqrt(1.0 - cos_theta*cos_theta);
+
+        bool cannot_refract = ri * sin_theta &gt; 1.0;
+        vec3 direction;
+
+        if (cannot_refract || reflectance(cos_theta, ri) &gt; random_double())
+            direction = reflect(unit_direction, rec.normal);
+        else
+            direction = refract(unit_direction, rec.normal, ri);
+
+        scattered = ray(rec.p, direction);
+        return true;
+    }
+
+  private:
+    // ضریب شکست در خلأ یا هوا، یا نسبت ضریب شکست ماده بر ضریب شکست محیطِ دربرگیرنده
+    double refraction_index;
+
+    static double reflectance(double cosine, double refraction_index) {
+        // از تقریب شلیک برای بازتاب‌دهندگی استفاده کن.
+        auto r0 = (1 - refraction_index) / (1 + refraction_index);
+        r0 = r0*r0;
+        return r0 + (1-r0)*std::pow((1 - cosine),5);
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[material.h]</code> — مادهٔ شیشهٔ کامل]</p>
+
+        <h3>مدل‌سازی یک کرهٔ شیشه‌ای توخالی</h3>
+        <p>بیایید یک کرهٔ شیشه‌ای توخالی مدل کنیم. این کره‌ای با مقداری ضخامت است که کرهٔ دیگری از هوا داخلش است. اگر به مسیر پرتویی که از چنین شیئی عبور می‌کند فکر کنید، به کرهٔ بیرونی می‌خورد، شکست می‌خورد، به کرهٔ درونی می‌خورد (فرض کنیم می‌خوریم)، بار دوم شکست می‌خورد و از هوای داخل عبور می‌کند. بعد ادامه می‌دهد، به سطح داخلی کرهٔ درونی می‌خورد، назад شکست می‌خورد، بعد به سطح داخلی کرهٔ بیرونی می‌خورد و در نهایت شکست می‌خورد و به اتمسفر صحنه برمی‌گردد.</p>
+        <p>کرهٔ بیرونی فقط با یک کرهٔ شیشه‌ای استاندارد، با ضریب شکستی حدود ۱.۵۰ (مدل‌سازی شکست از هوای بیرون به شیشه) مدل می‌شود. کرهٔ درونی کمی متفاوت است چون ضریب شکستِ <em>آن</em> باید نسبت به مادهٔ کرهٔ بیرونیِ اطراف باشد؛ یعنی مدل‌سازی گذار از شیشه به هوای درونی.</p>
+        <p>این در واقع ساده است، چون پارامتر <code>refraction_index</code> در مادهٔ دی‌الکتریک می‌تواند به‌عنوان <em>نسبت</em> ضریب شکست شیء تقسیم بر ضریب شکست محیطِ دربرگیرنده تفسیر شود. در این‌جا، کرهٔ درونی ضریب شکست هوا (مادهٔ کرهٔ درونی) بر ضریب شکست شیشه (محیط دربرگیرنده) خواهد داشت، یعنی 1.00/1.50 = 0.67.</p>
+        <p>کد این است:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+auto material_left   = make_shared&lt;dielectric&gt;(1.50);
+auto material_bubble = make_shared&lt;dielectric&gt;(1.00 / 1.50);
+auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2), 0.0);
+
+world.add(make_shared&lt;sphere&gt;(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+world.add(make_shared&lt;sphere&gt;(point3( 0.0,    0.0, -1.2),   0.5, material_center));
+world.add(make_shared&lt;sphere&gt;(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+world.add(make_shared&lt;sphere&gt;(point3(-1.0,    0.0, -1.0),   0.4, material_bubble));
+world.add(make_shared&lt;sphere&gt;(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+...</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — صحنهٔ با کرهٔ شیشه‌ای توخالی]</p>
+        <p>و این هم نتیجه:</p>
+        <img src="https://raytracing.github.io/images/img-1.18-glass-hollow.png" alt="تصویر ۱۸: یک کرهٔ شیشه‌ای توخالی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>دوربین قابل‌جابه‌جایی</h2>دوربین‌ها مثل دی‌الکتریک‌ها برای اشکال‌زدایی دردسرسازند؛ پس من همیشه دوربینم را تدریجی توسعه می‌دهم. اول، بگذارید یک میدان دید قابل‌تنظیم (<em>fov</em>) داشته باشیم. این زاویهٔ دید از لبه تا لبهٔ تصویر رندرشده است. چون تصویرمان مربع نیست، fov به‌صورت افقی و عمودی متفاوت است. من همیشه از fov عمودی استفاده می‌کنم. معمولاً هم آن را برحسب درجه مشخص می‌کنم و داخل سازنده به رادیان تبدیل می‌کنم — یک مسئلهٔ سلیقهٔ شخصی.
+
+        <h3>هندسهٔ دید دوربین</h3>
+        <p>اول، پرتوها را از مبدأ به‌سوی صفحهٔ z = −1 نگه می‌داریم. می‌توانستیم صفحهٔ z = −2 یا هر چیزی بسازیم، تا وقتی h را نسبتی از آن فاصله کنیم. تنظیم ما این است:</p>
+        <img src="https://raytracing.github.io/images/fig-1.18-cam-view-geom.jpg" alt="شکل: هندسهٔ دید دوربین (از پهلو) — فاصلهٔ کانونی f و نیم‌زاویهٔ θ" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این یعنی h = tan(θ/2). دوربین ما حالا این‌طور می‌شود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio      = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width       = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+    int    samples_per_pixel = 10;   // تعداد نمونه‌های تصادفی برای هر پیکسل
+    int    max_depth         = 10;   // حداکثر تعداد بازتاب پرتو در صحنه
+
+    double vfov = 90;  // زاویهٔ دید عمودی (میدان دید)
+
+    void render(const hittable&amp; world) {
+    ...
+
+  private:
+    ...
+
+    void initialize() {
+        image_height = int(image_width / aspect_ratio);
+        image_height = (image_height &lt; 1) ? 1 : image_height;
+
+        pixel_samples_scale = 1.0 / samples_per_pixel;
+
+        center = point3(0, 0, 0);
+
+        // ابعاد viewport را تعیین کن.
+        auto focal_length = 1.0;
+        auto theta = degrees_to_radians(vfov);
+        auto h = std::tan(theta/2);
+        auto viewport_height = 2 * h * focal_length;
+        auto viewport_width = viewport_height * (double(image_width)/image_height);
+
+        // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+        auto viewport_u = vec3(viewport_width, 0, 0);
+        auto viewport_v = vec3(0, -viewport_height, 0);
+
+        // بردارهای دلتای افقی و عمودی پیکسل‌به‌پیکسل را حساب کن.
+        pixel_delta_u = viewport_u / image_width;
+        pixel_delta_v = viewport_v / image_height;
+
+        // مکان پیکسل بالا-چپ را حساب کن.
+        auto viewport_upper_left =
+            center - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+        pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+    }
+
+    ...
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — دوربین با میدان دید قابل‌تنظیم (fov)]</p>
+        <p>این تغییرات را با یک صحنهٔ ساده از دو کرهٔ در حال تماس، با میدان دید ۹۰ درجه آزمایش می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    hittable_list world;
+
+    auto R = std::cos(pi/4);
+
+    auto material_left  = make_shared&lt;lambertian&gt;(color(0,0,1));
+    auto material_right = make_shared&lt;lambertian&gt;(color(1,0,0));
+
+    world.add(make_shared&lt;sphere&gt;(point3(-R, 0, -1), R, material_left));
+    world.add(make_shared&lt;sphere&gt;(point3( R, 0, -1), R, material_right));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov = 90;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — صحنهٔ با دوربین زاویه‌باز]</p>
+        <p>این رندر را به ما می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.19-wide-view.png" alt="تصویر ۱۹: نمای زاویه‌باز" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>جابه‌جایی و جهت‌دهی دوربین</h3>
+        <p>برای رسیدن به یک نقطه‌دید دلخواه، اول بگذارید نقاطی را که به آن‌ها اهمیت می‌دهیم نام‌گذاری کنیم. مکانِ قرارگیری دوربین را <em>lookfrom</em> و نقطه‌ای را که به آن نگاه می‌کنیم <em>lookat</em> می‌نامیم. (بعداً، اگر خواستید، می‌توانید به‌جای نقطه‌ای که به آن نگاه می‌کنید، یک جهت نگاه تعریف کنید.)</p>
+        <p>همچنین به راهی برای مشخص‌کردن چرخش، یا کج‌شدن پهلو، دوربین نیاز داریم: چرخش دور محور lookat-lookfrom. یک راه دیگر برای فکرکردن به آن این است که حتی اگر <code>lookfrom</code> و <code>lookat</code> را ثابت نگه دارید، باز هم می‌توانید سرتان را دور بینی‌تان بچرخانید. چیزی که نیاز داریم راهی برای مشخص‌کردن بردار «بالا» برای دوربین است.</p>
+        <img src="https://raytracing.github.io/images/fig-1.19-cam-view-dir.jpg" alt="شکل: جهت دید دوربین — بردار از lookfrom به lookat" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم هر بردار بالایی که می‌خواهیم مشخص کنیم، تا وقتی موازی جهت دید نباشد. این بردار بالا را روی صفحهٔ عمود بر جهت دید تصویر می‌کنیم تا بردار بالایِ نسبت‌به‌دوربین بگیریم. من از قرارداد رایجِ نامیدن این بردار به‌عنوان بردار «نمای بالا» (<em>vup</em>) استفاده می‌کنم. بعد از چند ضرب خارجی و نرمال‌سازی برداری، حالا یک پایهٔ کامل متعامد یکه (u, v, w) داریم که جهت‌گیری دوربین‌مان را توصیف می‌کند. u بردار واحدِ اشاره‌کننده به راست دوربین است، v بردار واحدِ اشاره‌کننده به بالای دوربین، w بردار واحدِ اشاره‌کننده به خلاف جهت دید (چون از مختصات راست‌دست استفاده می‌کنیم)، و مرکز دوربین در مبدأ است.</p>
+        <img src="https://raytracing.github.io/images/fig-1.20-cam-view-up.jpg" alt="شکل: جهت نمای بالای دوربین — نمایش صفحهٔ viewport با بردارهای u و v" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مثل قبل که دوربین ثابت‌مان رو به −Z بود، دوربین دید دلخواه‌مان رو به −w است. به خاطر داشته باشید که می‌توانیم — اما لازم نیست — از بالای دنیا (0,1,0) برای مشخص‌کردن vup استفاده کنیم. این راحت است و به‌طور طبیعی دوربین‌تان را هم‌ترازِ افقی نگه می‌دارد تا وقتی تصمیم بگیرید با زاویه‌های دیوانه‌وار دوربین آزمایش کنید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio      = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width       = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+    int    samples_per_pixel = 10;   // تعداد نمونه‌های تصادفی برای هر پیکسل
+    int    max_depth         = 10;   // حداکثر تعداد بازتاب پرتو در صحنه
+
+    double vfov     = 90;              // زاویهٔ دید عمودی (میدان دید)
+    point3 lookfrom = point3(0,0,0);   // نقطه‌ای که دوربین از آن نگاه می‌کند
+    point3 lookat   = point3(0,0,-1);  // نقطه‌ای که دوربین به آن نگاه می‌کند
+    vec3   vup      = vec3(0,1,0);     // جهت «بالا» نسبت‌به‌دوربین
+
+    ...
+
+  private:
+    int    image_height;         // ارتفاع تصویر رندرشده
+    double pixel_samples_scale;  // ضریب مقیاس رنگ برای جمع نمونه‌های پیکسل
+    point3 center;               // مرکز دوربین
+    point3 pixel00_loc;          // مکان پیکسل ۰، ۰
+    vec3   pixel_delta_u;        // جابه‌جایی به پیکسل سمت راست
+    vec3   pixel_delta_v;        // جابه‌جایی به پیکسل پایین
+    vec3   u, v, w;              // بردارهای پایهٔ قاب دوربین
+
+    void initialize() {
+        image_height = int(image_width / aspect_ratio);
+        image_height = (image_height &lt; 1) ? 1 : image_height;
+
+        pixel_samples_scale = 1.0 / samples_per_pixel;
+
+        center = lookfrom;
+
+        // ابعاد viewport را تعیین کن.
+        auto focal_length = (lookfrom - lookat).length();
+        auto theta = degrees_to_radians(vfov);
+        auto h = std::tan(theta/2);
+        auto viewport_height = 2 * h * focal_length;
+        auto viewport_width = viewport_height * (double(image_width)/image_height);
+
+        // بردارهای پایهٔ واحد u,v,w را برای قاب مختصات دوربین حساب کن.
+        w = unit_vector(lookfrom - lookat);
+        u = unit_vector(cross(vup, w));
+        v = cross(w, u);
+
+        // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+        vec3 viewport_u = viewport_width * u;    // بردار عرض لبهٔ افقی viewport
+        vec3 viewport_v = viewport_height * -v;  // بردار پایین لبهٔ عمودی viewport
+
+        // بردارهای دلتای افقی و عمودی پیکسل‌به‌پیکسل را حساب کن.
+        pixel_delta_u = viewport_u / image_width;
+        pixel_delta_v = viewport_v / image_height;
+
+        // مکان پیکسل بالا-چپ را حساب کن.
+        auto viewport_upper_left = center - (focal_length * w) - viewport_u/2 - viewport_v/2;
+        pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+    }
+
+    ...
+
+  private:
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — دوربین قابل‌جابه‌جایی و جهت‌پذیر]</p>
+        <p>به صحنهٔ قبلی برمی‌گردیم و از نقطه‌دید جدید استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    hittable_list world;
+
+    auto material_ground = make_shared&lt;lambertian&gt;(color(0.8, 0.8, 0.0));
+    auto material_center = make_shared&lt;lambertian&gt;(color(0.1, 0.2, 0.5));
+    auto material_left   = make_shared&lt;dielectric&gt;(1.50);
+    auto material_bubble = make_shared&lt;dielectric&gt;(1.00 / 1.50);
+    auto material_right  = make_shared&lt;metal&gt;(color(0.8, 0.6, 0.2), 1.0);
+
+    world.add(make_shared&lt;sphere&gt;(point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(make_shared&lt;sphere&gt;(point3( 0.0,    0.0, -1.2),   0.5, material_center));
+    world.add(make_shared&lt;sphere&gt;(point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(make_shared&lt;sphere&gt;(point3(-1.0,    0.0, -1.0),   0.4, material_bubble));
+    world.add(make_shared&lt;sphere&gt;(point3( 1.0,    0.0, -1.0),   0.5, material_right));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 90;
+    cam.lookfrom = point3(-2,2,1);
+    cam.lookat   = point3(0,0,-1);
+    cam.vup      = vec3(0,1,0);
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — صحنهٔ با نقطه‌دید جایگزین]</p>
+        <p>تا به این برسیم:</p>
+        <img src="https://raytracing.github.io/images/img-1.20-view-distant.png" alt="تصویر ۲۰: نمای دور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>و می‌توانیم میدان دید را تغییر دهیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>cam.vfov     = 20;</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — تغییر میدان دید]</p>
+        <p>تا به این برسیم:</p>
+        <img src="https://raytracing.github.io/images/img-1.21-view-zoom.png" alt="تصویر ۲۱: بزرگ‌نمایی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>تاری حرکت (Defocus Blur)</h2>
+        <p>حالا آخرین ویژگی‌مان: <em>تاری خارج‌ازفوکوس</em>. توجه کنید که عکاس‌ها به این می‌گویند <em>عمق میدان</em> (depth of field)؛ پس مطمئن باشید واژهٔ <em>defocus blur</em> را فقط بین دوستان ردیاب‌پرتو‌ای‌تان به کار ببرید.</p>
+        <p>دلیل اینکه در دوربین‌های واقعی تاری خارج‌ازفوکوس داریم این است که آن‌ها به یک سوراخ بزرگ (به‌جای فقط یک سوراخ سوزنی) نیاز دارند تا نور جمع کنند. یک سوراخ بزرگ همه‌چیز را خارج‌ازفوکوس می‌کرد، اما اگر یک لنز جلوی فیلم/سنسور بگذاریم، فاصلهٔ مشخصی وجود خواهد داشت که در آن همه‌چیز در فوکوس است. اشیایی که در آن فاصله قرار بگیرند در فوکوس ظاهر می‌شوند و هرچه از آن فاصله دورتر باشند، به‌طور خطی تارتر ظاهر می‌شوند. می‌توانید این‌طور به لنز فکر کنید: همهٔ پرتوهای نوری که <em>از</em> یک نقطهٔ خاص در فاصلهٔ فوکوس می‌آیند — و به لنز می‌خورند — به <em>سمت</em> یک نقطهٔ واحد روی سنسور تصویر خم می‌شوند.</p>
+        <p>به فاصلهٔ بین مرکز دوربین و صفحه‌ای که همه‌چیز در آن در فوکوس کامل است، <em>فاصلهٔ فوکوس</em> می‌گوییم. توجه داشته باشید فاصلهٔ فوکوس معمولاً با فاصلهٔ کانونی یکسان نیست — <em>فاصلهٔ کانونی</em> فاصلهٔ بین مرکز دوربین و صفحهٔ تصویر است. اما برای مدل ما، این دو مقدار یکسان خواهند داشت، چون شبکهٔ پیکسل‌هایمان را دقیقاً روی صفحهٔ فوکوس می‌گذاریم که به اندازهٔ <em>فاصلهٔ فوکوس</em> از مرکز دوربین فاصله دارد.</p>
+        <p>در یک دوربین فیزیکی، فاصلهٔ فوکوس با فاصلهٔ بین لنز و فیلم/سنسور کنترل می‌شود. به همین دلیل است که وقتی چیزی را که در فوکوس است تغییر می‌دهید، می‌بینید لنز نسبت به دوربین حرکت می‌کند (شاید در دوربین گوشی‌تان هم این اتفاق بیفتد، اما آن‌جا سنسور حرکت می‌کند). «دیافراگم» سوراخی برای کنترل این است که لنز عملاً چقدر بزرگ است. برای یک دوربین واقعی، اگر نور بیشتری نیاز دارید دیافراگم را بزرگ‌تر می‌کنید و برای اشیای دور از فاصلهٔ فوکوس، تاری بیشتری می‌گیرید. برای دوربین مجازی‌مان، می‌توانیم یک سنسور کامل داشته باشیم و هرگز به نور بیشتری نیاز نداشته باشیم؛ پس فقط وقتی تاری خارج‌ازفوکوس می‌خواهیم از دیافراگم استفاده می‌کنیم.</p>
+
+        <h3>تقریب لنز نازک</h3>
+        <p>یک دوربین واقعی لنز ترکیبی پیچیده‌ای دارد. برای کدمان، می‌توانستیم ترتیبِ سنسور، بعد لنز و بعد دیافراگم را شبیه‌سازی کنیم. بعد می‌توانستیم بفهمیم پرتوها را کجا بفرستیم و تصویر را بعد از محاسبه، وارونه کنیم (تصویر روی فیلم به‌صورت وارونه پخش می‌شود). اما اهالی گرافیک معمولاً از تقریب لنز نازک استفاده می‌کنند:</p>
+        <img src="https://raytracing.github.io/images/fig-1.21-cam-lens.jpg" alt="شکل: مدل لنز دوربین — صفحهٔ فوکوس، لنز و بازهٔ دیافراگم" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>نیازی به شبیه‌سازی داخل دوربین نداریم — برای مقصود رندرشدن تصویرِ بیرونِ دوربین، آن پیچیدگیِ غیرضروری است. در عوض، من معمولاً پرتوها را از یک «لنز» دایره‌ایِ بی‌نهایت نازک شروع می‌کنم و آن‌ها را به‌سوی پیکسلِ موردنظر روی صفحهٔ فوکوس می‌فرستم (<code>focal_length</code> دور از لنز)، جایی که هر چیزی روی آن صفحه در دنیای سه‌بعدی در فوکوس کامل است.</p>
+        <p>در عمل، این را با قراردادن viewport در همین صفحه انجام می‌دهیم. با کنار هم گذاشتن همه‌چیز:</p>
+        <ol>
+          <li>صفحهٔ فوکوس عمود بر جهت دید دوربین است.</li>
+          <li>فاصلهٔ فوکوس، فاصلهٔ بین مرکز دوربین و صفحهٔ فوکوس است.</li>
+          <li>viewport روی صفحهٔ فوکوس قرار دارد و روی بردار جهت دید دوربین متمرکز است.</li>
+          <li>شبکهٔ مکان‌های پیکسلی داخل viewport قرار دارد (در دنیای سه‌بعدی واقع شده).</li>
+          <li>مکان‌های نمونهٔ تصویرِ تصادفی از ناحیهٔ اطراف مکان پیکسل فعلی انتخاب می‌شوند.</li>
+          <li>دوربین پرتوها را از نقاط تصادفی روی لنز، از میانِ مکان نمونهٔ تصویرِ فعلی شلیک می‌کند.</li>
+        </ol>
+        <img src="https://raytracing.github.io/images/fig-1.22-cam-film-plane.jpg" alt="شکل: صفحهٔ فوکوس دوربین — پرتوها از نقاط لنز به سمت نمونه‌های پیکسل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>تولید پرتوهای نمونه</h3>
+        <p>بدون تاری خارج‌ازفوکوس، همهٔ پرتوهای صحنه از مرکز دوربین (یا <code>lookfrom</code>) شروع می‌شوند. برای دستیابی به تاری خارج‌ازفوکوس، یک دیسک متمرکز بر مرکز دوربین می‌سازیم. هرچه شعاع بزرگ‌تر باشد، تاری خارج‌ازفوکوس بیشتر است. می‌توانید دوربین اصلی‌مان را دوربینی با دیسک خارج‌ازفوکوسِ شعاع صفر (بدون هیچ تارشدگی) در نظر بگیرید؛ پس همهٔ پرتوها از مرکز دیسک (<code>lookfrom</code>) شروع می‌شدند.</p>
+        <p>پس، دیسک خارج‌ازفوکوس چقدر باید بزرگ باشد؟ چون اندازهٔ این دیسک کنترل می‌کند چقدر تاری خارج‌ازفوکوس می‌گیریم، باید پارامتری از کلاس دوربین باشد. می‌توانستیم فقط شعاع دیسک را پارامتر دوربین بگیریم، اما تاری بسته به فاصلهٔ پخش‌شدن تغییر می‌کرد. پارامتر کمی آسان‌تر مشخص‌کردن زاویهٔ مخروطی است که رأسش در مرکز viewport و قاعده‌اش (دیسک خارج‌ازفوکوس) در مرکز دوربین است. این باید برای یک نما، با تغییر فاصلهٔ فوکوس نتایج سازگارتری به شما بدهد.</p>
+        <p>چون می‌خواهیم نقاط تصادفی را از دیسک خارج‌ازفوکوس انتخاب کنیم، به تابعی برای این کار نیاز داریم: <code>random_in_unit_disk()</code>. این تابع با همان نوع روشی که در <code>random_unit_vector()</code> استفاده می‌کنیم کار می‌کند، فقط برای دو بعد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>...
+
+inline vec3 unit_vector(const vec3&amp; u) {
+    return v / v.length();
+}
+
+inline vec3 random_in_unit_disk() {
+    while (true) {
+        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
+        if (p.length_squared() &lt; 1)
+            return p;
+    }
+}
+
+...</code></pre>
+        <p class="listing-label">[فهرست <code>[vec3.h]</code> — تولید نقطهٔ تصادفی داخل دیسک واحد]</p>
+        <p>حالا دوربین را به‌روزرسانی می‌کنیم تا پرتوها را از دیسک خارج‌ازفوکوس شروع کند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class camera {
+  public:
+    double aspect_ratio      = 1.0;  // نسبت عرض تصویر بر ارتفاع
+    int    image_width       = 100;  // عرض تصویر رندرشده به تعداد پیکسل
+    int    samples_per_pixel = 10;   // تعداد نمونه‌های تصادفی برای هر پیکسل
+    int    max_depth         = 10;   // حداکثر تعداد بازتاب پرتو در صحنه
+
+    double vfov     = 90;              // زاویهٔ دید عمودی (میدان دید)
+    point3 lookfrom = point3(0,0,0);   // نقطه‌ای که دوربین از آن نگاه می‌کند
+    point3 lookat   = point3(0,0,-1);  // نقطه‌ای که دوربین به آن نگاه می‌کند
+    vec3   vup      = vec3(0,1,0);     // جهت «بالا» نسبت‌به‌دوربین
+
+    double defocus_angle = 0;  // زاویهٔ تغییر پرتوها در هر پیکسل
+    double focus_dist = 10;    // فاصله از نقطهٔ lookfrom دوربین تا صفحهٔ فوکوس کامل
+
+    ...
+
+  private:
+    int    image_height;         // ارتفاع تصویر رندرشده
+    double pixel_samples_scale;  // ضریب مقیاس رنگ برای جمع نمونه‌های پیکسل
+    point3 center;               // مرکز دوربین
+    point3 pixel00_loc;          // مکان پیکسل ۰، ۰
+    vec3   pixel_delta_u;        // جابه‌جایی به پیکسل سمت راست
+    vec3   pixel_delta_v;        // جابه‌جایی به پیکسل پایین
+    vec3   u, v, w;              // بردارهای پایهٔ قاب دوربین
+    vec3   defocus_disk_u;       // شعاع افقی دیسک خارج‌ازفوکوس
+    vec3   defocus_disk_v;       // شعاع عمودی دیسک خارج‌ازفوکوس
+
+    void initialize() {
+        image_height = int(image_width / aspect_ratio);
+        image_height = (image_height &lt; 1) ? 1 : image_height;
+
+        pixel_samples_scale = 1.0 / samples_per_pixel;
+
+        center = lookfrom;        // ابعاد viewport را تعیین کن.
+        auto theta = degrees_to_radians(vfov);
+        auto h = std::tan(theta/2);
+        auto viewport_height = 2 * h * focus_dist;
+        auto viewport_width = viewport_height * (double(image_width)/image_height);
+
+        // بردارهای پایهٔ واحد u,v,w را برای قاب مختصات دوربین حساب کن.
+        w = unit_vector(lookfrom - lookat);
+        u = unit_vector(cross(vup, w));
+        v = cross(w, u);
+
+        // بردارهای عرضی (افقی) و رو به پایین (عمودی) لبه‌های viewport را حساب کن.
+        vec3 viewport_u = viewport_width * u;    // بردار عرض لبهٔ افقی viewport
+        vec3 viewport_v = viewport_height * -v;  // بردار پایین لبهٔ عمودی viewport
+
+        // بردارهای دلتای افقی و عمودی تا پیکسل بعدی را حساب کن.
+        pixel_delta_u = viewport_u / image_width;
+        pixel_delta_v = viewport_v / image_height;
+
+        // مکان پیکسل بالا-چپ را حساب کن.
+        auto viewport_upper_left = center - (focus_dist * w) - viewport_u/2 - viewport_v/2;
+        pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+        // بردارهای پایهٔ دیسک خارج‌ازفوکوس دوربین را حساب کن.
+        auto defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
+        defocus_disk_u = u * defocus_radius;
+        defocus_disk_v = v * defocus_radius;
+    }
+
+    ray get_ray(int i, int j) const {
+        // یک پرتوی دوربین بساز که از دیسک خارج‌ازفوکوس می‌آید و به نقطهٔ تصادفیِ
+        // نمونه‌شده اطراف مکان پیکسل i, j هدف گرفته است.
+
+        auto offset = sample_square();
+        auto pixel_sample = pixel00_loc
+                          + ((i + offset.x()) * pixel_delta_u)
+                          + ((j + offset.y()) * pixel_delta_v);
+
+        auto ray_origin = (defocus_angle &lt;= 0) ? center : defocus_disk_sample();
+        auto ray_direction = pixel_sample - ray_origin;
+
+        return ray(ray_origin, ray_direction);
+    }
+
+    vec3 sample_square() const {
+        ...
+    }
+
+    point3 defocus_disk_sample() const {
+        // یک نقطهٔ تصادفی در دیسک خارج‌ازفوکوس دوربین برمی‌گرداند.
+        auto p = random_in_unit_disk();
+        return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
+    }
+
+    color ray_color(const ray&amp; r, int depth, const hittable&amp; world) const {
+        ...
+    }
+};</code></pre>
+        <p class="listing-label">[فهرست <code>[camera.h]</code> — دوربین با عمق میدان قابل‌تنظیم]</p>
+        <p>با استفاده از یک دیافراگم بزرگ:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    ...
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 20;
+    cam.lookfrom = point3(-2,2,1);
+    cam.lookat   = point3(0,0,-1);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 10.0;
+    cam.focus_dist    = 3.4;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — دوربین صحنه با عمق میدان]</p>
+        <p>می‌گیریم:</p>
+        <img src="https://raytracing.github.io/images/img-1.22-depth-of-field.png" alt="تصویر ۲۲: کره‌ها با عمق میدان" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>حالا کجا؟</h2>
+
+        <h3>رندر نهایی</h3>
+        <p>بیایید تصویر روی جلد این کتاب را بسازیم — تعداد زیادی کرهٔ تصادفی.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main() {
+    hittable_list world;
+
+    auto ground_material = make_shared&lt;lambertian&gt;(color(0.5, 0.5, 0.5));
+    world.add(make_shared&lt;sphere&gt;(point3(0,-1000,0), 1000, ground_material));
+
+    for (int a = -11; a &lt; 11; a++) {
+        for (int b = -11; b &lt; 11; b++) {
+            auto choose_mat = random_double();
+            point3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
+
+            if ((center - point3(4, 0.2, 0)).length() &gt; 0.9) {
+                shared_ptr&lt;material&gt; sphere_material;
+
+                if (choose_mat &lt; 0.8) {
+                    // مات
+                    auto albedo = color::random() * color::random();
+                    sphere_material = make_shared&lt;lambertian&gt;(albedo);
+                    world.add(make_shared&lt;sphere&gt;(center, 0.2, sphere_material));
+                } else if (choose_mat &lt; 0.95) {
+                    // فلز
+                    auto albedo = color::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = make_shared&lt;metal&gt;(albedo, fuzz);
+                    world.add(make_shared&lt;sphere&gt;(center, 0.2, sphere_material));
+                } else {
+                    // شیشه
+                    sphere_material = make_shared&lt;dielectric&gt;(1.5);
+                    world.add(make_shared&lt;sphere&gt;(center, 0.2, sphere_material));
+                }
+            }
+        }
+    }
+
+    auto material1 = make_shared&lt;dielectric&gt;(1.5);
+    world.add(make_shared&lt;sphere&gt;(point3(0, 1, 0), 1.0, material1));
+
+    auto material2 = make_shared&lt;lambertian&gt;(color(0.4, 0.2, 0.1));
+    world.add(make_shared&lt;sphere&gt;(point3(-4, 1, 0), 1.0, material2));
+
+    auto material3 = make_shared&lt;metal&gt;(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared&lt;sphere&gt;(point3(4, 1, 0), 1.0, material3));
+
+    camera cam;
+
+    cam.aspect_ratio      = 16.0 / 9.0;
+    cam.image_width       = 1200;
+    cam.samples_per_pixel = 500;
+    cam.max_depth         = 50;
+
+    cam.vfov     = 20;
+    cam.lookfrom = point3(13,2,3);
+    cam.lookat   = point3(0,0,0);
+    cam.vup      = vec3(0,1,0);
+
+    cam.defocus_angle = 0.6;
+    cam.focus_dist    = 10.0;
+
+    cam.render(world);
+}</code></pre>
+        <p class="listing-label">[فهرست <code>[main.cc]</code> — صحنهٔ نهایی]</p>
+        <p>(توجه کنید کد بالا کمی با کد نمونهٔ پروژه تفاوت دارد: در بالا <code>samples_per_pixel</code> برای یک تصویر باکیفیت که رندر آن مدتی طول می‌کشد، ۵۰۰ تنظیم شده. کد منبع پروژه برای وقت اجرای معقول هنگام توسعه و اعتبارسنجی از مقدار ۱۰ استفاده می‌کند.)</p>
+        <p>این می‌دهد:</p>
+        <img src="https://raytracing.github.io/images/img-1.23-book1-final.jpg" alt="تصویر ۲۳: صحنهٔ نهایی — تعداد زیادی کره با مواد مختلف" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک نکتهٔ جالب که شاید متوجه شوید این است که گوی‌های شیشه‌ای واقعاً سایه ندارند که باعث می‌شود انگار شناورند. این باگ نیست — در زندگی واقعی هم گوی‌های شیشه‌ای را زیاد نمی‌بینید، جایی که آن‌ها هم کمی عجیب به نظر می‌رسند و در روزهای ابری واقعاً انگار شناورند. نقطه‌ای روی کرهٔ بزرگ زیر گوی شیشه‌ای هنوز نور زیادی به آن می‌خورد چون آسمان به‌جای مسدودشدن، بازچینش می‌شود.</p>
+
+        <h3>قدم‌های بعدی</h3>
+        <p>حالا یک ردیاب پرتوی باحال داری! بعدش چه؟</p>
+
+        <h3>کتاب ۲: <em>Ray Tracing: The Next Week</em></h3>
+        <p>کتاب دوم این مجموعه بر ردیاب پرتویی که این‌جا توسعه داده‌اید بنا می‌شود. این شامل ویژگی‌های جدیدی مثل:</p>
+        <ul>
+          <li>تاری حرکت (Motion blur) — رندر واقع‌گرایانهٔ اشیای متحرک.</li>
+          <li>سلسله‌مراتب حجم محدود (bounding volume hierarchies) — سرعت‌بخشیدن به رندر صحنه‌های پیچیده.</li>
+          <li>نقشه‌های بافت (Texture maps) — قراردادن تصاویر روی اشیا.</li>
+          <li>نویز پرلین (Perlin noise) — یک مولد نویز تصادفی که برای تکنیک‌های زیادی بسیار مفید است.</li>
+          <li>چهارضلعی‌ها — چیزی برای رندر کردن غیر از کره‌ها! همچنین پایهٔ پیاده‌سازی دیسک‌ها، مثلث‌ها، حلقه‌ها یا تقریباً هر ابتدایی دوبعدی دیگر.</li>
+          <li>نورها — افزودن منبع‌های نور به صحنه.</li>
+          <li>تبدیل‌ها (Transforms) — مفید برای جای‌گذاری و چرخش اشیا.</li>
+          <li>رندر حجمی — رندر دود، ابر و دیگر حجم‌های گازی.</li>
+        </ul>
+
+        <h3>کتاب ۳: <em>Ray Tracing: The Rest of Your Life</em></h3>
+        <p>این کتاب دوباره بر محتوای کتاب دوم گسترش می‌یابد. بخش زیادی از این کتاب دربارهٔ بهبود هم کیفیت تصویر رندرشده و هم کارایی رندرر است و روی تولید پرتوهای <em>درست</em> و انباشت مناسب آن‌ها تمرکز دارد.</p>
+        <p>این کتاب برای خواننده‌ای است که جداً به نوشتن ردیاب‌های پرتو در سطح حرفه‌ای علاقه‌مند است و/یا به پایه‌های پیاده‌سازی افکت‌های پیشرفته مثل پراکندگی زیرسطحی یا دی‌الکتریک‌های تو در تو علاقه دارد.</p>
+
+        <h3>جهت‌های دیگر</h3>
+        <p>از این‌جا مسیرهای اضافی بی‌شماری پیش رو دارید، از جمله تکنیک‌هایی که (تا حالا؟) در این مجموعه پوشش نداده‌ایم. این‌ها عبارت‌اند از:</p>
+        <p><strong>مثلث‌ها</strong> — بیشتر مدل‌های جذاب به شکل مثلث هستند. ورودی/خروجی مدل بدترین بخش است و تقریباً همه سعی می‌کنند از کد شخص دیگری برای این کار استفاده کنند. این شامل مدیریت کارآمد <em>مش‌های</em> بزرگ از مثلث‌ها هم می‌شود که چالش‌های خودشان را دارند.</p>
+        <p><strong>موازی‌سازی</strong> — N نسخه از کدتان را روی N هسته با seedهای تصادفی متفاوت اجرا کنید. N اجرا را میانگین بگیرید. این میانگین‌گیری را می‌توان سلسله‌مراتبی هم انجام داد، جایی که N/2 جفت را میانگین می‌گیریم تا N/4 تصویر بگیریم و جفت‌های آن‌ها را هم میانگین بگیریم. آن روش موازی‌سازی باید با کدنویسی بسیار کم تا هزاران هسته به‌خوبی گسترش یابد.</p>
+        <p><strong>پرتوهای سایه</strong> — وقتی به‌سوی منابع نور پرتو شلیک می‌کنید، می‌توانید دقیقاً تعیین کنید یک نقطهٔ خاص چگونه سایه می‌گیرد. با این کار، می‌توانید سایه‌های تیز یا نرم رندر کنید و درجهٔ دیگری از واقع‌گرایی به صحنه‌هایتان اضافه کنید.</p>
+        <p>خوش بگذرانید و لطفاً تصاویر باحالتان را برایم بفرستید!</p>
+      </section>
+
+      <section>
+        <h2>نقل‌قول از این کتاب</h2>
+        <p>نقل‌قول‌های سازگار، شناسایی منبع، مکان و نسخه‌های این اثر را آسان‌تر می‌کنند. اگر از این کتاب نقل‌قول می‌کنید، از شما می‌خواهیم در صورت امکان از یکی از شکل‌های زیر استفاده کنید.</p>
+
+        <h3>داده‌های پایه</h3>
+        <ul>
+          <li><strong>عنوان (مجموعه)</strong>: «Ray Tracing in One Weekend Series»</li>
+          <li><strong>عنوان (کتاب)</strong>: «Ray Tracing in One Weekend»</li>
+          <li><strong>نویسنده</strong>: Peter Shirley، Trevor David Black، Steve Hollasch</li>
+          <li><strong>نسخه/چاپ</strong>: v4.0.2</li>
+          <li><strong>تاریخ</strong>: 2025-04-25</li>
+          <li><strong>آدرس (مجموعه)</strong>: <a href="https://raytracing.github.io/" target="_blank" rel="noopener">https://raytracing.github.io/</a></li>
+          <li><strong>آدرس (کتاب)</strong>: <a href="https://raytracing.github.io/books/RayTracingInOneWeekend.html" target="_blank" rel="noopener">https://raytracing.github.io/books/RayTracingInOneWeekend.html</a></li>
+        </ul>
+
+        <h3>قطعه‌های کد نقل‌قول</h3>
+        <h4>مارک‌داون</h4>
+        <pre class="code"><span class="lang-tag">md</span><code>[_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html)</code></pre>
+        <h4>HTML</h4>
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;a href='https://raytracing.github.io/books/RayTracingInOneWeekend.html'&gt;
+    &lt;cite&gt;Ray Tracing in One Weekend&lt;/cite&gt;
+&lt;/a&gt;</code></pre>
+        <h4>LaTeX و BibTeX</h4>
+        <pre class="code"><span class="lang-tag">latex</span><code>~\cite{Shirley2025RTW1}
+
+@misc{Shirley2025RTW1,
+   title = {Ray Tracing in One Weekend},
+   author = {Peter Shirley, Trevor David Black, Steve Hollasch},
+   year = {2025},
+   month = {April},
+   note = {\small \texttt{https://raytracing.github.io/books/RayTracingInOneWeekend.html}},
+   url = {https://raytracing.github.io/books/RayTracingInOneWeekend.html}
+}</code></pre>
+        <h4>BibLaTeX</h4>
+        <pre class="code"><span class="lang-tag">latex</span><code>\usepackage{biblatex}
+
+~\cite{Shirley2025RTW1}
+
+@online{Shirley2025RTW1,
+   title = {Ray Tracing in One Weekend},
+   author = {Peter Shirley, Trevor David Black, Steve Hollasch},
+   year = {2025},
+   month = {April},
+   url = {https://raytracing.github.io/books/RayTracingInOneWeekend.html}
+}</code></pre>
+        <h4>IEEE</h4>
+        <pre class="code"><span class="lang-tag">text</span><code>“Ray Tracing in One Weekend.” raytracing.github.io/books/RayTracingInOneWeekend.html
+(accessed MMM. DD, YYYY)</code></pre>
+        <h4>MLA</h4>
+        <pre class="code"><span class="lang-tag">text</span><code>Ray Tracing in One Weekend. raytracing.github.io/books/RayTracingInOneWeekend.html
+Accessed DD MMM. YYYY.</code></pre>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Ray Tracing in One Weekend» اثر
+        Peter Shirley، Trevor David Black و Steve Hollasch است (نسخهٔ 4.0.2، منتشرشده در 2025-04-25؛
+        حق نشر 2018-2024 Peter Shirley). این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسندگان اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://raytracing.github.io/books/RayTracingInOneWeekend.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

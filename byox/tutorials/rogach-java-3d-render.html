@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه موتور رندر سه‌بعدی ساده خودت را با جاوا خالص بسازی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">رندر سه‌بعدی</a>
+        <span class="sep">←</span>
+        <span>چگونه موتور رندر سه‌بعدی ساده خودت را با جاوا خالص بسازی</span>
+      </div>
+      <h1>چگونه موتور رندر سه‌بعدی ساده خودت را با جاوا خالص بسازی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://blog.rogach.org/2015/08/how-to-create-your-own-simple-3d-render.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to create your own simple 3D render engine in pure Java» از
+          «Nickita (blog.rogach.org)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://blog.rogach.org/2015/08/how-to-create-your-own-simple-3d-render.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiOmd4kn96fRs1PO-OnQSHYp6FAb2z0ZrovlyP-CjAbPf72nVLh_oTnu4miIlSM60tyTFj1xhWCTeOcWVg9Hudv1Z3_1VwhzDH0zLwWWBihkIYw9Gyh_oOkHBcXTlOrsfHMi4zYdhoFFDU/s400/header.png" alt="تصویر سربرگ مقاله: رندر رنگارنگ یک چهاروجهی چرخان" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          موتورهای رندر سه‌بعدی که امروزه در بازی‌ها و تولید مالتی‌مدیا استفاده می‌شوند، در پیچیدگی
+          ریاضیات و برنامه‌نویسی به‌کاررفته در آن‌ها نفس‌گیر هستند. نتایجی که تولید می‌کنند نیز به‌همان‌اندازه خیره‌کننده است.
+        </p>
+        <p>
+          بسیاری از توسعه‌دهندگان ممکن است فکر کنند که ساختن حتی ساده‌ترین اپلیکیشن سه‌بعدی از صفر نیازمند
+          دانش و تلاشی فرابشری است، اما خوشبختانه همیشه هم این‌طور نیست. در این‌جا می‌خواهم با شما در میان
+          بگذارم که چطور می‌توانید موتور رندر سه‌بعدی مخصوص خودتان را بسازید؛ موتوری که کاملاً قادر به
+          تولید تصاویر سه‌بعدی خوش‌منظر است.
+        </p>
+        <p>
+          چرا اصلاً بخواهید یک موتور سه‌بعدی بسازید؟ دست‌کم اینکه واقعاً به درک این کمک می‌کند که
+          موتورهای مدرنِ واقعی چگونه جادوی سیاه خود را انجام می‌دهند. همچنین گاهی مفید است که بدون
+          وابستگی به کتابخانه‌های خارجی حجیم، قابلیت رندر سه‌بعدی را به اپلیکیشن‌تان اضافه کنید. در مورد
+          جاوا، این یعنی می‌توانید یک اپلیکیشن نمایش‌گر سه‌بعدی با صفر وابستگی (جز APIهای جاوا) بسازید که
+          تقریباً همه‌جا اجرا شود — و در ۵۰ کیلوبایت جا بگیرد!
+        </p>
+        <p>
+          البته اگر می‌خواهید اپلیکیشن‌های سه‌بعدی بزرگ با گرافیک روان بسازید، خیلی بهتر است از
+          OpenGL/WebGL استفاده کنید. با این حال، وقتی درک پایه‌ای از ساختار داخلی موتورهای سه‌بعدی داشته باشید،
+          موتورهای پیچیده‌تر بسیار قابل‌درک‌تر به نظر می‌رسند.
+        </p>
+        <p>
+          در این پست، رندر سه‌بعدی پایه با پروجکشن ارتواگرافیک (تصویر عمود)، رسترایز سادهٔ مثلث،
+          z-buffering (بافر عمق) و سایه‌زنی تخت (flat shading) را پوشش خواهم داد. روی بهینه‌سازی‌های
+          سنگین عملکرد و موضوعات پیچیده‌تر مانند تکسچرها یا چیدمان‌های متفاوت نور تمرکز نخواهم کرد —
+          اگر به آن‌ها نیاز دارید، بهتر است از ابزارهای مناسب‌تر مانند OpenGL استفاده کنید (کتابخانه‌های
+          زیادی وجود دارند که حتی از داخل جاوا هم امکان کار با OpenGL را می‌دهند).
+        </p>
+        <p>
+          مثال‌های کد به زبان جاوا خواهند بود، اما ایده‌های توضیح‌داده‌شده را می‌توانید در هر زبانی که
+          انتخاب می‌کنید به‌کار ببندید. برای راحتی شما، در همین پست همراه با دموهای کوچک تعاملی
+          جاوااسکریپت پیش خواهم رفت.
+        </p>
+        <p>بس است دیگر صحبت — بزن بریم!</p>
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>۱. رابط گرافیکی اولیه (GUI wrapper)</h2>
+        <p>اول از همه، می‌خواهیم دست‌کم چیزی روی صفحه داشته باشیم. برای این کار از یک اپلیکیشن بسیار ساده با تصویر رندرشده و دو اسلایدر برای تنظیم چرخش استفاده خواهم کرد.</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">import javax.swing.*;
+import java.awt.*;
+
+public class DemoViewer {
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame();
+        Container pane = frame.getContentPane();
+        pane.setLayout(new BorderLayout());
+
+        // اسلایدر برای کنترل چرخش افقی
+        JSlider headingSlider = new JSlider(0, 360, 180);
+        pane.add(headingSlider, BorderLayout.SOUTH);
+
+        // اسلایدر برای کنترل چرخش عمودی
+        JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
+        pane.add(pitchSlider, BorderLayout.EAST);
+
+        // پنل نمایش نتیجه رندر
+        JPanel renderPanel = new JPanel() {
+                public void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setColor(Color.BLACK);
+                    g2.fillRect(0, 0, getWidth(), getHeight());
+
+                    // جادوی رندرینگ اینجا اتفاق خواهد افتاد
+                }
+            };
+        pane.add(renderPanel, BorderLayout.CENTER);
+
+        frame.setSize(400, 400);
+        frame.setVisible(true);
+    }
+}</code></pre>
+        <p>پنجره حاصل باید شبیه به این باشد:</p>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj4P8Q_ToZtirzFcPTp1oZ2uGdUmOptPCc7xM7cb7gXYUhhlqTcg67j91ibmZY_DY1Hyg_EfDgq5b0mp7MFcAvnInwiMz1bGSl7rcTKT6qLtexv_rVoIzCih6XNGjFfweSS_v3dY08R3y0/s400/wrapper-setup.png" alt="پنجره اولیه اپلیکیشن: پنل رندر سیاه در مرکز و دو اسلایدر در پایین و کنار پنجره" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== بخش ۲ ==================== -->
+      <section>
+        <h2>۲. کلاس‌های مدل — رأس و مثلث</h2>
+        <p>
+          حالا چند کلاس مدل ضروری اضافه می‌کنیم — رأس‌ها (vertices) و مثلث‌ها. رأس صرفاً ساختاری است
+          برای ذخیره سه مختصات ما (X، Y و Z)، و مثلث سه رأس را به هم پیوند می‌دهد و رنگش را ذخیره می‌کند.
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">class Vertex {
+    double x;
+    double y;
+    double z;
+    Vertex(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+class Triangle {
+    Vertex v1;
+    Vertex v2;
+    Vertex v3;
+    Color color;
+    Triangle(Vertex v1, Vertex v2, Vertex v3, Color color) {
+        this.v1 = v1;
+        this.v2 = v2;
+        this.v3 = v3;
+        this.color = color;
+    }
+}</code></pre>
+        <p>
+          در این پست فرض می‌کنم مختصات X یعنی حرکت در جهت چپ-راست، Y یعنی حرکت بالا-پایین روی صفحه،
+          و Z عمق است (یعنی محور Z عمود بر صفحه نمایش شماست). Z مثبت یعنی «به سمت ناظر».
+        </p>
+        <p>
+          به‌عنوان شیء نمونه، چهاروجهی (tetrahedron) را انتخاب کردم، چون ساده‌ترین شکل سه‌بعدی‌ای بود که
+          به ذهنم رسید — فقط ۴ مثلث برای توصیفش لازم است. این هم تصویر آن:
+        </p>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh1Wr5TZUQnYtYOeIkBuwmS4Y3m8plcVenTE3DUJbN9j7GL9djhprCAYql8E1dnwMvZdqKIblEOSpPXpvOT5dxpNqmDGCQrm_Qd0P-0gi-glV_ItsV9g3BbojVRpZqhf3NIAh6f-DkWuxg/s320/tetrahedron.gif" alt="انیمیشن چرخان چهاروجهی — مدل نمونه این آموزش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== بخش ۳ ==================== -->
+      <section>
+        <h2>۳. ساختن چهاروجهی</h2>
+        <p>کد بسیار ساده است — فقط ۴ مثلث می‌سازیم و آن‌ها را به یک لیست اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">List&lt;triangle&gt; tris = new ArrayList&lt;&gt;();
+tris.add(new Triangle(new Vertex(100, 100, 100),
+                      new Vertex(-100, -100, 100),
+                      new Vertex(-100, 100, -100),
+                      Color.WHITE));
+tris.add(new Triangle(new Vertex(100, 100, 100),
+                      new Vertex(-100, -100, 100),
+                      new Vertex(100, -100, -100),
+                      Color.RED));
+tris.add(new Triangle(new Vertex(-100, 100, -100),
+                      new Vertex(100, -100, -100),
+                      new Vertex(100, 100, 100),
+                      Color.GREEN));
+tris.add(new Triangle(new Vertex(-100, 100, -100),
+                      new Vertex(100, -100, -100),
+                      new Vertex(-100, -100, 100),
+                      Color.BLUE));</code></pre>
+        <p>
+          شکل حاصل در مبدأ مختصات (0، 0، 0) متمرکز است، که کاملاً مناسب است چون بعداً چرخش را حول همین نقطه انجام خواهیم داد.
+        </p>
+        <p>
+          حالا بیایید آن را روی صفحه بگذاریم. فعلاً چرخش را نادیده می‌گیریم و فقط فریم‌ورک (سیم‌خط) را نشان می‌دهیم.
+          چون از پروجکشن ارتواگرافیک استفاده می‌کنیم، کار بسیار ساده است — فقط مختصات Z را دور می‌ریزیم و مثلث‌های حاصل را رسم می‌کنیم.
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">g2.translate(getWidth() / 2, getHeight() / 2);
+g2.setColor(Color.WHITE);
+for (Triangle t : tris) {
+    Path2D path = new Path2D.Double();
+    path.moveTo(t.v1.x, t.v1.y);
+    path.lineTo(t.v2.x, t.v2.y);
+    path.lineTo(t.v3.x, t.v3.y);
+    path.closePath();
+    g2.draw(path);
+}</code></pre>
+        <p>
+          توجه کنید که ترجمه (translate) را قبل از رسم همه مثلث‌ها اعمال کردم. این کار برای قرار دادن مبدأ
+          (0، 0، 0) در مرکز ناحیه رسم است — در ابتدا، مبدأ دوبعدی در گوشه بالا-چپ صفحه قرار دارد. نتیجه باید
+          شبیه به این باشد:
+        </p>
+        <div class="callout tip">در نسخه اصلی مقاله، این‌جا یک دموی تعاملی جاوااسکریپت قرار دارد که همان خروجی را به‌صورت زنده نشان می‌دهد.</div>
+        <p>شاید هنوز باورتان نشود، اما این چهاروجهی ما در پروجکشن ارتواگرافیک است، قول می‌دهم!</p>
+      </section>
+
+      <!-- ==================== بخش ۴ ==================== -->
+      <section>
+        <h2>۴. تبدیل‌ها با ماتریس‌های چرخش</h2>
+        <p>
+          حالا باید چرخش را اضافه کنیم. برای این کار کمی حاشیه می‌روم و درباره استفاده از ماتریس‌ها برای
+          انجام تبدیل روی نقاط سه‌بعدی صحبت می‌کنم.
+        </p>
+        <p>
+          راه‌های زیادی برای دستکاری نقاط سه‌بعدی وجود دارد، اما انعطاف‌پذیرترین آن‌ها ضرب ماتریسی است.
+          ایده این است که نقاط را به‌صورت بردارهای ۳×۱ نمایش دهید و سپس تبدیل، صرفاً ضرب در یک ماتریس ۳×۳ است.
+        </p>
+        <p>بردار ورودی A را می‌گیرید:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">A = [ a<sub>x</sub> , a<sub>y</sub> , a<sub>z</sub> ]</div>
+        <p>و آن را در ماتریس تبدیل T ضرب می‌کنید تا بردار خروجی B به دست آید:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.85rem;margin:12px 0">AT = [ a<sub>x</sub> a<sub>y</sub> a<sub>z</sub> ] × [ t<sub>xx</sub> t<sub>xy</sub> t<sub>xz</sub> ; t<sub>yx</sub> t<sub>yy</sub> t<sub>yz</sub> ; t<sub>zx</sub> t<sub>zy</sub> t<sub>zz</sub> ] = [ a<sub>x</sub>t<sub>xx</sub>+a<sub>y</sub>t<sub>yx</sub>+a<sub>z</sub>t<sub>zx</sub> , a<sub>x</sub>t<sub>xy</sub>+a<sub>y</sub>t<sub>yy</sub>+a<sub>z</sub>t<sub>zy</sub> , a<sub>x</sub>t<sub>xz</sub>+a<sub>y</sub>t<sub>yz</sub>+a<sub>z</sub>t<sub>zz</sub> ] = [ b<sub>x</sub> b<sub>y</sub> b<sub>z</sub> ]</div>
+        <p>مثلاً این‌طور یک نقطه را در مقیاس ۲ بزرگ می‌کنید:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.85rem;margin:12px 0">[ 1 2 3 ] × [ 2 0 0 ; 0 2 0 ; 0 0 2 ] = [ 1×2 , 2×2 , 3×2 ] = [ 2 4 6 ]</div>
+        <p>
+          نمی‌توانید همه تبدیل‌های ممکن را با ماتریس‌های ۳×۳ توصیف کنید — برای مثال، ترجمه (انتقال) خارج
+          از محدوده است. می‌توانید آن را با ماتریس‌های ۴×۴ به دست آورید (با شیب‌دهی مؤثر در فضای
+          چهاربعدی)، اما این از حیطه این آموزش خارج است.
+        </p>
+        <p>مفیدترین تبدیل‌هایی که در این آموزش به آن‌ها نیاز خواهیم داشت، مقیاس‌بندی و چرخش هستند.</p>
+        <p>
+          هر چرخشی در فضای سه‌بعدی را می‌توان به‌صورت ترکیبی از ۳ چرخش ابتدایی بیان کرد: چرخش در صفحه XY،
+          چرخش در صفحه YZ و چرخش در صفحه XZ. ماتریس‌های تبدیل هر یک از این چرخش‌ها را می‌توانیم این‌گونه بنویسیم:
+        </p>
+        <p>ماتریس چرخش XY:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">[ cosθ , −sinθ , 0 ; sinθ , cosθ , 0 ; 0 , 0 , 1 ]</div>
+        <p>ماتریس چرخش YZ:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">[ 1 , 0 , 0 ; 0 , cosθ , sinθ ; 0 , −sinθ , cosθ ]</div>
+        <p>ماتریس چرخش XZ:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">[ cosθ , 0 , −sinθ ; 0 , 1 , 0 ; sinθ , 0 , cosθ ]</div>
+        <p>
+          جادوی ماجرا این‌جاست: اگر ابتدا نیاز دارید نقطه را با ماتریس تبدیل T₁ در صفحه XY بچرخانید و سپس
+          با ماتریس تبدیل T₂ در صفحه YZ، کافی است T₁ را در T₂ ضرب کنید و یک ماتریس واحد برای توصیف کل
+          چرخش به دست آورید:
+        </p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">(AT₁)T₂ = A(T₁T₂)</div>
+        <p>
+          این یک بهینه‌سازی بسیار مفید است — به‌جای محاسبه مجدد چند چرخش برای هر نقطه، ماتریس را یک بار
+          از پیش محاسبه می‌کنید و بعد در خط لوله (pipeline) خود از آن استفاده می‌کنید.
+        </p>
+        <p>بس است دیگر از این ریاضیات ترسناک، برویم سراغ کد. کلاس کمکی <code class="inline">Matrix3</code> را می‌سازیم که ضرب ماتریس-در-ماتریس و بردار-در-ماتریس را مدیریت می‌کند:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">class Matrix3 {
+    double[] values;
+    Matrix3(double[] values) {
+        this.values = values;
+    }
+    Matrix3 multiply(Matrix3 other) {
+        double[] result = new double[9];
+        for (int row = 0; row &lt; 3; row++) {
+            for (int col = 0; col &lt; 3; col++) {
+                for (int i = 0; i &lt; 3; i++) {
+                    result[row * 3 + col] +=
+                        this.values[row * 3 + i] * other.values[i * 3 + col];
+                }
+            }
+        }
+        return new Matrix3(result);
+    }
+    Vertex transform(Vertex in) {
+        return new Vertex(
+            in.x * values[0] + in.y * values[3] + in.z * values[6],
+            in.x * values[1] + in.y * values[4] + in.z * values[7],
+            in.x * values[2] + in.y * values[5] + in.z * values[8]
+        );
+    }
+}</code></pre>
+        <p>
+          حالا می‌توانیم اسلایدرهای چرخش را به زندگی برگردانیم. اسلایدر افقی «heading» را کنترل می‌کند —
+          در مورد ما چرخش در جهت XZ (چپ-راست) — و اسلایدر عمودی «pitch» را کنترل می‌کند — چرخش در جهت YZ (بالا-پایین).
+        </p>
+        <p>بیایید ماتریس چرخش‌مان را بسازیم و به خط لوله اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">double heading = Math.toRadians(headingSlider.getValue());
+Matrix3 transform = new Matrix3(new double[] {
+        Math.cos(heading), 0, -Math.sin(heading),
+        0, 1, 0,
+        Math.sin(heading), 0, Math.cos(heading)
+    });
+
+g2.translate(getWidth() / 2, getHeight() / 2);
+g2.setColor(Color.WHITE);
+for (Triangle t : tris) {
+    Vertex v1 = transform.transform(t.v1);
+    Vertex v2 = transform.transform(t.v2);
+    Vertex v3 = transform.transform(t.v3);
+    Path2D path = new Path2D.Double();
+    path.moveTo(v1.x, v1.y);
+    path.lineTo(v2.x, v2.y);
+    path.lineTo(v3.x, v3.y);
+    path.closePath();
+    g2.draw(path);
+}</code></pre>
+        <p>
+          همچنین باید listenerهایی روی اسلایدرهای heading و pitch اضافه کنید تا هنگام کشیدن دستگیره، بازرسم (redraw) انجام شود:
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">headingSlider.addChangeListener(e -&gt; renderPanel.repaint());
+pitchSlider.addChangeListener(e -&gt; renderPanel.repaint());</code></pre>
+        <p>این است چیزی که باید کار کند (این مثال تعاملی است — سعی کنید دستگیره‌ها را بکشید!):
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+        <p>همان‌طور که متوجه شده‌اید، چرخش بالا-پایین هنوز کار نمی‌کند. بیایید تبدیل بعدی را اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">Matrix3 headingTransform = new Matrix3(new double[] {
+        Math.cos(heading), 0, Math.sin(heading),
+        0, 1, 0,
+        -Math.sin(heading), 0, Math.cos(heading)
+    });
+double pitch = Math.toRadians(pitchSlider.getValue());
+Matrix3 pitchTransform = new Matrix3(new double[] {
+        1, 0, 0,
+        0, Math.cos(pitch), Math.sin(pitch),
+        0, -Math.sin(pitch), Math.cos(pitch)
+    });
+Matrix3 transform = headingTransform.multiply(pitchTransform);</code></pre>
+        <p>ببینید که هر دو چرخش حالا کار می‌کنند و به‌خوبی با هم ترکیب می‌شوند:
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+      </section>
+
+      <!-- ==================== بخش ۵ ==================== -->
+      <section>
+        <h2>۵. رسترایز کردن مثلث‌ها</h2>
+        <p>
+          تا این‌جا فقط فریم‌ورک (سیم‌خط) شکل را رسم می‌کردیم. حالا باید مثلث‌ها را با محتوا پر کنیم.
+          برای این کار اول باید مثلث را «رسترایز» کنیم — یعنی آن را به فهرست پیکسل‌های روی صفحه‌ای که
+          اشغال می‌کند تبدیل کنیم.
+        </p>
+        <p>
+          من از روش نسبتاً ساده‌ای استفاده می‌کنم که چندان کارآمد نیست — رسترایز با
+          <a href="https://en.wikipedia.org/wiki/Barycentric_coordinate_system" target="_blank" rel="noopener">مختصات باری‌سنتریک</a>.
+          موتورهای سه‌بعدی واقعی از رسترایز سخت‌افزاری استفاده می‌کنند که بسیار سریع و کارآمد است، اما ما
+          نمی‌توانیم از کارت گرافیک استفاده کنیم و برای همین آن را دستی در کد خود انجام می‌دهیم.
+        </p>
+        <p>
+          ایده این است که برای هر پیکسلی که احتمالاً داخل مثلث قرار می‌گیرد، مختصات باری‌سنتریک را محاسبه
+          کنیم و آن‌هایی را که خارج هستند دور بیندازیم. قطعه زیر الگوریتم را پیاده‌سازی می‌کند. توجه کنید
+          که از این‌جا به بعد شروع به استفاده مستقیم از پیکسل‌های تصویر کرده‌ایم.
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">BufferedImage img = 
+    new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+
+for (Triangle t : tris) {
+    Vertex v1 = transform.transform(t.v1);
+    Vertex v2 = transform.transform(t.v2);
+    Vertex v3 = transform.transform(t.v3);
+
+    // چون دیگر از Graphics2D استفاده نمی‌کنیم،
+    // باید ترجمه (translate) را دستی انجام دهیم
+    v1.x += getWidth() / 2;
+    v1.y += getHeight() / 2;
+    v2.x += getWidth() / 2;
+    v2.y += getHeight() / 2;
+    v3.x += getWidth() / 2;
+    v3.y += getHeight() / 2;
+
+    // محاسبه محدوده مستطیلی دور مثلث
+    int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
+    int maxX = (int) Math.min(img.getWidth() - 1, 
+                              Math.floor(Math.max(v1.x, Math.max(v2.x, v3.x))));
+    int minY = (int) Math.max(0, Math.ceil(Math.min(v1.y, Math.min(v2.y, v3.y))));
+    int maxY = (int) Math.min(img.getHeight() - 1,
+                              Math.floor(Math.max(v1.y, Math.max(v2.y, v3.y))));
+
+    double triangleArea =
+       (v1.y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - v1.x);
+
+    for (int y = minY; y &lt;= maxY; y++) {
+        for (int x = minX; x &lt;= maxX; x++) {
+            double b1 = 
+              ((y - v3.y) * (v2.x - v3.x) + (v2.y - v3.y) * (v3.x - x)) / triangleArea;
+            double b2 =
+              ((y - v1.y) * (v3.x - v1.x) + (v3.y - v1.y) * (v1.x - x)) / triangleArea;
+            double b3 =
+              ((y - v2.y) * (v1.x - v2.x) + (v1.y - v2.y) * (v2.x - x)) / triangleArea;
+            if (b1 &gt;= 0 &amp;&amp; b1 &lt;= 1 &amp;&amp; b2 &gt;= 0 &amp;&amp; b2 &lt;= 1 &amp;&amp; b3 &gt;= 0 &amp;&amp; b3 &lt;= 1) {
+                img.setRGB(x, y, t.color.getRGB());
+            }
+        }
+    }
+
+}
+
+g2.drawImage(img, 0, 0, null);</code></pre>
+        <p>
+          کلی کد است، اما حالا یک چهاروجهی رنگی روی نمایشگر داریم:
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+        <p>
+          اگر با دمو بازی کنید، متوجه می‌شوید که همه‌چیز آن‌طور که باید نیست — برای مثال، مثلث آبی همیشه
+          بالای بقیه است. این اتفاق می‌افتد چون فعلاً مثلث‌ها را یکی پس از دیگری رنگ می‌کنیم و مثلث آبی
+          آخرین است — برای همین روی همه دیگران نقاشی می‌شود.
+        </p>
+      </section>
+
+      <!-- ==================== بخش ۶ ==================== -->
+      <section>
+        <h2>۶. بافر عمق (Z-Buffer)</h2>
+        <p>
+          برای رفع این مشکل مفهوم z-buffer (یا بافر عمق) را معرفی می‌کنم. ایده این است که در طول رسترایز
+          یک آرایه میانی بسازیم که عمق آخرین عنصر دیده‌شده در هر پیکسل را ذخیره کند. هنگام رسترایز
+          مثلث‌ها، بررسی می‌کنیم که عمق پیکسل کمتر از مقدار قبلی باشد و فقط اگر بالاتر از بقیه است، رنگش کنیم.
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">double[] zBuffer = new double[img.getWidth() * img.getHeight()];
+// مقداردهی اولیه آرایه با عمق‌های بسیار دور
+for (int q = 0; q &lt; zBuffer.length; q++) {
+    zBuffer[q] = Double.NEGATIVE_INFINITY;
+}
+
+for (Triangle t : tris) {
+    // ادامه رسترایز...
+    // برای هر پیکسل رسترایز شده:
+    double depth = b1 * v1.z + b2 * v2.z + b3 * v3.z;
+    int zIndex = y * img.getWidth() + x;
+    if (zBuffer[zIndex] &lt; depth) {
+        img.setRGB(x, y, t.color.getRGB());
+        zBuffer[zIndex] = depth;
+    }
+}</code></pre>
+        <p>
+          حالا می‌بینید که چهاروجهی ما واقعاً یک وجه سفید دارد:
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+        <p>حالا ما یک خط لوله رندرینگ فعال داریم!</p>
+      </section>
+
+      <!-- ==================== بخش ۷ ==================== -->
+      <section>
+        <h2>۷. سایه‌زنی تخت با نور (Flat Shading)</h2>
+        <p>
+          اما هنوز کارمان تمام نشده. در زندگی واقعی، رنگ درک‌شده سطح با موقعیت منبع نور تغییر می‌کند —
+          اگر مقدار کمی نور به سطح بتابد، آن سطح را تیره‌تر درک می‌کنیم.
+        </p>
+        <p>
+          در گرافیک کامپیوتری، می‌توانیم با استفاده از به‌اصطلاح «shading» (سایه‌زنی) اثر مشابهی ایجاد
+          کنیم — تغییر رنگ سطح بر اساس زاویه و فاصله آن تا منابع نور.
+        </p>
+        <p>
+          ساده‌ترین شکل سایه‌زنی، سایه‌زنی تخت (flat shading) است. فقط زاویه بین نرمال سطح و جهت منبع نور
+          را در نظر می‌گیرد. فقط کافی است کسینوس زاویه بین این دو بردار را پیدا کنید و رنگ را در مقدار
+          حاصل ضرب کنید. این روش بسیار ساده و ارزان است، برای همین اغلب برای رندر پرسرعت وقتی فناوری‌های
+          پیشرفته‌تر سایه‌زنی از نظر محاسباتی بسیار گران هستند استفاده می‌شود.
+        </p>
+
+        <h3>۷.۱. محاسبه نرمال سطح (ضرب خارجی)</h3>
+        <p>
+          اول باید بردار نرمال مثلث‌مان را محاسبه کنیم. اگر مثلث ABC داشته باشیم، می‌توانیم بردار نرمال آن
+          را با محاسبه ضرب خارجی (cross product) بردارهای AB و AC و سپس تقسیم بردار حاصل بر طولش به دست آوریم.
+        </p>
+        <p>ضرب خارجی یک عمل دوتایی روی دو بردار است که در فضای سه‌بعدی این‌طور تعریف می‌شود:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.85rem;margin:12px 0">u × v = [ u<sub>x</sub> , u<sub>y</sub> , u<sub>z</sub> ] × [ v<sub>x</sub> , v<sub>y</sub> , v<sub>z</sub> ] = [ u<sub>y</sub>×v<sub>z</sub> − u<sub>z</sub>×v<sub>y</sub> , u<sub>z</sub>×v<sub>x</sub> − u<sub>x</sub>×v<sub>z</sub> , u<sub>x</sub>×v<sub>y</sub> − u<sub>y</sub>×v<sub>x</sub> ]</div>
+        <p>این هم توضیح تصویری این‌که ضرب خارجی چه می‌کند:</p>
+        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjf4Nt4JlHqEjCF_rJIaZ1g1qdTJoTPxnmpB4D0LiGA8lMNgtKL9IitKgKWGZGeK5szz8Arkhh-rCcuDp6lNzdjs5MLv0Khu2OWQ8XEMS6ETRAssheSLMDCyA_M8WRQuMDrDjvjEc6zPbg/s400/cross_product_vector.png" alt="نمودار ضرب خارجی دو بردار: بردار حاصل (قرمز) عمود بر صفحه شامل هر دو بردار ورودی است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">for (Triangle t : tris) {
+    // ابتدا رأس‌ها را قبل از محاسبه نرمال تبدیل کنید...
+
+    Vertex norm = new Vertex(
+         ab.y * ac.z - ab.z * ac.y,
+         ab.z * ac.x - ab.x * ac.z,
+         ab.x * ac.y - ab.y * ac.x
+    );
+    double normalLength =
+        Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+    norm.x /= normalLength;
+    norm.y /= normalLength;
+    norm.z /= normalLength;
+}</code></pre>
+
+        <h3>۷.۲. محاسبه کسینوس زاویه با جهت نور</h3>
+        <p>
+          حالا باید کسینوس بین نرمال مثلث و جهت نور را محاسبه کنیم. برای سادگی فرض می‌کنیم که نور مستقیماً
+          پشت دوربین در فاصله‌ای بی‌نهایت قرار دارد (به چنین پیکربندی «نور جهتی» یا directional light گفته
+          می‌شود) — برای همین جهت منبع نور ما [ 0 0 1 ] خواهد بود.
+        </p>
+        <p>کسینوس زاویه بین بردارها را می‌توان با این فرمول محاسبه کرد:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">cosθ = (A·B) / (||A|| × ||B||)</div>
+        <p>که ||A|| طول بردار است و A·B ضرب داخلی (نقطه‌ای) بردارها:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">A·B = [ a<sub>x</sub> , a<sub>y</sub> , a<sub>z</sub> ] · [ b<sub>x</sub> , b<sub>y</sub> , b<sub>z</sub> ] = a<sub>x</sub>×b<sub>x</sub> + a<sub>y</sub>×b<sub>y</sub> + a<sub>z</sub>×b<sub>z</sub></div>
+        <p>
+          توجه کنید که طول بردار جهت نور ([ 0 0 1 ]) برابر ۱ است، و طول نرمال مثلث هم همین‌طور (چون از قبل
+          نرمالایز کرده‌ایم). برای همین فرمول صرفاً به این صورت درمی‌آید:
+        </p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">cosθ = A·B = [ a<sub>x</sub> , a<sub>y</sub> , a<sub>z</sub> ] · [ b<sub>x</sub> , b<sub>y</sub> , b<sub>z</sub> ]</div>
+        <p>همچنین ببینید که فقط مؤلفه Z بردار جهت نور غیرصفر است، پس می‌توانیم بیشتر ساده کنیم:</p>
+        <div style="direction:ltr;text-align:center;font-family:var(--mono);color:#e2e8ff;font-size:0.9rem;margin:12px 0">cosθ = A·B = [ a<sub>x</sub> , a<sub>y</sub> , a<sub>z</sub> ] · [ 0 0 1 ] = a<sub>z</sub></div>
+        <p>کد حالا بی‌اهمیت است:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">double angleCos = Math.abs(norm.z);</code></pre>
+        <p>
+          علامت را از نتیجه حذف می‌کنیم چون برای مقاصد ساده ما فرقی نمی‌کند کدام طرف مثلث رو به دوربین است.
+          در اپلیکیشن واقعی باید این را پیگیری کنید و سایه‌زنی را مطابق آن اعمال کنید.
+        </p>
+
+        <h3>۷.۳. اعمال سایه روی رنگ</h3>
+        <p>حالا که ضریب سایه را داریم، می‌توانیم آن را روی رنگ مثلث اعمال کنیم. نسخه ساده‌لوحانه ممکن است این‌طور باشد:</p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public static Color getShade(Color color, double shade) {
+    int red = (int) (color.getRed() * shade);
+    int green = (int) (color.getGreen() * shade);
+    int blue = (int) (color.getBlue() * shade);
+    return new Color(red, green, blue);
+}</code></pre>
+        <p>
+          اگرچه این به ما کمی اثر سایه می‌دهد، افت آن بسیار سریع‌تر از آن چیزی خواهد بود که نیاز داریم.
+          این اتفاق می‌افتد چون جاوا از فضای رنگی sRGB استفاده می‌کند که از قبل برای مطابقت با درک
+          لگاریتمی ما از رنگ تنظیم شده است.
+        </p>
+        <p>
+          برای همین باید هر رنگ را از فرمت تنظیم‌شده (scaled) به فرمت خطی تبدیل کنیم، سایه را اعمال کنیم
+          و بعد دوباره به فرمت تنظیم‌شده برگردانیم. تبدیل واقعی از sRGB به RGB خطی کاملاً
+          <a href="https://en.wikipedia.org/wiki/SRGB#Specification_of_the_transformation" target="_blank" rel="noopener">پیچیده است</a>،
+          برای همین مشخصات کامل را این‌جا پیاده‌سازی نمی‌کنم — فقط تقریب پایه را می‌زنم.
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public static Color getShade(Color color, double shade) {
+    double redLinear = Math.pow(color.getRed(), 2.4) * shade;
+    double greenLinear = Math.pow(color.getGreen(), 2.4) * shade;
+    double blueLinear = Math.pow(color.getBlue(), 2.4) * shade;
+
+    int red = (int) Math.pow(redLinear, 1/2.4);
+    int green = (int) Math.pow(greenLinear, 1/2.4);
+    int blue = (int) Math.pow(blueLinear, 1/2.4);
+
+    return new Color(red, green, blue);
+}</code></pre>
+        <p>
+          ببینید که چهاروجهی ما چگونه جان می‌گیرد:
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+        <p>
+          حالا ما یک موتور رندر سه‌بعدی کارا داریم، با رنگ، نور و سایه‌زنی، و فقط حدود ۲۰۰ خط کد برای‌مان
+          هزینه داشته است — بد نیست!
+        </p>
+      </section>
+
+      <!-- ==================== بخش ۸ ==================== -->
+      <section>
+        <h2>۸. جایزه: ساخت کره از چهاروجهی</h2>
+        <p>
+          این هم یک جایزه برای شما — می‌توانیم به‌سرعت از این چهاروجهی یک تقریب کره بسازیم. این کار با
+          تقسیم مکرر هر مثلث به چهار مثلث کوچک‌تر و «باد کردن» (inflate) آن‌ها انجام می‌شود:
+        </p>
+        <pre class="code"><span class="lang-tag">java</span><code style="direction:ltr;text-align:left">public static List&lt;triangle&gt; inflate(List&lt;triangle&gt; tris) {
+    List&lt;triangle&gt; result = new ArrayList&lt;&gt;();
+    for (Triangle t : tris) {
+        Vertex m1 =
+            new Vertex((t.v1.x + t.v2.x)/2, (t.v1.y + t.v2.y)/2, (t.v1.z + t.v2.z)/2);
+        Vertex m2 =
+            new Vertex((t.v2.x + t.v3.x)/2, (t.v2.y + t.v3.y)/2, (t.v2.z + t.v3.z)/2);
+        Vertex m3 =
+            new Vertex((t.v1.x + t.v3.x)/2, (t.v1.y + t.v3.y)/2, (t.v1.z + t.v3.z)/2);
+        result.add(new Triangle(t.v1, m1, m3, t.color));
+        result.add(new Triangle(t.v2, m1, m2, t.color));
+        result.add(new Triangle(t.v3, m2, m3, t.color));
+        result.add(new Triangle(m1, m2, m3, t.color));
+    }
+    for (Triangle t : result) {
+        for (Vertex v : new Vertex[] { t.v1, t.v2, t.v3 }) {
+            double l = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) / Math.sqrt(30000);
+            v.x /= l;
+            v.y /= l;
+            v.z /= l;
+        }
+    }
+    return result;
+}</code></pre>
+        <p>
+          این چیزی است که خواهید دید:
+          <span class="callout tip" style="display:inline-block;margin:4px 0">دموی تعاملی در نسخه اصلی مقاله موجود است.</span>
+        </p>
+      </section>
+
+      <!-- ==================== بخش ۹ ==================== -->
+      <section>
+        <h2>۹. جمع‌بندی و مطالعه بیشتر</h2>
+        <p>
+          کد منبع کامل این اپلیکیشن را می‌توانید
+          <a href="https://gist.github.com/Rogach/f3dfd457d7ddb5fcfd99/4f2aaf20a468867dc195cdc08a02e5705c2cc95c" target="_blank" rel="noopener">از این‌جا</a>
+          پیدا کنید. فقط ۲۲۰ خط است و هیچ وابستگی‌ای ندارد — می‌توانید به‌راحتی کامپایلش کنید و اجرا کنید!
+        </p>
+        <p>
+          این مقاله را با معرفی یک کتاب فوق‌العاده تمام می‌کنم:
+          <a href="http://www.amazon.com/Math-Primer-Graphics-Development-Edition/dp/1568817231" target="_blank" rel="noopener">3D Math Primer for Graphics and Game Development</a>.
+          این کتاب تمام جزئیات خط لوله رندرینگ و ریاضیات درگیر را توضیح می‌دهد — قطعاً اگر به موتورهای
+          رندرینگ علاقه‌مندید ارزش خواندن دارد.
+        </p>
+        <p>
+          امیدوارم این مقاله مفید بوده باشد! اگر بخشی گیج‌کننده به نظرتان رسید، لطفاً نظر بگذارید و من
+          تمام تلاشم را برای ارائه توضیحات بهتر و دقیق‌تر خواهم کرد.
+        </p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to create your own simple 3D render engine in pure Java» اثر
+        «Nickita (blog.rogach.org)» است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق
+        به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://blog.rogach.org/2015/08/how-to-create-your-own-simple-3d-render.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

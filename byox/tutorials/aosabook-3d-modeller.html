@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک مدلساز سه‌بعدی (A 3D Modeller)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">رندر سه‌بعدی</a>
+        <span class="sep">←</span>
+        <span>یک مدلساز سه‌بعدی (A 3D Modeller)</span>
+      </div>
+      <h1>یک مدلساز سه‌بعدی (A 3D Modeller)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/a-3d-modeller.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی فصل «یک مدلساز سه‌بعدی (A 3D Modeller)» اثر اریک درانش (Erick Dransch) از کتاب «500 Lines or Less» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/a-3d-modeller.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>انسان‌ها ذاتاً خلاق هستند. ما پیوسته چیزهای نو، مفید و جالبی طراحی و می‌سازیم. در دوران مدرن، نرم‌افزارهایی می‌نویسیم که به فرایند طراحی و ساخت کمک می‌کنند. نرم‌افزار طراحی به کمک رایانه (CAD) به سازندگان امکان می‌دهد پیش از ساخت نسخه فیزیکیِ طرح، ساختمان‌ها، پل‌ها، هنر بازی‌های ویدیویی، هیولاهای فیلم‌ها، اشیای قابل چاپ سه‌بعدی و بسیاری چیزهای دیگر را طراحی کنند.</p>
+
+        <p>در هستهٔ خود، ابزارهای CAD روشی برای انتزاعِ طراحی سه‌بعدی به چیزی‌اند که بتوان روی صفحه‌ای دوبعدی مشاهده و ویرایش کرد. برای تحقق این تعریف، ابزارهای CAD باید سه کارکرد پایه ارائه دهند. نخست، باید ساختار داده‌ای برای نمایش شیءِ در حال طراحی داشته باشند: این همان درک رایانه از دنیای سه‌بعدی است که کاربر می‌سازد. دوم، ابزار CAD باید راهی برای نمایش طراحی روی صفحهٔ کاربر ارائه دهد. کاربر شیء فیزیکی را با ۳ بُعد طراحی می‌کند، اما صفحهٔ رایانه فقط ۲ بُعد دارد. ابزار CAD باید شیوهٔ درک ما از اشیا را الگوبرداری کند و آن‌ها را به‌گونه‌ای روی صفحه رسم کند که کاربر بتواند هر سه بُعد شیء را بفهمد. سوم، ابزار CAD باید راهی برای تعامل با شیءِ در حال طراحی ارائه دهد. کاربر باید بتواند برای رسیدن به نتیجهٔ مطلوب به طراحی بیفزاید و آن را تغییر دهد. افزون بر این، همهٔ ابزارها به راهی برای ذخیره و بارگذاری طراحی از روی دیسک نیاز دارند تا کاربران بتوانند با یکدیگر همکاری کنند، کار خود را به اشتراک بگذارند و ذخیره کنند.</p>
+
+        <p>یک ابزار CAD حوزه‌محور، امکانات تکمیلی بسیاری برای نیازهای خاص همان حوزه ارائه می‌دهد. برای نمونه، ابزار CAD معماری شبیه‌سازی‌های فیزیکی برای آزمودن تنش‌های اقلیمی وارد بر ساختمان ارائه می‌دهد؛ ابزار چاپ سه‌بعدی ویژگی‌هایی دارد که بررسی می‌کند آیا شیء واقعاً قابل چاپ است یا نه؛ ابزار CAD برقی فیزیک عبور جریان برق از مس مسی را شبیه‌سازی می‌کند؛ و یک مجموعهٔ جلوه‌های ویژهٔ فیلم، امکاناتی برای شبیه‌سازی دقیق رفتارهای آتش (pyrokinetics) شامل می‌شود.</p>
+
+        <p>با این حال، همهٔ ابزارهای CAD باید دست‌کم سه ویژگیِ پیش‌گفته را شامل شوند: ساختار داده‌ای برای نمایش طراحی، توانایی نمایش آن روی صفحه، و روشی برای تعامل با طراحی.</p>
+
+        <p>با این پیش‌زمینه، بیایید بررسی کنیم که چگونه می‌توانیم یک طراحی سه‌بعدی را در ۵۰۰ خط کد پایتون نمایش دهیم، روی صفحه نشان دهیم و با آن تعامل برقرار کنیم.</p>
+      </section>
+
+      <section>
+        <h2>رندر به‌عنوان راهنما</h2>
+        <p>نیروی محرکهٔ بسیاری از تصمیم‌های طراحی در یک مدلساز سه‌بعدی، فرایند رندر است. ما می‌خواهیم بتوانیم اشیای پیچیده را در طراحی خود ذخیره و رندر کنیم، اما می‌خواهیم پیچیدگی کد رندر پایین بماند. بیایید فرایند رندر را بررسی کنیم و ساختار داده‌ای را برای طراحی کنار بگذاریم که به ما امکان می‌دهد اشیای دلخواه و پیچیده را با منطق رندری ساده ذخیره و رسم کنیم.</p>
+
+        <h3>مدیریت واسط‌ها و حلقهٔ اصلی</h3>
+        <p>پیش از آغاز رندر، باید چند چیز را راه‌اندازی کنیم. نخست، باید پنجره‌ای برای نمایش طراحی‌مان بسازیم. دوم، می‌خواهیم با درایورهای گرافیکی ارتباط برقرار کنیم تا روی صفحه رندر انجام شود. ترجیح می‌دهیم مستقیماً با درایورهای گرافیکی ارتباط برقرار نکنیم، بنابراین از یک لایهٔ انتزاع چندپلتفرمی به نام OpenGL و کتابخانه‌ای به نام GLUT (جعبه‌ابزار کمکی OpenGL) برای مدیریت پنجرهٔ خود استفاده می‌کنیم.</p>
+
+        <h4>نکته‌ای دربارهٔ OpenGL</h4>
+        <p>OpenGL یک واسط برنامه‌نویسی کاربردی (API) گرافیکی برای توسعهٔ چندپلتفرمی است. این API استاندارد توسعهٔ برنامه‌های گرافیکی در پلتفرم‌های مختلف است. OpenGL دو گونهٔ اصلی دارد: OpenGL قدیمی (Legacy) و OpenGL مدرن.</p>
+        <p>رندر در OpenGL بر پایهٔ چندضلعی‌هایی است که با رأس‌ها (vertices) و بردارهای نرمال تعریف می‌شوند. برای نمونه، برای رندر کردن یک وجه از مکعب، ۴ رأس و بردار نرمال آن وجه را مشخص می‌کنیم.</p>
+        <p>OpenGL قدیمی یک «خط لولهٔ عملکرد ثابت» (fixed function pipeline) ارائه می‌دهد. برنامه‌نویس با تنظیم متغیرهای سراسری می‌تواند پیاده‌سازی‌های خودکارِ ویژگی‌هایی مانند نورپردازی، رنگ‌آمیزی، حذف وجوه (face culling) و غیره را فعال یا غیرفعال کند. سپس OpenGL صحنه را خودکار با عملکرد فعال‌شده رندر می‌کند. این عملکرد منسوخ (deprecated) اعلام شده است.</p>
+        <p>OpenGL مدرن، در مقابل، خط لولهٔ رندر برنامه‌پذیری دارد که برنامه‌نویس در آن برنامه‌های کوچکی به نام «سایه‌زن» (shader) می‌نویسد که روی سخت‌افزار گرافیکی اختصاصی (GPUها) اجرا می‌شوند. خط لولهٔ برنامه‌پذیر OpenGL مدرن جایگزین OpenGL قدیمی شده است.</p>
+        <p>در این پروژه، با وجود اینکه منسوخ اعلام شده است، از OpenGL قدیمی استفاده می‌کنیم. عملکرد ثابتِ ارائه‌شده توسط OpenGL قدیمی برای کوچک نگه داشتن حجم کد بسیار مفید است. نیاز به دانش جبر خطی را کاهش می‌دهد و کدی را که می‌نویسیم ساده می‌کند.</p>
+
+        <h4>دربارهٔ GLUT</h4>
+        <p>GLUT که همراه OpenGL ارائه می‌شود، به ما امکان می‌دهد پنجره‌های سیستمعامل بسازیم و فراخوانی‌های (callback) واسط کاربر را ثبت کنیم. این کارکرد پایه برای مقاصد ما کافی است. اگر کتابخانهٔ کامل‌تری برای مدیریت پنجره و تعامل کاربر می‌خواستیم، استفاده از یک جعبه‌ابزار پنجره‌ای کامل مانند GTK یا Qt را در نظر می‌گرفتیم.</p>
+
+        <h4>نمایشگر (The Viewer)</h4>
+        <p>برای مدیریت راه‌اندازی GLUT و OpenGL و هدایت بقیهٔ بخش‌های مدلساز، کلاسی به نام Viewer می‌سازیم. از یک نمونهٔ یگانهٔ Viewer استفاده می‌کنیم که ساخت پنجره و رندر را مدیریت می‌کند و حلقهٔ اصلی برنامهٔ ما را در خود دارد. در فرایند مقداردهی اولیهٔ Viewer، پنجرهٔ رابط کاربر (GUI) را می‌سازیم و OpenGL را مقداردهی می‌کنیم.</p>
+        <p>تابع init_interface پنجره‌ای را می‌سازد که مدلساز در آن رندر می‌شود و تابعی را مشخص می‌کند که هنگام نیاز به رندرِ طراحی باید فراخوانی شود. تابع init_opengl وضعیت OpenGL موردنیاز پروژه را برپا می‌کند: ماتریس‌ها را تنظیم می‌کند، حذف وجوه پشتی (backface culling) را فعال می‌کند، نوری برای روشن کردن صحنه ثبت می‌کند و به OpenGL می‌گوید که می‌خواهیم اشیا رنگی باشند. تابع init_scene شیء Scene را می‌سازد و چند گرهٔ نخست را برای آغاز کار کاربر در آن قرار می‌دهد. کمی بعد ساختار دادهٔ Scene را بیشتر خواهیم دید. سرانجام init_interaction فراخوانی‌های تعامل کاربر را ثبت می‌کند، همان‌طور که در ادامه بحث می‌کنیم.</p>
+        <p>پس از مقداردهی Viewer، glutMainLoop را فراخوانی می‌کنیم تا اجرای برنامه به GLUT منتقل شود. این تابع هرگز برنمی‌گردد. فراخوانی‌هایی که برای رویدادهای GLUT ثبت کرده‌ایم، هنگام رخ دادنِ آن رویدادها فراخوانی خواهند شد.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class Viewer(object):
+    def __init__(self):
+        """ مقداردهی اولیه نمایشگر """
+        self.init_interface()
+        self.init_opengl()
+        self.init_scene()
+        self.init_interaction()
+        init_primitives()
+
+    def init_interface(self):
+        """ مقداردهی پنجره و ثبت تابع رندر """
+        glutInit()
+        glutInitWindowSize(640, 480)
+        glutCreateWindow("3D Modeller")
+        glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB)
+        glutDisplayFunc(self.render)
+
+    def init_opengl(self):
+        """ مقداردهی تنظیمات OpenGL برای رندر صحنه """
+        self.inverseModelView = numpy.identity(4)
+        self.modelView = numpy.identity(4)
+
+        glEnable(GL_CULL_FACE)
+        glCullFace(GL_BACK)
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LESS)
+
+        glEnable(GL_LIGHT0)
+        glLightfv(GL_LIGHT0, GL_POSITION, GLfloat_4(0, 0, 1, 0))
+        glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, GLfloat_3(0, 0, -1))
+
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+        glEnable(GL_COLOR_MATERIAL)
+        glClearColor(0.4, 0.4, 0.4, 0.0)
+
+    def init_scene(self):
+        """ مقداردهی شیء صحنه و صحنه اولیه """
+        self.scene = Scene()
+        self.create_sample_scene()
+
+    def create_sample_scene(self):
+        cube_node = Cube()
+        cube_node.translate(2, 0, 2)
+        cube_node.color_index = 2
+        self.scene.add_node(cube_node)
+
+        sphere_node = Sphere()
+        sphere_node.translate(-2, 0, 2)
+        sphere_node.color_index = 3
+        self.scene.add_node(sphere_node)
+
+        hierarchical_node = SnowFigure()
+        hierarchical_node.translate(-2, 0, -2)
+        self.scene.add_node(hierarchical_node)
+
+    def init_interaction(self):
+        """ مقداردهی تعامل کاربر و فراخوانی‌ها """
+        self.interaction = Interaction()
+        self.interaction.register_callback('pick', self.pick)
+        self.interaction.register_callback('move', self.move)
+        self.interaction.register_callback('place', self.place)
+        self.interaction.register_callback('rotate_color', self.rotate_color)
+        self.interaction.register_callback('scale', self.scale)
+
+    def main_loop(self):
+        glutMainLoop()
+
+if __name__ == "__main__":
+    viewer = Viewer()
+    viewer.main_loop()</code></pre>
+
+        <p>پیش از آن‌که به تابع رندر بپردازیم، بهتر است کمی دربارهٔ جبر خطی صحبت کنیم.</p>
+      </section>
+
+      <section>
+        <h2>فضای مختصات</h2>
+        <p>برای مقاصد ما، یک «فضای مختصات» یک نقطهٔ مبدأ و مجموعه‌ای از ۳ بردار پایه است، معمولاً محورهای <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span>.</p>
+
+        <h2>نقطه</h2>
+        <p>هر نقطه در فضای سه‌بعدی را می‌توان به‌صورت یک جابه‌جایی در جهت‌های <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> از نقطهٔ مبدأ نمایش داد. نمایش یک نقطه نسبت به فضای مختصاتی که نقطه در آن قرار دارد تعریف می‌شود. یک نقطهٔ یکسان در فضاهای مختصات متفاوت، نمایش‌های متفاوتی دارد. هر نقطه در فضای سه‌بعدی را می‌توان در هر فضای مختصات سه‌بعدی‌ای نمایش داد.</p>
+
+        <h2>بردار</h2>
+        <p>یک بردار مقداری <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> است که به‌ترتیب تفاوت بین دو نقطه را در محورهای <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> نشان می‌دهد.</p>
+
+        <h2>ماتریس تبدیل</h2>
+        <p>در گرافیک رایانه‌ای استفاده از چند فضای مختصات متفاوت برای انواع مختلف نقاط راحت است. ماتریس‌های تبدیل، نقاط را از یک فضای مختصات به فضای مختصات دیگر تبدیل می‌کنند. برای تبدیل بردار <span dir="ltr">v</span> از یک فضای مختصات به فضایی دیگر، آن را در ماتریس تبدیل <span dir="ltr">M</span> ضرب می‌کنیم: <span dir="ltr">v' = M v</span>. برخی ماتریس‌های تبدیل متداول عبارت‌اند از انتقال (translation)، مقیاس (scaling) و چرخش (rotation).</p>
+
+        <h2>فضاهای مختصات مدل، جهان، دید و فرافکنی</h2>
+        <p><strong>شکل ۱۳.۱ — خط لولهٔ تبدیل (Transformation Pipeline)</strong></p>
+        <img src="https://aosabook.org/en/500L/modeller-images/newtranspipe.png" alt="شکل ۱۳.۱ — خط لوله تبدیل: فضاهای مختصات مدل، جهان، دید، فرافکنی و پنجره نمایش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای رسم یک مورد روی صفحه، باید بین چند فضای مختصات متفاوت تبدیل انجام دهیم.</p>
+        <p>سمت راست شکل ۱۳.۱، شامل همهٔ تبدیل‌های از فضای چشم (Eye Space) تا فضای پنجرهٔ دید (Viewport Space)، توسط OpenGL برای ما انجام می‌شود.</p>
+        <p>تبدیل از فضای چشم به فضای کلیپ همگن (homogeneous clip space) توسط gluPerspective انجام می‌شود و تبدیل به فضای دستگاه نرمال‌شده و فضای پنجرهٔ دید توسط glViewport. این دو ماتریس در هم ضرب می‌شوند و به‌عنوان ماتریس GL_PROJECTION ذخیره می‌شوند. برای این پروژه نیازی به دانستن اصطلاحات یا جزئیات کارکرد این ماتریس‌ها نداریم.</p>
+        <p>اما مدیریت سمت چپ نمودار به عهدهٔ خود ماست. ماتریسی تعریف می‌کنیم که نقاط مدل (که به آن مش (mesh) نیز گفته می‌شود) را از فضای مدل به فضای جهان تبدیل می‌کند و آن را ماتریس مدل می‌نامیم. همچنین ماتریس دید (view matrix) را تعریف می‌کنیم که از فضای جهان به فضای چشم تبدیل می‌کند. در این پروژه این دو ماتریس را با هم ترکیب می‌کنیم و ماتریس ModelView را به دست می‌آوریم.</p>
+        <p>برای یادگیری بیشتر دربارهٔ خط لولهٔ کامل رندر گرافیکی و فضاهای مختصات مربوط به آن، به فصل ۲ کتاب Real Time Rendering یا هر کتاب مقدماتی دیگر گرافیک رایانه‌ای مراجعه کنید.</p>
+      </section>
+
+      <section>
+        <h2>رندر با نمایشگر (Rendering with the Viewer)</h2>
+        <p>تابع render نخست هر وضعیت OpenGL را که باید هنگام رندر انجام شود برپا می‌کند. ماتریس فرافکنی را از طریق init_view مقداردهی می‌کند و از داده‌های عضو interaction برای مقداردهی ماتریس ModelView با ماتریس تبدیلی که از فضای صحنه به فضای جهان تبدیل می‌کند استفاده می‌کند. دربارهٔ کلاس Interaction در ادامه بیشتر خواهیم دید. صفحه را با glClear پاک می‌کند، به صحنه می‌گوید خودش را رندر کند و سپس شبکهٔ واحد (unit grid) را رندر می‌کند.</p>
+        <p>پیش از رندر شبکه، نورپردازی OpenGL را غیرفعال می‌کنیم. با غیرفعال بودن نورپردازی، OpenGL اشیا را با رنگ‌های توپُر رندر می‌کند، نه با شبیه‌سازی منبع نور. به این ترتیب شبکه تمایز دیداری با صحنه دارد. در پایان، glFlush به درایور گرافیکی اعلام می‌کند که آماده‌ایم بافر شسته شود و روی صفحه نمایش داده شود.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Viewer
+    def render(self):
+        """ گذر رندر برای صحنه """
+        self.init_view()
+
+        glEnable(GL_LIGHTING)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        # بارگذاری ماتریس مدل-دید از وضعیت فعلی ترک‌بال
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+        loc = self.interaction.translation
+        glTranslated(loc[0], loc[1], loc[2])
+        glMultMatrixf(self.interaction.trackball.matrix)
+
+        # ذخیره معکوس مدل‌ویو فعلی
+        currentModelView = numpy.array(glGetFloatv(GL_MODELVIEW_MATRIX))
+        self.modelView = numpy.transpose(currentModelView)
+        self.inverseModelView = inv(numpy.transpose(currentModelView))
+
+        # رندر صحنه؛ این کار تابع رندر را برای هر شیء
+        # در صحنه فراخوانی می‌کند
+        self.scene.render()
+
+        # رسم شبکه
+        glDisable(GL_LIGHTING)
+        glCallList(G_OBJ_PLANE)
+        glPopMatrix()
+
+        # شستن بافرها تا صحنه رسم شود
+        glFlush()
+
+    def init_view(self):
+        """ مقداردهی ماتریس فرافکنی """
+        xSize, ySize = glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
+        aspect_ratio = float(xSize) / float(ySize)
+
+        # بارگذاری ماتریس فرافکنی؛ همیشه یکسان است
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+
+        glViewport(0, 0, xSize, ySize)
+        gluPerspective(70, aspect_ratio, 0.1, 1000.0)
+        glTranslated(0, 0, -15)</code></pre>
+      </section>
+
+      <section>
+        <h2>چه چیزی را رندر کنیم: صحنه (The Scene)</h2>
+        <p>حال که خط لولهٔ رندر را برای رسیدگی به رسم در فضای مختصات جهان مقداردهی کرده‌ایم، چه چیزی را رندر می‌کنیم؟ به یاد آورید که هدف ما داشتن طراحی‌ای متشکل از مدل‌های سه‌بعدی است. به ساختار داده‌ای برای نگه‌داری طراحی و نیز استفاده از این ساختار داده برای رندر طراحی نیاز داریم. در بالا توجه کنید که self.scene.render() را از حلقهٔ رندر نمایشگر فراخوانی می‌کنیم. صحنه چیست؟</p>
+        <p>کلاس Scene واسطِ ساختار داده‌ای است که برای نمایش طراحی استفاده می‌کنیم. جزئیات ساختار داده را پنهان می‌کند و توابع واسط لازم برای تعامل با طراحی، از جمله توابع رندر، افزودن و دستکاری آیتم‌ها را فراهم می‌کند. یک شیء Scene وجود دارد که متعلق به نمایشگر است. نمونهٔ Scene فهرستی از همهٔ آیتم‌های صحنه را نگه می‌دارد که node_list نام دارد. همچنین آیتم انتخاب‌شده را پیگیری می‌کند. تابع render در صحنه به‌سادگی render را روی هر یک از اعضای node_list فراخوانی می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class Scene(object):
+
+    # عمق پیش‌فرض از دوربین برای قرار دادن یک شیء در آنجا
+    PLACE_DEPTH = 15.0
+
+    def __init__(self):
+        # صحنه فهرستی از گره‌های نمایش‌داده‌شده را نگه می‌دارد
+        self.node_list = list()
+        # پیگیری گرهٔ در حال انتخاب
+        # ممکن است برخی اقدامات به انتخاب‌شده بودن چیزی وابسته باشد
+        self.selected_node = None
+
+    def add_node(self, node):
+        """ افزودن یک گره جدید به صحنه """
+        self.node_list.append(node)
+
+    def render(self):
+        """ رندر صحنه """
+        for node in self.node_list:
+            node.render()</code></pre>
+      </section>
+
+      <section>
+        <h2>گره‌ها (Nodes)</h2>
+        <p>در تابع render کلاس Scene، render را روی هر یک از آیتم‌های node_list صحنه فراخوانی می‌کنیم. اما عناصر این فهرست چه‌اند؟ آن‌ها را گره (node) می‌نامیم. از نظر مفهومی، گره هر چیزی است که بتوان در صحنه قرار داد. در نرم‌افزار شیءگرا، Node را به‌صورت یک کلاس پایهٔ انتزاعی می‌نویسیم. هر کلاسی که اشیای قابل قرارگیری در صحنه را نمایش می‌دهد از Node ارث می‌برد. این کلاس پایه به ما امکان می‌دهد دربارهٔ صحنه به‌صورت انتزاعی استدلال کنیم. بقیهٔ کدبیس نیازی به دانستن جزئیات اشیایی که نمایش می‌دهد ندارد؛ فقط کافی است بداند آن‌ها از کلاس Node هستند.</p>
+        <p>هر نوع Node رفتار خودش را برای رندر و هر تعامل دیگری تعریف می‌کند. Node داده‌های مهم دربارهٔ خودش را نگه می‌دارد: ماتریس انتقال، ماتریس مقیاس، رنگ و غیره. ضرب ماتریس انتقال گره در ماتریس مقیاس آن، ماتریس تبدیل از فضای مختصات مدلِ گره به فضای مختصات جهان را می‌دهد. گره همچنین یک جعبهٔ محدودکنندهٔ هم‌تراز با محور (AABB) ذخیره می‌کند. دربارهٔ AABBها هنگام بحث انتخاب، در ادامه بیشتر خواهیم دید.</p>
+        <p>ساده‌ترین پیاده‌سازی انضمامی Node، یک شکل اولیه (primitive) است. شکل اولیه یک شکل توپُرِ یگانه است که می‌توان به صحنه افزود. در این پروژه شکل‌های اولیه Cube (مکعب) و Sphere (کره) هستند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class Node(object):
+    """ کلاس پایه برای عناصر صحنه """
+    def __init__(self):
+        self.color_index = random.randint(color.MIN_COLOR, color.MAX_COLOR)
+        self.aabb = AABB([0.0, 0.0, 0.0], [0.5, 0.5, 0.5])
+        self.translation_matrix = numpy.identity(4)
+        self.scaling_matrix = numpy.identity(4)
+        self.selected = False
+
+    def render(self):
+        """ آیتم را روی صفحه رندر می‌کند """
+        glPushMatrix()
+        glMultMatrixf(numpy.transpose(self.translation_matrix))
+        glMultMatrixf(self.scaling_matrix)
+        cur_color = color.COLORS[self.color_index]
+        glColor3f(cur_color[0], cur_color[1], cur_color[2])
+        if self.selected:  # اگر گره انتخاب شده باشد نور ساطع می‌کند
+            glMaterialfv(GL_FRONT, GL_EMISSION, [0.3, 0.3, 0.3])
+
+        self.render_self()
+
+        if self.selected:
+            glMaterialfv(GL_FRONT, GL_EMISSION, [0.0, 0.0, 0.0])
+        glPopMatrix()
+
+    def render_self(self):
+        raise NotImplementedError(
+            "The Abstract Node Class doesn't define 'render_self'")
+
+class Primitive(Node):
+    def __init__(self):
+        super(Primitive, self).__init__()
+        self.call_list = None
+
+    def render_self(self):
+        glCallList(self.call_list)
+
+
+class Sphere(Primitive):
+    """ شکل اولیه کره """
+    def __init__(self):
+        super(Sphere, self).__init__()
+        self.call_list = G_OBJ_SPHERE
+
+
+class Cube(Primitive):
+    """ شکل اولیه مکعب """
+    def __init__(self):
+        super(Cube, self).__init__()
+        self.call_list = G_OBJ_CUBE</code></pre>
+
+        <p>رندر گره‌ها بر پایهٔ ماتریس‌های تبدیلی است که هر گره ذخیره می‌کند. ماتریس تبدیل یک گره ترکیب ماتریس مقیاس و ماتریس انتقال آن است. صرف‌نظر از نوع گره، نخستین گام رندر، تنظیم ماتریس ModelView برای تبدیل از فضای مختصات مدل به فضای مختصات دید است. پس از به‌روزرسانی ماتریس‌های OpenGL، render_self را فراخوانی می‌کنیم تا به گره بگوییم فراخوانی‌های OpenGL لازم برای رسم خودش را انجام دهد. در پایان، هر تغییری را که برای این گرهٔ خاص در وضعیت OpenGL ایجاد کرده‌ایم باز می‌گردانیم. از توابع glPushMatrix و glPopMatrix در OpenGL برای ذخیره و بازیابی وضعیت ماتریس ModelView پیش و پس از رندر گره استفاده می‌کنیم. توجه کنید که گره رنگ، مکان و مقیاس خود را ذخیره می‌کند و پیش از رندر آن‌ها را روی وضعیت OpenGL اعمال می‌کند.</p>
+        <p>اگر گره در حال حاضر انتخاب شده باشد، آن را وادار به ساطع کردن نور می‌کنیم. به این ترتیب کاربر نشانهٔ دیداریِ انتخاب‌شدنِ کدام گره را دارد.</p>
+        <p>برای رندر شکل‌های اولیه از ویژگی فهرست فراخوانی (call list) در OpenGL استفاده می‌کنیم. فهرست فراخوانی OpenGL مجموعه‌ای از فراخوانی‌های OpenGL است که یک‌بار تعریف می‌شوند و زیر یک نام واحد دسته‌بندی می‌شوند. این فراخوانی‌ها را می‌توان با glCallList(LIST_NAME) صدا زد. هر شکل اولیه (کره و مکعب) فهرست فراخوانی لازم برای رندر خودش را تعریف می‌کند (در این‌جا نشان داده نشده).</p>
+        <p>برای نمونه، فهرست فراخوانی یک مکعب، ۶ وجه مکعب را رسم می‌کند، با مرکز در مبدأ و طول یال‌های دقیقاً ۱ واحد.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code># شبه‌کد تعریف مکعب
+# وجه چپ
+((-0.5, -0.5, -0.5), (-0.5, -0.5, 0.5), (-0.5, 0.5, 0.5), (-0.5, 0.5, -0.5)),
+# وجه پشت
+((-0.5, -0.5, -0.5), (-0.5, 0.5, -0.5), (0.5, 0.5, -0.5), (0.5, -0.5, -0.5)),
+# وجه راست
+((0.5, -0.5, -0.5), (0.5, 0.5, -0.5), (0.5, 0.5, 0.5), (0.5, -0.5, 0.5)),
+# وجه جلو
+((-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, 0.5, 0.5)),
+# وجه پایین
+((-0.5, -0.5, 0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, -0.5, 0.5)),
+# وجه بالا
+((-0.5, 0.5, -0.5), (-0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, -0.5))</code></pre>
+
+        <p>استفادهٔ تنها از شکل‌های اولیه برای برنامه‌های مدل‌سازی کاملاً محدودکننده است. مدل‌های سه‌بعدی عموماً از چند شکل اولیه (یا مش‌های مثلثی که خارج از حیطهٔ این پروژه‌اند) ساخته می‌شوند. خوشبختانه طراحی کلاس Node ما گره‌های صحنه‌ای را که از چند شکل اولیه ساخته شده‌اند تسهیل می‌کند. در واقع، بدون هیچ پیچیدگی افزوده‌ای می‌توانیم گروه‌بندی‌های دلخواه از گره‌ها را پشتیبانی کنیم.</p>
+        <p>به‌عنوان انگیزه، بیایید یک شکل بسیار ساده را در نظر بگیریم: یک آدم‌برفی نمونه که از سه کره ساخته شده است. حتی اگر این شکل از سه شکل اولیهٔ جدا تشکیل شده باشد، می‌خواهیم بتوانیم با آن به‌عنوان یک شیء واحد رفتار کنیم.</p>
+        <p>کلاسی به نام HierarchicalNode می‌سازیم؛ یک Node که گره‌های دیگر را در خود دارد. فهرستی از «فرزندان» را مدیریت می‌کند. تابع render_self برای گره‌های سلسله‌مراتبی به‌سادگی render_self را روی هر یک از گره‌های فرزند فراخوانی می‌کند. با کلاس HierarchicalNode افزودن شکل‌ها به صحنه بسیار آسان است. اکنون تعریف آدم‌برفی به‌سادگی مشخص کردن شکل‌هایی است که آن را می‌سازند، به‌همراه موقعیت و اندازه‌های نسبی آن‌ها.</p>
+
+        <p><strong>شکل ۱۳.۲ — سلسله‌مراتب زیرکلاس‌های Node</strong></p>
+        <img src="https://aosabook.org/en/500L/modeller-images/nodes.jpg" alt="شکل ۱۳.۲ — سلسله‌مراتب زیرکلاس‌های Node: Node، Primitive، HierarchicalNode، Sphere، Cube و SnowFigure" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <pre class="code"><span class="lang-tag">python</span><code>class HierarchicalNode(Node):
+    def __init__(self):
+        super(HierarchicalNode, self).__init__()
+        self.child_nodes = []
+
+    def render_self(self):
+        for child in self.child_nodes:
+            child.render()</code></pre>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class SnowFigure(HierarchicalNode):
+    def __init__(self):
+        super(SnowFigure, self).__init__()
+        self.child_nodes = [Sphere(), Sphere(), Sphere()]
+        self.child_nodes[0].translate(0, -0.6, 0) # مقیاس ۱.۰
+        self.child_nodes[1].translate(0, 0.1, 0)
+        self.child_nodes[1].scaling_matrix = numpy.dot(
+            self.scaling_matrix, scaling([0.8, 0.8, 0.8]))
+        self.child_nodes[2].translate(0, 0.75, 0)
+        self.child_nodes[2].scaling_matrix = numpy.dot(
+            self.scaling_matrix, scaling([0.7, 0.7, 0.7]))
+        for child_node in self.child_nodes:
+            child_node.color_index = color.MIN_COLOR
+        self.aabb = AABB([0.0, 0.0, 0.0], [0.5, 1.1, 0.5])</code></pre>
+
+        <p>شاید متوجه شده باشید که شیءهای Node یک ساختار دادهٔ درختی تشکیل می‌دهند. تابع render از طریق گره‌های سلسله‌مراتبی، پیمایش عمق‌اول (depth-first) روی درخت انجام می‌دهد. هنگام پیمایش، پشته‌ای از ماتریس‌های ModelView نگه می‌دارد که برای تبدیل به فضای جهان استفاده می‌شوند. در هر گام، ماتریس ModelView فعلی را روی پشته می‌فشارد (push) و وقتی رندر همهٔ گره‌های فرزند تمام شد، ماتریس را از پشته برمی‌دارد (pop) و ماتریس ModelView گرهٔ والد در بالای پشته باقی می‌ماند.</p>
+        <p>با گسترش‌پذیر ساختن کلاس Node به این شیوه، می‌توانیم بدون تغییر هیچ‌کدام از کدهای دیگرِ دستکاری و رندر صحنه، انواع جدیدی از شکل‌ها را به صحنه بیفزاییم. استفاده از مفهوم گره برای پنهان کردن این واقعیت که یک شیء Scene ممکن است فرزندان بسیاری داشته باشد، به الگوی طراحی Composite معروف است.</p>
+      </section>
+
+      <section>
+        <h2>تعامل کاربر (User Interaction)</h2>
+        <p>حال که مدلساز ما قادر به ذخیره و نمایش صحنه است، به راهی برای تعامل با آن نیاز داریم. دو نوع تعامل باید فراهم کنیم. نخست، توانایی تغییر دیدِ (perspective) مشاهدهٔ صحنه. می‌خواهیم بتوانیم چشم یا دوربین را دور صحنه حرکت دهیم. دوم، باید بتوانیم گره‌های جدیدی به صحنه بیفزاییم و گره‌های موجود را اصلاح کنیم.</p>
+        <p>برای میسر ساختن تعامل کاربر، باید بدانیم کاربر چه‌زمانی کلیدها را فشار می‌دهد یا ماوس را حرکت می‌دهد. خوشبختانه سیستمعامل از وقوع همین رویدادها آگاه است. GLUT به ما امکان می‌دهد تابعی را ثبت کنیم که هرگاه رویداد خاصی رخ دهد فراخوانی شود. توابعی می‌نویسیم که فشار کلید و حرکت ماوس را تفسیر می‌کنند و به GLUT می‌گوییم هنگام فشرده‌شدنِ کلیدهای مربوطه آن توابع را فراخوانی کند. پس از آن‌که دانستیم کاربر کدام کلیدها را فشار می‌دهد، باید ورودی را تفسیر و اقدامات موردنظر را روی صحنه اعمال کنیم.</p>
+        <p>منطق گوش‌دادن به رویدادهای سیستمعامل و تفسیر معنای آن‌ها در کلاس Interaction یافت می‌شود. کلاس Viewer که پیش‌تر نوشتیم، دارندهٔ نمونهٔ یگانهٔ Interaction است. از سازوکار فراخوانی GLUT برای ثبت توابعی استفاده می‌کنیم که هنگام فشرده‌شدن دکمهٔ ماوس (glutMouseFunc)، حرکت ماوس (glutMotionFunc)، فشرده‌شدن کلید صفحه‌کلید (glutKeyboardFunc) و فشرده‌شدن کلیدهای جهت‌نما (glutSpecialFunc) فراخوانی شوند. به‌زودی توابعِ رسیدگی‌کنندهٔ رویدادهای ورودی را خواهیم دید.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class Interaction(object):
+    def __init__(self):
+        """ رسیدگی به تعامل کاربر """
+        # دکمهٔ ماوسِ در حال فشردن
+        self.pressed = None
+        # مکان فعلی دوربین
+        self.translation = [0, 0, 0, 0]
+        # ترک‌بال برای محاسبه چرخش
+        self.trackball = trackball.Trackball(theta = -25, distance=15)
+        # مکان فعلی ماوس
+        self.mouse_loc = None
+        # سازوکار ساده فراخوانی
+        self.callbacks = defaultdict(list)
+
+        self.register()
+
+    def register(self):
+        """ ثبت فراخوانی‌ها با glut """
+        glutMouseFunc(self.handle_mouse_button)
+        glutMotionFunc(self.handle_mouse_move)
+        glutKeyboardFunc(self.handle_keystroke)
+        glutSpecialFunc(self.handle_keystroke)</code></pre>
+
+        <h3>فراخوانی‌های سیستمعامل</h3>
+        <p>برای تفسیر معنادار ورودی کاربر، باید دانش موقعیت ماوس، دکمه‌های ماوس و صفحه‌کلید را با هم ترکیب کنیم. چون تفسیر ورودی کاربر به اقدامات معنادار به خطوط کد زیادی نیاز دارد، آن را در کلاسی جدا، دور از مسیر اصلی کد، کپسوله می‌کنیم. کلاس Interaction پیچیدگی‌های نامربوط را از بقیهٔ کدبیس پنهان می‌کند و رویدادهای سیستمعامل را به رویدادهای سطح-برنامه ترجمه می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Interaction 
+    def translate(self, x, y, z):
+        """ انتقال دوربین """
+        self.translation[0] += x
+        self.translation[1] += y
+        self.translation[2] += z
+
+    def handle_mouse_button(self, button, mode, x, y):
+        """ هنگام فشرده یا رها شدن دکمه ماوس فراخوانی می‌شود """
+        xSize, ySize = glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
+        y = ySize - y  # معکوس‌سازی مختصات y چون OpenGL وارونه است
+        self.mouse_loc = (x, y)
+
+        if mode == GLUT_DOWN:
+            self.pressed = button
+            if button == GLUT_RIGHT_BUTTON:
+                pass
+            elif button == GLUT_LEFT_BUTTON:  # انتخاب (pick)
+                self.trigger('pick', x, y)
+            elif button == 3:  # چرخش ماوس به بالا
+                self.translate(0, 0, 1.0)
+            elif button == 4:  # چرخش ماوس به پایین
+                self.translate(0, 0, -1.0)
+        else:  # رها شدن دکمه ماوس
+            self.pressed = None
+        glutPostRedisplay()
+
+    def handle_mouse_move(self, x, screen_y):
+        """ هنگام حرکت ماوس فراخوانی می‌شود """
+        xSize, ySize = glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
+        y = ySize - screen_y  # معکوس‌سازی مختصات y چون OpenGL وارونه است
+        if self.pressed is not None:
+            dx = x - self.mouse_loc[0]
+            dy = y - self.mouse_loc[1]
+            if self.pressed == GLUT_RIGHT_BUTTON and self.trackball is not None:
+                # مکان به‌روزشده دوربین را نادیده بگیر چون می‌خواهیم همیشه
+                # دور مبدأ بچرخیم
+                self.trackball.drag_to(self.mouse_loc[0], self.mouse_loc[1], dx, dy)
+            elif self.pressed == GLUT_LEFT_BUTTON:
+                self.trigger('move', x, y)
+            elif self.pressed == GLUT_MIDDLE_BUTTON:
+                self.translate(dx/60.0, dy/60.0, 0)
+            else:
+                pass
+            glutPostRedisplay()
+        self.mouse_loc = (x, y)
+
+    def handle_keystroke(self, key, x, screen_y):
+        """ هنگام ورود صفحه‌کلید از کاربر فراخوانی می‌شود """
+        xSize, ySize = glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT)
+        y = ySize - screen_y
+        if key == 's':
+            self.trigger('place', 'sphere', x, y)
+        elif key == 'c':
+            self.trigger('place', 'cube', x, y)
+        elif key == GLUT_KEY_UP:
+            self.trigger('scale', up=True)
+        elif key == GLUT_KEY_DOWN:
+            self.trigger('scale', up=False)
+        elif key == GLUT_KEY_LEFT:
+            self.trigger('rotate_color', forward=True)
+        elif key == GLUT_KEY_RIGHT:
+            self.trigger('rotate_color', forward=False)
+        glutPostRedisplay()</code></pre>
+
+        <h3>فراخوانی‌های داخلی</h3>
+        <p>در قطعه کد بالا توجه می‌کنید که وقتی نمونهٔ Interaction یک اقدام کاربر را تفسیر می‌کند، self.trigger را با رشت‌ای که نوع اقدام را توصیف می‌کند صدا می‌زند. تابع trigger در کلاس Interaction بخشی از یک سامانهٔ سادهٔ فراخوانی است که برای رسیدگی به رویدادهای سطح-برنامه استفاده می‌کنیم. به یاد آورید که تابع init_interaction در کلاس Viewer با فراخوانی register_callback، فراخوانی‌ها را روی نمونهٔ Interaction ثبت می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Interaction
+    def register_callback(self, name, func):
+        self.callbacks[name].append(func)</code></pre>
+
+        <p>هنگامی که کد واسط کاربر نیاز به فعال‌کردن یک رویداد در صحنه دارد، کلاس Interaction همهٔ فراخوانی‌های ذخیره‌شدهٔ خود را برای آن رویداد خاص صدا می‌زند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Interaction
+    def trigger(self, name, *args, **kwargs):
+        for func in self.callbacks[name]:
+            func(*args, **kwargs)</code></pre>
+
+        <p>این سامانهٔ فراخوانی در سطح برنامه، نیاز بقیهٔ سیستم به دانستن دربارهٔ ورودی سیستمعامل را برطرف می‌کند. هر فراخوانی سطح-برنامه یک درخواست معنادار در درون برنامه را نمایش می‌دهد. کلاس Interaction نقش مترجم بین رویدادهای سیستمعامل و رویدادهای سطح-برنامه را بازی می‌کند. این بدان معناست که اگر تصمیم بگیریم مدلساز را علاوه بر GLUT به یک جعبه‌ابزار دیگر نیز منتقل کنیم، فقط باید کلاس Interaction را با کلاسی جایگزین کنیم که ورودی جعبه‌ابزار جدید را به همان مجموعه فراخوانی‌های معنادار سطح-برنامه تبدیل کند. فراخوانی‌ها و آرگومان‌های مورد استفاده در جدول ۱۳.۱ آمده است:</p>
+
+        <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:0.9em">
+          <caption style="font-weight:bold;margin-bottom:8px">جدول ۱۳.۱ — فراخوانی‌های تعامل و آرگومان‌های آن‌ها</caption>
+          <thead>
+            <tr style="background:var(--accent,#333);color:#fff">
+              <th style="padding:8px;border:1px solid var(--line)">فراخوانی</th>
+              <th style="padding:8px;border:1px solid var(--line)">آرگومان‌ها</th>
+              <th style="padding:8px;border:1px solid var(--line)">کاربرد</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">pick</td>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">x:number, y:number</td>
+              <td style="padding:8px;border:1px solid var(--line)">گرهٔ واقع در محل اشاره‌گر ماوس را انتخاب می‌کند.</td>
+            </tr>
+            <tr>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">move</td>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">x:number, y:number</td>
+              <td style="padding:8px;border:1px solid var(--line)">گرهٔ در حال انتخاب را به محل اشاره‌گر ماوس منتقل می‌کند.</td>
+            </tr>
+            <tr>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">place</td>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">shape:string, x:number, y:number</td>
+              <td style="padding:8px;border:1px solid var(--line)">شکلی از نوع مشخص‌شده را در محل اشاره‌گر ماوس قرار می‌دهد.</td>
+            </tr>
+            <tr>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">rotate_color</td>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">forward:boolean</td>
+              <td style="padding:8px;border:1px solid var(--line)">رنگ گرهٔ در حال انتخاب را در فهرست رنگ‌ها، رو به جلو یا عقب، می‌چرخاند.</td>
+            </tr>
+            <tr>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">scale</td>
+              <td style="padding:8px;border:1px solid var(--line)" dir="ltr">up:boolean</td>
+              <td style="padding:8px;border:1px solid var(--line)">گرهٔ در حال انتخاب را مطابق پارامتر بزرگ یا کوچک می‌کند.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>این سامانهٔ سادهٔ فراخوانی همهٔ کارکردی را که برای این پروژه نیاز داریم فراهم می‌کند. اما در یک مدلساز سه‌بعدی تولیدی، اشیای واسط کاربر اغلب به‌صورت پویا ساخته و نابود می‌شوند. در آن حالت به سامانهٔ شنوندگی رویدادِ پیچیده‌تری نیاز داریم که در آن اشیا بتوانند فراخوانی‌های رویداد را هم ثبت (register) و هم لغو (un-register) کنند.</p>
+
+        <h3>برقراری رابط با صحنه (Interfacing with the Scene)</h3>
+        <p>با سازوکار فراخوانی خود می‌توانیم اطلاعات معناداری دربارهٔ رویدادهای ورودی کاربر از کلاس Interaction دریافت کنیم. آماده‌ایم این اقدامات را روی صحنه اعمال کنیم.</p>
+
+        <h4>جابه‌جایی صحنه</h4>
+        <p>در این پروژه، حرکت دوربین را با تبدیلِ خودِ صحنه انجام می‌دهیم. به عبارت دیگر، دوربین در مکان ثابتی است و ورودی کاربر به‌جای جابه‌جایی دوربین، صحنه را جابه‌جا می‌کند. دوربین در [0, 0, -15] قرار دارد و رو به مبدأ فضای جهان است. (به‌طور جایگزین، می‌توانستیم ماتریس پرسپکتیو را تغییر دهیم تا به‌جای صحنه، دوربین حرکت کند. این تصمیم طراحی تأثیر بسیار کمی روی بقیهٔ پروژه دارد.) با بازبینی تابع render در Viewer، می‌بینیم که از وضعیت Interaction برای تبدیل وضعیت ماتریس OpenGL پیش از رندر صحنه استفاده می‌شود. دو نوع تعامل با صحنه وجود دارد: چرخش و انتقال.</p>
+
+        <h4>چرخاندن صحنه با ترک‌بال (Trackball)</h4>
+        <p>چرخش صحنه را با الگوریتم ترک‌بال انجام می‌دهیم. ترک‌بال واسطی شهودی برای دستکاری صحنه در سه بُعد است. از نظر مفهومی، واسط ترک‌بال طوری کار می‌کند که گویی صحنه درون یک گوی شیشه‌ای است. گذاشتن دست روی سطح گوی و فشردن آن، گوی را می‌چرخاند. به‌همین‌ترتیب، فشردن دکمهٔ راست ماوس و حرکت دادن آن روی صفحه، صحنه را می‌چرخاند. می‌توانید دربارهٔ نظریهٔ ترک‌بال در ویکی OpenGL بیشتر بدانید. در این پروژه از پیاده‌سازی ترک‌بال ارائه‌شده به‌عنوان بخشی از Glumpy استفاده می‌کنیم.</p>
+        <p>با تابع drag_to با ترک‌بال تعامل می‌کنیم؛ مکان فعلی ماوس به‌عنوان مکان شروع و تغییر مکان ماوس به‌عنوان پارامترها.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>self.trackball.drag_to(self.mouse_loc[0], self.mouse_loc[1], dx, dy)</code></pre>
+
+        <p>ماتریس چرخش حاصل، هنگام رندر صحنه در نمایشگر، trackball.matrix است.</p>
+
+        <h4>نکته: کواترنیون‌ها (Quaternions)</h4>
+        <p>چرخش‌ها به‌طور سنتی به یکی از دو شیوه نمایش داده می‌شوند. نخست، مقدار چرخش حول هر محور؛ می‌توانید آن را به‌صورت سه‌تایی (tuple) از اعداد اعشاری ذخیره کنید. نمایش رایج دیگر برای چرخش‌ها، کواترنیون است؛ عنصری متشکل از بردارِ با مختصات <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> و یک چرخش <span dir="ltr">w</span>. استفاده از کواترنیون‌ها مزایای متعددی نسبت به چرخش محور-به-محور دارد؛ به‌ویژه، پایداری عددی بیشتری دارند. استفاده از کواترنیون‌ها از مشکلاتی مانند قفل گیمبال (gimbal lock) جلوگیری می‌کند. نقطهٔ ضعف کواترنیون‌ها این است که کار با آن‌ها کمتر شهودی و درک آن‌ها دشوارتر است. اگر جسارت دارید و می‌خواهید دربارهٔ کواترنیون‌ها بیشتر بدانید، می‌توانید به این توضیح مراجعه کنید.</p>
+        <p>پیاده‌سازی ترک‌بال با استفادهٔ داخلی از کواترنیون‌ها برای ذخیرهٔ چرخش صحنه، از قفل گیمبال جلوگیری می‌کند. خوشبختانه نیازی به کار مستقیم با کواترنیون‌ها نداریم، زیرا عضو matrix در ترک‌بال چرخش را به ماتریس تبدیل می‌کند.</p>
+
+        <h4>انتقال صحنه</h4>
+        <p>انتقال (لغزاندن) صحنه بسیار ساده‌تر از چرخاندن آن است. انتقال‌های صحنه با چرخ ماوس و دکمهٔ چپ ماوس انجام می‌شوند. دکمهٔ چپ ماوس صحنه را در مختصات <span dir="ltr">x</span> و <span dir="ltr">y</span> منتقل می‌کند. چرخاندن چرخ ماوس صحنه را در مختصات <span dir="ltr">z</span> (به سمت دوربین یا دور از آن) منتقل می‌کند. کلاس Interaction انتقالِ فعلی صحنه را ذخیره می‌کند و با تابع translate آن را تغییر می‌دهد. نمایشگر هنگام رندر، مکان دوربین را از Interaction بازیابی می‌کند تا در فراخوانی glTranslated استفاده کند.</p>
+
+        <h4>انتخاب اشیای صحنه</h4>
+        <p>حال که کاربر می‌تواند کل صحنه را جابه‌جا و بچرخاند تا دید موردنظر خود را به دست آورد، گام بعدی این است که به کاربر اجازه دهیم اشیای سازندهٔ صحنه را اصلاح و دستکاری کند.</p>
+        <p>برای دستکاری اشیای موجود در صحنه، کاربر باید بتواند آیتم‌ها را انتخاب کند.</p>
+        <p>برای انتخاب یک آیتم، از ماتریس فرافکنی فعلی برای تولید یک پرتو (ray) استفاده می‌کنیم که نمایانگر کلیک ماوس است؛ انگار که اشاره‌گر ماوس پرتویی به درون صحنه شلیک می‌کند. گرهٔ انتخاب‌شده نزدیک‌ترین گره به دوربین است که پرتو با آن برخورد می‌کند. بدین‌ترتیب مسئلهٔ انتخاب به مسئلهٔ یافتن برخوردهای بین یک پرتو و گره‌های صحنه تقلیل می‌یابد. پس پرسش این است: چگونه تشخیص می‌دهیم آیا پرتو به یک گره برخورد می‌کند؟</p>
+        <p>محاسبهٔ دقیق برخورد پرتو با یک گره، چه از نظر پیچیدگی کد و چه از نظر کارایی، مسئلهٔ چالش‌برانگیزی است. باید برای هر نوع شکل اولیه، یک بررسی برخورد پرتو-شیء بنویسیم. برای گره‌های صحنه با هندسهٔ مش پیچیده و وجه‌های فراوان، محاسبهٔ برخورد دقیق پرتو-شیء مستلزم آزمودن پرتو در برابر تک‌تک وجه‌هاست و از نظر محاسباتی گران تمام می‌شود.</p>
+        <p>برای آن‌که کد فشرده و کارایی معقول بماند، از یک تقریب ساده و سریع برای آزمون برخورد پرتو-شیء استفاده می‌کنیم. در پیاده‌سازی ما، هر گره یک جعبهٔ محدودکنندهٔ هم‌تراز با محور (AABB) ذخیره می‌کند که تقریبی از فضایی است که اشغال می‌کند. برای آزمودن برخورد پرتو با یک گره، فقط برخورد پرتو با AABB آن گره را می‌آزماییم. این پیاده‌سازی یعنی همهٔ گره‌ها کد یکسانی برای آزمون برخورد دارند و هزینهٔ کارایی برای همهٔ انواع گره ثابت و اندک است.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Viewer
+    def get_ray(self, x, y):
+        """ 
+        پرتویی را تولید می‌کند که از صفحهٔ نزدیک (near plane) آغاز می‌شود،
+        در جهتی که مختصات x و y به آن نگاه می‌کنند
+
+        ورودی: مختصات x و y ماوس روی صفحه
+        خروجی: نقطه شروع و جهت پرتو
+        """
+        self.init_view()
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        # گرفتن دو نقطه روی خط
+        start = numpy.array(gluUnProject(x, y, 0.001))
+        end = numpy.array(gluUnProject(x, y, 0.999))
+
+        # تبدیل آن دو نقطه به یک پرتو
+        direction = end - start
+        direction = direction / norm(direction)
+
+        return (start, direction)
+
+    def pick(self, x, y):
+        """ اجرای انتخاب یک شیء. شیئی را در صحنه انتخاب می‌کند. """
+        start, direction = self.get_ray(x, y)
+        self.scene.pick(start, direction, self.modelView)</code></pre>
+
+        <p>برای تعیین این‌که کدام گره کلیک شده است، صحنه را پیمایش می‌کنیم تا بیازماییم پرتو با کدام گره‌ها برخورد می‌کند. گرهٔ در حال انتخاب کنونی را از انتخاب خارج می‌کنیم و سپس گره‌ای را که برخوردش به مبدأ پرتو نزدیک‌تر است برمی‌گزینیم.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Scene
+    def pick(self, start, direction, mat):
+        """ 
+        اجرای انتخاب.
+
+        start و direction یک پرتو را توصیف می‌کنند.
+        mat معکوس ماتریس مدل‌ویو فعلی صحنه است.
+        """
+        if self.selected_node is not None:
+            self.selected_node.select(False)
+            self.selected_node = None
+
+        # پیگیری نزدیک‌ترین برخورد
+        mindist = sys.maxint
+        closest_node = None
+        for node in self.node_list:
+            hit, distance = node.pick(start, direction, mat)
+            if hit and distance < mindist:
+                mindist, closest_node = distance, node
+
+        # اگر برخوردی رخ داد، آن را پیگیری کن
+        if closest_node is not None:
+            closest_node.select()
+            closest_node.depth = mindist
+            closest_node.selected_loc = start + direction * mindist
+            self.selected_node = closest_node</code></pre>
+
+        <p>درون کلاس Node، تابع pick می‌آزماید که آیا پرتو با جعبهٔ محدودکنندهٔ هم‌تراز با محورِ Node برخورد می‌کند یا نه. اگر گره‌ای انتخاب شود، تابع select وضعیت انتخاب‌شدهٔ گره را تغییر می‌دهد. توجه کنید که تابع ray_hit از AABB ماتریس تبدیل بین فضای مختصات جعبه و فضای مختصات پرتو را به‌عنوان پارامتر سوم می‌پذیرد. هر گره پیش از فراخوانیِ تابع ray_hit، تبدیل خودش را روی ماتریس اعمال می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Node
+    def pick(self, start, direction, mat):
+        """ 
+        بازگرداندن این‌که آیا پرتو به شیء برخورد می‌کند یا نه
+
+        ورودی:
+        start و direction پرتوی مورد آزمون را تشکیل می‌دهند
+        mat ماتریس مدل‌ویو برای تبدیل پرتو است
+        """
+
+        # تغییر ماتریس مدل‌ویو با انتقال فعلی
+        newmat = numpy.dot(
+            numpy.dot(mat, self.translation_matrix), 
+            numpy.linalg.inv(self.scaling_matrix)
+        )
+        results = self.aabb.ray_hit(start, direction, newmat)
+        return results
+
+    def select(self, select=None):
+       """ تغییر یا تنظیم حالت انتخاب """
+       if select is not None:
+           self.selected = select
+       else:
+           self.selected = not self.selected</code></pre>
+
+        <p>روش انتخاب پرتو-AABB بسیار ساده برای فهم و پیاده‌سازی است. اما در برخی موقعیت‌ها نتایج نادرست می‌دهد.</p>
+
+        <p><strong>شکل ۱۳.۳ — خطای AABB</strong></p>
+        <img src="https://aosabook.org/en/500L/modeller-images/AABBError.png" alt="شکل ۱۳.۳ — خطای AABB: کلیک روی گوشهٔ جعبهٔ محدودکننده به‌اشتباه برخورد با کره را تشخیص می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>برای نمونه، در مورد شکل اولیهٔ کره، خودِ کره فقط در مرکزِ هر یک از وجه‌های AABB آن را لمس می‌کند. اما اگر کاربر روی گوشهٔ AABB کره کلیک کند، برخورد با کره تشخیص داده می‌شود، حتی اگر کاربر قصد داشته باشد از کنار کره بگذرد و به شیءِ پشتِ آن برسد (شکل ۱۳.۳).</p>
+        <p>این معاوضهٔ میان پیچیدگی، کارایی و دقت در گرافیک رایانه‌ای و در بسیاری از حوزه‌های مهندسی نرم‌افزار رایج است.</p>
+
+        <h4>اصلاح اشیای صحنه</h4>
+        <p>در ادامه می‌خواهیم به کاربر اجازه دهیم گره‌های انتخاب‌شده را دستکاری کند. شاید بخواهد گرهٔ انتخاب‌شده را جابه‌جا کند، اندازهٔ آن را تغییر دهد یا رنگش را عوض کند. وقتی کاربر فرمانی برای دستکاری یک گره وارد می‌کند، کلاس Interaction ورودی را به اقدامی که کاربر قصد داشت تبدیل می‌کند و فراخوانیِ مربوطه را صدا می‌زند.</p>
+        <p>وقتی Viewer فراخوانیِ یکی از این رویدادها را دریافت می‌کند، تابع مناسب را روی Scene صدا می‌زند؛ Scene نیز به‌نوبهٔ خود تبدیل را روی گرهٔ در حال انتخاب اعمال می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Viewer
+    def move(self, x, y):
+        """ اجرای فرمان حرکت روی صحنه """
+        start, direction = self.get_ray(x, y)
+        self.scene.move_selected(start, direction, self.inverseModelView)
+
+    def rotate_color(self, forward):
+        """ 
+        چرخاندن رنگ گرهٔ انتخاب‌شده.
+        بولین forward جهت چرخش را نشان می‌دهد.
+        """
+        self.scene.rotate_selected_color(forward)
+
+    def scale(self, up):
+        """ مقیاس‌کردن گرهٔ انتخاب‌شده. بولین up بزرگ‌شدن مقیاس را نشان می‌دهد."""
+        self.scene.scale_selected(up)</code></pre>
+
+        <h4>تغییر رنگ</h4>
+        <p>دستکاری رنگ با یک فهرست از رنگ‌های ممکن انجام می‌شود. کاربر می‌تواند با کلیدهای جهت‌نما در فهرست بچرخد. صحنه فرمان تغییر رنگ را به گرهٔ در حال انتخاب ارسال می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Scene
+    def rotate_selected_color(self, forwards):
+        """ چرخاندن رنگ گرهٔ در حال انتخاب """
+        if self.selected_node is None: return
+        self.selected_node.rotate_color(forwards)</code></pre>
+
+        <p>هر گره رنگ فعلی خود را ذخیره می‌کند. تابع rotate_color به‌سادگی رنگ فعلی گره را تغییر می‌دهد. رنگ هنگام رندر گره با glColor به OpenGL منتقل می‌شود.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Node
+    def rotate_color(self, forwards):
+        self.color_index += 1 if forwards else -1
+        if self.color_index > color.MAX_COLOR:
+            self.color_index = color.MIN_COLOR
+        if self.color_index < color.MIN_COLOR:
+            self.color_index = color.MAX_COLOR</code></pre>
+
+        <h4>مقیاس‌بندی گره‌ها</h4>
+        <p>مانند رنگ، صحنه هر تغییری در مقیاس را (اگر گره‌ای انتخاب شده باشد) به گرهٔ انتخاب‌شده ارسال می‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Scene
+    def scale_selected(self, up):
+        """ مقیاس‌کردن انتخاب فعلی """
+        if self.selected_node is None: return
+        self.selected_node.scale(up)</code></pre>
+
+        <p>هر گره ماتریس فعلی‌ای ذخیره می‌کند که مقیاس آن را نگه می‌دارد. ماتریسی که به‌ترتیب با پارامترهای <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> در جهت‌های متناظر مقیاس می‌دهد:</p>
+
+        <pre class="code"><span class="lang-tag">math</span><code>[x 0 0 0]
+[0 y 0 0]
+[0 0 z 0]
+[0 0  0 1]</code></pre>
+
+        <p>وقتی کاربر مقیاس یک گره را تغییر می‌دهد، ماتریس مقیاسِ حاصل در ماتریس مقیاس فعلیِ گره ضرب می‌شود.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Node
+    def scale(self, up):
+        s =  1.1 if up else 0.9
+        self.scaling_matrix = numpy.dot(self.scaling_matrix, scaling([s, s, s]))
+        self.aabb.scale(s)</code></pre>
+
+        <p>تابع <span dir="ltr">scaling</span> با دریافت فهرستی از عامل‌های مقیاس <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> چنین ماتریسی را برمی‌گرداند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>def scaling(scale):
+    s = numpy.identity(4)
+    s[0, 0] = scale[0]
+    s[1, 1] = scale[1]
+    s[2, 2] = scale[2]
+    s[3, 3] = 1
+    return s</code></pre>
+
+        <h4>جابه‌جایی گره‌ها</h4>
+        <p>برای انتقال یک گره، از همان محاسبهٔ پرتوی که برای انتخاب استفاده کردیم بهره می‌گیریم. پرتویی را که نمایانگر مکان فعلی ماوس است به تابع move صحنه می‌دهیم. مکان جدید گره باید روی پرتو باشد. برای تعیین اینکه گره را در کجای پرتو قرار دهیم، باید فاصلهٔ گره از دوربین را بدانیم. چون هنگام انتخاب گره (در تابع pick) مکان و فاصلهٔ گره را از دوربین ذخیره کردیم، می‌توانیم از همان داده‌ها در این‌جا استفاده کنیم. نقطه‌ای را می‌یابیم که در امتداد پرتو هدف، همان فاصله از دوربین دارد و تفاضل برداری بین مکان جدید و قدیم را محاسبه می‌کنیم. سپس گره را با بردارِ حاصل انتقال می‌دهیم.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Scene
+    def move_selected(self, start, direction, inv_modelview):
+        """ 
+        جابه‌جایی گرهٔ انتخاب‌شده، اگر وجود داشته باشد.
+
+        ورودی:
+        start و direction پرتوی مقصد را توصیف می‌کنند
+        mat ماتریس مدل‌ویو صحنه است
+        """
+        if self.selected_node is None: return
+
+        # یافتن عمق و مکان فعلی گرهٔ انتخاب‌شده
+        node = self.selected_node
+        depth = node.depth
+        oldloc = node.selected_loc
+
+        # مکان جدید گره همان عمق در امتداد پرتوی جدید است
+        newloc = (start + direction * depth)
+
+        # تبدیل انتقال با ماتریس مدل‌ویو
+        translation = newloc - oldloc
+        pre_tran = numpy.array([translation[0], translation[1], translation[2], 0])
+        translation = inv_modelview.dot(pre_tran)
+
+        # انتقال گره و پیگیری مکان آن
+        node.translate(translation[0], translation[1], translation[2])
+        node.selected_loc = newloc</code></pre>
+
+        <p>توجه کنید که مکان‌های جدید و قدیم در فضای مختصات دوربین تعریف شده‌اند. ما نیاز داریم انتقال‌مان در فضای مختصات جهان تعریف شود. بنابراین انتقالِ در فضای دوربین را با ضرب در معکوس ماتریس مدل‌ویو به انتقالِ در فضای جهان تبدیل می‌کنیم.</p>
+        <p>مانند مقیاس، هر گره ماتریسی ذخیره می‌کند که انتقال آن را نشان می‌دهد. ماتریس انتقال به این شکل است:</p>
+
+        <pre class="code"><span class="lang-tag">math</span><code>[1 0 0 x]
+[0 1 0 y]
+[0 0 1 z]
+[0 0 0 1]</code></pre>
+
+        <p>وقتی گره انتقال می‌یابد، برای انتقال فعلی ماتریس انتقالِ جدیدی می‌سازیم و آن را در ماتریس انتقالِ گره ضرب می‌کنیم تا هنگام رندر استفاده شود.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Node
+    def translate(self, x, y, z):
+        self.translation_matrix = numpy.dot(
+            self.translation_matrix, 
+            translation([x, y, z]))</code></pre>
+
+        <p>تابع <span dir="ltr">translation</span> با دریافت فهرستی که فاصله‌های انتقال <span dir="ltr">x</span>، <span dir="ltr">y</span> و <span dir="ltr">z</span> را نشان می‌دهد، ماتریس انتقال برمی‌گرداند.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>def translation(displacement):
+    t = numpy.identity(4)
+    t[0, 3] = displacement[0]
+    t[1, 3] = displacement[1]
+    t[2, 3] = displacement[2]
+    return t</code></pre>
+
+        <h4>قرار دادن گره‌ها</h4>
+        <p>قرار دادن گره از فنونِ هر دو بخش انتخاب و انتقال استفاده می‌کند. برای تعیین محل قرارگیری گره، از همان محاسبهٔ پرتو برای مکان فعلی ماوس استفاده می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Viewer
+    def place(self, shape, x, y):
+        """ اجرای قرار دادن یک شکل اولیه جدید در صحنه """
+        start, direction = self.get_ray(x, y)
+        self.scene.place(shape, start, direction, self.inverseModelView)</code></pre>
+
+        <p>برای قرار دادن یک گرهٔ جدید، نخست نمونهٔ جدیدی از نوعِ متناظرِ گره می‌سازیم و آن را به صحنه می‌افزاییم. می‌خواهیم گره را زیر نشانگرِ کاربر قرار دهیم، بنابراین نقطه‌ای روی پرتو، در فاصلهٔ ثابتی از دوربین می‌یابیم. دوباره، پرتو در فضای دوربین نمایش داده می‌شود، بنابراین بردار انتقالِ حاصل را با ضرب در ماتریس مدل‌ویو معکوس به فضای مختصات جهان تبدیل می‌کنیم. سرانجام، گرهٔ جدید را با بردار محاسبه‌شده انتقال می‌دهیم.</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>    # class Scene
+    def place(self, shape, start, direction, inv_modelview):
+        """ 
+        قرار دادن یک گره جدید.
+
+        ورودی:
+        shape شکلی که باید افزوده شود
+        start و direction پرتوی مقصد را توصیف می‌کنند
+        inv_modelview ماتریس مدل‌ویو معکوس صحنه است
+        """
+        new_node = None
+        if shape == 'sphere': new_node = Sphere()
+        elif shape == 'cube': new_node = Cube()
+        elif shape == 'figure': new_node = SnowFigure()
+
+        self.add_node(new_node)
+
+        # قرار دادن گره در محل نشانگر در فضای دوربین
+        translation = (start + direction * self.PLACE_DEPTH)
+
+        # تبدیل انتقال به فضای جهان
+        pre_tran = numpy.array([translation[0], translation[1], translation[2], 1])
+        translation = inv_modelview.dot(pre_tran)
+
+        new_node.translate(translation[0], translation[1], translation[2])</code></pre>
+      </section>
+
+      <section>
+        <h2>خلاصه (Summary)</h2>
+        <p>تبریک می‌گوییم! ما با موفقیت یک مدلساز سه‌بعدی کوچک پیاده‌سازی کردیم!</p>
+
+        <p><strong>شکل ۱۳.۴ — صحنهٔ نمونه</strong></p>
+        <img src="https://aosabook.org/en/500L/modeller-images/StartScene.png" alt="شکل ۱۳.۴ — صحنهٔ نمونهٔ مدلساز: یک مکعب، یک کره و یک آدم‌برفی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>دیدیم که چگونه ساختار دادهٔ توسعه‌پذیری برای نمایش اشیای صحنه توسعه دهیم. متوجه شدیم که استفاده از الگوی طراحی Composite و ساختار دادهٔ درختی، پیمایش صحنه برای رندر را آسان می‌کند و به ما امکان می‌دهد بدون هیچ پیچیدگی افزوده‌ای انواع جدیدی از گره‌ها بیفزاییم. از این ساختار داده برای رندر طراحی روی صفحه بهره بردیم و در پیمایش گراف صحنه، ماتریس‌های OpenGL را دستکاری کردیم. یک سامانهٔ فراخوانی بسیار ساده برای رویدادهای سطح-برنامه ساختیم و از آن برای کپسوله‌کردن رسیدگی به رویدادهای سیستمعامل استفاده کردیم. پیاده‌سازی‌های ممکن برای تشخیص برخورد پرتو-شیء و معاوضه‌های میان درستی، پیچیدگی و کارایی را بررسی کردیم. سرانجام، روش‌هایی برای دستکاری محتوای صحنه پیاده‌سازی کردیم.</p>
+        <p>می‌توانید انتظار داشته باشید همین اجزای پایه را در نرم‌افزارهای سه‌بعدی تولیدی بیابید. ساختار گراف صحنه و فضاهای مختصات نسبی در بسیاری از انواع برنامه‌های گرافیک سه‌بعدی یافت می‌شوند، از ابزارهای CAD تا موتورهای بازی. یکی از ساده‌سازی‌های بزرگ این پروژه در واسط کاربر است. از یک مدلساز سه‌بعدی تولیدی انتظار می‌رود واسط کاربر کاملی داشته باشد که به سامانهٔ رویدادی بسیار پیشرفته‌تری به‌جای سامانهٔ فراخوانی سادهٔ ما نیازمند است.</p>
+        <p>می‌توانیم آزمایش‌های بیشتری برای افزودن امکانات جدید به این پروژه انجام دهیم. یکی از این موارد را امتحان کنید:</p>
+        <ul>
+          <li>نوع گره‌ای برای پشتیبانی از مش‌های مثلثی برای شکل‌های دلخواه بیفزایید.</li>
+          <li>پشتهٔ واگرد (undo) بیفزایید تا واگرد/انجام‌دوبارهٔ اقدامات مدلساز ممکن شود.</li>
+          <li>طراحی را با یک قالب فایل سه‌بعدی مانند DXF ذخیره/بارگذاری کنید.</li>
+          <li>یک موتور رندر یکپارچه کنید: طراحی را برای استفاده در یک رندرکنندهٔ فتورئالیستی خروجی بگیرید.</li>
+          <li>تشخیص برخورد را با برخورد دقیق پرتو-شیء بهبود دهید.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>کاوش بیشتر (Further Exploration)</h2>
+        <p>برای بینش بیشتر دربارهٔ نرم‌افزارهای مدل‌سازی سه‌بعدی در دنیای واقعی، چند پروژهٔ منبع‌باز جالب هستند.</p>
+        <p>Blender یک مجموعهٔ انیمیشن سه‌بعدی کامل و منبع‌باز است. خط لولهٔ سه‌بعدی کاملی برای ساخت جلوه‌های ویژه در ویدیو یا ساخت بازی فراهم می‌کند. مدلساز بخش کوچکی از این پروژه است و نمونهٔ خوبی از یکپارچه‌سازی یک مدلساز در یک مجموعهٔ نرم‌افزاری بزرگ است.</p>
+        <p>OpenSCAD یک ابزار مدل‌سازی سه‌بعدی منبع‌باز است. تعاملی نیست؛ بلکه فایل اسکریپتی را می‌خواند که مشخص می‌کند صحنه چگونه تولید شود. این به طراح «کنترل کامل بر فرایند مدل‌سازی» می‌دهد.</p>
+        <p>برای اطلاعات بیشتر دربارهٔ الگوریتم‌ها و فنون گرافیک رایانه‌ای، Graphics Gems منبع بسیار خوبی است.</p>
+        <p>از دکتر آنتون گردلان (Dr. Anton Gerdelan) به‌خاطر تصویر سپاسگزاریم. کتاب آموزش OpenGL او در <span dir="ltr">http://antongerdelan.net/opengl/</span> در دسترس است.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «یک مدلساز سه‌بعدی (A 3D Modeller)» اثر اریک درانش (Erick Dransch)، فصل ۱۳ از کتاب «500 Lines or Less» است که با مجوز رایگان (Creative Commons Attribution) منتشر شده است. این صفحه فقط ترجمهٔ فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://aosabook.org/en/500L/a-3d-modeller.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>
