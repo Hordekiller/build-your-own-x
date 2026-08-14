@@ -870,34 +870,34 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "docker-rubber",
 "category": "داکر",
 "lang": "Python",
 "title": "کارگاه کانتینرهای لینوکس: بازسازی داکر از صفر",
 "url": "https://github.com/Fewbytes/rubber-docker",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-rubber.html"
 },
 {
-"id": "",
+"id": "docker-mocker",
 "category": "داکر",
 "lang": "Python",
 "title": "نمونه‌ای اثبات مفهوم از داکر، نوشته‌شده با ۱۰۰٪ پایتون",
 "url": "https://github.com/tonybaloney/mocker",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-mocker.html"
 },
 {
-"id": "",
+"id": "docker-bocker",
 "category": "داکر",
 "lang": "Shell",
 "title": "داکر پیاده‌سازی‌شده در حدود ۱۰۰ خط bash",
 "url": "https://github.com/p8952/bocker",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/docker-bocker.html"
 },
 {
 "id": "",

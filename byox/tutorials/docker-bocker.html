@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی پروژه «bocker: Docker implemented in around 100 lines of bash»
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  منبع: https://github.com/p8952/bocker
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | باکر: پیاده‌سازی داکر در حدود ۱۰۰ خط bash</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">داکر</a>
+        <span class="sep">←</span>
+        <span>باکر: پیاده‌سازی داکر در حدود ۱۰۰ خط bash</span>
+      </div>
+      <h1>باکر: پیاده‌سازی داکر در حدود ۱۰۰ خط bash</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Shell</span>
+        <span class="meta-badge">📁 دسته: داکر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/p8952/bocker" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی پروژهٔ «bocker» نوشتهٔ «پیتر ویلموت (Peter Wilmott)» (نام کاربری گیت‌هاب
+          p8952) است — داکر (Docker) که در حدود ۱۰۰ خط bash پیاده‌سازی شده است. کد کامل اسکریپت، فایل واگنت (Vagrantfile)
+          و نمونهٔ استفادهٔ مندرج در مخزن، همگی در این صفحه ترجمه و تشریح شده‌اند. نسخهٔ کامل و به‌روز را از مخزن اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/p8952/bocker" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>پروژهٔ <b>باکر (bocker)</b> یکی از معروف‌ترین پروژه‌های آموزشی «خودت بساز» در دنیای لینوکس است: پیاده‌سازی کامل
+        داکر در حدود ۱۰۰ خط اسکریپت bash. نویسندهٔ آن، پیتر ویلموت (Peter Wilmott)، با این پروژه نشان می‌دهد که کانتینرها
+        (containers) هیچ جادویی در کار نیستند؛ بلکه حاصل کنار هم قرارگرفتن چند ابزار اصلی هستهٔ لینوکس (kernel) هستند:
+        فضاهای نام (namespaces)، چروت (chroot)، گروه‌های کنترل (cgroups) و فایل‌سیستم کپی‌هنگام‌نوشتنِ
+        <code class="inline">btrfs</code>.</p>
+        <p>مخزن اصلی این پروژه در <a href="https://github.com/p8952/bocker" target="_blank" rel="noopener">github.com/p8952/bocker</a>
+        قرار دارد، دارای بیش از ۱۲ هزار ستاره است، تحت پروانهٔ GPL-3.0 منتشر شده و یک فایل واگنت (Vagrantfile) برای راه‌اندازی
+        خودکار محیط آزمایش همراه دارد. در این صفحه، کل اسکریپت به‌صورت خط‌به‌خط ترجمه و تشریح می‌شود تا ببینید موتور
+        کانتینری داکر در ساده‌ترین شکل ممکن چگونه کار می‌کند.</p>
+        <div class="callout note">
+          <strong>هشدار مهم:</strong> باکر باید به‌عنوان کاربر ریشه (root) اجرا شود و از جمله به رابط‌های شبکه، جدول مسیریابی
+          (routing table) و قواعد دیوار آتش (firewall) سیستم شما تغییراتی اعمال می‌کند. نویسنده تأکید می‌کند که بهترین کار،
+          اجرای باکر <b>داخل یک ماشین مجازی (virtual machine)</b> است و ضمانتی نمی‌دهد که سیستم شما را نابود نکند!
+        </div>
+      </section>
+
+      <!-- ==================== پیش‌نیازها ==================== -->
+      <section>
+        <h2>پیش‌نیازها</h2>
+        <p>برای اجرای باکر به بسته‌های زیر در یک توزیع گنو/لینوکس (GNU/Linux) نیاز دارید:</p>
+        <ul>
+          <li><code class="inline">btrfs-progs</code> — ابزارهای فایل‌سیستم btrfs (ساب‌وولوم و عکس‌فوری)</li>
+          <li><code class="inline">curl</code> — دریافت تصاویر از رجیستری داکر</li>
+          <li><code class="inline">iproute2</code> — دستور <code class="inline">ip</code> برای شبکه و فضاهای نام شبکه</li>
+          <li><code class="inline">iptables</code> — دیوار آتش برای انتقال بسته‌ها از پل شبکه</li>
+          <li><code class="inline">libcgroup-tools</code> — ابزار گروه‌های کنترل (cgroup): <code class="inline">cgcreate</code>،
+          <code class="inline">cgset</code>، <code class="inline">cgexec</code> و <code class="inline">cgdelete</code></li>
+          <li><code class="inline">util-linux</code> نسخهٔ ۲.۲۵.۲ یا بالاتر — برای دستور <code class="inline">unshare</code></li>
+          <li><code class="inline">coreutils</code> نسخهٔ ۷.۵ یا بالاتر</li>
+        </ul>
+        <p>چون بیشتر توزیع‌ها نسخهٔ به‌اندازه‌ای جدید از <code class="inline">util-linux</code> را ارائه نمی‌کنند، احتمالاً باید
+        کدهای منبع آن را از <a href="https://www.kernel.org/pub/linux/utils/util-linux/v2.25/" target="_blank" rel="noopener">
+        kernel.org</a> بگیرید و خودتان کامپایل کنید.</p>
+        <p>علاوه بر بسته‌ها، سیستم شما باید به‌صورت زیر پیکربندی شده باشد:</p>
+        <ul>
+          <li>یک فایل‌سیستم <code class="inline">btrfs</code> که روی مسیر <code class="inline">/var/bocker</code> سوار شده باشد.</li>
+          <li>یک پل شبکه (network bridge) به نام <code class="inline">bridge0</code> با آدرس IP برابر
+          <code class="inline">10.0.0.1/24</code>.</li>
+          <li>ارسال بسته (IP forwarding) در <code class="inline">/proc/sys/net/ipv4/ip_forward</code> فعال باشد.</li>
+          <li>یک دیوار آتش که ترافیک را از <code class="inline">bridge0</code> به یک رابط فیزیکی هدایت کند (در نمونهٔ واگنت با
+          <code class="inline">MASQUERADE</code> انجام می‌شود).</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکته:</strong> برای سهولت کار، یک Vagrantfile در مخزن گنجانده شده است که کل این محیط را خودکار می‌سازد؛
+          بخش «نحوهٔ نصب و استفاده» آن را نشان می‌دهد.
+        </div>
+      </section>
+
+      <!-- ==================== نحوه نصب و استفاده ==================== -->
+      <section>
+        <h2>نحوهٔ نصب و استفاده</h2>
+        <p>ساده‌ترین راه، ساخت محیط آماده با واگنت (Vagrant) است. فایل <code class="inline">Vagrantfile</code> مخزن یک ماشین
+        مجازی CentOS 7 بالا می‌آورد، فایل تصویر btrfs ساخته و روی <code class="inline">/var/bocker</code> سوار می‌کند، از
+        <code class="inline">undocker</code> برای آماده‌کردن یک تصویر پایهٔ centos استفاده می‌کند، نسخهٔ موردنیاز
+        <code class="inline">util-linux</code> را برای دستور <code class="inline">unshare</code> کامپایل می‌کند، اسکریپت
+        <code class="inline">bocker</code> را در <code class="inline">/usr/bin</code> قرار می‌دهد و در نهایت پل
+        <code class="inline">bridge0</code>، مسیریابی و قواعد NAT را برپا می‌کند. محتوای کامل این فایل:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code style="direction:ltr;text-align:left">$script = &lt;&lt;SCRIPT
+(
+rpm -i https://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+yum install -y -q autoconf automake btrfs-progs docker gettext-devel git libcgroup-tools libtool python-pip
+
+fallocate -l 10G ~/btrfs.img
+mkdir /var/bocker
+mkfs.btrfs ~/btrfs.img
+mount -o loop ~/btrfs.img /var/bocker
+
+pip install git+https://github.com/larsks/undocker
+systemctl start docker.service
+docker pull centos
+docker save centos | undocker -o base-image
+
+git clone https://github.com/karelzak/util-linux.git
+cd util-linux
+git checkout tags/v2.25.2
+./autogen.sh
+./configure --without-ncurses --without-python
+make
+mv unshare /usr/bin/unshare
+cd ..
+
+ln -s /vagrant/bocker /usr/bin/bocker
+
+echo 1 &gt; /proc/sys/net/ipv4/ip_forward
+iptables --flush
+iptables -t nat -A POSTROUTING -o bridge0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+
+ip link add bridge0 type bridge
+ip addr add 10.0.0.1/24 dev bridge0
+ip link set bridge0 up
+) 2&gt;&amp;1
+SCRIPT
+
+Vagrant.configure(2) do |config|
+	config.vm.box = 'puppetlabs/centos-7.0-64-nocm'
+	config.ssh.username = 'root'
+	config.ssh.password = 'puppet'
+	config.ssh.insert_key = 'true'
+	config.vm.provision 'shell', inline: $script
+end</code></pre>
+        <p>پس از آماده‌شدن محیط، کافی است اسکریپت <code class="inline">bocker</code> را اجرا کنید. نمونهٔ استفادهٔ کامل و
+        واقعی از خودِ README مخزن:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ bocker pull centos 7
+######################################################################## 100.0%
+######################################################################## 100.0%
+######################################################################## 100.0%
+Created: img_42150
+
+$ bocker images
+IMAGE_ID        SOURCE
+img_42150       centos:7
+
+$ bocker run img_42150 cat /etc/centos-release
+CentOS Linux release 7.1.1503 (Core)
+
+$ bocker ps
+CONTAINER_ID       COMMAND
+ps_42045           cat /etc/centos-release
+
+$ bocker logs ps_42045
+CentOS Linux release 7.1.1503 (Core)
+
+$ bocker rm ps_42045
+Removed: ps_42045
+
+$ bocker run img_42150 which wget
+which: no wget in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+
+$ bocker run img_42150 yum install -y wget
+Installing : wget-1.14-10.el7_0.1.x86_64                                  1/1
+Verifying  : wget-1.14-10.el7_0.1.x86_64                                  1/1
+Installed  : wget.x86_64 0:1.14-10.el7_0.1
+Complete!
+
+$ bocker ps
+CONTAINER_ID       COMMAND
+ps_42018           yum install -y wget
+ps_42182           which wget
+
+$ bocker commit ps_42018 img_42150
+Removed: img_42150
+Created: img_42150
+
+$ bocker run img_42150 which wget
+/usr/bin/wget
+
+$ bocker run img_42150 cat /proc/1/cgroup
+...
+4:memory:/ps_42152
+3:cpuacct,cpu:/ps_42152
+
+$ cat /sys/fs/cgroup/cpu/ps_42152/cpu.shares
+512
+
+$ cat /sys/fs/cgroup/memory/ps_42152/memory.limit_in_bytes
+512000000
+
+$ BOCKER_CPU_SHARE=1024 \
+	BOCKER_MEM_LIMIT=1024 \
+	bocker run img_42150 cat /proc/1/cgroup
+...
+4:memory:/ps_42188
+3:cpuacct,cpu:/ps_42188
+
+$ cat /sys/fs/cgroup/cpu/ps_42188/cpu.shares
+1024
+
+$ cat /sys/fs/cgroup/memory/ps_42188/memory.limit_in_bytes
+1024000000</code></pre>
+        <p>همان‌طور که می‌بینید، جریان کار دقیقاً همان‌ند داکر است: تصویری را می‌کشیم (pull)، کانتینری از آن می‌سازیم (run)،
+        تغییرات را به‌صورت تصویر جدید ثبت می‌کنیم (commit) و در پایان، سهم پردازنده و حافظهٔ هر کانتینر با متغیرهای محیطی
+        <code class="inline">BOCKER_CPU_SHARE</code> و <code class="inline">BOCKER_MEM_LIMIT</code> قابل تنظیم است.</p>
+      </section>
+
+      <!-- ==================== تشریح کامل اسکریپت ==================== -->
+      <section>
+        <h2>تشریح کامل اسکریپت bocker</h2>
+        <p>در مخزن، فایل اصلی با نام <code class="inline">bocker</code> (بدون پسوند) قرار دارد. اسکریپت را بخش‌به‌بخش
+        می‌خوانیم؛ هر بخش، هم کد واقعی و هم شرح فارسی آن را همراه دارد.</p>
+
+        <!-- پیش‌درآمد -->
+        <section>
+          <h3>پیش‌درآمد اسکریپت: تنظیمات و پارس گزینه‌ها</h3>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail; shopt -s nullglob
+btrfs_path='/var/bocker' &amp;&amp; cgroups='cpu,cpuacct,memory';
+[[ $# -gt 0 ]] &amp;&amp; while [ "${1:0:2}" == '--' ]; do OPTION=${1:2}; [[ $OPTION =~ = ]] &amp;&amp; declare "BOCKER_${OPTION/=*/}=${OPTION/*=/}" || declare "BOCKER_${OPTION}=x"; shift; done</code></pre>
+          <ul>
+            <li><code class="inline">#!/usr/bin/env bash</code> — شِبنگ (shebang): اجرای اسکریپت با مفسر bash.</li>
+            <li><code class="inline">set -o errexit -o nounset -o pipefail</code> — با اولین خطا خارج شو، متغیر تعریف‌نشده را
+            خطا بگیر و اگر یکی از دستورهای یک خط لوله (pipe) شکست خورد، نتیجهٔ کل خط شکست‌خورده باشد.</li>
+            <li><code class="inline">shopt -s nullglob</code> — اگر الگوی glob به چیزی نیافت، به‌جای ارسال خودِ الگو، لیست
+            خالی بفرست (در حلقه‌های <code class="inline">for</code> روی <code class="inline">img_*</code> مهم است).</li>
+            <li><code class="inline">btrfs_path='/var/bocker'</code> — مسیر ریشه‌ای که همهٔ تصاویر و کانتینرها به‌صورت
+            ساب‌وولوم (subvolume) در آن ساخته می‌شوند.</li>
+            <li><code class="inline">cgroups='cpu,cpuacct,memory'</code> — زیرسیستم‌های گروه کنترل که باکر استفاده می‌کند:
+            پردازنده، حساب‌رسِ پردازنده و حافظه.</li>
+            <li>حلقهٔ <code class="inline">while</code> — هر آرگومانی که با <code class="inline">--</code> آغاز شود، پارس
+            می‌شود: اگر شکل <code class="inline">--نام=مقدار</code> باشد، متغیر محیطی
+            <code class="inline">BOCKER_نام=مقدار</code> تعریف می‌شود و در غیر این‌صورت
+            <code class="inline">BOCKER_نام=x</code>. به این ترتیب گزینه‌هایی مانند
+            <code class="inline">--cpu-share=1024</code> به متغیر <code class="inline">BOCKER_CPU_SHARE</code> تبدیل
+            می‌شوند.</li>
+          </ul>
+        </section>
+
+        <!-- فایل‌سیستم -->
+        <section>
+          <h3>فایل‌سیستم btrfs: ساب‌وولوم‌ها و عکس‌فوری‌ها</h3>
+          <p>نکتهٔ کلیدی درک باکر، فهم فایل‌سیستم <code class="inline">btrfs</code> است. هر تصویر و هر کانتینر یک
+          <b>ساب‌وولوم (subvolume)</b> در <code class="inline">/var/bocker</code> است و کانتینرها با
+          <b>عکس‌فوری (snapshot)</b> از تصویر ساخته می‌شوند. چون عکس‌فوری در btrfs با مکانیزم کپی‌هنگام‌نوشتن
+          (copy-on-write / CoW) انجام می‌شود، کانتینرها تقریباً هیچ فضای اضافه‌ای مصرف نمی‌کنند و لایه‌بندی تصویر/کانتینر
+          دقیقاً به همین شکل کار می‌کند (نقشی که در داکر واقعی بر عهدهٔ overlayfs است). تابع <code class="inline">bocker_check</code>
+          بررسی می‌کند که آیا ساب‌وولومی با شناسهٔ داده‌شده وجود دارد یا نه:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_check() {
+	btrfs subvolume list "$btrfs_path" | grep -qw "$1" &amp;&amp; echo 0 || echo 1
+}</code></pre>
+          <p>فهرست ساب‌وولوم‌های <code class="inline">/var/bocker</code> را می‌گیرد و با <code class="inline">grep -w</code>
+          به‌دنبال شناسهٔ موردنظر (مثلاً <code class="inline">img_42150</code>) می‌گردد؛ اگر یافت شد <code class="inline">0</code>
+          وگرنه <code class="inline">1</code> چاپ می‌کند (این <code class="inline">1</code> خروجیِ «صادقانهٔ» خودِ
+          <code class="inline">echo</code> است، نه کد خروجی دستور!).</p>
+          <p>حذف تصویر یا کانتینر نیز یک‌پارچه است — حذف ساب‌وولوم و حذف گروه کنترل متناظر:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_rm() { #HELP حذف یک تصویر یا کانتینر:\nBOCKER rm &lt;image_id or container_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	btrfs subvolume delete "$btrfs_path/$1" &gt; /dev/null
+	cgdelete -g "$cgroups:/$1" &amp;&gt; /dev/null || true
+	echo "Removed: $1"
+}</code></pre>
+          <p>با <code class="inline">btrfs subvolume delete</code> ساب‌وولوم حذف و با <code class="inline">cgdelete</code>
+          گروه کنترلش پاک می‌شود. همین یک تابع هم دستور <code class="inline">docker rm</code> و هم
+          <code class="inline">docker rmi</code> را پوشش می‌دهد؛ چون تفاوتی نمی‌کند که شناسه مربوط به تصویر باشد یا
+          کانتینر.</p>
+        </section>
+
+        <!-- تصاویر -->
+        <section>
+          <h3>تصاویر: init، pull، images و commit</h3>
+          <p><b>ساخت تصویر از یک پوشه (معادل بسیار محدودِ <code class="inline">docker build</code>):</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_init() { #HELP ساخت تصویر از یک پوشه:\nBOCKER init &lt;directory&gt;
+	uuid="img_$(shuf -i 42002-42254 -n 1)"
+	if [[ -d "$1" ]]; then
+		[[ "$(bocker_check "$uuid")" == 0 ]] &amp;&amp; bocker_run "$@"
+		btrfs subvolume create "$btrfs_path/$uuid" &gt; /dev/null
+		cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" &gt; /dev/null
+		[[ ! -f "$btrfs_path/$uuid"/img.source ]] &amp;&amp; echo "$1" &gt; "$btrfs_path/$uuid"/img.source
+		echo "Created: $uuid"
+	else
+		echo "No directory named '$1' exists"
+	fi
+}</code></pre>
+          <p>شناسهٔ تصویر به‌صورت تصادفی با <code class="inline">img_</code> به‌علاوهٔ یک عدد بین ۴۲۰۰۲ تا ۴۲۲۵۴ ساخته
+          می‌شود (باکر «ps_» و «img_» را به‌همراه همین بازهٔ عددی به‌کار می‌برد؛ منبع الهام هم‌نامیِ آنها با شناسه‌های واقعی
+          داکر است). سپس یک ساب‌وولوم جدید ساخته و محتوای پوشهٔ ورودی با
+          <code class="inline">cp --reflink=auto</code> در آن کپی می‌شود؛ <code class="inline">reflink</code> یعنی کپی هم
+          در btrfs با مکانیزم کپی‌هنگام‌نوشتن انجام می‌شود. منبع تصویر در فایل <code class="inline">img.source</code> ذخیره
+          می‌شود تا بعداً در <code class="inline">bocker images</code> نمایش داده شود.</p>
+          <p><b>کشیدن تصویر از داکر هاب (Docker Hub):</b> شاید شگفت‌انگیزترین بخش باکر — تصاویر واقعی از رجیستری عمومی
+          داکر با پروتکل قدیمی v1 دانلود می‌شوند:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_pull() { #HELP دریافت تصویر از داکر هاب:\nBOCKER pull &lt;name&gt; &lt;tag&gt;
+	token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v1/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
+	registry='https://registry-1.docker.io/v1'
+	id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
+	[[ "${#id}" -ne 64 ]] &amp;&amp; echo "No image named '$1:$2' exists" &amp;&amp; exit 1
+	ancestry="$(curl -sL -H "Authorization: Token $token" "$registry/images/$id/ancestry")"
+	IFS=',' &amp;&amp; ancestry=(${ancestry//[\[\] \"]/}) &amp;&amp; IFS=' \n\t'; tmp_uuid="$(uuidgen)" &amp;&amp; mkdir /tmp/"$tmp_uuid"
+	for id in "${ancestry[@]}"; do
+		curl -#L -H "Authorization: Token $token" "$registry/images/$id/layer" -o /tmp/"$tmp_uuid"/layer.tar
+		tar xf /tmp/"$tmp_uuid"/layer.tar -C /tmp/"$tmp_uuid" &amp;&amp; rm /tmp/"$tmp_uuid"/layer.tar
+	done
+	echo "$1:$2" &gt; /tmp/"$tmp_uuid"/img.source
+	bocker_init /tmp/"$tmp_uuid" &amp;&amp; rm -rf /tmp/"$tmp_uuid"
+}</code></pre>
+          <p>مراحل این تابع به‌ترتیب:</p>
+          <ol>
+            <li>با یک درخواست اولیه، نشانهٔ دسترسی (token) از <code class="inline">index.docker.io</code> گرفته می‌شود
+            (<code class="inline">awk</code> مقدار سرآیند <code class="inline">X-Docker-Token</code> را استخراج می‌کند).</li>
+            <li>با آن نشانه، شناسهٔ لایهٔ بالا (که هش ۶۴ کاراکتری sha256 است) برای برچسبِ خواسته‌شده پرس‌وجو می‌شود؛ اگر طولش
+            برابر ۶۴ نباشد یعنی تصویری با آن نام/برچسب وجود ندارد.</li>
+            <li>با آدرس <code class="inline">/images/$id/ancestry</code> فهرست کامل <b>شجرهٔ لایه‌ها</b> (ancestry) گرفته
+            می‌شود و به‌کمک دستکاری <code class="inline">IFS</code> به آرایه تبدیل می‌شود.</li>
+            <li>هر لایه به‌صورت یک آرشیو tar دانلود و به‌ترتیب روی همدیگر از بسته خارج می‌شود — یعنی دقیقاً همان کاری که
+            ران‌تایم داکر هنگام پیمایش لایه‌های یک تصویر انجام می‌دهد.</li>
+            <li>در پایان، پوشهٔ حاصل به <code class="inline">bocker_init</code> سپرده می‌شود تا به‌صورت ساب‌وولوم
+            <code class="inline">img_*</code> دربیاید.</li>
+          </ol>
+          <div class="callout tip">
+            <strong>نکته:</strong> رجیستری v1 داکر سال‌هاست منسوخ شده و داکر هاب دیگر از آن پشتیبانی نمی‌کند؛ پس در دنیای
+            امروز، <code class="inline">bocker pull</code> عملاً به‌کار نمی‌آید و برای تجربهٔ کار واقعی، بهتر است تصاویر را با
+            <code class="inline">bocker init</code> از یک پوشهٔ آماده (مثل خروجیِ <code class="inline">undocker</code> در
+            Vagrantfile) بسازید. بااین‌حال، منطق آن آموزشِ بسیار خوبی است برای این‌که ببینید «کشیدن تصویر» در اصل یعنی چه.
+          </div>
+          <p><b>فهرست تصاویر:</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_images() { #HELP فهرست تصاویر:\nBOCKER images
+	echo -e "IMAGE_ID\t\tSOURCE"
+	for img in "$btrfs_path"/img_*; do
+		img=$(basename "$img")
+		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
+	done
+}</code></pre>
+          <p>همهٔ ساب‌وولوم‌های شروع‌شونده با <code class="inline">img_</code> را فهرست می‌کند و کنار هر شناسه، محتوای
+          <code class="inline">img.source</code> (منبع تصویر، مثلاً <code class="inline">centos:7</code>) را چاپ می‌کند.
+          <code class="inline">nullglob</code> تضمین می‌کند اگر هیچ تصویری وجود نداشته باشد، حلقه اصلاً اجرا نشود.</p>
+          <p><b>ثبت تغییرات کانتینر به‌عنوان تصویر (معادل <code class="inline">docker commit</code>):</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_commit() { #HELP ثبت کانتینر به‌صورت تصویر:\nBOCKER commit &lt;container_id&gt; &lt;image_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	[[ "$(bocker_check "$2")" == 1 ]] &amp;&amp; echo "No image named '$2' exists" &amp;&amp; exit 1
+	bocker_rm "$2" &amp;&amp; btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$2" &gt; /dev/null
+	echo "Created: $2"
+}</code></pre>
+          <p>تصویر قدیمی حذف می‌شود و از ساب‌وولوم کانتینر یک عکس‌فوری (snapshot) گرفته می‌شود که همان شناسهٔ تصویر را
+          یدک می‌کشد. به این ترتیب کل لایهٔ تغییرات کانتینر، «تصویرِ» جدید می‌شود — مفهوم commit در داکر، عیناً همین
+          عکس‌فوری است.</p>
+        </section>
+
+        <!-- کانتینر و namespace -->
+        <section>
+          <h3>کانتینرها: قلب باکر در bocker_run</h3>
+          <p>تابع <code class="inline">bocker_run</code> همهٔ کارهای اصلی را انجام می‌دهد: ایجاد شبکه، ساخت عکس‌فوری،
+          تخصیص سهم منابع و اجرای دستور داخل فضای ایزوله. کد کامل آن:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_run() { #HELP ساخت یک کانتینر:\nBOCKER run &lt;image_id&gt; &lt;command&gt;
+	uuid="ps_$(shuf -i 42002-42254 -n 1)"
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No image named '$1' exists" &amp;&amp; exit 1
+	[[ "$(bocker_check "$uuid")" == 0 ]] &amp;&amp; echo "UUID conflict, retrying..." &amp;&amp; bocker_run "$@" &amp;&amp; return
+	cmd="${@:2}" &amp;&amp; ip="$(echo "${uuid: -3}" | sed 's/0//g')" &amp;&amp; mac="${uuid: -3:1}:${uuid: -2}"
+	ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
+	ip link set dev veth0_"$uuid" up
+	ip link set veth0_"$uuid" master bridge0
+	ip netns add netns_"$uuid"
+	ip link set veth1_"$uuid" netns netns_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev lo up
+	ip netns exec netns_"$uuid" ip link set veth1_"$uuid" address 02:42:ac:11:00"$mac"
+	ip netns exec netns_"$uuid" ip addr add 10.0.0."$ip"/24 dev veth1_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev veth1_"$uuid" up
+	ip netns exec netns_"$uuid" ip route add default via 10.0.0.1
+	btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$uuid" &gt; /dev/null
+	echo 'nameserver 8.8.8.8' &gt; "$btrfs_path/$uuid"/etc/resolv.conf
+	echo "$cmd" &gt; "$btrfs_path/$uuid/$uuid.cmd"
+	cgcreate -g "$cgroups:/$uuid"
+	: "${BOCKER_CPU_SHARE:=512}" &amp;&amp; cgset -r cpu.shares="$BOCKER_CPU_SHARE" "$uuid"
+	: "${BOCKER_MEM_LIMIT:=512}" &amp;&amp; cgset -r memory.limit_in_bytes="$((BOCKER_MEM_LIMIT * 1000000))" "$uuid"
+	cgexec -g "$cgroups:$uuid" \
+		ip netns exec netns_"$uuid" \
+		unshare -fmuip --mount-proc \
+		chroot "$btrfs_path/$uuid" \
+		/bin/sh -c "/bin/mount -t proc proc /proc &amp;&amp; $cmd" \
+		2&gt;&amp;1 | tee "$btrfs_path/$uuid/$uuid.log" || true
+	ip link del dev veth0_"$uuid"
+	ip netns del netns_"$uuid"
+}</code></pre>
+          <p>جریان اجرا، گام‌به‌گام:</p>
+          <ol>
+            <li><b>شناسه و آرگومان‌ها:</b> شناسهٔ کانتینر <code class="inline">ps_</code> به‌علاوهٔ یک عدد تصادفی است.
+            اگر تصویرِ منبع وجود نداشته باشد خطا می‌دهد؛ اگر شناسهٔ کانتینر تکراری از آب دربیاید، تابع خودش را دوباره فراخوانی
+            می‌کند (retry). دستورِ کانتینر در <code class="inline">cmd</code> و یک IP و یک آدرس MAC جعلی از سه رقم آخر
+            شناسه ساخته می‌شود (اعداد صفر حذف می‌شوند تا آدرس ۱۰.۰.۰.X معتبر بماند).</li>
+            <li><b>شبکه:</b> یک جفت رابط مجازی veth (کابل مجازی) ساخته می‌شود: سرِ اول (<code class="inline">veth0_…</code>)
+            به پل <code class="inline">bridge0</code> میزبان متصل می‌شود و سرِ دوم (<code class="inline">veth1_…</code>) به
+            داخل فضای نام شبکهٔ تازه‌ساخته‌شده‌ی کانتینر منتقل می‌شود (جزئیات در بخش شبکه).</li>
+            <li><b>فایل‌سیستم:</b> از ساب‌وولوم تصویر، یک عکس‌فوری به‌عنوان ساب‌وولوم کانتینر ساخته می‌شود؛ فایل
+            <code class="inline">/etc/resolv.conf</code> به سرور نام دامنهٔ ۸.۸.۸.۸ اشاره می‌کند و دستور کانتینر در فایل
+            <code class="inline">$uuid.cmd</code> ذخیره می‌شود تا <code class="inline">bocker ps</code> بتواند آن را نمایش
+            دهد.</li>
+            <li><b>منابع:</b> گروه کنترل (cgroup) ساخته و سهم پردازنده و سقف حافظه روی آن تنظیم می‌شود (بخش cgroups).</li>
+            <li><b>اجرای ایزوله:</b> با <code class="inline">cgexec</code> کل زنجیرهٔ
+            <code class="inline">ip netns exec → unshare → chroot</code> اجرا می‌شود تا فرایند هم در گروه کنترل، هم در
+            فضای نام شبکه، هم در فضاهای نام تازه و هم در ریشهٔ فایل‌سیستم کانتینر بیفتد. خروجی و خطاها با
+            <code class="inline">tee</code> در فایل <code class="inline">$uuid.log</code> ذخیره می‌شوند
+            (<code class="inline">|| true</code> جلوی خروج زودهنگام به‌خاطر <code class="inline">set -e</code> را می‌گیرد؛
+            اجرای دستور می‌تواند عمداً با خطا تمام شود).</li>
+            <li><b>پاک‌سازی:</b> پس از پایان کار، رابط <code class="inline">veth0_…</code> و فضای نام شبکه حذف می‌شوند.
+            ساب‌وولوم کانتینر باقی می‌ماند تا با <code class="inline">logs</code>، <code class="inline">exec</code> یا
+            <code class="inline">commit</code> دوباره به کار بیاید.</li>
+          </ol>
+        </section>
+
+        <!-- فضاهای نام -->
+        <section>
+          <h3>فضاهای نام (namespaces): ایزوله‌سازی با unshare</h3>
+          <p>خطِ محوریِ اجرای کانتینر در باکر:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">	unshare -fmuip --mount-proc \
+		chroot "$btrfs_path/$uuid" \
+		/bin/sh -c "/bin/mount -t proc proc /proc &amp;&amp; $cmd" \</code></pre>
+          <p><code class="inline">unshare</code> با این پرچم‌ها، فضاهای نام جدیدی برای فرایند فرزند می‌سازد:</p>
+          <ul>
+            <li><code class="inline">-f</code> (fork) — ابتدا یک فرایند فرزند بساز تا فضاهای نام فقط به آن و فرزندانش
+            تعلق داشته باشند.</li>
+            <li><code class="inline">-m</code> (mount) — فضای نام سوارسازی (mount namespace): هر تغییر سوارسازی داخل
+            کانتینر، در میزبان دیده نمی‌شود.</li>
+            <li><code class="inline">-u</code> (UTS) — فضای نام نام میزبان؛ کانتینر می‌تواند نام میزبانِ مستقل داشته باشد.</li>
+            <li><code class="inline">-i</code> (IPC) — فضای نام پیام‌رسانی بین‌فرایندی جدا.</li>
+            <li><code class="inline">-p</code> (PID) — فضای نام شناسهٔ فرایند؛ کانتینر فرایند خودش را با PID یک
+            می‌بیند و از سایر فرایندهای میزبان خبر ندارد.</li>
+            <li><code class="inline">--mount-proc</code> — به‌طور خودکار <code class="inline">/proc</code> را در فضای نام
+            PID تازه سوار می‌کند تا <code class="inline">ps</code> و مانند آن درست کار کنند.</li>
+          </ul>
+          <p>و سپس <code class="inline">chroot "$btrfs_path/$uuid"</code> ریشهٔ فایل‌سیستم را به ساب‌وولوم کانتینر تغییر
+          می‌دهد و در پایان، <code class="inline">/bin/sh -c</code> اول proc را سوار می‌کند و بعد دستورِ کاربر را اجرا
+          می‌کند. جمع همهٔ این‌ها یعنی: شبکهٔ جدا (namespace شبکه)، سیستم فایل جدا (chroot)، سربندیِ جدا (mount namespace)،
+          درخت فرایند جدا (PID namespace) — یعنی همان تعریف سطح بالای یک کانتینر. توجه کنید که <code class="inline">-u</code>
+          و <code class="inline">-i</code> در باکر فقط برای رفع نیازِ پرچم‌هاست و عملاً مورداستفاده قرار نمی‌گیرند.</p>
+        </section>
+
+        <!-- شبکه -->
+        <section>
+          <h3>شبکه: veth، bridge و فضای نام شبکه</h3>
+          <p>باکر برای هر کانتینر یک «کابل مجازی» (veth pair) می‌سازد — دو رابط که از یک سر، یکی در میزبان و دیگری در
+          فضای نام شبکهٔ کانتینر است و هر بسته‌ای که از یکی وارد شود از دیگری خارج می‌شود. سپس سمت میزبان را به پل
+          <code class="inline">bridge0</code> وصل می‌کند و سمت کانتینر را به داخل فضای نام شبکهٔ اختصاصی کانتینر
+          (<code class="inline">netns_…</code>) می‌فرستد. داخل آن فضای نام، رابط حلقه (loopback) و رابط veth بالا آورده
+          می‌شود، به آن آدرس MAC جعلی و IP از زیرشبکهٔ ۱۰.۰.۰.۰/24 داده می‌شود و مسیر پیش‌فرض به سمت
+          <code class="inline">10.0.0.1</code> (خودِ پل روی میزبان) تنظیم می‌گردد:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">	ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
+	ip link set dev veth0_"$uuid" up
+	ip link set veth0_"$uuid" master bridge0
+	ip netns add netns_"$uuid"
+	ip link set veth1_"$uuid" netns netns_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev lo up
+	ip netns exec netns_"$uuid" ip link set veth1_"$uuid" address 02:42:ac:11:00"$mac"
+	ip netns exec netns_"$uuid" ip addr add 10.0.0."$ip"/24 dev veth1_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev veth1_"$uuid" up
+	ip netns exec netns_"$uuid" ip route add default via 10.0.0.1</code></pre>
+          <p>به این ترتیب همهٔ کانتینرها از طریق پل <code class="inline">bridge0</code> به یک شبکهٔ داخلی وصل می‌شوند و
+          «آدرس ۱۰.۰.۰.۱» (میزبان) نقش دروازهٔ پیش‌فرض را دارد. اما این‌که بسته‌های کانتینرها چگونه به اینترنت
+          می‌رسند؟ در Vagrantfile دو قانون NAT این‌گونه برقرار شده است:</p>
+          <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">iptables --flush
+iptables -t nat -A POSTROUTING -o bridge0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE</code></pre>
+          <p>یعنی ترافیک خروجی از <code class="inline">bridge0</code> و از رابط فیزیکی <code class="inline">enp0s3</code>
+          با ترجمهٔ آدرس مبدأ (MASQUERADE) به بیرون می‌رود و پاسخ‌ها دوباره به کانتینرِ درخواست‌دهنده برمی‌گردد. این دقیقاً
+          همان الگویی است که داکر با «شبکهٔ پیش‌فرض بریج» خود پیاده می‌کند، فقط در این‌جا حدوداً با ۱۰ خط iproute2 ساخته
+          شده است.</p>
+        </section>
+
+        <!-- cgroups -->
+        <section>
+          <h3>سهم منابع با cgroups</h3>
+          <p>باکر با گروه‌های کنترل (control groups) برای هر کانتینر محدودیت منابع می‌گذارد — سهم پردازنده با
+          <code class="inline">cpu.shares</code> و سقف حافظه با <code class="inline">memory.limit_in_bytes</code>:</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">	cgcreate -g "$cgroups:/$uuid"
+	: "${BOCKER_CPU_SHARE:=512}" &amp;&amp; cgset -r cpu.shares="$BOCKER_CPU_SHARE" "$uuid"
+	: "${BOCKER_MEM_LIMIT:=512}" &amp;&amp; cgset -r memory.limit_in_bytes="$((BOCKER_MEM_LIMIT * 1000000))" "$uuid"
+	cgexec -g "$cgroups:$uuid" \
+		ip netns exec netns_"$uuid" \</code></pre>
+          <p><code class="inline">cgcreate</code> گروه را می‌سازد؛ مقادیر پیش‌فرض ۵۱۲ برای سهم پردازنده و ۵۱۲ مگابایت برای
+          حافظه است (با الگوی <code class="inline">${VAR:=default}</code> در صورت نبودِ متغیر محیطی). سپس
+          <code class="inline">cgexec</code> دستور را داخل آن گروه اجرا می‌کند؛ یعنی هر سهمی که فرایند مصرف کند، توسط همان
+          محدودیت‌ها مهار می‌شود. این‌ها همان مقادیری‌اند که در نمونهٔ استفاده می‌بینیم:</p>
+          <ul>
+            <li>پیش‌فرض: <code class="inline">cpu.shares</code> برابر ۵۱۲ و
+            <code class="inline">memory.limit_in_bytes</code> برابر ۵۱۲۰۰۰۰۰۰ (۵۱۲ مگابایت).</li>
+            <li>با <code class="inline">BOCKER_CPU_SHARE=1024</code> و <code class="inline">BOCKER_MEM_LIMIT=1024</code>:
+            سهم پردازنده ۱۰۲۴ و سقف حافظه ۱۰۲۴۰۰۰۰۰۰ (یک گیگابایت) می‌شود.</li>
+          </ul>
+          <p>این همان «سهم‌ها و سقف‌ها»یی است که داکر با گزینه‌های <code class="inline">--cpu-shares</code> و
+          <code class="inline">--memory</code> در اختیار می‌گذارد.</p>
+        </section>
+
+        <!-- سایر دستورها -->
+        <section>
+          <h3>سایر دستورها: ps، logs، exec و help</h3>
+          <p><b>فهرست کانتینرها:</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_ps() { #HELP فهرست کانتینرها:\nBOCKER ps
+	echo -e "CONTAINER_ID\t\tCOMMAND"
+	for ps in "$btrfs_path"/ps_*; do
+		ps=$(basename "$ps")
+		echo -e "$ps\t\t$(cat "$btrfs_path/$ps/$ps.cmd")"
+	done
+}</code></pre>
+          <p>معادلِ <code class="inline">docker ps</code>: همهٔ ساب‌وولوم‌های <code class="inline">ps_*</code> را می‌گردد و
+          کنار شناسهٔ هر کانتینر، دستوری را که هنگام <code class="inline">run</code> در فایل <code class="inline">$uuid.cmd</code>
+          ذخیره شده، چاپ می‌کند. (البته برخلاف داکر، این‌جا همهٔ کانتینرها — در حال اجرا یا متوقف — فهرست می‌شوند؛ چون باکر
+          کانتینرها را در پایان اجرا متوقف/حذف نمی‌کند.)</p>
+          <p><b>مشاهدهٔ گزارش‌ها:</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_logs() { #HELP مشاهدهٔ گزارش‌های کانتینر:\nBOCKER logs &lt;container_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	cat "$btrfs_path/$1/$1.log"
+}</code></pre>
+          <p>خروجیِ ذخیره‌شدهٔ هر کانتینر را با <code class="inline">cat</code> نشان می‌دهد — همان فایلی که هنگام اجرا توسط
+          <code class="inline">tee</code> نوشته شد. به همین سادگی، <code class="inline">docker logs</code>!</p>
+          <p><b>اجرای دستور در کانتینرِ در حال اجرا (معادل <code class="inline">docker exec</code>):</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_exec() { #HELP اجرای یک دستور در کانتینر در حال اجرا:\nBOCKER exec &lt;container_id&gt; &lt;command&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	cid="$(ps o ppid,pid | grep "^$(ps o pid,cmd | grep -E "^\ *[0-9]+ unshare.*$1" | awk '{print $1}')" | awk '{print $2}')"
+	[[ ! "$cid" =~ ^\ *[0-9]+$ ]] &amp;&amp; echo "Container '$1' exists but is not running" &amp;&amp; exit 1
+	nsenter -t "$cid" -m -u -i -n -p chroot "$btrfs_path/$1" "${@:2}"
+}</code></pre>
+          <p>این تابع به‌طرز خنده‌داری ظریف است: اول با یک <code class="inline">grep</code> روی خروجی
+          <code class="inline">ps</code>، فرایندی را پیدا می‌کند که با <code class="inline">unshare</code> و شناسهٔ همان
+          کانتینر اجرا شده (یعنی فرایند در حال اجرای کانتینر)، سپس <code class="inline">cid</code> را از ستون PIDِ والدش
+          استخراج می‌کند. اگر عددی معتبر پیدا نشود یعنی کانتینر در حال اجرا نیست. در نهایت با
+          <code class="inline">nsenter -t "$cid" -m -u -i -n -p</code> به همان فضاهای نامِ mount، UTS، IPC، شبکه و PIDِ
+          کانتینر «وارد» می‌شود و بعد از <code class="inline">chroot</code>، دستورِ داده‌شده در همان فایل‌سیستم اجرا
+          می‌شود. یعنی: پیدا کن، وارد شو، اجرا کن.</p>
+          <p><b>راهنمای استفاده:</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">function bocker_help() { #HELP نمایش این راهنما:\nBOCKER help
+	sed -n "s/^.*#HELP\\s//p;" &lt; "$1" | sed "s/\\\\n/\n\t/g;s/$/\n/;s!BOCKER!${1/!/\\!}!g"
+}</code></pre>
+          <p>با <code class="inline">sed</code>، همهٔ کامنت‌های <code class="inline">#HELP</code> از متن خودِ اسکریپت
+          استخراج می‌شوند و به‌صورت راهنما چاپ می‌شوند — یعنی راهنمای پروژه در خودِ کد «تعبیه» شده و هرگز از کد فاصله
+          نمی‌گیرد.</p>
+          <p><b>نقطهٔ ورود و توزیع فرمان‌ها:</b></p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">[[ -z "${1-}" ]] &amp;&amp; bocker_help "$0"
+case $1 in
+	pull|init|rm|images|ps|run|exec|logs|commit) bocker_"$1" "${@:2}" ;;
+	*) bocker_help "$0" ;;
+esac</code></pre>
+          <p>اگر هیچ آرگومانی نیامده باشد راهنما چاپ می‌شود؛ در غیر این‌صورت، اولی‌ن آرگومان نام یک دستور است و تابعی با همان
+          نام (<code class="inline">bocker_$1</code>) با بقیهٔ آرگومان‌ها فراخوانی می‌شود. دستورهای شناخته‌شده‌اند:
+          <code class="inline">pull</code>، <code class="inline">init</code>، <code class="inline">rm</code>،
+          <code class="inline">images</code>، <code class="inline">ps</code>، <code class="inline">run</code>،
+          <code class="inline">exec</code>، <code class="inline">logs</code> و <code class="inline">commit</code>؛ هر
+          چیز دیگری هم به راهنما ارجاع داده می‌شود.</p>
+        </section>
+
+        <!-- کد کامل -->
+        <section>
+          <h3>کد کامل اسکریپت</h3>
+          <p>در ادامه، کل اسکریپت <code class="inline">bocker</code> را یک‌جا می‌بینید (کامنت‌های راهنمای
+          <code class="inline">#HELP</code> به فارسی برگردانده شده‌اند؛ بقیهٔ کد عیناً از مخزن است):</p>
+          <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail; shopt -s nullglob
+btrfs_path='/var/bocker' &amp;&amp; cgroups='cpu,cpuacct,memory';
+[[ $# -gt 0 ]] &amp;&amp; while [ "${1:0:2}" == '--' ]; do OPTION=${1:2}; [[ $OPTION =~ = ]] &amp;&amp; declare "BOCKER_${OPTION/=*/}=${OPTION/*=/}" || declare "BOCKER_${OPTION}=x"; shift; done
+
+function bocker_check() {
+	btrfs subvolume list "$btrfs_path" | grep -qw "$1" &amp;&amp; echo 0 || echo 1
+}
+
+function bocker_init() { #HELP ساخت تصویر از یک پوشه:\nBOCKER init &lt;directory&gt;
+	uuid="img_$(shuf -i 42002-42254 -n 1)"
+	if [[ -d "$1" ]]; then
+		[[ "$(bocker_check "$uuid")" == 0 ]] &amp;&amp; bocker_run "$@"
+		btrfs subvolume create "$btrfs_path/$uuid" &gt; /dev/null
+		cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" &gt; /dev/null
+		[[ ! -f "$btrfs_path/$uuid"/img.source ]] &amp;&amp; echo "$1" &gt; "$btrfs_path/$uuid"/img.source
+		echo "Created: $uuid"
+	else
+		echo "No directory named '$1' exists"
+	fi
+}
+
+function bocker_pull() { #HELP دریافت تصویر از داکر هاب:\nBOCKER pull &lt;name&gt; &lt;tag&gt;
+	token="$(curl -sL -o /dev/null -D- -H 'X-Docker-Token: true' "https://index.docker.io/v1/repositories/$1/images" | tr -d '\r' | awk -F ': *' '$1 == "X-Docker-Token" { print $2 }')"
+	registry='https://registry-1.docker.io/v1'
+	id="$(curl -sL -H "Authorization: Token $token" "$registry/repositories/$1/tags/$2" | sed 's/"//g')"
+	[[ "${#id}" -ne 64 ]] &amp;&amp; echo "No image named '$1:$2' exists" &amp;&amp; exit 1
+	ancestry="$(curl -sL -H "Authorization: Token $token" "$registry/images/$id/ancestry")"
+	IFS=',' &amp;&amp; ancestry=(${ancestry//[\[\] \"]/}) &amp;&amp; IFS=' \n\t'; tmp_uuid="$(uuidgen)" &amp;&amp; mkdir /tmp/"$tmp_uuid"
+	for id in "${ancestry[@]}"; do
+		curl -#L -H "Authorization: Token $token" "$registry/images/$id/layer" -o /tmp/"$tmp_uuid"/layer.tar
+		tar xf /tmp/"$tmp_uuid"/layer.tar -C /tmp/"$tmp_uuid" &amp;&amp; rm /tmp/"$tmp_uuid"/layer.tar
+	done
+	echo "$1:$2" &gt; /tmp/"$tmp_uuid"/img.source
+	bocker_init /tmp/"$tmp_uuid" &amp;&amp; rm -rf /tmp/"$tmp_uuid"
+}
+
+function bocker_rm() { #HELP حذف یک تصویر یا کانتینر:\nBOCKER rm &lt;image_id or container_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	btrfs subvolume delete "$btrfs_path/$1" &gt; /dev/null
+	cgdelete -g "$cgroups:/$1" &amp;&gt; /dev/null || true
+	echo "Removed: $1"
+}
+
+function bocker_images() { #HELP فهرست تصاویر:\nBOCKER images
+	echo -e "IMAGE_ID\t\tSOURCE"
+	for img in "$btrfs_path"/img_*; do
+		img=$(basename "$img")
+		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
+	done
+}
+
+function bocker_ps() { #HELP فهرست کانتینرها:\nBOCKER ps
+	echo -e "CONTAINER_ID\t\tCOMMAND"
+	for ps in "$btrfs_path"/ps_*; do
+		ps=$(basename "$ps")
+		echo -e "$ps\t\t$(cat "$btrfs_path/$ps/$ps.cmd")"
+	done
+}
+
+function bocker_run() { #HELP ساخت یک کانتینر:\nBOCKER run &lt;image_id&gt; &lt;command&gt;
+	uuid="ps_$(shuf -i 42002-42254 -n 1)"
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No image named '$1' exists" &amp;&amp; exit 1
+	[[ "$(bocker_check "$uuid")" == 0 ]] &amp;&amp; echo "UUID conflict, retrying..." &amp;&amp; bocker_run "$@" &amp;&amp; return
+	cmd="${@:2}" &amp;&amp; ip="$(echo "${uuid: -3}" | sed 's/0//g')" &amp;&amp; mac="${uuid: -3:1}:${uuid: -2}"
+	ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
+	ip link set dev veth0_"$uuid" up
+	ip link set veth0_"$uuid" master bridge0
+	ip netns add netns_"$uuid"
+	ip link set veth1_"$uuid" netns netns_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev lo up
+	ip netns exec netns_"$uuid" ip link set veth1_"$uuid" address 02:42:ac:11:00"$mac"
+	ip netns exec netns_"$uuid" ip addr add 10.0.0."$ip"/24 dev veth1_"$uuid"
+	ip netns exec netns_"$uuid" ip link set dev veth1_"$uuid" up
+	ip netns exec netns_"$uuid" ip route add default via 10.0.0.1
+	btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$uuid" &gt; /dev/null
+	echo 'nameserver 8.8.8.8' &gt; "$btrfs_path/$uuid"/etc/resolv.conf
+	echo "$cmd" &gt; "$btrfs_path/$uuid/$uuid.cmd"
+	cgcreate -g "$cgroups:/$uuid"
+	: "${BOCKER_CPU_SHARE:=512}" &amp;&amp; cgset -r cpu.shares="$BOCKER_CPU_SHARE" "$uuid"
+	: "${BOCKER_MEM_LIMIT:=512}" &amp;&amp; cgset -r memory.limit_in_bytes="$((BOCKER_MEM_LIMIT * 1000000))" "$uuid"
+	cgexec -g "$cgroups:$uuid" \
+		ip netns exec netns_"$uuid" \
+		unshare -fmuip --mount-proc \
+		chroot "$btrfs_path/$uuid" \
+		/bin/sh -c "/bin/mount -t proc proc /proc &amp;&amp; $cmd" \
+		2&gt;&amp;1 | tee "$btrfs_path/$uuid/$uuid.log" || true
+	ip link del dev veth0_"$uuid"
+	ip netns del netns_"$uuid"
+}
+
+function bocker_exec() { #HELP اجرای یک دستور در کانتینر در حال اجرا:\nBOCKER exec &lt;container_id&gt; &lt;command&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	cid="$(ps o ppid,pid | grep "^$(ps o pid,cmd | grep -E "^\ *[0-9]+ unshare.*$1" | awk '{print $1}')" | awk '{print $2}')"
+	[[ ! "$cid" =~ ^\ *[0-9]+$ ]] &amp;&amp; echo "Container '$1' exists but is not running" &amp;&amp; exit 1
+	nsenter -t "$cid" -m -u -i -n -p chroot "$btrfs_path/$1" "${@:2}"
+}
+
+function bocker_logs() { #HELP مشاهدهٔ گزارش‌های کانتینر:\nBOCKER logs &lt;container_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	cat "$btrfs_path/$1/$1.log"
+}
+
+function bocker_commit() { #HELP ثبت کانتینر به‌صورت تصویر:\nBOCKER commit &lt;container_id&gt; &lt;image_id&gt;
+	[[ "$(bocker_check "$1")" == 1 ]] &amp;&amp; echo "No container named '$1' exists" &amp;&amp; exit 1
+	[[ "$(bocker_check "$2")" == 1 ]] &amp;&amp; echo "No image named '$2' exists" &amp;&amp; exit 1
+	bocker_rm "$2" &amp;&amp; btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$2" &gt; /dev/null
+	echo "Created: $2"
+}
+
+function bocker_help() { #HELP نمایش این راهنما:\nBOCKER help
+	sed -n "s/^.*#HELP\\s//p;" &lt; "$1" | sed "s/\\\\n/\n\t/g;s/$/\n/;s!BOCKER!${1/!/\\!}!g"
+}
+
+[[ -z "${1-}" ]] &amp;&amp; bocker_help "$0"
+case $1 in
+	pull|init|rm|images|ps|run|exec|logs|commit) bocker_"$1" "${@:2}" ;;
+	*) bocker_help "$0" ;;
+esac</code></pre>
+        </section>
+
+        <!-- نگاشت با داکر -->
+        <section>
+          <h3>نگاشت دستورها با داکر</h3>
+          <p>بر اساس فهرست «عملکردهای پیاده‌سازی‌شده» در README مخزن، ارتباط دستورهای باکر با داکر به این صورت است:</p>
+          <ul>
+            <li><code class="inline">bocker init &lt;پوشه&gt;</code> — پیاده‌سازی بسیار محدودی از
+            <code class="inline">docker build</code> †</li>
+            <li><code class="inline">bocker pull &lt;نام&gt; &lt;برچسب&gt;</code> — معادل <code class="inline">docker pull</code></li>
+            <li><code class="inline">bocker images</code> — معادل <code class="inline">docker images</code></li>
+            <li><code class="inline">bocker ps</code> — معادل <code class="inline">docker ps</code></li>
+            <li><code class="inline">bocker run</code> — معادل <code class="inline">docker run</code></li>
+            <li><code class="inline">bocker exec</code> — معادل <code class="inline">docker exec</code></li>
+            <li><code class="inline">bocker logs</code> — معادل <code class="inline">docker logs</code></li>
+            <li><code class="inline">bocker commit</code> — معادل <code class="inline">docker commit</code></li>
+            <li><code class="inline">bocker rm</code> — معادل <code class="inline">docker rm</code> /
+            <code class="inline">docker rmi</code> (هر دو با یک تابع)</li>
+            <li>شبکه (networking) و پشتیبانی سهم‌ها/گروه‌های کنترل (Quota Support / CGroups)</li>
+          </ul>
+          <p>† در README تأکید شده که <code class="inline">bocker init</code> فقط پیاده‌سازی «بسیار محدودی» از
+          <code class="inline">docker build</code> ارائه می‌دهد. همچنین دستورهایی مانند <code class="inline">docker push</code>،
+          <code class="inline">docker start</code> و <code class="inline">docker stop</code> در باکر اصلاً وجود ندارند؛
+          کانتینرها فقط با <code class="inline">run</code> اجرا می‌شوند (اجرا و اتمام در یک گام) و به‌صورت ساب‌وولوم باقی
+          می‌مانند.</p>
+        </section>
+      </section>
+
+      <!-- ==================== محدودیت‌ها ==================== -->
+      <section>
+        <h2>محدودیت‌ها</h2>
+        <p>خودِ README مخزن، صادقانه فهرست مواردی را که هنوز پیاده‌سازی نشده‌اند اعلام کرده است:</p>
+        <ul>
+          <li><b>کانتینرهای حجم داده (Data Volume Containers)</b> — پیاده‌سازی‌نشده.</li>
+          <li><b>حجم‌های داده (Data Volumes)</b> — پیاده‌سازی‌نشده.</li>
+          <li><b>انتقال پورت (Port Forwarding)</b> — پیاده‌سازی‌نشده (مثلاً <code class="inline">-p 80:80</code> داکر
+          معادلی در باکر ندارد؛ همهٔ کانتینرها از طریق پل به شبکهٔ ۱۰.۰.۰.۰/24 وصل می‌شوند).</li>
+        </ul>
+        <p>محدودیت‌های دیگری که از بررسی کد و README برمی‌آید:</p>
+        <ul>
+          <li>باکر باید به‌عنوان ریشه (root) اجرا شود و به شبکه، مسیریابی و قواعد iptables میزبان دست می‌زند؛ اجرای آن خارج از
+          ماشین مجازی ریسک دارد.</li>
+          <li>جداسازی کامل‌تر مثل فضای نام کاربر (user namespace)، سوارسازی‌های <code class="inline">/sys</code> و
+          <code class="inline">/dev</code> سفارشی و سیگنال‌های مدیریت چرخهٔ حیات (start/stop) ندارد.</li>
+          <li>آدرس‌دهی IP از سه رقم آخر شناسهٔ تصادفی کانتینر مشتق می‌شود؛ تعداد کانتینرهای هم‌زمانِ شبکه‌دار عملاً محدود و
+          با ۲۵۲ آدرس زیرشبکهٔ ۱۰.۰.۰.۰/24 محدود است.</li>
+          <li>رجیستری v1 داکر (که <code class="inline">bocker pull</code> به آن متکی است) سال‌هاست بازنشسته شده؛ در عمل باید
+          تصاویر را با <code class="inline">bocker init</code> از پوشهٔ محلی ساخت.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>باکر نشان می‌دهد که «کانتینر» یک فناوری عجیب و دست‌نیافتنی نیست؛ صرفاً ترکیب چند قابلیت قدیمی و سادهٔ هستهٔ
+        لینوکس است:</p>
+        <ul>
+          <li><b>فایل‌سیستم:</b> ساب‌وولوم و عکس‌فوریِ btrfs با کپی‌هنگام‌نوشتن — لایه‌بندی تصویر/کانتینر (نقش overlayfs
+          در داکر).</li>
+          <li><b>ایزوله‌سازی:</b> <code class="inline">unshare -fmuip --mount-proc</code> برای فضاهای نام mount، UTS، IPC
+          و PID + <code class="inline">chroot</code> برای ریشهٔ فایل‌سیستم.</li>
+          <li><b>شبکه:</b> جفت‌رابط veth، فضای نام شبکه با <code class="inline">ip netns</code>، پل
+          <code class="inline">bridge0</code> و NAT با iptables.</li>
+          <li><b>منابع:</b> cgroups با سهم پردازنده و سقف حافظه.</li>
+          <li><b>تصاویر:</b> دانلود لایه‌های tar از رجیستری (protocol v1) و بازسازی شجرهٔ لایه‌ها.</li>
+        </ul>
+        <p>هر یک از این مؤلفه‌ها در داکر واقعی بسیار کامل‌تر، امن‌تر و بهینه‌تر شده است؛ اما بذر اصلی همهٔ آن‌ها همین است.
+        اگر می‌خواهید بفهمید داکر واقعاً چطور کار می‌کند، باکر بهترین نقطهٔ شروع است: ۱۰۰ خط bash که تمام استادان این
+        حوزه توصیه می‌کنند یک‌بار بخوانیدش.</p>
+      </section>
+
+      <!-- ==================== بلاک کپی‌رایت ==================== -->
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> پروژهٔ «bocker» اثر «پیتر ویلموت (Peter Wilmott)» است و تحت پروانهٔ GNU GPL نسخهٔ ۳
+        منتشر شده (Copyright (C) 2015 Peter Wilmott). این صفحه صرفاً ترجمهٔ فارسی آن است و تمام حقوق محتوا و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/p8952/bocker" target="_blank" rel="noopener">مخزن اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی کارگاه «A workshop on Linux containers: Rebuild Docker from Scratch»
+  (مخزن rubber-docker از Fewbytes)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | داکر را از صفر بسازید — کارگاه کانتینرهای لینوکس (rubber-docker)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">داکر</a>
+        <span class="sep">←</span>
+        <span>داکر را از صفر بسازید</span>
+      </div>
+      <h1>داکر را از صفر بسازید — کارگاه کانتینرهای لینوکس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: داکر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/Fewbytes/rubber-docker" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کارگاه «A workshop on Linux containers: Rebuild Docker from Scratch»
+          (مخزن <code class="inline">rubber-docker</code>) از تیم Fewbytes است — یک کارگاه عملی که در آن با پایتون و
+          سیس‌کال‌های (system calls) لینوکس، کانتینر خودتان را لایه‌به‌لایه بازسازی می‌کنید. نسخه کامل و به‌روز را از
+          مخزن اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/Fewbytes/rubber-docker" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== معرفی پروژه ==================== -->
+      <section>
+        <h2>معرفی پروژه</h2>
+        <p>این کارگاه به شما نشان می‌دهد چطور یک «موتور کانتینر» (container engine) ساده و آموزشی مثل داکر را با پایتون
+        و استفاده مستقیم از سیس‌کال‌های لینوکس بازسازی کنید. نتیجهٔ کار یک برنامهٔ خط‌فرمان به نام
+        <code class="inline">rd.py</code> (مخفف rubber-docker) است که با گذر از ۱۱ سطح (level) تدریجی، قابلیت‌های زیر را
+        یکی‌یکی به دست می‌آورد: محصورسازی فایل‌سیستم با <code class="inline">chroot</code> و
+        <code class="inline">pivot_root</code>، ایزوله‌سازی با namespaceها (میزبان، سوارکردن، فرایند و شبکه)، محدودسازی
+        منابع با cgroupها (پردازنده و حافظه) و اجرا به‌عنوان کاربر غیر ریشه (non-root).</p>
+        <p>ایدهٔ اصلی سازندگان این است که تنها راه واقعی درک یک فناوری، ساخت آن از صفر است — به‌ویژه که کانتینرهای لینوکس
+        امروزه بسیار پرطرفدار و در عین حال کم‌درک‌شده‌اند. این کارگاه از فوریهٔ ۲۰۱۶ در رویدادهای متعددی برگزار شده است؛
+        از جمله: Opstalk تل‌آویو (فوریهٔ ۲۰۱۶)، DevOps سیدنی و DevOpsDays آمستردام (ژوئن ۲۰۱۶)، SRECon اروپا در دوبلین
+        (ژوئیهٔ ۲۰۱۶)، Sela Developer Practice تل‌آویو (ژوئن ۲۰۱۶)، SRECon آمریکا در سانتا کلارا (مارس ۲۰۱۸) و DevOpsDays
+        کیل (مهٔ ۲۰۱۸).</p>
+        <p>کارگاه از دو بخش اصلی تشکیل شده است:</p>
+        <ul>
+          <li><b>سخنرانی مقدماتی (preparatory talk):</b> همهٔ مبانی موردنیاز کارگاه را پوشش می‌دهد؛ از جمله سیس‌کال‌های لینوکس و
+          بسته‌بندی‌های glibc، تفاوت <code class="inline">chroot</code> با <code class="inline">pivot_root</code>،
+          namespaceها، cgroupها، قابلیت‌ها (capabilities) و موارد دیگر.</li>
+          <li><b>خود کارگاه:</b> با استفاده از <a href="https://github.com/Fewbytes/rubber-docker/tree/master/slides" target="_blank" rel="noopener">اسلایدهای ارائه‌شده</a>
+          و پیشروی در سطح‌ها، هر بار قابلیتی به کانتینر شما افزوده می‌شود. حتماً README هر سطح را بخوانید؛ و اگر به مشکل
+          خوردید، همیشه می‌توانید راه‌حل سطح N را در اسکلت (skeleton) سطح N+1 پیدا کنید.</li>
+        </ul>
+        <p>سازندگان برای این کارگاه از پلتفرم <a href="http://strigo.io/" target="_blank" rel="noopener">Strigo.io</a>
+        استفاده می‌کنند که زیرساخت ارائهٔ کارگاه را به‌صورت رایگان در اختیار آن‌ها گذاشته است.</p>
+        <img src="https://raw.githubusercontent.com/Fewbytes/rubber-docker/master/slides/images/docker-architecture.svg" alt="نمودار معماری داکر: کلاینت، دیمن و اجزای آن" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== پیش‌نیازها ==================== -->
+      <section>
+        <h2>پیش‌نیازها و راه‌اندازی محیط</h2>
+        <p>کارگاه به لینوکس و دسترسی ریشه (root) نیاز دارد، چون بیشتر سیس‌کال‌های مورداستفاده به امتیازات ویژه نیازمندند.
+        برای شروع، سه گزینه پیش روی شماست:</p>
+        <ol>
+          <li><b>AMI عمومی آماده:</b> تیم Fewbytes یک تصویر آمازون (AMI) عمومی با پیکربندی و ابزارهای لازم ساخته است. بسته
+          به منطقهٔ خود یکی از AMIهای زیر را انتخاب کنید:
+            <ul>
+              <li>eu-central-1: <code class="inline">ami-041c4af571b01d0f8</code></li>
+              <li>il-central-1: <code class="inline">ami-036406540dcc4a690</code></li>
+              <li>us-east-1: <code class="inline">ami-0cb446a6fd2678063</code></li>
+              <li>us-west-1: <code class="inline">ami-0defd345b84194d79</code></li>
+            </ul>
+          </li>
+          <li><b>قالب پکر (packer):</b> یک <a href="https://www.packer.io/" target="_blank" rel="noopener">قالب پکر</a> در
+          پوشهٔ <code class="inline">packer/</code> مخزن وجود دارد تا AMI اختصاصی خودتان را بسازید.</li>
+          <li><b>Vagrantfile:</b> برای اجرا با ابربینندهٔ (hypervisor) ماشین مجازی دلخواهتان
+          (<b>توجه:</b> هنوز کاملاً آزمایش نشده است).</li>
+        </ol>
+        <p>مطالب کارگاه در مسیر <code class="inline">/workshop</code> روی نمونه (instance) آماده می‌شود:</p>
+        <ul>
+          <li><code class="inline">/workshop/rubber-docker</code> — همین مخزن؛ همهٔ کارها را این‌جا انجام می‌دهید</li>
+          <li><code class="inline">/workshop/images</code> — تصاویر کانتینر؛ از قبل با تصاویر ubuntu و busybox پرشده است</li>
+        </ul>
+        <p>قبل از شروع کارگاه، اسناد آماده‌سازی در پوشهٔ <code class="inline">docs</code> را مرور کنید و سپس کارگاه را از
+        <code class="inline">levels/00_fork_exec</code> شروع کنید.</p>
+        <p>اگر نیاز به ساخت و نصب ماژول پایتونی <code class="inline">linux</code> دارید:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">make install</code></pre>
+        <p>و اگر بستهٔ توزیع‌پذیر ویل (wheel) می‌خواهید:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">make build</code></pre>
+      </section>
+
+      <!-- ==================== ساختار مخزن ==================== -->
+      <section>
+        <h2>ساختار فایل‌های مخزن</h2>
+        <p>مخزن <code class="inline">rubber-docker</code> به‌صورت یک سری سطح (levels) سازمان‌دهی شده است؛ هر سطح شامل یک
+        فایل <code class="inline">README.md</code> (توضیح تمرین) و یک فایل <code class="inline">rd.py</code> (اسکلت و در
+        سطح بعدی، راه‌حل سطح قبل) است. ساختار کلی:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">docs/                    ← اسناد آماده‌سازی + مستندات ماژول linux
+levels/
+  00_fork_exec/           ← سطح ۰: fork و exec (اسکلت اولیه)
+  01_chroot_image/        ← سطح ۱: chroot (محصورسازی فایل‌سیستم)
+  02_mount_ns/            ← سطح ۲: namespace سوارکردن + گره‌های دستگاه
+  03_pivot_root/          ← سطح ۳: pivot_root (فرار از زندان chroot)
+  04_overlay/             ← سطح ۴: فایل‌سیستم overlay (کپی-روی-نوشتن)
+  05_uts_namespace/       ← سطح ۵: namespace UTS (نام میزبان)
+  06_pid_namespace/       ← سطح ۶: namespace پروسه (PID)
+  07_net_namespace/       ← سطح ۷: namespace شبکه
+  08_cpu_cgroup/          ← سطح ۸: cgroup پردازنده (CPU)
+  09_memory_cgorup/       ← سطح ۹: cgroup حافظه
+  10_setuid/              ← سطح ۱۰: setuid (اجرا با کاربر غیر ریشه)
+  cleanup.sh              ← اسکریپت پاک‌سازی سوارکردن‌ها و کانتینرها
+linux.c                   ← ماژول C که سیس‌کال‌های لازم را در پایتون در معرض دید قرار می‌دهد
+Makefile                  ← ساخت و نصب ماژول linux
+pyproject.toml / setup.py ← پیکربندی بستهٔ پایتون
+packer/                   ← قالب پکر برای ساخت AMI
+slides/                   ← اسلایدهای کارگاه (HTML + تصاویر)
+Vagrantfile               ← تعریف ماشین مجازی برای ویگنت
+README.md                 ← راهنمای اصلی کارگاه</code></pre>
+        <p>نکتهٔ مهم: تمام سیس‌کال‌های موردنیاز کارگاه در کتابخانهٔ استاندارد پایتون در دسترس نیستند. به همین دلیل
+        نویسندگان یک ماژول پایتونی به نام <code class="inline">linux</code> نوشته‌اند (به <code class="inline">linux.c</code>
+        نگاه کنید) که سیس‌کال‌های مرتبط را با همان معناشناسی‌ای که در C می‌نویسیم در معرض دید قرار می‌دهد. جزئیات بیشتر در
+        <a href="https://rawgit.com/Fewbytes/rubber-docker/master/docs/linux/index.html" target="_blank" rel="noopener">مستندات ماژول</a>
+        موجود است. توضیح این ماژول در بخش «ماژول پایتونی linux» آمده است.</p>
+      </section>
+
+      <!-- ==================== مفاهیم پایه ==================== -->
+      <section>
+        <h2>مفاهیم پایه: کانتینر لینوکس چیست؟</h2>
+        <p>کانتینر، که گاهی «مجازی‌سازی سیستم‌عامل» (O/S virtualization) نیز نامیده می‌شود، به گروهی <b>ایزوله‌شده از
+        فرایندها</b> در یک سیستم‌عامل اشاره دارد. مثال را با پستگرس (postgres) در نظر بگیرید: اگر پستگرس در یک کانتینر
+        اجرا شود، همهٔ فرایندهای همان یک نمونهٔ پستگرس باید به منابع مشترکی دسترسی داشته باشند؛ اما ما نمی‌خواهیم
+        فرایندهای دیگر (مثلاً آپاچی) به منابع مصرفیِ پستگرس (مثل حافظه) دسترسی یا حتی دیدی داشته باشند و همچنین می‌خواهیم
+        میزان منابعی را که پستگرس مجاز به مصرف آن است محدود کنیم. علاوه بر این، می‌خواهیم دید هر نمونهٔ پستگرس از
+        سیستم‌عامل را انتزاعی (abstract) کنیم تا به ویژگی‌های خاص میزبان وابسته نباشد؛ مثلاً پستگرس داده‌هایش را در
+        <code class="inline">/var/lib/postgres</code> نگه می‌دارد و ما می‌خواهیم این مسیر بدون توجه به تعداد نمونه‌های
+        در حال اجرا حفظ شود.</p>
+        <p>پس به‌طور خلاصه، آنچه از یک کانتینر می‌خواهیم این است:</p>
+        <ul>
+          <li><b>ایزوله‌سازی (isolation)</b> — فرایندهای کانتینر، منابع یکدیگر و دیگران را نبینند</li>
+          <li><b>انتزاع (abstraction)</b> — دید کانتینر از سیستم‌عامل مستقل از میزبان باشد</li>
+          <li><b>محدودیت منابع (resource constraints)</b> — میزان مصرف منابع قابل‌کنترل باشد</li>
+        </ul>
+        <p>در گذشته، مدیران سیستم ایزوله‌سازی را با کاربران و مجوزهای فایل‌سیستم انجام می‌دادند، انتزاع را با
+        <code class="inline">chroot</code> و محدودیت منابع را با <code class="inline">rlimit</code>؛ که به هیچ وجه
+        رضایت‌بخش نبود — چنان که محبوبیت روزافزون ماشین‌های مجازی گواه آن است. اما در لینوکس یک «مکانیزم واحد» برای
+        دستیابی به این اهداف وجود ندارد؛ در عوض چند مکانیزم مستقل داریم که با هماهنگی یکدیگر سطوح مختلفی از ایزوله‌سازی،
+        انتزاع و محدودیت منابع را فراهم می‌کنند:</p>
+        <ul>
+          <li><b>namespaceها</b> (namespaces) — ایزوله‌سازی دید فرایندها</li>
+          <li><b>cgroupها</b> — محدودسازی منابع</li>
+          <li><b>chroot / pivot_root</b> — انتزاع فایل‌سیستم</li>
+          <li><b>seccomp</b> — فیلتر سیس‌کال‌ها</li>
+          <li><b>AppArmor / SELinux</b> — سیاست‌های امنیتی (MAC)</li>
+        </ul>
+        <p>بنابراین یک «کانتینر لینوکس» موجودیتِ خوش‌تعریفی نیست: <b>از دید هسته، چیزی به نام کانتینر وجود ندارد</b>؛ فقط
+        یک دسته فرایند با namespaceها، cgroupها و مواردی از این دست هست. پیش از بررسی مکانیزم‌های جدید، خوب است
+        پیش‌زمینهٔ دو مفهوم پایه‌ای را مرور کنیم.</p>
+        <img src="https://raw.githubusercontent.com/Fewbytes/rubber-docker/master/slides/images/there-is-no-container.jpg" alt="کارتون: چیزی به نام کانتینر وجود ندارد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>نکته:</strong> خود نویسندگان اعتراف می‌کنند این کارگاه seccomp، کانتینرهای کاربر (user containers) و
+          موارد مشابه را پوشش نمی‌دهد — پوشش تمام قابلیت‌های یک موتور کانتینر واقعی ممکن نیست؛ تمرکز بر چیزهایی است که
+          برای درک نحوهٔ کار کانتینرها اهمیت دارند.
+        </div>
+
+        <h3>پروسه‌ها در لینوکس</h3>
+        <p>یک <b>پروسه</b> (process) مفهومی در سیستم‌عامل است که یک وظیفه را با فضای حافظه و منابع جداگانه توصیف می‌کند.
+        در لینوکس، پروسه‌ها با سیس‌کال <code class="inline">clone()</code> ساخته می‌شوند که از یک پروسهٔ موجود، پروسهٔ
+        جدیدی کلون می‌کند. <code class="inline">clone()</code> پرچم‌های مختلفی می‌پذیرد که مشخص می‌کنند چه منابعی با
+        پروسهٔ اصلی به اشتراک گذاشته شود. معمولاً <code class="inline">clone()</code> مستقیم استفاده نمی‌شود؛ به‌جایش از
+        فراخوانی‌های POSIX مانند <code class="inline">fork()</code> استفاده می‌کنیم که در <b>glibc</b> (فضای کاربر)
+        پیاده‌سازی شده‌اند. در واقع بیشتر رابط‌های لینوکس و POSIX که به‌کار می‌بریم در glibc پیاده شده‌اند، نه در هسته.</p>
+        <p><code class="inline">fork()</code> با فراخوانی <code class="inline">clone()</code> و یک دسته پرچم، یک پروسه
+        می‌سازد؛ نخ‌ها (threads) هم با <code class="inline">pthread_create()</code> ساخته می‌شوند. در پس‌زمینه، هم نخ‌ها و
+        هم پروسه‌ها «وظیفه» (task) هستند و با structی به نام <code class="inline">task_struct</code> بازنمایی می‌شوند؛ این
+        struct حدود ۱۷۰ فیلد و حدود ۱ کیلوبایت حجم دارد. فیلدهای شاخص آن عبارت‌اند از: <code class="inline">*user</code>،
+        <code class="inline">pid</code>، <code class="inline">tgid</code>، <code class="inline">*files</code>،
+        <code class="inline">*fs</code>، <code class="inline">*nsproxy</code>. <code class="inline">fs_struct</code> اطلاعات
+        ریشهٔ فعلی، پوشهٔ کار، umask و… را نگه می‌دارد و <code class="inline">pid</code> پروسه‌ها را به یک یا چند وظیفه نگاشت
+        می‌کند.</p>
+        <p>به‌طور سنتی، یونیکس‌ها با فراخوانی‌های زیر به‌ترتیب پروسهٔ جدید می‌سازند:</p>
+        <ol>
+          <li><code class="inline">fork()</code> — تکثیر پروسهٔ فعلی؛ حافظهٔ مجازی (VM) کپی-روی-نوشتن (copy-on-write) است</li>
+          <li><code class="inline">exec()</code> — جایگزینی text/data/bss/stack با تصویر برنامهٔ جدید</li>
+        </ol>
+        <p>پس از <code class="inline">exec()</code>، تصویر پروسهٔ جدید از نقطهٔ ورود (تابع main) شروع به اجرا می‌کند و
+        آرگومان‌های خط‌فرمان جدید (argv) به آن داده می‌شود.</p>
+
+        <h3>کاربران در لینوکس</h3>
+        <p>از دید هسته، یک کاربر صرفاً یک پارامتر <code class="inline">int</code> در structهای مختلف است. یک پروسه
+        (<code class="inline">task_struct</code>) چندین فیلد uid دارد: <code class="inline">ruid</code>،
+        <code class="inline">suid</code>، <code class="inline">euid</code>، <code class="inline">fsuid</code>.</p>
+        <p>نیازی به «افزودن» یا «ساختن» کاربر نیست — چون «کاربر» فقط یک پارامتر عددی است، می‌توان هر مقداری به آن نسبت داد.
+        فقط دو نوع کاربر وجود دارد: uid صفر، همان <b>root</b>، و بقیهٔ کاربران. نام‌های کاربران یک قابلیت فضای کاربر است که
+        هسته از آن بی‌خبر است؛ عمدتاً در <code class="inline">libnss</code> و <code class="inline">glibc</code>
+        پیاده‌سازی شده و نگاشت نام‌های خوانا به اعداد uid در <code class="inline">/etc/passwd</code> و
+        <code class="inline">/etc/shadow</code> نگهداری می‌شود. اگر برای یک uid ورودی‌ای در <code class="inline">/etc/passwd</code>
+        وجود نداشته باشد، همه‌چیز کار می‌کند؛ فقط نگاشت به نام‌های خوانا را نداریم. برای امتحان:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">touch /tmp/test
+sudo chown 29311 /tmp/test
+ls -lh /tmp/test</code></pre>
+        <p>هسته با استفاده از اعداد uid (و gid) تصمیم می‌گیرد که آیا پروسه‌ای مجاز به انجام عملی خاص است یا نه؛ مثلاً هنگام
+        <code class="inline">open()</code> یک فایل، <code class="inline">fsuid</code> پروسه با uid مالک فایل (و ماسک مجوزهای
+        آن) مقایسه می‌شود. یک پروسه فقط اگر uid آن صفر (root) باشد می‌تواند <code class="inline">ruid</code> خود را تغییر
+        دهد؛ این همان چیزی است که در سطح ۱۰ (setuid) از آن استفاده خواهیم کرد.</p>
+      </section>
+
+      <!-- ==================== گام‌به‌گام کارگاه ==================== -->
+      <section>
+        <h2>گام‌به‌گام کارگاه</h2>
+        <p>کارگاه از سطح <code class="inline">00_fork_exec</code> آغاز می‌شود و هر سطح، قابلیتی جدید به کانتینر شما
+        می‌افزاید. کد هر سطح با دستور زیر اجرا می‌شود:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">sudo python3 rd.py run -i ubuntu -- /bin/bash</code></pre>
+
+        <!-- ============ سطح ۰ ============ -->
+        <h3>سطح ۰: fork و exec</h3>
+        <p>در این سطح با <code class="inline">rd.py</code> — اسکلت rubber-docker ما — آشنا می‌شویم. اسکلت فعلی یک دستور
+        خط‌فرمان به نام <i>run</i> را با ماژول پایتونی <i>click</i> پیاده کرده است که باید این‌گونه استفاده شود:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ python3 rd.py run /bin/echo "Hello Docker"</code></pre>
+        <p>فعلاً اسکلت کار زیادی انجام نمی‌دهد؛ در حداقلِ کار، باید اجرای برنامهٔ ما را ممکن کند که با مکانیزم
+        <b>fork-exec</b> لینوکس به دست می‌آید.</p>
+        <p>در خانوادهٔ سیستم‌عامل‌های یونیکس، پروسه‌های جدید با <i>fork-exec</i> زاده می‌شوند: فراخوانی
+        <code class="inline">fork()</code> و <code class="inline">exec()</code> با هم پروسهٔ جدید را می‌سازند.
+        <code class="inline">fork()</code> نام سیس‌کالی است (در واقع یک فراخوانی <i>libc</i> در لینوکس) که پروسهٔ والد با
+        آن خودش را «تقسیم» می‌کند (به دو پروسهٔ یکسان «چنگال» می‌زند). پس از <code class="inline">fork()</code>، یک کپی کامل
+        از برنامهٔ در حال اجرا به پروسهٔ جدید منتقل می‌شود. این پروسهٔ جدید (که «فرزند»ِ «والد» است) یک PID تازه دارد.
+        <code class="inline">fork()</code> شناسهٔ فرزند را به والد برمی‌گرداند و به فرزند صفر؛ تا دو پروسهٔ یکسان بتوانند
+        یکدیگر را تشخیص دهند. پس از بازگشت از <code class="inline">fork()</code>، اجرا از همان نقطهٔ برنامه ادامه می‌یابد و
+        سپس (معمولاً) بر اساس مقدار بازگشتی از هم جدا می‌شود.</p>
+        <p>در برخی موارد هر دو پروسه به اجرای همان باینری ادامه می‌دهند؛ اما اغلب یکی از آن‌ها (معمولاً فرزند) با فراخوانی
+        <code class="inline">exec()</code> (که در واقع خانواده‌ای از فراخوانی‌هاست) به اجرای باینری دیگری می‌پردازد. وقتی
+        فرزند <code class="inline">exec()</code> صدا می‌زند، تمام داده‌های برنامهٔ اصلی از بین می‌رود و با یک کپیِ در حال
+        اجرا از برنامهٔ جدید جایگزین می‌شود.</p>
+        <p>در پایان، والد باید <code class="inline">wait()</code> (یا هر یک از مشتقات آن) را صدا بزند تا کد خروج فرزند را
+        جمع‌آوری کند و به سیستم اجازه دهد منابع مربوط به فرزند را آزاد کند. اگر wait انجام نشود، فرزندِ خاتمه‌یافته در حالت
+        «بی‌کار» (defunct) باقی می‌ماند — همان «زامبی» (zombie).</p>
+        <p>مثال:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">pid = os.fork()
+if pid == 0:
+    # این فرزند است
+    os.execv('/bin/echo', ['/bin/echo', 'Hello Docker'])
+    # ناحیهٔ غیرقابل‌دسترس، چون فایل اجرایی را عوض می‌کنیم
+else:
+    # این والد است
+    waited_pid, status = os.waitpid(pid, 0) # منتظر پایان فرزند بمان</code></pre>
+        <p>اسکلت اولیهٔ <code class="inline">levels/00_fork_exec/rd.py</code> به این شکل است (جایگزین‌کردن
+        <code class="inline">TODO</code>ها تمرین شماست):</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">#!/usr/bin/env python3
+"""کارگاه «داکر از صفر» — سطح ۰: شروع یک پروسهٔ جدید.
+
+هدف: می‌خواهیم با الگوی fork و exec یک پروسهٔ لینوکسی جدید شروع کنیم.
+
+توجه: در این سطح هنوز به محصورسازی (containment) کاری نداریم.
+
+کاربرد:
+    اجرا:
+        rd.py run /bin/sh
+    خواهد کرد:
+        - یک پروسهٔ جدید fork می‌کند که '/bin/sh' را exec می‌کند
+        - در حالی که والد منتظر پایان آن است
+"""
+
+
+
+import click
+import os
+import traceback
+
+
+@click.group()
+def cli():
+    pass
+
+
+def contain(command):
+    # TODO: فرمان را exec کن؛ به تفاوت میان انواع exec توجه کن
+    #       https://docs.python.org/2/library/os.html#os.execv
+    # توجه: command یک آرایه است (اولین عنصر مسیر/فایل است و کل آرایه
+    #       آرگومان‌های exec است)
+
+    os._exit(0)  # TODO: بعد از افزودن exec این را حذف کن
+
+
+@cli.command(context_settings=dict(ignore_unknown_options=True,))
+@click.argument('Command', required=True, nargs=-1)
+def run(command):
+    # TODO: این را با fork() جایگزین کن
+    #       (https://docs.python.org/2/library/os.html#os.fork)
+    pid = 0
+    if pid == 0:
+        # این فرزند است؛ در اینجا سعی می‌کنیم کمی محصورسازی انجام دهیم
+        try:
+            contain(command)
+        except Exception:
+            traceback.print_exc()
+            os._exit(1)  # در contain() خطایی رخ داد
+
+    # این والد است؛ pid شامل شناسهٔ پروسهٔ fork‌شده است
+    # منتظر فرزند fork‌شده بمان و کد خروج را دریافت کن
+    _, status = os.waitpid(pid, 0)
+    print('{} exited with status {}'.format(pid, status))
+
+
+if __name__ == '__main__':
+    cli()</code></pre>
+        <p>بررسی کار شما:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ python3 rd.py run /bin/echo "Hello Docker"
+Hello Docker
+
+3620 exited with status 0</code></pre>
+        <div class="callout tip">
+          <strong>تمرین جایزه:</strong> آیا می‌توانید از نوع دیگری از exec استفاده کنید تا متغیرهای محیطیِ پروسهٔ فرزند را
+          دستکاری کنید (مشابه <a href="https://docs.docker.com/engine/reference/run/#env-environment-variables" target="_blank" rel="noopener">docker run -e</a>)؟
+        </div>
+
+        <!-- ============ سطح ۱ ============ -->
+        <h3>سطح ۱: chroot</h3>
+        <p>پروسه‌ای را «زندانی» (jail) کنید تا بقیهٔ فایل‌سیستم را نبیند. برای اجرای یک پروسه در chroot به چند چیز نیاز
+        داریم:</p>
+        <ol>
+          <li>انتخاب یک پوشهٔ ریشهٔ جدید برای پروسه
+            <ul>
+              <li>همراه با باینری هدف ما</li>
+              <li>و هر وابستگی دیگر (proc؟ sys؟ dev؟)</li>
+            </ul>
+          </li>
+          <li>ورود به آن با <code class="inline">chroot</code> پایتون (<code class="inline">os.chroot</code>)</li>
+        </ol>
+        <p>برای کمک به پیشرفت سریع، تابع <code class="inline">create_container_root()</code> پیاده شده که تصاویر
+        از‌پیش‌دانلودشده (ubuntu یا busybox) را خارج می‌کند و یک مسیر برمی‌گرداند.</p>
+        <p>اگر می‌خواهیم ابزارهایی مثل <code class="inline">ps</code> درست کار کنند، باید فایل‌سیستم‌های ویژهٔ
+        <code class="inline">/proc</code>، <code class="inline">/sys</code> و <code class="inline">/dev</code> را در
+        ریشهٔ جدید سوار (mount) کنیم. این کار با <a href="https://rawgit.com/Fewbytes/rubber-docker/master/docs/linux/index.html" target="_blank" rel="noopener">ماژول پایتونی linux</a>
+        که سیس‌کال <code class="inline">mount()</code> را در معرض دید قرار می‌دهد انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">linux.mount('proc', os.path.join(new_root, 'proc'), 'proc', 0, '')</code></pre>
+        <p>معناشناسی سیس‌کال <code class="inline">mount()</code> حفظ شده است؛ برای یادگیری بیشتر
+        <code class="inline">man 2 mount</code> را بخوانید.</p>
+        <p>از داخل chroot به <code class="inline">/proc/mounts</code> نگاه کنید. آیا با <code class="inline">/proc/mounts</code>
+        بیرون از chroot فرق دارد؟ به یاد داشته باشید که هنوز از namespace سوارکردن استفاده نمی‌کنیم!</p>
+        <p>بررسی کار شما — بدون فراخوانی <code class="inline">chroot</code> (<i>نادرست</i>):</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ python3 rd.py run -i ubuntu -- /bin/ls -l /workshop/rubber-docker/levels/
+total 44
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 00_fork_exec
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 01_chroot_image
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 02_mount_ns
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 03_pivot_root
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 04_overlay
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 05_uts_namespace
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 06_pid_namespace
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 07_net_namespace
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 08_cpu_cgroup
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 09_memory_cgorup
+drwxr-xr-x 2 ubuntu ubuntu 4096 Jun 20 21:37 10_setuid
+1620 exited with status 0</code></pre>
+        <p>با <code class="inline">chroot</code> و یک تصویر خارج‌شده (<i>درست</i>):</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ python3 rd.py run -i ubuntu -- /bin/ls -l /workshop/rubber-docker/levels/
+Created a new root fs for our container: /workshop/containers/1739af4b-3849-4e88-ae65-dc98264a0e69/rootfs
+/bin/ls: cannot access /workshop/rubber-docker/levels/: No such file or directory
+1656 exited with status 512</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> ممکن است پس از تکمیل این سطح، ورودی‌های بلااستفادهٔ زیادی در <code class="inline">/proc/mounts</code>
+          و تصاویر خارج‌شدهٔ بلااستفاده در <code class="inline">/workshop/containers</code> داشته باشید. می‌توانید با اسکریپت
+          پاک‌سازی مخزن آن‌ها را حذف کنید: <code class="inline">/workshop/rubber-docker/levels/cleanup.sh</code>.
+        </div>
+
+        <!-- ============ سطح ۲ ============ -->
+        <h3>سطح ۲: namespace سوارکردن</h3>
+        <p>با فراخوانی <code class="inline">unshare()</code> یک namespace سوارکردن (mount namespace) اضافه کنید. namespaceهای
+        سوارکردن در اصل مانند سوارکردن‌های bind کار می‌کنند — عملیات در namespaceهای سوارکردن به namespaceهای دیگر منتشر
+        می‌شود <i>مگر این‌که</i> سوارکردن والد (در مورد ما <code class="inline">/</code>) را یک سوارکردن <b>خصوصی</b>
+        (private) کنیم. به همین دلیل باید <code class="inline">/</code> را به سوارکردن خصوصی تغییر دهیم. این کار با سیس‌کال
+        <code class="inline">mount()</code> و پرچم‌های <code class="inline">MS_PRIVATE</code> و <code class="inline">MS_REC</code>
+        انجام می‌شود (چرا <code class="inline">MS_REC</code> لازم است؟). پایتون سیس‌کال mount را در معرض دید قرار نمی‌دهد؛ از
+        ماژول <code class="inline">linux</code> ارائه‌شده در مخزن استفاده کنید.</p>
+        <p><b>نکتهٔ جالب:</b> مستندات هستهٔ لینوکس می‌گویند سوارکردن‌های خصوصی پیش‌فرض هستند؛ اما واقعاً هستند؟</p>
+        <p>همچنین وقت آن رسیده که گره‌های دستگاه (device nodes) را در ریشهٔ کانتینر با <code class="inline">mknod()</code>
+        بسازیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">os.mknod(os.path.join(dev_path, device), 0666 | stat.S_IFCHR, os.makedev(major, minor))</code></pre>
+        <p>به <code class="inline">/dev</code> میزبان نگاه کنید و فکر کنید به چه دستگاه‌هایی نیاز دارید؛ شمارهٔ
+        minor/major آن‌ها را با <code class="inline">ls -l</code> یادداشت کنید و داخل کانتینر بسازید.</p>
+        <p>بررسی کار شما — تأیید اینکه پروسهٔ fork‌شدهٔ شما در namespace سوارکردن متفاوتی است:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ ls -lh /proc/self/ns/mnt
+lrwxrwxrwx 1 root root 0 Mar 18 04:13 /proc/self/ns/mnt -> mnt:[4026531840]
+$ sudo python rd.py run -i ubuntu /bin/bash
+root@ip-172-31-31-83:/# ls -lh /proc/self/ns/mnt
+lrwxrwxrwx 1 root root 0 Mar 18 04:13 /proc/self/ns/mnt -> mnt:[4026532139]</code></pre>
+        <p>یک سوارکردن جدید داخل کانتینر بسازید و مطمئن شوید از بیرون دیده نمی‌شود:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash
+root@ip-172-31-31-83:/# mkdir /mnt/moo
+root@ip-172-31-31-83:/# mount -t tmpfs tmpfs /mnt/moo
+
+# پروسهٔ محصورشده را در حال اجرا نگه دارید و یک ترمینال دیگر باز کنید
+$ grep moo /proc/mounts
+$</code></pre>
+        <p>گره‌های دستگاه — ما عاشق ریختن چیزها در <code class="inline">/dev/null</code> هستیم؛ چه می‌شد اگر یک فایل
+        معمولی بود؟</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left"># بدون گرهٔ دستگاه null
+$ sudo python rd.py run -i ubuntu /bin/bash
+root@ip-172-31-31-83:/# find / > /dev/null
+root@ip-172-31-31-83:/# ls -lh /dev/null
+-rw-r--r-- 1 root root 2.2M Jun 21 16:40 /dev/null
+
+# با گرهٔ دستگاه null
+$ sudo python rd.py run -i ubuntu /bin/bash
+Created a new root fs for our container: /workshop/containers/6aeb472a-94da-42f3-a004-f5809367327b/rootfs
+root@ip-172-31-31-83:/# find / > /dev/null
+root@ip-172-31-31-83:/# ls -lh /dev/null
+crw-r--r-- 1 root root 1, 3 Jun 21 16:44 /dev/null</code></pre>
+        <div class="callout tip">
+          <strong>نکته:</strong> کانتینرها و سوارکردن‌ها را با <code class="inline">cleanup.sh</code> حذف نکنید.
+        </div>
+
+        <!-- ============ سطح ۳ ============ -->
+        <h3>سطح ۳: pivot_root — فرار از زندان!</h3>
+        <p>پس از محصورسازی موفق یک پروسه با <code class="inline">chroot()</code>، بیایید از این زندان فرار کنیم: اسکریپت
+        <code class="inline">breakout.py</code> را درون chroot کپی کنید و اجرایش کنید!</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">sudo python rd.py run -i ubuntu /bin/bash
+
+# بررسی کنید که داخل chroot هستید
+ls /
+
+# فرار!
+python breakout.py
+
+# و همین‌طور شد که بیرون هستیم :)
+ls /</code></pre>
+        <p>کد اسکریپت فرار:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">#!/usr/bin/env python
+"""کارگاه «داکر از صفر» — اسکریپت فرار (breakout).
+"""
+
+import os
+
+# یک پوشه بساز و به آن chroot کن؛ اما نمی‌خواهیم chdir به آن انجام دهیم
+os.makedirs('.foo')
+os.chroot('.foo')
+
+# pwd همچنان ارجاعی به پوشه‌ای بیرون از chroot جدید دارد؛ پس chdir
+# به پوشه‌ای بالاتر از pwd می‌کنیم.
+# هسته به‌طور خودکار ../های اضافی را به / تبدیل می‌کند
+os.chdir('../../../../../../../../')
+
+# در نهایت به ریشهٔ قدیمی (بالاترین) chroot کن
+os.chroot('.')
+
+# حالا می‌توانیم یک شل در میزبان (host) اجرا کنیم
+os.execv('/bin/bash', ['/bin/bash'])</code></pre>
+        <p>واضح است که <code class="inline">chroot()</code> به‌اندازهٔ کافی خوب نیست. بیایید
+        <code class="inline">pivot_root()</code> را امتحان کنیم. به یاد داشته باشید که <code class="inline">pivot_root()</code>
+        روی <b>همهٔ</b> پروسه‌ها کار می‌کند — خوشبختانه ما از namespace سوارکردن استفاده می‌کنیم.</p>
+        <p>چون namespace سوارکردن از مکانیزم سوارکردن bind استفاده می‌کند، به‌صورت پیش‌فرض سوارکردن‌های (فرعی) ما توسط
+        سوارکردن والد (و namespace سوارکردن والد) دیده می‌شوند. برای جلوگیری از این، باید بلافاصله پس از ورود به namespace
+        سوارکردن جدید، سوارکردن ریشه را خصوصی کنیم — و این کار باید <b>به‌صورت بازگشتی</b> برای همهٔ سوارکردن‌های فرعی انجام
+        شود؛ وگرنه چیزهای مهمی مثل <code class="inline">/dev/pts</code> را از سوارکردن خارج می‌کنیم!</p>
+        <p>پس از استفاده از <code class="inline">pivot_root()</code>، باید <code class="inline">old_root</code> را با
+        <code class="inline">umount2()</code> از سوارکردن خارج کنیم. باید از umount2 استفاده کنیم نه umount، چون باید پرچم‌های
+        خاصی به فراخوانی پاس بدهیم؛ به‌طور مشخص باید «جداسازی» (detach) کنیم. جزئیات در <code class="inline">man 2 umount</code>.</p>
+        <p>بررسی کار شما — داخل کانتینر باید یک دستگاه <i>rootfs</i> جدید ببینید؛ اما این مرحله در واقع با خطا شکست خواهد خورد:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash
+Created a new root fs for our container: /workshop/containers/f793960b-64bd-4c21-9a7f-da1b0fbe9aad/rootfs
+Traceback (most recent call last):
+  File "rd.py", line 126, in &lt;module&gt;
+    cli()
+  File "/usr/local/lib/python2.7/dist-packages/click/core.py", line 700, in __call__
+    return self.main(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/click/core.py", line 680, in main
+    rv = self.invoke(ctx)
+  File "/usr/local/lib/python2.7/dist-packages/click/core.py", line 1027, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "/usr/local/lib/python2.7/dist-packages/click/core.py", line 873, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/usr/local/lib/python2.7/dist-packages/click/core.py", line 508, in invoke
+    return callback(*args, **kwargs)
+  File "rd.py", line 118, in run
+    contain(command, image_name, image_dir, container_id, container_dir)
+  File "rd.py", line 98, in contain
+    linux.pivot_root(new_root, old_root)
+RuntimeError: (16, 'Device or resource busy')
+10766 exited with status 256</code></pre>
+        <div class="callout note">
+          <strong>چرا این مرحله شکست می‌خورد؟</strong> فراخوانی <code class="inline">pivot_root(new_root, put_old)</code>
+          ایجاب می‌کند که <code class="inline">new_root</code> یک فایل‌سیستم متفاوت از ریشهٔ قدیمی باشد. این مسئله در
+          سطح ۰۴ حل می‌شود، وقتی یک فایل‌سیستم overlay را به‌عنوان <code class="inline">new_root</code> سوار می‌کنیم.
+        </div>
+        <p>برای دور زدن موقت این محدودیت، می‌توانیم فایل‌های تصویر را روی یک سوارکردن
+        <a href="https://en.wikipedia.org/wiki/Tmpfs" target="_blank" rel="noopener">tmpfs</a> کپی کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left"># ...
+# TODO: از حالت کامنت خارج کن (چرا؟)
+linux.mount('tmpfs', container_root, 'tmpfs', 0, None)
+# ...</code></pre>
+        <p>تمرین <code class="inline">breakout.py</code> را دوباره انجام دهید و ببینید آیا هنوز می‌توانید فرار کنید!</p>
+
+        <!-- ============ سطح ۴ ============ -->
+        <h3>سطح ۴: فایل‌سیستم overlay (کپی-روی-نوشتن)</h3>
+        <p>تا این‌جا، خارج‌کردن (extract) تصویر در هر بار اجرا کند بود و ما شروع سریعی برای کانتینرهایمان می‌خواهیم. همچنین
+        خوب است هر کانتینر این‌همه فضا اشغال نکند (~۱۸۰ مگابایت در مورد ubuntu minimal).</p>
+        <p>در این سطح overlayfs را اضافه می‌کنیم. یک برندهٔ جانبی دیگر هم دارد: حالا می‌توانیم <code class="inline">pivot_root()</code>
+        را کار بیندازیم، چون ریشهٔ جدید ما یک نقطهٔ سوارکردن خواهد بود!</p>
+        <p>کاری که باید انجام دهیم: تصویر را (اگر هنوز خارج نشده) در یک پوشهٔ <i>image_root</i> خارج می‌کنیم و سپس این‌ها را
+        می‌سازیم:</p>
+        <ul>
+          <li>یک <i>container_dir</i> با پوشهٔ سوارکردن برای overlayfs</li>
+          <li>یک پوشه برای شاخهٔ قابل‌نوشتن (<i>upperdir</i>)</li>
+          <li>یک پوشه برای <i>workdir</i></li>
+        </ul>
+        <p>تمرین‌ها — پس از پیاده‌سازی این مرحله، چند چیز را امتحان کنید تا رفتار overlayfs را ببینید:</p>
+        <ul>
+          <li>با <code class="inline">dd</code> یک فایل داخل کانتینر بنویسید و ببینید آیا می‌توانید دیسک میزبان را پر کنید.</li>
+          <li>یک فایل بزرگ (مثلاً ۱ گیگابایت) در پوشهٔ تصویر بنویسید، سپس آن را در کانتینر برای نوشتنِ (غیرترانک‌کننده) باز
+          کنید؛ مثلاً با این کد پایتون: <code class="inline">open('big_file', 'r+')</code>. عملیات بازکردن (open) چقدر طول
+          می‌کشد؟ چرا؟</li>
+          <li>برخی عملیات فایل (نوشتن فایل، انتقال فایل، حذف فایل) را داخل کانتینر انجام دهید و سپس با
+          <code class="inline">ls -la</code> به <code class="inline">upperdir</code> نگاه کنید.</li>
+        </ul>
+        <p>بررسی کار شما:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ time sudo python rd.py run -i ubuntu /bin/bash -- -c true
+Created a new root fs for our container: /workshop/containers/7a3393a1-df94-4c44-a935-700ec52c2607/rootfs
+11191 exited with status 0
+
+real	0m3.475s
+user	0m1.492s
+sys	0m1.260s
+
+$ time sudo python rd.py run -i ubuntu /bin/bash -- -c true
+Created a new root fs for our container: /workshop/containers/98282744-82bd-4c70-bbf9-028e8c92f995/rootfs
+11196 exited with status 0
+
+real	0m0.162s
+user	0m0.088s
+sys	0m0.032s</code></pre>
+        <div class="callout tip">
+          <strong>نکته:</strong> اجرای دوم یک کانتینر با همان تصویر تقریباً بی‌وقفه است، چون نیازی به خارج‌کردن دوبارهٔ
+          تصویر نداریم.
+        </div>
+
+        <!-- ============ سطح ۵ ============ -->
+        <h3>سطح ۵: namespace UTS</h3>
+        <p>namespace UTS نام میزبانِ هر کانتینر را مستقل می‌کند. پس از انتقال به یک namespace UTS جدید، می‌توانید نام میزبان
+        را تغییر دهید بدون این‌که روی نام میزبانِ خودِ ماشین اثر بگذارد.</p>
+        <p>از فراخوانی <code class="inline">sethostname()</code> که توسط ماژول <code class="inline">linux</code> ما
+        ارائه شده استفاده کنید.</p>
+        <p>بررسی کار شما — نام میزبان داخل کانتینر باید با بیرون فرق داشته باشد؛ به‌طور خاص، می‌خواهیم نام میزبان همان
+        شناسهٔ کانتینر باشد:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash -- -c hostname
+0c96ccc-ee60-11e5-b7ff-600308a39608
+11196 exited with status 0
+$ hostname -f
+vagrant-willy-amd64</code></pre>
+
+        <!-- ============ سطح ۶ ============ -->
+        <h3>سطح ۶: namespace پروسه (PID)</h3>
+        <p>namespace پروسه کمی با سایر namespaceها فرق دارد: <code class="inline">unshare()</code> پروسهٔ فعلی را به
+        namespace جدید منتقل نمی‌کند؛ فقط فرزندانِ آینده‌اش در namespace پروسهٔ جدید خواهند بود. دو گزینه داریم:</p>
+        <ol>
+          <li>استفاده از <code class="inline">unshare()</code> قبل از fork</li>
+          <li>استفاده از <code class="inline">clone()</code> به‌جای <code class="inline">fork()</code> و پاس‌دادن پرچم
+          <code class="inline">CLONE_NEWPID</code></li>
+        </ol>
+        <p>نسخهٔ <code class="inline">clone()</code> ما که توسط ماژول <code class="inline">linux</code> در معرض دید قرار
+        گرفته، رابط API گلیبک را بازتاب می‌دهد (چون ساده‌تر است):</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">linux.clone(python_callable, flags, callable_args_tuple) # --> شناسهٔ پروسهٔ جدید را برمی‌گرداند</code></pre>
+        <p>تمرین‌ها:</p>
+        <ul>
+          <li>namespace پروسه را بدون سوارکردن <code class="inline">/proc</code> (یا با سوارکردن bindِ <code class="inline">/proc</code>
+          اصلی) امتحان کنید. در این حالت ابزارهایی مثل <code class="inline">ps</code> چه رفتاری دارند؟</li>
+          <li><code class="inline">kill -9 $$</code> را از داخل کانتینر، با و بدون namespace پروسه امتحان کنید ($$ به PID
+          فعلی ارزیابی می‌شود). آیا تفاوتی هست؟ چرا؟</li>
+          <li>ساختن زامبی را داخل کانتینر امتحان کنید.</li>
+        </ul>
+        <p>بررسی کار شما — دستورهای مختلف فهرست‌کردن پروسه‌ها و فایل‌سیستم <code class="inline">/proc</code> باید فقط
+        پروسه‌های کانتینر را نشان دهند:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash
+Created a new root fs for our container: /workshop/containers/a4725e53-b164-4b60-ab6f-8ee527258f71/rootfs
+root@a4725e53-b164-4b60-ab6f-8ee527258f71:/# ps
+  PID TTY          TIME CMD
+    1 pts/0    00:00:00 bash
+   11 pts/0    00:00:00 ps
+root@a4725e53-b164-4b60-ab6f-8ee527258f71:/# ls /proc | grep '[0-9]'
+1
+12
+13</code></pre>
+
+        <!-- ============ سطح ۷ ============ -->
+        <h3>سطح ۷: namespace شبکه</h3>
+        <p>به یک namespace شبکهٔ جدید منتقل شوید تا کانتینر به رابط‌های شبکهٔ (NIC) میزبان دسترسی نداشته باشد. پس از
+        پیاده‌سازی این، با <code class="inline">ip link</code> یا <code class="inline">ifconfig</code> بررسی کنید که
+        رابط‌های شبکهٔ میزبان را دیگر نمی‌بینید.</p>
+        <p>بررسی کار شما — کانتینر را اجرا کنید و با <code class="inline">ip link</code> یا <code class="inline">ifconfig</code>
+        رابط‌های موجود را ببینید. فقط باید <code class="inline">lo</code> را ببینید (اگر از <code class="inline">ip link</code>
+        استفاده کنید) یا هیچ رابطی (اگر از <code class="inline">ifconfig</code> استفاده کنید):</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash
+Created a new root fs for our container: /workshop/containers/9feb3d2d-725b-4c36-8c4d-0c586766f6f6/rootfs
+root@9feb3d2d-725b-4c36-8c4d-0c586766f6f6:/# ip a
+1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+root@9feb3d2d-725b-4c36-8c4d-0c586766f6f6:/# ifconfig</code></pre>
+        <div class="callout tip">
+          <strong>دور جایزه (bonus):</strong> مجموعه‌ابزار iproute2 هم امکان دست‌کاری namespaceهای شبکه را دارد. به دستورهای
+          <code class="inline">ip netns</code> نگاه کنید؛ مثلاً ساختن یک جفت <code class="inline">veth</code> و نسبت‌دادن یکی
+          از اعضای جفت به namespace شبکهٔ جدید شما. جفت <code class="inline">veth</code> تقریباً شبیه یک کابل پچ است — بسته‌هایی
+          که روی یکی از رابط‌های <code class="inline">veth</code> ارسال می‌شوند در عضو دیگرِ جفت ظاهر می‌شوند. با آن می‌توانید
+          کانتینر را به یک پل/سوئیچ (bridge) وصل کنید — همان کاری که داکر می‌کند. برای اینکه <code class="inline">ip netns</code>
+          با namespaceهایی که با سیس‌کال ساخته‌ایم کار کند، باید فایلی در <code class="inline">/var/run/netns</code> به توصیفگر
+          فایلِ namespace شبکه از <code class="inline">/proc/&lt;pid&gt;/ns/</code> پیوند بزنیم.
+        </div>
+
+        <!-- ============ سطح ۸ ============ -->
+        <h3>سطح ۸: cgroup پردازنده (CPU)</h3>
+        <p>در این سطح اولین cgroup خود را اضافه می‌کنیم:</p>
+        <ol>
+          <li>ابتدا یک cgroup بالایی برای همهٔ کانتینرها و یک زیرگروه برای هر کانتینر می‌سازیم؛ چیزی مثل
+          <code class="inline">/sys/fs/cgroup/cpu/rubber-docker/&lt;container_id&gt;</code>.</li>
+          <li>سپس پروسهٔ محصورشده را با نوشتن pid آن در فایل <code class="inline">tasks</code> گروه، به گروه منتقل می‌کنیم.</li>
+          <li>در پایان، محدودیت‌های گروه را با نوشتن تعداد سهم (shares) تخصیص‌یافته در <code class="inline">cpu.shares</code>
+          تنظیم می‌کنیم.</li>
+        </ol>
+        <p>تمرین‌ها:</p>
+        <ul>
+          <li>کانتینری با ۲۰۰ سهم پردازنده اجرا کنید و سپس داخل کانتینر بار پردازنده تولید کنید (با ابزار <code class="inline">stress</code>).
+          میزبان چه میزان مصرف پردازنده نشان می‌دهد؟ چرا؟</li>
+          <li>دو کانتینر با تخصیص سهم‌های متفاوت اجرا کنید، در هر دو بار پردازنده تولید کنید و مصرف را با
+          <code class="inline">top</code> روی میزبان مشاهده کنید.</li>
+          <li>تعامل میان محدودیت‌های cgroup با اولویت‌های <code class="inline">nice</code> و کلاس‌های اولویت (مثلاً زمان‌بند RT)
+          چگونه است؟</li>
+        </ul>
+        <p>بررسی کار شما — از محتوای <code class="inline">/proc/self/cgroup</code> از داخل کانتینر مطمئن شوید که در یک
+        cgroup پردازندهٔ جدید است:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu /bin/bash
+Created a new root fs for our container: /workshop/containers/57f02a16-4515-4068-b097-b241b66e4987/rootfs
+root@57f02a16-4515-4068-b097-b241b66e4987:/# cat /proc/self/cgroup
+10:hugetlb:/user.slice/user-1000.slice/session-2.scope
+9:blkio:/user.slice/user-1000.slice/session-2.scope
+8:net_cls,net_prio:/user.slice/user-1000.slice/session-2.scope
+7:cpu,cpuacct:/rubber_docker/57f02a16-4515-4068-b097-b241b66e4987
+6:perf_event:/user.slice/user-1000.slice/session-2.scope
+5:devices:/user.slice/user-1000.slice/session-2.scope
+4:cpuset:/user.slice/user-1000.slice/session-2.scope
+3:memory:/user.slice/user-1000.slice/session-2.scope
+2:freezer:/user.slice/user-1000.slice/session-2.scope
+1:name=systemd:/user.slice/user-1000.slice/session-2.scope
+
+root@57f02a16-4515-4068-b097-b241b66e4987:/# grep 57f02a16-4515-4068-b097-b241b66e4987 /proc/self/cgroup
+7:cpu,cpuacct:/rubber_docker/57f02a16-4515-4068-b097-b241b66e4987</code></pre>
+        <p>یا از میزبان، در <code class="inline">/sys/fs/cgroup/cpu</code>:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ cat /sys/fs/cgroup/cpu/rubber_docker/57f02a16-4515-4068-b097-b241b66e4987/tasks
+5386</code></pre>
+
+        <!-- ============ سطح ۹ ============ -->
+        <h3>سطح ۹: cgroup حافظه</h3>
+        <p>در این سطح مصرف حافظهٔ کانتینر را محدود می‌کنیم. داخل فایل‌سیستم cgroup حافظه (مثل کاری که در cgroup پردازنده
+        کردیم) برای هر کانتینر یک پوشه بسازید. پروسه را با نوشتن pid در فایل <code class="inline">tasks</code> به گروه منتقل
+        کنید و سپس محدودیت‌ها را با نوشتن در این فایل‌ها تنظیم کنید:</p>
+        <ul>
+          <li><code class="inline">memory.limit_in_bytes</code> — یا تعداد بایت یا با واحدهایی مثل 1g</li>
+          <li><code class="inline">memory.memsw.limit_in_bytes</code> — یا تعداد بایت یا با واحدهایی مثل 1g</li>
+        </ul>
+        <p>تمرین‌ها — پس از تنظیم محدودیت‌ها، کانتینری را با ابزار stress اجرا کنید و ببینید وقتی کانتینر از حد تخصیص‌یافته
+        فراتر می‌رود چه اتفاقی می‌افتد و رفتار کانتینر را کاوش کنید:</p>
+        <ul>
+          <li>وقتی کانتینر از <code class="inline">memory.limit_in_bytes</code> فراتر می‌رود چه می‌شود؟</li>
+          <li>وقتی کانتینر از <code class="inline">memory.memsw.limit_in_bytes</code> فراتر می‌رود چه می‌شود؟</li>
+          <li><code class="inline">memory.kmem.usage_in_bytes</code> را تماشا کنید؛ آیا همهٔ حافظهٔ هسته حساب می‌شود؟</li>
+          <li>حملهٔ DOS بدنام <code class="inline">while true; do mkdir t; cd t; done</code> را از داخل کانتینر امتحان کنید.
+          آیا در DOS کردن میزبان موفق می‌شود؟</li>
+          <li>حافظهٔ بافر سوکت‌های tcp کجا حساب می‌شود؟ حافظهٔ udp کجا؟</li>
+          <li>رفتار cgroup حافظه را با گزینه‌های مختلف کنترل OOM کاوش کنید (فایل <code class="inline">memory.oom_control</code>).</li>
+        </ul>
+        <p>بررسی کار شما — از داخل کانتینر:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu --memory 128m --memory-swap 150m /bin/bash
+Created a new root fs for our container: /workshop/containers/1e9b16b3-3ea3-4cad-84e1-f623ba4deada/rootfs
+root@1e9b16b3-3ea3-4cad-84e1-f623ba4deada:/# cat /proc/self/cgroup
+10:hugetlb:/user.slice/user-1000.slice/session-2.scope
+9:blkio:/user.slice/user-1000.slice/session-2.scope
+8:net_cls,net_prio:/user.slice/user-1000.slice/session-2.scope
+7:cpu,cpuacct:/rubber_docker/1e9b16b3-3ea3-4cad-84e1-f623ba4deada
+6:perf_event:/user.slice/user-1000.slice/session-2.scope
+5:devices:/user.slice/user-1000.slice/session-2.scope
+4:cpuset:/user.slice/user-1000.slice/session-2.scope
+3:memory:/rubber_docker/1e9b16b3-3ea3-4cad-84e1-f623ba4deada
+2:freezer:/user.slice/user-1000.slice/session-2.scope
+1:name=systemd:/user.slice/user-1000.slice/session-2.scope</code></pre>
+        <p>از میزبان:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ cat /sys/fs/cgroup/memory/rubber_docker/1e9b16b3-3ea3-4cad-84e1-f623ba4deada/memory.limit_in_bytes
+134217728
+$ cat /sys/fs/cgroup/memory/rubber_docker/1e9b16b3-3ea3-4cad-84e1-f623ba4deada/memory.memsw.limit_in_bytes
+157286400</code></pre>
+        <div class="callout tip">
+          <strong>دور جایزه:</strong> دربارهٔ این فایل‌های کنترلی بخوانید و از آن‌ها استفاده کنید:
+          <code class="inline">memory.oom_control</code>، <code class="inline">memory.swappiness</code>،
+          <code class="inline">memory.kmem.limit_in_bytes</code>، <code class="inline">memory.kmem.tcp.limit_in_bytes</code>
+          و <code class="inline">memory.soft_limit_in_bytes</code>.
+        </div>
+
+        <!-- ============ سطح ۱۰ ============ -->
+        <h3>سطح ۱۰: setuid</h3>
+        <p>در این سطح قابلیتی مشابه <code class="inline">docker run -u UID</code> پیاده می‌کنیم — توانایی اجرای پروسه‌ها
+        به‌عنوان کاربر غیر ریشه. برای اجرای پروسهٔ محصورشده به‌عنوان کاربری متفاوت، از سیس‌کال‌های <i>setuid</i> و
+        <i>setgid</i> استفاده کنید. این سیس‌کال‌ها باید قبل از <i>exec</i> صدا زده شوند؛ اما بعد از انجام همهٔ کارهایی که
+        به امتیازات ریشه نیاز دارند.</p>
+        <p>تمرین‌ها:</p>
+        <ul>
+          <li>از uid یک نام کاربری موجود (مثلاً 1000) استفاده کنید و با فایل <code class="inline">/etc/passwd</code> کانتینر
+          بازی کنید.</li>
+          <li>چند فایل داخل کانتینر بسازید و uid مالک آن‌ها را بیرون از کانتینر مشاهده کنید. این روی حجم‌های مشترک
+          (shared volumes) بین کانتینرها چه اثری دارد؟</li>
+        </ul>
+        <p>بررسی کار شما:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">$ sudo python rd.py run -i ubuntu --user 2014:222 /bin/bash
+Created a new root fs for our container: /workshop/containers/1e9b16b3-3ea3-4cad-84e1-f623ba4deada/rootfs
+root@1e9b16b3-3ea3-4cad-84e1-f623ba4deada:/# id</code></pre>
+      </section>
+
+      <!-- ==================== ماژول linux ==================== -->
+      <section>
+        <h2>ماژول پایتونی linux</h2>
+        <p>همان‌طور که گفته شد، همهٔ سیس‌کال‌های لازم در کتابخانهٔ استاندارد پایتون در دسترس نیستند و علاوه بر آن، می‌خواهیم
+        معناشناسی سیس‌کال‌ها حفظ شود و طوری استفاده شوند که گویی در C می‌نویسیم. به همین دلیل نویسندگان یک ماژول پایتونی به
+        نام <i>linux</i> نوشته‌اند (فایل <code class="inline">linux.c</code>) که سیس‌کال‌های مرتبط را در معرض دید قرار
+        می‌دهد: <code class="inline">mount()</code>، <code class="inline">umount2()</code>، <code class="inline">unshare()</code>،
+        <code class="inline">clone()</code>، <code class="inline">pivot_root()</code> و <code class="inline">sethostname()</code>
+        به‌همراه پرچم‌ها و ثابت‌های مربوط (مانند <code class="inline">CLONE_NEWPID</code>، <code class="inline">MS_PRIVATE</code>،
+        <code class="inline">MNT_DETACH</code> و…). مستندات کامل ماژول در
+        <a href="https://rawgit.com/Fewbytes/rubber-docker/master/docs/linux/index.html" target="_blank" rel="noopener">docs/linux</a>
+        موجود است. برای ساخت و نصب ماژول از <code class="inline">make install</code> استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== کد نهایی ==================== -->
+      <section>
+        <h2>کد نهایی rubber-docker</h2>
+        <p>در ادامه، نسخهٔ کامل و نهایی <code class="inline">rd.py</code> از سطح ۱۰ (آخرین سطح) را می‌بینید که همهٔ
+        قابلیت‌ها را یکپارچه دارد: fork/exec، chroot، namespaceهای سوارکردن/UTS/پروسه/شبکه، گره‌های دستگاه، pivot_root،
+        فایل‌سیستم overlay، cgroupهای پردازنده و حافظه و اجرا به‌عنوان کاربر غیر ریشه. کامنت‌ها به فارسی برگردانده شده‌اند و
+        کد عیناً از مخزن است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">#!/usr/bin/env python3
+"""کارگاه «داکر از صفر» — سطح ۱۰: اجرای کانتینرهای غیر ریشه.
+
+هدف: امکان تعیین uid و gid برای اجرای کانتینر به‌عنوان کاربر غیر ریشه (non-root).
+"""
+
+
+
+
+import linux
+import tarfile
+import uuid
+
+import click
+import os
+import stat
+
+
+def _get_image_path(image_name, image_dir, image_suffix='tar'):
+    return os.path.join(image_dir, os.extsep.join([image_name, image_suffix]))
+
+
+def _get_container_path(container_id, base_path, *subdir_names):
+    return os.path.join(base_path, container_id, *subdir_names)
+
+
+def create_container_root(image_name, image_dir, container_id, container_dir):
+    image_path = _get_image_path(image_name, image_dir)
+    image_root = os.path.join(image_dir, image_name, 'rootfs')
+
+    assert os.path.exists(image_path), "unable to locate image %s" % image_name
+
+    if not os.path.exists(image_root):
+        os.makedirs(image_root)
+        with tarfile.open(image_path) as t:
+            # نکتهٔ جالب: فایل‌های tar ممکن است دستگاه‌های (device) یونیکسی داشته باشند!
+            members = [m for m in t.getmembers()
+                       if m.type not in (tarfile.CHRTYPE, tarfile.BLKTYPE)]
+            t.extractall(image_root, members=members)
+
+    # ساخت پوشه‌ها برای کپی-روی-نوشتن (upperdir)، پوشهٔ کار overlay و نقطهٔ سوارکردن
+    container_cow_rw = _get_container_path(
+        container_id, container_dir, 'cow_rw')
+    container_cow_workdir = _get_container_path(
+        container_id, container_dir, 'cow_workdir')
+    container_rootfs = _get_container_path(
+        container_id, container_dir, 'rootfs')
+    for d in (container_cow_rw, container_cow_workdir, container_rootfs):
+        if not os.path.exists(d):
+            os.makedirs(d)
+
+    # سوارکردن فایل‌سیستم overlay (راهنما: برای سوارکردن از پرچم MS_NODEV استفاده کنید)
+    linux.mount(
+        'overlay', container_rootfs, 'overlay', linux.MS_NODEV,
+        "lowerdir={image_root},upperdir={cow_rw},workdir={cow_workdir}".format(
+            image_root=image_root,
+            cow_rw=container_cow_rw,
+            cow_workdir=container_cow_workdir))
+
+    return container_rootfs  # نقطهٔ سوارکردن overlayfs را برگردان
+
+
+@click.group()
+def cli():
+    pass
+
+
+def makedev(dev_path):
+    for i, dev in enumerate(['stdin', 'stdout', 'stderr']):
+        os.symlink('/proc/self/fd/%d' % i, os.path.join(dev_path, dev))
+    os.symlink('/proc/self/fd', os.path.join(dev_path, 'fd'))
+    # افزودن دستگاه‌های اضافی
+    DEVICES = {'null': (stat.S_IFCHR, 1, 3), 'zero': (stat.S_IFCHR, 1, 5),
+               'random': (stat.S_IFCHR, 1, 8), 'urandom': (stat.S_IFCHR, 1, 9),
+               'console': (stat.S_IFCHR, 136, 1), 'tty': (stat.S_IFCHR, 5, 0),
+               'full': (stat.S_IFCHR, 1, 7)}
+    for device, (dev_type, major, minor) in DEVICES.items():
+        os.mknod(os.path.join(dev_path, device),
+                 0o666 | dev_type, os.makedev(major, minor))
+
+
+def _create_mounts(new_root):
+    # سوارکردن‌ها (/proc، /sys، /dev) را زیر new_root بساز
+    linux.mount('proc', os.path.join(new_root, 'proc'), 'proc', 0, '')
+    linux.mount('sysfs', os.path.join(new_root, 'sys'), 'sysfs', 0, '')
+    linux.mount('tmpfs', os.path.join(new_root, 'dev'), 'tmpfs',
+                linux.MS_NOSUID | linux.MS_STRICTATIME, 'mode=755')
+
+    # افزودن چند دستگاه پایه
+    devpts_path = os.path.join(new_root, 'dev', 'pts')
+    if not os.path.exists(devpts_path):
+        os.makedirs(devpts_path)
+        linux.mount('devpts', devpts_path, 'devpts', 0, '')
+
+    makedev(os.path.join(new_root, 'dev'))
+
+
+def _setup_cpu_cgroup(container_id, cpu_shares):
+    CPU_CGROUP_BASEDIR = '/sys/fs/cgroup/cpu'
+    container_cpu_cgroup_dir = os.path.join(
+        CPU_CGROUP_BASEDIR, 'rubber_docker', container_id)
+
+    # کانتینر را به cgroup پردازندهٔ جدیدی به نام 'rubber_docker/container_id' منتقل کن
+    if not os.path.exists(container_cpu_cgroup_dir):
+        os.makedirs(container_cpu_cgroup_dir)
+    tasks_file = os.path.join(container_cpu_cgroup_dir, 'tasks')
+    open(tasks_file, 'w').write(str(os.getpid()))
+
+    # اگر (cpu_shares != 0)  => مقدار 'cpu.shares' را در cgroup پردازندهٔ خود تنظیم کن
+    if cpu_shares:
+        cpu_shares_file = os.path.join(container_cpu_cgroup_dir, 'cpu.shares')
+        open(cpu_shares_file, 'w').write(str(cpu_shares))
+
+
+def _setup_memory_cgroup(container_id, memory, memory_swap):
+    MEMORY_CGROUP_BASEDIR = '/sys/fs/cgroup/memory'
+    container_mem_cgroup_dir = os.path.join(
+        MEMORY_CGROUP_BASEDIR, 'rubber_docker', container_id)
+
+    # کانتینر را به cgroup حافظهٔ جدیدی به نام 'rubber_docker/container_id' منتقل کن
+    if not os.path.exists(container_mem_cgroup_dir):
+        os.makedirs(container_mem_cgroup_dir)
+    tasks_file = os.path.join(container_mem_cgroup_dir, 'tasks')
+    open(tasks_file, 'w').write(str(os.getpid()))
+
+    if memory is not None:
+        mem_limit_in_bytes_file = os.path.join(
+            container_mem_cgroup_dir, 'memory.limit_in_bytes')
+        open(mem_limit_in_bytes_file, 'w').write(str(memory))
+    if memory_swap is not None:
+        memsw_limit_in_bytes_file = os.path.join(
+            container_mem_cgroup_dir, 'memory.memsw.limit_in_bytes')
+        open(memsw_limit_in_bytes_file, 'w').write(str(memory_swap))
+
+
+def contain(command, image_name, image_dir, container_id, container_dir,
+            cpu_shares, memory, memory_swap, user):
+    _setup_cpu_cgroup(container_id, cpu_shares)
+    _setup_memory_cgroup(container_id, memory, memory_swap)
+
+    linux.sethostname(container_id)  # نام میزبان را به شناسهٔ کانتینر تغییر بده
+
+    linux.mount(None, '/', None, linux.MS_PRIVATE | linux.MS_REC, None)
+
+    new_root = create_container_root(
+        image_name, image_dir, container_id, container_dir)
+    print('Created a new root fs for our container: {}'.format(new_root))
+
+    _create_mounts(new_root)
+
+    old_root = os.path.join(new_root, 'old_root')
+    os.makedirs(old_root)
+    linux.pivot_root(new_root, old_root)
+
+    os.chdir('/')
+
+    linux.umount2('/old_root', linux.MNT_DETACH)  # ریشهٔ قدیمی را از سوارکردن خارج کن
+    os.rmdir('/old_root')  # پوشهٔ old_root را حذف کن
+
+    # TODO: اگر user تنظیم شده بود، امتیازات را با os.setuid()
+    #       (و اختیاراً os.setgid()) کاهش بده.
+
+    os.execvp(command[0], command)
+
+
+@cli.command(context_settings=dict(ignore_unknown_options=True,))
+@click.option('--memory',
+              help='Memory limit in bytes.'
+              ' Use suffixes to represent larger units (k, m, g)',
+              default=None)
+@click.option('--memory-swap',
+              help='A positive integer equal to memory plus swap.'
+              ' Specify -1 to enable unlimited swap.',
+              default=None)
+@click.option('--cpu-shares', help='CPU shares (relative weight)', default=0)
+@click.option('--user', help='UID (format: &lt;uid&gt;[:&lt;gid&gt;])', default='')
+@click.option('--image-name', '-i', help='Image name', default='ubuntu')
+@click.option('--image-dir', help='Images directory',
+              default='/workshop/images')
+@click.option('--container-dir', help='Containers directory',
+              default='/workshop/containers')
+@click.argument('Command', required=True, nargs=-1)
+def run(memory, memory_swap, cpu_shares, user, image_name, image_dir,
+        container_dir, command):
+    container_id = str(uuid.uuid4())
+
+    # linux.clone(callback, flags, callback_args) با الگوبرداری از نسخهٔ Glibc
+    # ساخته شده است. رجوع کنید به: "man 2 clone"
+    flags = (linux.CLONE_NEWPID | linux.CLONE_NEWNS | linux.CLONE_NEWUTS |
+             linux.CLONE_NEWNET)
+    callback_args = (command, image_name, image_dir, container_id,
+                     container_dir, cpu_shares, memory, memory_swap, user)
+    pid = linux.clone(contain, flags, callback_args)
+
+    # این فرایند والد است؛ pid شامل شناسهٔ پروسهٔ fork‌شده است
+    # منتظر فرزند fork‌شده بمان و کد خروج را دریافت کن
+    _, status = os.waitpid(pid, 0)
+    print('{} exited with status {}'.format(pid, status))
+
+
+if __name__ == '__main__':
+    cli()</code></pre>
+        <p>و اسکریپت پاک‌سازی <code class="inline">levels/cleanup.sh</code>:</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">#!/usr/bin/env bash
+#
+# کثیف‌ترین اسکریپت پاک‌سازی
+#
+
+# با سوارکردن‌ها تداخل نکن
+pushd /
+
+# سوارکردن‌ها را از سوارکردن خارج کن
+while $(grep -q workshop /proc/mounts); do 
+    sudo umount $(grep workshop /proc/mounts | shuf | head -n1 | cut -f2 -d' ') 2>/dev/null
+done
+
+# محتویات را حذف کن
+sudo rm -rf /workshop/containers/*
+
+popd</code></pre>
+      </section>
+
+      <!-- ==================== اجرا و آزمایش ==================== -->
+      <section>
+        <h2>اجرا و آزمایش</h2>
+        <p>برای شروع، محیط کارگاه را مطابق بخش «پیش‌نیازها» آماده کنید و در <code class="inline">/workshop/rubber-docker</code>
+        از سطح <code class="inline">00_fork_exec</code> شروع کنید. در هر سطح: README آن سطح را بخوانید، تمرین را پیاده کنید و
+        با بخش «How to check your work» بررسی کنید؛ اگر گیر کردید، راه‌حل سطح N را در اسکلت سطح N+1 ببینید.</p>
+        <p>نمونهٔ اجرای کامل با تصویر ubuntu و همهٔ گزینه‌ها (محدودیت حافظه و حافظهٔ مبادله، سهم پردازنده و کاربر):</p>
+        <pre class="code"><span class="lang-tag">sh</span><code style="direction:ltr;text-align:left">sudo python3 rd.py run -i ubuntu \
+    --memory 128m --memory-swap 150m \
+    --cpu-shares 512 --user 1000:1000 \
+    -- /bin/bash</code></pre>
+        <p>برای اطمینان از درستی کار هر سطح، موارد زیر را آزمایش کنید:</p>
+        <ul>
+          <li><b>سطح ۰:</b> <code class="inline">python3 rd.py run /bin/echo "Hello Docker"</code> — خروجی Hello Docker و کد
+          خروج صفر</li>
+          <li><b>سطح ۱:</b> <code class="inline">ls /workshop</code> داخل کانتینر باید با خطای «No such file or directory» شکست
+          بخورد</li>
+          <li><b>سطح ۲:</b> مقایسهٔ <code class="inline">/proc/self/ns/mnt</code> داخل و بیرون کانتینر؛ سوارکردن tmpfs که از بیرون
+          دیده نمی‌شود</li>
+          <li><b>سطح ۳:</b> اجرای <code class="inline">breakout.py</code> باید دیگر فراری ندهد</li>
+          <li><b>سطح ۴:</b> اجرای دومِ یک کانتینر با همان تصویر باید تقریباً آنی باشد</li>
+          <li><b>سطح ۵:</b> <code class="inline">hostname</code> داخل کانتینر باید شناسهٔ کانتینر باشد</li>
+          <li><b>سطح ۶:</b> <code class="inline">ps</code> داخل کانتینر فقط پروسه‌های کانتینر را نشان دهد</li>
+          <li><b>سطح ۷:</b> <code class="inline">ip link</code> داخل کانتینر فقط <code class="inline">lo</code> را نشان دهد</li>
+          <li><b>سطح ۸ و ۹:</b> خطوط cpu/memory در <code class="inline">/proc/self/cgroup</code> به
+          <code class="inline">/rubber_docker/&lt;container_id&gt;</code> اشاره کنند</li>
+          <li><b>سطح ۱۰:</b> <code class="inline">id</code> داخل کانتینر کاربر غیر ریشهٔ درخواستی را نشان دهد</li>
+        </ul>
+        <p>پس از هر جلسهٔ کاری، کانتینرها و سوارکردن‌ها را با <code class="inline">cleanup.sh</code> پاک‌سازی کنید.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی و پرسش‌های متداول</h2>
+        <p>در این کارگاه، یک موتور کانتینر سادهٔ آموزشی را از صفر ساختیم: با fork/exec شروع کردیم، با chroot و سپس
+        pivot_root فایل‌سیستم را محصور کردیم، با namespaceهای سوارکردن، UTS، پروسه و شبکه دید هر کانتینر را ایزوله کردیم،
+        با overlayfs استارت‌آپ سریع و مصرف فضای کم را ممکن کردیم، با cgroupهای پردازنده و حافظه منابع را محدود ساختیم و با
+        setuid توانستیم کانتینر را با کاربر غیر ریشه اجرا کنیم. چیزی که در پایان دارید، یک «کانتینر» واقعی به معنی دقیق کلمه
+        است — نه چیز بیشتر.</p>
+        <img src="https://raw.githubusercontent.com/Fewbytes/rubber-docker/master/slides/images/thats-all-folks.jpg" alt="کارتون پایانی: همهٔ مردم — پایان کارگاه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>پرسش‌های متداول از README مخزن:</p>
+        <ul>
+          <li><b>چرا این کارگاه را ساختید؟</b> چون معتقدیم تنها راه درک واقعی یک چیز، ساختن آن از صفر است — و کانتینرهای
+          لینوکس فناوری بسیار پرطرفداری هستند که درک ضعیفی از آن‌ها وجود دارد.</li>
+          <li><b>می‌توانم از این مخزن برای کارگاه خصوصی/عمومی خودم استفاده کنم؟</b> البته! اگر استفاده کردید، لطفاً به
+          نویسندگان در توییتر (<a href="https://twitter.com/nukemberg" target="_blank" rel="noopener">@nukemberg</a> و
+          <a href="https://twitter.com/nocoot" target="_blank" rel="noopener">@nocoot</a>) اطلاع دهید و بازخورد بفرستید.</li>
+          <li><b>این کارگاه seccomp/کانتینرهای کاربر و… را پوشش نمی‌دهد.</b> درست است؛ امکان پوشش تمام قابلیت‌های یک موتور
+          کانتینر واقعی نیست. تمرکز بر چیزهایی است که برای درک نحوهٔ کار کانتینرها اهمیت دارند.</li>
+          <li><b>یک باگ پیدا کردم!</b> مشارکت‌ها خوش‌آمدند؛ برای باگ یا پیشنهاد، issue یا pull request باز کنید. کل مخزن تحت
+          مجوز MIT است و مشارکت شما نیز زیر همین مجوز خواهد بود.</li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کارگاه «A workshop on Linux containers: Rebuild Docker from Scratch» و تمام کدهای آن اثر
+        تیم «Fewbytes» است (مخزن <a href="https://github.com/Fewbytes/rubber-docker" target="_blank" rel="noopener">rubber-docker</a>
+        با مجوز MIT). این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندگان اصلی است. برای
+        مشاهدهٔ اصل مطلب به <a href="https://github.com/Fewbytes/rubber-docker" target="_blank" rel="noopener">مخزن GitHub
+        (github.com/Fewbytes/rubber-docker)</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

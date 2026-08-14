@@ -89,6 +89,9 @@ DONE = {
     "building-a-simple-redis-server-with-python": "redis-python",
     "build-your-own-persistent-kv-store": "kv-store-ruby",
     "tokio.rs/tokio/tutorial/setup": "mini-redis-rust",
+    "github.com/Fewbytes/rubber-docker": "docker-rubber",
+    "github.com/tonybaloney/mocker": "docker-mocker",
+    "github.com/p8952/bocker": "docker-bocker",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}

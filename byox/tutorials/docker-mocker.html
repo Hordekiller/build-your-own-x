@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی پروژه «mocker: A proof-of-concept imitation of Docker, written in 100% Python» (Anthony Shaw)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Mocker — داکر تقلیدی با ۱۰۰٪ پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">داکر</a>
+        <span class="sep">←</span>
+        <span>Mocker — داکر تقلیدی با ۱۰۰٪ پایتون</span>
+      </div>
+      <h1>Mocker — داکر تقلیدی با ۱۰۰٪ پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: داکر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/tonybaloney/mocker" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی پروژهٔ «mocker: A proof-of-concept imitation of Docker, written in
+          100% Python» نوشتهٔ «آنتونی شاو (Anthony Shaw)» است — یک تقلید اثبات‌مفهوم (proof-of-concept) از داکر که
+          کاملاً در پایتون نوشته شده و از فضاهای نام هسته (Kernel Namespaces)، سی‌گروپ‌ها (cgroups) و فضاهای نام شبکه /
+          iproute2 لینوکس استفاده می‌کند. نسخه کامل و به‌روز را از مخزن اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/tonybaloney/mocker" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه: Mocker چیست و چرا؟</h2>
+        <p>Mocker یک <b>تقلید اثبات‌مفهوم (proof-of-concept)</b> از داکر است که با ۱۰۰٪ پایتون نوشته شده و برای ایزوله‌سازی
+        کانتینرها (containers) از فضاهای نام هستهٔ لینوکس (Kernel Namespaces)، سی‌گروپ‌ها (cgroups) و فضاهای نام شبکه /
+        iproute2 استفاده می‌کند. این پروژه حاصل یک سخنرانی در رویداد <code class="inline">Docker meetup</code> سیدنی در
+        ۱۸ اکتبر است؛ جایی که نویسنده قصد داشت مفاهیم اصلیِ فضاهای نام، سی‌گروپ‌ها و فضاهای نام شبکه، قالب تصویر داکر
+        (همان رابط برنامه‌نویسی جدید) و این واقعیت را نشان دهد که داکر بسیار فراتر از همین امکانات هسته‌ای است.</p>
+        <p>انگیزهٔ نوشتن این پروژه در بخش «Why?» خود مخزن این‌گونه شرح داده شده است:</p>
+        <blockquote>مدام جمله‌هایی می‌شنوم مانند «داکر در اصل همان سی‌گروپ‌هاست» یا «داکر همان chroot عظیم‌تری است»، که
+        کاملاً نادرست است. من قرار است در میت‌آپ داکر سیدنی در ۱۸ اکتبر دربارهٔ برخی از مفاهیم اصلی فضاهای نام هسته،
+        سی‌گروپ‌ها و فضاهای نام شبکه سخنرانی کنم و یک پیاده‌سازی ساده برای نشان‌دادن نحوهٔ کار ایزوله‌سازی کانتینر، قالب
+        تصویر داکر (رابط برنامه‌نویسی جدید) و همچنین این‌که داکر چقدر فراتر از این قابلیت‌های اصلی هسته است، به ذهنم رسید.</blockquote>
+        <p>منابع تکمیلی معرفی‌شده در README:</p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=I326bpbdvJo" target="_blank" rel="noopener">ویدیوی ضبط‌شدهٔ سخنرانی در PyCon AU 2017 دربارهٔ Mocker</a></li>
+          <li><a href="https://hackernoon.com/3-tricks-for-mastering-docker-with-python-99876412348d" target="_blank" rel="noopener">پست وبلاگی دربارهٔ استفاده از این کتابخانه‌ها (Hackernoon)</a></li>
+        </ul>
+        <img src="https://pbs.twimg.com/media/CmE8k1qVAAAZrIt.jpg" alt="تصویر معرفی پروژه Mocker — شبیه‌سازی داکر در پایتون" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>نکتهٔ مهم این است که نویسنده صراحتاً می‌گوید این پروژه را در <b>دو روز</b> نوشته و نباید آن را جدی گرفت؛ کدها
+        صرفاً برای آموزش و نمایش مفاهیم هستند و نقاط ضعف خودشان را نیز دارند (بخش «محدودیت‌ها» را ببینید).</p>
+      </section>
+
+      <!-- ==================== نصب و اجرا ==================== -->
+      <section>
+        <h2>نصب و اجرا</h2>
+        <p>پروژه فقط روی لینوکس کار می‌کند و روی CentOS 7 و Ubuntu 14 تست شده است. وابستگی‌های آن در فایل
+        <code class="inline">requirements.txt</code> آمده است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>requests
+docopt
+terminaltables
+nsenter
+snakeoil
+pychroot
+cgroups
+pyroute2
+colorama</code></pre>
+        <p>نقش هر کدام از این وابستگی‌ها در این پروژه:</p>
+        <ul>
+          <li><code class="inline">requests</code> — کلاینت HTTP برای ارتباط با رجیستری (registry) داکر و دریافت توکن،
+          مانیفست (manifest) و لایه‌های تصویر (image layers).</li>
+          <li><code class="inline">docopt</code> — پردازش آرگومان‌های خط فرمان بر اساس متن راهنمای <code class="inline">Usage</code>.</li>
+          <li><code class="inline">terminaltables</code> — رسم جدول ASCII برای دستور <code class="inline">mocker images</code>.</li>
+          <li><code class="inline">nsenter</code> — ورود به فضای نام فرایندهای دیگر (برای دستور <code class="inline">mocker run</code>).</li>
+          <li><code class="inline">snakeoil</code> — ابزارهای وابسته (مثلاً <code class="inline">log.info</code> در ماژول <code class="inline">cgroups</code>).</li>
+          <li><code class="inline">pychroot</code> — بسته‌بندی پایتونیِ فراخوانی <code class="inline">chroot</code>.</li>
+          <li><code class="inline">cgroups</code> — ساخت سی‌گروپ و محدودکردن CPU و حافظه.</li>
+          <li><code class="inline">pyroute2</code> — مدیریت رابط‌های شبکه، پل‌ها (bridges) و فضاهای نام شبکه از پایتون.</li>
+          <li><code class="inline">colorama</code> — خروجی رنگی ترمینال (برای لاگ).</li>
+        </ul>
+        <p>فایل <code class="inline">setup.py</code> بسته را به‌صورت یک بستهٔ نصب‌شدنی <code class="inline">Mocker</code> تعریف
+        می‌کند و اسکریپت قابل‌اجرای <code class="inline">scripts/mocker</code> را ثبت می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">#!/usr/bin/env python
+
+from distutils.core import setup
+import mocker
+
+setup(
+    name='Mocker',
+    version=mocker.__version__,
+    description='Python example implementation of the Docker engine',
+    author='Anthony Shaw',
+    author_email='gward@python.net',
+    url='https://www.python.org/sigs/distutils-sig/',
+    packages=['distutils', 'distutils.command'],
+    scripts=['scripts/mocker'])</code></pre>
+        <p>اسکریپت نصب‌شده صرفاً ماژول پایتون را با همهٔ آرگومان‌های خط فرمان اجرا می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">#!/bin/sh
+python -m mocker $1</code></pre>
+        <p>در ریشهٔ مخزن هم فایل <code class="inline">mocker.py</code> وجود دارد که همان نقطهٔ ورود مستقل است و می‌توان
+        آن را مستقیماً اجرا کرد؛ مثلاً <code class="inline">./mocker.py pull hello-world</code> یا
+        <code class="inline">./mocker.py run library/hello-world</code>.</p>
+      </section>
+
+      <!-- ==================== معماری مخزن ==================== -->
+      <section>
+        <h2>معماری و ساختار مخزن</h2>
+        <p>ساختار مخزن (در شاخهٔ <code class="inline">master</code>) ساده و جمع‌وجور است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>mocker/
+  __init__.py          ← نسخه، متن راهنمای docopt، مسیر پایهٔ ذخیره‌سازی (~/mocker) و لاگ رنگی
+  base.py              ← کلاس پایهٔ BaseDockerCommand (رابط مشترک همهٔ دستورها)
+  images.py            ← دستور images: فهرست تصاویر دانلودشده در قالب جدول
+  pull.py              ← دستور pull: کلاینت رجیستری داکر (توکن، مانیفست و لایه‌ها)
+  run.py               ← دستور run: شبکه (veth/پل/فضای نام شبکه)، cgroups و chroot
+scripts/
+  mocker               ← اسکریپت پوسته: python -m mocker $1
+mocker.py              ← نقطهٔ ورود CLI با docopt
+setup.py               ← تعریف بسته و اسکریپت نصب
+requirements.txt       ← وابستگی‌ها
+README.md              ← مستندات و نمونه‌های اجرا
+LICENSE                ← مجوز Apache-2.0
+.github/               ← تنظیمات گیت‌هاب</code></pre>
+        <p>معماری کد بر پایهٔ یک الگوی سادهٔ فرمان است: کلاس پایهٔ
+        <code class="inline">BaseDockerCommand</code> فقط یک متد <code class="inline">run()</code> تعریف می‌کند و هر
+        دستور (<code class="inline">pull</code>، <code class="inline">images</code>، <code class="inline">run</code>)
+        یک زیرکلاس است که آن را پیاده‌سازی می‌کند. کلاس پایه:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">class BaseDockerCommand(object):
+    def run(*args):
+        raise NotImplementedError()</code></pre>
+        <p>همهٔ داده‌های محلی (مانیفست‌ها، لایه‌ها و محتوای استخراج‌شدهٔ تصاویر) در پوشهٔ
+        <code class="inline">~/mocker</code> ذخیره می‌شوند؛ این مسیر در ماژول
+        <code class="inline">mocker/__init__.py</code> به‌صورت ثابت سراسری <code class="inline">_base_dir_</code> تعریف
+        شده است و در صورت نبودن، ساخته می‌شود.</p>
+      </section>
+
+      <!-- ==================== CLI ==================== -->
+      <section>
+        <h2>رابط خط فرمان (CLI) با docopt</h2>
+        <p>برخلاف داکرِ واقعی که از یک دیمن (daemon) استفاده می‌کند، CLI این پروژه بسیار ساده است: متن راهنمای
+        <code class="inline">Usage</code> در <code class="inline">mocker/__init__.py</code> تعریف شده و کتابخانهٔ
+        <code class="inline">docopt</code> آن را به‌صورت خودکار پردازش می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">__doc__ = """Mocker.
+
+Usage:
+  mocker pull &lt;name&gt;[&lt;tag&gt;]
+  mocker run &lt;name&gt;
+  mocker images
+  mocker (-h | --help)
+  mocker --version
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+"""</code></pre>
+        <p>سه دستور اصلی عبارت‌اند از: <code class="inline">mocker pull &lt;name&gt;[&lt;tag&gt;]</code> برای کشیدن تصویر
+        (pull) از رجیستری عمومی داکر، <code class="inline">mocker run &lt;name&gt;</code> برای اجرای یک تصویرِ دانلودشده، و
+        <code class="inline">mocker images</code> برای نمایش فهرست تصاویر محلی. نقطهٔ ورود یعنی فایل
+        <code class="inline">mocker.py</code> در ریشهٔ مخزن، آرگومان‌ها را با docopt تجزیه می‌کند، کلاسِ متناظر با دستور را
+        انتخاب و نمونه‌سازی می‌کند و متد <code class="inline">run()</code> آن را صدا می‌زند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">#!/usr/bin/python
+from docopt import docopt
+
+import mocker
+from mocker.base import BaseDockerCommand
+from mocker.pull import PullCommand
+from mocker.images import ImagesCommand
+from mocker.run import RunCommand
+
+
+if __name__ == '__main__':
+    arguments = docopt(mocker.__doc__, version=mocker.__version__)
+    command = BaseDockerCommand
+    if arguments['pull']:
+        command = PullCommand
+    elif arguments['images']:
+        command = ImagesCommand
+    elif arguments['run']:
+        command = RunCommand
+
+    cls = command(**arguments)
+    cls.run(**arguments)</code></pre>
+        <p>توجه کنید که docopt بر اساس متن <code class="inline">Usage</code>، کلیدهای آرگومان را دقیقاً با همان نام‌های
+        درون پرانتز زاویه‌ای (مثل <code class="inline">&lt;name&gt;</code>) در دیکشنری ورودی قرار می‌دهد؛ به همین دلیل
+        کلاس‌های فرمان، فیلدها را از روی همین کلیدها می‌خوانند.</p>
+      </section>
+
+      <!-- ==================== بسته پایه ==================== -->
+      <section>
+        <h2>ساختار پایهٔ بستهٔ mocker: مسیر ذخیره‌سازی و لاگ رنگی</h2>
+        <p>ماژول <code class="inline">mocker/__init__.py</code> سه کار اصلی انجام می‌دهد: نگهداشتن نسخه و مجوز پروژه،
+        تعریف مسیر پایهٔ ذخیره‌سازی <code class="inline">~/mocker</code> (ساخته‌شدن در صورت نبود)، و راه‌اندازی یک لاگر
+        (logger) سراسری با خروجی رنگی بر پایهٔ colorama:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+import colorama
+import logging
+import sys
+
+__copyright__ = """
+   Copyright 2016 Anthony Shaw
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+"""
+__version__ = '1.0.0'
+
+__doc__ = """Mocker.
+
+Usage:
+  mocker pull &lt;name&gt;[&lt;tag&gt;]
+  mocker run &lt;name&gt;
+  mocker images
+  mocker (-h | --help)
+  mocker --version
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+"""
+
+_base_dir_ = os.path.join(os.path.expanduser('~'), 'mocker')
+
+if not os.path.exists(_base_dir_):
+    os.makedirs(_base_dir_)
+
+
+# به لطف http://plumberjack.blogspot.com/2010/12/colorizing-logging-output-in-terminals.html
+# با استفاده از colorama برای رنگ‌بندی کمی تغییر داده شده است
+
+
+class ColorizingStreamHandler(logging.StreamHandler):
+    color_map = {
+        logging.DEBUG: colorama.Style.DIM + colorama.Fore.CYAN,
+        logging.WARNING: colorama.Fore.YELLOW,
+        logging.ERROR: colorama.Fore.RED,
+        logging.CRITICAL: colorama.Back.RED,
+    }
+
+    def __init__(self, stream, color_map=None):
+        logging.StreamHandler.__init__(self,
+                                       colorama.AnsiToWin32(stream).stream)
+        if color_map is not None:
+            self.color_map = color_map
+
+    @property
+    def is_tty(self):
+        isatty = getattr(self.stream, 'isatty', None)
+        return isatty and isatty()
+
+    def format(self, record):
+        message = logging.StreamHandler.format(self, record)
+        if self.is_tty:
+            # روی traceback رنگ اعمال نکن
+            parts = message.split('\n', 1)
+            parts[0] = self.colorize(parts[0], record)
+            message = '\n'.join(parts)
+        return message
+
+    def colorize(self, message, record):
+        try:
+            return (self.color_map[record.levelno] + message +
+                    colorama.Style.RESET_ALL)
+        except KeyError:
+            return message
+
+log = logging.getLogger()
+handler = ColorizingStreamHandler(sys.stdout)
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+log.setLevel(logging.INFO)</code></pre>
+        <p>لاگر سراسری <code class="inline">log</code> در کل پروژه استفاده می‌شود (مثلاً پیام‌های
+        <code class="inline">Running "/hello"</code> یا <code class="inline">Setting ENV ...</code> در دستور
+        <code class="inline">run</code>) و خروجی آن در ترمینال رنگی است.</p>
+      </section>
+
+      <!-- ==================== registry client ==================== -->
+      <section>
+        <h2>کلاینت رجیستری: mocker pull</h2>
+        <p>دستور <code class="inline">pull</code> در فایل <code class="inline">mocker/pull.py</code> پیاده‌سازی شده است.
+        این کلاس عملاً یک کلاینت سادهٔ رجیستری (registry client) است که با پروتکل
+        <b>Registry HTTP API v2</b> داکر کار می‌کند: ابتدا به‌صورت ناشناس از سرور
+        <code class="inline">auth.docker.io</code> توکن می‌گیرد (با محدودهٔ <code class="inline">repository:library/&lt;image&gt;:pull</code>)،
+        سپس مانیفست تصویر را از <code class="inline">registry-1.docker.io/v2</code> دریافت می‌کند، آن را به‌صورت JSON در
+        <code class="inline">~/mocker</code> کش (cache) می‌کند و در نهایت همهٔ لایه‌های یکتا را با جریان‌سازی (streaming)
+        دانلود کرده و محتوای هر لایه (بایگانی tar) را در پوشهٔ <code class="inline">layers/contents</code> استخراج
+        می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import requests
+import os, platform
+import json
+import tarfile
+from mocker import _base_dir_
+from .base import BaseDockerCommand
+
+
+class PullCommand(BaseDockerCommand):
+    registry_base = 'https://registry-1.docker.io/v2'
+
+    def __init__(self, *args, **kwargs):
+        self.image = kwargs['&lt;name&gt;']
+        self.library = 'library'  # todo - کتابخانه‌های تعریف‌شده توسط کاربر
+        self.tag = kwargs['&lt;tag&gt;'] if kwargs['&lt;tag&gt;'] is not None else 'latest'
+
+    def auth(self, library, image):
+        # درخواست توکن v2
+        token_req = requests.get(
+            'https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:%s/%s:pull'
+            % (library, image))
+        return token_req.json()['token']
+
+    def get_manifest(self):
+        # دریافت مانیفست تصویر
+        print("Fetching manifest for %s:%s..." % (self.image, self.tag))
+
+        manifest = requests.get('%s/%s/%s/manifests/%s' %
+                                (self.registry_base, self.library, self.image, self.tag),
+                                headers=self.headers)
+
+        return manifest.json()
+
+    def run(self, *args, **kwargs):
+        # ورود ناشناس
+        self.headers = {'Authorization': 'Bearer %s' % self.auth(self.library,
+                                                                 self.image)}
+        # دریافت مانیفست
+        manifest = self.get_manifest()
+
+        # ذخیره‌سازی مانیفست
+        image_name_friendly = manifest['name'].replace('/', '_')
+        with open(os.path.join(_base_dir_,
+                               image_name_friendly+'.json'), 'w') as cache:
+            cache.write(json.dumps(manifest))
+        # ذخیره لایه‌ها در یک پوشهٔ جدید
+        dl_path = os.path.join(_base_dir_, image_name_friendly, 'layers')
+        if not os.path.exists(dl_path):
+            os.makedirs(dl_path)
+
+        # دریافت هر لایهٔ یکتا
+        layer_sigs = [layer['blobSum'] for layer in manifest['fsLayers']]
+        unique_layer_sigs = set(layer_sigs)
+
+        # ساخت پوشه‌ای برای محتوای تصویر
+        contents_path = os.path.join(dl_path, 'contents')
+        if not os.path.exists(contents_path):
+            os.makedirs(contents_path)
+
+        # دانلود همهٔ اجزا
+        for sig in unique_layer_sigs:
+            print('Fetching layer %s..' % sig)
+            url = '%s/%s/%s/blobs/%s' % (self.registry_base, self.library,
+                                         self.image, sig)
+            local_filename = os.path.join(dl_path, sig) + '.tar'
+
+            r = requests.get(url, stream=True, headers=self.headers)
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+
+            # فهرست بخشی از محتوا
+            with tarfile.open(local_filename, 'r') as tar:
+                for member in tar.getmembers()[:10]:
+                    print('- ' + member.name)
+                print('...')
+
+                tar.extractall(str(contents_path))</code></pre>
+        <p>نکات فنی مهم دربارهٔ این کلاینت:</p>
+        <ul>
+          <li>شناسهٔ هر لایه از فیلد <code class="inline">blobSum</code> (هش sha256) در آرایهٔ
+          <code class="inline">fsLayers</code> مانیفست گرفته می‌شود و لایه‌های تکراری با
+          <code class="inline">set()</code> حذف می‌شوند.</li>
+          <li>دانلود هر لایه به‌صورت جریان‌های ۱۰۲۴ بایتی انجام می‌شود و فایل tar آن در پوشهٔ
+          <code class="inline">layers</code> نگهداری می‌شود.</li>
+          <li>به‌جای نگهداشتن جداگانهٔ لایه‌ها، همهٔ آن‌ها پشت‌سرهم در یک پوشهٔ واحد
+          <code class="inline">layers/contents</code> استخراج می‌شوند؛ یعنی همان «تصویر فشرده/یکپارچه‌شده» (squashed image)
+          که نویسنده در محدودیت‌ها به آن اشاره کرده است.</li>
+        </ul>
+        <p>نمونهٔ اجرای واقعی از README مخزن (کشیدن تصویر <code class="inline">hello-world</code>):</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">./mocker.py pull hello-world
+Starting new HTTPS connection (1): auth.docker.io
+Setting read timeout to None
+"GET /token?service=registry.docker.io&amp;scope=repository:library/hello-world:pull HTTP/1.1" 200 1450
+Fetching manifest for hello-world:latest...
+Starting new HTTPS connection (1): registry-1.docker.io
+Setting read timeout to None
+"GET /v2/library/hello-world/manifests/latest HTTP/1.1" 200 2750
+Fetching layer sha256:c04b14da8d1441880ed3fe6106fb2cc6fa1c9661846ac0266b8a5ec8edf37b7c..
+Starting new HTTPS connection (1): registry-1.docker.io
+Setting read timeout to &lt;object object at 0x7fabadba50b0&gt;
+"GET /v2/library/hello-world/blobs/sha256:c04b14da8d1441880ed3fe6106fb2cc6fa1c9661846ac0266b8a5ec8edf37b7c HTTP/1.1" 307 432
+Starting new HTTPS connection (1): dseasb33srnrn.cloudfront.net
+Setting read timeout to &lt;object object at 0x7fabadba50b0&gt;
+"GET /registry-v2/docker/registry/v2/blobs/sha256/c0/c04b14da8d1441880ed3fe6106fb2cc6fa1c9661846ac0266b8a5ec8edf37b7c/data?Expires=1476758515&amp;Signature=P~1JaRJM6u9SNOq9c8MTsie5cEN4HPixwAKza2FPGnXu85au4r0fcbUhRWFnENHyTR1ntlYajARBIbelKb4Yf92OTFyVum~hKmOs3fXz7dCTRLNQDJ6iCuGZG1apqQ7j4JJLqP8bnkIe40FZ6WbYxG3pYqv2s0lxsdsFytgvCm0_&amp;Key-Pair-Id=APKAJECH5M7VWIS5YZ6Q HTTP/1.1" 200 974
+- hello
+...
+Fetching layer sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4..
+Starting new HTTPS connection (1): registry-1.docker.io
+Setting read timeout to &lt;object object at 0x7fabadba50b0&gt;
+"GET /v2/library/hello-world/blobs/sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4 HTTP/1.1" 307 432
+Starting new HTTPS connection (1): dseasb33srnrn.cloudfront.net
+Setting read timeout to &lt;object object at 0x7fabadba50b0&gt;
+"GET /registry-v2/docker/registry/v2/blobs/sha256/a3/a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4/data?Expires=1476758516&amp;Signature=CkRP6ohZMxL5OJ5pX9Oamsds5oP8AEafk0otQo4Udd21DA5SparSxSlJSR7JxXkF16BS8X2kdbVGxdJxehNHCsvb~Z2dIVyA9Vrr6XKgAfmgfP2prt2GixMJzi0HZDut8DRgSK57qlzvGlYRmeKL-pk5q1HCEEgwmHoTnW450NY_&amp;Key-Pair-Id=APKAJECH5M7VWIS5YZ6Q HTTP/1.1" 200 32
+...</code></pre>
+        <p>در خروجی بالا می‌بینید که دانلود لایهٔ اول با کد ۳۰۷ به CDN آمازون (cloudfront) هدایت (redirect) می‌شود؛
+        <code class="inline">requests</code> به‌صورت خودکار از آن دنبال می‌کند و دادهٔ نهایی لایه را تحویل می‌دهد.</p>
+      </section>
+
+      <!-- ==================== ذخیره‌سازی ==================== -->
+      <section>
+        <h2>ذخیره‌سازی تصاویر: mocker images و ساختار پوشه</h2>
+        <p>دستور <code class="inline">images</code> در فایل <code class="inline">mocker/images.py</code> پیاده‌سازی شده
+        است. این کلاس محتوای پوشهٔ <code class="inline">~/mocker</code> را می‌خواند، برای هر مانیفست JSONِ دانلودشده یک
+        ردیف می‌سازد و مجموع حجم لایه‌های آن را محاسبه و با کتابخانهٔ <code class="inline">terminaltables</code> به‌صورت
+        جدول ASCII نمایش می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+import json
+from terminaltables import AsciiTable
+
+from mocker import _base_dir_
+from .base import BaseDockerCommand
+
+
+class ImagesCommand(BaseDockerCommand):
+    registry_base = 'https://registry-1.docker.io/v2'
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def list_images(self):
+        images = [['name', 'version', 'size', 'file']]
+
+        for image_file in os.listdir(_base_dir_):
+            if image_file.endswith('.json'):
+                with open(os.path.join(_base_dir_, image_file), 'r') as json_f:
+                    image = json.loads(json_f.read())
+                image_base = os.path.join(_base_dir_, image_file.replace('.json', ''), 'layers')
+                size = sum(os.path.getsize(os.path.join(image_base, f)) for f in
+                           os.listdir(image_base)
+                           if os.path.isfile(os.path.join(image_base, f)))
+                images.append([image['name'], image['tag'], sizeof_fmt(size), image_file])
+        return images
+
+    def run(self, *args, **kwargs):
+        images = self.list_images()
+        table = AsciiTable(images)
+        print(table.table)
+
+
+def sizeof_fmt(num, suffix='B'):
+    ''' اعتبار: http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size '''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)</code></pre>
+        <p>توجه کنید که محاسبهٔ حجم، مجموع فایل‌های داخل پوشهٔ <code class="inline">layers</code> (یعنی بایگانی‌های tar
+        هر لایه) است، نه حجم محتوای استخراج‌شده. نمونهٔ خروجی از README:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">./mocker.py images
++------------------+---------+----------+-----------------------+
+| name             | version | size     | file                  |
++------------------+---------+----------+-----------------------+
+| library/tomcat   | latest  | 153.9MiB | library_tomcat.json   |
+| library/rabbitmq | latest  | 82.6MiB  | library_rabbitmq.json |
++------------------+---------+----------+-----------------------+
+</code></pre>
+        <div class="callout note">
+          <strong>نکته دربارهٔ لایه‌بندی (overlayfs):</strong> در این پروژه هیچ سیستم فایل روی‌هم‌گذار (overlayfs) و هیچ
+          عکس فوری (snapshot) وجود ندارد. همان‌طور که خود نویسنده در محدودیت‌ها می‌گوید، mocker به‌جای «سوارکردن عکس فوری
+          btrfs»، روی تصویرِ یکپارچه‌شدهٔ دانلودشده <code class="inline">chroot</code> انجام می‌دهد؛ یعنی همهٔ لایه‌ها در
+          یک پوشه استخراج می‌شوند و هیچ جداسازی‌ای بین لایه‌های منفرد (کپی‌انگار-هنگام-نوشتن / copy-on-write) وجود
+          ندارد.
+        </div>
+      </section>
+
+      <!-- ==================== run ==================== -->
+      <section>
+        <h2>اجرای کانتینر: mocker run</h2>
+        <p>قلب پروژه در فایل <code class="inline">mocker/run.py</code> قرار دارد. دستور <code class="inline">run</code>
+        طبق README این مراحل را انجام می‌دهد:</p>
+        <ul>
+          <li>ایجاد یک آداپتور اترنت مجازی (virtual ethernet) به نام <code class="inline">veth0</code> در فضای نام ریشه (root namespace)</li>
+          <li>ایجاد یک فضای نام شبکه (network namespace) برای «کانتینر»</li>
+          <li>پل‌کردن آداپتور <code class="inline">veth1</code> در فضای نام شبکهٔ جدید با آدرس <code class="inline">10.0.0.3/24</code></li>
+          <li>تنظیم مسیر پیش‌فرض (default route) به <code class="inline">10.0.0.1</code></li>
+          <li>ایجاد یک سی‌گروپ (cgroup) برای فرایندها</li>
+          <li>Chroot به پوشهٔ تصویر استخراج‌شده (بدون عکس فوری — که مطلوب نیست)</li>
+          <li>اجرای دستور <code class="inline">Cmd</code> انتخاب‌شده توسط تصویر داکر، تنظیم متغیرهای محیطی و نوشتن خروجی در <code class="inline">/tmp/stdout</code></li>
+        </ul>
+        <p>کد کامل فایل <code class="inline">mocker/run.py</code>:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">import os
+import uuid
+import json
+from pprint import pprint
+import subprocess
+import traceback
+from pyroute2 import IPDB, NetNS, netns
+from cgroups import Cgroup
+from cgroups.user import create_user_cgroups
+
+from mocker import _base_dir_, log
+from .base import BaseDockerCommand
+from .images import ImagesCommand
+from .pull import PullCommand
+
+
+try:
+    from pychroot import Chroot
+except ImportError:
+    print('warning: missing chroot options')
+
+
+class RunCommand(BaseDockerCommand):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def run(self, *args, **kwargs):
+        images = ImagesCommand().list_images()
+        image_name = kwargs['&lt;name&gt;']
+        ip_last_octet = 103 # TODO : قابل تنظیم
+
+        file = [i[3] for i in images if i[0] == image_name]
+        if (file == []):
+            kwargs['pull'] = True
+            kwargs['&lt;name&gt;'] = kwargs['&lt;name&gt;'].split("/")[1]
+            PullCommand(*args, **kwargs).run()
+            images = ImagesCommand().list_images()
+            file = [i[3] for i in images if i[0] == image_name]
+            
+        match = file[0]
+
+        target_file = os.path.join(_base_dir_, match)
+        with open(target_file) as tf:
+            image_details = json.loads(tf.read())
+        # تنظیم جزئیات محیط
+        state = json.loads(image_details['history'][0]['v1Compatibility'])
+
+        # استخراج اطلاعات این کانتینر
+        env_vars = state['config']['Env']
+        start_cmd = subprocess.list2cmdline(state['config']['Cmd'])
+        working_dir = state['config']['WorkingDir']
+
+        id = uuid.uuid1()
+
+        # نام نسبتاً یکتا
+        name = 'c_' + str(id.fields[5])[:4]
+
+        # مک نسبتاً یکتا
+        mac = str(id.fields[5])[:2]
+
+        layer_dir = os.path.join(_base_dir_, match.replace('.json', ''), 'layers', 'contents')
+
+        with IPDB() as ipdb:
+            veth0_name = 'veth0_'+name
+            veth1_name = 'veth1_'+name
+            netns_name = 'netns_'+name
+            bridge_if_name = 'bridge0'
+
+            existing_interfaces = ipdb.interfaces.keys()
+
+            # ساخت یک رابط مجازی جدید
+            with ipdb.create(kind='veth', ifname=veth0_name, peer=veth1_name) as i1:
+                i1.up()
+                if bridge_if_name not in existing_interfaces:
+                    ipdb.create(kind='bridge', ifname=bridge_if_name).commit()
+                i1.set_target('master', bridge_if_name)
+
+            # ایجاد یک فضای نام شبکه
+            netns.create(netns_name)
+
+            # انتقال رابط پل به فضای نام جدید
+            with ipdb.interfaces[veth1_name] as veth1:
+                veth1.net_ns_fd = netns_name
+
+            # استفاده از این فضای نام شبکه به‌عنوان پایگاه‌داده
+            ns = IPDB(nl=NetNS(netns_name))
+            with ns.interfaces.lo as lo:
+                lo.up()
+            with ns.interfaces[veth1_name] as veth1:
+                veth1.address = "02:42:ac:11:00:{0}".format(mac)
+                veth1.add_ip('10.0.0.{0}/24'.format(ip_last_octet))
+                veth1.up()
+            ns.routes.add({
+                'dst': 'default',
+                'gateway': '10.0.0.1'}).commit()
+
+            try:
+                # ساخت پوشهٔ cgroup برای این کاربر
+                user = os.getlogin()
+                create_user_cgroups(user)
+
+                # ابتدا cgroup را می‌سازیم و محدودیت cpu و حافظه آن را تنظیم می‌کنیم
+                cg = Cgroup(name)
+                cg.set_cpu_limit(50)  # TODO : این‌ها را به‌صورت گزینهٔ خط فرمان دریافت کن
+                cg.set_memory_limit(500)
+
+                # سپس تابعی می‌سازیم که فرایند را به cgroup اضافه کند
+                def in_cgroup():
+                    try:
+                        pid = os.getpid()
+                        cg = Cgroup(name)
+                        for env in env_vars:
+                            log.info('Setting ENV %s' % env)
+                            os.putenv(*env.split('=', 1))
+
+                        # تنظیم فضای نام شبکه
+                        netns.setns(netns_name)
+
+                        # افزودن فرایند به cgroup
+                        cg.add(pid)
+
+                        os.chroot(layer_dir)
+                        if working_dir != '':
+                            log.info("Setting working directory to %s" % working_dir)
+                            os.chdir(working_dir)
+                    except Exception as e:
+                        traceback.print_exc()
+                        log.error("Failed to preexecute function")
+                        log.error(e)
+                cmd = start_cmd
+                log.info('Running "%s"' % cmd)
+                process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+                process.wait()
+                print(process.stdout)
+                log.error(process.stderr)
+            except Exception as e:
+                traceback.print_exc()
+                log.error(e)
+            finally:
+                log.info('Finalizing')
+                NetNS(netns_name).close()
+                netns.remove(netns_name)
+                ipdb.interfaces[veth0_name].remove()
+                log.info('done')</code></pre>
+        <p>نکتهٔ جالب در ابتدای متد <code class="inline">run</code>: اگر تصویرِ خواسته‌شده از قبل دانلود نشده باشد، خودِ
+        دستور <code class="inline">run</code> به‌صورت خودکار یک <code class="inline">PullCommand</code> اجرا می‌کند و
+        سپس اجرا را ادامه می‌دهد (شبیه رفتار داکر که تصویر را در صورت نبودن می‌کشد).</p>
+      </section>
+
+      <!-- ==================== شبکه ==================== -->
+      <section>
+        <h2>شبکه: پل، veth و فضای نام شبکه</h2>
+        <p>بخش شبکه با کتابخانهٔ <code class="inline">pyroute2</code> (پیاده‌سازی پایتونیِ netlink و iproute2) انجام
+        می‌شود و همان الگوی کلاسیک داکر است:</p>
+        <ol>
+          <li>یک جفت <code class="inline">veth</code> (کابل مجازی دوطرفه) با نام‌های یکتای
+          <code class="inline">veth0_&lt;name&gt;</code> و <code class="inline">veth1_&lt;name&gt;</code> ساخته می‌شود؛
+          سر اول در فضای نام ریشه بالا می‌آید و به پل <code class="inline">bridge0</code> متصل می‌شود (در صورت نبودن، خود
+          پل با <code class="inline">kind='bridge'</code> ساخته می‌شود).</li>
+          <li>یک فضای نام شبکهٔ یکتا با <code class="inline">netns.create(netns_name)</code> ساخته می‌شود.</li>
+          <li>سر دوم veth با تنظیم <code class="inline">veth1.net_ns_fd = netns_name</code> به داخل فضای نام جدید منتقل
+          می‌شود.</li>
+          <li>در فضای نام جدید: رابط loopback (<code class="inline">lo</code>) بالا می‌آید، به
+          <code class="inline">veth1</code> یک آدرس مک (MAC) ساختگی و آدرس IP یکتای
+          <code class="inline">10.0.0.&lt;last_octet&gt;/24</code> اختصاص داده می‌شود و مسیر پیش‌فرض به سمت گیت‌وی
+          <code class="inline">10.0.0.1</code> اضافه می‌شود.</li>
+          <li>در پایان (<code class="inline">finally</code>): فضای نام شبکه بسته و حذف می‌شود و
+          <code class="inline">veth0</code> از پل جدا و حذف می‌شود.</li>
+        </ol>
+        <p>بخش شبکهٔ مربوطه در کد:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">with IPDB() as ipdb:
+    veth0_name = 'veth0_'+name
+    veth1_name = 'veth1_'+name
+    netns_name = 'netns_'+name
+    bridge_if_name = 'bridge0'
+
+    existing_interfaces = ipdb.interfaces.keys()
+
+    # ساخت یک رابط مجازی جدید
+    with ipdb.create(kind='veth', ifname=veth0_name, peer=veth1_name) as i1:
+        i1.up()
+        if bridge_if_name not in existing_interfaces:
+            ipdb.create(kind='bridge', ifname=bridge_if_name).commit()
+        i1.set_target('master', bridge_if_name)
+
+    # ایجاد یک فضای نام شبکه
+    netns.create(netns_name)
+
+    # انتقال رابط پل به فضای نام جدید
+    with ipdb.interfaces[veth1_name] as veth1:
+        veth1.net_ns_fd = netns_name
+
+    # استفاده از این فضای نام شبکه به‌عنوان پایگاه‌داده
+    ns = IPDB(nl=NetNS(netns_name))
+    with ns.interfaces.lo as lo:
+        lo.up()
+    with ns.interfaces[veth1_name] as veth1:
+        veth1.address = "02:42:ac:11:00:{0}".format(mac)
+        veth1.add_ip('10.0.0.{0}/24'.format(ip_last_octet))
+        veth1.up()
+    ns.routes.add({
+        'dst': 'default',
+        'gateway': '10.0.0.1'}).commit()</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> پیاده‌سازی شبکه در این پروژه «نیمه‌کاره» است؛ خود نویسنده در محدودیت‌ها می‌گوید هنوز
+          نگاشت آدرس شبکه (NAT) را کامل نکرده است و در کد نیز هیچ قانون iptables برای NAT وجود ندارد. یعنی کانتینر در این
+          نسخه راهی به اینترنت ندارد.
+        </div>
+      </section>
+
+      <!-- ==================== cgroups و chroot ==================== -->
+      <section>
+        <h2>ایزولاسیون فرایند: cgroups و chroot</h2>
+        <p>کنترل منابع با کتابخانهٔ <code class="inline">cgroups</code> انجام می‌شود. ابتدا با
+        <code class="inline">create_user_cgroups(user)</code> زیرپوشه‌های سی‌گروپ کاربرِ فعلی ساخته می‌شوند (همان پیام‌های
+        <code class="inline">Creating cgroups sub-directories for user root</code> در خروجی) و سپس برای هر کانتینر یک
+        سی‌گروپ به نامِ نسبتاً یکتای <code class="inline">c_xxxx</code> ساخته می‌شود؛ محدودیت CPU برابر ۵۰ (سهم زمان
+        پردازنده) و محدودیت حافظه برابر ۵۰۰ (مگابایت) تنظیم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">try:
+    # ساخت پوشهٔ cgroup برای این کاربر
+    user = os.getlogin()
+    create_user_cgroups(user)
+
+    # ابتدا cgroup را می‌سازیم و محدودیت cpu و حافظه آن را تنظیم می‌کنیم
+    cg = Cgroup(name)
+    cg.set_cpu_limit(50)  # TODO : این‌ها را به‌صورت گزینهٔ خط فرمان دریافت کن
+    cg.set_memory_limit(500)
+
+    # سپس تابعی می‌سازیم که فرایند را به cgroup اضافه کند
+    def in_cgroup():
+        try:
+            pid = os.getpid()
+            cg = Cgroup(name)
+            for env in env_vars:
+                log.info('Setting ENV %s' % env)
+                os.putenv(*env.split('=', 1))
+
+            # تنظیم فضای نام شبکه
+            netns.setns(netns_name)
+
+            # افزودن فرایند به cgroup
+            cg.add(pid)
+
+            os.chroot(layer_dir)
+            if working_dir != '':
+                log.info("Setting working directory to %s" % working_dir)
+                os.chdir(working_dir)
+        except Exception as e:
+            traceback.print_exc()
+            log.error("Failed to preexecute function")
+            log.error(e)
+    cmd = start_cmd
+    log.info('Running "%s"' % cmd)
+    process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+    process.wait()
+    print(process.stdout)
+    log.error(process.stderr)
+except Exception as e:
+    traceback.print_exc()
+    log.error(e)
+finally:
+    log.info('Finalizing')
+    NetNS(netns_name).close()
+    netns.remove(netns_name)
+    ipdb.interfaces[veth0_name].remove()
+    log.info('done')</code></pre>
+        <p>نکات این بخش:</p>
+        <ul>
+          <li>همهٔ آماده‌سازی‌ها (متغیرهای محیطی، ورود به فضای نام شبکه، افزودن به سی‌گروپ، chroot و تغییر مسیر کاری) در
+          تابع <code class="inline">in_cgroup</code> انجام می‌شوند که به‌عنوان
+          <code class="inline">preexec_fn</code> به <code class="inline">subprocess.Popen</code> داده می‌شود؛ یعنی دقیقاً
+          قبل از اجرای فرمان اصلی داخل همان فرایند فرزند اجرا می‌شود.</li>
+          <li>متغیرهای محیطی (<code class="inline">Env</code>) از مانیفست تصویر خوانده می‌شوند و با
+          <code class="inline">os.putenv</code> تنظیم می‌شوند (مثلاً مسیر PATH در نمونهٔ hello-world).</li>
+          <li><code class="inline">os.chroot(layer_dir)</code> ریشهٔ سیستم فایل را به پوشهٔ محتوای استخراج‌شده تغییر
+          می‌دهد — همان «chroot روی تصویر یکپارچه» که ذکر شد؛ import کتابخانهٔ
+          <code class="inline">pychroot</code> هم فقط اختیاری است و در صورت نبودن، یک پیام هشدار چاپ می‌شود.</li>
+          <li>دستور اجرایی (<code class="inline">Cmd</code>) از <code class="inline">state['config']['Cmd']</code>
+          مانیفست گرفته و با <code class="inline">subprocess.list2cmdline</code> به رشته تبدیل می‌شود.</li>
+          <li>محدودیت‌های CPU و حافظه در کد با TODO علامت‌گذاری شده‌اند تا به‌صورت گزینهٔ خط فرمان دریافت شوند.</li>
+        </ul>
+        <p>نمونهٔ اجرای واقعی <code class="inline">mocker run library/hello-world</code> از README:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">./mocker.py run library/hello-world
+Creating cgroups sub-directories for user root
+Hierarchies availables: ['hugetlb', 'perf_event', 'blkio', 'devices', 'memory', 'cpuacct', 'cpu', 'cpuset', 'freezer', 'systemd']
+cgroups sub-directories created for user root
+Creating cgroups sub-directories for user root
+Hierarchies availables: ['hugetlb', 'perf_event', 'blkio', 'devices', 'memory', 'cpuacct', 'cpu', 'cpuset', 'freezer', 'systemd']
+cgroups sub-directories created for user root
+Running "/hello"
+Creating cgroups sub-directories for user root
+Hierarchies availables: ['hugetlb', 'perf_event', 'blkio', 'devices', 'memory', 'cpuacct', 'cpu', 'cpuset', 'freezer', 'systemd']
+cgroups sub-directories created for user root
+Setting ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker Hub account:
+ https://hub.docker.com
+
+For more examples and ideas, visit:
+ https://docs.docker.com/engine/userguide/
+
+None
+None
+Finalizing
+done</code></pre>
+        <p>این خروجی نشان می‌دهد که کانتینرِ chroot شدهٔ <code class="inline">/hello</code> همان پیام معروف داکر را تولید
+        می‌کند و پس از اتمام کار، با <code class="inline">Finalizing</code> و <code class="inline">done</code> منابع
+        شبکه پاک‌سازی می‌شوند.</p>
+      </section>
+
+      <!-- ==================== محدودیتها ==================== -->
+      <section>
+        <h2>محدودیت‌ها (Caveats)</h2>
+        <p>نویسنده در README صادقانه این محدودیت‌ها را فهرست کرده است:</p>
+        <ol>
+          <li>این پروژه را در <b>دو روز</b> نوشته است؛ آن را جدی نگیرید.</li>
+          <li>فقط روی <b>لینوکس</b> کار می‌کند (تست‌شده روی CentOS 7 و Ubuntu 14).</li>
+          <li>کانتینر nginx را هم امتحان کنید — <img src="https://pbs.twimg.com/media/CvEzEJFUIAQfX2z.jpg" alt="تصویر اجرای کانتینر nginx با Mocker" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></li>
+          <li>پیاده‌سازی شبکه <b>نیمه‌کاره</b> است؛ هنوز باید نگاشت آدرس شبکه (NAT) آن کامل شود (در کد خبری از iptables نیست).</li>
+          <li>برخی تصاویر را امتحان کرده و با <b>فرمان شروع</b> (start command) آن‌ها مشکل داشته است؛ ظاهراً پشتهٔ لایه‌ها را
+          درست سوار نمی‌کند. به‌جای استفاده از mount عکس فوری btrfs، روی تصویرِ یکپارچه‌شدهٔ دانلودشده chroot انجام
+          می‌دهد؛ یعنی هیچ snapshot/overlayfs در کار نیست.</li>
+        </ol>
+        <div class="callout tip">
+          <strong>نکتهٔ آموزشی:</strong> مقایسهٔ این پروژه با داکرِ واقعی، دقیقاً همان هدف نویسنده است: نشان دادن اینکه
+          داکر «فقط cgroups نیست» و «فقط chroot نیست»؛ هستهٔ داکر ترکیبی از فضاهای نام هسته، سی‌گروپ‌ها، سیستم‌های فایل
+          لایه‌ای (overlayfs/btrfs)، شبکه (veth/پل/NAT/iptables) و یک کلاینت/سرور رجیستری پیچیده است — و حتی همهٔ این‌ها
+          هم بخش کوچکی از داکرِ کامل هستند.
+        </div>
+      </section>
+
+      <!-- ==================== جمعبندی ==================== -->
+      <section>
+        <h2>جمع‌بندی و مسیر پیش‌رو (TODO)</h2>
+        <p>بخش TODO مخزن به‌صورت طنزآمیز می‌گوید: «بقیهٔ ۹۹.۹۹۹٪ داکر! فقط دو روز برای نوشتنش وقت داشتم!» با این حال،
+        همین پیاده‌سازی کوچک تقریباً همهٔ مفاهیم اصلی ایزوله‌سازی کانتینر را پوشش می‌دهد:</p>
+        <ul>
+          <li><b>دریافت تصویر:</b> کلاینت رجیستری با توکن‌دهی (auth)، مانیفست v2 و دانلود لایه‌ها با requests.</li>
+          <li><b>ذخیره‌سازی:</b> کش مانیفست‌ها و لایه‌ها در <code class="inline">~/mocker</code> و استخراج یکپارچهٔ آن‌ها.</li>
+          <li><b>ایزولاسیون:</b> سی‌گروپ برای محدودیت CPU/حافظه و chroot برای ریشهٔ سیستم فایل.</li>
+          <li><b>شبکه:</b> پل + veth + فضای نام شبکه با pyroute2 (بدون NAT).</li>
+          <li><b>CLI:</b> پردازش آرگومان با docopt و الگوی کلاس‌های فرمان.</li>
+        </ul>
+        <p>اگر می‌خواهید عمیق‌تر بروید: ویدیوی
+        <a href="https://www.youtube.com/watch?v=I326bpbdvJo" target="_blank" rel="noopener">سخنرانی PyCon AU 2017</a>
+        و <a href="https://hackernoon.com/3-tricks-for-mastering-docker-with-python-99876412348d" target="_blank" rel="noopener">پست Hackernoon</a>
+        را ببینید. پروژه با مجوز Apache-2.0 منتشر شده است.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ «mocker» (A proof-of-concept imitation of Docker, written in 100% Python) و
+        تمام کدهای آن اثر «آنتونی شاو (Anthony Shaw)» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و
+        کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/tonybaloney/mocker" target="_blank" rel="noopener">مخزن GitHub
+        (github.com/tonybaloney/mocker)</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
