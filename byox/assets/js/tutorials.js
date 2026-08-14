@@ -960,34 +960,54 @@ window.TUTORIALS = [
 "file": "tutorials/emulator-chip8-codeslinger.html"
 },
 {
-"id": "",
+"id": "emulator-codeslinger-gameboy",
+"category": "شبیه‌ساز / ماشین مجازی",
+"lang": "C++",
+"title": "آموزش شبیه‌سازی (شبیه‌ساز GameBoy)",
+"url": "http://www.codeslinger.co.uk/pages/projects/gameboy.html",
+"video": false,
+"done": true,
+"file": "tutorials/emulator-codeslinger-gameboy.html"
+},
+{
+"id": "emulator-codeslinger-mastersystem",
+"category": "شبیه‌ساز / ماشین مجازی",
+"lang": "C++",
+"title": "آموزش شبیه‌سازی (شبیه‌ساز Master System)",
+"url": "http://www.codeslinger.co.uk/pages/projects/mastersystem/memory.html",
+"video": false,
+"done": true,
+"file": "tutorials/emulator-codeslinger-mastersystem.html"
+},
+{
+"id": "emulator-nes-video",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C++",
 "title": "شبیه‌ساز NES از صفر",
 "url": "https://www.youtube.com/playlist?list=PLrOv9FMX8xJHqMvSGB_9G9nZZ_4IgteYf",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-nes-video.html"
 },
 {
-"id": "",
+"id": "emulator-chip8-lisp",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "Common Lisp",
 "title": "CHIP-8 در Common Lisp",
 "url": "http://stevelosh.com/blog/2016/12/chip8-cpu/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-chip8-lisp.html"
 },
 {
-"id": "",
+"id": "emulator-gameboy-js",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "JavaScript",
 "title": "شبیه‌سازی GameBoy در جاوااسکریپت",
 "url": "http://imrannazar.com/GameBoy-Emulation-in-JavaScript",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-gameboy-js.html"
 },
 {
 "id": "emulator-chip8-python",
@@ -1000,14 +1020,14 @@ window.TUTORIALS = [
 "file": "tutorials/emulator-chip8-python.html"
 },
 {
-"id": "",
+"id": "emulator-0dmg-rust",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "Rust",
 "title": "0dmg: یادگیری Rust با ساختن یک شبیه‌ساز ناقص Game Boy",
 "url": "https://jeremybanks.github.io/0dmg/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-0dmg-rust.html"
 },
 {
 "id": "",

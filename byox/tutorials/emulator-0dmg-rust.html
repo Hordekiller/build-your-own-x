@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «0dmg: Learning Rust by building a partial Game Boy emulator»
+  از Jeremy Banks (jeremyBanks) — لاگ توسعه شبیه‌ساز گیم‌بوی با زبان Rust
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش شبیه‌سازی گیم‌بوی با Rust (0dmg)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>آموزش شبیه‌سازی گیم‌بوی با Rust (0dmg)</span>
+      </div>
+      <h1>0dmg — یادگیری Rust با ساختن یک شبیه‌ساز گیم‌بوی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://jeremybanks.github.io/0dmg/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی لاگ توسعهٔ «0dmg — Learning Rust by building a partial Game Boy emulator»
+          از «جرمی بنکس (Jeremy Banks)» است؛ مجموعه‌ای از یادداشت‌های روزانه دربارهٔ ساختن شبیه‌ساز گیم‌بوی
+          با زبان Rust و در دل آن یادگیری خودِ Rust. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://jeremybanks.github.io/0dmg/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== درباره پروژه ==================== -->
+      <section>
+        <h2>دربارهٔ پروژه</h2>
+        <p>«0dmg» پروژهٔ یادگیری زبان Rust با ساختن یک شبیه‌ساز (هرچند ناقص) از کنسول دستی گیم‌بوی (Game Boy) است. نویسنده روزبه‌روز پیشرفت خود را در قالب یادداشت لاگ می‌نویسد: از پشتیبانی از رامِ بوت (boot ROM) ۲۵۶ بایتی شروع می‌کند و به‌مرور اپکدها، مدیریت حافظه، و سپس یک کتابخانهٔ جدا برای مدل‌سازی و دی‌اسمبل رام‌ها می‌سازد. این پروژه برای کسانی که هم به شبیه‌سازی علاقه دارند و هم می‌خواهند Rust را عملی یاد بگیرند بسیار ارزشمند است.</p>
+        <ul>
+          <li><a href="https://github.com/jeremyBanks/0dmg" target="_blank" rel="noopener">کد منبع پروژه در GitHub</a></li>
+          <li><a href="https://youtu.be/HyzD8pNlpwI" target="_blank" rel="noopener">The Ultimate Game Boy Talk (سخنرانی الهام‌بخش نویسنده)</a></li>
+          <li><a href="http://blog.rekawek.eu/2017/02/09/coffee-gb/" target="_blank" rel="noopener">پست Coffee-GB — چرا ۱.۵ ماه صرف ساختن شبیه‌ساز گیم‌بوی کردم؟</a></li>
+        </ul>
+      </section>
+
+      <!-- ==================== روز اول: شروع ==================== -->
+      <section>
+        <h2>روز اول — شروع (Getting Started)</h2>
+        <p>نویسنده این پست <a href="http://blog.rekawek.eu/2017/02/09/coffee-gb/" target="_blank" rel="noopener">پست وبلاگ Tomek Rękawek</a> را در Hacker News دیده، ویدیوی مرتبط <a href="https://youtu.be/HyzD8pNlpwI" target="_blank" rel="noopener">Ultimate Game Boy Talk</a> را تماشا کرده و الهام گرفته است. دانش او از سطح اسمبلی و پایین‌تر مبهم است و به دنبال تمرینی خوب برای یادگیری Rust بوده؛ پس پیاده‌سازی بخش‌هایی از یک شبیه‌ساز گیم‌بوی برایش تمرینی رضایت‌بخش است حتی اگر نتیجه در سطح جهانی نباشد.</p>
+
+        <h3>از کجا شروع کنیم؟</h3>
+        <p>رامِ بوت (boot ROM) را در کد کپی کنید (فقط ۲۵۶ بایت است)، یک اشاره‌گر دستورالعمل (instruction pointer) تعریف کنید، و به‌طور مکرر روی دستورالعمل فعلی <code class="inline">match</code> بزنید (در Rust به‌جای <code class="inline">switch</code> از <code class="inline">match</code> استفاده می‌شود). دستورالعمل‌ها را به ترتیبی که در رامِ بوت استفاده می‌شوند پیاده‌سازی می‌کند تا هر بار پیشرفت بیشتری حاصل شود و از آن به‌عنوان تست سلامت استفاده کند. وقتی با دستورالعمل ناشناخته‌ای روبه‌رو شود، <code class="inline">panic!</code> می‌کند و نام آن را می‌گوید.</p>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> «مقدار بی‌واسطه» (immediate value) آرگومانی است که مقدارش در خود کدِ در حال اجرا، بلافاصله پس از اپکد، قرار دارد. مثال ساختگی: اپکد <code class="inline">0xE1</code> ممکن است با بایت <code class="inline">0xFF</code> دنبال شود تا مقدار <code class="inline">0xFF</code> در ثبات <code class="inline">A</code> نوشته شود. وقتی آرگومان از یک ثبات می‌آید، با مقدار بی‌واسطه مشخص نمی‌شود؛ در عوض با انواعِ (واریانت‌های) مختلف اپکد تعیین می‌شود؛ مثلاً <code class="inline">0xE2</code> مقدار ثبات <code class="inline">B</code> را در <code class="inline">A</code> کپی می‌کند و واریانت <code class="inline">0xE3</code> مقدار <code class="inline">C</code> را.
+        </div>
+
+        <p>چند دستورالعمل اول، دستکاری‌های سادهٔ ثبات‌های عمومی بودند که به‌صورت یک <code class="inline">Vec&lt;u8&gt;</code> دوازده‌بایتی پیاده‌سازی شدند. همهٔ اتفاقات لاگ می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>&gt; 0x31: ثبات ۱۶ بیتی SP را از مقدار بی‌واسطهٔ ۱۶ بیتی تنظیم کن.
+
+read opcode 0x31 at 0x0
+  SP = 0xFE, 0xFF
+
+&gt; 0xAF: ثبات ۸ بیتی A را با خودش XOR کن (صفر کن).
+
+read opcode 0xAF at 0x3
+  A ^= A (A = 0)</code></pre>
+
+        <p>به‌نظر می‌رسد صفر کردن در اینجا به این دلیل است که سخت‌افزار واقعی هنگام بوت حافظه را پاک نمی‌کند و ممکن است مقدار دلخواه قبلی وجود داشته باشد.</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>&gt; 0x21: ثبات ۱۶ بیتی HL را از مقدار بی‌واسطهٔ ۱۶ بیتی تنظیم کن.
+
+read opcode 0x21 at 0x4
+  H, L = 0xFF, 0x9F</code></pre>
+
+        <h3>مدل حافظهٔ گیم‌بوی</h3>
+        <p>چهارمین دستورالعمل پیچیده‌تر شد: مقدار ثبات ۸ بیتی <code class="inline">A</code> را در آدرس حافظه‌ای که ثبات ۱۶ بیتی <code class="inline">HL</code> مشخص می‌کند بنویس، سپس مقدار <code class="inline">HL</code> را کاهش بده.</p>
+        <p>مدل حافظهٔ گیم‌بوی طبق استانداردهای امروزی ساده است، اما هنوز نگاشت مستقیم آدرس‌ها به مکان‌های حافظهٔ فیزیکی نیست. بازه‌های مختلف حافظه رفتار متفاوتی دارند: برخی RAM اصلی هستند، برخی RAM ویدئویی، برخی ثبات‌های ویژهٔ ورودی/خروجی یا تریگرهای وقفه.</p>
+        <p>نویسنده یک متد <code class="inline">set_memory(address: u16, value: u8)</code> پیاده‌سازی می‌کند که در مواجهه با آدرس نامشخص <code class="inline">panic!</code> کند. آدرسی که برای خواندن اقدام شده (<code class="inline">HL</code>) برابر <code class="inline">0xFF9F</code> است. جستجو نشان داد که طبق <a href="http://gameboy.mongenel.com/dmg/asmmemmap.html" target="_blank" rel="noopener">نقشهٔ آدرس فضای حافظهٔ گیم‌بوی</a>، بازهٔ <code class="inline">0xFF80-0xFFFE</code> یک ناحیهٔ ۱۲۷ بایتی RAM پرسرعت ویژه است که ابتدا برای پشتهٔ فراخوانی در نظر گرفته شده بود، اما اغلب برای موارد دیگری که از سرعت آن بهره می‌برند استفاده می‌شود. پس یک <code class="inline">Vec&lt;u8&gt;</code> ۱۲۷ بایتی جدید اضافه می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>&gt; 0x32: مقدار ثبات A را در آدرس مشخص‌شده توسط HL بنویس؛ سپس HL را کم کن.
+
+read opcode 0x32 at 0x7
+  memory[HL] = A; HL -= 1
+    memory[0xFF9F] = 0x0
+      high_ram[0x1F] = 0x0</code></pre>
+
+        <div class="callout note">
+          <strong>یادداشت Rust:</strong> تا اینجا همه‌چیز با متغیرهای محلی و کلودر (closure) پیاده‌سازی شده بود که کمی شلوغ شد؛ پس همهٔ داده‌ها در یک <code class="inline">struct</code> جمع شد و همهٔ منطق به متدهایی در یک <code class="inline">trait</code> مرتبط منتقل شد. نویسنده هنوز مطمئن نیست trait واقعاً چیست — شاید چیزی شبیه اینترفیس با پیاده‌سازی پیش‌فرض باشد — اما کار می‌کند و کد تمیزتر شده است.
+        </div>
+
+        <h3>اپکدهای دوبایتی و اولین پرش شرطی</h3>
+        <p>ادامهٔ کار به اولین اپکد دوبایتی می‌رسیم. خوشبختانه هیچ طرح پیچیده‌ای برای کدگذاری اپکدهای چندبایتی وجود ندارد؛ فقط ۵۱۱ اپکد داریم. اگر بایت اول <code class="inline">0xCB</code> بود، بایت دوم در جدول اپکد دوم جستجو می‌شود؛ همین. بیشتر اپکدهای دوبایتی واریانت‌های مختلف عملگرهای بیتی هستند:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>&gt; 0xCB7C: پرچم Z را با بیت هفتم ثبات H هم‌ارز کن.
+
+read opcode 0xCB at 0x8
+  setting Z flag to 7th bit of H register (true)
+
+&gt; 0x20: پرش نسبی به اندازهٔ مقدار بی‌واسطهٔ ۸ بیتی، اگر و فقط اگر پرچم Z مقدارش صفر باشد.
+
+read opcode 0x20 at 0xA
+  relative jump of 251 if Z flag is false (it is true)</code></pre>
+
+        <p>این تفسیر نادرست به‌نظر می‌رسد: پرش ۲۵۱ بایتی به جلو؟ حتی ۲۵۱ بایت در رامِ بوت باقی نمانده است!</p>
+        <p>برای فهمیدن درستی رفتار، نویسنده <a href="https://gist.github.com/drhelius/6063288" target="_blank" rel="noopener">دی‌اسمبلی رامِ بوت نوشتهٔ Ignacio Sánchez Ginés</a> را پیدا کرد و بخش مربوط به کدی که تاکنون اجرا شده را مقایسه کرد:</p>
+
+        <pre class="code"><span class="lang-tag">z80</span><code>  LD SP,$fffe      ; $0000  Setup Stack
+  XOR A            ; $0003  Zero the memory from $8000-$9FFF (VRAM)
+  LD HL,$9fff      ; $0004
+Addr_0007:
+  LD (HL-),A       ; $0007
+  BIT 7,H          ; $0008
+  JR NZ, Addr_0007 ; $000a</code></pre>
+
+        <p>معلوم شد دو اشتباه داریم! آدرسِ اولین خانهٔ صفرشده قرار بود <code class="inline">0x9FFF</code> باشد نه <code class="inline">0xFF9F</code>. نویسنده ترتیب بایت‌ها را big-endian (با اهمیت‌ترین بایت اول، مثل ارقام عادی اعشاری) تفسیر کرده بود، اما جستجوی سریع تأیید کرد که پردازنده‌های خانوادهٔ 8080 (که گیم‌بوی هم دارد) در واقع <strong>little-endian</strong> هستند. پس باید دسترسی‌های ثبات به‌روزرسانی شوند. همچنین این یعنی در واقع از ناحیهٔ RAM «پرسرعت» استفاده نمی‌شد و باید <code class="inline">set_memory()</code> برای نوشتن در فضای آدرس RAM ویدئویی به‌روزرسانی شود. فیلد <code class="inline">video_ram: [u8; 8192]</code> از قبل در struct وضعیت <code class="inline">GameBoy</code> تعریف شده بود و نوشتن در RAM ویدئویی عوارض جانبی فوری ندارد؛ پس این کار هم ساده است.</p>
+        <p>کامنت نشان می‌دهد این سه دستورالعمل آخر باید یک حلقهٔ صفرکردن حافظه باشند که با یک پرش نسبی از <code class="inline">0x000a</code> به <code class="inline">0x0007</code> پیاده‌سازی می‌شود؛ اما نویسنده پرش نسبی را پرش ۲۵۱ بایتی به جلو تفسیر کرده است. راه‌حل ساده است: آفست آدرس به‌صورت بایت بدون علامت (<code class="inline">u8</code>) تفسیر شده بود، در حالی که باید بایت با علامت (<code class="inline">i8</code>) باشد. با تفسیر به‌صورت مقدار با علامت، پرش ۵ بایتی به عقب خواهیم داشت که با دی‌اسمبلی هم‌خوانی دارد.</p>
+        <p>حلقه باید ادامه یابد تا اشاره‌گر <code class="inline">HL</code> آن‌قدر کم شود که بیت هفتم ثبات <code class="inline">H</code> آن مقدار یک بگیرد. اما اگر little-endian باشیم و بایت <code class="inline">H</code> اول باشد، بیت هفتم همان جایگاه ۲^۷ = ۶۴ است و قبل از اینکه بچرخد فقط حداکثر ۶۴ مقدار متوالی می‌توانیم طی کنیم. پس این نمی‌تواند روش درست پاک‌کردن ۸ کیلوبایت VRAM باشد؛ هنوز چیزی در اینجا اشتباه است. قرار می‌شود فردا پس از اصلاح این باگ‌ها روی این موضوع فکر شود.</p>
+      </section>
+
+      <!-- ==================== روز دوم ==================== -->
+      <section>
+        <h2>روز دوم (Day Two)</h2>
+        <p>کارهای مانده از دیروز:</p>
+        <ul>
+          <li>اصلاح ترتیب بایت (endianness) در دسترسی‌های ثبات.</li>
+          <li>تأیید مقصد پرش: آیا آفست دارد (off-by-one)؟</li>
+          <li>تأیید پیاده‌سازی بررسی بیت <code class="inline">0xCB</code> <code class="inline">0x7C</code>.</li>
+        </ul>
+        <p>با تماشای دوبارهٔ بخش‌هایی از <a href="https://youtu.be/HyzD8pNlpwI" target="_blank" rel="noopener">The Ultimate Game Boy Talk</a> دو نکتهٔ دیگر مشخص شد:</p>
+        <ul>
+          <li>«ثبات پرچم‌ها» در واقع همان ثبات <code class="inline">F</code> است؛ نویسنده آن را چیز جداگانه‌ای می‌پنداشته بود.</li>
+          <li>رامِ بوت (حداقل در ابتدا) به آدرس <code class="inline">0x0</code> حافظه نگاشت می‌شود؛ قرار دادن آن در آنجا و پردازش دستورالعمل‌ها از طریق دسترسی عادی حافظه آسان است.</li>
+        </ul>
+
+        <h3>تصفیهٔ کد: توابع ابزار بیتی</h3>
+        <p>منطق اشتباهِ big-endian در سطح بایت و بیت در چند متد دسترسی ثبات تکراری شده بود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn set_h_flag(&mut self, value: bool) {
+    self.flag_register = (self.flag_register &amp; 0b11011111) + (if value { 0b00100000 } else { 0 });
+}</code></pre>
+
+        <p>برای اصلاح، این منطق به چند تابع ابزار منتقل شد:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn u8s_to_u16(a: u8, b: u8, x: &amp;mut u16) {
+    *x = a as u16 + ((b as u16) &lt;&lt; 8)
+}
+
+fn u16_to_u8s(x: u16, a: &amp;mut u8, b: &amp;mut u8) {
+    *a = x as u8;
+    *b = (x &gt;&gt; 8) as u8;
+}
+
+fn u8_get_bit(x: u8, offset: u8) -&gt; bool {
+    (x &gt;&gt; offset) &amp; 1 == 1
+}
+
+fn u8_set_bit(x: &amp;mut u8, offset: u8, value: bool) {
+    let mask = 1 &lt;&lt; offset;
+    if value {
+        *x |= mask;
+    } else {
+        *x &amp;= !mask;
+    }
+}</code></pre>
+
+        <p>با این استفاده:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn set_h_flag(&amp;mut self, value: bool) {
+    u8_set_bit(&amp;self.flag_register, 3, value)
+}</code></pre>
+
+        <div class="callout tip">
+          <strong>نکتهٔ Rust:</strong> نوع دادن به آرگومان به‌صورت <code class="inline">&amp;mut u8</code> به‌جای <code class="inline">u8</code> شبیه استفاده از نوع اشاره‌گر در C است اما محدودتر. <code class="inline">&amp;</code> یعنی دارید مقدار را «قرض» می‌گیرید؛ پس کامپایلر اطمینان می‌دهد که آن ارجاع را بیشتر از حد انتظار نگه ندارید و کار ناایمنی نکنید. چون بلافاصله و قبل از پایان تابع استفاده می‌شود، مشکلی نیست. مشخصهٔ <code class="inline">mut</code> هم لازم است چون قرار است مقدار تغییر کند. Rust ظاهراً تقریباً برای هر چیزی که رفتار غیرصرفاً-تابعی دارد <code class="inline">mut</code> می‌خواهد — نویسنده این را دوست دارد!
+        </div>
+
+        <p>در حین پیاده‌سازی با یک انتخاب عجیب Rust روبه‌رو شد: توابع به‌صورت ضمنی آخرین عبارت بدنه را برمی‌گردانند، مگر اینکه بعدش سمیکالن باشد. پس حذف سمیکالن از انتها معادل اضافه کردن <code class="inline">return</code> در ابتدا است. ظاهر تمیزی دارد، اما هنگام خواندن کد منبع بسیار عجیب و غیرقابل‌تشخیص است. خوشبختانه کامپایلر پیام خطای دقیقی ارائه می‌دهد:</p>
+
+        <pre class="code"><span class="lang-tag">خروجی</span><code>error[E0308]: mismatched types
+--&gt; src/main.rs:231:30
+    |
+231 |       fn z_flag(&amp;self) -&gt; bool {
+    |  ______________________________^
+232 | |         u8_get_bit(self.flag_register, 1);
+    | |                                          - help: consider removing this semicolon
+233 | |     }
+    | |_____^ expected bool, found ()
+    |
+    = note: expected type `bool`
+            found type `()`</code></pre>
+
+        <p>تصحیحی تک‌کاراکتری.</p>
+
+        <h3>برخورد با قرض‌گیری دوبل (double borrow)</h3>
+        <p>متأسفانه (یا خوشبختانه) ایدهٔ اینکه <code class="inline">u16_to_u8s</code> نتایج را مستقیماً در دو ارجاع قرضی <code class="inline">&amp;mut u8</code> بنویسد مجاز نیست. تعریف تابع مشکلی ندارد، اما هنگام استفاده این خطا داده می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">خروجی</span><code>error[E0499]: cannot borrow `self.main_registers[..]` as mutable more than once at a time
+--&gt; src/main.rs:220:62
+    |
+220 |         u16_to_u8s(value, &amp;mut self.main_registers[10], &amp;mut self.main_registers[11]);
+    |                                -----------------------       ^^^^^^^^^^^^^^^^^^^^^^^- first borrow ends here
+    |                                |                             |
+    |                                |                             second mutable borrow occurs here
+    |                                first mutable borrow occurs here</code></pre>
+
+        <p>به‌نظر می‌رسد کنترل‌کنندهٔ قرض‌گیری (borrow checker) درک نمی‌کند که این ارجاع‌ها به بخش‌های غیرهم‌پوشان حافظه اشاره می‌کنند و نگران است که چند قرض‌گیری تغییرپذیر به این معنا باشد که آرایه از جاهای مختلف به‌طور ناامن اصلاح می‌شود. شاید راهی برای توضیح دادن مقصود به کامپایلر باشد (نوعی قرض‌گیری مشترک یا محدودتر با lifetime های پیچیده)، اما بهتر است متد را به سبک تابعی‌ای تغییر داد که زبان تشویق می‌کند.</p>
+        <p>به‌جای چند «پارامتر خروجی»، Rust با تاپل برای چند مقدار بازگشتی پشتیبانی می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn u16_to_u8s(x: u16) -&gt; (u8, u8) {
+    (x as u8, (x &gt;&gt; 8) as u8)
+}</code></pre>
+
+        <p>و با انتساب تجزیه‌ای (destructuring) به‌راحتی مصرف می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn set_pc(&amp;mut self, value: u16) {
+    let (p, c) = u16_to_u8s(value);
+    self.main_registers[10] = p;
+    self.main_registers[11] = c;
+}</code></pre>
+
+        <h3>پشتیبانی از RAM ویدئویی و رفع اشکال حلقه</h3>
+        <p>با کامپایل این تغییرات، خطای بعدی ظاهر می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>read opcode 0x32 at 0x7
+memory[HL] = A; HL -= 1
+    memory[0x9FFF] = 0x0
+thread 'main' panicked at 'I don't know how to set address 0x9FFF.', src/main.rs:270:13</code></pre>
+
+        <p>هنوز پشتیبانی از بازهٔ RAM ویدئویی پیاده‌سازی نشده بود، اما پیاده‌سازی اولیه فقط چند دقیقه طول کشید و به یکی از سؤال‌های دیروز برگشتیم: چرا این کد حلقه نمی‌زند؟ قرار است ۸۱۹۲ بار اجرا شود، اما فقط یک بار اجرا شده و بعد به دستورالعمل‌های جدید رفته است:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>Running `target/debug/zerodmg`
+read opcode 0x31 at 0x0
+  SP = 0xFE, 0xFF
+read opcode 0xAF at 0x3
+  A ^= A (A = 0)
+read opcode 0x21 at 0x4
+  H, L = 0xFF, 0x9F
+read opcode 0x32 at 0x7
+  memory[HL] = A; HL -= 1
+    memory[0x9FFF] = 0x0
+      video_ram[0x1FFF] = 0x0
+read opcode 0xCB at 0x8
+read opcode_2 0x7C
+  setting Z flag to 7th bit of H register (true)
+read opcode 0x20 at 0xA
+  relative jump of -5 if Z flag is false (it is true)
+read opcode 0x21 at 0xC
+  H, L = 0x26, 0xFF
+read opcode 0xE at 0xF
+thread 'main' panicked at 'unsupported opcode: E', src/main.rs:109:21</code></pre>
+
+        <p>پاسخ: بخش مهمی از تعریف دستورالعمل <code class="inline">BIT</code> جا افتاده بود — پرچم <code class="inline">Z</code> باید با <strong>مکمل بیت هشتم</strong> ثبات <code class="inline">H</code> تنظیم شود. بیت اشتباه تست می‌شد و نتیجه هم معکوس. این با جستجوی «z80 bit instruction» و ویکی‌پدیا <a href="http://z80-heaven.wikidot.com/instructions-set:bit" target="_blank" rel="noopener">صفحهٔ z80-heaven</a> کشف شد؛ این دستورالعمل‌ها بر پایهٔ دستورالعمل‌های z80 هستند.</p>
+        <p>این اصلاح ۱۲۸ تکرار را به‌دست می‌دهد، نه بیشتر — همان‌طور که انتهای پست دیروز پیش‌بینی شده بود. ما در حال بررسی <code class="inline">H</code> هستیم که به‌دلیل little-endian بودن آن را بایت کم‌اهمیت <code class="inline">HL</code> می‌دانیم، اما منطق می‌خواهد منتظر بچرخیدن مهم‌ترین بیتِ مهم‌ترین بایت بمانیم، یعنی عبور از <code class="inline">0x8000 = 0b1000000000000000</code>.</p>
+        <p>این برای نویسنده قابل‌فهم نیست؛ پس فعلاً نام accessorهای تک‌ثبات را جابه‌جا می‌کند اما accessorهای مشترک را همان‌طور نگه می‌دارد. اگر ادامه کار جواب داد، باید همه را سازگار و منسجم کرد، اما فعلاً بگذارید جلو برویم تا به دستورالعمل بعدی برسیم:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>[...]
+read opcode 0x32 at 0x7 at t=24570
+  memory[HL] = A; HL -= 1
+    memory[0x8002] = 0x0
+      video_ram[0x2] = 0x0
+read opcode 0xCB at 0x8 at t=24571
+read opcode_2 0x7C
+  setting Z flag to false, the opposite of 8th bit of H register
+read opcode 0x20 at 0xA at t=24572
+  relative jump of -5 if Z flag is false (it is false)
+read opcode 0x32 at 0x7 at t=24573
+  memory[HL] = A; HL -= 1
+    memory[0x8001] = 0x0
+      video_ram[0x1] = 0x0
+read opcode 0xCB at 0x8 at t=24574
+read opcode_2 0x7C
+  setting Z flag to false, the opposite of 8th bit of H register
+read opcode 0x20 at 0xA at t=24575
+  relative jump of -5 if Z flag is false (it is false)
+read opcode 0x32 at 0x7 at t=24576
+  memory[HL] = A; HL -= 1
+    memory[0x8000] = 0x0
+      video_ram[0x0] = 0x0
+read opcode 0xCB at 0x8 at t=24577
+read opcode_2 0x7C
+  setting Z flag to true, the opposite of 8th bit of H register
+read opcode 0x20 at 0xA at t=24578
+  relative jump of -5 if Z flag is false (it is true)
+read opcode 0x21 at 0xC at t=24579
+  H, L = 0x26, 0xFF
+read opcode 0xE at 0xF at t=24580
+thread 'main' panicked at 'unsupported opcode: E', src/main.rs:108:21</code></pre>
+
+        <p>سرانجام اشاره‌گر دستورالعمل <code class="inline">i</code> از متغیر محلی به struct منتقل شد و بیشتر استفاده‌ها با متد <code class="inline">.pop_instruction()</code> جایگزین شد که آن را افزایش می‌دهد و <code class="inline">u8</code> موجود در آدرس را برمی‌گرداند. اپکد بعدی، <code class="inline">0x0E</code>، یک بارگذاری سادهٔ ۸ بیتی بود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>// بارگذاری‌های ۸ بیتی
+// LD nn,n  — مقدار n را در ثبات nn قرار بده
+0x06 =&gt; {
+    // LD B, n
+    let n = self.pop_instruction();
+    self.set_b(n);
+}
+0x0E =&gt; {
+    // LD C, n
+    let n = self.pop_instruction();
+    self.set_c(n);
+}
+0x16 =&gt; {
+    // LD D, n
+    let n = self.pop_instruction();
+    self.set_d(n);
+}
+0x1E =&gt; {
+    // LD E, n
+    let n = self.pop_instruction();
+    self.set_e(n);
+}</code></pre>
+
+        <p>در پایان روز، خروجی این‌چنین است:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>; $0007 است 0x32 در t=24573
+memory[HL] = A; HL -= 1
+  memory[0x8001] = 0x00
+    video_ram[0x01] = 0x00
+; $0008 است 0xCB در t=24574
+; opcode_2 = 0x7C
+BIT 7, H  ; Z = false
+; $000A است 0x20 در t=24575
+JR NZ, n=-5  ; Z = false
+; $0007 است 0x32 در t=24576
+memory[HL] = A; HL -= 1
+  memory[0x8000] = 0x00
+    video_ram[0x00] = 0x00
+; $0008 است 0xCB در t=24577
+; opcode_2 = 0x7C
+BIT 7, H  ; Z = true
+; $000A است 0x20 در t=24578
+JR NZ, n=-5  ; Z = true
+; $000C است 0x21 در t=24579
+H, L = 0x26, 0xFF
+; $000F است 0x0E در t=24580
+LD C, n = 0x11
+; $0011 است 0x3E در t=24581
+thread 'main' panicked at 'unsupported opcode: 3E', src/main.rs:173:21</code></pre>
+      </section>
+
+      <!-- ==================== روز سوم: قالب‌بندی لاگ ==================== -->
+      <section>
+        <h2>روز سوم — قالب‌بندی لاگ (Log Formatting)</h2>
+        <p>نویسنده خروجی لاگ خود را با دی‌اسمبلی رامِ بوت مقایسه می‌کرد. خوب است اگر خروجی شامل نمایش اسمبلی دستورالعمل‌هایی باشد که اجرا می‌شوند. ابتدا نامفهوم بود، اما تعداد دستورالعمل‌های اسمبلی آن‌قدر زیاد نیست و قرار است با آن‌ها کار شود؛ پس نباید فراموش شوند.</p>
+        <p>چیزی شبیه به این: دستور اسمبلی در سمت چپ، سپس اندیس اشاره‌گر دستورالعمل اولیه، سپس کد ماشین اصلی، و در نهایت مقادیر ثبات‌ها و مکان‌های حافظهٔ مرتبط. از پیشوند hex به سبک اسمبلی <code class="inline">$</code> به‌جای <code class="inline">0x</code> استفاده شود:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>asm                 ; i     ; machine code ; registers
+LD C, $11           ; $000F ; $0E1123      ; C' = $11
+BIT 7, H            ; $0012 ; $BCFF        ; H = 0xFA  ; Z' = true
+JR NZ, -5           ; $0014 ; $FFFF        ; Z = false</code></pre>
+
+        <p>در اینجا از <code class="inline">C'</code> برای نشان دادن مقدار جدید ثبات <code class="inline">C</code> استفاده شده است. نویسنده آن را دوست دارد، اما فکر می‌کند معماری z80 در واقع ثبات‌های اضافه‌ای با نام‌های شامل <code class="inline">C'</code> دارد و ممکن است گیج‌کننده باشد. جایگزین‌هایی مثل <code class="inline">C₀</code> و <code class="inline">C₁</code> یا صریح‌تر مثل <code class="inline">C = 0 =&gt; 1</code> در نظر دارد.</p>
+
+        <h3>پیگیری کدِ دستورالعمل جاری</h3>
+        <p><a href="https://doc.rust-lang.org/std/fmt/" target="_blank" rel="noopener">قالب‌بندی رشتهٔ داخلی Rust</a> بیشتر از پایتون الهام گرفته است؛ این ساده است.</p>
+        <p>نویسنده می‌خواهد همهٔ کد دستورالعمل جاری را نگه دارد؛ ممکن است یک اشاره‌گر دستورالعمل دوم اضافه کند. اشاره‌گر موجود <code class="inline">.next_code</code> (تغییرنام‌یافتهٔ <code class="inline">.i</code>) همچنان به آدرس/اندیس کد بعدی اشاره می‌کند، اما یک <code class="inline">.last_instruction</code> دوم هم اضافه می‌شود که به بایت اولِ اپکدِ جاری/آخر اشاره می‌کند. یک برش (slice) از <code class="inline">[.last_instruction, .next_code]</code> از حافظه، همهٔ کد ماشین جاری را برای لاگ می‌دهد. اما «برش» حافظه عملیات اولیه نیست؛ خواندن حافظه می‌تواند عوارض جانبی داشته باشد. پس بهتر است به‌جای آن یک بافر با کد ماشین جاری نگه داشته شود (همان‌طور که خوانده می‌شود).</p>
+        <p>دو فیلد <code class="inline">debug_current_code: vec![]</code> و <code class="inline">debug_current_op_addr: u16</code> به struct اضافه می‌شوند و متدهایی که حالا برای خواندن از اشاره‌گر دستورالعمل استفاده می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn read_instruction(&amp;mut self) -&gt; u8 {
+    self.debug_current_code.clear();
+    self.debug_current_op_addr = self.i;
+    self.read_immediate_u8()
+}
+
+fn read_immediate_u8(&amp;mut self) -&gt; u8 {
+    let value = self.get_memory(self.i);
+    self.debug_current_code.push(value);
+    self.i += 1;
+    value
+}</code></pre>
+
+        <p>و تابعی برای چاپ لاگ با اشاره‌گر دستورالعمل و کدها در حاشیه:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn print_current_code(&amp;self, asm: String, info: String) {
+    print!("{:32}", asm);
+    print!(" ; ${:04x}", self.debug_current_op_addr);
+    let code = self.debug_current_code.clone().into_iter().map(|c| { format!("{:02x}", c) }).collect::&lt;Vec&lt;String&gt;&gt;().join("");
+    print!(" ; ${:8}", code);
+    print!(" ; {}", info);
+    println!();
+}</code></pre>
+
+        <p>پس از به‌روزرسانی پیاده‌سازی اپکدها برای استفاده از <code class="inline">print_current_code</code>، مثلاً این‌طور:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>0x38 =&gt; {
+    let delta = self.read_immediate_u8() as i8;
+    self.print_current_code(
+        format!("JR C, {}", delta),
+        format!("C = {}", self.c_flag()));
+    if self.c_flag() {
+        self.relative_jump(delta as i32);
+    }
+}</code></pre>
+
+        <p>خروجی مطلوب به‌دست می‌آید:</p>
+
+        <pre class="code"><span class="lang-tag">لاگ</span><code>LOAD SP $fe, $ff                 ; $0000 ; $31feff   ;
+XOR A A                          ; $0003 ; $af       ; A₀ = $00, A₁ = $00
+LOAD HL, $ff, $9f                ; $0004 ; $21ff9f   ;
+LD (HL-), A                      ; $0007 ; $32       ; HL₀ = $9fff, A = $00
+  ; video_ram[$1fff] = $00
+BIT 7, H                         ; $0008 ; $cb7c     ; Z₁ = false
+JR NZ, -5                        ; $000a ; $20fb     ; Z = false</code></pre>
+
+        <p>برای مقایسه، بخش معادل از <a href="https://gist.github.com/drhelius/6063288" target="_blank" rel="noopener">دی‌اسمبلی رامِ بوت اثر Ignacio Sánchez Ginés</a>:</p>
+
+        <pre class="code"><span class="lang-tag">z80</span><code>  LD SP,$fffe      ; $0000  Setup Stack
+  XOR A            ; $0003  Zero the memory from $8000-$9FFF (VRAM)
+  LD HL,$9fff      ; $0004
+Addr_0007:
+  LD (HL-),A       ; $0007
+  BIT 7,H          ; $0008
+  JR NZ, Addr_0007 ; $000a</code></pre>
+      </section>
+
+      <!-- ==================== zerodmg_codes ==================== -->
+      <section>
+        <h2>کریت «zerodmg_codes» — مدل‌سازی رام‌ها</h2>
+        <p>نویسنده پس از آخرین پست به این فکر کرده که چگونه رام‌ها را مدل کند؛ هم برای هدف دی‌کد تدریجی در داخل شبیه‌ساز، و هم برای ویرایش و کامپایل دوبارهٔ باینری‌های دی‌اسمبل‌شده. او در یک کریت (crate) جدید به نام <code class="inline">zerodmg_codes</code> کار می‌کند تا طراحی تمیزتری را اعمال کند و چون هنوز مطمئن نیست که بتواند واقعاً از آن در شبیه‌ساز استفاده کند. بخش‌های مهم ایدهٔ فعلی:</p>
+
+        <h3><code class="inline">enum zerodmg_codes::instructions::Instruction</code></h3>
+        <p><code class="inline">Instruction</code> یک دستورالعمل اسمبلی واحد را مشخص می‌کند. مقادیر بی‌واسطهٔ آرگومان‌ها یا آرگومان‌های ثبات (از طریق واریانت‌های اپکد) به‌صورت فیلدهای enum گنجانده می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>pub enum Instruction {
+    NOP,
+    INC(U8Register),
+    DEC(U8Register),
+    JP(u16),
+    JP_NZ(u16),
+    // ...
+}</code></pre>
+
+        <p>این enum خودش مسئول کدگذاری و دی‌کد کردن دستورالعمل‌های تکی است و اندازهٔ آن‌ها را می‌داند، اما هیچ‌چیز دیگری دربارهٔ کار آن‌ها نمی‌داند.</p>
+        <p>ماژول <code class="inline">rom</code> باید جریان کنترلی استاتیک را از هر دستورالعمل دنبال کند، پس یک trait خارجی خصوصی با منطق موردنیاز تعریف می‌کند (زیر) که عمومی نیست:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>fn flows_to(&amp;self) -&gt; ControlFlowsTo {
+    match self {
+        NOP =&gt; ControlFlowsTo::next(),
+        INC(_) =&gt; ControlFlowsTo::next(),
+        DEC(_) =&gt; ControlFlowsTo::next(),
+        JP(address) =&gt; ControlFlowsTo::jump(Absolute(*address)),
+        JP_NZ(address) =&gt; ControlFlowsTo::next_and_jump(Absolute(*address)),
+        // ...
+    }
+}</code></pre>
+
+        <h3><code class="inline">struct zerodmg_codes::rom::AssembledROM</code></h3>
+        <p><code class="inline">AssembledROM</code> بایت‌های کامپایل‌شدهٔ یک رام را ذخیره می‌کند و برای خواندن و نوشتن کد ماشین اسمبل‌شده استفاده می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>pub struct AssembledROM {
+    pub bytes: Vec&lt;ROMByte&gt;,
+}
+
+pub struct ROMByte {
+    pub byte: u8,
+    pub role: ROMByteRole,
+}</code></pre>
+
+        <p>هر <code class="inline">ROMByte</code> همچنین پیگیری می‌کند که آیا می‌دانیم بایت بخشی از یک دستورالعمل است و اگر هست، آن دستورالعمل چیست و آیا مقصدِ پرشِ شناخته‌شده‌ای در رام است یا نه:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>pub enum ROMByteRole {
+    Unknown,
+    InstructionStart(Instruction, IsJumpDestination),
+    InstructionRest,
+}
+
+pub enum IsJumpDestination {
+    Unknown,
+    Yes,
+}</code></pre>
+
+        <p>اطلاعات نقش بایت هر بار که آدرسِ دستورالعمل شناخته‌شده‌ای اعلام شود به‌روزرسانی می‌شود؛ یا از سوی شبیه‌ساز در تلاش برای خواندن آن، یا از سوی یک ابزار استاتیک با نقطه‌های ورودی شناخته‌شده. در این هنگام، جریان کنترلی استاتیک برای یافتن هرچه بیشتر دستورالعمل‌ها و مقصدهای پرش دنبال می‌شود.</p>
+
+        <h3><code class="inline">struct zerodmg_codes::rom::DisassembledROM</code></h3>
+        <p><code class="inline">DisassembledROM</code> دستورالعمل‌ها و داده‌ها را در ساختار کمی منظم‌تر شبیه اسمبلی ذخیره می‌کند. برای خواندن و نوشتن کد اسمبلی و امکان ساخت/دستکاری برنامه‌ای دادهٔ رام استفاده می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>pub struct DisassembledROM {
+    pub blocks: Vec&lt;ROMBlock&gt;,
+}</code></pre>
+
+        <p>یک <code class="inline">DisassembledROM</code> از <code class="inline">ROMBlock</code>ها ساخته می‌شود؛ هر کدام بخشی از <code class="inline">Code</code> (دستورالعمل‌های دی‌کدشده) یا <code class="inline">Data</code> (دادهٔ باینری خام) را نشان می‌دهد. ممکن است به‌صورت اختیاری یک آدرس هدف هم داشته باشد که بلوک هنگام کامپایل رام باید در آن ظاهر شود (با درج padding صفر قبل از آن، یا panic در صورت غیرممکن بودن):</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>pub struct ROMBlock {
+    pub content: ROMBlockContent,
+    pub address: Option&lt;u16&gt;,
+}
+
+pub enum ROMBlockContent {
+    Code(Vec&lt;Instruction&gt;),
+    Data(Vec&lt;u8&gt;),
+}</code></pre>
+
+        <h3>رابط‌ها (Interface)</h3>
+        <p>به‌جز داده‌ها، رابط اصلی انواع رام در پیاده‌سازی <code class="inline">From&lt;T&gt;</code> آن‌ها برای تبدیل بین انواع است.</p>
+
+        <h4><code class="inline">AssembledROM::from::&lt;Vec&lt;u8&gt;&gt;</code></h4>
+        <p>برای بارگذاری یک رام باینری. بایت‌ها را در یک <code class="inline">AssembledROM</code> کپی می‌کند و آن‌ها را به‌صورت <code class="inline">ROMByteRole::Unknown</code> علامت می‌گذارد. بدون اتلاف.</p>
+
+        <h4><code class="inline">Vec&lt;u8&gt;::from::&lt;AssembledRom&gt;</code></h4>
+        <p>برای ذخیرهٔ یک رام باینری. بایت‌ها را از <code class="inline">AssembledRom</code> به یک وکتور بایت جدید کپی می‌کند.</p>
+        <div class="callout note"><strong>هشدار:</strong> اتلافی است؛ اطلاعات نقش بایت شامل نمی‌شود.</div>
+
+        <h4><code class="inline">AssembledRom.get_known_instruction(u16) -&gt; Operation</code></h4>
+        <p>نقش بایت‌ها را در یک <code class="inline">AssembledROM</code> با دی‌کد کردن هرچه بیشتر دستورالعمل‌ها از دستورالعمل موجود در آدرس شناخته‌شدهٔ مشخص‌شده (که همان هم برگردانده می‌شود) به‌روزرسانی می‌کند. این آدرس ممکن است یک آدرس دستورالعمل استاتیک شناخته‌شده باشد (مثل یک handler وقفه) یا آدرسی که برنامهٔ دیگری مثل شبیه‌ساز به ما می‌گوید دستورالعمل را از آن بخوانیم.</p>
+
+        <h4><code class="inline">DisassembledROM::from::&lt;AssembledRom&gt;</code></h4>
+        <p>یک <code class="inline">DisassembledROM</code> از بایت‌ها و اطلاعات نقش فعلی یک <code class="inline">AssembledROM</code> می‌سازد. (احتمالاً باید مطمئن شوید تا حد ممکن آدرس‌های دستورالعمل شناخته‌شده را قبل از فراخوانی این اضافه کرده‌اید.) هر بایتی که <code class="inline">IsJumpDestination::Yes</code> باشد یک بلوک <code class="inline">Code</code> جدید شروع می‌کند و بایت‌های متوالی <code class="inline">Unknown</code> در بلوک‌های <code class="inline">Data</code> گروه‌بندی می‌شوند. بدون اتلاف.</p>
+
+        <h4><code class="inline">AssembledROM::from::&lt;DisassembledRom&gt;</code></h4>
+        <p>یک <code class="inline">AssembledROM</code> با کامپایل بلوک‌های <code class="inline">Code</code> در یک <code class="inline">DisassembledROM</code> می‌سازد؛ آن‌ها را با بلوک‌های <code class="inline">Data</code> به هم می‌چسباند و برای هم‌ترازی با آدرس‌های مشخص‌شده، padding صفر درج می‌کند. اگر هم‌ترازی با آدرس مشخص‌شده غیرممکن باشد (چون بلوک قبلی تا آنجا نوشته است) panic می‌کند.</p>
+        <div class="callout note"><strong>هشدار:</strong> اتلافی است؛ برای رام‌های جدید یا تغییر یافته ممکن است نتوانیم دستورالعمل‌ها را دوباره دی‌کد کنیم اگر ساختار برنامه برای تحلیل ما به‌اندازهٔ کافی ساده نباشد؛ همهٔ آدرس‌ها مشخص می‌شوند (نه اختیاری/متغیر) و padding به‌صورت بلوک‌های <code class="inline">Data</code> صریحِ صفر می‌شود.</div>
+
+        <h4><code class="inline">DisassembledROM.to_string() -&gt; String</code></h4>
+        <p>یک <code class="inline">DisassembledROM</code> را به شبه‌کد اسمبلی شامل بلوک‌ها و آدرس‌ها تبدیل می‌کند. (شبه‌کد است چون هنوز پارسری برای آن نداریم، اما بعداً می‌توانیم اضافه کنیم.) بدون اتلاف.</p>
+
+        <h4>سایر <code class="inline">From</code>ها</h4>
+        <p>چند تبدیل <code class="inline">From</code> ساده هم برای راحتی تعریف شده است، مثل تبدیل مستقیم <code class="inline">Vec&lt;Instruction&gt;</code> به <code class="inline">AssembledROM</code> به‌جای اینکه دستی آن را در <code class="inline">ROMBlockContent</code>، سپس <code class="inline">ROMBlock</code>، سپس <code class="inline">DisassembledROM</code> بپیچید و بعد تبدیل کنید.</p>
+
+        <h3>Prelude ها</h3>
+        <p>صادرات <code class="inline">prelude</code> با همهٔ دستورالعمل‌ها، ثبات‌ها و چند تعریف مفید دیگر تعریف می‌شود تا استفادهٔ پایه ساده شود، مثلاً:</p>
+
+        <pre class="code"><span class="lang-tag">rust</span><code>use zerodmg_codes::prelude::*;
+
+let program = DisassembledROM::from(vec![
+  Code(vec![
+    INC(A),
+    JP(0x0010),
+  ]),
+  Data(vec![0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
+  Data(vec![0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F]),
+  Code(vec![
+    DEC(A),
+    NOP,
+    NOP,
+    NOP,
+  ]),
+]);
+
+println!("{}", program);
+
+println!("{:?}", Vec&lt;u8&gt;::from(program));</code></pre>
+      </section>
+
+      <!-- ==================== منابع ==================== -->
+      <section>
+        <h2>منابع مفید</h2>
+        <ul>
+          <li><a href="https://github.com/avivace/awesome-gbdev" target="_blank" rel="noopener">Awesome Game Boy Development Resources</a> — مجموعه منابع توسعه گیم‌بوی</li>
+          <li><a href="http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf" target="_blank" rel="noopener">CPU Manual (PDF)</a> — راهنمای غیررسمی CPU گیم‌بوی</li>
+          <li><a href="https://gist.github.com/drhelius/6063288" target="_blank" rel="noopener">دی‌اسمبلی Bootstrap ROM</a></li>
+          <li><a href="http://gameboy.mongenel.com/dmg/asmmemmap.html" target="_blank" rel="noopener">Memory Layout</a> — چیدمان حافظه</li>
+          <li><a href="http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html" target="_blank" rel="noopener">جدول اپکدهای گیم‌بوی</a></li>
+          <li><a href="http://bgb.bircd.org/pandocs.htm" target="_blank" rel="noopener">Pan Docs</a> — مستندات کامل سخت‌افزار</li>
+          <li><a href="https://youtu.be/HyzD8pNlpwI" target="_blank" rel="noopener">The Ultimate Game Boy Talk</a></li>
+          <li><a href="http://z80-heaven.wikidot.com/instructions-set" target="_blank" rel="noopener">z80 Instruction Set</a> — مجموعه دستورالعمل z80</li>
+          <li><a href="https://doc.rust-lang.org/book/second-edition/" target="_blank" rel="noopener">کتاب زبان برنامه‌نویسی Rust</a></li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مطالب «0dmg — Learning Rust by building a partial Game Boy emulator» اثر «جرمی بنکس (Jeremy Banks)» است.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://jeremybanks.github.io/0dmg/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

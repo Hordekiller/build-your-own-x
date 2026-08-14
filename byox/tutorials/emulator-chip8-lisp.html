@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «CHIP-8 in Common Lisp: The CPU»
+  (Steve Losh — stevelosh.com)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | CHIP-8 در Common Lisp: CPU</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>CHIP-8 در Common Lisp: CPU</span>
+      </div>
+      <h1>CHIP-8 در Common Lisp: CPU</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Common Lisp</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://stevelosh.com/blog/2016/12/chip8-cpu/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «CHIP-8 in Common Lisp: The CPU» نوشتهٔ «استیو لاش (Steve Losh)» است.
+          این مقاله بخش اول از سری هفت‌قسمتی ساخت شبیه‌ساز CHIP-8 با Common Lisp است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://stevelosh.com/blog/2016/12/chip8-cpu/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>مدتی قبل تصمیم گرفتم بر اساس
+        <a href="http://imrannazar.com/GameBoy-Emulation-in-JavaScript" target="_blank" rel="noopener">این سری مقاله‌ها</a>
+        یک شبیه‌ساز گیم‌بوی با Common Lisp بنویسم. پیشرفت خوبی داشتم اما در نهایت گیر کردم، چون می‌خواستم همزمان چیزهای
+        پیچیده و جدید زیادی یاد بگیرم:</p>
+        <ul>
+          <li>چطور شبیه‌ساز بنویسم</li>
+          <li>چطور از Qt با Common Lisp استفاده کنم</li>
+          <li>گیم‌بوی از داخل چطور کار می‌کند</li>
+        </ul>
+        <p>به‌جای ادامهٔ آن مسیر، تصمیم گرفتم استراحتی کنم و چیز ساده‌تری امتحان کنم: یک شبیه‌ساز/مفسر
+        <a href="https://en.wikipedia.org/wiki/CHIP-8" target="_blank" rel="noopener">CHIP-8</a>. CHIP-8 خیلی ساده‌تر از
+        گیم‌بوی است و همین آزمایش بقیهٔ زیرساخت‌ها را آسان‌تر می‌کرد.</p>
+        <p>در این پست و چند پست بعدی، کل پیاده‌سازی شبیه‌ساز CHIP-8 خودم را مرور می‌کنم. برای اینکه تصوری از اندازهٔ پروژه
+        داشته باشید، خروجیِ <code dir="ltr">cloc</code> به این صورت است:</p>
+        <ul>
+          <li>شبیه‌ساز اصلی: ۴۱۵ خط</li>
+          <li>زیرساخت اشکال‌زدایی/دی‌اسمبل: ۱۴۲ خط</li>
+          <li>GUI صفحه: ۱۵۳ خط</li>
+          <li>اشکال‌زدا گرافیکی: ۲۹۵ خط</li>
+        </ul>
+        <p>این اولین پست دربارهٔ شبیه‌سازی CPU دستگاه CHIP-8 است.</p>
+        <p>فهرست کامل پست‌های این سری:</p>
+        <ol>
+          <li><a href="http://stevelosh.com/blog/2016/12/chip8-cpu/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: CPU</a></li>
+          <li><a href="http://stevelosh.com/blog/2016/12/chip8-graphics/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: گرافیک</a></li>
+          <li><a href="http://stevelosh.com/blog/2016/12/chip8-input/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: ورودی</a></li>
+          <li><a href="http://stevelosh.com/blog/2016/12/chip8-sound/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: صدا</a></li>
+          <li><a href="http://stevelosh.com/blog/2017/01/chip8-disassembly/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: دی‌اسمبل</a></li>
+          <li><a href="http://stevelosh.com/blog/2017/01/chip8-debugging-infrastructure/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: زیرساخت اشکال‌زدایی</a></li>
+          <li><a href="http://stevelosh.com/blog/2017/01/chip8-menus/" target="_blank" rel="noopener">CHIP-8 در Common Lisp: منوها</a></li>
+        </ol>
+        <p>کد منبع کامل شبیه‌ساز در
+        <a href="https://github.com/sjl/cl-chip8" target="_blank" rel="noopener">گیت‌هاب</a> است.</p>
+      </section>
+
+      <!-- ==================== کتابخانه‌ها ==================== -->
+      <section>
+        <h2>کتابخانه‌ها</h2>
+        <p>شبیه‌ساز از چند کتابخانهٔ Common Lisp برای آسان‌تر کردن کارها استفاده می‌کند:</p>
+        <ul>
+          <li><a href="https://common-lisp.net/project/bordeaux-threads/" target="_blank" rel="noopener">bordeaux-threads</a> برای مدیریت رشته‌ها (threads).</li>
+          <li><a href="https://github.com/nightfly19/cl-arrows" target="_blank" rel="noopener">cl-arrows</a> برای ماکرو threading یعنی <code dir="ltr">-&gt;&lt;&gt;</code> کلوژر.</li>
+          <li><a href="https://github.com/sjl/cl-losh" target="_blank" rel="noopener">cl-losh</a> کتابخانهٔ ابزارهای شخصی من.</li>
+          <li><a href="https://filonenko-mikhail.github.io/cl-portaudio/" target="_blank" rel="noopener">cl-portaudio</a> برای صدا.</li>
+          <li><a href="https://common-lisp.net/project/iterate/" target="_blank" rel="noopener">iterate</a> برای نسخهٔ بسیار بهترِ <code dir="ltr">loop</code> که <code dir="ltr">iterate</code> نام دارد.</li>
+          <li><a href="https://shinmera.github.io/qtools/" target="_blank" rel="noopener">qtools</a> برای ساخت GUI با Qt.</li>
+          <li><a href="https://github.com/tarballs-are-good/quickutil" target="_blank" rel="noopener">quickutil</a> برای برخی توابع کاربردی متفرقه از Alexandria و جاهای دیگر.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== مراجع CHIP-8 ==================== -->
+      <section>
+        <h2>مراجع CHIP-8</h2>
+        <p>اطلاعات خوبی دربارهٔ CHIP-8 آنلاین وجود دارد. مراجعی که بیشتر از همه استفاده کردم:</p>
+        <ul>
+          <li><a href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM" target="_blank" rel="noopener">مرجع فنی CHIP-8 کاگوود (Cowgod)</a></li>
+          <li><a href="http://www.multigesture.net/articles/how-to-write-an-emulator-CHIP-8-interpreter/" target="_blank" rel="noopener">مقالهٔ «چطور شبیه‌ساز بنویسیم (مفسر CHIP-8)» از لارنس مولر</a></li>
+          <li><a href="http://mattmik.com/files/chip8/mastering/chip8.html" target="_blank" rel="noopener">«تسلط بر CHIP-8» از متیو میکولای</a></li>
+          <li><a href="https://github.com/AfBu/haxe-CHIP-8-emulator/wiki/(Super)CHIP-8-Secrets" target="_blank" rel="noopener">اسرار (سوپر)CHIP 8</a></li>
+        </ul>
+      </section>
+
+      <!-- ==================== ساختار داده اصلی ==================== -->
+      <section>
+        <h2>ساختار دادهٔ اصلی</h2>
+        <p>بزنید بریم سراغ کد. با ساختار دادهٔ اصلی شروع می‌کنیم که یک نمونه از CHIP-8 را برای شبیه‌سازی نگه می‌دارد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defstruct chip
+  (running t :type boolean)
+  ; ...بعداً موارد بیشتری اضافه می‌کنیم
+  )</code></pre>
+        <p>به‌جای کلاس CLOS از ساختار (struct) لیسپی استفاده می‌کنیم چون قرار است *خیلی زیاد* به فیلدهای این ساختار دسترسی
+        داشته باشیم و accessorهای CLOS نسبتاً کند هستند. این یکی از معدود امتیازهایی است که به عملکرد می‌دهیم.</p>
+        <p>اولین فیلد، <code dir="ltr">running</code> است: یک بولین که نشان می‌دهد شبیه‌ساز در حال اجراست یا نه.</p>
+        <p>در نهایت چند رشتهٔ هم‌زمان (thread) با این ساختار کار می‌کنند و معمولاً کاری مثل
+        <code dir="ltr">(loop :while (chip-running chip) :do ...)</code> انجام می‌دهند. به این ترتیب وقتی بخواهیم شبیه‌ساز را
+        ببندیم فقط کافیست <code dir="ltr">running</code> را <code dir="ltr">nil</code> کنیم و همه‌چیز (در نهایت) متوقف می‌شود.</p>
+
+        <h3>رجیسترها</h3>
+        <p>CHIP-8 شانزده رجیستر اصلی دارد و همچنین چند رجیستر ویژهٔ دیگر:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defstruct chip
+  ; ...
+  (registers (make-array 16 :element-type 'int8)
+             :type (simple-array int8 (16))
+             :read-only t)
+  (index 0 :type int16)
+  (program-counter #x200 :type int12)
+  ; ...
+  )</code></pre>
+        <p>رجیسترهای اصلی را در یک آرایه نگه می‌داریم و بقیه فقط slotهای جدا هستند. اعلام نوع (type declaration) در ساختار
+        را به دو دلیل اضافه کرده‌ام:</p>
+        <ul>
+          <li>با اعلام <code dir="ltr">safety</code> بالا، بسیاری از پیاده‌سازی‌ها (از جمله SBCL که من استفاده می‌کنم) در زمان اجرا چک نوع انجام می‌دهند تا مطمئن شوند مقدارها درست تنظیم می‌شوند.</li>
+          <li>با <code dir="ltr">safety</code> پایین و <code dir="ltr">speed</code> بالا، SBCL می‌تواند اگر نوع slotهای ساختار را بداند، کد خیلی سریع‌تری تولید کند.</li>
+        </ul>
+        <p>برای خلاصه‌تر کردن نام نوع‌های اعداد صحیح، چند مترادف ساده تعریف کرده‌ام:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(deftype int4 () '(unsigned-byte 4))
+(deftype int8 () '(unsigned-byte 8))
+(deftype int12 () '(unsigned-byte 12))
+(deftype int16 () '(unsigned-byte 16))</code></pre>
+        <p>پس <code dir="ltr">registers</code> یک آرایهٔ سادهٔ ۱۶ عنصری از <code dir="ltr">(unsigned-byte 8)</code> است.
+        <code dir="ltr">read-only</code> است چون قرار است *عناصر* آرایه را تغییر دهیم، اما هرگز نباید کل آرایه را با آرایهٔ
+        دیگری عوض کنیم.</p>
+        <p>رجیستر index ۱۶ بیتی است و برنامه‌شمار (program counter) می‌تواند تا ۱۲ بیت را نگه دارد (به دلیل اندازهٔ حافظهٔ
+        CHIP-8 هرگز بیشتر از این نیاز نمی‌شود).</p>
+        <p>همچنین توجه کنید که برنامه‌شمار از آدرس <code dir="ltr">#x200</code> شروع می‌شود؛ چون ROM در نهایت در همان آدرس
+        از حافظهٔ CHIP-8 بارگذاری می‌شود.</p>
+
+        <h3>پشته (Stack)</h3>
+        <p>CHIP-8 همچنین یک پشتهٔ داخلی برای نگهداشتن آدرس‌های بازگشت هنگام فراخوانی زیربرنامه‌ها دارد. برای این کار فقط از
+        یک بردار لیسپی با fill pointer استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defstruct chip
+  ; ...
+  (stack (make-array 16 :element-type 'int12 :fill-pointer 0)
+         :type (vector int12 16)
+         :read-only t)
+  ; ...
+  )</code></pre>
+
+        <h3>حافظه</h3>
+        <p>CHIP-8 چهار کیلوبایت حافظهٔ اصلی دارد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defconstant +memory-size+ (* 1024 4))
+
+(defstruct chip
+  ; ...
+  (memory (make-array +memory-size+ :element-type 'int8)
+          :type (simple-array int8 (#.+memory-size+))
+          :read-only t)
+  ; ...
+  )</code></pre>
+        <p>خیلی ساده. به ترفند/هک ماکروی خوانندهٔ <code dir="ltr">#.</code> توجه کنید که با آن می‌توانیم جایی که معمولاً به
+        مشخص‌گر نوع خام نیاز داریم از متغیر استفاده کنیم.</p>
+
+        <h3>ROM بارگذاری‌شدهٔ فعلی</h3>
+        <p>در آخر، یک slot برای نگهداشتن مسیر ROM فعلی اضافه می‌کنیم تا بعداً ریست‌کردن آسان شود:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defstruct chip
+  ; ...
+  (loaded-rom nil :type (or null string))
+  ; ...
+  )</code></pre>
+        <p>فعلاً همین کافی است. بعداً که به گرافیک و صدا برسیم به slotهای بیشتری نیاز خواهیم داشت؛ اما آن‌ها را وقتی نیاز شد معرفی می‌کنم.</p>
+
+        <h3>رجیستر پرچم (Flag)</h3>
+        <p>رجیستر شمارهٔ ۱۵، یا <code dir="ltr">#xF</code> در مبنای ۱۶، ویژه است. به آن رجیستر «پرچم» می‌گویند و بعضی
+        دستورالعمل‌ها آن را به‌صورت ویژه تنظیم می‌کنند. می‌توانستیم مثل بقیهٔ رجیسترها به آن دسترسی داشته باشیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(setf (aref (chip-registers chip) 15) 1) ; پرچم را ۱ کن
+(print (aref (chip-registers chip) #xF)) ; پرچم را چاپ کن</code></pre>
+        <p>اما حتی با ایندکس هگز <code dir="ltr">#xF</code> برای یادآوری «F»، این کار کمی سخت‌خوان است. بیایید چند تابع
+        خواننده و نویسندهٔ اضافه تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline chip-flag (chip)
+  (aref (chip-registers chip) #xF))
+
+(defun-inline (setf chip-flag) (new-value chip)
+  (setf (aref (chip-registers chip) #xF) new-value))</code></pre>
+        <p><code dir="ltr">defun-inline</code> از کتابخانهٔ ابزار من است — در یک قدم هم <code dir="ltr">defun</code> می‌کند
+        هم <code dir="ltr">declaim</code> آن را inline می‌کند. حالا همه‌چیز خیلی بهتر خوانده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(setf (chip-flag chip) 1) ; پرچم را ۱ کن
+(print (chip-flag chip)) ; پرچم را چاپ کن</code></pre>
+      </section>
+
+      <!-- ==================== حذف تکرار ==================== -->
+      <section>
+        <h2>حذف تکرار</h2>
+        <p>آنچه تا اینجا داریم *کار می‌کند*، اما قبل از ادامه می‌خواهم یک قند اضافهٔ نحوی (syntactic sugar) هم اضافه کنم.</p>
+        <p>قرار است خیلی زیاد به slotهای ساختار <code dir="ltr">chip</code> دسترسی داشته باشیم و تکراری‌شدنِ نوشتن
+        <code dir="ltr">(chip-SLOT chip)</code> خسته‌کننده می‌شود. مثلاً هنگام ریست‌کردن شبیه‌ساز مجبوریم کاری شبیه این بکنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun reset (chip)
+  (fill (chip-memory chip) 0)
+  (fill (chip-registers chip) 0)
+  (setf (chip-running chip) t
+        (chip-program-counter chip) #x200
+        (fill-pointer (chip-stack chip)) 0))</code></pre>
+        <p>این آزاردهنده است. زبان‌هایی مثل جاوااسکریپت و پایتون برای دسترسی به slot از <code dir="ltr">.</code> استفاده
+        می‌کنند و در نتیجه جمع‌وجورتر می‌شود: <code dir="ltr">chip.memory()</code> به‌جای <code dir="ltr">(chip-memory chip)</code>.</p>
+        <p>می‌توانستیم از <code dir="ltr">with-accessors</code> لیسپ برای تمیزکردن استفادهٔ واقعی استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun reset (chip)
+  (with-accessors ((memory chip-memory)
+                   (registers chip-registers)
+                   (running chip-running)
+                   (program-counter chip-program-counter)
+                   (stack chip-stack))
+      chip
+    (fill memory 0)
+    (fill registers 0)
+    (setf running t
+          program-counter #x200
+          (fill-pointer stack) 0)))</code></pre>
+        <p>استفاده اکنون خیلی بهتر است اما چیزی را واقعاً درست نکرده‌ایم؛ فقط تایپ‌کردن را چند خط بالا بردیم. اما این لیسپ
+        است؛ ما بهتر از این می‌توانیم!</p>
+        <p>ایده‌آل این است که بتوانیم چیزی مثل <code dir="ltr">(with-chip (chip) ...)</code> بنویسیم تا همان فرم بزرگِ
+        <code dir="ltr">with-accessors</code> را درست کند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun reset (chip)
+  (with-chip (chip)
+    (fill memory 0)
+    (fill registers 0)
+    (setf running t
+          program-counter #x200
+          (fill-pointer stack) 0)))</code></pre>
+        <p>این تمیز و خوانا است. بعضی‌ها ممکن است از اینکه این ماکرو bindingهای متغیر جدیدی معرفی می‌کند که در تعریف ماکرو
+        «پنهان» هستند خوششان نیاید، اما من جمع‌وجوریِ حاصل را دوست دارم، مخصوصاً برای یک پروژهٔ کوچک مثل این.</p>
+        <p>می‌توانستیم <code dir="ltr">with-chip</code> را خودمان بنویسیم؛ چیزی شبیه این:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defmacro with-chip ((chip) &amp;body body)
+  `(with-accessors ((memory chip-memory)
+                    (registers chip-registers)
+                    ; ...
+                    )
+       ,chip
+     ,@body)
+)</code></pre>
+        <p>نوشتنش سخت نیست، فقط خسته‌کننده است. اما چون از لیسپ استفاده می‌کنیم، هر چیز خسته‌کننده‌ای طلب انتزاع می‌کند!
+        یک ماکروی دیگر از کتابخانهٔ ابزار من به نام
+        <a href="https://github.com/sjl/cl-losh/blob/master/DOCUMENTATION.markdown#define-with-macro-macro" target="_blank" rel="noopener"><code dir="ltr">define-with-macro</code></a>
+        وجود دارد؛ ماکرویی که ماکرو می‌سازد و با آن می‌توانیم <code dir="ltr">with-chip</code> را برای خودمان تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-with-macro chip
+  running memory stack registers index program-counter flag)</code></pre>
+        <p>اگر پیچیدگی ماکرویِ ماکروساز شما را می‌ترساند، نگران نباشید. می‌توانستیم همان‌طور که در بالا نشان داده شد با دست
+        هم بنویسیمش. فقط به‌اندازهٔ کافی از این ماکروهای <code dir="ltr">with-FOO</code> استفاده کرده‌ام که ارزشش را داشته
+        باشد تا از خسته‌کنندگیِ نوشتن‌شان انتزاع بسازم.</p>
+        <p>خلاصه، حالا یک ماکروی خوب <code dir="ltr">with-chip</code> داریم که با آن می‌توانیم با نام‌های عریان به فیلدهای
+        ساختار دسترسی داشته باشیم.</p>
+      </section>
+
+      <!-- ==================== زیرساخت ==================== -->
+      <section>
+        <h2>زیرساخت</h2>
+        <p>قبل از اینکه سراغ پیاده‌سازی دستورالعمل‌های CPU برویم، باید کمی زیرساخت برای اجرای کارها تعریف کنیم.</p>
+
+        <h3>ریست‌کردن</h3>
+        <p>قبل از اینکه بتوانیم یک ROM را شبیه‌سازی کنیم، باید آن را در آرایهٔ حافظه‌مان بخوانیم. من تصمیم گرفتم این کار را
+        داخل تابع <code dir="ltr">reset</code> انجام دهم تا بتوانیم فقط با <code dir="ltr">(reset my-chip)</code> همه‌چیز را
+        یکجا دوباره بارگذاری کنیم — منطقی نیست بدون ریست‌کردن بقیهٔ وضعیت شبیه‌سازی، ROM جدیدی بارگذاری کنیم (اگرچه نتیجه
+        می‌توانست «جالب» باشد).</p>
+        <p><code dir="ltr">reset</code> این شکلی است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun reset (chip)
+  (with-chip (chip)
+    (fill memory 0)
+    (fill registers 0)
+    (replace memory (read-file-into-byte-vector loaded-rom)
+             :start1 #x200)
+    (setf running t
+          program-counter #x200
+          (fill-pointer stack) 0))
+  (values))</code></pre>
+        <p>این بخش خود توضیح است، به‌جز بخش بارگذاری ROM:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(replace memory (read-file-into-byte-vector loaded-rom)
+         :start1 #x200)</code></pre>
+        <p><code dir="ltr">replace</code> همان تابع استاندارد <code dir="ltr">replace</code> لیسپ است که محتوای یک توالی را
+        در توالی دیگر کپی می‌کند. <code dir="ltr">read-file-into-byte-vector</code> از Alexandria است و فایلِ
+        <code dir="ltr">loaded-rom</code> را در یک بردار بایتی می‌خواند. سپس فقط کافیست بگوییم کپی‌کردن از ایندکس
+        <code dir="ltr">#x200</code> در مقصد شروع شود، چون دادهٔ ROM قرار است از آنجا شروع شود (قبل از آن دادهٔ داخلی
+        دیگری مثل اسپرایت‌های فونت وجود دارد که بعداً می‌بینیم).</p>
+        <p>یک نکتهٔ آخر: <code dir="ltr">reset</code> فقط <code dir="ltr">(values)</code> برمی‌گرداند، یعنی اصلاً چیزی
+        برنمی‌گرداند. این کاری است که گاهی برای توابعی که در REPL به خاطر عوارض جانبی صدا می‌زنم انجام می‌دهم تا از برگرداندن
+        یک نتیجهٔ بی‌معنی جلوگیری کنم.</p>
+
+        <h3>بارگذاری ROM</h3>
+        <p>حالا که تابع ریست داریم، تعریف تابعی برای بارگذاری ROM جدید بی‌دردسر است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun load-rom (chip filename)
+  (setf (chip-loaded-rom chip) filename)
+  (reset chip))</code></pre>
+        <p>اینجا زحمت <code dir="ltr">with-chip</code> را به خودم ندادم چون فقط به یک فیلد دسترسی داریم.</p>
+
+        <h3>حلقهٔ اصلی</h3>
+        <p>حالا همه‌چیز را در یک رابط تمیز جمع کنیم. یک تابع سطح‌بالای <code dir="ltr">run</code> تعریف می‌کنیم که برای روشن
+        کردن شبیه‌ساز آن را صدا می‌زنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defparameter *c* nil)
+
+(defun run (rom-filename)
+  (let ((chip (make-chip)))
+    (setf *c* chip)
+    (load-rom chip rom-filename)
+    (run-cpu chip)))</code></pre>
+        <p>این در آینده پیچیده‌تر می‌شود، اما فعلاً خیلی ساده است: یک شیء <code dir="ltr">chip</code> جدید می‌سازیم، ROM مشخص‌شده را
+        بارگذاری می‌کنیم و شبیه‌سازی CPU را شروع می‌کنیم.</p>
+        <p>یک متغیر سراسری <code dir="ltr">*c*</code> اضافه کرده‌ام که به شبیه‌ساز در حال اجرا اشاره می‌کند تا بتوانیم در
+        حالی که اجرا می‌شود از NREPL یا SLIME به آن دست بزنیم.</p>
+        <p>حالا <code dir="ltr">run-cpu</code> را بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defconstant +cycles-per-second+ 500)
+(defconstant +cycles-before-sleep+ 10)
+
+(defun run-cpu (chip)
+  (iterate
+    (while (chip-running chip))
+    (emulate-cycle chip)
+    (for tick :every-nth +cycles-before-sleep+ :do
+         (sleep (/ +cycles-before-sleep+ +cycles-per-second+)))))</code></pre>
+        <p>CHIP-8 برای اجرا روی سخت‌افزارهای بسیار ضعیف‌تر از سخت‌افزارهای امروزی طراحی شده بود. حتی با اینکه شبیه‌سازی
+        می‌کنیم، اگر تا حد ممکن سریع اجرا کنیم، آن‌قدر سریع خواهد بود که قابل بازی نباشد.</p>
+        <p><code dir="ltr">+cycles-per-second+</code> ثابتی است که سرعت ایده‌آل شبیه‌سازی را توصیف می‌کند. هر عددی از ۳۰۰
+        تا ۸۰۰ بسته به سرعت مورد نظرتان برای بازی‌ها قابل بازی است. فعلاً ۵۰۰ را به عنوان حد وسط انتخاب می‌کنیم.</p>
+        <p>هدر دادن اینکه بعد از هر چرخه <code dir="ltr">(sleep)</code> صدا بزنیم، اسراف است؛ بنابراین آن‌ها را دسته‌بندی
+        می‌کنیم: ۱۰ دستورالعمل را اجرا کن، کمی بخواب، تکرار. این وظیفهٔ driver
+        <code dir="ltr">(for ... every-nth N)</code> از iterate است که در کتابخانهٔ ابزار من هم هست. هر ۱۰ بار تکرارِ حلقه، به
+        اندازهٔ مناسب می‌خوابد.</p>
+        <p>اندازهٔ دسته‌های چرخه دلخواه است — دسته‌های بزرگ‌تر یعنی فراخوانی‌های <code dir="ltr">(sleep)</code> کمتر، اما
+        اگر خیلی بزرگ شوند متوجه «پرشی» شدن شبیه‌ساز می‌شوید. دستهٔ ۱۰ چرخه‌ای با سرعت ۵۰۰ چرخه در ثانیه یعنی شبیه‌ساز هر
+        بار حدود ۱/۵۰ ثانیه می‌خوابد که خیلی محسوس نیست.</p>
+        <p>حلقهٔ اصلی آماده است و فقط باید هر چرخه را شبیه‌سازی کنیم.</p>
+
+        <h3>چرخه‌های منفرد</h3>
+        <p>هر دستورالعمل CHIP-8 دو بایت است و به‌صورت
+        <a href="https://en.wikipedia.org/wiki/Endianness" target="_blank" rel="noopener">big-endian</a> در حافظه ذخیره
+        می‌شود. پس برای شبیه‌سازی یک چرخه:</p>
+        <ul>
+          <li>دو بایتِ شروع‌شده از برنامه‌شمار را می‌خوانیم و آن‌ها را به هم می‌چسبانیم تا دستورالعمل ساخته شود.</li>
+          <li>برنامه‌شمار را جلو می‌بریم (تا مجبور نباشیم داخل هر دستورالعمل انجامش دهیم).</li>
+          <li>به کد مناسبِ دستورالعمل dispatch می‌کنیم.</li>
+        </ul>
+        <p><code dir="ltr">emulate-cycle</code> و چند تابع کمکی تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline chop (size integer)
+  (ldb (byte size 0) integer))
+
+(defun-inline cat-bytes (high-order low-order)
+  (dpb high-order (byte 8 8) low-order))
+
+(defun emulate-cycle (chip)
+  (with-chip (chip)
+   (let ((instruction (cat-bytes (aref memory program-counter)
+                                 (aref memory (1+ program-counter)))))
+     (zapf program-counter (chop 12 (+ % 2)))
+     (dispatch-instruction chip instruction))))</code></pre>
+        <p><code dir="ltr">chop</code> یک عدد صحیح را به تعداد بیت مشخص‌شده برش می‌دهد. <code dir="ltr">cat-bytes</code> دو
+        بایت را به هم می‌چسباند. خیلی ساده‌اند، اما من نام‌های توصیفی را به نوشتن <code dir="ltr">dpb</code> (deposit byte) و
+        <code dir="ltr">ldb</code> (load byte) در همه‌جا ترجیح می‌دهم.</p>
+        <p><code dir="ltr">zapf</code> از کتابخانهٔ ابزار من است و درباره‌اش پست جداگانه‌ای نوشته‌ام.</p>
+        <p>وقتی برنامه‌شمار به ایندکس آخر حافظه رسید چه اتفاقی می‌افتد؟ هیچ‌کدام از مراجع CHIP-8 مشخص نکرده‌اند. می‌توانیم
+        خطا صادر کنیم یا فقط به صفر برگردانیم. من دومی را انتخاب کرده‌ام با برش‌زدن <code dir="ltr">(+ program-counter 2)</code>
+        به ۱۲ بیت؛ اما صدور خطا هم آسان بود.</p>
+
+        <h3>Dispatch دستورالعمل</h3>
+        <p>طرح دستورالعمل‌های CHIP-8 کمی با بیشتر سیستم‌های دیگری که دیده‌ام فرق دارد.</p>
+        <p>در سیستم‌هایی مثل گیم‌بوی، دستورالعمل‌ها یک اپ‌کد یک یا دو بایتی دارند و آرگومان‌ها دنبالش می‌آیند. برای این
+        سیستم‌ها می‌توانید با یک <code dir="ltr">case</code> غول‌آسا dispatch کنید:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(case opcode
+  (#x00 (op-foo ...))
+  (#x01 (op-bar ...))
+  ; ...
+  )</code></pre>
+        <p>اما راه مؤثرتر معمولاً این است که همهٔ توابع <code dir="ltr">op-</code> را در یک آرایه بریزید و خودِ اپ‌کد را
+        ایندکسِ آرایه کنید تا تابع پیدا شود:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(funcall (aref opcodes opcode) ...)</code></pre>
+        <p>اما CHIP-8 دستورالعمل‌ها را کمی عجیب از هم متمایز می‌کند. همهٔ دستورالعمل‌ها دو بایت‌اند، *از جمله* آرگومان‌هایشان.
+        به‌جای اینکه فقط N بیت اول به عنوان اپ‌کد استفاده شود، بعضی دستورالعمل‌ها ترکیبی از بیت‌های بالا و پایین را به‌کار
+        می‌برند. مثلاً AND و OR و XOR منطقی با شروعِ دستورالعمل با نیبلِ <code dir="ltr">8</code> و پایان با
+        <code dir="ltr">1</code>، <code dir="ltr">2</code> یا <code dir="ltr">3</code> مشخص می‌شوند، با «آرگومان»ها در دو
+        نیبل وسط:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">8xy1 - OR Vx, Vy
+8xy2 - AND Vx, Vy
+8xy3 - XOR Vx, Vy</code></pre>
+        <p>این استفاده از نوعی جدول توابع را آزاردهنده می‌کند. فقط چند ده اپ‌کد وجود دارد، بنابراین به‌جای تلاش برای درست‌کردن
+        یک چیزی به‌هم‌چسبیده، از یک <code dir="ltr">case</code> بزرگ و قدیمی استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun dispatch-instruction (chip instruction)
+  (macrolet ((call (name) `(,name chip instruction)))
+    (ecase (logand #xF000 instruction)
+      (#x0000 (ecase instruction
+                (#x00E0 (call op-cls))
+                (#x00EE (call op-ret))))
+      (#x1000 (call op-jp-imm))
+      (#x2000 (call op-call))
+      (#x3000 (call op-se-reg-imm))
+      (#x4000 (call op-sne-reg-imm))
+      (#x5000 (ecase (logand #x000F instruction)
+                (#x0 (call op-se-reg-reg))))
+      (#x6000 (call op-ld-reg&lt;imm))
+      (#x7000 (call op-add-reg&lt;imm))
+      (#x8000 (ecase (logand #x000F instruction)
+                (#x0 (call op-ld-reg&lt;reg))
+                (#x1 (call op-or))
+                (#x2 (call op-and))
+                (#x3 (call op-xor))
+                (#x4 (call op-add-reg&lt;reg))
+                (#x5 (call op-sub-reg&lt;reg))
+                (#x6 (call op-shr))
+                (#x7 (call op-subn-reg&lt;reg))
+                (#xE (call op-shl))))
+      (#x9000 (ecase (logand #x000F instruction)
+                (#x0 (call op-sne-reg-reg))))
+      (#xA000 (call op-ld-i&lt;imm))
+      (#xB000 (call op-jp-imm+reg))
+      (#xC000 (call op-rand))
+      (#xD000 (call op-draw))
+      (#xE000 (ecase (logand #x00FF instruction)
+                (#x9E (call op-skp))
+                (#xA1 (call op-sknp))))
+      (#xF000 (ecase (logand #x00FF instruction)
+                (#x07 (call op-ld-reg&lt;dt))
+                (#x0A (call op-ld-reg&lt;key))
+                (#x15 (call op-ld-dt&lt;reg))
+                (#x18 (call op-ld-st&lt;reg))
+                (#x1E (call op-add-index&lt;reg))
+                (#x29 (call op-ld-font&lt;vx))
+                (#x33 (call op-ld-bcd&lt;vx))
+                (#x55 (call op-ld-mem&lt;regs))
+                (#x65 (call op-ld-regs&lt;mem)))))))</code></pre>
+        <p><code dir="ltr">macrolet</code> در ابتدا کمی تایپ را کم می‌کند، اما بقیه‌اش فقط یک جدول بزرگ و کسل‌کننده برای فهمیدن
+        اینکه کدام دستورالعمل باید صدا زده شود است.</p>
+        <p>این همهٔ کار زیرساختیِ کسل‌کننده بود — برویم سراغ پیاده‌سازی دستورالعمل‌های واقعی.</p>
+      </section>
+
+      <!-- ==================== دستورالعمل‌ها ==================== -->
+      <section>
+        <h2>دستورالعمل‌ها</h2>
+        <p>CHIP-8 از سی‌وشش دستورالعمل پشتیبانی می‌کند که باید همه را پیاده‌سازی کنیم. از ساده‌ترها شروع می‌کنیم و بعضی دیگر
+        (مربوط به گرافیک/صدا) را برای مقاله‌های بعدی می‌گذاریم.</p>
+        <p>(در مقابل، گیم‌بوی تقریباً پانصد دستورالعمل دارد؛ پس حالا می‌بینید چرا فکر می‌کردم CHIP-8 ساده‌تر است!)</p>
+
+        <h3>اعداد تصادفی</h3>
+        <p>با دستورالعمل <code dir="ltr">RND</code> شروع می‌کنیم که عدد تصادفی تولید می‌کند. ممکن است مکان عجیبی برای شروع
+        باشد، اما می‌خواهم یک قند اضافهٔ نحوی دیگر را توضیح بدهم و <code dir="ltr">RND</code> دستورالعمل مناسبی برای مثال است.</p>
+        <p>مرجع کاگوود <code dir="ltr">RND</code> را این‌گونه توصیف می‌کند:</p>
+        <pre class="code"><span class="lang-tag">txt</span><code style="direction:ltr;text-align:left">Cxkk - RND Vx, byte
+Vx = بایت تصادفی AND kk
+
+مفسر عددی تصادفی از ۰ تا ۲۵۵ تولید می‌کند
+که سپس با مقدار kk عملیات AND می‌شود. نتیجه
+در Vx ذخیره می‌شود.</code></pre>
+        <p>اولین تلاش برای پیاده‌سازی در لیسپ شاید این شکلی باشد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun op-rand (chip instruction)
+  (let ((reg  (logand #x0F00 instruction))
+        (mask (logand #x00FF instruction)))
+    (with-chip (chip)
+      (setf (aref registers reg)
+            (logand (random 256) mask)))))</code></pre>
+        <p>این کار می‌کند، اما برای چیزی که فقط با یکی دو جمله توصیف می‌شود کد زیادی است. قرار است دستورالعمل‌های زیادی تعریف
+        کنیم؛ پس چند دقیقه وقت بگذاریم و زندگی‌مان را آسان‌تر کنیم.</p>
+
+        <h3>Define-Instruction</h3>
+        <p>یک ماکروی <code dir="ltr">define-instruction</code> می‌سازیم که بخش‌های کسل‌کننده را انتزاعی کند. هدف این است که
+        تعریف دستورالعمل‌ها تا حد ممکن به مستندات نزدیک خوانده شود.</p>
+        <p>با حذف نیاز به ماکروی <code dir="ltr">with-chip</code> شروع می‌کنیم. هر دستورالعمل باید با ساختار
+        <code dir="ltr">chip</code> کار کند، پس سی‌وشش بار خودمان را تکرار نکنیم. هر دستورالعمل هم آرگومان‌های
+        <code dir="ltr">chip</code> و <code dir="ltr">instruction</code> می‌گیرد؛ پس آن‌ها را هم حذف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defmacro define-instruction (name &amp;body body)
+  `(defun ,name (chip instruction)
+      (declare (ignorable instruction))
+      (with-chip (chip)
+        ,@body)
+      nil))
+
+(define-instruction op-rand
+  (let ((reg  (logand #x0F00 instruction))
+        (mask (logand #x00FF instruction)))
+    (setf (aref registers reg)
+          (logand (random 256) mask))))</code></pre>
+        <p>کمی بهتر شد. قرار است این دستورالعمل‌ها را خیلی زیاد صدا بزنیم، پس اضافه‌کردن اعلام نوع برای هر تابع ضرری ندارد.
+        چون همه همان نوع‌ها را می‌گیرند و برمی‌گردانند، این کار آسان است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defmacro define-instruction (name &amp;body body)
+  `(progn
+    (declaim (ftype (function (chip int16) null) ,name)) ; جدید
+    (defun ,name (chip instruction)
+      (declare (ignorable instruction))
+      (with-chip (chip)
+        ,@body)
+      nil)))</code></pre>
+        <p>حالا همهٔ توابع دستورالعمل‌مان hint نوع دارند و SBCL می‌تواند آن‌ها را چک کند (اگر <code dir="ltr">safety</code> بالا
+        باشد) یا برای تولید کد سریع‌تر استفاده کند (اگر <code dir="ltr">speed</code> بالا باشد).</p>
+        <p>خیلی زیاد به مقادیر رجیسترها دسترسی خواهیم داشت (<code dir="ltr">(aref registers ...)</code>)، پس یک
+        <code dir="ltr">macrolet</code> کوچک اضافه می‌کنیم تا خواندنش بهتر شود:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defmacro define-instruction (name &amp;body body)
+  `(progn
+    (declaim (ftype (function (chip int16) null) ,name))
+    (defun ,name (chip instruction)
+      (declare (ignorable instruction))
+      (with-chip (chip)
+        (macrolet ((register (index)             ; جدید
+                     `(aref registers ,index)))  ; جدید
+          ,@body))
+      nil)))
+
+(define-instruction op-rand
+  (let ((reg  (logand #x0F00 instruction))
+        (mask (logand #x00FF instruction)))
+    (setf (register reg)                         ; جدید
+          (logand (random 256) mask))))</code></pre>
+        <p>حالا به‌جای <code dir="ltr">(aref registers ...)</code> فقط <code dir="ltr">(register ...)</code> می‌نویسیم.</p>
+        <p>تنها چیزی که هنوز اذیتم می‌کند این است که باید آرگومان‌های دستورالعمل را با bitmask با دست از دستورالعمل بیرون
+        بکشم. خیلی بهتر بود اگر فقط اعلام می‌کردیم آرگومان‌ها چه شکلی هستند و کامپیوتر کد mask کردن مناسب را برای ما تولید
+        می‌کرد. هدف این است که بتوانیم چیزی مثل این بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-rand (_ r (mask 2))              ;; RND
+  (setf (register r)
+        (logand (random 256) mask)))</code></pre>
+        <p><code dir="ltr">(_ r (mask 2))</code> «فهرست آرگومان» دستورالعمل است. می‌گوید:</p>
+        <ul>
+          <li>یک مقدار تک‌نیبلی که به آن اهمیت نمی‌دهیم: <code dir="ltr">_</code></li>
+          <li>یک مقدار تک‌نیبلی که باید به <code dir="ltr">r</code> بایند شود: <code dir="ltr">r</code></li>
+          <li>یک مقدار دو نیبلی که باید به <code dir="ltr">mask</code> بایند شود: <code dir="ltr">(mask 2)</code></li>
+        </ul>
+        <p>کد لیسپ و مستندات کاگوود را مقایسه کنید:</p>
+        <pre class="code"><span class="lang-tag">txt</span><code style="direction:ltr;text-align:left">Cxkk - RND Vx, byte
+Vx = بایت تصادفی AND kk
+
+(define-instruction op-rand (_ r (mask 2))              ;; RND
+  (setf (register r)
+        (logand (random 256) mask)))</code></pre>
+        <p>کاگوود از <code dir="ltr">V</code> به عنوان مخفف <code dir="ltr">register</code> استفاده می‌کند و آرگومان را به‌جای
+        <code dir="ltr">r</code>، <code dir="ltr">x</code> می‌نامد؛ اما به‌جز آن، فکر می‌کنم این کد به‌اندازهٔ کافی به
+        مستنداتِ کدِ واقعیِ در حال اجرا نزدیک است.</p>
+        <p>پس ماکروی parse آرگومان را پیاده‌سازی کنیم. اگر با ماکروها راحت نیستید از این بخش صرف‌نظر کنید. اما این نمایش خوبی
+        از این است که چطور می‌توانید برای یک پروژهٔ ساده یک زبان تمیز بسازید.</p>
+        <p>اول <code dir="ltr">body</code> را در یک <code dir="ltr">let</code> می‌پیچیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">                                   ; جدید
+(defmacro define-instruction (name argument-list &amp;body body)
+  `(progn
+    (declaim (ftype (function (chip int16) null) ,name))
+    (defun ,name (chip instruction)
+      (declare (ignorable instruction))
+      (with-chip (chip)
+        (macrolet ((register (index)
+                     `(aref registers ,index)))
+          (let ,(parse-instruction-argument-bindings argument-list) ; جدید
+            ,@body))
+        nil))))</code></pre>
+        <p>برای parse کردن فهرست آرگومان به فهرستی از bindingهای <code dir="ltr">let</code>، به‌جای اینکه همه‌چیز را در همین
+        یک ماکرو بگنجانیم از یک تابع کمکی استفاده می‌کنیم. ممکن است ترسناک به نظر برسد، اما واقعاً بد نیست:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun parse-instruction-argument-bindings (argument-list)
+  (flet ((normalize-arg (arg)
+           (destructuring-bind (symbol &amp;optional (nibbles 1))
+               (ensure-list arg)
+             (list symbol nibbles))))
+    (iterate
+      (for (symbol nibbles) :in (mapcar #'normalize-arg argument-list))
+      (for position :first 3 :then (- position nibbles))
+      (when (not (eql symbol '_))
+        (collect `(,symbol (ldb (byte ,(* nibbles 4)
+                                      ,(* position 4))
+                                instruction)))))))</code></pre>
+        <p><code dir="ltr">normalize-arg</code> هر آرگومان را از فهرست می‌گیرد و به <code dir="ltr">(symbol nibbles)</code>
+        تبدیل می‌کند؛ پس لازم نیست طول آرگومان‌های تک‌نیبلی را این‌گونه بنویسیم: <code dir="ltr">((_ 1) (r 1) (mask 2))</code>.</p>
+        <p>سپس روی هر جفت <code dir="ltr">(symbol nibbles)</code> در فهرست آرگومان حلقه می‌زنیم. از موقعیت <code dir="ltr">3</code>
+        در بایت شروع می‌کنیم (بالاترین نیبل) چون می‌خواهیم فهرست آرگومان را از چپ به راست، از بالا به پایین، مثل مستندات بنویسیم.</p>
+        <p>برای هر جفت، اگر نماد چیزی غیر از <code dir="ltr">_</code> بود، یک binding برای <code dir="ltr">let</code> با
+        فراخوانی <code dir="ltr">ldb</code> مناسب جمع می‌کنیم. پس برای مثالِ <code dir="ltr">(_ r (mask 2))</code> به دو
+        binding می‌رسیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(r (ldb (byte 4 8) instruction))
+(mask (ldb (byte 8 0) instruction))</code></pre>
+        <p>توجه کنید که فقط bindingهایی را parse می‌کنیم که *نیاز* داریم. برای دستورالعمل‌هایی که به هیچ آرگومانی نیاز ندارند
+        به یک <code dir="ltr">(let () ...)</code> خالی می‌رسیم که کامپایلر آن را بهینه می‌کند.</p>
+        <p>این شاید کمی پرمو باشد. نکتهٔ خوبِ استفاده از تابع کمکی این است که می‌توانیم آن را جداگانه با انواع فهرست‌های
+        آرگومان صدا بزنیم تا ببینیم چه چیزی تولید می‌شود:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(map nil #'print
+  (parse-instruction-argument-bindings '(_ r (mask 2))))
+
+(R (LDB (BYTE 4 8) INSTRUCTION))
+(MASK (LDB (BYTE 8 0) INSTRUCTION))
+
+(map nil #'print
+  (parse-instruction-argument-bindings '(_ x y _)))
+
+(X (LDB (BYTE 4 8) INSTRUCTION))
+(Y (LDB (BYTE 4 4) INSTRUCTION))
+
+(map nil #'print
+  (parse-instruction-argument-bindings '(_ (foo 3))))
+
+(FOO (LDB (BYTE 12 0) INSTRUCTION))</code></pre>
+        <p>و این هم از <code dir="ltr">define-instruction</code>. پس به‌جای نوشتن <code dir="ltr">RND</code> به عنوان یک
+        تابع معمولی:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun op-rand (chip instruction)
+  (let ((reg  (logand #x0F00 instruction))
+        (mask (logand #x00FF instruction)))
+    (with-chip (chip)
+      (setf (aref registers reg)
+            (logand (random 256) mask)))))</code></pre>
+        <p>می‌توانیم کار خیلی تمیزتری انجام دهیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-rand (_ r (mask 2))              ;; RND
+  (setf (register r)
+        (logand (random 256) mask)))</code></pre>
+        <p>همین که سی‌وپنج دستورالعمل دیگر را پیاده‌سازی کنیم، این سرمایه‌گذاری جواب خواهد داد.</p>
+
+        <h3>پرش‌ها و فراخوانی‌ها</h3>
+        <p>CHIP-8 دو دستورالعمل برای پرش مستقیم به یک آدرس دارد. اولی به یک آدرس مستقیم (immediate) می‌پرد و دومی یک مقدار
+        immediate را به محتوای رجیستر <code dir="ltr">#x0</code> اضافه می‌کند و به نتیجه می‌پرد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-jp-imm (_ (target 3))            ;; JP addr
+  (setf program-counter target))
+
+(define-instruction op-jp-imm+reg (_ (target 3))        ;; JP V0 + addr
+  (setf program-counter (chop 12 (+ target (register 0)))))</code></pre>
+        <p>ماکروی <code dir="ltr">define-instruction</code> ما دارد جوابش را می‌دهد. مقادیر immediate این آرگومان‌ها هر کدام
+        سه نیبل‌اند، اما ماکروی ما به آن اهمیتی نمی‌دهد.</p>
+        <p>همچنین دو دستورالعمل برای پیاده‌سازی فراخوانی و بازگشت توابع سنتی با پشتهٔ CHIP-8 وجود دارد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-call (_ (target 3))              ;; CALL addr
+  (vector-push program-counter stack)
+  (setf program-counter target))
+
+(define-instruction op-ret ()                           ;; RET
+  (setf program-counter (vector-pop stack)))</code></pre>
+        <p>فقط از توابع داخلی <code dir="ltr">vector-push</code> و <code dir="ltr">vector-pop</code> برای مدیریت fill pointer
+        پشته استفاده می‌کنیم.</p>
+        <p>توجه کنید که از <code dir="ltr">vector-push-extend</code> استفاده *نمی‌کنیم* چون پشتهٔ CHIP-8 طبق مشخصات فقط می‌تواند
+        حداکثر شانزده آدرس نگه دارد — هر ROMی که بیشتر push کند خراب است.</p>
+
+        <h3>عدد اعشاری دودویی (BCD)</h3>
+        <p>بریم سراغ یک دستورالعمل مستقل دیگر: <code dir="ltr">BCD</code> که مخفف
+        <a href="https://en.wikipedia.org/wiki/Binary-coded_decimal" target="_blank" rel="noopener">binary-coded decimal</a>
+        است (بعضی مراجع آن را <code dir="ltr">LD B, Vx</code> می‌نامند، اما فکر می‌کنم به‌اندازهٔ کافی متفاوت است که اسم خودش
+        را داشته باشد).</p>
+        <p>مشکلی که این دستورالعمل برای حلش طراحی شده این‌گونه است. فرض کنید بازی‌ای دارید که در آن بازیکن امتیازی دارد که با
+        گذر زمان تغییر می‌کند. می‌توانید امتیاز بازیکن را در یک رجیستر یا جای دیگر حافظه ذخیره کنید و با اپ‌کدهای جمع/تفریق
+        معمولی بدون مشکل آن را تغییر دهید.</p>
+        <p>اما حالا می‌خواهید امتیاز را به بازیکن *نمایش* دهید و احتمالاً می‌خواهید این کار را در مبنای ۱۰ انجام دهید چون
+        انسان‌ها معمولاً در خواندن باینری یا هگز بد هستند. پس چطور بایتی مثل <code dir="ltr">#xA5</code> را بردارید و ارقام
+        صدگان، دهگان و یکان را برای کشیدن اسپرایت «۱۶۵ امتیاز» روی صفحه تعیین کنید؟</p>
+        <p>این کارِ دستورالعمل <code dir="ltr">BCD</code> است. یک آرگومان (رجیستر) می‌گیرد و ارقام صدگان، دهگان و یکانِ مقدارِ
+        آن رجیستر را در سه بایت جداگانهٔ حافظه، از جایی که رجیستر <code dir="ltr">index</code> فعلاً به آن اشاره می‌کند،
+        ذخیره می‌کند:</p>
+        <pre class="code"><span class="lang-tag">txt</span><code style="direction:ltr;text-align:left">    رجیستر V3        رجیستر ایندکس
+    ┌───┐            ┌───┐
+    │135│            │...│
+    └───┘            └─┬─┘
+      ┌────────────────┘
+      │
+      ▼
+    ┌───┬───┬───┬───┬───┐
+    │   │   │   │   │   │   حافظه
+    └───┴───┴───┴───┴───┘
+
+    اجرای دستورالعمل BCD V3 =================
+
+    رجیستر V3        رجیستر ایندکس
+    ┌───┐            ┌───┐
+    │135│            │...│
+    └───┘            └─┬─┘
+      ┌────────────────┘
+      │
+      ▼
+    ┌───┬───┬───┬───┬───┐
+    │ 1 │ 3 │ 5 │   │   │   حافظه
+    └───┴───┴───┴───┴───┘</code></pre>
+        <p>برای خوانایی بهتر این را به دو بخش تقسیم می‌کنیم. اول یک تابع <code dir="ltr">digit</code> می‌سازیم که یک رقم از
+        یک عدد را برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline digit (position integer &amp;optional (base 10))
+  (-&lt;&gt; integer
+    (floor &lt;&gt; (expt base position))
+    (mod &lt;&gt; base)))</code></pre>
+        <p>می‌توانستیم مبنای ۱۰ را سخت‌کد کنیم، اما بخشی از سنت Common Lisp این است که توابع منعطفی بسازیم که وقتی سختی‌اش
+        زیاد نیست، در آینده هم قابل استفاده مجدد باشند.</p>
+        <p>مطمئن شویم خودش کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(digit 0 135)
+5
+
+(digit 1 135)
+3
+
+(digit 2 135)
+1
+
+(digit 0 #xD6 16)
+6
+
+(digit 1 #xD6 16)
+13     ; 13 در مبنای ۱۰ برابر D در مبنای ۱۶ است</code></pre>
+        <p>و سپس می‌توانیم عملیات واقعی را تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-ld-bcd&lt;vx (_ r _ _)              ;; LD B, Vx
+  (let ((number (register r)))
+    (setf (aref memory (+ index 0)) (digit 2 number)
+          (aref memory (+ index 1)) (digit 1 number)
+          (aref memory (+ index 2)) (digit 0 number))))</code></pre>
+
+        <h3>عملیات حسابی</h3>
+        <p>بعدی دستورالعمل‌های حسابی هستند. CHIP-8 فقط از جمع و تفریق پشتیبانی می‌کند — هیچ دستورالعمل ضرب یا تقسیمی وجود ندارد.</p>
+        <p>دو دستورالعمل اول <code dir="ltr">ADD</code> و <code dir="ltr">SUB</code> هستند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">ADD Vx, Vy → Vx = Vx + Vy
+SUB Vx, Vy → Vx = Vx - Vy</code></pre>
+        <p>باز هم با دو تابع کمکی شروع می‌کنیم که جمع/تفریق ۸ بیتی با سرریز/زیرریز انجام می‌دهند. این توابع یک مقدار دوم
+        برمی‌گردانند که بیت carry/borrow است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline +_8 (x y)
+  (let ((result (+ x y)))
+    (values (chop 8 result)
+            (if (&gt; result 255) 1 0)))) ; carry
+
+(defun-inline -_8 (x y)
+  (let ((result (- x y)))
+    (values (chop 8 result)
+            (if (&gt; x y) 1 0)))) ; borrow</code></pre>
+        <p>و حالا خود دستورالعمل‌ها پیش پا افتاده‌اند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-add-reg&lt;reg (_ rx ry)      ;; ADD Vx, Vy (8 بیتی)
+    (setf (values (register rx) flag)
+          (+_8 (register rx) (register ry))))
+
+(define-instruction op-sub-reg&lt;reg (_ rx ry)      ;; SUB Vx, Vy (8 بیتی)
+  (setf (values (register rx) flag)
+        (-_8 (register rx) (register ry))))</code></pre>
+        <p>این از این حقیقت بهره می‌برد که با <code dir="ltr">(setf (values ...) ...)</code> می‌توانید مقادیر چندگانهٔ
+        برگشتیِ یک تابع را بدون binding کردنشان به متغیرهای محلی، تخصیص دهید.</p>
+        <p>توجه کنید که فقط به <code dir="ltr">flag</code> تخصیص می‌دهیم. در پس‌زمینه، آن <code dir="ltr">flag</code> با ماکروی
+        <code dir="ltr">with-chip</code> ما به معنای <code dir="ltr">(chip-flag chip)</code> بایند شده که در ابتدا تعریف کردیم
+        تا معنای <code dir="ltr">(aref (chip-registers chip) #xF)</code> را بدهد. اما آیا گفتن <code dir="ltr">(setf flag ...)</code>
+        خیلی بهتر نیست؟</p>
+        <p>یک دستورالعمل <code dir="ltr">SUBN</code> هم هست که عملوندها را برعکس کم می‌کند (اما باز هم نتیجه را در اولی می‌ریزد):</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-subn-reg&lt;reg (_ rx ry)     ;; SUBN Vx, Vy (8 بیتی)
+  (setf (values (register rx) flag)
+        ;; ترتیب تفریق برای SUBN جابه‌جا شده
+        (-_8 (register ry) (register rx))))</code></pre>
+        <p>بعدی یک دستورالعمل <code dir="ltr">ADD</code> است که مقدار immediate می‌گیرد. برخلاف بقیهٔ دستورالعمل‌ها، این یکی
+        به دلایلی پرچم را تنظیم *نمی‌کند* (این یک باگِ سرگرم‌کننده برای ردیابی بود):</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-add-reg&lt;imm (_ r (immediate 2))  ;; ADD Vx, Imm
+  ;; به دلایل عجیب، اپ‌کد ADD با مقدار مستقیم پرچم را تنظیم نمی‌کند
+  (zapf (register r) (+_8 % immediate)))</code></pre>
+        <p>چون Common Lisp اگر مقادیر برگشتی اضافی را استفاده نکنیم آن‌ها را نادیده می‌گیرد، می‌توانیم از تابع کمکی
+        <code dir="ltr">+_8</code> استفاده کنیم و نتیجهٔ carry را نادیده بگیریم.</p>
+        <p>یک دستورالعمل <code dir="ltr">ADD</code> ۱۶ بیتی هم وجود دارد که مقدار یک رجیستر خاص را به رجیستر index اضافه می‌کند.
+        آن هم <code dir="ltr">flag</code> را نادیده می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-add-index&lt;reg (_ r)        ;; ADD I, Vx (16 بیتی)
+  (zapf index (chop 16 (+ % (register r)))))</code></pre>
+
+        <h3>جابه‌جایی بیتی (Shift)</h3>
+        <p>CHIP-8 دو دستورالعمل جابه‌جایی بیتی دارد: <code dir="ltr">SHR</code> و <code dir="ltr">SHL</code> که محتوای یک
+        رجیستر را یک بیت به راست یا چپ جابه‌جا می‌کنند. هر دو این دستورالعمل‌ها هم پرچم را به بیتی که «از انتها» بیرون افتاده
+        تنظیم می‌کنند.</p>
+        <p>دو کمکی دیگر تعریف می‌کنیم که جابه‌جایی واقعی ۸ بیتی را انجام می‌دهند و بیتی که از انتها می‌افتد را نگه می‌دارند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline get-bit (position integer)
+  (ldb (byte 1 position) integer))
+
+(defun-inline &gt;&gt;_8 (v)
+  (values (ash v -1)
+          (get-bit 0 v)))
+
+(defun-inline &lt;&lt;_8 (v)
+  (values (chop 8 (ash v 1))
+          (get-bit 7 v)))</code></pre>
+        <p>خود دستورالعمل‌ها پیش پا افتاده‌اند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-shr (_ r)                    ;; SHR
+  (setf (values (register r) flag)
+        (&gt;&gt;_8 (register r))))
+
+(define-instruction op-shl (_ r)                    ;; SHL
+  (setf (values (register r) flag)
+        (&lt;&lt;_8 (register r))))</code></pre>
+        <p><strong>به‌روزرسانی:</strong> همان‌طور که
+        <a href="https://news.ycombinator.com/item?id=13217352" target="_blank" rel="noopener">fernly اشاره کرد</a>، این ممکن
+        است رفتارِ مورد نظرِ اصلی
+        <a href="https://groups.yahoo.com/neo/groups/rcacosmac/conversations/topics/328" target="_blank" rel="noopener">نبوده باشد</a>.
+        اگر بخواهیم شبیه‌سازمان با نیت اصلی مطابقت کند، خیلی ساده است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-shr (_ rx ry)                 ;; SHR
+  (setf (values (register ry) flag)
+        (&gt;&gt;_8 (register rx))))
+
+(define-instruction op-shl (_ rx ry)                 ;; SHL
+  (setf (values (register ry) flag)
+        (&lt;&lt;_8 (register rx))))</code></pre>
+        <p>اما گمان می‌کنم این کار احتمالاً بعضی ROMهایی را که به رفتارِ مستندِ اشتباه اتکا می‌کنند خراب می‌کند.</p>
+
+        <h3>عملیات منطقی</h3>
+        <p>بعدی دستورالعمل‌های منطقی <code dir="ltr">AND</code>/<code dir="ltr">OR</code>/<code dir="ltr">XOR</code> هستند.
+        می‌توانستیم آن‌ها را این‌گونه تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-and (_ destination source _)
+  (zapf (register destination) (logand % (register source))))
+
+(define-instruction op-or (_ destination source _)
+  (zapf (register destination) (logior % (register source))))
+
+(define-instruction op-xor (_ destination source _)
+  (zapf (register destination) (logxor % (register source))))</code></pre>
+        <p>این کار می‌کند، اما به‌جز نام و عملیات، همه یکسان‌اند. چند گروه بعدی دستورالعمل‌ها هم شبیه هم خواهند بود؛ پس یک
+        قدم به عقب برگردیم و ببینیم آیا می‌توانیم کسل‌کنندگی را انتزاعی کنیم.</p>
+
+        <h3>ماکرو-نقشه (Macro-Map)</h3>
+        <p>به‌جای تایپ‌کردن مکرر یک چیز، دوست داریم فقط یک بار بگوییم چه می‌خواهیم. روش سنتی این کار با
+        <code dir="ltr">macrolet</code> است:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(macrolet
+    ((define-logical-instruction (name function)
+       `(define-instruction ,name (_ destination source _)
+          (zapf (register destination)
+                (,function % (register source))))))
+  (define-logical-instruction op-and logand)
+  (define-logical-instruction op-or logior)
+  (define-logical-instruction op-xor logxor))</code></pre>
+        <p>حالا فقط یک بار عملکرد واقعی را می‌نویسیم به‌جای سه بار. بهتر است، اما هنوز راضی نیستم. استفاده از
+        <code dir="ltr">macrolet</code> یعنی باید برای ماکرویی که فقط قرار است در همین بلاک استفاده و دور انداخته شود نامی
+        پیدا کنم؛ و نام‌گذاری سخت است.</p>
+        <p>چیزی که *واقعاً* می‌خواهم این است که فقط یک ماکرو را روی چند آرگومان «نقشه» کنم و تمام. من کمی بازی کرده‌ام و به
+        ماکرویی به نام <code dir="ltr">macro-map</code> رسیده‌ام که دقیقاً همین کار را می‌کند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defmacro macro-map (lambda-list items &amp;rest body)
+  (with-gensyms (macro)
+    `(macrolet ((,macro ,(ensure-list lambda-list) ,@body))
+      ,@(iterate (for item :in items)
+                 (collect `(,macro ,@(ensure-list item)))))))</code></pre>
+        <p><code dir="ltr">macro-map</code> یک lambda list، فهرستی از آرگومان‌ها و بدنه‌ای برای ماکرو می‌گیرد و همان
+        <code dir="ltr">macrolet</code>ای را که با دست نوشته بودیم می‌سازد — با یک <code dir="ltr">gensym</code> برای نام، تا
+        مجبور نباشیم برای اسمش سلول مغز بسوزانیم. حالا می‌توانیم عملیات منطقی‌مان را یکجا تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(macro-map                                     ;; AND/OR/XOR
+    (NAME    OP)
+    ((op-and logand)
+     (op-or  logior)
+     (op-xor logxor))
+  `(define-instruction ,name (_ destination source _)
+    (zapf (register destination) (,op % (register source)))))</code></pre>
+        <p>این در واقع یک خط از نسخهٔ کپی/پیست‌شده بلندتر است چون دوست دارم به‌سخاوت خط بشکنم، اما نکتهٔ مهم این است که هر
+        چیزی را که باید بگوییم فقط یک بار می‌گوییم.</p>
+        <p>توجه کنید که این تقریباً شروع به شبیه‌شدن به یک جدول داده می‌کند نه کد. من از این واقعیت استفاده کرده‌ام که
+        خوانندهٔ لیسپ همه‌چیز را به‌طور پیش‌فرض بزرگ (uppercase) می‌خواند و ردیف «header» (lambda list) را بزرگ کردم تا بیشتر
+        خودنمایی کند.</p>
+        <p>اگر کمی چشم‌هایتان را ریز کنید، شاید تصور کنید تعریف کردن یک مجموعه از دستورالعمل‌های مرتبط تقریباً شبیه
+        <a href="https://i.imgur.com/8jbXmVj.png" target="_blank" rel="noopener">یک صفحه از دفترچهٔ CPU</a> است.</p>
+
+        <h3>شاخه‌ها (Branching)</h3>
+        <p>حالا که راهی برای تعریف دسته‌ای از دستورالعمل‌های مشابه بدون دیوانه‌شدن داریم، می‌توانیم دستورالعمل‌های شاخه را
+        انجام دهیم.</p>
+        <p>بیشتر CPUها نوعی دستورالعمل «پرش به جایی اگر صفر، وگرنه ادامه» برای پیاده‌سازی شاخه دارند. CHIP-8 باید همهٔ
+        دستورالعمل‌ها را در دو بایت جا دهد، پس کار ساده‌تری می‌کند. به‌جای پرش دلخواه بر اساس شرط، یک سری دستورالعمل *رد شدن
+        (skip)* دارد.</p>
+        <p>مثلاً <code dir="ltr">SE Vx, 0</code> یعنی «اگر رجیستر X صفر است دستورالعمل بعدی را رد کن». ردکردنِ دستورالعمل بعدی
+        به سادگیِ اضافه‌کردن دو بایت اضافی به برنامه‌شمار است.</p>
+        <p>چهار نوع از این دستورالعمل وجود دارد:</p>
+        <pre class="code"><span class="lang-tag">txt</span><code style="direction:ltr;text-align:left">SE  Vx, Immediate → وقتی Vx برابر Immediate است رد شو
+SNE Vx, Immediate → وقتی Vx برابر Immediate نیست رد شو
+SE  Vx, Vy        → وقتی Vx برابر Vy است رد شو
+SNE Vx, Vy        → وقتی Vx برابر Vy نیست رد شو</code></pre>
+        <p>از <code dir="ltr">macro-map</code> برای نوشتن این به صورت جدولی از کد استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(macro-map                                              ;; SE/SNE
+    ((NAME            TEST X-ARG  X-FORM        Y-ARG         Y-FORM)
+     ((op-se-reg-imm  =    (r 1)  (register r)  (immediate 2) immediate)
+      (op-sne-reg-imm not= (r 1)  (register r)  (immediate 2) immediate)
+      (op-se-reg-reg  =    (rx 1) (register rx) (ry 1)        (register ry))
+      (op-sne-reg-reg not= (rx 1) (register rx) (ry 1)        (register ry))))
+  `(define-instruction ,name (_ ,x-arg ,y-arg)
+     (when (,test ,x-form ,y-form)
+       (incf program-counter 2))))</code></pre>
+        <p>بعد از ماکروگسترش به چیزهایی مثل این می‌رسیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-sne-reg-imm (_ (r 1) (immediate 2))
+  (when (not= (register r) immediate)
+    (incf program-counter 2)))</code></pre>
+        <p>همچنین به خودِ <code dir="ltr">not=</code> نیاز داریم تا داخل بدنهٔ ماکرو کارهای کثیف نکنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(defun-inline not= (x y)
+  (not (= x y)))</code></pre>
+        <p>فقط یک گروه دیگر از دستورالعمل‌ها برای این پست باقی مانده.</p>
+
+        <h3>بارگذاری‌ها (Loads)</h3>
+        <p>گروه آخر دستورالعمل‌هایی که فعلاً نگاه می‌کنیم، خانوادهٔ <code dir="ltr">LD</code> است. معمولاً اول این‌ها را
+        پیاده‌سازی می‌کنیم، اما می‌خواستم <code dir="ltr">macro-map</code> را به‌نرمی معرفی کنم.</p>
+        <p>بیشتر دستورالعمل‌های <code dir="ltr">LD</code> به سادگی یک مقدار را از منبع برمی‌دارند و در مقصد می‌گذارند؛ می‌توانیم
+        آن‌ها را به صورت یک فرم <code dir="ltr">setf</code> واحد پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(macro-map                                              ;; LD
+     (NAME           ARGLIST         DESTINATION   SOURCE)
+     ((op-ld-i&lt;imm   (_ (value 3))   index         value)
+      (op-ld-reg&lt;imm (_ r (value 2)) (register r)  value)
+      (op-ld-reg&lt;reg (_ rx ry _)     (register rx) (register ry))
+      (op-ld-reg&lt;dt  (_ r _ _)       (register r)  delay-timer)
+      (op-ld-dt&lt;reg  (_ r _ _)       delay-timer   (register r))
+      (op-ld-st&lt;reg  (_ r _ _)       sound-timer   (register r)))
+  `(define-instruction ,name ,arglist
+     (setf ,destination ,source)))</code></pre>
+        <p>هنوز دربارهٔ تایمرها صحبت نکرده‌ایم؛ نگرانشان نباشید. آن‌ها را گذاشتم تا ببینید وقتی لازم است دسته‌ای از عملیات
+        مشابه را یکجا تعریف کنید، <code dir="ltr">macro-map</code> چقدر خوب است.</p>
+        <p>دو دستورالعمل <code dir="ltr">LD</code> جالب‌تر دیگر وجود دارند که داده را بین چند رجیستر و حافظه جابه‌جا می‌کنند.</p>
+        <p><code dir="ltr">LD [I], n</code> بایت‌های متوالی حافظه را با محتوای رجیسترهای <code dir="ltr">V0</code> تا
+        <code dir="ltr">Vn</code> پر می‌کند، از جایی که رجیستر index به آن اشاره می‌کند. مثلاً <code dir="ltr">LD [I], 2</code>:</p>
+        <pre class="code"><span class="lang-tag">txt</span><code style="direction:ltr;text-align:left">     V0   V1   V2   V3   V4  ...
+    ┌──┐ ┌──┐ ┌──┐ ┌──┐ ┌──┐
+    │  │ │  │ │  │ │  │ │  │ ...
+    └─┬┘ └─┬┘ └─┬┘ └──┘ └──┘
+      └───┐└──┐ └─┐
+          │   │   │
+          ▼   ▼   ▼
+    ┌───┬───┬───┬───┬───┐
+    │   │   │   │   │   │   حافظه
+    └───┴───┴───┴───┴───┘
+          ▲  ┌───┐
+          └──│...│ رجیستر ایندکس
+             └───┘</code></pre>
+        <p><code dir="ltr">LD n, [I]</code> برعکس را انجام می‌دهد: محتوای حافظه را در رجیسترهای <code dir="ltr">V0</code> تا
+        <code dir="ltr">Vn</code> بارگذاری می‌کند.</p>
+        <p>چون هم برای رجیسترها و هم برای حافظه از آرایه‌های لیسپی استفاده کرده‌ایم، این دستورالعمل‌ها واقعاً دوست‌داشتنی‌اند —
+        فقط یک فراخوانی <code dir="ltr">replace</code> می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">lisp</span><code style="direction:ltr;text-align:left">(define-instruction op-ld-mem&lt;regs (_ n _ _)            ;; LD [I] &lt; Vn
+  (replace memory registers :start1 index :end2 (1+ n)))
+
+(define-instruction op-ld-regs&lt;mem (_ n _ _)            ;; LD Vn &lt; [I]
+  (replace registers memory :end1 (1+ n) :start2 index))</code></pre>
+        <p>دستورالعمل‌های <code dir="ltr">LD</code> فعلاً همین‌جا تمام می‌شوند — و دستورالعمل‌ها هم! </p>
+      </section>
+
+      <!-- ==================== آینده ==================== -->
+      <section>
+        <h2>آینده</h2>
+        <p>با پیاده‌سازی این دستورالعمل‌ها (و با چند stub برای بقیه) می‌توانیم یک ROM را بارگذاری و اجرا کنیم؛ بایت‌ها را در
+        حافظه جابه‌جا می‌کند و در بیشتر موارد کار می‌کند. در چند پست بعدی مراحل بعدی رسیدن به یک شبیه‌ساز کاملاً کاربردی را
+        می‌بینیم، از جمله:</p>
+        <ul>
+          <li>گرافیک و ورودی</li>
+          <li>صدا</li>
+          <li>اشکال‌زدایی</li>
+        </ul>
+        <p>با تشکر از <a href="https://twitter.com/jamesnvc" target="_blank" rel="noopener">جیمز کش</a> برای خواندن پیش‌نویس این پست.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «CHIP-8 in Common Lisp: The CPU» اثر «استیو لاش (Steve Losh)» در وبلاگ stevelosh.com است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://stevelosh.com/blog/2016/12/chip8-cpu/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
