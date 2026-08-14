@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی کتاب «Command-line Applications in Rust» (rust-cli، نسخهٔ 2.0)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  فصل‌های پوشش‌داده‌شده: شروع کار، آموزش ۱۵ دقیقه‌ای (grrs)، تجزیهٔ آرگومان‌ها،
+  نخستین پیاده‌سازی، گزارش خطا، خروجی، تست، بسته‌بندی، سیگنال‌ها، ارتباط با انسان‌ها
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | «برنامه‌های خط فرمان در راست»</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>کتاب «برنامه‌های خط فرمان در راست»</span>
+      </div>
+      <h1>کتاب «برنامه‌های خط فرمان در راست» — راهنمای کامل و ترجمه‌شده</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://rust-cli.github.io/book/index.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی کتاب «Command-line Applications in Rust» (نسخهٔ 2.0) از پروژهٔ
+          <b>rust-cli</b> است. نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://rust-cli.github.io/book/index.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه (Getting started) ==================== -->
+      <section>
+        <h2>دربارهٔ کتاب</h2>
+        <p>راست (Rust) زبانی است که به‌صورت استاتیک کامپایل می‌شود، سریع است، ابزارهای توسعهٔ خوبی دارد و اکوسیستم آن
+        به‌سرعت در حال رشد است. همین ویژگی‌ها آن را برای نوشتن برنامه‌های خط فرمان بسیار مناسب می‌کند: چنین برنامه‌هایی باید
+        کوچک، قابل‌حمل (portable) و سریع در اجرا باشند. برنامه‌های خط فرمان همچنین راهی عالی برای آغاز یادگیری راست — یا
+        معرفی راست به تیم شما — هستند!</p>
+        <p>نوشتن برنامه‌ای با یک رابط خط فرمان ساده (command line interface)، تمرینی عالی برای مبتدیانی است که به‌تازگی با
+        زبان آشنا شده‌اند و می‌خواهند حال‌وهوای آن را حس کنند. البته جنبه‌های بسیاری در این موضوع وجود دارد که معمولاً فقط
+        بعدها آشکار می‌شوند.</p>
+        <p>ساختار این کتاب چنین است: با یک آموزش سریع شروع می‌کنیم و پس از آن یک ابزار خط فرمان کارآمد خواهید داشت. با
+        چند مفهوم اصلی راست و همچنین جنبه‌های مهم برنامه‌های خط فرمان آشنا خواهید شد. فصول بعدی با جزئیات بیشتری به برخی
+        از این جنبه‌ها می‌پردازند.</p>
+        <p>یک صحبت آخر پیش از ورود به برنامه‌های خط فرمان: اگر خطایی در این کتاب یافتید یا می‌خواهید در نوشتن محتوای
+        بیشتر برای آن کمک کنید، منبع آن را می‌توانید در
+        <a href="https://github.com/rust-cli/book" target="_blank" rel="noopener">مخزن کتاب CLI</a> بیابید. ما از بازخورد
+        شما بسیار استقبال می‌کنیم!</p>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/index.html" target="_blank" rel="noopener">Getting started</a></p>
+
+        <h3>فهرست فصل‌های کتاب</h3>
+        <ul>
+          <li>۱. یک برنامهٔ خط فرمان در ۱۵ دقیقه
+            <ul>
+              <li>۱.۱ — <a href="https://rust-cli.github.io/book/tutorial/setup.html" target="_blank" rel="noopener">راه‌اندازی پروژه</a></li>
+              <li>۱.۲ — <a href="https://rust-cli.github.io/book/tutorial/cli-args.html" target="_blank" rel="noopener">تجزیهٔ آرگومان‌های خط فرمان</a></li>
+              <li>۱.۳ — <a href="https://rust-cli.github.io/book/tutorial/impl-draft.html" target="_blank" rel="noopener">نخستین پیاده‌سازی</a></li>
+              <li>۱.۴ — <a href="https://rust-cli.github.io/book/tutorial/errors.html" target="_blank" rel="noopener">گزارش خطای بهتر</a></li>
+              <li>۱.۵ — <a href="https://rust-cli.github.io/book/tutorial/output.html" target="_blank" rel="noopener">خروجی برای انسان و ماشین</a></li>
+              <li>۱.۶ — <a href="https://rust-cli.github.io/book/tutorial/testing.html" target="_blank" rel="noopener">تست</a></li>
+              <li>۱.۷ — <a href="https://rust-cli.github.io/book/tutorial/packaging.html" target="_blank" rel="noopener">بسته‌بندی و توزیع یک ابزار راست</a></li>
+            </ul>
+          </li>
+          <li>۲. موضوعات عمیق‌تر
+            <ul>
+              <li>۲.۱ — <a href="https://rust-cli.github.io/book/in-depth/signals.html" target="_blank" rel="noopener">مدیریت سیگنال‌ها</a></li>
+              <li>۲.۲ — <a href="https://rust-cli.github.io/book/in-depth/config-files.html" target="_blank" rel="noopener">استفاده از فایل‌های پیکربندی</a></li>
+              <li>۲.۳ — <a href="https://rust-cli.github.io/book/in-depth/exit-code.html" target="_blank" rel="noopener">کدهای خروج</a></li>
+              <li>۲.۴ — <a href="https://rust-cli.github.io/book/in-depth/human-communication.html" target="_blank" rel="noopener">ارتباط با انسان‌ها</a></li>
+              <li>۲.۵ — <a href="https://rust-cli.github.io/book/in-depth/machine-communication.html" target="_blank" rel="noopener">ارتباط با ماشین‌ها</a></li>
+              <li>۲.۶ — <a href="https://rust-cli.github.io/book/in-depth/docs.html" target="_blank" rel="noopener">ایجاد مستندات برای برنامه‌های CLI</a></li>
+            </ul>
+          </li>
+          <li>۳. <a href="https://rust-cli.github.io/book/resources/index.html" target="_blank" rel="noopener">منابع</a></li>
+        </ul>
+      </section>
+
+      <!-- ==================== آموزش ۱۵ دقیقه‌ای ==================== -->
+      <section>
+        <h2>یادگیری راست با نوشتن یک برنامهٔ خط فرمان در ۱۵ دقیقه</h2>
+        <p>این آموزش شما را در نوشتن یک برنامهٔ خط فرمان (CLI) در راست همراهی می‌کند. حدود پانزده دقیقه طول می‌کشد تا به
+        نقطه‌ای برسید که یک برنامهٔ در حال اجرا داشته باشید (تقریباً فصل ۱.۳). پس از آن، به بازبینی و اصلاح برنامه ادامه
+        می‌دهیم تا به نقطه‌ای برسیم که بتوانیم ابزار کوچک خود را منتشر کنیم.</p>
+        <p>همهٔ چیزهای ضروری را برای شروع یاد می‌گیرید و این را که اطلاعات بیشتر را از کجا پیدا کنید. در صورت تمایل
+        می‌توانید بخش‌هایی را که اکنون به آن‌ها نیاز ندارید نادیده بگیرید یا از هر نقطه‌ای وارد شوید.</p>
+        <p><b>پیش‌نیازها:</b> این آموزش جایگزین آشنایی عمومی با برنامه‌نویسی نیست و انتظار دارد با چند مفهوم رایج آشنا
+        باشید. باید در استفاده از خط فرمان/ترمینال راحت باشید. اگر از قبل چند زبان دیگر می‌دانید، این آموزش می‌تواند اولین
+        برخورد خوب شما با راست باشد.</p>
+        <p><b>گرفتن کمک:</b> اگر در هر نقطه‌ای از ویژگی‌های استفاده‌شده احساس سردرگمی یا گیجی کردید، به مستندات رسمی
+        گسترده‌ای که همراه راست می‌آید مراجعه کنید؛ در درجهٔ اول کتاب «زبان برنامه‌نویسی راست» (The Rust Programming
+        Language). این کتاب با بیشتر نصب‌های راست ارائه می‌شود (<code class="inline">rustup doc</code>) و به‌صورت آنلاین
+        نیز در <a href="https://doc.rust-lang.org" target="_blank" rel="noopener">doc.rust-lang.org</a> در دسترس است.</p>
+        <p>همچنین با کمال میل می‌توانید سؤال بپرسید — جامعهٔ راست به دوستانه و کمک‌کننده بودن معروف است. نگاهی به
+        <a href="https://www.rust-lang.org/community" target="_blank" rel="noopener">صفحهٔ جامعه</a> بیندازید تا فهرست
+        جاهایی را ببینید که مردم دربارهٔ راست گفت‌وگو می‌کنند.</p>
+        <p>چه نوع پروژه‌ای می‌خواهید بنویسید؟ چه‌طور است با چیزی ساده شروع کنیم: بیایید یک کلون کوچک از <code class="inline">grep</code>
+        بنویسیم؛ یعنی ابزاری که به آن یک رشته و یک مسیر بدهیم و فقط خطوطی را چاپ کند که حاوی آن رشته‌اند. نامش را
+        <code class="inline">grrs</code> می‌گذاریم (تلفظ: «گرَس»).</p>
+        <p>در پایان، می‌خواهیم بتوانیم ابزار خود را این‌گونه اجرا کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cat test.txt
+foo: 10
+bar: 20
+baz: 30
+$ grrs foo test.txt
+foo: 10
+$ grrs --help
+[some help text explaining the available options]</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> این کتاب برای راست 2018 نوشته شده است. مثال‌های کد را می‌توان روی نسخهٔ 2015 نیز
+          استفاده کرد، اما ممکن است لازم باشد کمی آن‌ها را تنظیم کنید؛ مثلاً فراخوانی‌های <code class="inline">extern crate foo;</code>
+          را اضافه کنید. مطمئن شوید که راست 1.31.0 (یا جدیدتر) را اجرا می‌کنید و در بخش <code class="inline">[package]</code>
+          فایل <code class="inline">Cargo.toml</code> خود، مقدار <code class="inline">edition = "2018"</code> را تنظیم کرده‌اید.
+        </div>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/index.html" target="_blank" rel="noopener">A command line app in 15 minutes</a></p>
+      </section>
+
+      <!-- ==================== ۱.۱ راه‌اندازی پروژه ==================== -->
+      <section>
+        <h2>فصل ۱.۱ — راه‌اندازی پروژه</h2>
+        <p>اگر هنوز این کار را نکرده‌اید، <a href="https://www.rust-lang.org/tools/install" target="_blank" rel="noopener">راست را نصب کنید</a>
+        (فقط چند دقیقه زمان می‌برد). پس از آن، یک ترمینال باز کنید و به دایرکتوری‌ای بروید که می‌خواهید کد برنامهٔ خود را
+        در آن قرار دهید.</p>
+        <p>با اجرای <code class="inline">cargo new grrs</code> در دایرکتوری‌ای که پروژه‌های برنامه‌نویسی خود را در آن ذخیره
+        می‌کنید، شروع کنید. اگر به دایرکتوری تازه‌ساختهٔ <code class="inline">grrs</code> نگاه کنید، راه‌اندازی معمول یک
+        پروژهٔ راست را می‌بینید:</p>
+        <ul>
+          <li>یک فایل <code class="inline">Cargo.toml</code> که حاوی فرادادهٔ (metadata) پروژهٔ ماست، از جمله فهرستی از وابستگی‌ها/کتابخانه‌های بیرونی که استفاده می‌کنیم.</li>
+          <li>یک فایل <code class="inline">src/main.rs</code> که نقطهٔ ورود باینری (اصلی) ماست.</li>
+        </ul>
+        <p>اگر بتوانید <code class="inline">cargo run</code> را در دایرکتوری <code class="inline">grrs</code> اجرا کنید و
+        «Hello World» بگیرید، همه‌چیز آماده است.</p>
+
+        <h3>چه شکلی ممکن است داشته باشد</h3>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo new grrs
+     Created binary (application) `grrs` package
+$ cd grrs/
+$ cargo run
+   Compiling grrs v0.1.0 (/Users/pascal/code/grrs)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.70s
+     Running `target/debug/grrs`
+Hello, world!</code></pre>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/setup.html" target="_blank" rel="noopener">Project setup</a></p>
+      </section>
+
+      <!-- ==================== ۱.۲ تجزیهٔ آرگومان‌ها ==================== -->
+      <section>
+        <h2>فصل ۱.۲ — تجزیهٔ آرگومان‌های خط فرمان</h2>
+        <p>یک فراخوانی معمولی ابزار CLI ما چنین شکلی دارد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ grrs foobar test.txt</code></pre>
+        <p>انتظار داریم برنامهٔ ما به <code class="inline">test.txt</code> نگاه کند و خطوطی را چاپ کند که حاوی
+        <code class="inline">foobar</code> هستند. اما این دو مقدار را چگونه به دست می‌آوریم؟</p>
+        <p>متن پس از نام برنامه اغلب «آرگومان‌های خط فرمان» (command-line arguments) یا «پرچم‌های خط فرمان»
+        (command-line flags) نامیده می‌شود (مخصوصاً وقتی شکلی مانند <code class="inline">--this</code> دارند). سیستم‌عامل
+        در داخل معمولاً آن‌ها را به‌صورت فهرستی از رشته‌ها بازنمایی می‌کند. به‌طور کلی، آن‌ها با فاصله از هم جدا می‌شوند.</p>
+        <p>راه‌های بسیاری برای اندیشیدن دربارهٔ این آرگومان‌ها و نحوهٔ تجزیهٔ آن‌ها به چیزی آسان‌تر برای کار وجود دارد.
+        همچنین باید به کاربران برنامهٔ خود بگویید که به چه آرگومان‌هایی نیاز دارند و با چه قالبی انتظار می‌رود آن‌ها را
+        ارائه دهند.</p>
+
+        <h3>به‌دست آوردن آرگومان‌ها</h3>
+        <p>کتابخانهٔ استاندارد شامل تابع <code class="inline">std::env::args()</code> است که یک
+        <a href="https://doc.rust-lang.org/1.39.0/std/iter/index.html" target="_blank" rel="noopener">iterator</a> از
+        آرگومان‌های داده‌شده به شما می‌دهد. اولین ورودی (در ایندکس <code class="inline">0</code>) نامی خواهد بود که برای
+        فراخوانی برنامهٔ شما استفاده شده است (مثلاً <code class="inline">grrs</code>). ورودی‌های بعدی همان‌هایی هستند که
+        کاربر پس از آن نوشته است.</p>
+        <p>گرفتن آرگومان‌های خام از این راه ساده است (در فایل <code class="inline">src/main.rs</code>):</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() {
+    let pattern = std::env::args().nth(1).expect("no pattern given");
+    let path = std::env::args().nth(2).expect("no path given");
+
+    println!("pattern: {:?}, path: {:?}", pattern, path)
+}</code></pre>
+        <p>می‌توانیم آن را با <code class="inline">cargo run</code> اجرا کنیم و آرگومان‌ها را با نوشتن آن‌ها پس از
+        <code class="inline">--</code> ارسال کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo run -- some-pattern some-file
+    Finished dev [unoptimized + debuginfo] target(s) in 0.11s
+     Running `target/debug/grrs some-pattern some-file`
+pattern: "some-pattern", path: "some-file"</code></pre>
+
+        <h3>آرگومان‌های CLI به‌عنوان انواع داده</h3>
+        <p>به‌جای اینکه آن‌ها را دسته‌ای متن تصور کنیم، اغلب سودمند است که آرگومان‌های CLI را یک نوع دادهٔ سفارشی
+        بدانیم که ورودی‌های برنامهٔ شما را بازنمایی می‌کند.</p>
+        <p>با نگاه به <code class="inline">grrs foobar test.txt</code>، دو آرگومان وجود دارد: اول
+        <code class="inline">pattern</code> (رشته‌ای که باید جست‌وجو شود) و سپس <code class="inline">path</code> (فایلی
+        که باید در آن جست‌وجو شود).</p>
+        <p>چه چیز دیگری دربارهٔ آن‌ها می‌توان گفت؟ برای شروع، هر دو الزامی (required) هستند. ما دربارهٔ مقدار پیش‌فرضی
+        صحبت نکرده‌ایم، پس انتظار داریم کاربران همیشه دو مقدار ارائه دهند. علاوه بر این، می‌توانیم کمی دربارهٔ نوع آن‌ها
+        بگوییم: انتظار می‌رود pattern یک رشته باشد در حالی که آرگومان دوم مسیری به یک فایل است.</p>
+        <p>در راست، ساختاردهی برنامه‌ها حول داده‌هایی که پردازش می‌کنند رایج است؛ بنابراین این نگاه به آرگومان‌های CLI
+        بسیار خوب جور می‌شود. بیایید با این شروع کنیم (در فایل <code class="inline">src/main.rs</code>، پیش از
+        <code class="inline">fn main() {</code>):</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">struct Cli {
+    pattern: String,
+    path: std::path::PathBuf,
+}</code></pre>
+        <p>این یک ساختار جدید (یک <a href="https://doc.rust-lang.org/1.39.0/book/ch05-00-structs.html" target="_blank" rel="noopener">struct</a>)
+        تعریف می‌کند که دو فیلد برای ذخیرهٔ داده دارد: <code class="inline">pattern</code> و <code class="inline">path</code>.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> <a href="https://doc.rust-lang.org/1.39.0/std/path/struct.PathBuf.html" target="_blank" rel="noopener"><code class="inline">PathBuf</code></a>
+          مانند یک <a href="https://doc.rust-lang.org/1.39.0/std/string/struct.String.html" target="_blank" rel="noopener"><code class="inline">String</code></a>
+          است اما برای مسیرهای سیستم فایل که به‌صورت چندپلتفرمی کار می‌کنند.
+        </div>
+        <p>حالا، هنوز باید آرگومان‌های واقعی را به این شکل تبدیل کنیم. یک گزینه این است که فهرست رشته‌هایی را که از
+        سیستم‌عامل می‌گیریم به‌صورت دستی تجزیه کنیم و ساختار را خودمان بسازیم. چیزی شبیه به این می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() {
+    let pattern = std::env::args().nth(1).expect("no pattern given");
+    let path = std::env::args().nth(2).expect("no path given");
+
+    let args = Cli {
+        pattern,
+        path: std::path::PathBuf::from(path),
+    };
+
+    println!("pattern: {:?}, path: {:?}", args.pattern, args.path);
+}</code></pre>
+        <p>این کار می‌کند، اما چندان راحت نیست. با نیاز به پشتیبانی از <code class="inline">--pattern="foo"</code> یا
+        <code class="inline">--pattern "foo"</code> چه می‌کردید؟ <code class="inline">--help</code> را چگونه
+        پیاده‌سازی می‌کردید؟</p>
+
+        <h3>تجزیهٔ آرگومان‌های CLI با Clap</h3>
+        <p>راه راحت‌تر، استفاده از یکی از کتابخانه‌های فراوان موجود است. محبوب‌ترین کتابخانه برای تجزیهٔ آرگومان‌های خط
+        فرمان <a href="https://docs.rs/clap/" target="_blank" rel="noopener"><code class="inline">clap</code></a> نام دارد.
+        این کتابخانه همهٔ عملکردهایی را دارد که انتظار دارید، از جمله پشتیبانی از زیردستورها (sub-commands)،
+        <a href="https://docs.rs/clap_complete/" target="_blank" rel="noopener">تکمیل‌های شل</a> و پیام‌های راهنمای عالی.</p>
+        <p>بیایید ابتدا <code class="inline">clap</code> را با افزودن
+        <code class="inline">clap = { version = "4.0", features = ["derive"] }</code> به بخش
+        <code class="inline">[dependencies]</code> فایل <code class="inline">Cargo.toml</code> خود وارد کنیم.</p>
+        <p>حالا می‌توانیم <code class="inline">use clap::Parser;</code> را در کدمان بنویسیم و
+        <code class="inline">#[derive(Parser)]</code> را دقیقاً بالای <code class="inline">struct Cli</code> اضافه کنیم.
+        همچنین در طول مسیر چند کامنت مستندسازی هم بنویسیم.</p>
+        <p>این‌گونه خواهد بود (در فایل <code class="inline">src/main.rs</code>، پیش از <code class="inline">fn main() {</code>):</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use clap::Parser;
+
+/// در یک فایل، الگویی را جست‌وجو می‌کند و خطوطی را نمایش می‌دهد که آن را دارند.
+#[derive(Parser)]
+struct Cli {
+    /// الگویی که باید جست‌وجو شود
+    pattern: String,
+    /// مسیر فایلی که باید خوانده شود
+    path: std::path::PathBuf,
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> ویژگی‌های سفارشی (attributes) زیادی وجود دارد که می‌توانید به فیلدها اضافه کنید. مثلاً
+          برای گفتن اینکه می‌خواهید از این فیلد برای آرگومان پس از <code class="inline">-o</code> یا
+          <code class="inline">--output</code> استفاده شود، <code class="inline">#[arg(short = 'o', long = "output")]</code>
+          را اضافه می‌کنید. برای اطلاعات بیشتر به
+          <a href="https://docs.rs/clap/" target="_blank" rel="noopener">مستندات clap</a> مراجعه کنید.
+        </div>
+        <p>دقیقاً زیر ساختار <code class="inline">Cli</code>، قالب ما تابع <code class="inline">main</code> آن را دارد.
+        وقتی برنامه شروع می‌شود، این تابع را صدا می‌زند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() {
+    let args = Cli::parse();
+
+    println!("pattern: {:?}, path: {:?}", args.pattern, args.path)
+}</code></pre>
+        <p>این کد تلاش می‌کند آرگومان‌ها را در ساختار <code class="inline">Cli</code> ما تجزیه کند.</p>
+        <p>اما اگر این کار شکست بخورد چه؟ زیبایی این رویکرد همین است: Clap می‌داند کدام فیلدها را باید انتظار داشته باشد
+        و قالب مورد انتظار آن‌ها چیست. این کتابخانه می‌تواند به‌صورت خودکار یک پیام <code class="inline">--help</code>
+        زیبا تولید کند و همچنین خطاهای خوبی بدهد؛ مثلاً وقتی <code class="inline">--putput</code> نوشته‌اید، به شما پیشنهاد
+        دهد <code class="inline">--output</code> را ارسال کنید.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> متد <code class="inline">parse</code> برای استفاده در تابع <code class="inline">main</code>
+          شما در نظر گرفته شده است. وقتی شکست بخورد، یک پیام خطا یا راهنما چاپ می‌کند و بلافاصله از برنامه خارج می‌شود.
+          از آن در جاهای دیگر استفاده نکنید!
+        </div>
+
+        <h3>جمع‌بندی</h3>
+        <p>کد شما اکنون باید این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use clap::Parser;
+
+/// در یک فایل، الگویی را جست‌وجو می‌کند و خطوطی را نمایش می‌دهد که آن را دارند.
+#[derive(Parser)]
+struct Cli {
+    /// الگویی که باید جست‌وجو شود
+    pattern: String,
+    /// مسیر فایلی که باید خوانده شود
+    path: std::path::PathBuf,
+}
+
+fn main() {
+    let args = Cli::parse();
+
+    println!("pattern: {:?}, path: {:?}", args.pattern, args.path)
+}</code></pre>
+        <p>اجرای آن بدون هیچ آرگومانی:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo run
+    Finished dev [unoptimized + debuginfo] target(s) in 10.16s
+     Running `target/debug/grrs`
+error: The following required arguments were not provided:
+    &lt;pattern&gt;
+    &lt;path&gt;
+
+USAGE:
+    grrs &lt;pattern&gt; &lt;path&gt;
+
+For more information try --help</code></pre>
+        <p>اجرای آن با ارسال آرگومان‌ها:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cargo run -- some-pattern some-file
+    Finished dev [unoptimized + debuginfo] target(s) in 0.11s
+     Running `target/debug/grrs some-pattern some-file`
+pattern: "some-pattern", path: "some-file"</code></pre>
+        <p>خروجی نشان می‌دهد که برنامهٔ ما با موفقیت آرگومان‌ها را در ساختار <code class="inline">Cli</code> تجزیه کرده است.</p>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/cli-args.html" target="_blank" rel="noopener">Parsing command line arguments</a></p>
+      </section>
+
+      <!-- ==================== ۱.۳ نخستین پیاده‌سازی ==================== -->
+      <section>
+        <h2>فصل ۱.۳ — نخستین پیاده‌سازیِ grrs (خواندن فایل)</h2>
+        <p>پس از فصل مربوط به آرگومان‌های خط فرمان، دادهٔ ورودی را داریم و می‌توانیم شروع به نوشتن ابزار واقعی خود کنیم.
+        تابع <code class="inline">main</code> ما اکنون فقط این خط را دارد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    let args = Cli::parse();</code></pre>
+        <p>می‌توانیم عبارت <code class="inline">println</code> را که به‌صورت موقت برای نشان دادن درست‌کارکردن برنامهٔ‌مان
+        گذاشته بودیم حذف کنیم.</p>
+        <p>بیایید با باز کردن فایلی شروع کنیم که به دست آوردیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    let content = std::fs::read_to_string(&amp;args.path).expect("could not read file");</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> این متد <a href="https://doc.rust-lang.org/1.39.0/std/result/enum.Result.html#method.expect" target="_blank" rel="noopener"><code class="inline">.expect</code></a>
+          را ببینید؟ این یک تابع میان‌بر است که وقتی مقدار (در این مورد، فایل ورودی) قابل خواندن نباشد، برنامه را بلافاصله
+          خارج می‌کند. این کار چندان زیبا نیست و در فصل بعدی دربارهٔ
+          <a href="https://rust-cli.github.io/book/tutorial/errors.html" target="_blank" rel="noopener">گزارش خطای بهتر</a>
+          خواهیم دید که چگونه آن را بهبود دهیم.
+        </div>
+        <p>حالا، روی خطوط پیمایش کنیم و هر خطی را که حاوی الگوی ماست چاپ کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">    for line in content.lines() {
+        if line.contains(&amp;args.pattern) {
+            println!("{}", line);
+        }
+    }</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>کد شما اکنون باید این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use clap::Parser;
+
+/// در یک فایل، الگویی را جست‌وجو می‌کند و خطوطی را نمایش می‌دهد که آن را دارند.
+#[derive(Parser)]
+struct Cli {
+    /// الگویی که باید جست‌وجو شود
+    pattern: String,
+    /// مسیر فایلی که باید خوانده شود
+    path: std::path::PathBuf,
+}
+
+fn main() {
+    let args = Cli::parse();
+    let content = std::fs::read_to_string(&amp;args.path).expect("could not read file");
+
+    for line in content.lines() {
+        if line.contains(&amp;args.pattern) {
+            println!("{}", line);
+        }
+    }
+}</code></pre>
+        <p>آن را امتحان کنید: <code class="inline">cargo run -- main src/main.rs</code> باید کار کند!</p>
+        <div class="callout tip">
+          <strong>تمرین برای خواننده:</strong> این بهترین پیاده‌سازی نیست، چون کل فایل را صرف‌نظر از اینکه چقدر بزرگ باشد،
+          در حافظه می‌خواند. راهی برای بهینه‌سازی آن بیابید! (یک ایده این است که به‌جای
+          <code class="inline">read_to_string()</code> از یک
+          <a href="https://doc.rust-lang.org/1.39.0/std/io/struct.BufReader.html" target="_blank" rel="noopener"><code class="inline">BufReader</code></a>
+          استفاده کنید.)
+        </div>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/impl-draft.html" target="_blank" rel="noopener">First implementation</a></p>
+      </section>
+
+      <!-- ==================== ۱.۴ گزارش خطای بهتر ==================== -->
+      <section>
+        <h2>فصل ۱.۴ — گزارش خطای بهتر</h2>
+        <p>همهٔ ما چاره‌ای جز پذیرش این واقعیت نداریم که خطاها رخ خواهند داد. برخلاف بسیاری از زبان‌های دیگر، در راست
+        دشوار است که متوجه این واقعیت نشویم و با آن کنار نیاییم، زیرا راست استثنا (exception) ندارد. همهٔ حالت‌های خطای
+        ممکن اغلب در انواع بازگشتی توابع رمزگذاری می‌شوند.</p>
+
+        <h3>Result ها</h3>
+        <p>تابعی مانند <a href="https://doc.rust-lang.org/1.39.0/std/fs/fn.read_to_string.html" target="_blank" rel="noopener"><code class="inline">read_to_string</code></a>
+        یک رشته برنمی‌گرداند. در عوض، یک <a href="https://doc.rust-lang.org/1.39.0/std/result/index.html" target="_blank" rel="noopener"><code class="inline">Result</code></a>
+        برمی‌گرداند که یا یک <code class="inline">String</code> را در خود دارد یا خطایی از نوعی مشخص؛ در این مورد،
+        <a href="https://doc.rust-lang.org/1.39.0/std/io/type.Result.html" target="_blank" rel="noopener"><code class="inline">std::io::Error</code></a>.</p>
+        <p>از کجا بدانید کدام یک است؟ چون <code class="inline">Result</code> یک <code class="inline">enum</code> است،
+        می‌توانید با <code class="inline">match</code> بررسی کنید کدام variant است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let result = std::fs::read_to_string("test.txt");
+match result {
+    Ok(content) =&gt; { println!("File content: {}", content); }
+    Err(error) =&gt; { println!("Oh noes: {}", error); }
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> مطمئن نیستید enumها چیستند یا در راست چگونه کار می‌کنند؟
+          <a href="https://doc.rust-lang.org/1.39.0/book/ch06-00-enums.html" target="_blank" rel="noopener">این فصل از کتاب راست</a>
+          را برای آشنایی با آن‌ها مطالعه کنید.
+        </div>
+
+        <h3>باز کردن (Unwrapping)</h3>
+        <p>حالا توانستیم به محتوای فایل دسترسی پیدا کنیم، اما بعد از بلوک <code class="inline">match</code> واقعاً نمی‌توانیم
+        با آن کاری کنیم. برای این کار، باید با حالت خطا کنار بیاییم. در حالی که چالش‌برانگیز است که همهٔ شاخه‌های یک بلوک
+        <code class="inline">match</code> باید مقداری از یک نوع بازگردانند، یک ترفند تمیز برای عبور از آن وجود دارد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let result = std::fs::read_to_string("test.txt");
+let content = match result {
+    Ok(content) =&gt; { content },
+    Err(error) =&gt; { panic!("Can't deal with {}, just exit here", error); }
+};
+println!("file content: {}", content);</code></pre>
+        <p>می‌توانیم بعد از بلوک <code class="inline">match</code> از رشتهٔ درون <code class="inline">content</code> استفاده
+        کنیم، اما اگر <code class="inline">result</code> یک خطا می‌بود، آن رشته وجود نداشت. این اشکالی ندارد، چون برنامه
+        پیش از رسیدن به نقطه‌ای که از <code class="inline">content</code> استفاده می‌کنیم، خارج می‌شود.</p>
+        <p>شاید این خشن به نظر برسد، اما بسیار راحت است. اگر برنامهٔ شما باید آن فایل را بخواند و اگر فایل وجود نداشته
+        باشد نمی‌تواند کاری کند، خروج یک راهبرد معتبر است. حتی یک متد میان‌بر روی
+        <a href="https://doc.rust-lang.org/1.39.0/std/result/index.html" target="_blank" rel="noopener"><code class="inline">Result</code></a>
+        وجود دارد به نام <code class="inline">unwrap</code>:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let content = std::fs::read_to_string("test.txt").unwrap();</code></pre>
+
+        <h3>نیازی به panic نیست</h3>
+        <p>البته، خاتمه دادن برنامه تنها راه کنار آمدن با خطاها نیست. به‌جای استفاده از <code class="inline">panic!</code>،
+        می‌توانیم فقط از <code class="inline">return</code> استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let result = std::fs::read_to_string("test.txt");
+let content = match result {
+    Ok(content) =&gt; { content },
+    Err(error) =&gt; { return Err(error.into()); }
+};</code></pre>
+        <p>اما این کار نوع بازگشتی را در تابع ما تغییر می‌دهد. در تمام این مدت چیزی در مثال‌های ما نهان بود: امضای تابعی
+        که این کد در آن زندگی می‌کند. و در این مثال آخر با <code class="inline">return</code>، مهم می‌شود. اینجا مثال
+        <em>کامل</em> است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let result = std::fs::read_to_string("test.txt");
+    let content = match result {
+        Ok(content) =&gt; { content },
+        Err(error) =&gt; { return Err(error.into()); }
+    };
+    println!("file content: {}", content);
+    Ok(())
+}</code></pre>
+        <p>نوع بازگشتی ما یک <code class="inline">Result</code> است! به همین دلیل است که می‌توانیم در دومین شاخهٔ
+        <code class="inline">match</code> بنویسیم <code class="inline">return Err(error);</code>. می‌بینید که یک
+        <code class="inline">Ok(())</code> در پایین هست؟ این مقدار بازگشتی پیش‌فرض تابع است و یعنی: «Result درست است و
+        محتوایی ندارد».</p>
+        <div class="callout note">
+          <strong>نکته:</strong> چرا این به‌صورت <code class="inline">return Ok(());</code> نوشته نشده است؟ به‌راحتی
+          می‌توانست — این کاملاً معتبر است. آخرین عبارت هر بلوک در راست، مقدار بازگشتی آن است و رسم بر این است که
+          <code class="inline">return</code> بی‌نیاز را حذف کنند.
+        </div>
+
+        <h3>علامت سؤال (؟)</h3>
+        <p>درست همان‌طور که صدازدن <code class="inline">.unwrap()</code> یک میان‌بر برای <code class="inline">match</code>
+        با <code class="inline">panic!</code> در شاخهٔ خطاست، میان‌بر دیگری برای <code class="inline">match</code>ای داریم
+        که در شاخهٔ خطا <code class="inline">return</code> می‌کند: <code class="inline">?</code>.</p>
+        <p>بله، یک علامت سؤال. می‌توانید این عملگر را به مقداری از نوع <code class="inline">Result</code> بچسبانید و راست
+        آن را به‌صورت داخلی به چیزی بسیار شبیه به <code class="inline">match</code>ای که همین‌حالا نوشتیم بسط می‌دهد.</p>
+        <p>آن را امتحان کنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let content = std::fs::read_to_string("test.txt")?;
+    println!("file content: {}", content);
+    Ok(())
+}</code></pre>
+        <p>بسیار فشرده!</p>
+        <div class="callout note">
+          <strong>نکته:</strong> چند چیز دیگر هم اینجا رخ می‌دهد که برای کار با این کد لازم نیست بفهمید. مثلاً نوع خطا در
+          تابع <code class="inline">main</code> ما <code class="inline">Box&lt;dyn std::error::Error&gt;</code> است، اما
+          بالاتر دیدیم که <code class="inline">read_to_string</code> یک
+          <a href="https://doc.rust-lang.org/1.39.0/std/io/type.Result.html" target="_blank" rel="noopener"><code class="inline">std::io::Error</code></a>
+          برمی‌گرداند. این کار می‌کند چون <code class="inline">?</code> به کدی بسط می‌یابد که انواع خطا را <em>تبدیل</em>
+          می‌کند.
+        </div>
+        <p><code class="inline">Box&lt;dyn std::error::Error&gt;</code> همچنین نوع جالبی است. این یک <code class="inline">Box</code>
+        است که می‌تواند <em>هر</em> نوعی را در خود داشته باشد که
+        <a href="https://doc.rust-lang.org/1.39.0/std/error/trait.Error.html" target="_blank" rel="noopener">trait استاندارد <code class="inline">Error</code></a>
+        را پیاده‌سازی می‌کند. یعنی همهٔ خطاها را می‌توان در این جعبه گذاشت و می‌توانیم از <code class="inline">?</code>
+        روی همهٔ توابع معمولی که یک <code class="inline">Result</code> برمی‌گردانند استفاده کنیم.</p>
+
+        <h3>ارائهٔ زمینه (Providing Context)</h3>
+        <p>خطاهایی که با استفاده از <code class="inline">?</code> در تابع <code class="inline">main</code> می‌گیرید خوب
+        هستند، اما عالی نیستند. مثلاً وقتی <code class="inline">std::fs::read_to_string("test.txt")?</code> را اجرا می‌کنید
+        و فایل <code class="inline">test.txt</code> وجود ندارد، این خروجی را می‌گیرید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Error: Os { code: 2, kind: NotFound, message: "No such file or directory" }</code></pre>
+        <p>در مواردی که کد شما واقعاً نام فایل را ندارد، سخت می‌شود گفت کدام فایل <code class="inline">NotFound</code>
+        بود. راه‌های متعددی برای کنار آمدن با این مشکل وجود دارد.</p>
+        <p>اول، می‌توانیم نوع خطای خودمان را بسازیم و با آن یک پیام خطای سفارشی درست کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">#[derive(Debug)]
+struct CustomError(String);
+
+fn main() -&gt; Result&lt;(), CustomError&gt; {
+    let path = "test.txt";
+    let content = std::fs::read_to_string(path)
+        .map_err(|err| CustomError(format!("Error reading `{}`: {}", path, err)))?;
+    println!("file content: {}", content);
+    Ok(())
+}</code></pre>
+        <p>با اجرای این، پیام خطای سفارشی خود را می‌گیریم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Error: CustomError("Error reading `test.txt`: No such file or directory (os error 2)")</code></pre>
+        <p>چندان زیبا نیست، اما می‌توانیم بعداً خروجی دیباگ را برای نوع خودمان سازگار کنیم.</p>
+        <p>این الگو بسیار رایج است. یک مشکل دارد: ما خطای اصلی را ذخیره نمی‌کنیم، فقط نمایش رشته‌ای آن را. کتابخانهٔ محبوب
+        <a href="https://docs.rs/anyhow" target="_blank" rel="noopener"><code class="inline">anyhow</code></a> راه‌حل تمیزی
+        برای این دارد: از trait
+        <a href="https://docs.rs/anyhow/1.0/anyhow/trait.Context.html" target="_blank" rel="noopener"><code class="inline">Context</code></a>
+        آن می‌توان برای افزودن توصیفی مشابه نوع <code class="inline">CustomError</code> ما استفاده کرد. علاوه بر این، خطای
+        اصلی را نگه می‌دارد، بنابراین یک «زنجیره» از پیام‌های خطا می‌گیریم که به علت ریشه‌ای اشاره می‌کنند.</p>
+        <p>بیایید ابتدا crate مربوط به <code class="inline">anyhow</code> را با افزودن <code class="inline">anyhow = "1.0"</code>
+        به بخش <code class="inline">[dependencies]</code> فایل <code class="inline">Cargo.toml</code> خود وارد کنیم.</p>
+        <p>مثال کامل این‌گونه خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use anyhow::{Context, Result};
+
+fn main() -&gt; Result&lt;()&gt; {
+    let path = "test.txt";
+    let content =
+        std::fs::read_to_string(path).with_context(|| format!("could not read file `{}`", path))?;
+    println!("file content: {}", content);
+    Ok(())
+}</code></pre>
+        <p>این یک خطا چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Error: could not read file `test.txt`
+
+Caused by:
+    No such file or directory (os error 2)</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>کد شما اکنون باید این‌گونه باشد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use anyhow::{Context, Result};
+use clap::Parser;
+
+/// در یک فایل، الگویی را جست‌وجو می‌کند و خطوطی را نمایش می‌دهد که آن را دارند.
+#[derive(Parser)]
+struct Cli {
+    /// الگویی که باید جست‌وجو شود
+    pattern: String,
+    /// مسیر فایلی که باید خوانده شود
+    path: std::path::PathBuf,
+}
+
+fn main() -&gt; Result&lt;()&gt; {
+    let args = Cli::parse();
+
+    let content = std::fs::read_to_string(&amp;args.path)
+        .with_context(|| format!("could not read file `{}`", args.path.display()))?;
+
+    for line in content.lines() {
+        if line.contains(&amp;args.pattern) {
+            println!("{}", line);
+        }
+    }
+
+    Ok(())
+}</code></pre>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/errors.html" target="_blank" rel="noopener">Nicer error reporting</a></p>
+      </section>
+
+      <!-- ==================== ۱.۵ خروجی ==================== -->
+      <section>
+        <h2>فصل ۱.۵ — خروجی: برای انسان و ماشین</h2>
+
+        <h3>چاپ «Hello World»</h3>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">println!("Hello World");</code></pre>
+        <p>خب، این آسان بود. عالی! برویم سراغ موضوع بعدی.</p>
+
+        <h3>استفاده از <code class="inline">println!</code></h3>
+        <p>تقریباً می‌توانید هر چیزی را که دوست دارید با ماکروی <code class="inline">println!</code> چاپ کنید. این ماکرو
+        قابلیت‌های شگفت‌انگیزی دارد، اما همچنین نحو خاصی دارد. انتظار دارد یک رشتهٔ حاوی جای‌نگه‌دار (placeholder) به‌عنوان
+        پارامتر اول دریافت کند. رشته با مقادیر پارامترهایی که به‌عنوان آرگومان‌های بعدی می‌آیند پر می‌شود.</p>
+        <p>مثلاً:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let x = 42;
+println!("My lucky number is {}.", x);</code></pre>
+        <p>این چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">My lucky number is 42.</code></pre>
+        <p>آکولادها (<code class="inline">{}</code>) در رشتهٔ بالا یکی از این جای‌نگه‌دارها هستند. این نوع جای‌نگه‌دار
+        پیش‌فرض است که تلاش می‌کند مقدار داده‌شده را به‌شیوه‌ای قابل‌خواندن برای انسان چاپ کند. برای اعداد و رشته‌ها این
+        بسیار خوب کار می‌کند، اما همهٔ انواع نمی‌توانند چنین کاری کنند. به همین دلیل یک «بازنمایی دیباگ» نیز وجود دارد که
+        با پر کردن جای‌نگه‌دار این‌گونه به دست می‌آید: <code class="inline">{:?}</code>.</p>
+        <p>مثلاً:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">let xs = vec![1, 2, 3];
+println!("The list is: {:?}", xs);</code></pre>
+        <p>این چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">The list is: [1, 2, 3]</code></pre>
+        <p>اگر می‌خواهید نوع دادهٔ خودتان برای دیباگ و لوگینگ قابل‌چاپ باشد، معمولاً می‌توانید
+        <code class="inline">#[derive(Debug)]</code> را بالای تعریف آن اضافه کنید.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> چاپ «دوستانه برای کاربر» با استفاده از trait
+          <a href="https://doc.rust-lang.org/1.39.0/std/fmt/trait.Display.html" target="_blank" rel="noopener"><code class="inline">Display</code></a>
+          انجام می‌شود و خروجی دیباگ (قابل‌خواندن برای انسان اما هدفمند برای توسعه‌دهنده) از trait
+          <a href="https://doc.rust-lang.org/1.39.0/std/fmt/trait.Debug.html" target="_blank" rel="noopener"><code class="inline">Debug</code></a>
+          استفاده می‌کند. اطلاعات بیشتر دربارهٔ نحو قابل‌استفاده در <code class="inline">println!</code> را می‌توانید در
+          <a href="https://doc.rust-lang.org/1.39.0/std/fmt/index.html" target="_blank" rel="noopener">مستندات ماژول <code class="inline">std::fmt</code></a>
+          بیابید.
+        </div>
+
+        <h3>چاپ خطاها</h3>
+        <p>چاپ خطاها باید از طریق <code class="inline">stderr</code> انجام شود تا کاربران و ابزارهای دیگر بتوانند
+        راحت‌تر خروجی‌ها را به فایل‌ها یا ابزارهای بیشتر هدایت کنند.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> در بیشتر سیستم‌عامل‌ها، یک برنامه می‌تواند روی دو جریان خروجی بنویسد:
+          <code class="inline">stdout</code> و <code class="inline">stderr</code>. <code class="inline">stdout</code>
+          برای خروجی واقعی برنامه است در حالی که <code class="inline">stderr</code> اجازه می‌دهد خطاها و سایر پیام‌ها جدا
+          از <code class="inline">stdout</code> نگه داشته شوند. به این ترتیب، خروجی را می‌توان در فایلی ذخیره یا به برنامهٔ
+          دیگری هدایت کرد در حالی که خطاها به کاربر نشان داده می‌شوند.
+        </div>
+        <p>در راست، این کار با <code class="inline">println!</code> و <code class="inline">eprintln!</code> به دست
+        می‌آید؛ اولی روی <code class="inline">stdout</code> و دومی روی <code class="inline">stderr</code> چاپ می‌کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">println!("This is information");
+eprintln!("This is an error! :(");</code></pre>
+        <div class="callout warn">
+          <strong>هشدار:</strong> چاپ <a href="https://en.wikipedia.org/wiki/ANSI_escape_code" target="_blank" rel="noopener">کدهای فرار (escape codes)</a>
+          می‌تواند خطرناک باشد و ترمینال کاربر را در وضعیتی عجیب قرار دهد. هنگام چاپ دستی آن‌ها همیشه مراقب باشید! در حالت
+          ایده‌آل، هنگام کار با کدهای فرار خام باید از کتابخانه‌ای مانند <code class="inline">ansi_term</code> استفاده
+          کنید تا زندگی خود (و کاربرتان) را آسان‌تر کنید.
+        </div>
+
+        <h3>یادداشتی دربارهٔ عملکرد چاپ</h3>
+        <p>چاپ در ترمینال به‌طور شگفت‌آوری کند است! اگر در یک حلقه چیزهایی مانند <code class="inline">println!</code> را
+        صدا بزنید، به‌راحتی می‌تواند به گلوگاه برنامه‌ای که در غیر این صورت سریع است تبدیل شود. برای سرعت بخشیدن به آن،
+        دو کار می‌توانید انجام دهید.</p>
+        <p>اول، ممکن است بخواهید تعداد نوشتن‌هایی را که واقعاً به ترمینال «شستشو» (flush) می‌شوند کاهش دهید.
+        <code class="inline">println!</code> هر بار به سیستم می‌گوید به ترمینال شستشو کند، چون معمول است هر خط جدید چاپ
+        شود. اگر به آن نیاز ندارید، می‌توانید دستگیرهٔ <code class="inline">stdout</code> خود را در یک
+        <a href="https://doc.rust-lang.org/1.39.0/std/io/struct.BufWriter.html" target="_blank" rel="noopener"><code class="inline">BufWriter</code></a>
+        بپیچید که به‌صورت پیش‌فرض تا ۸ کیلوبایت بافر می‌کند. هر وقت خواستید فوراً چاپ کنید، همچنان می‌توانید
+        <code class="inline">.flush()</code> را روی این <code class="inline">BufWriter</code> صدا بزنید.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use std::io::{self, Write};
+
+let stdout = io::stdout(); // موجودیت سراسری stdout را می‌گیریم
+let mut handle = io::BufWriter::new(stdout); // اختیاری: دستگیره را در یک بافر می‌پیچیم
+writeln!(handle, "foo: {}", 42); // اگر به خطاها اهمیت می‌دهید، اینجا `?` اضافه کنید</code></pre>
+        <p>دوم، کمک می‌کند روی <code class="inline">stdout</code> (یا <code class="inline">stderr</code>) یک قفل بگیرید و
+        از <code class="inline">writeln!</code> برای چاپ مستقیم روی آن استفاده کنید. این کار مانع از این می‌شود که سیستم
+        بارها و بارها <code class="inline">stdout</code> را قفل و باز کند.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use std::io::{self, Write};
+
+let stdout = io::stdout(); // موجودیت سراسری stdout را می‌گیریم
+let mut handle = stdout.lock(); // روی آن قفل می‌گیریم
+writeln!(handle, "foo: {}", 42); // اگر به خطاها اهمیت می‌دهید، اینجا `?` اضافه کنید</code></pre>
+        <p>همچنین می‌توانید این دو رویکرد را با هم ترکیب کنید.</p>
+
+        <h3>نشان دادن یک نوار پیشرفت</h3>
+        <p>برخی برنامه‌های خط فرمان کمتر از یک ثانیه اجرا می‌شوند، در حالی که برخی دیگر دقیقه‌ها یا ساعت‌ها طول می‌کشند.
+        اگر دارید یکی از آن دستهٔ دوم را می‌نویسید، شاید بخواهید به کاربر نشان دهید که چیزی در حال رخ دادن است. برای این
+        کار، باید به‌روزرسانی‌های وضعیت مفیدی چاپ کنید، ترجیحاً به شکلی که به‌راحتی قابل مصرف باشد.</p>
+        <p>با استفاده از crate مربوط به <a href="https://crates.io/crates/indicatif" target="_blank" rel="noopener">indicatif</a>،
+        می‌توانید نوارهای پیشرفت و چرخ‌های کوچک (spinner) به برنامهٔ خود اضافه کنید. اینجا یک مثال سریع است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() {
+    let pb = indicatif::ProgressBar::new(100);
+    for i in 0..100 {
+        do_hard_work();
+        pb.println(format!("[+] finished #{}", i));
+        pb.inc(1);
+    }
+    pb.finish_with_message("done");
+}</code></pre>
+        <p>برای اطلاعات بیشتر به <a href="https://docs.rs/indicatif" target="_blank" rel="noopener">مستندات</a> و
+        <a href="https://github.com/console-rs/indicatif/tree/main/examples" target="_blank" rel="noopener">مثال‌ها</a>
+        مراجعه کنید.</p>
+
+        <h3>لوگینگ</h3>
+        <p>برای آسان‌تر کردن فهم اینکه در برنامهٔ ما چه اتفاقی می‌افتد، ممکن است بخواهیم چند عبارت لاگ اضافه کنیم. این کار
+        هنگام نوشتن برنامه معمولاً آسان است و وقتی شش ماه دیگر دوباره برنامه را اجرا می‌کنید بسیار مفید خواهد بود. از برخی
+        جهات، لوگینگ مانند استفاده از <code class="inline">println!</code> است با این تفاوت که می‌توانید اهمیت پیام را مشخص
+        کنید. سطوحی که معمولاً می‌توانید استفاده کنید عبارت‌اند از: <em>error</em>، <em>warn</em>، <em>info</em>،
+        <em>debug</em> و <em>trace</em> (<em>error</em> بالاترین اولویت و <em>trace</em> پایین‌ترین را دارد).</p>
+        <p>برای افزودن لوگینگ ساده به برنامهٔ خود، به دو چیز نیاز دارید: crate مربوط به
+        <a href="https://crates.io/crates/log" target="_blank" rel="noopener"><code class="inline">log</code></a> (که شامل
+        ماکروهایی به‌نام سطح‌های لاگ است) و یک <em>سازگارکنندهٔ</em> (adapter) <code class="inline">log</code> که
+        در واقع خروجی لاگ را در جایی مفید می‌نویسد. داشتن امکان استفاده از سازگارکننده‌های لاگ بسیار انعطاف‌پذیر است:
+        مثلاً می‌توانید از آن‌ها برای نوشتن لاگ‌ها نه‌تنها در ترمینال، بلکه در
+        <a href="https://en.wikipedia.org/wiki/Syslog" target="_blank" rel="noopener">syslog</a> یا یک سرور لاگ مرکزی نیز
+        استفاده کنید.</p>
+        <p>چون ما فقط به نوشتن یک برنامهٔ CLI اهمیت می‌دهیم، یک سازگارکنندهٔ آسان برای استفاده
+        <a href="https://crates.io/crates/env_logger" target="_blank" rel="noopener"><code class="inline">env_logger</code></a>
+        است. به آن «env» logger می‌گویند چون می‌توانید از یک متغیر محیطی برای مشخص کردن اینکه کدام بخش از برنامهٔ خود را
+        می‌خواهید لاگ بگیرید و در چه سطحی استفاده کنید. این کتابخانه پیام‌های لاگ شما را با یک برچسب زمانی (timestamp) و
+        ماژولی که پیام‌ها از آن می‌آیند پیشوندگذاری می‌کند. چون کتابخانه‌ها نیز می‌توانند از <code class="inline">log</code>
+        استفاده کنند، به‌راحتی می‌توانید خروجی لاگ آن‌ها را نیز پیکربندی کنید.</p>
+        <p>اینجا یک مثال سریع است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use log::{info, warn};
+
+fn main() {
+    env_logger::init();
+    info!("starting up");
+    warn!("oops, nothing implemented!");
+}</code></pre>
+        <p>با فرض اینکه این فایل را به‌عنوان <code class="inline">src/bin/output-log.rs</code> دارید، در لینوکس و macOS
+        می‌توانید آن را این‌گونه اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ env RUST_LOG=info cargo run --bin output-log
+    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
+     Running `target/debug/output-log`
+[2018-11-30T20:25:52Z INFO  output_log] starting up
+[2018-11-30T20:25:52Z WARN  output_log] oops, nothing implemented!</code></pre>
+        <p>در Windows PowerShell می‌توانید آن را این‌گونه اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ $env:RUST_LOG="info"
+$ cargo run --bin output-log
+    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
+     Running `target/debug/output-log.exe`
+[2018-11-30T20:25:52Z INFO  output_log] starting up
+[2018-11-30T20:25:52Z WARN  output_log] oops, nothing implemented!</code></pre>
+        <p>در Windows CMD می‌توانید آن را این‌گونه اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ set RUST_LOG=info
+$ cargo run --bin output-log
+    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
+     Running `target/debug/output-log.exe`
+[2018-11-30T20:25:52Z INFO  output_log] starting up
+[2018-11-30T20:25:52Z WARN  output_log] oops, nothing implemented!</code></pre>
+        <p><code class="inline">RUST_LOG</code> نام متغیر محیطی است که می‌توانید برای تنظیم‌های لاگ خود استفاده کنید.
+        <code class="inline">env_logger</code> همچنین حاوی یک builder است تا بتوانید این تنظیم‌ها را به‌صورت برنامه‌ای تغییر
+        دهید؛ مثلاً نمایش پیام‌های سطح <em>info</em> به‌صورت پیش‌فرض.</p>
+        <p>سازگارکننده‌های لاگ جایگزین زیادی در خارج وجود دارند و همچنین جایگزین‌ها و افزونه‌هایی برای
+        <code class="inline">log</code>. اگر می‌دانید برنامهٔ شما لاگ‌های زیادی خواهد داشت، حتماً آن‌ها را بررسی کنید و زندگی
+        کاربران خود را آسان‌تر کنید.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> تجربه نشان داده است که حتی برنامه‌های CLI نسبتاً ساده می‌توانند برای سال‌ها مورد استفاده
+          قرار گیرند، مخصوصاً اگر به‌عنوان یک راه‌حل موقت ساخته شده باشند. اگر برنامهٔ شما کار نمی‌کند و کسی (مثلاً شما،
+          در آینده) باید بفهمد چرا، داشتن امکان ارسال <code class="inline">--verbose</code> برای گرفتن خروجی لاگ اضافی
+          می‌تواند تفاوت بین دقیقه‌ها و ساعت‌ها دیباگ باشد. crate مربوط به
+          <a href="https://crates.io/crates/clap-verbosity-flag" target="_blank" rel="noopener">clap-verbosity-flag</a>
+          راهی سریع برای افزودن <code class="inline">--verbose</code> به پروژه‌ای که از <code class="inline">clap</code>
+          استفاده می‌کند دارد.
+        </div>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/output.html" target="_blank" rel="noopener">Output for humans and machines</a></p>
+      </section>
+
+      <!-- ==================== ۱.۶ تست ==================== -->
+      <section>
+        <h2>فصل ۱.۶ — تست</h2>
+        <p>در طول دهه‌ها توسعهٔ نرم‌افزار، مردم یک حقیقت را کشف کرده‌اند: نرم‌افزارِ تست‌نشده به‌ندرت کار می‌کند.
+        بسیاری از مردم حتی تا آنجا پیش می‌روند که بگویند بیشتر نرم‌افزارهای تست‌شده نیز کار نمی‌کنند. اما همهٔ ما اینجا
+        خوش‌بین هستیم، درست است؟ برای اطمینان از اینکه برنامهٔ شما همان کاری را می‌کند که انتظار دارید، خردمندانه است که
+        آن را تست کنید.</p>
+        <p>یک نقطهٔ شروع خوب این است که فایلی به نام <code class="inline">README</code> بنویسید که برنامهٔ شما باید چه
+        کاری انجام دهد؛ و وقتی احساس کردید آمادهٔ انتشار نسخهٔ جدید هستید، از داخل <code class="inline">README</code> عبور
+        کنید و مطمئن شوید رفتار همچنان طبق انتظار است. می‌توانید این تمرین را دقیق‌تر کنید و همچنین بنویسید برنامهٔ شما
+        چگونه باید به ورودی‌های نادرست واکنش نشان دهد.</p>
+        <p>اینجا یک ایدهٔ جالب دیگر است: آن <code class="inline">README</code> را پیش از نوشتن کد بنویسید.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر از <a href="https://en.wikipedia.org/wiki/Test-driven_development" target="_blank" rel="noopener">توسعهٔ تست‌محور (TDD)</a>
+          چیزی نشنیده‌اید، نگاهی به آن بیندازید.
+        </div>
+
+        <h3>تست خودکار</h3>
+        <p>همهٔ این‌ها خوب و عالی است، اما انجام دستی همهٔ آن‌ها؟ این می‌تواند زمان زیادی بگیرد. در عین حال، بسیاری از مردم
+        لذت می‌برند که به رایانه‌ها بگویند کارها را برایشان انجام دهند. بیایید دربارهٔ چگونگی خودکارسازی این تست‌ها صحبت
+        کنیم.</p>
+        <p>راست یک چارچوب تست داخلی دارد؛ پس بیایید با نوشتن اولین تست خود شروع کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn answer() -&gt; i32 {
+  42
+}
+
+#[test]
+fn check_answer_validity() {
+    assert_eq!(answer(), 42);
+}</code></pre>
+        <p>می‌توانید این قطعه کد را تقریباً در هر فایل منبعی از بستهٔ خود بگذارید و <code class="inline">cargo test</code> آن
+        را پیدا و اجرا می‌کند. نکتهٔ کلیدی اینجاست: ویژگی <code class="inline">#[test]</code>. این ویژگی به سیستم ساخت اجازه
+        می‌دهد چنین توابعی را کشف کند و آن‌ها را به‌عنوان تست اجرا کند و بررسی کند که panic نمی‌کنند.</p>
+        <div class="callout tip">
+          <strong>تمرین برای خواننده:</strong> این تست را کار بیندازید.
+        </div>
+        <p>باید به نتیجه‌ای مانند زیر برسید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">running 1 test
+test check_answer_validity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out</code></pre>
+        <p>حالا که دیدیم <em>چطور</em> می‌توان تست نوشت، هنوز باید بفهمیم <em>چه چیز</em> را تست کنیم. همان‌طور که دیدید،
+        نوشتن assertion برای توابع کد کمی می‌برد، اما یک برنامهٔ CLI اغلب بیش از یک تابع است! بدتر اینکه اغلب با ورودی کاربر
+        سروکار دارد، فایل می‌خواند و خروجی می‌نویسد.</p>
+
+        <h3>تست‌پذیر کردن کد شما</h3>
+        <p>دو رویکرد مکمل برای تست قابلیت‌ها وجود دارد. یکی تست واحدهای کوچکی است که برای ساخت برنامهٔ کامل خود استفاده
+        می‌کنید؛ به این‌ها «تست‌های واحد» (unit tests) می‌گویند. دیگری تست برنامهٔ نهایی از بیرون است که به آن تست جعبهٔ
+        سیاه (black box) یا تست یکپارچه‌سازی (integration tests) می‌گویند. بیایید با اولی شروع کنیم.</p>
+        <p>برای فهمیدن اینکه چه چیزی را باید تست کنیم، ببینیم ویژگی‌های برنامهٔ ما چیستند. قرار است
+        <code class="inline">grrs</code> خطوطی را چاپ کند که با یک الگوی داده‌شده مطابقت دارند؛ پس بیایید تست‌های واحد را
+        برای <em>دقیقاً همین</em> بنویسیم. می‌خواهیم مطمئن شویم مهم‌ترین بخش منطق‌مان کار می‌کند، و می‌خواهیم این کار را
+        به‌شیوه‌ای انجام دهیم که به هیچ‌کدام از کدهای راه‌اندازی اطراف‌اش مانند آرگومان‌های CLI وابسته نباشد.</p>
+        <p>با بازگشت به <a href="https://rust-cli.github.io/book/tutorial/impl-draft.html" target="_blank" rel="noopener">نخستین پیاده‌سازی</a>
+        ما از <code class="inline">grrs</code>، این بلوک کد را به تابع <code class="inline">main</code> اضافه کرده بودیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">// ...
+for line in content.lines() {
+    if line.contains(&amp;args.pattern) {
+        println!("{}", line);
+    }
+}</code></pre>
+        <p>متأسفانه، تست این کد چندان آسان نیست. اول از همه، در تابع اصلی است، بنابراین نمی‌توانیم به‌راحتی آن را صدا
+        بزنیم. این مشکل با انتقال این قطعه کد به یک تابع حل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn find_matches(content: &amp;str, pattern: &amp;str) {
+    for line in content.lines() {
+        if line.contains(pattern) {
+            println!("{}", line);
+        }
+    }
+}</code></pre>
+        <p>حالا می‌توانیم این تابع را در تست خود صدا بزنیم و ببینیم خروجی‌اش چیست:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">#[test]
+fn find_a_match() {
+    find_matches("lorem ipsum\ndolor sit amet", "lorem");
+    assert_eq!( // اِه، نمیشود!…
+}</code></pre>
+        <p>یا… می‌توانیم؟ در حال حاضر، <code class="inline">find_matches</code> مستقیماً روی
+        <code class="inline">stdout</code> یعنی ترمینال چاپ می‌کند. نمی‌توانیم به‌راحتی این را در یک تست بگیریم! این مشکلی
+        است که اغلب هنگام نوشتن تست‌ها پس از پیاده‌سازی پیش می‌آید: تابعی نوشته‌ایم که محکم در بستر استفاده‌اش ادغام شده
+        است.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> این هنگام نوشتن برنامه‌های CLI کوچک کاملاً بی‌اشکال است. نیازی نیست همه‌چیز تست‌پذیر
+          باشد! مهم است به این بیندیشید که کدام بخش‌های کد خود را ممکن است بخواهید برای تست‌های واحد در نظر بگیرید. در حالی
+          که خواهیم دید تغییر این تابع به حالت تست‌پذیر ساده است، این همیشه هم صادق نیست.
+        </div>
+        <p>خوب، چگونه این را تست‌پذیر کنیم؟ باید به‌نوعی خروجی را بگیریم. کتابخانهٔ استاندارد راست انتزاع‌های تمیزی برای
+        سروکار داشتن با ورودی/خروجی (I/O) دارد و ما از یکی به نام
+        <a href="https://doc.rust-lang.org/1.39.0/std/io/trait.Write.html" target="_blank" rel="noopener"><code class="inline">std::io::Write</code></a>
+        استفاده خواهیم کرد. این یک <a href="https://doc.rust-lang.org/book/ch10-02-traits.html" target="_blank" rel="noopener">trait</a>
+        است که بر روی چیزهایی که می‌توانیم روی آن‌ها بنویسیم انتزاع ایجاد می‌کند، و شامل رشته‌ها و
+        <code class="inline">stdout</code> می‌شود.</p>
+        <p>اگر اولین باری است که واژهٔ «trait» را در بستر راست می‌شنوید، باید بدانید با یک هدیه روبه‌رویید. traitها یکی از
+        قدرتمندترین ویژگی‌های راست‌اند. می‌توانید آن‌ها را مانند interface در جاوا یا type class در Haskell در نظر بگیرید،
+        هر کدام که بیشتر با آن آشنا هستید. آن‌ها به شما اجازه می‌دهند بر روی رفتاری که می‌تواند توسط انواع مختلف به اشتراک
+        گذاشته شود انتزاع ایجاد کنید. کدی که از traitها استفاده می‌کند می‌تواند ایده‌ها را به‌طرز بسیار عمومی و منعطفی بیان
+        کند. این یعنی خواندنش نیز می‌تواند دشوار شود. نگذارید این شما را بترساند. حتی افرادی که سال‌ها از راست استفاده
+        کرده‌اند همیشه هم فوراً نمی‌فهمند کد عمومی چه می‌کند. در آن صورت، کمک می‌کند به کاربردهای عینی فکر کنید. در مورد
+        ما، رفتاری که روی آن انتزاع می‌سازیم این است: «روی آن بنویس». نمونه‌هایی از انواعی که آن را پیاده‌سازی می‌کنند
+        (با <code class="inline">impl</code>) شامل خروجی استاندارد ترمینال، فایل‌ها، یک بافر در حافظه یا اتصالات شبکهٔ TCP
+        است. در
+        <a href="https://doc.rust-lang.org/1.39.0/std/io/trait.Write.html" target="_blank" rel="noopener">مستندات <code class="inline">std::io::Write</code></a>
+        به پایین بروید تا فهرستی از «پیاده‌سازان» (Implementors) را ببینید.</p>
+        <p>با این آگاهی، بیایید تابع خود را طوری تغییر دهیم که یک پارامتر سوم بپذیرد. این پارامتر می‌تواند هر نوعی باشد که
+        <code class="inline">Write</code> را پیاده‌سازی می‌کند. به این ترتیب، می‌توانیم در تست‌های خود یک رشتهٔ ساده تأمین
+        کنیم و روی آن assertion انجام دهیم. در اینجا نحوهٔ نوشتن این نسخه از <code class="inline">find_matches</code>
+        است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn find_matches(content: &amp;str, pattern: &amp;str, mut writer: impl std::io::Write) {
+    for line in content.lines() {
+        if line.contains(pattern) {
+            writeln!(writer, "{}", line);
+        }
+    }
+}</code></pre>
+        <p>پارامتر جدید <code class="inline">mut writer</code> است، یعنی یک چیز قابل تغییر که آن را «نویسنده» می‌نامیم. نوعش
+        <code class="inline">impl std::io::Write</code> است که می‌توانید آن را به‌عنوان یک جای‌نگه‌دار برای هر نوعی که
+        trait مربوط به <code class="inline">Write</code> را پیاده‌سازی می‌کند بخوانید. توجه کنید که
+        <code class="inline">println!(…)</code> قبلی را با <code class="inline">writeln!(writer, …)</code> جایگزین
+        کردیم. <code class="inline">println!</code> مانند <code class="inline">writeln!</code> کار می‌کند، اما همیشه از
+        خروجی استاندارد استفاده می‌کند.</p>
+        <p>حالا می‌توانیم خروجی را تست کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">#[test]
+fn find_a_match() {
+    let mut result = Vec::new();
+    find_matches("lorem ipsum\ndolor sit amet", "lorem", &amp;mut result);
+    assert_eq!(result, b"lorem ipsum\n");
+}</code></pre>
+        <p>برای استفاده از این در کد برنامهٔ خود، باید فراخوانی <code class="inline">find_matches</code> را در
+        <code class="inline">main</code> با افزودن <a href="https://doc.rust-lang.org/1.39.0/std/io/fn.stdout.html" target="_blank" rel="noopener"><code class="inline">&amp;mut std::io::stdout()</code></a>
+        به‌عنوان پارامتر سوم تغییر دهیم. اینجا مثالی از یک تابع اصلی است که بر اساس آنچه در فصل‌های قبلی دیده‌ایم ساخته شده
+        و از تابع استخراج‌شدهٔ <code class="inline">find_matches</code> استفاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn main() -&gt; Result&lt;()&gt; {
+    let args = Cli::parse();
+    let content = std::fs::read_to_string(&amp;args.path)
+        .with_context(|| format!("could not read file `{}`", args.path.display()))?;
+
+    find_matches(&amp;content, &amp;args.pattern, &amp;mut std::io::stdout());
+
+    Ok(())
+}</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> چون <code class="inline">stdout</code> انتظار بایت دارد (نه رشته)، از
+          <code class="inline">std::io::Write</code> به‌جای <code class="inline">std::fmt::Write</code> استفاده می‌کنیم.
+          در نتیجه، در تست‌های‌مان یک بردار خالی به‌عنوان <code class="inline">writer</code> می‌دهیم (نوعش
+          <code class="inline">Vec&lt;u8&gt;</code> استنتاج می‌شود) و در <code class="inline">assert_eq!</code> از
+          <code class="inline">b"foo"</code> استفاده می‌کنیم. پیشوند <code class="inline">b</code> این را به یک
+          <em>رشتهٔ بایتی</em> تبدیل می‌کند، بنابراین نوعش <code class="inline">&amp;[u8]</code> خواهد بود به‌جای
+          <code class="inline">&amp;str</code>.
+        </div>
+        <div class="callout note">
+          <strong>نکته:</strong> همچنین می‌توانستیم این تابع یک <code class="inline">String</code> برگرداند، اما این رفتارش
+          را تغییر می‌داد. به‌جای نوشتن مستقیم در ترمینال، آنگاه همه‌چیز را در یک رشته جمع می‌کرد و در پایان همهٔ نتایج را
+          یک‌جا تخلیه می‌کرد.
+        </div>
+        <div class="callout tip">
+          <strong>تمرین برای خواننده:</strong> <a href="https://doc.rust-lang.org/1.39.0/std/macro.writeln.html" target="_blank" rel="noopener"><code class="inline">writeln!</code></a>
+          یک <a href="https://doc.rust-lang.org/1.39.0/std/io/type.Result.html" target="_blank" rel="noopener"><code class="inline">io::Result</code></a>
+          برمی‌گرداند چون نوشتن می‌تواند شکست بخورد (مثلاً وقتی بافر پُر است و نمی‌تواند گسترش یابد). به
+          <code class="inline">find_matches</code> مدیریت خطا اضافه کنید.
+        </div>
+        <p>همین‌حالا دیدیم چگونه این قطعه کد را تست‌پذیر کنیم. کارهای زیر را انجام دادیم:</p>
+        <ol>
+          <li>یکی از قطعات اصلی برنامهٔ خود را شناسایی کردیم.</li>
+          <li>آن را در تابع خودش گذاشتیم.</li>
+          <li>منعطف‌ترش کردیم.</li>
+        </ol>
+        <p>حتی اگر هدف، تست‌پذیر کردن آن بود، نتیجه‌ای که به آن رسیدیم در واقع قطعه کد بسیار اصطلاحی (idiomatic) و
+        قابل‌استفاده‌مجدد راستی است. عالی است!</p>
+
+        <h3>تقسیم کد خود به اهداف کتابخانه و باینری</h3>
+        <p>اینجا می‌توانیم یک کار دیگر انجام دهیم. تاکنون، همهٔ چیزهایی را که نوشتیم در فایل <code class="inline">src/main.rs</code>
+        گذاشته‌ایم. این یعنی پروژهٔ فعلی ما فقط یک باینری تولید می‌کند، اما می‌توانیم کد خود را به‌صورت یک کتابخانه نیز
+        در دسترس قرار دهیم، این‌گونه:</p>
+        <ol>
+          <li>تابع <code class="inline">find_matches</code> را در یک فایل جدید <code class="inline">src/lib.rs</code> بگذارید.</li>
+          <li>یک <code class="inline">pub</code> جلوی <code class="inline">fn</code> اضافه کنید تا برای کاربران کتابخانه‌مان قابل دسترسی باشد (یعنی <code class="inline">pub fn find_matches</code>).</li>
+          <li><code class="inline">find_matches</code> را از <code class="inline">src/main.rs</code> حذف کنید.</li>
+          <li>در <code class="inline">fn main</code>، فراخوانی <code class="inline">find_matches</code> را با <code class="inline">grrs::</code> پیشوندگذاری کنید تا اکنون <code class="inline">grrs::find_matches(…)</code> باشد. یعنی از تابعی از کتابخانه‌ای که همین‌حالا نوشتیم استفاده می‌کند!</li>
+        </ol>
+        <p>شیوه‌ای که راست با پروژه‌ها برخورد می‌کند بسیار منعطف است و ایدهٔ خوبی است که از همان ابتدا به این بیندیشید که
+        چه چیزی را در بخش کتابخانهٔ crate خود بگذارید. مثلاً می‌توانید به این فکر کنید که ابتدا یک کتابخانه برای منطق خاص
+        برنامهٔ خود بنویسید و سپس در CLI خود دقیقاً مانند هر کتابخانهٔ دیگری از آن استفاده کنید. یا اگر پروژهٔ شما چند
+        باینری دارد، می‌توانید قابلیت مشترک را در بخش کتابخانهٔ همان crate بگذارید.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> صحبت از گذاشتن همه‌چیز در یک <code class="inline">src/main.rs</code> شد؛ اگر به همین کار
+          ادامه دهیم، خواندنش دشوار می‌شود. <a href="https://doc.rust-lang.org/1.39.0/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html" target="_blank" rel="noopener">سیستم ماژول</a>
+          می‌تواند به شما در ساختاردهی و سازمان‌دهی کد کمک کند.
+        </div>
+
+        <h3>تست برنامه‌های CLI با اجرای آن‌ها</h3>
+        <p>تا اینجا، برای تست <em>منطق تجاری</em> برنامهٔ خود سنگ تمام گذاشته‌ایم؛ منطقی که معلوم شد همان تابع
+        <code class="inline">find_matches</code> است. این کار بسیار ارزشمند است و گام اول عالی به‌سوی یک پایگاه کد خوب
+        تست‌شده است. معمولاً به این گونه تست‌ها «تست‌های واحد» می‌گویند.</p>
+        <p>کد زیادی هست که تست نمی‌کنیم: هر آنچه برای سروکار داشتن با دنیای بیرون نوشتیم! تصور کنید تابع اصلی را نوشته‌اید
+        اما تصادفاً به‌جای استفاده از آرگومان مسیرِ داده‌شده توسط کاربر، یک رشتهٔ ثابت (hard-coded) در آن باقی گذاشته‌اید.
+        باید برای آن نیز تست بنویسیم! این سطح از تست اغلب تست یکپارچه‌سازی یا تست سیستم نامیده می‌شود.</p>
+        <p>در هستهٔ خود، ما همچنان توابع می‌نویسیم و آن‌ها را با <code class="inline">#[test]</code> نشانه‌گذاری می‌کنیم.
+        فقط به آن بستگی دارد که داخل این توابع چه می‌کنیم. مثلاً می‌خواهیم از باینری اصلی پروژهٔ خود استفاده کنیم و آن را
+        مانند یک برنامهٔ عادی اجرا کنیم. این تست‌ها را در یک فایل جدید در یک دایرکتوری جدید
+        (<code class="inline">tests/cli.rs</code>) قرار می‌دهیم.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> طبق قرارداد، <code class="inline">cargo</code> تست‌های یکپارچه‌سازی را در دایرکتوری
+          <code class="inline">tests/</code> جست‌وجو می‌کند. به همین‌ترتیب، بنچ‌مارک‌ها را در <code class="inline">benches/</code>
+          و مثال‌ها را در <code class="inline">examples/</code> جست‌وجو می‌کند. این قراردادها به کد منبع اصلی شما نیز
+          گسترش می‌یابند: کتابخانه‌ها فایل <code class="inline">src/lib.rs</code> دارند، باینری اصلی
+          <code class="inline">src/main.rs</code> است و اگر چند باینری وجود داشته باشد، cargo انتظار دارد آن‌ها در
+          <code class="inline">src/bin/&lt;name&gt;.rs</code> باشند. پیروی از این قراردادها پایگاه کد شما را برای افرادی که
+          به خواندن کد راست عادت دارند قابل‌کشف‌تر می‌کند.
+        </div>
+        <p><code class="inline">grrs</code> ابزار کوچکی است که رشته‌ای را در فایلی جست‌وجو می‌کند. قبلاً تست کرده‌ایم که
+        می‌توانیم یک تطابق را پیدا کنیم. بیایید به این بیندیشیم که چه قابلیت دیگری می‌توانیم تست کنیم.</p>
+        <p>ایدهٔ من این است:</p>
+        <ul>
+          <li>وقتی فایل وجود ندارد چه اتفاقی می‌افتد؟</li>
+          <li>وقتی هیچ تطابقی وجود ندارد، خروجی چیست؟</li>
+          <li>آیا برنامهٔ ما وقتی یک (یا هر دو) آرگومان را فراموش کنیم با خطا خارج می‌شود؟</li>
+        </ul>
+        <p>این‌ها همه موردهای تست معتبر هستند. علاوه بر این، باید یک مورد تست برای مسیر خوشحال (happy path) هم در نظر
+        بگیریم: حداقل یک تطابق پیدا کرده‌ایم و آن را چاپ می‌کنیم.</p>
+        <p>برای آسان‌تر کردن این گونه تست‌ها، از crate مربوط به
+        <a href="https://docs.rs/assert_cmd" target="_blank" rel="noopener"><code class="inline">assert_cmd</code></a>
+        استفاده خواهیم کرد. این crate دسته‌ای از ابزارهای تمیز دارد که به ما اجازه می‌دهد باینری اصلی خود را اجرا کنیم و
+        ببینیم چگونه رفتار می‌کند. همچنین crate مربوط به
+        <a href="https://docs.rs/predicates" target="_blank" rel="noopener"><code class="inline">predicates</code></a>
+        را اضافه می‌کنیم که به ما در نوشتن عبارت‌هایی (assertion) کمک می‌کند که <code class="inline">assert_cmd</code>
+        بتواند آن‌ها را بررسی کند و پیام‌های خطای عالی‌ای دارند. این وابستگی‌ها را به فهرست اصلی اضافه نمی‌کنیم، بلکه به یک
+        بخش <code class="inline">dev dependencies</code> در <code class="inline">Cargo.toml</code> خود اضافه می‌کنیم.
+        آن‌ها فقط هنگام توسعهٔ crate مورد نیاز هستند، نه هنگام استفاده از آن.</p>
+        <pre class="code"><span class="lang-tag">toml</span><code style="direction:ltr;text-align:left">[dev-dependencies]
+assert_cmd = "2.0.14"
+predicates = "3.1.0"</code></pre>
+        <p>این مقدار زیادی راه‌اندازی به نظر می‌رسد. بااین‌حال، بیایید غواصی کنیم و فایل <code class="inline">tests/cli.rs</code>
+        خود را بسازیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use assert_cmd::cargo::*; // درون‌ریزی ماکروی cargo_bin_cmd! و متدهای آن
+use predicates::prelude::*; // برای نوشتن عبارت‌های سنجش استفاده می‌شود
+
+#[test]
+fn file_doesnt_exist() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let mut cmd = cargo_bin_cmd!("grrs");
+
+    cmd.arg("foobar").arg("test/file/doesnt/exist");
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("could not read file"));
+
+    Ok(())
+}</code></pre>
+        <p>می‌توانید این تست را با <code class="inline">cargo test</code> اجرا کنید، درست مانند تست‌هایی که بالاتر نوشتیم.
+        اولین بار ممکن است کمی طولانی‌تر شود، چون <code class="inline">Command::cargo_bin("grrs")</code> باید باینری اصلی
+        شما را کامپایل کند.</p>
+
+        <h3>تولید فایل‌های تست</h3>
+        <p>تستی که همین‌حالا دیدیم فقط بررسی می‌کند که برنامهٔ ما وقتی فایل ورودی وجود ندارد، پیام خطا بنویسد. این تست مهمی
+        است، اما شاید مهم‌ترین نباشد. بیایید تست کنیم که واقعاً تطابق‌هایی را که در یک فایل پیدا کرده‌ایم چاپ می‌کنیم!</p>
+        <p>به فایلی نیاز داریم که محتوایش را بدانیم تا بتوانیم بدانیم برنامهٔ ما <em>باید</em> چه چیزی برگرداند و این
+        انتظار را در کدمان بررسی کنیم. یک ایده این است که فایلی با محتوای سفارشی به پروژه اضافه کنیم و در تست‌هایمان از آن
+        استفاده کنیم. ایدهٔ دیگر این است که در تست‌هایمان فایل‌های موقت بسازیم. برای این آموزش، رویکرد دوم را بررسی
+        می‌کنیم. این رویکرد منعطف‌تر است و در موارد دیگر نیز کار می‌کند؛ مثلاً وقتی برنامه‌هایی را تست می‌کنید که فایل‌ها
+        را تغییر می‌دهند.</p>
+        <p>برای ساخت این فایل‌های موقت، از crate مربوط به
+        <a href="https://docs.rs/assert_fs" target="_blank" rel="noopener"><code class="inline">assert_fs</code></a>
+        استفاده می‌کنیم. بیایید آن را به <code class="inline">dev-dependencies</code> در <code class="inline">Cargo.toml</code>
+        خود اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code style="direction:ltr;text-align:left">assert_fs = "1.1.1"</code></pre>
+        <p>اینجا یک مورد تست جدید است که یک فایل موقت می‌سازد (فایلی «نام‌دار» تا بتوانیم مسیرش را بگیریم)، آن را با کمی
+        متن پُر می‌کند و سپس برنامهٔ ما را اجرا می‌کند تا ببیند آیا خروجی درست می‌گیریم یا نه. می‌توانید آن را زیر مورد
+        تست قبلی بنویسید. وقتی متغیر <code class="inline">file</code> در پایان تابع از دامنه خارج می‌شود، فایل موقت واقعی
+        به‌صورت خودکار حذف می‌شود.</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">#[test]
+fn find_content_in_file() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let file = assert_fs::NamedTempFile::new("sample.txt")?;
+    file.write_str("A test\nActual content\nMore content\nAnother test")?;
+
+    let mut cmd = cargo_bin_cmd!("grrs");
+    cmd.arg("test").arg(file.path());
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("A test\nAnother test"));
+
+    Ok(())
+}</code></pre>
+        <div class="callout tip">
+          <strong>تمرین برای خواننده:</strong> تست‌های یکپارچه‌سازی برای ارسال یک رشتهٔ خالی به‌عنوان الگو اضافه کنید و
+          برنامه را در صورت نیاز تنظیم کنید.
+        </div>
+
+        <h3>چه چیزی را تست کنیم؟</h3>
+        <p>هرچند نوشتن تست‌های یکپارچه‌سازی قطعاً می‌تواند سرگرم‌کننده باشد، نوشتن آن‌ها و به‌روزرسانی‌شان وقتی رفتار
+        برنامهٔ شما تغییر می‌کند زمان می‌برد. برای اطمینان از اینکه وقت خود را عاقلانه صرف می‌کنید، باید از خود بپرسید چه
+        چیزی را باید تست کنید.</p>
+        <p>به‌طور کلی، ایدهٔ خوبی است برای همهٔ انواع رفتاری که یک کاربر می‌تواند مشاهده کند تست یکپارچه‌سازی بنویسید. این
+        یعنی نیازی نیست همهٔ موارد مرزی را پوشش دهید. معمولاً کافی است برای انواع مختلف مثال‌هایی داشته باشید و برای پوشش
+        موارد مرزی به تست‌های واحد تکیه کنید.</p>
+        <p>همچنین ایدهٔ خوبی است تست‌های خود را روی چیزهایی متمرکز نکنید که نمی‌توانید فعالانه کنترل کنید. تست چیدمان دقیق
+        <code class="inline">--help</code> ایدهٔ بدی است، چون برای شما تولید می‌شود. در عوض، شاید فقط بخواهید بررسی کنید که
+        عناصر مشخصی وجود دارند.</p>
+        <p>بسته به ماهیت برنامهٔ خود، می‌توانید تکنیک‌های تست بیشتری هم اضافه کنید. مثلاً اگر بخش‌هایی از برنامهٔ خود را
+        استخراج کرده‌اید و می‌بینید در تلاش برای درآوردن همهٔ موارد مرزی، موارد مثال زیادی را به‌عنوان تست واحد می‌نویسید،
+        باید به <a href="https://docs.rs/proptest" target="_blank" rel="noopener"><code class="inline">proptest</code></a>
+        نگاه کنید. اگر برنامه‌ای دارید که فایل‌های دلخواه را مصرف و تجزیه می‌کند، سعی کنید یک
+        <a href="https://rust-fuzz.github.io/book/introduction.html" target="_blank" rel="noopener">fuzzer</a> بنویسید تا
+        باگ‌هایی را در موارد مرزی پیدا کند.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> کد منبع کامل و قابل‌اجرای استفاده‌شده در این فصل را می‌توانید
+          <a href="https://github.com/rust-cli/book/tree/master/src/tutorial/testing" target="_blank" rel="noopener">در مخزن این کتاب</a>
+          بیابید.
+        </div>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/testing.html" target="_blank" rel="noopener">Testing</a></p>
+      </section>
+
+      <!-- ==================== ۱.۷ بسته‌بندی ==================== -->
+      <section>
+        <h2>فصل ۱.۷ — بسته‌بندی و توزیع یک ابزار راست</h2>
+        <p>اگر احساس می‌کنید برنامهٔ شما برای استفادهٔ دیگران آماده است، وقت بسته‌بندی و انتشار آن است! رویکردهای مختلفی
+        وجود دارد و ما سه‌تای آن‌ها را بررسی می‌کنیم، از سریع‌ترین از نظر راه‌اندازی تا راحت‌ترین برای کاربران.</p>
+
+        <h3>سریع‌ترین: <code class="inline">cargo publish</code></h3>
+        <p>آسان‌ترین راه انتشار برنامهٔ شما با cargo است. یادتان هست چگونه وابستگی‌های بیرونی را به پروژهٔ خود اضافه
+        کردیم؟ Cargo آن‌ها را از رجیستری پیش‌فرض crateها یعنی <a href="https://crates.io/" target="_blank" rel="noopener">crates.io</a>
+        دانلود می‌کرد. با <code class="inline">cargo publish</code> می‌توانید crateها را در crates.io منتشر کنید و این برای
+        همهٔ crateها از جمله آن‌هایی که هدف باینری دارند کار می‌کند.</p>
+        <p>انتشار یک crate در crates.io در چند گام انجام می‌شود. اول، اگر هنوز این کار را نکرده‌اید، در crates.io حساب بسازید
+        (این کار با مجوز دادن به گیت‌هاب انجام می‌شود؛ بنابراین باید حساب گیت‌هاب داشته باشید و در آن وارد شده باشید). دوم،
+        از طریق cargo در ماشین محلی خود وارد می‌شوید. برای این کار به <a href="https://crates.io/me" target="_blank" rel="noopener">صفحهٔ حساب crates.io</a>
+        بروید، یک توکن جدید بسازید و <code class="inline">cargo login &lt;your-new-token&gt;</code> را اجرا کنید. فقط یک بار
+        در هر رایانه لازم است این کار را انجام دهید. دربارهٔ این موضوع در
+        <a href="https://doc.rust-lang.org/1.39.0/cargo/reference/publishing.html" target="_blank" rel="noopener">راهنمای انتشار cargo</a>
+        بیشتر بیاموزید.</p>
+        <p>حالا که cargo و crates.io شما را می‌شناسند، برای انتشار crateها آماده‌اید. پیش از اینکه با عجله بروید و نسخهٔ
+        جدیدی از crate را منتشر کنید، ایدهٔ خوبی است یک بار دیگر <code class="inline">Cargo.toml</code> خود را باز کنید و
+        مطمئن شوید فرادادهٔ لازم را اضافه کرده‌اید. همهٔ فیلدهای ممکن را می‌توانید در مستندات
+        <a href="https://doc.rust-lang.org/1.39.0/cargo/reference/manifest.html" target="_blank" rel="noopener">قالب manifest در cargo</a>
+        بیابید. اینجا مروری سریع بر برخی ورودی‌های رایج است:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code style="direction:ltr;text-align:left">[package]
+name = "grrs"
+version = "0.1.0"
+authors = ["Your Name &lt;your@email.com&gt;"]
+license = "MIT OR Apache-2.0"
+description = "A tool to search files"
+readme = "README.md"
+homepage = "https://github.com/you/grrs"
+repository = "https://github.com/you/grrs"
+keywords = ["cli", "search", "demo"]
+categories = ["command-line-utilities"]</code></pre>
+        <div class="callout note">
+          <strong>نکته:</strong> این مثال شامل فیلد اجباری license با انتخاب رایج پروژه‌های راست است: همان مجوزی که برای
+          خود کامپایلر استفاده می‌شود. همچنین به فایل <code class="inline">README.md</code> ارجاع می‌دهد. این فایل باید
+          شامل توصیف کوتاهی از موضوع پروژهٔ شما باشد و نه‌تنها در صفحهٔ crates.io مربوط به crate شما قرار می‌گیرد، بلکه
+          گیت‌هاب نیز به‌صورت پیش‌فرض آن را در صفحهٔ مخزن نشان می‌دهد.
+        </div>
+
+        <h4>چگونه یک باینری را از crates.io نصب کنیم</h4>
+        <p>دیدیم چگونه یک crate را در crates.io منتشر کنیم و شاید برایتان سؤال باشد که چگونه آن را نصب کنید. برخلاف
+        کتابخانه‌ها که cargo هنگام اجرای <code class="inline">cargo build</code> یا دستوری مشابه آن را دانلود و برای شما
+        کامپایل می‌کند، باید صریحاً بگویید باینری‌ها را نصب کند.</p>
+        <p>این کار با <code class="inline">cargo install &lt;crate-name&gt;</code> انجام می‌شود. این دستور crate را
+        به‌صورت پیش‌فرض دانلود می‌کند، همهٔ اهداف باینری موجود در آن را کامپایل می‌کند (در حالت «release»، بنابراین ممکن
+        است مدتی طول بکشد) و آن‌ها را در دایرکتوری <code class="inline">~/.cargo/bin/</code> کپی می‌کند. مطمئن شوید شل شما
+        می‌داند برای باینری‌ها آنجا را نگاه کند!</p>
+        <p>همچنین امکان نصب crateها از مخازن git، نصب فقط باینری‌های خاص یک crate و تعیین دایرکتوری جایگزین برای نصب آن‌ها
+        وجود دارد. برای جزئیات به <code class="inline">cargo install --help</code> نگاه کنید.</p>
+
+        <h4>چه زمانی از آن استفاده کنیم</h4>
+        <p><code class="inline">cargo install</code> راه ساده‌ای برای نصب یک crate باینری است. برای توسعه‌دهندگان راست
+        بسیار راحت است اما معایب قابل توجهی دارد: چون همیشه کد منبع شما را از صفر کامپایل می‌کند، کاربران ابزار شما باید راست،
+        cargo و همهٔ وابستگی‌های سیستمی دیگری که پروژهٔ شما نیاز دارد را روی ماشین خود نصب داشته باشند. کامپایل پایگاه‌های
+        کد بزرگ راست می‌تواند زمان بر باشد.</p>
+        <p>بهترین کار این است که از آن برای توزیع ابزارهایی استفاده کنید که هدفشان توسعه‌دهندگان دیگر راست است. مثلاً بسیاری
+        از زیردستورهای cargo مانند <code class="inline">cargo-tree</code> یا <code class="inline">cargo-outdated</code>
+        را می‌توان با آن نصب کرد.</p>
+
+        <h3>توزیع باینری‌ها</h3>
+        <p>راست زبانی است که به کد بومی کامپایل می‌شود و به‌صورت پیش‌فرض همهٔ وابستگی‌ها را به‌شکل استاتیک لینک می‌کند.
+        وقتی <code class="inline">cargo build</code> را روی پروژه‌ای اجرا می‌کنید که حاوی باینری به نام
+        <code class="inline">grrs</code> است، به فایلی باینری به نام <code class="inline">grrs</code> می‌رسید. آن را امتحان
+        کنید! با <code class="inline">cargo build</code> در مسیر <code class="inline">target/debug/grrs</code> خواهد بود و
+        وقتی <code class="inline">cargo build --release</code> اجرا می‌کنید، در <code class="inline">target/release/grrs</code>
+        خواهد بود. مگر اینکه از crateهایی استفاده کنید که صریحاً به کتابخانه‌های بیرونی نصب‌شده روی سیستم هدف نیاز دارند
+        (مانند استفاده از نسخهٔ سیستمی OpenSSL)، این باینری فقط به کتابخانه‌های سیستمی رایج وابسته خواهد بود. یعنی همان یک
+        فایل را بردارید، برای افرادی بفرستید که همان سیستم‌عامل شما را اجرا می‌کنند و آن‌ها می‌توانند اجرایش کنند.</p>
+        <p>این از قبل بسیار قدرتمند است! حول و حوش دو عیب <code class="inline">cargo install</code> را دور می‌زند: نیازی به
+        نصب راست روی ماشین کاربر نیست و به‌جای اینکه یک دقیقه کامپایل طول بکشد، می‌توانند بلافاصله باینری را اجرا کنند.</p>
+        <p>همان‌طور که دیدیم، <code class="inline">cargo build</code> <em>از قبل</em> باینری‌ها را برای ما می‌سازد. مشکل
+        این است که تضمینی نیست روی همهٔ پلتفرم‌ها کار کنند. اگر <code class="inline">cargo build</code> را روی ماشین ویندوزی
+        خود اجرا کنید، باینری‌ای نخواهید گرفت که به‌صورت پیش‌فرض روی مک کار کند. آیا راهی هست که این باینری‌ها را به‌صورت
+        خودکار برای همهٔ پلتفرم‌های هدف تولید کنیم؟</p>
+
+        <h3>ساخت انتشارهای باینری در CI</h3>
+        <p>اگر ابزار شما متن‌باز است و در گیت‌هاب میزبانی می‌شود، راه‌اندازی یک سرویس CI (یکپارچه‌سازی پیوسته) رایگان مانند
+        <a href="https://travis-ci.com/" target="_blank" rel="noopener">Travis CI</a> بسیار آسان است. سرویس‌های دیگری نیز
+        این قابلیت را ارائه می‌دهند، اما Travis بسیار محبوب است. این سرویس هر بار که تغییراتی را به مخزن خود push می‌کنید،
+        دستورات راه‌اندازی را در یک ماشین مجازی اجرا می‌کند. اینکه آن دستورات چه‌اند و بر روی چه نوع ماشین‌هایی اجرا می‌شوند،
+        قابل پیکربندی است. مثلاً ایدهٔ خوبی است <code class="inline">cargo test</code> را روی ماشینی با راست و چند ابزار
+        ساخت رایج نصب‌شده اجرا کنید. اگر این شکست بخورد، می‌دانید در جدیدترین تغییرات مشکلاتی وجود دارد.</p>
+        <p>همچنین می‌توانیم از این برای ساخت باینری‌ها و آپلود آن‌ها در گیت‌هاب استفاده کنیم! اگر
+        <code class="inline">cargo build --release</code> را اجرا کنیم و باینری را جایی آپلود کنیم، همه‌چیز آماده است، درست
+        است؟ نه کاملاً. هنوز باید مطمئن شویم باینری‌هایی که می‌سازیم با بیشترین تعداد سیستم‌ها سازگارند. مثلاً در لینوکس
+        می‌توانیم برای سیستم فعلی یا هدف <code class="inline">x86_64-unknown-linux-musl</code> کامپایل کنیم تا به
+        کتابخانه‌های سیستمی پیش‌فرض وابسته نباشیم. در macOS می‌توانیم <code class="inline">MACOSX_DEPLOYMENT_TARGET</code>
+        را روی <code class="inline">10.7</code> تنظیم کنیم تا فقط به ویژگی‌های سیستمی موجود در نسخه‌های 10.7 و قدیمی‌تر
+        وابسته باشیم.</p>
+        <p>یک مثال از ساخت باینری‌ها با این رویکرد را می‌توانید
+        <a href="https://github.com/rustwasm/wasm-pack/blob/51e6351c28fbd40745719e6d4a7bf26dadd30c85/.travis.yml#L74-L91" target="_blank" rel="noopener">اینجا</a>
+        برای لینوکس و macOS و <a href="https://github.com/rustwasm/wasm-pack/blob/51e6351c28fbd40745719e6d4a7bf26dadd30c85/.appveyor.yml" target="_blank" rel="noopener">اینجا</a>
+        برای ویندوز با AppVeyor ببینید.</p>
+        <p>راه دیگر استفاده از تصاویر از‌پیش‌ساختهٔ (یعنی Docker) است که همهٔ ابزارهای مورد نیاز ما برای ساخت باینری را
+        دارند. این به ما اجازه می‌دهد به‌راحتی پلتفرم‌های عجیب‌تری را نیز هدف بگیریم. پروژهٔ
+        <a href="https://github.com/japaric/trust" target="_blank" rel="noopener">trust</a> شامل اسکریپت‌هایی است که
+        می‌توانید به پروژهٔ خود اضافه کنید و همچنین دستورالعمل‌هایی برای راه‌اندازی آن. این پروژه شامل پشتیبانی از ویندوز
+        با AppVeyor نیز هست.</p>
+        <p>اگر ترجیح می‌دهید این را به‌صورت محلی راه‌اندازی کنید و فایل‌های انتشار را خودتان روی ماشین شخصی‌تان تولید کنید،
+        نگاهی به <a href="https://github.com/japaric/trust" target="_blank" rel="noopener">trust</a> بیندازید. این پروژه
+        در داخل از <a href="https://github.com/rust-embedded/cross" target="_blank" rel="noopener">cross</a> استفاده
+        می‌کند که مشابه cargo کار می‌کند اما دستورات را به یک فرآیند cargo در داخل کانتینر Docker ارسال می‌کند. تعریف
+        تصاویر نیز در <a href="https://github.com/rust-embedded/cross" target="_blank" rel="noopener">مخزن cross</a>
+        در دسترس است.</p>
+
+        <h3>نصب این باینری‌ها و بسته‌بندی‌های تکمیلی</h3>
+        <p>کاربران خود را به صفحهٔ انتشار خود هدایت می‌کنید که ممکن است شبیه <a href="https://github.com/rustwasm/wasm-pack/releases/tag/v0.5.1" target="_blank" rel="noopener">این</a>
+        باشد و آن‌ها می‌توانند مصنوعاتی (artifacts) را که ساختیم دانلود کنند. مصنوعات انتشار ما چیز خاصی نیستند؛ فقط فایل‌های
+        آرشیوی هستند که باینری‌های ما را در خود دارند! یعنی کاربران ابزار شما می‌توانند آن‌ها را با مرورگرشان دانلود،
+        استخراج (اغلب به‌صورت خودکار) و باینری‌ها را به جایی که دوست دارند کپی کنند.</p>
+        <p>این کار به کمی تجربه در نصب دستی برنامه‌ها نیاز دارد، بنابراین باید بخشی به فایل README خود اضافه کنید که نحوهٔ
+        نصب این برنامه را توضیح دهد.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر از <a href="https://github.com/japaric/trust" target="_blank" rel="noopener">trust</a>
+          برای ساخت باینری‌ها و افزودن آن‌ها به انتشارهای گیت‌هاب استفاده می‌کنید، همچنین می‌توانید به مردم بگویید
+          <code class="inline">curl -LSfs https://japaric.github.io/trust/install.sh | sh -s -- --git your-name/repo-name</code>
+          را اجرا کنند، اگر فکر می‌کنید این کار را آسان‌تر می‌کند.
+        </div>
+        <p>داشتن انتشارهای باینری به‌طور کلی ایدهٔ خوبی است؛ تقریباً هیچ عیبی ندارد. این مشکل نصب و به‌روزرسانی دستی ابزارهای
+        شما توسط کاربران را حل نمی‌کند، اما آن‌ها می‌توانند بدون نیاز به نصب راست، به‌سرعت آخرین نسخهٔ انتشار را بگیرند.</p>
+        <p>در حال حاضر، وقتی کاربر ما یک انتشار را دانلود می‌کند، فایل <code class="inline">.tar.gz</code>ای می‌گیرد که فقط
+        شامل فایل‌های باینری است. در پروژهٔ مثال ما، آن‌ها فقط یک فایل <code class="inline">grrs</code> می‌گیرند که
+        می‌توانند اجرا کنند، اما فایل‌های بیشتری در مخزن ما وجود دارند که ممکن است بخواهند. مثلاً فایل README که طرز استفادهٔ
+        از این ابزار را می‌گوید و فایل(های) مجوز. چون از قبل آن‌ها را داریم، افزودنشان آسان است.</p>
+        <p>فایل‌های جالب‌تری نیز وجود دارند که به‌خصوص برای ابزارهای خط فرمان منطقی‌اند. چه‌طور است علاوه بر فایل README و
+        فایل‌های پیکربندی که تکمیل‌های پرچم‌های ممکن را به شل شما اضافه می‌کنند، یک صفحهٔ man هم حمل کنیم؟ می‌توانید این‌ها
+        را با دست بنویسید، اما <em>clap</em> — کتابخانهٔ تجزیهٔ آرگومان که استفاده می‌کنیم — راهی دارد که همهٔ این فایل‌ها
+        را برای ما تولید کند. برای جزئیات بیشتر به <a href="https://rust-cli.github.io/book/in-depth/docs.html" target="_blank" rel="noopener">این فصل عمیق‌تر</a>
+        مراجعه کنید.</p>
+
+        <h3>رساندن برنامهٔ خود به مخازن بسته</h3>
+        <p>هر دو رویکردی که تاکنون دیده‌ایم، روش معمولی نصب نرم‌افزار روی ماشین شما نیستند؛ مخصوصاً برای ابزارهای خط فرمانی
+        که در بیشتر سیستم‌عامل‌ها با مدیر بستهٔ سراسری نصب می‌کنید. مزایا برای کاربران کاملاً آشکار است: نیازی نیست به این
+        فکر کنند که چگونه برنامه را نصب کنند، اگر بتوان آن را همان‌گونه نصب کرد که ابزارهای دیگر را نصب می‌کنند. این مدیرهای
+        بسته همچنین به کاربران اجازه می‌دهند برنامه‌های خود را وقتی نسخهٔ جدیدی در دسترس است به‌روزرسانی کنند.</p>
+        <p>متأسفانه، پشتیبانی از سیستم‌های مختلف به این معناست که باید نحوهٔ کار این سیستم‌های مختلف را بررسی کنید. برای
+        برخی، ممکن است به سادگی افزودن یک فایل به مخزن شما باشد (مثلاً افزودن یک فایل Formula مانند <a href="https://github.com/BurntSushi/ripgrep/blob/31adff6f3c4bfefc9e77df40871f2989443e6827/pkg/brew/ripgrep-bin.rb" target="_blank" rel="noopener">این</a>
+        برای <code class="inline">brew</code> مک)، اما برای برخی دیگر، اغلب باید خودتان patch بفرستید و ابزار خود را به
+        مخازن آن‌ها اضافه کنید. ابزارهای کمکی مانند <a href="https://crates.io/crates/cargo-bundle" target="_blank" rel="noopener">cargo-bundle</a>،
+        <a href="https://crates.io/crates/cargo-deb" target="_blank" rel="noopener">cargo-deb</a> و
+        <a href="https://crates.io/crates/cargo-aur" target="_blank" rel="noopener">cargo-aur</a> وجود دارند، اما توصیف نحوهٔ
+        کار آن‌ها و اینکه چگونه ابزار خود را برای آن سیستم‌های مختلف درست بسته‌بندی کنید، فراتر از حوصلهٔ این فصل است.</p>
+        <p>در عوض، بیایید نگاهی به ابزاری بیندازیم که به زبان راست نوشته شده و در بسیاری از مدیرهای بسته در دسترس است.</p>
+
+        <h4>یک مثال: ripgrep</h4>
+        <p><a href="https://github.com/BurntSushi/ripgrep" target="_blank" rel="noopener">ripgrep</a> جایگزینی برای
+        <code class="inline">grep</code>/<code class="inline">ack</code>/<code class="inline">ag</code> است و به زبان راست
+        نوشته شده. این ابزار نسبتاً موفق است و برای بسیاری از سیستم‌عامل‌ها بسته‌بندی شده: فقط به
+        <a href="https://github.com/BurntSushi/ripgrep/tree/31adff6f3c4bfefc9e77df40871f2989443e6827#installation" target="_blank" rel="noopener">بخش «نصب»</a>
+        README آن نگاه کنید!</p>
+        <p>توجه کنید که چند گزینهٔ مختلف برای نصب آن فهرست شده است: با پیوندی به انتشارهای گیت‌هاب شروع می‌شود که شامل
+        باینری‌هاست تا بتوانید مستقیماً آن‌ها را دانلود کنید، فهرست می‌کند چگونه آن را با دسته‌ای از مدیرهای بستهٔ مختلف
+        نصب کنید، و همچنین می‌توانید آن را با <code class="inline">cargo install</code> نصب کنید.</p>
+        <p>این ایدهٔ بسیار خوبی به نظر می‌رسد. یکی از رویکردهای ارائه‌شده در اینجا را انتخاب نکنید. با
+        <code class="inline">cargo install</code> شروع کنید و انتشارهای باینری را اضافه کنید و در نهایت ابزار خود را با
+        مدیرهای بستهٔ سیستم توزیع کنید.</p>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/tutorial/packaging.html" target="_blank" rel="noopener">Packaging and distributing a Rust tool</a></p>
+      </section>
+
+      <!-- ==================== ۲. موضوعات عمیق‌تر ==================== -->
+      <section>
+        <h2>بخش ۲ — موضوعات عمیق‌تر</h2>
+        <p>مجموعهٔ کوچکی از فصل‌ها که برخی جزئیات بیشتر را پوشش می‌دهند و هنگام نوشتن برنامهٔ خط فرمان خود ممکن است برایتان
+        اهمیت داشته باشند.</p>
+
+        <h3>فصل ۲.۱ — مدیریت سیگنال‌ها</h3>
+        <p>فرآیندهایی مانند برنامه‌های خط فرمان باید به سیگنال‌هایی که سیستم‌عامل می‌فرستد واکنش نشان دهند. رایج‌ترین مثال
+        احتمالاً Ctrl+C است؛ سیگنالی که معمولاً به یک فرآیند می‌گوید خاتمه یابد. برای مدیریت سیگنال‌ها در برنامه‌های راست،
+        باید در نظر بگیرید چگونه می‌توانید این سیگنال‌ها را دریافت کنید و همچنین چگونه می‌توانید به آن‌ها واکنش نشان دهید.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر برنامهٔ شما نیازی به خاموش‌شدن آرام (graceful shutdown) ندارد، مدیریت پیش‌فرض کافی
+          است (یعنی فوراً خارج شوید و بگذارید سیستم‌عامل منابعی مانند دستگیره‌های فایل باز را پاک‌سازی کند). در آن صورت:
+          نیازی به انجام آنچه این فصل می‌گوید نیست!
+        </div>
+        <p>اما برای برنامه‌هایی که باید خودشان را پاک‌سازی کنند، این فصل بسیار مرتبط است! مثلاً اگر برنامهٔ شما باید اتصالات
+        شبکه را درست ببندد (به فرآیندهای سمت دیگر «خداحافظ» بگوید)، فایل‌های موقت را حذف کند یا تنظیمات سیستم را بازنشانی
+        کند، ادامه دهید.</p>
+
+        <h4>تفاوت‌های بین سیستم‌عامل‌ها</h4>
+        <p>در سیستم‌های یونیکسی (مانند لینوکس، macOS و FreeBSD) یک فرآیند می‌تواند
+        <a href="https://manpages.ubuntu.com/manpages/bionic/en/man7/signal.7.html" target="_blank" rel="noopener">سیگنال</a>
+        دریافت کند. می‌تواند به آن‌ها به‌شیوهٔ پیش‌فرض (که سیستم‌عامل ارائه می‌کند) واکنش نشان دهد، سیگنال را بگیرد و
+        به‌شیوه‌ای تعریف‌شده در برنامه مدیریتش کند، یا سیگنال را کاملاً نادیده بگیرد.</p>
+        <p>ویندوز سیگنال ندارد. می‌توانید از
+        <a href="https://docs.microsoft.com/en-us/windows/console/console-control-handlers" target="_blank" rel="noopener">Console Handlers</a>
+        برای تعریف callbackهایی استفاده کنید که وقتی رویدادی رخ می‌دهد اجرا می‌شوند. همچنین
+        <a href="https://docs.microsoft.com/en-us/windows/desktop/debug/structured-exception-handling" target="_blank" rel="noopener">مدیریت استثنای ساخت‌یافته</a>
+        (structured exception handling) وجود دارد که همهٔ انواع استثناهای سیستم مانند تقسیم بر صفر، استثناهای دسترسی نامعتبر،
+        سرریز پشته و مانند آن را مدیریت می‌کند.</p>
+
+        <h4>اول از همه: مدیریت Ctrl+C</h4>
+        <p>crate مربوط به <a href="https://crates.io/crates/ctrlc" target="_blank" rel="noopener">ctrlc</a> دقیقاً همان
+        کاری را می‌کند که نامش می‌گوید: به شما اجازه می‌دهد به فشردن Ctrl+C توسط کاربر، به‌صورت چندپلتفرمی واکنش نشان دهید.
+        راه اصلی استفاده از این crate چنین است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use std::{thread, time::Duration};
+
+fn main() {
+    ctrlc::set_handler(move || {
+        println!("received Ctrl+C!");
+    })
+    .expect("Error setting Ctrl-C handler");
+
+    // کد زیر کار واقعی را انجام می‌دهد و می‌توان با فشردن Ctrl-C
+    // آن را قطع کرد. برای نمونه: چند ثانیه صبر می‌کنیم.
+    thread::sleep(Duration::from_secs(2));
+}</code></pre>
+        <p>البته این چندان مفید نیست: فقط یک پیام چاپ می‌کند وگرنه برنامه را متوقف نمی‌کند.</p>
+        <p>در یک برنامهٔ واقعی، ایدهٔ خوبی است به‌جای آن در مدیریت‌کنندهٔ سیگنال متغیری تنظیم کنید که بعداً در جاهای مختلف
+        برنامه‌تان بررسی کنید. مثلاً می‌توانید در مدیریت‌کنندهٔ سیگنال یک <code class="inline">Arc&lt;AtomicBool&gt;</code>
+        (یک بولین که می‌تواند بین نخ‌ها به اشتراک گذاشته شود) تنظیم کنید و در حلقه‌های داغ یا هنگام انتظار برای یک نخ،
+        دوره‌ای مقدارش را بررسی کنید و وقتی true شد بیرون بپرید.</p>
+
+        <h4>مدیریت سایر انواع سیگنال</h4>
+        <p>crate مربوط به <a href="https://crates.io/crates/ctrlc" target="_blank" rel="noopener">ctrlc</a> فقط Ctrl+C را
+        مدیریت می‌کند، یا چیزی که در سیستم‌های یونیکسی <code class="inline">SIGINT</code> (سیگنال «قطع») نامیده می‌شود. برای
+        واکنش به سیگنال‌های یونیکسی بیشتر، باید به
+        <a href="https://crates.io/crates/signal-hook" target="_blank" rel="noopener">signal-hook</a> نگاه کنید. طراحی
+        آن در <a href="https://vorner.github.io/2018/06/28/signal-hook.html" target="_blank" rel="noopener">این پست وبلاگ</a>
+        توصیف شده و در حال حاضر کتابخانه‌ای است که بیشترین پشتیبانی جامعه را دارد.</p>
+        <p>اینجا یک مثال ساده است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use signal_hook::{consts::SIGINT, iterator::Signals};
+use std::{error::Error, thread, time::Duration};
+
+fn main() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+    let mut signals = Signals::new([SIGINT])?;
+
+    thread::spawn(move || {
+        for sig in signals.forever() {
+            println!("Received signal {:?}", sig);
+        }
+    });
+
+    // کد زیر کار واقعی را انجام می‌دهد و می‌توان با فشردن Ctrl-C
+    // آن را قطع کرد. برای نمونه: چند ثانیه صبر می‌کنیم.
+    thread::sleep(Duration::from_secs(2));
+
+    Ok(())
+}</code></pre>
+
+        <h4>استفاده از کانال‌ها</h4>
+        <p>به‌جای تنظیم یک متغیر و اینکه بخش‌های دیگر برنامه آن را بررسی کنند، می‌توانید از کانال‌ها استفاده کنید: کانالی
+        می‌سازید که مدیریت‌کنندهٔ سیگنال هر وقت سیگنال دریافت می‌شود، مقداری در آن منتشر می‌کند. در کد برنامهٔ خود، از این
+        و سایر کانال‌ها به‌عنوان نقاط همگام‌سازی بین نخ‌ها استفاده می‌کنید. با استفاده از
+        <a href="https://crates.io/crates/crossbeam-channel" target="_blank" rel="noopener">crossbeam-channel</a> چیزی
+        شبیه به این می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use anyhow::Result;
+use crossbeam_channel::{Receiver, bounded, select, tick};
+use std::time::Duration;
+
+fn ctrl_channel() -&gt; Result&lt;Receiver&lt;()&gt;, ctrlc::Error&gt; {
+    let (sender, receiver) = bounded(100);
+    ctrlc::set_handler(move || {
+        let _ = sender.send(());
+    })?;
+
+    Ok(receiver)
+}
+
+fn main() -&gt; Result&lt;()&gt; {
+    let ctrl_c_events = ctrl_channel()?;
+    let ticks = tick(Duration::from_secs(1));
+
+    loop {
+        select! {
+            recv(ticks) -&gt; _ =&gt; {
+                println!("working!");
+            }
+            recv(ctrl_c_events) -&gt; _ =&gt; {
+                println!();
+                println!("Goodbye!");
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}</code></pre>
+
+        <h4>استفاده از future و streamها</h4>
+        <p>اگر از <a href="https://tokio.rs/" target="_blank" rel="noopener">tokio</a> استفاده می‌کنید، به احتمال زیاد
+        برنامهٔ خود را با الگوهای ناهمگام و طراحی رویدادمحور می‌نویسید. به‌جای استفاده مستقیم از کانال‌های crossbeam،
+        می‌توانید ویژگی <code class="inline">tokio-support</code> مربوط به signal-hook را فعال کنید. این به شما اجازه
+        می‌دهد روی انواع <code class="inline">Signals</code> مربوط به signal-hook، متد
+        <a href="https://docs.rs/signal-hook/0.1.6/signal_hook/iterator/struct.Signals.html#method.into_async" target="_blank" rel="noopener"><code class="inline">.into_async()</code></a>
+        را صدا بزنید تا نوع جدیدی بگیرید که <code class="inline">futures::Stream</code> را پیاده‌سازی می‌کند.</p>
+
+        <h4>وقتی در حین مدیریت اولین Ctrl+C، Ctrl+C دیگری دریافت می‌کنید چه کنید</h4>
+        <p>بیشتر کاربران Ctrl+C را فشار می‌دهند و سپس چند ثانیه به برنامهٔ شما فرصت می‌دهند تا خارج شود یا به آن‌ها بگوید چه
+        خبر است. اگر این اتفاق نیفتد، دوباره Ctrl+C فشار می‌دهند. رفتار معمول این است که برنامه بلافاصله خارج شود.</p>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/in-depth/signals.html" target="_blank" rel="noopener">Signal handling</a></p>
+
+        <h3>فصل ۲.۴ — ارتباط با انسان‌ها (رابط کاربری پایانه)</h3>
+        <p>مطمئن شوید ابتدا <a href="https://rust-cli.github.io/book/tutorial/output.html" target="_blank" rel="noopener">فصل مربوط به خروجی CLI</a>
+        را در آموزش خوانده‌اید. آن فصل چگونگی نوشتن خروجی در ترمینال را پوشش می‌دهد، در حالی که این فصل دربارهٔ <em>چه
+        چیز</em> را باید خروجی داد صحبت می‌کند.</p>
+
+        <h4>وقتی همه‌چیز خوب است</h4>
+        <p>مفید است که حتی وقتی همه‌چیز خوب است نیز از پیشرفت برنامه گزارش بدهیم. سعی کنید در این پیام‌ها آگاهی‌بخش و فشرده
+        باشید. در لاگ‌ها از اصطلاحات بیش‌ازحد فنی استفاده نکنید. به یاد داشته باشید: برنامه در حال کرش نیست، بنابراین دلیلی
+        ندارد کاربران خطاها را جست‌وجو کنند.</p>
+        <p>از همه مهم‌تر، در سبک ارتباط ثابت‌قدم باشید. از پیشوندها و ساختار جملهٔ یکسانی استفاده کنید تا لاگ‌ها به‌راحتی
+        مرورپذیر باشند.</p>
+        <p>سعی کنید بگذارید خروجی برنامهٔ شما داستانی دربارهٔ اینکه چه می‌کند و چگونه بر کاربر اثر می‌گذارد تعریف کند. این
+        می‌تواند شامل نشان دادن جدول زمانی گام‌های درگیر یا حتی یک نوار پیشرفت و نشانگر برای اقدامات طولانی‌مدت باشد. کاربر
+        در هیچ‌نقطه‌ای نباید این احساس را داشته باشد که برنامه در حال انجام کاری مرموز است که نمی‌تواند دنبالش کند.</p>
+
+        <h4>وقتی فهمیدن اینکه چه خبر است دشوار است</h4>
+        <p>وقتی با وضعیت غیرعادی ارتباط برقرار می‌کنیم، ثبات‌قدم بودن مهم است. برنامه‌ای که لاگ زیادی دارد اما از سطح‌های
+        سخت‌گیرانهٔ لاگ پیروی نمی‌کند، به همان اندازه یا حتی کمتر از برنامه‌ای که لاگ ندارد اطلاعات می‌دهد.</p>
+        <p>به همین دلیل، مهم است شدت رویدادها و پیام‌های مربوط به آن را تعریف کنیم و سپس سطح‌های لاگ سازگاری برای آن‌ها
+        استفاده کنیم. به این ترتیب کاربران می‌توانند مقدار لاگ را خودشان با پرچم‌های <code class="inline">--verbose</code>
+        یا متغیرهای محیطی (مانند <code class="inline">RUST_LOG</code>) انتخاب کنند.</p>
+        <p>crate رایج <code class="inline">log</code>
+        <a href="https://docs.rs/log/0.4.4/log/enum.Level.html" target="_blank" rel="noopener">این سطح‌ها را تعریف می‌کند</a>
+        (مرتب‌شده بر اساس افزایش شدت):</p>
+        <ul>
+          <li>trace</li>
+          <li>debug</li>
+          <li>info</li>
+          <li>warning</li>
+          <li>error</li>
+        </ul>
+        <p>ایدهٔ خوبی است که <em>info</em> را سطح پیش‌فرض لاگ بدانیم. از آن برای، خوب، خروجی آگاهی‌بخش استفاده کنید. (برخی
+        برنامه‌ها که به سبک خروجی آرام‌تری تمایل دارند، ممکن است فقط هشدارها و خطاها را به‌صورت پیش‌فرض نشان دهند.)</p>
+        <p>علاوه بر این، همیشه ایدهٔ خوبی است در پیام‌های لاگ از پیشوندها و ساختار جملهٔ مشابه استفاده کنید تا استفاده از
+        ابزاری مانند <code class="inline">grep</code> برای فیلتر کردن آن‌ها آسان باشد. یک پیام باید به‌تنهایی زمینهٔ کافی
+        را فراهم کند تا در یک لاگ فیلترشده مفید باشد، در حالی که همزمان <em>بیش‌ازحد</em> پرحرف هم نباشد.</p>
+
+        <h4>مثال‌هایی از عبارت‌های لاگ</h4>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">error: could not find `Cargo.toml` in `/home/you/project/`</code></pre>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">=&gt; Downloading repository index
+=&gt; Downloading packages...</code></pre>
+        <p>خروجی لاگ زیر از <a href="https://crates.io/crates/wasm-pack" target="_blank" rel="noopener">wasm-pack</a>
+        گرفته شده است:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left"> [1/7] Adding WASM target...
+ [2/7] Compiling to WASM...
+ [3/7] Creating a pkg directory...
+ [4/7] Writing a package.json...
+ &gt; [WARN]: Field `description` is missing from Cargo.toml. It is not necessary, but recommended
+ &gt; [WARN]: Field `repository` is missing from Cargo.toml. It is not necessary, but recommended
+ &gt; [WARN]: Field `license` is missing from Cargo.toml. It is not necessary, but recommended
+ [5/7] Copying over your README...
+ &gt; [WARN]: origin crate has no README
+ [6/7] Installing WASM-bindgen...
+ &gt; [INFO]: wasm-bindgen already installed
+ [7/7] Running WASM-bindgen...
+ Done in 1 second</code></pre>
+
+        <h4>وقتی panic رخ می‌دهد</h4>
+        <p>یکی از جنبه‌هایی که اغلب فراموش می‌شود این است که برنامهٔ شما وقتی کرش می‌کند نیز چیزی خروجی می‌دهد. در راست،
+        «کرش‌ها» اغلب «panic»ها هستند (یعنی «کرش کنترل‌شده» در مقابل «سیستم‌عامل فرآیند را کشت»). به‌صورت پیش‌فرض، وقتی
+        panic رخ می‌دهد، یک «مدیریت‌کنندهٔ panic» اطلاعاتی را در کنسول چاپ می‌کند.</p>
+        <p>مثلاً اگر با <code class="inline">cargo new --bin foo</code> یک پروژهٔ باینری جدید بسازید و محتوای
+        <code class="inline">fn main</code> را با <code class="inline">panic!("Hello World")</code> جایگزین کنید، وقتی
+        برنامه‌تان را اجرا کنید این را می‌گیرید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">thread 'main' panicked at 'Hello, world!', src/main.rs:2:5
+note: Run with `RUST_BACKTRACE=1` for a backtrace.</code></pre>
+        <p>این اطلاعات مفیدی برای شما به‌عنوان توسعه‌دهنده است. (سورپرایز: برنامه به دلیل خط ۲ در فایل
+        <code class="inline">main.rs</code> شما کرش کرده است). اما برای کاربری که حتی به کد منبع دسترسی ندارد، چندان ارزشمند
+        نیست. در واقع به احتمال زیاد فقط گیج‌کننده است. به همین دلیل ایدهٔ خوبی است یک مدیریت‌کنندهٔ panic سفارشی اضافه
+        کنید که خروجی کمی کاربرمحورتر ارائه دهد.</p>
+        <p>یکی از کتابخانه‌هایی که دقیقاً همین کار را می‌کند <a href="https://crates.io/crates/human-panic" target="_blank" rel="noopener">human-panic</a>
+        نام دارد. برای افزودن آن به پروژهٔ CLI خود، آن را import می‌کنید و ماکروی <code class="inline">setup_panic!()</code>
+        را در آغاز تابع <code class="inline">main</code> صدا می‌زنید:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">use human_panic::setup_panic;
+
+fn main() {
+   setup_panic!();
+
+   panic!("Hello world")
+}</code></pre>
+        <p>این اکنون پیامی بسیار دوستانه نشان می‌دهد و به کاربر می‌گوید چه کاری می‌تواند انجام دهد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">Well, this is embarrassing.
+
+foo had a problem and crashed. To help us diagnose the problem you can send us a crash report.
+
+We have generated a report file at "/var/folders/n3/dkk459k908lcmkzwcmq0tcv00000gn/T/report-738e1bec-5585-47a4-8158-f1f7227f0168.toml". Submit an issue or email with the subject of "foo Crash Report" and include the report as an attachment.
+
+- Authors: Your Name &lt;your.name@example.com&gt;
+
+We take privacy seriously, and do not perform any automated error collection. In order to improve the software, we rely on people to submit reports.
+
+Thank you kindly!</code></pre>
+        <p>منبع این فصل: <a href="https://rust-cli.github.io/book/in-depth/human-communication.html" target="_blank" rel="noopener">Communicating with humans</a></p>
+
+        <h3>سایر فصل‌های بخش عمیق‌تر</h3>
+        <p>بخش «موضوعات عمیق‌تر» شامل فصل‌های دیگری نیز می‌شود که در این صفحه به آن‌ها نپرداخته‌ایم:</p>
+        <ul>
+          <li><a href="https://rust-cli.github.io/book/in-depth/config-files.html" target="_blank" rel="noopener">استفاده از فایل‌های پیکربندی</a> — پشتیبانی از فایل‌های پیکربندی و قالب‌های آن‌ها در ابزارهای CLI.</li>
+          <li><a href="https://rust-cli.github.io/book/in-depth/exit-code.html" target="_blank" rel="noopener">کدهای خروج</a> — استفادهٔ درست از کدهای خروجِ فرآیند.</li>
+          <li><a href="https://rust-cli.github.io/book/in-depth/machine-communication.html" target="_blank" rel="noopener">ارتباط با ماشین‌ها</a> — خروجی‌هایی که قابل مصرف برای ابزارها هستند (مانند JSON).</li>
+          <li><a href="https://rust-cli.github.io/book/in-depth/docs.html" target="_blank" rel="noopener">ایجاد مستندات برای برنامه‌های CLI</a> — تولید صفحهٔ man و تکمیل‌های شل.</li>
+        </ul>
+        <p>همچنین فصل <a href="https://rust-cli.github.io/book/resources/index.html" target="_blank" rel="noopener">منابع (Resources)</a>
+        در انتهای کتاب قرار دارد.</p>
+        <p>منبع این بخش: <a href="https://rust-cli.github.io/book/in-depth/index.html" target="_blank" rel="noopener">In-depth topics</a></p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Command-line Applications in Rust» اثر پروژهٔ «rust-cli» است. این صفحه فقط ترجمهٔ
+        فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندگان اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://rust-cli.github.io/book/index.html" target="_blank" rel="noopener">سایت اصلی کتاب</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

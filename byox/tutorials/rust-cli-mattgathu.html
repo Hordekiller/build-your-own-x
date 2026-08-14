@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Writing a Command Line Tool in Rust» (Matt Gathu)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک ابزار خط فرمان در Rust</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک ابزار خط فرمان در Rust</span>
+      </div>
+      <h1>نوشتن یک ابزار خط فرمان در Rust</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://mattgathu.dev/2017/08/29/writing-cli-app-rust.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Writing a Command Line Tool in Rust» نوشته «مت
+          گاتو (Matt Gathu)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://mattgathu.dev/2017/08/29/writing-cli-app-rust.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه: چیست؟ ==================== -->
+      <section>
+        <h2>چیست؟ (What)</h2>
+        <p>راست (Rust) یک زبان برنامه‌نویسی سیستمی (systems programming language) است که به شما امکان می‌دهد کدهایی
+        سریع، ایمن و هم‌زمان بنویسید. این زبان همان جایگاهی را پر می‌کند که C و ++C دارند؛ اما با مجموعه‌ای تازه از
+        قابلیت‌ها و آسودگی‌ها عرضه شده است که نوشتن برنامه در آن را لذت‌بخش می‌کند.</p>
+        <p>ابزارهای خط فرمان (Command Line Tools) برنامه‌هایی هستند که برای اجرا در یک واسط ترمینال (خط فرمان) طراحی
+        شده‌اند. آن‌ها با برنامه‌نویسی یونیکس هم‌معنا هستند و در آن‌جا اغلب «ابزارهای شل» (shell tools) نامیده
+        می‌شوند. برای نمونه فرمان <code class="inline">ls</code> که برای فهرست‌کردن دایرکتوری‌ها به کار می‌رود.</p>
+        <p>قصد داریم نشان دهیم که چگونه با استفاده از راست یک ابزار خط فرمان بنویسیم؛ این کار را با ساختن یک کلون
+        (clone) ساده از ابزار پرکاربرد <code class="inline">wget</code> انجام می‌دهیم که برای دانلود فایل به کار
+        می‌رود.</p>
+        <img src="https://mattgathu.dev/images/cli.png" alt="منوی راهنمای ابزار خط فرمان" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== چرا؟ ==================== -->
+      <section>
+        <h2>چرا؟ (Why)</h2>
+        <p>هدف در این‌جا شروع نوشتن ابزارهای خط فرمان در زبان برنامه‌نویسی راست است و نیز استفاده از برخی کریت‌های
+        (crates) فوقالعاده — کتابخانه‌های ساخته‌شده توسط جامعه — که نوشتن برنامه‌های CLI را بسیار آسان می‌کنند.</p>
+      </section>
+
+      <!-- ==================== چگونه؟ ==================== -->
+      <section>
+        <h2>چگونه؟ (How)</h2>
+        <p>کلون ساده‌مان از <code class="inline">wget</code> ویژگی‌های زیر را خواهد داشت — ویژگی‌هایی که در یک ابزار
+        خط فرمان مطلوب‌اند:</p>
+        <ul>
+          <li>تجزیهٔ آرگومان‌ها (Argument parsing)</li>
+          <li>خروجی رنگی (Colored Output)</li>
+          <li>نوار پیشرفت (Progress bar)</li>
+        </ul>
+
+        <!-- ===== راه‌اندازی پروژه ===== -->
+        <h3>راه‌اندازی پروژه (Project Setup)</h3>
+        <p>برای برپاکردن اسکلت پروژه‌مان از ابزار ساخت (و مدیر بسته) راست یعنی کargo (Cargo) استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">cargo new rget --bin</code></pre>
+        <p>این دستور پروژهٔ جدیدی به نام <code class="inline">rget</code> می‌سازد و گزینهٔ
+        <code class="inline">--bin</code> به کargo می‌گوید که ما در حال ساخت یک برنامهٔ اجرایی (executable) هستیم، نه
+        یک کتابخانه. پوشه‌ای با ساختار زیر تولید می‌شود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cd rget
+$ tree .
+.
+├── Cargo.toml
+└── src
+    └── main.rs
+
+1 directory, 2 files</code></pre>
+        <p><code class="inline">Cargo.toml</code> یک فایل مانیفست (manifest) است و کد ما در پوشهٔ
+        <code class="inline">src</code> و در فایل <code class="inline">main.rs</code> قرار خواهد گرفت.</p>
+
+        <!-- ===== تجزیهٔ آرگومان‌ها ===== -->
+        <h3>تجزیهٔ آرگومان‌ها (Argument Parsing)</h3>
+        <p>برای تجزیهٔ آرگومان‌های خط فرمان از کریت <a href="https://crates.io/crates/clap" target="_blank" rel="noopener">clap</a>
+        استفاده خواهیم کرد. برای افزودن آن به پروژه‌مان، بخش وابستگی‌ها (dependencies) فایل مانیفست کargo را به‌روزرسانی
+        می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">toml</span><code style="direction:ltr;text-align:left">[package]
+name = "rget"
+version = "0.1.0"
+authors = ["Matt Gathu &lt;mattgathu@gmail.com&gt;"]
+
+[dependencies]
+clap = "2.26.0"</code></pre>
+        <p>سپس تابع <code class="inline">main</code> را در <code class="inline">main.rs</code> به‌روزرسانی می‌کنیم تا
+        تجزیهٔ آرگومان‌ها را انجام دهد:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">extern crate clap;
+
+use clap::{Arg, App};
+
+fn main() {
+    let matches = App::new("Rget")
+        .version("0.1.0")
+        .author("Matt Gathu &lt;mattgathu@gmail.com&gt;")
+        .about("wget clone written in Rust")
+        .arg(Arg::with_name("URL")
+                 .required(true)
+                 .takes_value(true)
+                 .index(1)
+                 .help("url to download"))
+        .get_matches();
+    let url = matches.value_of("URL").unwrap();
+    println!("{}", url);
+}</code></pre>
+        <p>اکنون می‌توانیم تجزیه‌گر آرگومان خود را با استفاده از کargo آزمایش کنیم:</p>
+        <p><code class="inline">cargo run</code></p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+     Running `target/debug/rget`
+error: The following required arguments were not provided:
+    &lt;URL&gt;
+
+USAGE:
+    rget &lt;URL&gt;
+
+For more information try --help</code></pre>
+        <p>برای ارسال آرگومان به برنامه‌مان می‌توانیم هنگام فراخوانی <code class="inline">cargo run</code> دو خط
+        تیره (<code class="inline">--</code>) اضافه کنیم:</p>
+        <p><code class="inline">cargo run -- -h</code></p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+     Running `target/debug/rget -h`
+Rget 0.1.0
+Matt Gathu &lt;mattgathu@gmail.com&gt;
+wget clone written in Rust
+
+USAGE:
+    rget &lt;URL&gt;
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+ARGS:
+    &lt;URL&gt;    url to download</code></pre>
+
+        <!-- ===== نوار پیشرفت و خروجی رنگی ===== -->
+        <h3>نوار پیشرفت و خروجی رنگی (Progress bar and colored output)</h3>
+        <p><a href="https://crates.io/crates/indicatif" target="_blank" rel="noopener">indicatif</a> یک کتابخانهٔ راست
+        برای نمایش پیشرفت در برنامه‌های خط فرمان است. ما از آن برای پیاده‌سازی یک نوار پیشرفت و یک اسپینر (spinner) —
+        نشانگر چرخان — برای کلون wget خود استفاده می‌کنیم.</p>
+        <p>indicatif به کریت دیگری به نام <a href="https://crates.io/crates/console" target="_blank" rel="noopener">console</a>
+        متکی است و از آن برای خروجی رنگی استفاده می‌کند. ما همواره از console بهره خواهیم گرفت و با آن متن‌های رنگی
+        چاپ خواهیم کرد.</p>
+        <p>در ادامه تابع ساخت نوار پیشرفت آمده است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn create_progress_bar(quiet_mode: bool, msg: &amp;str, length: Option&lt;u64&gt;) -&gt; ProgressBar {
+    let bar = match quiet_mode {
+        true =&gt; ProgressBar::hidden(),
+        false =&gt; {
+            match length {
+                Some(len) =&gt; ProgressBar::new(len),
+                None =&gt; ProgressBar::new_spinner(),
+            }
+        }
+    };
+
+    bar.set_message(msg);
+    match length.is_some() {
+        true =&gt; bar
+            .set_style(ProgressStyle::default_bar()
+                .template("{msg} {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} eta: {eta}")
+                .progress_chars("=&gt; ")),
+        false =&gt; bar.set_style(ProgressStyle::default_spinner()),
+    };
+
+    bar
+}</code></pre>
+        <p>این تابع چند آرگومان دارد و بر اساس مقدار آن‌ها یک نوار پیشرفت می‌سازد. ما از قابلیت
+        <a href="https://doc.rust-lang.org/book/second-edition/ch06-02-match.html" target="_blank" rel="noopener">تطبیق الگو</a>
+        (pattern matching) در راست استفاده کرده‌ایم تا آرگومان‌ها را با نوار پیشرفت موردنظر مطابقت دهیم.</p>
+
+        <!-- ===== شبیه‌سازی منطق wget ===== -->
+        <h3>شبیه‌سازی منطق wget (Cloning wget's logic)</h3>
+        <p>برای پیاده‌سازی تابع دانلود فایل — که یک آدرس URL دریافت می‌کند و آن را در یک فایل محلی ذخیره می‌کند — از
+        کریت <a href="https://crates.io/crates/reqwest" target="_blank" rel="noopener">reqwest</a> استفاده می‌کنیم.</p>
+        <p>تابع دانلود همچنین پس از دریافت هر تکه (chunk) از فایل، نوار پیشرفت را به‌روزرسانی می‌کند و متن رنگی حاوی
+        فراداده‌های (metadata) دانلود را نیز چاپ می‌کند؛ رفتاری مشابه رفتار خود wget.</p>
+        <p>در ادامه، قطعه‌کد نمایش‌دهندهٔ تابع دانلود آمده است:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code style="direction:ltr;text-align:left">fn download(target: &amp;str, quiet_mode: bool) -&gt; Result&lt;(), Box&lt;::std::error::Error&gt;&gt; {
+
+    // تجزیهٔ آدرس URL
+    let url = parse_url(target)?;
+    let client = Client::new().unwrap();
+    let mut resp = client.get(url)?
+        .send()
+        .unwrap();
+    print(format!("HTTP request sent... {}",
+                  style(format!("{}", resp.status())).green()),
+          quiet_mode);
+    if resp.status().is_success() {
+
+        let headers = resp.headers().clone();
+        let ct_len = headers.get::&lt;ContentLength&gt;().map(|ct_len| **ct_len);
+
+        let ct_type = headers.get::&lt;ContentType&gt;().unwrap();
+
+        match ct_len {
+            Some(len) =&gt; {
+                print(format!("Length: {} ({})",
+                      style(len).green(),
+                      style(format!("{}", HumanBytes(len))).red()),
+                    quiet_mode);
+            },
+            None =&gt; {
+                print(format!("Length: {}", style("unknown").red()), quiet_mode); 
+            },
+        }
+
+        print(format!("Type: {}", style(ct_type).green()), quiet_mode);
+
+        let fname = target.split("/").last().unwrap();
+
+        print(format!("Saving to: {}", style(fname).green()), quiet_mode);
+
+        let chunk_size = match ct_len {
+            Some(x) =&gt; x as usize / 99,
+            None =&gt; 1024usize, // اندازهٔ پیش‌فرض هر تکه
+        };
+
+        let mut buf = Vec::new();
+
+        let bar = create_progress_bar(quiet_mode, fname, ct_len);
+
+        loop {
+            let mut buffer = vec![0; chunk_size];
+            let bcount = resp.read(&amp;mut buffer[..]).unwrap();
+            buffer.truncate(bcount);
+            if !buffer.is_empty() {
+                buf.extend(buffer.into_boxed_slice()
+                               .into_vec()
+                               .iter()
+                               .cloned());
+                bar.inc(bcount as u64);
+            } else {
+                break;
+            }
+        }
+
+        bar.finish();
+
+        save_to_file(&amp;mut buf, fname)?;
+    }
+
+    Ok(())
+
+}</code></pre>
+        <p>تابع <code class="inline">download</code> یک آدرس URL مقصد دریافت می‌کند، آن را تجزیه می‌کند تا نام فایل را
+        به دست آورد و از هدر HTTP با نام <code class="inline">Content-Length</code> برای تعیین اندازهٔ فایل استفاده
+        می‌کند. سپس یک نوار پیشرفت رنگی می‌سازد و فایل را به‌صورت تکه‌تکه دانلود می‌کند. پس از دریافت هر تکه، نوار
+        پیشرفت برای نمایش میزان پیشرفت به‌روزرسانی می‌شود.</p>
+        <p>هنگامی که دانلود کامل شد، محتوای فایل روی دیسک ذخیره می‌شود.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی (Recap)</h2>
+        <p>نوشتن ابزارهای CLI در راست بسیار آسان است: تجزیهٔ آرگومان‌ها با کریت <code class="inline">clap</code>، ساخت
+        نوارهای پیشرفت با کریت <code class="inline">indicatif</code> و خروجی رنگی با کریت
+        <code class="inline">console</code> انجام می‌شود. ابزار ساخت کargo نیز ساخت و اجرای کد ما را بی‌نهایت ساده
+        می‌کند.</p>
+        <p>پیاده‌سازی کامل این کلون wget را می‌توانید در
+        <a href="https://github.com/mattgathu/rget" target="_blank" rel="noopener">گیت‌هاب من</a> بیابید.</p>
+
+        <div class="callout note">
+          <strong>پروژهٔ rget:</strong> تمام کد منبع این کلون wget در
+          <a href="https://github.com/mattgathu/rget" target="_blank" rel="noopener">مخزن GitHub پروژه</a> موجود
+          است.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Writing a Command Line Tool in Rust» اثر «مت گاتو (Matt Gathu)» در
+        سایت mattgathu.dev است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده
+        اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://mattgathu.dev/2017/08/29/writing-cli-app-rust.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

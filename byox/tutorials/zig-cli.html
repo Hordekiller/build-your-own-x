@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to Build Your Own CLI App in Zig from Scratch» (rebuild-x)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت برنامهٔ خط فرمان خودت از صفر با Zig</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>ساخت برنامهٔ خط فرمان خودت از صفر با Zig</span>
+      </div>
+      <h1>ساخت برنامهٔ خط فرمان خودت از صفر با Zig</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Zig</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://rebuild-x.github.io/docs/#/./zig/terminal/cli" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «How to Build Your Own CLI App in Zig from Scratch»
+          از «rebuild-x» است. نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://rebuild-x.github.io/docs/#/./zig/terminal/cli" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>رابط‌های خط فرمان (Command-Line Interfaces / CLI) ابزارهایی ضروری برای توسعه‌دهندگان، مدیران سیستم و کاربران
+        حرفه‌ای هستند. در این آموزش، ساخت یک اپ CLI قدرتمند و انعطاف‌پذیر در Zig را از پایه (from scratch) پیش
+        می‌گیریم. در پایان، یک چارچوب (framework) CLI خواهید داشت که از فرمان‌ها، گزینه‌ها، مدیریت خطا و سازگاری
+        چندسکویی (cross-platform) پشتیبانی می‌کند.</p>
+        <p>زبان برنامه‌نویسی Zig عملکرد زبان‌های سطح پایین را با ویژگی‌های ایمنی مدرن ترکیب می‌کند و آن را انتخابی
+        عالی برای توسعهٔ برنامه‌های CLI می‌سازد. ما یک چارچوب CLI قابل‌استفاده‌مجدد می‌سازیم که می‌تواند:</p>
+        <ul>
+          <li>فرمان‌ها (commands) را تجزیه و مدیریت کند</li>
+          <li>گزینه‌های کوتاه و بلند (short and long-form options) همراه با مقدار پردازش کند</li>
+          <li>گزینه‌های اجباری (required options) را اعمال کند</li>
+          <li>گزینه‌های اختیاری (optional options) را مدیریت کند</li>
+          <li>سازگاری چندسکویی (ویندوز، لینوکس، مک‌اواس) فراهم کند</li>
+        </ul>
+        <p>رویکرد ما از یک طراحی تمیز و ماژولار پیروی می‌کند که به‌راحتی می‌توانید آن را در پروژه‌های خودتان به‌کار ببرید.</p>
+      </section>
+
+      <!-- ==================== پیش‌نیازها ==================== -->
+      <section>
+        <h2>پیش‌نیازها (Prerequisites)</h2>
+        <ul>
+          <li>آشنایی اولیه با نحو (syntax) زبان Zig</li>
+          <li>کامپایلر Zig نصب‌شده (نسخهٔ ۰٫۱۱٫۰ یا بالاتر توصیه می‌شود)</li>
+          <li>یک ویرایشگر متن یا IDE با پشتیبانی از Zig</li>
+        </ul>
+      </section>
+
+      <!-- ==================== ساختار پروژه ==================== -->
+      <section>
+        <h2>ساختار پروژه (Project Structure)</h2>
+        <p>بیایید با راه‌اندازی ساختار پروژه شروع کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">my-cli/
+├── src/
+│   ├── cli.zig       # عملکرد اصلی CLI
+│   ├── commands.zig  # پیاده‌سازی فرمان‌ها
+│   └── main.zig      # نقطهٔ ورود برنامهٔ اصلی
+├── build.zig         # پیکربندی ساخت
+└── README.md         # مستندات</code></pre>
+      </section>
+
+      <!-- ==================== گام ۱: انواع اصلی CLI ==================== -->
+      <section>
+        <h2>گام ۱: انواع اصلی CLI (Core CLI Types)</h2>
+        <p>ابتدا، ساختارهای دادهٔ اصلی CLI خود را در <code class="inline">cli.zig</code> تعریف می‌کنیم. برای نمایش
+        فرمان‌ها و گزینه‌ها به انواع (types) داده نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">const std = @import("std");
+const builtin = @import("builtin");
+
+pub const MAX_COMMANDS: u8 = 10;
+pub const MAX_OPTIONS: u8 = 20;
+
+const Byte = u8;
+const Slice = []const Byte;
+const Slices = []const Slice;
+
+/// ساختاری برای نمایش نوع فرمان.
+pub const command = struct {
+    name: Slice,                     // نام فرمان
+    func: fnType,                    // تابع اجرای فرمان
+    req: Slices = &amp;.{},              // گزینه‌های اجباری
+    opt: Slices = &amp;.{},              // گزینه‌های اختیاری
+    const fnType = *const fn ([]const option) bool;
+};
+
+/// ساختاری برای نمایش نوع گزینه.
+pub const option = struct {
+    name: Slice,                     // نام گزینه
+    func: ?fnType = null,            // تابع اجرای گزینه
+    short: Byte,                     // فرم کوتاه، مثلاً -n|-N
+    long: Slice,                     // فرم بلند، مثلاً --name
+    value: Slice = "",               // مقدار گزینه
+    const fnType = *const fn (Slice) bool;
+};
+
+/// خطاهای احتمالی هنگام اجرای CLI
+pub const Error = error{
+    NoArgsProvided,
+    UnknownCommand,
+    UnknownOption,
+    MissingRequiredOption,
+    UnexpectedArgument,
+    CommandExecutionFailed,
+    TooManyCommands,
+    TooManyOptions,
+};</code></pre>
+      </section>
+
+      <!-- ==================== گام ۲: پیاده‌سازی تجزیه‌کنندهٔ فرمان ==================== -->
+      <section>
+        <h2>گام ۲: پیاده‌سازی تجزیه‌کنندهٔ فرمان (Command Parser Implementation)</h2>
+        <p>حالا، عملکرد اصلی را می‌سازیم که آرگومان‌های خط فرمان را تجزیه (parse) می‌کند و فرمان‌ها را اجرا می‌کند:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">/// اجرای برنامهٔ CLI را آغاز می‌کند.
+pub fn start(commands: []const command, options: []const option, debug: bool) !void {
+    if (commands.len > MAX_COMMANDS) {
+        return error.TooManyCommands;
+    }
+    if (options.len > MAX_OPTIONS) {
+        return error.TooManyOptions;
+    }
+
+    // ایجاد یک تخصیص‌دهندهٔ همه‌کاره (general-purpose allocator) برای مدیریت حافظه هنگام اجرا
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    // دریافت آرگومان‌های خط فرمان به روشی چندسکویی
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    try startWithArgs(commands, options, args, debug);
+}
+
+/// برنامهٔ CLI را با آرگومان‌های داده‌شده آغاز می‌کند.
+pub fn startWithArgs(commands: []const command, options: []const option, args: anytype, debug: bool) !void {
+    if (args.len < 2) {
+        if(debug) std.debug.print("No command provided by user!\n", .{});
+        return Error.NoArgsProvided;
+    }
+
+    // استخراج نام فرمان (دومین آرگومان پس از نام برنامه)
+    const command_name = args[1];
+    var detected_command: ?command = null;
+
+    // جست‌وجو در فهرست فرمان‌های موجود برای یافتن تطابق
+    for (commands) |cmd| {
+        if (std.mem.eql(u8, cmd.name, command_name)) {
+            detected_command = cmd;
+            break;
+        }
+    }
+
+    // اگر فرمان تطبیقی یافت نشد، خطا برگردان
+    if (detected_command == null) {
+        if(debug) std.debug.print("Unknown command: {s}\n", .{command_name});
+        return Error.UnknownCommand;
+    }
+
+    // دریافت فرمان تطبیق‌یافته از متغیر اختیاری
+    const cmd = detected_command.?;
+
+    if(debug) std.debug.print("Detected command: {s}\n", .{cmd.name});
+
+    // تخصیص حافظه برای گزینه‌های تشخیص‌داده‌شده بر اساس آرگومان‌های باقی‌مانده
+    var detected_options: [MAX_OPTIONS]option = undefined;
+    var detected_len: usize = 0;
+    var i: usize = 2;
+
+    // تجزیهٔ گزینه‌ها برای دریافت مقادیرشان
+    while (i &lt; args.len) {
+        const arg = args[i];
+
+        if (std.mem.startsWith(u8, arg, "-")) {
+            const option_name = if (std.mem.startsWith(u8, arg[1..], "-")) arg[2..] else arg[1..];
+            var matched_option: ?option = null;
+
+            for (options) |opt| {
+                if (std.mem.eql(u8, option_name, opt.long) or (option_name.len == 1 and option_name[0] == opt.short)) {
+                    matched_option = opt;
+                    break;
+                }
+            }
+
+            if (matched_option == null) {
+                if(debug) std.debug.print("Unknown option: {s}\n", .{arg});
+                return Error.UnknownOption;
+            }
+
+            var opt = matched_option.?;
+
+            // تشخیص مقدار گزینه
+            if (i + 1 &lt; args.len and !std.mem.startsWith(u8, args[i + 1], "-")) {
+                opt.value = args[i + 1];
+                i += 1;
+            } else {
+                opt.value = "";
+            }
+
+            if (detected_len &gt;= MAX_OPTIONS) {
+                return error.TooManyOptions;
+            }
+
+            detected_options[detected_len] = opt;
+            detected_len += 1;
+        } else {
+            if(debug) std.debug.print("Unexpected argument: {s}\n", .{arg});
+            return Error.UnexpectedArgument;
+        }
+
+        i += 1;
+    }
+
+    // برش دادن گزینه‌های تشخیص‌داده‌شده به تعداد واقعی آن‌ها
+    const used_options = detected_options[0..detected_len];
+
+    // اطمینان از ارائهٔ همهٔ گزینه‌های اجباری فرمان تشخیص‌داده‌شده
+    for (cmd.req) |req_option| {
+        var found = false;
+
+        for (used_options) |opt| {
+            if (std.mem.eql(u8, req_option, opt.name)){
+                found = true; break;
+            }
+        }
+
+        if (!found) {
+            if(debug) std.debug.print("Missing required option: {s}\n", .{req_option});
+            return Error.MissingRequiredOption;
+        }
+    }
+
+    // اجرای تابع مرتبط با فرمان با گزینه‌های تشخیص‌داده‌شده
+    if (!cmd.func(used_options)) {
+        return Error.CommandExecutionFailed;
+    } else {
+        // اجرای توابع گزینه‌ها
+        for (used_options) |opt| {
+            if(opt.func == null) continue;
+
+            const result = opt.func.?(opt.value);
+
+            if (!result) {
+                if(debug) std.debug.print("Option function execution failed: {s}\n", .{opt.name});
+                return Error.CommandExecutionFailed;
+            }
+        }
+    }
+
+    // اگر اجرا به این نقطه برسد، فرمان با موفقیت اجرا شده است
+    if(debug) std.debug.print("Command executed successfully: {s}\n", .{cmd.name});
+}</code></pre>
+      </section>
+
+      <!-- ==================== گام ۳: مدیریت‌کننده‌های فرمان ==================== -->
+      <section>
+        <h2>گام ۳: ساخت مدیریت‌کننده‌های فرمان (Creating Command Handlers)</h2>
+        <p>در ادامه، چند مدیریت‌کنندهٔ فرمان (command handler) را در <code class="inline">commands.zig</code> پیاده‌سازی
+        می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">const std = @import("std");
+const cli = @import("cli.zig");
+
+pub const methods = struct {
+    pub const commands = struct {
+        // مدیریت‌کنندهٔ فرمان «hello»
+        pub fn helloFn(_options: []const cli.option) bool {
+            std.debug.print("Hello, ", .{});
+
+            // جست‌وجو برای گزینهٔ «name»
+            for (_options) |opt| {
+                if (std.mem.eql(u8, opt.name, "name")) {
+                    if (opt.value.len > 0) {
+                        std.debug.print("{s}", .{opt.value});
+                    } else {
+                        std.debug.print("World", .{});
+                    }
+                    break;
+                }
+            }
+
+            std.debug.print("!\n", .{});
+            return true;
+        }
+
+        // مدیریت‌کنندهٔ فرمان «help»
+        pub fn helpFn(_: []const cli.option) bool {
+            std.debug.print(
+                "Usage: my-cli &lt;command&gt; [options]\n" ++
+                "Commands:\n" ++
+                "  hello    Greet someone\n" ++
+                "  help     Show this help message\n" ++
+                "" ++
+                "Options for hello:\n" ++
+                "  -n, --name &lt;value&gt;    Name to greet\n"
+                , .{}
+            );
+            return true;
+        }
+    };
+
+    pub const options = struct {
+        // مدیریت‌کنندهٔ گزینهٔ «name»
+        pub fn nameFn(_: []const u8) bool {
+            // منطق مخصوص این گزینه می‌تواند اینجا بیاید
+            return true;
+        }
+    };
+};</code></pre>
+      </section>
+
+      <!-- ==================== گام ۴: برنامهٔ اصلی ==================== -->
+      <section>
+        <h2>گام ۴: برنامهٔ اصلی (Main Application)</h2>
+        <p>حالا، همه‌چیز را در <code class="inline">main.zig</code> به هم متصل می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">const std = @import("std");
+const cli = @import("cli.zig");
+const cmd = @import("commands.zig");
+
+pub fn main() !void {
+    // تعریف فرمان‌های موجود
+    const commands = [_]cli.command{
+        cli.command{
+            .name = "hello",
+            .func = &amp;cmd.methods.commands.helloFn,
+            .opt = &amp;.{"name"},  // «name» برای فرمان hello اختیاری است
+        },
+        cli.command{
+            .name = "help",
+            .func = &amp;cmd.methods.commands.helpFn,
+        },
+    };
+
+    // تعریف گزینه‌های موجود
+    const options = [_]cli.option{
+        cli.option{
+            .name = "name",
+            .short = 'n',
+            .long = "name",
+            .func = &amp;cmd.methods.options.nameFn,
+        },
+    };
+
+    // اجرای برنامهٔ CLI
+    try cli.start(&amp;commands, &amp;options, true);
+}</code></pre>
+      </section>
+
+      <!-- ==================== گام ۵: پیکربندی ساخت ==================== -->
+      <section>
+        <h2>گام ۵: پیکربندی ساخت (Build Configuration)</h2>
+
+        <h3>ساخت فایل <code class="inline">build.zig</code>:</h3>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">const Build = @import("std").Build;
+
+pub fn build(b: *Build) void {
+    const exe_mod           = b.createModule(.{
+        .root_source_file   = b.path("src/main.zig"),
+        .target             = b.standardTargetOptions(.{}),
+        .optimize           = b.standardOptimizeOption(.{}),
+    });
+
+    const exe               = b.addExecutable(.{
+        .name               = "cli",
+        .root_module        = exe_mod,
+    });
+
+    b.installArtifact(exe);
+
+    const exe_tests         = b.addTest(.{
+        .root_module        = exe_mod,
+    });
+
+    const run_exe_tests     = b.addRunArtifact(exe_tests);
+
+    const test_step         = b.step("test", "Run unit tests");
+    test_step.dependOn(&amp;run_exe_tests.step);
+}</code></pre>
+
+        <h3>ساخت فایل <code class="inline">build.zig.zon</code>:</h3>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">.{
+    .name = .cli,
+
+    .version = "0.0.0",
+
+    .minimum_zig_version = "0.15.0-dev.64+2a4e06bcb",
+
+    .fingerprint = 0xd5b3a843fb43c32a,
+
+    .paths = .{
+        "build.zig", "build.zig.zon", "src",
+    },
+
+    // هیچ وابستگی‌ای وجود ندارد.
+}</code></pre>
+      </section>
+
+      <!-- ==================== گام ۶: آزمایش CLI ==================== -->
+      <section>
+        <h2>گام ۶: آزمایش CLI شما (Testing Your CLI)</h2>
+        <p>برنامهٔ CLI خود را ساخته و اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ zig build
+$ ./zig-out/bin/my-cli help
+Usage: my-cli &lt;command&gt; [options]
+
+Commands:
+  hello    Greet someone
+  help     Show this help message
+
+Options for hello:
+  -n, --name &lt;value&gt;    Name to greet
+
+$ ./zig-out/bin/my-cli hello
+Hello, World!
+
+$ ./zig-out/bin/my-cli hello -n Alice
+Hello, Alice!
+
+$ ./zig-out/bin/my-cli hello --name Bob
+Hello, Bob!</code></pre>
+      </section>
+
+      <!-- ==================== قابلیت‌های پیشرفته ==================== -->
+      <section>
+        <h2>قابلیت‌های پیشرفته (Advanced Features)</h2>
+        <p>حالا که یک چارچوب CLI پایه داریم، چند قابلیت پیشرفته را بررسی می‌کنیم:</p>
+
+        <h3>۱. افزودن گزینه‌های اجباری (Adding Required Options)</h3>
+        <p>بیایید فرمان hello خود را طوری تغییر دهیم که یک گزینهٔ greeting (سلام‌گویی) اجباری داشته باشد:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">// در main.zig
+const commands = [_]cli.command{
+    cli.command{
+        .name = "hello",
+        .func = &amp;cmd.methods.commands.helloFn,
+        .req = &amp;.{"greeting"},  // «greeting» اجباری است
+        .opt = &amp;.{"name"},      // «name» همچنان اختیاری است
+    },
+    // ...
+};
+
+const options = [_]cli.option{
+    cli.option{
+        .name = "name",
+        .short = 'n',
+        .long = "name",
+        .func = &amp;cmd.methods.options.nameFn,
+    },
+    cli.option{
+        .name = "greeting",
+        .short = 'g',
+        .long = "greeting",
+        .func = &amp;cmd.methods.options.greetingFn,
+    },
+};</code></pre>
+        <p>مدیریت‌کنندهٔ فرمان hello را در <code class="inline">commands.zig</code> به‌روزرسانی کنید:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">pub fn helloFn(options: []const cli.option) bool {
+    var greeting: []const u8 = undefined;
+    var name: []const u8 = "World";
+
+    // استخراج گزینه‌ها
+    for (options) |opt| {
+        if (std.mem.eql(u8, opt.name, "greeting")) {
+            greeting = opt.value;
+        } else if (std.mem.eql(u8, opt.name, "name")) {
+            if (opt.value.len > 0) {
+                name = opt.value;
+            }
+        }
+    }
+
+    std.debug.print("{s}, {s}!\n", .{greeting, name});
+    return true;
+}</code></pre>
+
+        <h3>۲. گروه‌بندی فرمان‌ها (Command Groups)</h3>
+        <p>ممکن است بخواهید فرمان‌های خود را در گروه‌ها سازماندهی کنید. بیایید این قابلیت را اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">// در main.zig
+const commands = [_]cli.command{
+    // فرمان‌های کاربر
+    cli.command{
+        .name = "user:create",
+        .func = &amp;cmd.methods.commands.userCreateFn,
+        .req = &amp;.{"username"},
+    },
+    cli.command{
+        .name = "user:list",
+        .func = &amp;cmd.methods.commands.userListFn,
+    },
+    // فرمان‌های پیکربندی
+    cli.command{
+        .name = "config:set",
+        .func = &amp;cmd.methods.commands.configSetFn,
+        .req = &amp;.{"key", "value"},
+    },
+    cli.command{
+        .name = "config:get",
+        .func = &amp;cmd.methods.commands.configGetFn,
+        .req = &amp;.{"key"},
+    },
+    // ...
+};</code></pre>
+
+        <h3>۳. افزودن رنگ و خروجی استایل‌دار (Adding Colors and Styled Output)</h3>
+        <p>برای کاربرپسندتر کردن CLI خود، افزودن رنگ و استایل را در نظر بگیرید:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">// به cli.zig اضافه کنید
+pub const Color = enum {
+    Reset,
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+
+    pub fn ansiCode(self: Color) []const u8 {
+        return switch (self) {
+            .Reset => "\x1b[0m",
+            .Black => "\x1b[30m",
+            .Red => "\x1b[31m",
+            .Green => "\x1b[32m",
+            .Yellow => "\x1b[33m",
+            .Blue => "\x1b[34m",
+            .Magenta => "\x1b[35m",
+            .Cyan => "\x1b[36m",
+            .White => "\x1b[37m",
+        };
+    }
+};
+
+pub fn printColored(color: Color, comptime fmt: []const u8, args: anytype) void {
+    std.debug.print("{s}" ++ fmt ++ "{s}", .{color.ansiCode()} ++ args ++ .{Color.Reset.ansiCode()});
+}</code></pre>
+        <p>استفاده در فرمان‌های شما:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">// در commands.zig
+pub fn helloFn(options: []const cli.option) bool {
+    var greeting: []const u8 = undefined;
+    var name: []const u8 = "World";
+
+    // استخراج گزینه‌ها (مانند قبل)
+
+    cli.printColored(.Green, "{s}, ", .{greeting});
+    cli.printColored(.Cyan, "{s}", .{name});
+    cli.printColored(.Yellow, "!\n", .{});
+    return true;
+}</code></pre>
+
+        <h3>۴. نشانگرهای پیشرفت (Progress Indicators)</h3>
+        <p>برای فرمان‌های طولانی‌مدت، یک نشانگر پیشرفت (progress indicator) اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">zig</span><code style="direction:ltr;text-align:left">// در cli.zig
+pub const Spinner = struct {
+    frames: []const []const u8,
+    current: usize = 0,
+    message: []const u8,
+    timer: std.time.Timer,
+
+    pub fn init(message: []const u8) !Spinner {
+        return Spinner{
+            .frames = &amp;[_][]const u8{ "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+            .message = message,
+            .timer = try std.time.Timer.start(),
+            .current = 0,
+        };
+    }
+
+    pub fn tick(self: *Spinner) void {
+        const stdout = std.io.getStdOut().writer();
+        _ = stdout.print("\r{s} {s}", .{self.frames[self.current], self.message}) catch {};
+        self.current = (self.current + 1) % self.frames.len;
+    }
+
+    pub fn stop(self: *Spinner, message: []const u8) void {
+        const stdout = std.io.getStdOut().writer();
+        _ = stdout.print("\r✓ {s}\n", .{message}) catch {};
+    }
+};
+
+// کاربرد در commands.zig
+pub fn longRunningCommandFn(_: []const cli.option) bool {
+    var spinner = cli.Spinner.init("Processing...") catch |err| {
+        std.debug.print("Failed to initialize spinner: {}\n", .{err});
+        return false;
+    };
+
+    // شبیه‌سازی کار
+    var i: usize = 0;
+    while (i &lt; 50) : (i += 1) {
+        spinner.tick();
+        std.time.sleep(100 * std.time.ns_per_ms);
+    }
+
+    spinner.stop("Done processing!");
+    return true;
+}</code></pre>
+      </section>
+
+      <!-- ==================== نتیجه‌گیری ==================== -->
+      <section>
+        <h2>نتیجه‌گیری (Conclusion)</h2>
+        <p>تبریک! شما یک چارچوب اپ CLI قدرتمند از صفر در Zig ساخته‌اید. چارچوب CLI شما اکنون از این موارد پشتیبانی
+        می‌کند:</p>
+        <ul>
+          <li>تجزیه و اجرای فرمان‌ها</li>
+          <li>گزینه‌های کوتاه و بلند</li>
+          <li>گزینه‌های اجباری و اختیاری</li>
+          <li>مدیریت خطا</li>
+          <li>سازگاری چندسکویی</li>
+          <li>خروجی رنگی</li>
+          <li>نشانگرهای پیشرفت</li>
+        </ul>
+        <p>این پایه، همه‌چیزی را که برای ساخت ابزارهای خط فرمان پیشرفته در Zig نیاز دارید فراهم می‌کند. می‌توانید این
+        چارچوب را گسترش دهید تا زیرفرمان‌ها (subcommands)، اعلان‌های تعاملی (interactive prompts)، تکمیل خودکار
+        (autocompletion) و موارد دیگر را اضافه کنید.</p>
+      </section>
+
+      <!-- ==================== مراحل بعدی ==================== -->
+      <section>
+        <h2>مراحل بعدی (Next Steps)</h2>
+        <p>این بهبودها را برای رساندن چارچوب CLI خود به سطح بعدی در نظر بگیرید:</p>
+        <ol>
+          <li><b>حالت تعاملی (Interactive Mode):</b> افزودن پشتیبانی از اعلان‌ها و منوهای تعاملی</li>
+          <li><b>مدیریت پیکربندی (Configuration Management):</b> پیاده‌سازی پیکربندی پایدار با استفاده از فایل‌ها</li>
+          <li><b>تکمیل خودکار (Autocomplete):</b> افزودن پشتیبانی تکمیل خودکار شِل (shell autocompletion)</li>
+          <li><b>تست‌نویسی (Testing):</b> ساخت تست‌های واحد برای اجزای CLI شما</li>
+          <li><b>تولید مستندات (Documentation Generation):</b> تولید خودکار مستندات راهنما و کاربرد</li>
+        </ol>
+        <p>ترکیب عملکرد سطح پایین و ویژگی‌های ایمنی مدرن در Zig، آن را به انتخابی عالی برای برنامه‌های CLI تبدیل می‌کند.
+        با این پایه، می‌توانید ابزارهایی بسازید که سریع، قابل‌اعتماد و کاربرپسند هستند.</p>
+        <p>کدنویسی مبارک!</p>
+
+        <div class="callout note">
+          <strong>الهام:</strong> این آموزش از کتابخانهٔ
+          <a href="https://github.com/Super-ZIG/io" target="_blank" rel="noopener">SuperZIG/io</a> الهام گرفته شده است که
+          ابزارهای پایانهٔ (terminal) قدرتمندی برای برنامه‌های Zig فراهم می‌کند. برای دیدن کد کامل بدون طی کردن مراحل، به
+          <a href="https://github.com/for-zig/cli" target="_blank" rel="noopener">مخزن GitHub</a> مراجعه کنید.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Build Your Own CLI App in Zig from Scratch» اثر «rebuild-x» است. این
+        صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به <a href="https://rebuild-x.github.io/docs/#/./zig/terminal/cli" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

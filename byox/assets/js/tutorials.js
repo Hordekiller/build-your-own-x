@@ -670,44 +670,44 @@ window.TUTORIALS = [
 "file": "tutorials/nim-nistow.html"
 },
 {
-"id": "",
+"id": "node-cli-tool",
 "category": "ابزار خط فرمان",
 "lang": "Node.js",
 "title": "یک ابزار CLI در جاوااسکریپت بساز",
 "url": "https://citw.dev/tutorial/create-your-own-cli-tool",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/node-cli-tool.html"
 },
 {
-"id": "",
+"id": "rust-cli-book",
 "category": "ابزار خط فرمان",
 "lang": "Rust",
 "title": "برنامه‌های خط فرمان در Rust",
 "url": "https://rust-cli.github.io/book/index.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/rust-cli-book.html"
 },
 {
-"id": "",
+"id": "rust-cli-mattgathu",
 "category": "ابزار خط فرمان",
 "lang": "Rust",
 "title": "نوشتن یک ابزار خط فرمان در Rust",
 "url": "https://mattgathu.dev/2017/08/29/writing-cli-app-rust.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/rust-cli-mattgathu.html"
 },
 {
-"id": "",
+"id": "zig-cli",
 "category": "ابزار خط فرمان",
 "lang": "Zig",
 "title": "اپ CLI خودت را در Zig از صفر بساز",
 "url": "https://rebuild-x.github.io/docs/#/./zig/terminal/cli",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/zig-cli.html"
 },
 {
 "id": "",

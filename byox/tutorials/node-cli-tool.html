@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Create Your Own CLI Tool» (Yair Haimo — citw.dev)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ابزار خط فرمان خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>ابزار خط فرمان خودت را بساز</span>
+      </div>
+      <h1>ابزار خط فرمان خودت را بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://citw.dev/tutorial/create-your-own-cli-tool" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Create Your Own CLI Tool» نوشته «یایر هایمو (Yair
+          Haimo)» در سایت «Caught in the Web» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://citw.dev/tutorial/create-your-own-cli-tool" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>احتمالاً در کار روزمرهٔ خود از ابزارهای زیادی استفاده می‌کنید؛ مانند <code class="inline">webpack</code>،
+        <code class="inline">typescript</code>، <code class="inline">babel</code>، <code class="inline">tslint</code>،
+        <code class="inline">eslint</code>، <code class="inline">prettier</code> و موارد دیگر. به همهٔ این ابزارها
+        می‌توانید از خط فرمان (command line) دسترسی داشته باشید و ما قرار است دقیقاً ببینیم این کار چگونه انجام می‌شود.</p>
+        <p>دربارهٔ جنبه‌های مختلف چنین ابزاری صحبت خواهیم کرد: ساخت فایل اجرایی (executable)، تجزیهٔ آرگومان‌های خط فرمان
+        (parsing command line arguments)، مدیریت پیکربندی (configuration)، گزارش‌گیری (logging) منعطف و تجربهٔ کلی
+        توسعه‌دهنده (Developer Experience).</p>
+        <p>در پایان این آموزش، یک اسکلت (skeleton) کارآمد از یک ابزار خط فرمان (CLI tool) خواهیم داشت. تنها کاری که باقی
+        می‌ماند اضافه‌کردن منطق خاص خود شماست.</p>
+        <div class="callout note">
+          <strong>راهنمای مطالعه:</strong> این آموزش در سایت اصلی تعاملی است و محتوای آن در سه سطح «استاندارد»،
+          «مفصل (Verbose)» و «داخلی (Internals)» ارائه می‌شود. در این صفحه همهٔ سطوح به‌صورت یکپارچه ترجمه شده‌اند تا هیچ
+          بخشی از آموزش حذف نشود.
+        </div>
+        <p>بیایید شروع کنیم.</p>
+      </section>
+
+      <!-- ==================== راه‌اندازی پروژه‌ها ==================== -->
+      <section>
+        <h2>راه‌اندازی پروژه‌ها (Setting Up the Projects)</h2>
+        <p>دو دایرکتوری بسازید؛ یکی به نام <code class="inline">tool</code> و دیگری به نام
+        <code class="inline">testProject</code>:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ mkdir tool-tutorial
+$ cd tool-tutorial
+tool-tutorial$ mkdir tool
+tool-tutorial$ mkdir testProject</code></pre>
+        <p>در هر دو دایرکتوری دستور <code class="inline">npm init -y</code> را اجرا کنید تا فایل‌های
+        <code class="inline">package.json</code> خالی ایجاد شوند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial$ cd tool
+tool-tutorial/tool$ npm init -y
+// ...
+tool-tutorial/tool$ cd ../testProject
+tool-tutorial/testProject$ npm init -y
+// ...</code></pre>
+        <p>در پروژهٔ <code class="inline">tool</code>، یک دایرکتوری به نام <code class="inline">bin</code> و فایلی به نام
+        <code class="inline">index.js</code> بسازید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/tool$ mkdir bin
+touch bin/index.js</code></pre>
+        <p>این دایرکتوری فقط برای راحتی ساخته می‌شود؛ اسکریپت باینری (binary script) ما می‌تواند هر جای پروژه قرار بگیرد.</p>
+        <p>در فایل <code class="inline">index.js</code> فعلاً عبارت <code class="inline">hello tool</code> را چاپ
+        می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">console.log('hello tool');</code></pre>
+        <p>برای اجرای یک اسکریپت node باید دستور <code class="inline">node SCRIPT_NAME</code> را اجرا کنیم. در مورد ما،
+        می‌خواهیم بتوانیم ابزار را بدون فراخوانی صریح <code class="inline">node</code> اجرا کنیم؛ همان‌طور که
+        <code class="inline">webpack</code>، <code class="inline">tsc</code> یا <code class="inline">eslint</code> را
+        اجرا می‌کنیم.</p>
+        <p>یک دستورالعمل هش‌بنگ (hashbang) در بالای فایل قرار می‌دهیم که مشخص می‌کند از کدام مفسر (interpreter) برای اجرای
+        اسکریپت استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+console.log('hello tool');</code></pre>
+        <p>به‌جای مسیر مستقیم فایل اجرایی node از دستور <code class="inline">env</code> استفاده می‌کنیم؛ زیرا ممکن است
+        چند نسخهٔ node نصب شده باشد.</p>
+      </section>
+
+      <!-- ==================== پیکربندی باینری ==================== -->
+      <section>
+        <h2>پیکربندی باینری (Configuring the Binary)</h2>
+        <p>در فایل <code class="inline">package.json</code> ابزار، باید اسکریپت نقطهٔ ورود (entry point) که همین الان
+        ساختیم را به‌عنوان باینری پکیج تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}</code></pre>
+        <p>یک ویژگی <code class="inline">bin</code> ایجاد می‌کنیم و مقدار آن را برابر فایلی که باید اجرا شود — همان اسکریپت
+        نقطهٔ ورودی که قبلاً ساختیم — قرار می‌دهیم. نام پکیج ما یعنی <code class="inline">tool</code>، نام فایل اجرایی‌ای
+        (executable) خواهد بود که ساخته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "./bin/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}</code></pre>
+        <p>برای ساخت چند باینری برای پکیج، <code class="inline">bin</code> را به‌صورت یک شیء (object) با چند ویژگی تعریف
+        کنید:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "tool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "binary1": "./bin/index.js",
+    "binary2": "./some-other-file.js",
+    "binary3": "./some/subdirectory/and-another.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}</code></pre>
+      </section>
+
+      <!-- ==================== اتصال پروژه‌ها ==================== -->
+      <section>
+        <h2>اتصال پروژه‌ها (Linking the Projects)</h2>
+        <p>می‌خواهیم ابزار خود را در پروژهٔ تستی که قبلاً ساختیم امتحان کنیم. برای این کار باید پکیج
+        <code class="inline">tool</code> را در دایرکتوری <code class="inline">testProject</code> نصب کنیم. برای شبیه‌سازی
+        نصب از <code class="inline">npm link</code> استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial$ cd tool
+tool-tutorial/tool$ npm link
+// ...
+tool-tutorial/tool$ cd ../testProject
+tool-tutorial/testProject$ npm link tool
+// ...</code></pre>
+        <p>اگر به دایرکتوری <code class="inline">node_modules/.bin</code> پروژهٔ <code class="inline">testProject</code>
+        نگاه کنیم، می‌بینیم که نصب، فایل جدیدی به نام <code class="inline">tool</code> ایجاد کرده است که با استفاده از یک
+        پیوند نرم‌افزاری (symlink) به اسکریپت نقطهٔ ورودی که قبلاً ساختیم اشاره می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ ll node_modules/.bin
+lrwxr-xr-x 1 user 361602828 23 Nov 10 11:06 tool -&gt; ../tool/bin/index.js</code></pre>
+        <p>اگر <code class="inline">tool</code> را اجرا کنیم، می‌بینیم که به‌درستی اجرا می‌شود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool
+hello tool</code></pre>
+      </section>
+
+      <!-- ==================== تجزیهٔ آرگومان‌های خط فرمان ==================== -->
+      <section>
+        <h2>تجزیهٔ آرگومان‌های خط فرمان (Parsing Command Line Arguments)</h2>
+        <p>می‌خواهیم ابزار ما بتواند چند دستور (command) مختلف را اجرا کند. برای این کار باید بتوانیم ابزار را با
+        آرگومان‌های مختلف اجرا کنیم.</p>
+        <p>می‌توانیم از ویژگی داخلی node یعنی <code class="inline">process.argv</code> برای مدیریت آن‌ها استفاده کنیم.
+        <code class="inline">console.log</code> خود را با یکی دیگر جایگزین می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+console.log(process.argv);</code></pre>
+        <p>اگر حالا ابزار را اجرا کنیم، خروجی مشابهی می‌بینیم. <code class="inline">process.argv</code> یک آرایه
+        برمی‌گرداند که عضو اول آن فایل اجرایی node است، عضو دوم نام فایل اجراشده و عضو سوم به بعد، آرگومان‌هایی هستند که
+        به اسکریپت داده‌ایم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+[
+  '/Users/user/.nvm/versions/node/v12.16.1/bin/node',
+  '/Users/user/tool-tutorial/tool/bin/index.js',
+  '--start'
+]</code></pre>
+        <p>می‌توانیم از ویژگی <code class="inline">process.argv</code> استفاده کنیم، اما کتابخانه‌های متعددی وجود دارند
+        که کار ما را با آرگومان‌های CLI آسان‌تر می‌کنند. یکی از ساده‌ترین کتابخانه‌ها در این حوزه
+        <a href="https://github.com/vercel/arg" target="_blank" rel="noopener">arg</a> است.</p>
+        <p>کتابخانه‌های پیشرفته‌تر عبارت‌اند از <a href="https://github.com/tj/commander.js" target="_blank"
+        rel="noopener">commander</a> و <a href="https://yargs.js.org/" target="_blank" rel="noopener">yargs</a>.</p>
+        <p><code class="inline">arg</code> یک شیء پیکربندی دریافت می‌کند که مشخص می‌کند چه آرگومان‌هایی را می‌تواند
+        دریافت کند و نوع آن‌ها چیست. انواع می‌توانند boolean (بولی)، string (رشته)، number (عدد)، array (آرایه) و
+        counter (شمارنده) باشند. در مورد ما از boolean استفاده می‌کنیم؛ زیرا می‌خواهیم بدانیم کاربر پرچم (flag) را ارسال
+        کرده است یا نه:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+
+const args = arg({
+  '--start': Boolean,
+  '--build': Boolean,
+});
+
+console.log(args);</code></pre>
+        <p>حالا اگر ابزار را اجرا کنیم، خروجی زیر را دریافت می‌کنیم. توجه کنید که پرچم <code class="inline">--start</code>
+        شناسایی و برابر <code class="inline">true</code> قرار داده شده است:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+{ _: [], '--start': true }</code></pre>
+        <p>حالا می‌توانیم آرگومان <code class="inline">start</code> خود را بر همین اساس مدیریت کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+
+const args = arg({
+  '--start': Boolean,
+  '--build': Boolean,
+});
+
+if (args['--start']) {
+  console.log('starting the app');
+}</code></pre>
+        <p>و اگر دوباره آن را اجرا کنیم، می‌بینیم که پیام ما چاپ می‌شود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+starting the app</code></pre>
+        <p>اما اگر آرگومان ناشناخته‌ای به آن بدهیم چه اتفاقی می‌افتد؟ می‌بینیم که <code class="inline">arg</code> یک خطا
+        پرتاب (throw) می‌کند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --publish
+/Users/user/tool-tutorial/tool/node_modules/arg/index.js:90
+            throw err;
+            ^
+
+Error: Unknown or unexpected option: --publish
+//...</code></pre>
+        <p>می‌توانیم فراخوانی <code class="inline">arg</code> را با <code class="inline">try/catch</code> بپوشانیم و آن
+        را بر همین اساس مدیریت کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    console.log('starting the app');
+  }
+} catch (e) {
+  console.log(e.message);
+}</code></pre>
+        <p>خروجی جدید کمی کم‌ریخت‌تر خواهد بود، اما همچنان به‌اندازهٔ کافی خوب نیست:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --publish
+Unknown or unexpected option: --publish</code></pre>
+        <p>علاوه بر نشان‌دادن اینکه چطور از ابزار استفاده <em>نکنیم</em>، باید نشان دهیم که چگونه <em>می‌توان</em> از آن
+        استفاده کرد. برای این کار یک تابع <code class="inline">usage</code> اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    console.log('starting the app');
+  }
+} catch (e) {
+  console.log(e.message);
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`tool [CMD]
+  --start\tStarts the app
+  --build\tBuilds the app`);
+}</code></pre>
+        <p>حالا اگر دستور را اجرا کنیم، خروجی بسیار واضح‌تری می‌بینیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --publish
+Unknown or unexpected option: --publish
+
+tool [CMD]
+  --start		Starts the app
+  --build		Builds the app</code></pre>
+      </section>
+
+      <!-- ==================== تجربهٔ توسعه‌دهنده ==================== -->
+      <section>
+        <h2>تجربهٔ توسعه‌دهنده (Developer Experience)</h2>
+        <p>همان‌طور که تجربهٔ کاربری (UX) ستون باربر در اپلیکیشن‌های بصری است، تجربهٔ توسعه‌دهنده (Developer Experience) یا
+        به‌اختصار DX، هنگام ساخت ابزارهایی برای توسعه‌دهندگان چنین نقشی دارد.</p>
+        <p>DX جلوه‌های زیادی دارد؛ مانند لذت‌بخشی هنگام استفاده از ابزار، پیام‌های خطای بهتر، نیاز کمتر به حدس‌زدن،
+        مستندات خوب و پاسخ‌گویی سریع. در نهایت، DX به <strong>حداکثر رساندن ارزش</strong> و <strong>حداقل رساندن زمان
+        تلف‌شده</strong> خلاصه می‌شود.</p>
+        <p>در صفحهٔ قبل دیدیم که چگونه یک پیام خطای واضح برگردانیم و علاوه بر آن مشخص کنیم که فرد باید به‌درستی از ابزار
+        استفاده کند. در ادامه می‌خواهیم آن را کمی بیشتر برجسته کنیم.</p>
+      </section>
+
+      <!-- ==================== کمی رنگ ==================== -->
+      <section>
+        <h2>کمی رنگ (A Splash of Color)</h2>
+        <p>در پروژهٔ <code class="inline">tool</code> خود، پکیج
+        <a href="https://www.npmjs.com/package/chalk" target="_blank" rel="noopener">chalk</a> را نصب کنید
+        (<code class="inline">npm i chalk</code>). <code class="inline">chalk</code> به ما امکان می‌دهد به عبارت‌های
+        <code class="inline">console.log</code> خود رنگ اضافه کنیم؛ این کار به واضح‌ترشدن خروجی کمک می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+const chalk = require('chalk');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    console.log(chalk.bgCyanBright('starting the app'));
+  }
+} catch (e) {
+  console.log(chalk.yellow(e.message));
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+        <p>خروجی شما باید رنگارنگ، حرفه‌ای به نظر برسد و مهم‌تر از همه، ساده‌تر قابل فهم باشد. (حالا تصور کنید که نمایشگر
+        کد آموزش از رنگ‌های سفارشی پشتیبانی می‌کرد 😛)</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --publish
+Unknown or unexpected option: --publish
+
+tool [CMD]
+  --start		Starts the app
+  --build		Builds the app</code></pre>
+      </section>
+
+      <!-- ==================== پیکربندی ==================== -->
+      <section>
+        <h2>پیکربندی (Configuration)</h2>
+        <p>بیشتر ابزارها را کاربر می‌تواند پیکربندی کند. یک روش خوب این است که ابزار از طریق ویژگی‌های موجود در
+        <code class="inline">package.json</code> پیکربندی شود.</p>
+        <p>در فایل <code class="inline">package.json</code> پروژهٔ <code class="inline">testProject</code> ویژگی‌های زیر
+        را اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "name": "testProject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "tool": {
+    "port": 9999
+  }
+}</code></pre>
+        <p>حالا می‌خواهیم پیکربندی را از <code class="inline">package.json</code> پروژهٔ
+        <code class="inline">testProject</code> بخوانیم. نمی‌توانیم فقط فایل <code class="inline">package.json</code> را
+        <code class="inline">require</code> کنیم؛ زیرا آن فایل در <code class="inline">testProject</code> قرار دارد و ما
+        در بستر (context) ابزار خودمان یعنی <code class="inline">tool</code> هستیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+const chalk = require('chalk');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    const pkg = require('./package.json'); // &lt;-- کار نخواهد کرد
+    console.log(chalk.bgCyanBright('starting the app'));
+  }
+} catch (e) {
+  console.log(chalk.yellow(e.message));
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+        <p>برای اینکه فایل را به‌درستی <code class="inline">require</code> کنیم، می‌توانیم از متد
+        <code class="inline">process.cwd()</code> استفاده کنیم تا مسیری را که کاربر باینری ما را از آنجا اجرا کرده است به
+        دست آوریم. این مسیر را با نام فایل با استفاده از متد <code class="inline">path.join</code> ترکیب می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+const chalk = require('chalk');
+const path = require('path');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    const pkg = require(path.join(process.cwd(), 'package.json'));
+    // TODO: با pkg کاری انجام بده
+    console.log(chalk.bgCyanBright('starting the app'));
+  }
+} catch (e) {
+  console.log(chalk.yellow(e.message));
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+        <p>اگر کاربر ابزار ما را از یک زیرشاخه (subdirectory) اجرا کند چه اتفاقی می‌افتد؟ ما به‌دنبال
+        <code class="inline">package.json</code> در دایرکتوری اشتباه می‌گردیم و شکست می‌خوریم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject/src$ tool --start
+Cannot find module '/Users/user/tool-tutorial/testProject/src/package.json'
+Require stack:
+- /Users/user/tool-tutorial/tool/bin/index.js</code></pre>
+        <p>برای یافتن فایل <code class="inline">package.json</code> از پکیجی به نام
+        <a href="https://github.com/sindresorhus/pkg-up" target="_blank" rel="noopener">pkg-up</a> استفاده خواهیم کرد.
+        <code class="inline">pkg-up</code> در درخت دایرکتوری به بالا می‌رود، به‌دنبال فایل
+        <code class="inline">package.json</code> می‌گردد و مسیر آن را برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+const chalk = require('chalk');
+const pkgUp = require('pkg-up');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    const pkgPath = pkgUp.sync({cwd: process.cwd()});
+    const pkg = require(pkgPath);
+    if (pkg.tool) {
+      console.log('Found configuration', pkg.tool);
+      // TODO: با پیکربندی کاری انجام بده
+    } else {
+      console.log(chalk.yellow('Could not find configuration, using default'));
+      // TODO: دریافت پیکربندی پیش‌فرض
+    }
+    console.log(chalk.bgCyanBright('starting the app'));
+  }
+} catch (e) {
+  console.log(chalk.yellow(e.message));
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+        <p>
+        <a href="https://sindresorhus.com/" target="_blank" rel="noopener">Sindresorhus</a> پکیج عمومی‌تری نیز در اختیار
+        ما قرار می‌دهد به نام
+        <a href="https://github.com/sindresorhus/find-up" target="_blank" rel="noopener">find-up</a>.</p>
+      </section>
+
+      <!-- ==================== بازآرایی کد ==================== -->
+      <section>
+        <h2>بازآرایی کد (Refactor)</h2>
+        <p>برای یک لحظه از بحث پیکربندی فاصله بگیریم تا کمی کد خود را بازآرایی (refactor) کنیم.</p>
+        <p>یک دایرکتوری <code class="inline">src</code> در پروژهٔ <code class="inline">tool</code> ایجاد می‌کنیم و داخل آن
+        دو دایرکتوری می‌سازیم: <code class="inline">commands</code> و <code class="inline">config</code>. در
+        <code class="inline">commands</code> فایلی به نام <code class="inline">start.js</code> ایجاد می‌کنیم و در
+        <code class="inline">config</code> فایلی به نام <code class="inline">config-mgr.js</code>:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-project/tool$ mkdir src
+mkdir src/commands
+mkdir src/config
+touch src/commands/start.js
+touch src/config/config-mgr.js</code></pre>
+        <p>در فایل <code class="inline">start.js</code> تابع <code class="inline">start</code> خود را می‌سازیم که یک شیء
+        پیکربندی دریافت می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+
+module.export = function start(config) {
+  console.log(chalk.bgCyanBright('  Starting the app  '));
+  console.log(chalk.gray('Received configuration in start -'), config);
+}</code></pre>
+        <p>در فایل <code class="inline">config-mgr.js</code> کد پیکربندی‌ای را که قبلاً ساختیم کپی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const pkgUp = require('pkg-up');
+
+module.exports = function getConfig() {
+  const pkgPath = pkgUp.sync({cwd: process.cwd()});
+  const pkg = require(pkgPath);
+  if (pkg.tool) {
+    console.log('Found configuration', pkg.tool);
+    return pkg.tool;
+  } else {
+    console.log(chalk.yellow('Could not find configuration, using default'));
+    return { port: 1234 };
+  }
+}</code></pre>
+        <p>و فایل <code class="inline">bin/index.js</code> خود را ساده‌تر می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const arg = require('arg');
+const chalk = require('chalk');
+const getConfig = require('../src/config/config-mgr');
+const start = require('../src/commands/start');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  if (args['--start']) {
+    const config = getConfig();
+    start(config);
+  }
+} catch (e) {
+  console.log(chalk.yellow(e.message));
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+      </section>
+
+      <!-- ==================== پیکربندی، قسمت دوم ==================== -->
+      <section>
+        <h2>پیکربندی، قسمت دوم (Configuration Part Deux)</h2>
+        <p>قبلاً ابزار خود را از طریق فایل <code class="inline">package.json</code> پیکربندی کردیم؛ اما بیشتر ابزارها
+        راه‌های متعددی برای پیکربندی دارند. یکی از این راه‌ها فایل پیکربندی جاوااسکریپت (JavaScript configuration file)
+        است.</p>
+        <p>مزیت فایل پیکربندی جاوااسکریپت نسبت به فایل JSON این است که می‌توانید منطق سفارشی اضافه کنید و حتی از
+        کتابخانه‌های شخص ثالث استفاده کنید.</p>
+        <p>می‌توانیم یک شرط دیگر در <code class="inline">config-mgr</code> اضافه کنیم تا فایل پیکربندی جاوااسکریپت را
+        جست‌وجو کند و بخواند. این کار جواب می‌دهد، اما برای راه‌حلی محکم‌تر ادامهٔ مطلب را بخوانید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const pkgUp = require('pkg-up');
+
+module.exports = function getConfig() {
+  const pkgPath = pkgUp.sync({cwd: process.cwd()});
+  const pkg = require(pkgPath);
+  if (pkg.tool) {
+    console.log('Found configuration', pkg.tool);
+    return pkg.tool;
+  } else if (hasJSConfigFile()) { // &lt;- شبه‌کد
+    return loadJSConfigFile(); // &lt;- شبه‌کد
+  } else {
+    console.log(chalk.yellow('Could not find configuration, using default'));
+    return { port: 1234 };
+  }
+}</code></pre>
+        <p>منطق <code class="inline">pkgUp</code> خود را با استفاده از پکیج
+        <a href="https://github.com/davidtheclark/cosmiconfig" target="_blank" rel="noopener">cosmiconfig</a> جایگزین
+        می‌کنیم. <code class="inline">cosmiconfig</code> از جنبه‌های مختلف مدیریت پیکربندی پشتیبانی می‌کند؛ مانند قالب‌های
+        فایل اضافی، جست‌وجوی ناهمگام (async search)، کش‌کردن (caching) و موارد دیگر:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const { cosmiconfigSync } = require('cosmiconfig');
+const configLoader = cosmiconfigSync('tool');
+
+module.exports = function getConfig() {
+  const result = configLoader.search(process.cwd());
+  if (!result) {
+    console.log(chalk.yellow('Could not find configuration, using default'));
+    return { port: 1234 };
+  } else {
+    console.log('Found configuration', result.config);
+    return result.config;
+  }
+}</code></pre>
+        <p>حالا می‌توانیم فایل پیکربندی به نام <code class="inline">tool.config.js</code> در پروژهٔ
+        <code class="inline">testProject</code> خود ایجاد کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">module.exports = {
+  port: 6666
+}</code></pre>
+        <p><code class="inline">cosmiconfig</code> به پیکربندی تعریف‌شده در فایل <code class="inline">package.json</code>
+        اولویت می‌دهد. بنابراین، اگر پیکربندی را از <code class="inline">package.json</code> حذف کنیم، می‌بینیم که فایل
+        جدید <code class="inline">tool.config.js</code> را برمی‌گزیند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+Found configuration { port: 6666 }
+  Starting the app
+Received configuration in start - { port: 6666 }</code></pre>
+      </section>
+
+      <!-- ==================== اعتبارسنجی ==================== -->
+      <section>
+        <h2>اعتبارسنجی (Validation)</h2>
+        <p>از آنجا که پیکربندی از ورودی کاربر می‌آید، نمی‌توانیم به اعتبار آن اعتماد کنیم. یک راه برای اعتبارسنجی، بررسی
+        هر ویژگی و زیرویژگی در شیء پیکربندی با استفاده از کد سفارشی است. اما، مثل همیشه، اگر با یک مسئلهٔ عمومی
+        روبه‌رو هستید — مانند اعتبارسنجی پیکربندی — مطمئن باشید شخص دیگری هم به همان مسئله برخورده و کتابخانه‌ای برای
+        مدیریت آن توسعه داده است.</p>
+        <p>از کتابخانه‌ای به نام <a href="https://www.npmjs.com/package/ajv" target="_blank" rel="noopener">ajv</a>
+        استفاده خواهیم کرد که پیکربندی را بر اساس یک شمای JSON (JSON schema) اعتبارسنجی می‌کند.</p>
+        <p>اول بیایید شمای (schema) را بسازیم. فایل جدیدی در دایرکتوری <code class="inline">tool/src/config</code> به نام
+        <code class="inline">schema.json</code> ایجاد کنید و کد زیر را وارد کنید. ما تعریف می‌کنیم که تنها نوع معتبر ویژگی
+        <code class="inline">port</code>، عدد (number) است:</p>
+        <pre class="code"><span class="lang-tag">json</span><code style="direction:ltr;text-align:left">{
+  "properties": {
+    "port": {
+      "type": "number"
+    }
+  }
+}</code></pre>
+        <p>سپس از <code class="inline">ajv</code> برای اعتبارسنجی پیکربندی خود استفاده می‌کنیم. توجه کنید که از
+        <code class="inline">process.exit(1)</code> برای خروج از فرایند استفاده می‌کنیم؛ زیرا نمی‌خواهیم با پیکربندی
+        نامعتبر ادامه دهیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const { cosmiconfigSync } = require('cosmiconfig');
+const schema = require('./schema.json');
+const Ajv = require('ajv').default;
+const ajv = new Ajv();
+const configLoader = cosmiconfigSync('tool');
+
+module.exports = function getConfig() {
+  const result = configLoader.search(process.cwd());
+  if (!result) {
+    console.log(chalk.yellow('Could not find configuration, using default'));
+    return { port: 1234 };
+  } else {
+    const isValid = ajv.validate(schema, result.config);
+    if (!isValid) {
+      console.log(chalk.yellow('Invalid configuration was supplied'));
+      console.log(ajv.errors);
+      process.exit(1);
+    }
+    console.log('Found configuration', result.config);
+    return result.config;
+  }
+}</code></pre>
+        <p>در فایل <code class="inline">testProject/tool.config.js</code> مقدار <code class="inline">port</code> را از
+        عدد به رشته تغییر می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">module.exports = {
+  port: "6666"
+}</code></pre>
+        <p>حالا اگر ابزار را اجرا کنیم، می‌بینیم که خطای مورد انتظار خود را دریافت می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+Invalid configuration was supplied
+[
+  {
+    keyword: 'type',
+    dataPath: '/port',
+    schemaPath: '#/properties/port/type',
+    params: { type: 'number' },
+    message: 'should be number'
+  }
+]</code></pre>
+        <p>اطلاعات درستی به دست آوردیم اما با تجربهٔ توسعه‌دهنده‌ای (DX) وحشتناک. بیایید از کتابخانهٔ
+        <a href="https://www.npmjs.com/package/better-ajv-errors" target="_blank" rel="noopener">better-ajv-errors</a>
+        استفاده کنیم تا خطاها کمی قابل‌درک‌تر شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const { cosmiconfigSync } = require('cosmiconfig');
+const schema = require('./schema.json');
+const betterAjvErrors = require('better-ajv-errors');
+const Ajv = require('ajv').default;
+const ajv = new Ajv({ jsonPointers: true });
+const configLoader = cosmiconfigSync('tool');
+
+module.exports = function getConfig() {
+  const result = configLoader.search(process.cwd());
+  if (!result) {
+    console.log(chalk.yellow('Could not find configuration, using default'));
+    return { port: 1234 };
+  } else {
+    const isValid = ajv.validate(schema, result.config);
+    if (!isValid) {
+      console.log(chalk.yellow('Invalid configuration was supplied'));
+      console.log();
+      console.log(betterAjvErrors(schema, result.config, ajv.errors));
+      process.exit(1);
+    }
+    console.log('Found configuration', result.config);
+    return result.config;
+  }
+}</code></pre>
+        <p>اگر ابزار را دوباره اجرا کنیم، می‌بینیم که پیام خطا بسیار کاربرپسندتر، واضح‌تر است و به وقت کاربران احترام
+        می‌گذارد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+Invalid configuration was supplied
+
+  TYPE should be number
+
+&gt; 1 | {"port":"6666"}
+    |         ^^^^^^ 👈🏽  type should be number</code></pre>
+      </section>
+
+      <!-- ==================== گزارش‌گیری ==================== -->
+      <section>
+        <h2>گزارش‌گیری (Logging)</h2>
+        <p>تا به این‌جا، کد خود را با عبارت‌های مختلف <code class="inline">console.log</code> پاشیده‌ایم. برخی از
+        <code class="inline">console.log</code>ها روبه‌روی کاربرند، برخی برای اشکال‌زدایی (debug) هستند، برخی
+        اطلاع‌رسان و برخی هشدار. بیایید به این بی‌نظمی سر و سامانی بدهیم.</p>
+        <p>کتابخانه‌های گزارش‌گیری عالی مانند
+        <a href="https://www.npmjs.com/package/winston" target="_blank" rel="noopener">winston</a> و
+        <a href="https://www.npmjs.com/package/bunyan" target="_blank" rel="noopener">bunyan</a> وجود دارند؛ اما در این
+        مورد می‌خواهیم ببینیم پشت صحنه چه اتفاقی می‌افتد؛ بنابراین گزارش‌گیر (logger) را خودمان پیاده‌سازی می‌کنیم.</p>
+        <p>فایلی در <code class="inline">tool/src</code> به نام <code class="inline">logger.js</code> ایجاد کنید. این فایل
+        یک تابع سازندهٔ گزارش‌گیر برمی‌گرداند که یک نام دریافت می‌کند و یک شیء گزارش‌گیر برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+
+module.export = function createLogger(name) {
+  return {
+  };
+}</code></pre>
+        <p>انواع مختلفی از پیام‌ها می‌سازیم که هرکدام رنگ متفاوتی دارند. کمی بعد به تابع
+        <code class="inline">debug</code> برمی‌گردیم. شروع می‌کنیم به مهاجرت عبارت‌های
+        <code class="inline">console.log</code> خود به گزارش‌گیر جدید:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+
+module.export = function createLogger(name) {
+  return {
+    log: (...args) =&gt; console.log(chalk.gray(...args)),
+    warning: (...args) =&gt; console.log(chalk.yellow(...args)),
+    highlight: (...args) =&gt; console.log(chalk.bgCyanBright(...args)),
+    debug: console.log
+  };
+}</code></pre>
+        <p>از <code class="inline">config-mgr.js</code> شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const logger = require('../logger')('config:mgr');
+const { cosmiconfigSync } = require('cosmiconfig');
+const schema = require('./schema.json');
+const betterAjvErrors = require('better-ajv-errors');
+const Ajv = require('ajv').default;
+const ajv = new Ajv({ jsonPointers: true });
+const configLoader = cosmiconfigSync('tool');
+
+module.exports = function getConfig() {
+  const result = configLoader.search(process.cwd());
+  if (!result) {
+    logger.warning('Could not find configuration, using default');
+    return { port: 1234 };
+  } else {
+    const isValid = ajv.validate(schema, result.config);
+    if (!isValid) {
+      logger.warning('Invalid configuration was supplied');
+      console.log();
+      console.log(betterAjvErrors(schema, result.config, ajv.errors));
+      process.exit(1);
+    }
+    logger.debug('Found configuration', result.config);
+    return result.config;
+  }
+}</code></pre>
+        <p>بعد، <code class="inline">start.js</code>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const logger = require('../logger')('commands:start');
+
+module.export = function start(config) {
+  logger.highlight('  Starting the app  ');
+  logger.debug('Received configuration', config);
+}</code></pre>
+        <p>و فایل <code class="inline">bin/index.js</code>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">#!/usr/bin/env node
+const logger = require('../src/logger')('bin');
+const arg = require('arg');
+const chalk = require('chalk');
+const getConfig = require('../src/config/config-mgr');
+const start = require('../src/commands/start');
+
+try {
+  const args = arg({
+    '--start': Boolean,
+    '--build': Boolean,
+  });
+
+  logger.debug('Received args', args);
+
+  if (args['--start']) {
+    const config = getConfig();
+    start(config);
+  }
+} catch (e) {
+  logger.warning(e.message);
+  console.log();
+  usage();
+}
+
+function usage() {
+  console.log(`${chalk.whiteBright('tool [CMD]')}
+  ${chalk.greenBright('--start')}\tStarts the app
+  ${chalk.greenBright('--build')}\tBuilds the app`);
+}</code></pre>
+        <p>سریعاً مقدار <code class="inline">port</code> خود را از <em>رشته</em> به <em>عدد</em> برمی‌گردانیم تا اجرای
+        موفقی داشته باشیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">module.exports = {
+  port: 6666
+}</code></pre>
+        <p>اگر ابزار را دوباره اجرا کنیم، همان گزارش‌های قبلی را می‌بینیم. هرچند عالی است که منطق را یکپارچه کردیم،
+        می‌توانیم یک قدم فراتر برویم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+Received args { _: [], '--start': true }
+Found configuration { port: 6666 }
+  Starting the app
+received configuration { port: 6666 }</code></pre>
+        <p>فراخوانی <code class="inline">console.log</code> تابع <code class="inline">debug</code> خود را با کتابخانهٔ
+        <a href="https://www.npmjs.com/package/debug" target="_blank" rel="noopener">debug</a> جایگزین می‌کنیم
+        (<code class="inline">npm i debug</code>) و نامی را که دریافت کرده‌ایم به آن پاس می‌دهیم.
+        <code class="inline">debug</code> به ما امکان می‌دهد یک گزارش را به فضای نام (namespace) خاصی محدود کنیم (همان
+        نامی که دریافت کرده‌ایم):</p>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">const chalk = require('chalk');
+const debug = require('debug');
+
+module.export = function createLogger(name) {
+  return {
+    log: (...args) =&gt; console.log(chalk.gray(...args)),
+    warning: (...args) =&gt; console.log(chalk.yellow(...args)),
+    highlight: (...args) =&gt; console.log(chalk.bgCyanBright(...args)),
+    debug: debug(name)
+  };
+}</code></pre>
+        <p>حالا وقتی ابزار را اجرا می‌کنیم، فقط همین پیام واحدِ روبه‌روی کاربر را می‌بینیم. گزارش‌های debug تا زمانی که
+        نیاز به اشکال‌زدایی کدمان داشته باشیم پنهان هستند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ tool --start
+  Starting the app</code></pre>
+        <p>اگر ابزار را با متغیر محیطی به نام <code class="inline">DEBUG</code> اجرا کنیم، می‌توانیم گزارش‌های پکیج
+        <code class="inline">debug</code> را فعال کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ DEBUG=* tool --start
+bin Received args { _: [], '--start': true } +0ms
+config:mgr Found configuration { port: 6666 } +0ms
+  Starting the app
+commands:start received configuration { port: 6666 } +0ms</code></pre>
+        <p>توجه کنید که گزارش‌های debug به نام خودشان محدود شده‌اند: <code class="inline">bin</code>،
+        <code class="inline">config:mgr</code> و <code class="inline">commands:start</code>. همچنین، در انتهای هر خط،
+        اختلاف زمانی (به میلی‌ثانیه) نسبت به گزارش قبلی آمده است. چقدر جالب!</p>
+        <p>اما صبر کنید، ادامه دارد! <code class="inline">debug</code> همچنین به ما امکان می‌دهد گزارش‌ها را با
+        فضانام‌گذاری (namespacing) متغیر محیطی فیلتر کنیم. می‌توانیم آن را با <code class="inline">commands:*</code>
+        صدا بزنیم تا فقط گزارش‌های commands را شامل شود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ DEBUG=commands:* tool --start
+  Starting the app
+commands:start received configuration { port: 6666 } +0ms</code></pre>
+        <p>یا آن را با <code class="inline">commands:*,bin</code> صدا بزنیم تا هم گزارش‌های commands و هم bin شامل
+        شوند:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ DEBUG=commands:*,bin tool --start
+bin Received args { _: [], '--start': true } +0ms
+  Starting the app
+commands:start received configuration { port: 6666 } +0ms</code></pre>
+        <p>همچنین می‌توانیم آن را با <code class="inline">*,-bin</code> صدا بزنیم تا همه‌چیز به‌جز گزارش‌های bin شامل
+        شود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">tool-tutorial/testProject$ DEBUG=*,-bin tool --start
+config:mgr Found configuration { port: 6666 } +0ms
+  Starting the app
+commands:start received configuration { port: 6666 } +0ms</code></pre>
+        <p>به‌طور خلاصه، گزینه‌های فیلتر <code class="inline">debug</code> منعطف، قدرتمند و استفاده از آن‌ها آسان است.</p>
+        <p>پکیج <code class="inline">debug</code> پشت صحنه در بسیاری از پکیج‌های مختلف استفاده می‌شود؛ مانند
+        <a href="https://expressjs.com/en/guide/debugging.html" target="_blank" rel="noopener">express</a>.</p>
+      </section>
+
+      <!-- ==================== سخن پایانی ==================== -->
+      <section>
+        <h2>سخن پایانی (Finishing Thoughts)</h2>
+        <p>حالا یک اسکلت کارآمد برای ابزار خط فرمان داریم. باینری را ساختیم، آرگومان‌های CLI را پردازش کردیم، پیکربندی را
+        یافتیم و اعتبارسنجی کردیم و راهی برای ارتباط با کاربران‌مان از طریق گزارش‌ها ایجاد کردیم.</p>
+        <p>حالا تنها کاری که باقی می‌ماند این است که منطق خود را داخل آن بریزید.</p>
+        <p>امیدوارم از این آموزش لذت برده باشید و آن را ارزشمند یافته باشید. خوشحال می‌شوم هر بازخوردی که دربارهٔ خود
+        آموزش و یا نحوهٔ ارائهٔ آن دارید را در
+        <a href="https://twitter.com/yairhaimo" target="_blank" rel="noopener">@yairhaimo</a> بشنوم.</p>
+        <p>— یایر (Yair)</p>
+      </section>
+
+      <!-- بلاک کپی‌رایت -->
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> مقاله «Create Your Own CLI Tool» اثر «یایر هایمو (Yair Haimo)» در سایت
+        «Caught in the Web» است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی
+        است. برای مشاهده اصل مطلب به
+        <a href="https://citw.dev/tutorial/create-your-own-cli-tool" target="_blank" rel="noopener">سایت اصلی</a> مراجعه
+        کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>
