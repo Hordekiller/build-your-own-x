@@ -67,6 +67,15 @@ DONE = {
     "playlist?list=PLIFBTFgFpoJ9vmYYlfxRFV6U_XhG-4fpP": "reddit-bot-praw",
     "build-a-cryptocurrency-trading-bot-with-r": "crypto-trading-bot-r",
     "habr.com/en/post/436254": "starcraft-bot-rust",
+    "go-git-contributions": "go-git-contributions",
+    "go-tutorial-lolcat": "go-lolcat",
+    "go-tutorial-cowsay": "go-cowsay",
+    "go-tutorial-fortune": "go-fortune",
+    "day06_nistow": "nim-nistow",
+    "create-your-own-cli-tool": "node-cli-tool",
+    "rust-cli.github.io": "rust-cli-book",
+    "writing-cli-app-rust": "rust-cli-mattgathu",
+    "rebuild-x.github.io": "zig-cli",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}

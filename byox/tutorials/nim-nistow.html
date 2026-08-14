@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Day 6: Manage your dotfiles easily with nistow» (xmonader)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مدیریت فایل‌های dotfiles با nistow</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>مدیریت فایل‌های dotfiles با nistow</span>
+      </div>
+      <h1>مدیریت فایل‌های dotfiles با nistow</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day06_nistow.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Day 6: Manage your dotfiles easily with nistow» نوشته
+          «xmonader» (مجموعه آموزش‌های Nim Days) است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day06_nistow.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>امروز ابزاری می‌سازیم تا فایل‌های dotfiles خود را به‌آسانی مدیریت کنیم.</p>
+      </section>
+
+      <!-- ==================== چیدمان dotfiles ==================== -->
+      <section>
+        <h2>چیدمان فایل‌های dotfiles</h2>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">        i3
+        `-- .config
+            `-- i3
+                `-- config</code></pre>
+        <p>پس در اینجا یک دایرکتوری به نام <code class="inline">i3</code> در بالاترین سطح داریم که «نام برنامه»
+        (APP_NAME) را نشان می‌دهد و زیر آن درختی از مسیرهای پیکربندی قرار دارد. اینجا به این معناست که قرار است فایل
+        <code class="inline">config</code> نسبت به «دایرکتوری مقصد» (destination directory) به مسیر
+        <code class="inline">.config/i3/config</code> لینک شود.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> دایرکتوری خانه (Home) مقصد پیش‌فرض است.
+        </div>
+      </section>
+
+      <!-- ==================== چه انتظاری داریم؟ ==================== -->
+      <section>
+        <h2>چه انتظاری داریم؟</h2>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">➜  ~ nistow --help
+    Stow 0.1.0
+        -h | --help     : show help
+        -v | --version  : show version
+        --verbose       : verbose messages
+        -s | --simulate : simulate stow operation
+        -f | --force    : override old links
+        -a | --app      : application path to stow
+        -d | --dest     : destination to stow to</code></pre>
+        <ul>
+          <li>پرچم <code class="inline">--simulate</code> برای شبیه‌سازی روی سیستم فایل بدون لینک‌سازی واقعی استفاده می‌شود.</li>
+          <li><code class="inline">--app</code> دایرکتوری برنامه‌ای است که با چیدمان dotfiles توصیف‌شده در بالا سازگار است.</li>
+          <li><code class="inline">--dest</code> مقصدی است که فایل‌ها زیر آن سمبلینک (symlink) می‌شوند؛ پیش‌فرض آن دایرکتوری خانه است.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">nistow --app=/home/striky/wspace/dotfiles/localdir --dest=/tmp/tmpconf --verbose</code></pre>
+      </section>
+
+      <!-- ==================== پیاده‌سازی ==================== -->
+      <section>
+        <h2>پیاده‌سازی</h2>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc writeHelp() = 
+    echo """
+Stow 0.1.0 (Manage your dotfiles easily)
+
+Allowed arguments:
+    -h | --help     : show help
+    -v | --version  : show version
+    --verbose       : verbose messages
+    -s | --simulate : simulate stow operation
+    -f | --force    : override old links
+    -a | --app      : application path to stow
+    -d | --dest     : destination to stow to
+
+    """</code></pre>
+        <p><code class="inline">writeHelp</code> یک رویهٔ (proc) ساده است که رشتهٔ راهنما را روی خروجی استاندارد
+        (stdout) می‌نویسد.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc writeVersion() =
+    echo "Stow version 0.1.0"</code></pre>
+        <p>برای نوشتن نسخه.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc cli*() =</code></pre>
+        <p>نقطهٔ ورود (entry point) برنامهٔ خط فرمان ما.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  var 
+    simulate, verbose, force: bool = false
+    app, dest: string = ""</code></pre>
+        <p>این متغیرها گزینه‌های مختلفی را نشان می‌دهند که در برنامه اجازه می‌دهیم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  if paramCount() == 0:
+    writeHelp()
+    quit(0)</code></pre>
+        <p>اگر هیچ آرگومانی پاس داده نشود، رشتهٔ راهنما را می‌نویسیم و طبق اصطلاح Nim با «exit» یا «quit» و با «کد
+        خروج» (exit status) صفر از برنامه خارج می‌شویم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  for kind, key, val in getopt():
+    case kind
+    of cmdLongOption, cmdShortOption:
+        case key
+        of "help", "h": 
+            writeHelp()
+            quit()
+        of "version", "v":
+            writeVersion()
+            quit()
+        of "simulate", "s": simulate = true
+        of "verbose": verbose = true
+        of "force", "f": force = true
+        of "app", "a": app = val
+        of "dest", "d": dest = val 
+        else:
+          discard
+    else:
+      discard </code></pre>
+        <p>در اینجا رشتهٔ خط فرمان را با استفاده از <code class="inline">getopt</code> تجزیه (parse) می‌کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  for kind, key, val in getopt():
+    case kind
+    of cmdLongOption, cmdShortOption:</code></pre>
+        <p>پس برای فرمان <code class="inline">--app=/home/striky/dotfiles/i3 -f</code>، نوع (kind) مربوط به
+        <code class="inline">--app</code> برابر <code class="inline">cmdLongOption</code> و نوع مربوط به
+        <code class="inline">-f</code> برابر <code class="inline">cmdShortOption</code> است؛ کلید (key) برای
+        <code class="inline">--app</code> برابر <code class="inline">app</code> و برای <code class="inline">-f</code>
+        برابر <code class="inline">f</code> است؛ مقدار (val) برای <code class="inline">--app</code> برابر
+        <code class="inline">/home/striky/dotfiles/i3</code> است و برای <code class="inline">-f</code> در تجزیهٔ ما
+        <code class="inline">true</code> قرار می‌گیرد؛ زیرا بیشتر شبیه یک سوییچ بولی (boolean) است — اگر وجود داشته
+        باشد یعنی می‌خواهیم آن را true کنیم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  if dest.isNilOrEmpty():
+    dest = getHomeDir()</code></pre>
+        <p>در اینجا مقصد پیش‌فرض (<code class="inline">dest</code>) را روی دایرکتوری خانه قرار می‌دهیم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  if app.isNilOrEmpty():
+    echo "Make sure to provide --app flags"
+    quit(1)</code></pre>
+        <p>در اینجا اگر <code class="inline">app</code> تنظیم نشده باشد، با «کد خطا» (exit status) ۱ از برنامه خارج
+        می‌شویم.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  try:
+    stow(getLinkableFiles(appPath=app, dest=dest), simulate=simulate, verbose=verbose, force=force)
+  except ValueError:
+    echo "Error happened: " & getCurrentExceptionMsg()</code></pre>
+        <p>در اینجا تلاش می‌کنیم همهٔ فایل‌های قابل لینک در دایرکتوری <code class="inline">app</code> را به دایرکتوری
+        <code class="inline">dest</code> لینک کنیم و همهٔ گزینه‌هایی را که از آرگومان‌های خط فرمان جمع‌آوری کرده‌ایم —
+        یعنی <code class="inline">simulate</code>، <code class="inline">verbose</code> و <code class="inline">force</code> —
+        پاس می‌دهیم؛ و همه را در <code class="inline">try/except</code> می‌پیچیم تا خطا به کاربر نمایش داده شود.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">when isMainModule:
+  cli()</code></pre>
+        <p>اگر این ماژول، ماژول اصلی (main module) باشد، نقطهٔ ورود خود یعنی <code class="inline">cli</code> را صدا
+        می‌زنیم.</p>
+
+        <h3>بازگشت به stow و getLinkableFiles</h3>
+        <p>خیلی خب! برگردیم به <code class="inline">stow</code> و <code class="inline">getLinkableFiles</code>.</p>
+        <p>با <code class="inline">getLinkableFiles</code> شروع می‌کنیم. چیدمان dotfiles را به خاطر دارید؟</p>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">    # appPath: دایرکتوری فایل‌های dotfiles برنامه
+    #     انتظار داریم دایرکتوری این سلسله‌مراتب را داشته باشد.
+    #     i3
+    #     `-- .config
+    #         `-- i3
+    #         `-- config</code></pre>
+        <p>می‌خواهیم همهٔ فایل‌های موجود در آن را با مسیر کامل بگیریم؛ فایل لینکِ هر یک دقیقاً همان مسیر است، فقط نام
+        <code class="inline">appPath</code> با مسیر <code class="inline">dest</code> جایگزین می‌شود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[/home/striky/wspace/dotfiles/i3]/.config/i3/config -> [/home/striky]/.config/i3/config
+__________________appPath________                      _____dest____</code></pre>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">type
+  LinkInfo = tuple[original:string, dest:string] </code></pre>
+        <p>نوعی ساده برای نمایش مسیر اصلی و محلی که باید به آن سمبلینک ساخته شود.</p>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc getLinkableFiles*(appPath: string, dest: string=expandTilde("~")): seq[LinkInfo] =
+
+    # فایل‌های قابل لینک را در یک برنامهٔ مشخص جمع‌آوری می‌کند.
+
+    # appPath: دایرکتوری فایل‌های dotfiles برنامه
+    #     انتظار داریم دایرکتوری این سلسله‌مراتب را داشته باشد.
+    #     i3
+    #     `-- .config
+    #         `-- i3
+    #         `-- config
+
+    # dest: مقصد فایل‌های لینک : پیش‌فرض خانهٔ کاربر است.</code></pre>
+        <p><code class="inline">getLinkableFiles</code> رویه‌ای است که <code class="inline">appPath</code> و
+        <code class="inline">dest</code> را می‌گیرد و یک <code class="inline">seq</code> از
+        <code class="inline">LinkInfo</code> برمی‌گرداند که این تبدیل را برای هر فایل انجام می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[/home/striky/wspace/dotfiles/i3]/A_FILE_PATH -> [/home/striky]A_FILE_PATH
+__________________apppath________                _____dest____</code></pre>
+
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  var appPath = expandTilde(appPath)
+  if not dirExists(appPath):
+    raise newException(ValueError, fmt("App path {appPath} doesn't exist."))
+  var linkables = newSeq[LinkInfo]()
+  for filepath in walkDirRec(appPath, yieldFilter={pcFile}):
+    let linkpath = filepath.replace(appPath, dest)
+    var linkInfo : LinkInfo = (original:filepath, dest:linkpath)
+    linkables.add(linkInfo)
+  return linkables</code></pre>
+        <p>در اینجا با استفاده از <code class="inline">walkDirRec</code> روی دایرکتوری
+        <code class="inline">appPath</code> پیمایش می‌کنیم و در آرگومان <code class="inline">yieldFilter</code>
+        مشخص می‌کنیم که به <code class="inline">pcFile</code> — یعنی «مؤلفهٔ مسیرِ فایل» — علاقه‌مندیم؛ به‌عبارتی فقط
+        ورودی‌هایی از نوع فایل معمولی (regular file).</p>
+
+        <h3>رویهٔ stow</h3>
+        <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">proc stow(linkables: seq[LinkInfo], simulate: bool=true, verbose: bool=true, force: bool=false) = 
+    # لینک‌های نمادین و دایرکتوری‌های مربوطه را می‌سازد
+
+    # linkables فهرستی از تاپل‌ها (filepath, linkpath) است : List[Tuple[file_path, link_path]]
+    # simulate شبیه‌سازی را بدون هیچ اثری روی سیستم فایل انجام می‌دهد: bool
+    # verbose پیام‌های لاگ را نمایش می‌دهد: bool
+
+  for linkinfo in linkables:
+    let (filepath, linkpath) = linkinfo
+    if verbose:
+      echo(fmt("Will link {filepath} -> {linkpath}"))
+
+    if not simulate:
+      createDir(parentDir(linkpath))
+      if not fileExists(linkpath):
+        createSymlink(filepath, linkpath)
+      else:
+        if force:
+          removeFile(linkpath)
+          createSymlink(filepath, linkpath)
+        else:
+          if verbose:
+            echo(fmt("Skipping linking {filepath} -> {linkpath}"))</code></pre>
+        <p><code class="inline">stow</code> رویهٔ بسیار ساده‌ای است؛ فهرستی از <code class="inline">LinksInfo</code>
+        می‌گیرد که همهٔ اطلاعات (نام فایل اصلی و مقصد سمبلینک) را دارد و سمبلینک‌سازی را انجام می‌دهد — فقط به شرطی
+        که شبیه‌سازی نباشد — و اگر <code class="inline">verbose</code> فعال باشد، پیام‌ها را چاپ می‌کند.</p>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>آزاد باشید که بهبودهایی را به این آموزش یا nistow بفرستید :)</p>
+        <p>کد منبع کامل این ابزار در دسترس است:
+        <a href="https://github.com/xmonader/nistow" target="_blank" rel="noopener">https://github.com/xmonader/nistow</a></p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Day 6: Manage your dotfiles easily with nistow» اثر «xmonader»
+        (مجموعه آموزش‌های Nim Days) است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://xmonader.github.io/nimdays/day06_nistow.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

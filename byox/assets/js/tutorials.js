@@ -620,54 +620,54 @@ window.TUTORIALS = [
 "file": "tutorials/starcraft-bot-rust.html"
 },
 {
-"id": "",
+"id": "go-git-contributions",
 "category": "ابزار خط فرمان",
 "lang": "Go",
 "title": "مشارکت‌های محلی گیت خود را با Go تجسم کن",
 "url": "https://flaviocopes.com/go-git-contributions/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/go-git-contributions.html"
 },
 {
-"id": "",
+"id": "go-lolcat",
 "category": "ابزار خط فرمان",
 "lang": "Go",
 "title": "یک اپ خط فرمان با Go بساز: lolcat",
 "url": "https://flaviocopes.com/go-tutorial-lolcat/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/go-lolcat.html"
 },
 {
-"id": "",
+"id": "go-cowsay",
 "category": "ابزار خط فرمان",
 "lang": "Go",
 "title": "ساخت یک دستور CLI با Go: cowsay",
 "url": "https://flaviocopes.com/go-tutorial-cowsay/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/go-cowsay.html"
 },
 {
-"id": "",
+"id": "go-fortune",
 "category": "ابزار خط فرمان",
 "lang": "Go",
 "title": "آموزش Go CLI: کلون fortune",
 "url": "https://flaviocopes.com/go-tutorial-fortune/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/go-fortune.html"
 },
 {
-"id": "",
+"id": "nim-nistow",
 "category": "ابزار خط فرمان",
 "lang": "Nim",
 "title": "نوشتن جایگزینی برای stow جهت مدیریت فایل‌های dotfile",
 "url": "https://xmonader.github.io/nimdays/day06_nistow.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/nim-nistow.html"
 },
 {
 "id": "",

@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Visualizing local Git contributions with Go» (Flavio Copes)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپی‌رایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تجسم مشارکت‌های گیت محلی با Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>تجسم مشارکت‌های گیت محلی با Go</span>
+      </div>
+      <h1>تجسم مشارکت‌های گیت محلی با Go</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://flaviocopes.com/go-git-contributions/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Visualizing local Git contributions with Go»
+          نوشته «فلاویو کوپس (Flavio Copes)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://flaviocopes.com/go-git-contributions/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>بیاموزید چگونه یک ابزار خط فرمان (CLI) در گو بسازید که مخازن گیت محلی شما را پویش می‌کند و یک نمودار مشارکت‌ها
+        (contributions) به سبک گیت‌هاب رسم می‌کند؛ با استفاده از فلگ‌های خط فرمان برای افزودن پوشه‌ها.</p>
+        <p>چند سال پیش یک برنامهٔ دسکتاپی با
+        <a href="https://electron.atom.io/" target="_blank" rel="noopener">Electron</a> +
+        <a href="https://www.meteor.com/" target="_blank" rel="noopener">Meteor.js</a> +
+        <a href="https://www.npmjs.com/package/gitlog" target="_blank" rel="noopener">کتابخانهٔ <code class="inline">gitlog</code></a>
+        ساختم که مخازن گیت محلی‌ام را پویش می‌کرد و نمودار مشارکت‌های خوبی به من می‌داد؛ مشابه نموداری که در گیت‌هاب
+        (<a href="https://flaviocopes.com/github/" target="_blank" rel="noopener">GitHub</a>) نمایش داده می‌شود:</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/github.png" alt="نمودار مشارکت‌های گیت‌هاب با ۱۵۴۸ مشارکت در سال گذشته؛ مربع‌های سبز نشان‌دهندهٔ سطح فعالیت هستند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>آن زمان قبل از اینکه تک‌تک برنامه‌ها از Electron استفاده کنند بود و من واقعاً از این رویکرد خوشم نمی‌آمد؛ چون حجم
+        اپلیکیشن تولیدشده حدود ۵۰ برابر بزرگ‌تر از برنامهٔ مبتنی بر
+        <a href="https://github.com/MacGapProject/MacGap1" target="_blank" rel="noopener">MacGap</a> (مبتنی بر WebKit) بود.
+        به هر حال، خروجی این‌طور به نظر می‌رسید؛ با رابط کاربری شبیه گیت‌هاب:</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/meteor.jpg" alt="برنامهٔ دسکتاپی به نام Gitometer که نمودار مشارکت‌ها را با ۴۲۹ مشارکت کل در ۱۰ هفته و رگهٔ (streak) فعلی ۶ روزه نشان می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این ابزار برایم مفید بود؛ چون همهٔ پروژه‌هایم روی گیت‌هاب نیستند (بعضی در BitBucket یا GitLab هستند)، اما همهٔ
+        کدی که روی آن کار می‌کنم روی لپ‌تاپم است؛ بنابراین وقتی صحبت از مشارکت‌ها می‌شود، لپ‌تاپ من «منبع حقیقت واحد»
+        (single source of truth) است.</p>
+        <p>این اپلیکیشن هنوز اجرا می‌شود، اما هرگز برای عموم منتشر نشده است.</p>
+        <p>امروز تصمیم گرفتم این قابلیت را به‌صورت یک <strong>دستور کنسول گو (Go console command)</strong> منتقل کنم؛ چون
+        هنوز این مفهوم را دوست دارم.</p>
+      </section>
+
+      <!-- ==================== چیزی که می‌سازم ==================== -->
+      <section>
+        <h2>چیزی که در این مقاله می‌سازم 🎉</h2>
+        <p>یک دستور CLI که نموداری مشابه تصویر زیر تولید می‌کند:</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/output.png" alt="خروجی ترمینال؛ نمودار رنگی مشارکت‌های گیت با ماه‌های فوریه تا آگوست و شمارش اعداد مشارکت‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== کد را کجا پیدا کنیم ==================== -->
+      <section>
+        <h2>کد را کجا پیدا کنیم</h2>
+        <p>کد در این Gist قرار دارد:
+        <a href="https://gist.github.com/flaviocopes/bf2f982ee8f2ae3f455b06c7b2b03695" target="_blank" rel="noopener">https://gist.github.com/flaviocopes/bf2f982ee8f2ae3f455b06c7b2b03695</a></p>
+      </section>
+
+      <!-- ==================== قدم‌های اول ==================== -->
+      <section>
+        <h2>قدم‌های اول</h2>
+        <p>کار را به ۲ بخش تقسیم کردم:</p>
+        <ol>
+          <li>به‌دست آوردن فهرستی از پوشه‌هایی که باید پویش شوند</li>
+          <li>تولید آمار (stats)</li>
+        </ol>
+        <p>هر دو کار را با یک دستور انجام می‌دهم؛ با استفاده از تجزیهٔ فلگ‌های خط فرمان گو (command line flags). وقتی فلگ
+        <code class="inline">-add</code> داده شود، دستور یک پوشه به فهرست اضافه می‌کند. اجرای دستور بدون فلگ، نمودار را
+        تولید می‌کند. بازهٔ زمانی داده‌ها را به ۶ ماه اخیر محدود می‌کنم تا حجم زیادی داده یک‌جا به کاربر تحویل داده نشود.</p>
+        <p>بیایید یک اسکلت ساده برای این جداسازی دغدغه‌ها (separation of concerns) بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "flag"
+)
+
+// scan با گرفتن یک مسیر، آن و زیرپوشه‌هایش را
+// در جست‌وجوی مخازن گیت پویش می‌کند
+func scan(path string) {
+    print("scan")
+}
+
+// stats نمودار خوبی از مشارکت‌های گیت شما تولید می‌کند
+func stats(email string) {
+    print("stats")
+}
+
+func main() {
+    var folder string
+    var email string
+    flag.StringVar(&amp;folder, "add", "", "add a new folder to scan for Git repositories")
+    flag.StringVar(&amp;email, "email", "your@email.com", "the email to scan")
+    flag.Parse()
+
+    if folder != "" {
+        scan(folder)
+        return
+    }
+
+    stats(email)
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-git-contributions/shot1.png" alt="ترمینال در حال اجرای go run main.go؛ پیام‌های خروجی stats و scan" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>بخش ۱: به‌دست آوردن فهرست پوشه‌هایی که باید پویش شوند</h2>
+        <p>الگوریتمی که برای این بخش اول دنبال می‌کنم بسیار ساده است:</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/part1algo.png" alt="فلوچارت الگوریتم پویش پوشه: انتخاب دایرکتوری، جست‌وجوی پوشه‌های .git، ساخت برش از مسیرها، ذخیره‌سازی مسیر مخازن" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این بخش از برنامه به ۲ زیربخش تقسیم می‌شود. در زیربخش اول، پوشهٔ داده‌شده به‌عنوان آرگومان را به‌صورت بازگشتی
+        (recursive) در جست‌وجوی مخازن پویش می‌کنم. فهرست پوشه‌های مخازن را در فایلی در دایرکتوری خانه (home) ذخیره می‌کنم که
+        <code class="inline">.gogitlocalstats</code> نام دارد.</p>
+        <p>ببینیم <code class="inline">scan()</code> چگونه پر می‌شود. اساساً ۳ خط کد است؛ جدا از تولید خروجی:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// scan یک پوشهٔ جدید را برای مخازن گیت پویش می‌کند
+func scan(folder string) {
+    fmt.Printf("Found folders:\n\n")
+    repositories := recursiveScanFolder(folder)
+    filePath := getDotFilePath()
+    addNewSliceElementsToFile(filePath, repositories)
+    fmt.Printf("\n\nSuccessfully added\n\n")
+}</code></pre>
+        <p>این گردش کار است:</p>
+        <ol>
+          <li>یک برش (slice) از رشته‌ها را از <code class="inline">recursiveScanFolder()</code> می‌گیریم</li>
+          <li>مسیر فایل نقطه‌داری (dot file) را که قرار است در آن بنویسیم به‌دست می‌آوریم</li>
+          <li>محتوای برش را در فایل می‌نویسیم</li>
+        </ol>
+        <p>بیایید با مورد ۱) شروع کنیم؛ یعنی پویش پوشه. گزینه‌های مختلفی برای پویش یک پوشه با گو وجود دارد. از
+        <code class="inline">filepath.Walk</code> استفاده نمی‌کنم؛ چون وارد تک‌تک پوشه‌ها می‌شود. با
+        <code class="inline">ioutil.Readdir</code> کنترل بیشتری داریم. از پوشه‌های <code class="inline">vendor</code> و
+        <code class="inline">node_modules</code> رد می‌شوم؛ چون می‌توانند تعداد بسیار زیادی پوشه داشته باشند که به آن‌ها
+        علاقه‌ای ندارم. از پوشه‌های <code class="inline">.git</code> هم رد می‌شوم؛ اما اگر یکی را پیدا کردم، آن را به برشم
+        اضافه می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// scanGitFolders فهرستی از زیرپوشه‌های `folder` را برمی‌گرداند که به `.git` ختم می‌شوند.
+// پوشهٔ پایهٔ مخزن را برمی‌گرداند؛ یعنی والدِ پوشهٔ .git.
+// با پاس دادن یک برش موجودِ `folders`، به‌صورت بازگشتی در زیرپوشه‌ها جست‌وجو می‌کند.
+func scanGitFolders(folders []string, folder string) []string {
+    // حذف `/` پایانی
+    folder = strings.TrimSuffix(folder, "/")
+
+    f, err := os.Open(folder)
+    if err != nil {
+        log.Fatal(err)
+    }
+    files, err := f.Readdir(-1)
+    f.Close()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    var path string
+
+    for _, file := range files {
+        if file.IsDir() {
+            path = folder + "/" + file.Name()
+            if file.Name() == ".git" {
+                path = strings.TrimSuffix(path, "/.git")
+                fmt.Println(path)
+                folders = append(folders, path)
+                continue
+            }
+            if file.Name() == "vendor" || file.Name() == "node_modules" {
+                continue
+            }
+            folders = scanGitFolders(folders, path)
+        }
+    }
+
+    return folders
+}</code></pre>
+        <p>این تابع صریحاً از ورود به پوشه‌هایی به نام <code class="inline">vendor</code> یا
+        <code class="inline">node_modules</code> خودداری می‌کند؛ چون این پوشه‌ها می‌توانند بسیار حجیم باشند و معمولاً مخازن
+        گیت خود را آن‌جا نمی‌گذارید؛ پس می‌توانیم با خیال راحت از آن‌ها صرف‌نظر کنیم.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> رد شدن از <code class="inline">vendor</code> و <code class="inline">node_modules</code>
+          پویش را به‌شدت سریع‌تر می‌کند؛ چون این پوشه‌ها می‌توانند هزاران زیرپوشه داشته باشند.
+        </div>
+        <p>همان‌طور که می‌بینید این یک تابع بازگشتی است و توسط این تابع دیگر شروع می‌شود؛ که برای شروع، یک برش خالی از
+        رشته‌ها به آن پاس می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// recursiveScanFolder جست‌وجوی بازگشتی مخازن گیتی را شروع می‌کند
+// که در زیردرخت `folder` قرار دارند
+func recursiveScanFolder(folder string) []string {
+    return scanGitFolders(make([]string, 0), folder)
+}</code></pre>
+        <p>قسمت ۲) گردش کار، به‌دست آوردن مسیر فایل نقطه‌داری است که پایگاه دادهٔ مسیرهای مخازن ما را در خود دارد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// getDotFilePath فایل نقطه‌دار فهرست مخازن را برمی‌گرداند.
+// اگر آن و پوشهٔ اطرافش وجود نداشته باشند، آن‌ها را می‌سازد.
+func getDotFilePath() string {
+    usr, err := user.Current()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    dotFile := usr.HomeDir + "/.gogitlocalstats"
+
+    return dotFile
+}</code></pre>
+        <p>این تابع از تابع <code class="inline">Current</code> پکیج <code class="inline">os/user</code> برای گرفتن کاربر
+        فعلی استفاده می‌کند؛ که یک struct است که به این صورت تعریف شده:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// User نمایانگر یک حساب کاربری است.
+type User struct {
+    // Uid شناسهٔ کاربر است.
+    // در سیستم‌های POSIX، این عددی دهدهی است که uid را نشان می‌دهد.
+    // در ویندوز، این یک شناسهٔ امنیتی (SID) در قالب رشته است.
+    // در Plan 9، این محتوای /dev/user است.
+    Uid string
+    // Gid شناسهٔ گروه اصلی است.
+    // در سیستم‌های POSIX، این عددی دهدهی است که gid را نشان می‌دهد.
+    // در ویندوز، این یک SID در قالب رشته است.
+    // در Plan 9، این محتوای /dev/user است.
+    Gid string
+    // Username نام ورود (login) است.
+    Username string
+    // Name نام واقعی یا نمایشی کاربر است.
+    // ممکن است خالی باشد.
+    // در سیستم‌های POSIX، این اولین (یا تنها) ورودی در فهرست فیلدهای GECOS است.
+    // در ویندوز، این نام نمایشی کاربر است.
+    // در Plan 9، این محتوای /dev/user است.
+    Name string
+    // HomeDir مسیر دایرکتوری خانهٔ کاربر است (اگر داشته باشد).
+    HomeDir string
+}</code></pre>
+        <p>ما به ویژگی <code class="inline">HomeDir</code> علاقه داریم تا مسیر کامل فایل نقطه‌دارمان را بگیریم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">dotFile := usr.HomeDir + "/.gogitlocalstats"</code></pre>
+        <p>خب، حالا فهرستی از مخازن داریم، فایلی برای نوشتن آن‌ها، و قدم بعدی برای <code class="inline">scan()</code> این
+        است که آن‌ها را بدون افزودن خطوط تکراری ذخیره کند.</p>
+        <p>روند این است:</p>
+        <ol>
+          <li>مخازن موجودِ ذخیره‌شده در فایل را به یک برش تجزیه کنیم</li>
+          <li>آیتم‌های جدید را بدون افزودن موارد تکراری به برش اضافه کنیم</li>
+          <li>برش را در فایل ذخیره کنیم و محتوای موجود را بازنویسی کنیم</li>
+        </ol>
+        <p>این کارِ <code class="inline">addNewSliceElementsToFile()</code> است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// addNewSliceElementsToFile با گرفتن برشی از رشته‌ها که مسیرها را نشان می‌دهند، آن‌ها را
+// در فایل‌سیستم ذخیره می‌کند
+// addNewSliceElementsToFile با گرفتن برشی از رشته‌ها که مسیرها را نشان می‌دهند، آن‌ها را
+// در فایل‌سیستم ذخیره می‌کند
+func addNewSliceElementsToFile(filePath string, newRepos []string) {
+    existingRepos := parseFileLinesToSlice(filePath)
+    repos := joinSlices(newRepos, existingRepos)
+    dumpStringsSliceToFile(repos, filePath)
+}</code></pre>
+        <p>اولین کاری که این تابع انجام می‌دهد، فراخوانی <code class="inline">parseFileLinesToSlice()</code> است؛ که یک
+        رشتهٔ مسیر فایل می‌گیرد و برشی از رشته‌ها با محتوای فایل برمی‌گرداند. چیز خاصی نیست:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// parseFileLinesToSlice با گرفتن رشتهٔ مسیر یک فایل، محتوای
+// هر خط را می‌گیرد و آن را به برشی از رشته‌ها تجزیه می‌کند.
+func parseFileLinesToSlice(filePath string) []string {
+    f := openFile(filePath)
+    defer f.Close()
+
+    var lines []string
+    scanner := bufio.NewScanner(f)
+    for scanner.Scan() {
+        lines = append(lines, scanner.Text())
+    }
+    if err := scanner.Err(); err != nil {
+        if err != io.EOF {
+            panic(err)
+        }
+    }
+
+    return lines
+}</code></pre>
+        <p>این تابع <code class="inline">openFile()</code> را صدا می‌زند؛ که با گرفتن رشتهٔ مسیر فایل، فایل را باز می‌کند و
+        آن را برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// openFile فایل واقع‌شده در `filePath` را باز می‌کند. اگر وجود نداشته باشد، آن را می‌سازد.
+func openFile(filePath string) *os.File {
+    f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0755)
+    if err != nil {
+        if os.IsNotExist(err) {
+            // فایل وجود ندارد
+            _, err = os.Create(filePath)
+            if err != nil {
+                panic(err)
+            }
+        } else {
+            // خطای دیگر
+            panic(err)
+        }
+    }
+
+    return f
+}</code></pre>
+        <p>در این حالت سعی می‌کند فایل نقطه‌دار ما را باز کند. اگر خطایی رخ دهد و خطا به ما بگوید فایل وجود ندارد (با
+        استفاده از <code class="inline">os.IsNotExist()</code>)، فایل را با <code class="inline">os.Create()</code>
+        می‌سازیم تا بتوانیم پر کردنش را با مخازن پویش‌شده شروع کنیم. توصیفگر فایلِ باز (file descriptor) را برمی‌گرداند.</p>
+        <p><code class="inline">addNewSliceElementsToFile()</code> بعد از گرفتن توصیفگر فایل، بلافاصله
+        <code class="inline">f.Close()</code> را معوق (defer) می‌کند تا بعد از پایان کار تابع، فایل بسته شود. سپس
+        <code class="inline">parseFileLinesToSlice()</code> را صدا می‌زند؛ یک تابع کمکی که هر خط از یک فایل را به یک برش
+        رشته‌ای تجزیه می‌کند.</p>
+        <p>سپس <code class="inline">joinSlices()</code> با گرفتن ۲ برش، محتوای اولی را به دومی اضافه می‌کند؛ فقط اگر آن
+        محتوا قبلاً وجود نداشته باشد. این کار از خطوط تکراری جلوگیری می‌کند.</p>
+        <p>بگذارید ببینیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// joinSlices عناصر برش `new` را به برش `existing`
+// اضافه می‌کند؛ فقط اگر قبلاً آن‌جا نباشند
+func joinSlices(new []string, existing []string) []string {
+    for _, i := range new {
+        if !sliceContains(existing, i) {
+            existing = append(existing, i)
+        }
+    }
+    return existing
+}
+
+// sliceContains اگر `slice` شامل `value` باشد true برمی‌گرداند
+func sliceContains(slice []string, value string) bool {
+    for _, v := range slice {
+        if v == value {
+            return true
+        }
+    }
+    return false
+}</code></pre>
+        <p>آخرین چیز فراخوانی <code class="inline">dumpStringsSliceToFile()</code> است؛ که با گرفتن یک برش از رشته‌ها و
+        یک مسیر فایل، آن برش را با هر رشته در یک خط جدید در فایل می‌نویسد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// dumpStringsSliceToFile محتوا را در فایل واقع در مسیر `filePath` می‌نویسد (محتوای موجود را بازنویسی می‌کند)
+func dumpStringsSliceToFile(repos []string, filePath string) {
+    content := strings.Join(repos, "\n")
+    ioutil.WriteFile(filePath, []byte(content), 0755)
+}</code></pre>
+        <p>در این‌جا محتوای کاملِ کاملاً کارای این بخش اول است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "bufio"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "log"
+    "os"
+    "os/user"
+    "strings"
+)
+
+// getDotFilePath فایل نقطه‌دار فهرست مخازن را برمی‌گرداند.
+// اگر آن و پوشهٔ اطرافش وجود نداشته باشند، آن‌ها را می‌سازد.
+func getDotFilePath() string {
+    usr, err := user.Current()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    dotFile := usr.HomeDir + "/.gogitlocalstats"
+
+    return dotFile
+}
+
+// openFile فایل واقع‌شده در `filePath` را باز می‌کند. اگر وجود نداشته باشد، آن را می‌سازد.
+func openFile(filePath string) *os.File {
+    f, err := os.OpenFile(filePath, os.O_APPEND|os.O_RDWR, 0755)
+    if err != nil {
+        if os.IsNotExist(err) {
+            // فایل وجود ندارد
+            _, err = os.Create(filePath)
+            if err != nil {
+                panic(err)
+            }
+        } else {
+            // خطای دیگر
+            panic(err)
+        }
+    }
+
+    return f
+}
+
+// parseFileLinesToSlice با گرفتن رشتهٔ مسیر یک فایل، محتوای
+// هر خط را می‌گیرد و آن را به برشی از رشته‌ها تجزیه می‌کند.
+func parseFileLinesToSlice(filePath string) []string {
+    f := openFile(filePath)
+    defer f.Close()
+
+    var lines []string
+    scanner := bufio.NewScanner(f)
+    for scanner.Scan() {
+        lines = append(lines, scanner.Text())
+    }
+    if err := scanner.Err(); err != nil {
+        if err != io.EOF {
+            panic(err)
+        }
+    }
+
+    return lines
+}
+
+// sliceContains اگر `slice` شامل `value` باشد true برمی‌گرداند
+func sliceContains(slice []string, value string) bool {
+    for _, v := range slice {
+        if v == value {
+            return true
+        }
+    }
+    return false
+}
+
+// joinSlices عناصر برش `new` را به برش `existing`
+// اضافه می‌کند؛ فقط اگر قبلاً آن‌جا نباشند
+func joinSlices(new []string, existing []string) []string {
+    for _, i := range new {
+        if !sliceContains(existing, i) {
+            existing = append(existing, i)
+        }
+    }
+    return existing
+}
+
+// dumpStringsSliceToFile محتوا را در فایل واقع در مسیر `filePath` می‌نویسد (محتوای موجود را بازنویسی می‌کند)
+func dumpStringsSliceToFile(repos []string, filePath string) {
+    content := strings.Join(repos, "\n")
+    ioutil.WriteFile(filePath, []byte(content), 0755)
+}
+
+// addNewSliceElementsToFile با گرفتن برشی از رشته‌ها که مسیرها را نشان می‌دهند، آن‌ها را
+// در فایل‌سیستم ذخیره می‌کند
+func addNewSliceElementsToFile(filePath string, newRepos []string) {
+    existingRepos := parseFileLinesToSlice(filePath)
+    repos := joinSlices(newRepos, existingRepos)
+    dumpStringsSliceToFile(repos, filePath)
+}
+
+// recursiveScanFolder جست‌وجوی بازگشتی مخازن گیتی را شروع می‌کند
+// که در زیردرخت `folder` قرار دارند
+func recursiveScanFolder(folder string) []string {
+    return scanGitFolders(make([]string, 0), folder)
+}
+
+// scan یک پوشهٔ جدید را برای مخازن گیت پویش می‌کند
+func scan(folder string) {
+    fmt.Printf("Found folders:\n\n")
+    repositories := recursiveScanFolder(folder)
+    filePath := getDotFilePath()
+    addNewSliceElementsToFile(filePath, repositories)
+    fmt.Printf("\n\n Successfully added\n\n")
+}
+
+// scanGitFolders فهرستی از زیرپوشه‌های `folder` را برمی‌گرداند که به `.git` ختم می‌شوند.
+// پوشهٔ پایهٔ مخزن را برمی‌گرداند؛ یعنی والدِ پوشهٔ .git.
+// با پاس دادن یک برش موجودِ `folders`، به‌صورت بازگشتی در زیرپوشه‌ها جست‌وجو می‌کند.
+func scanGitFolders(folders []string, folder string) []string {
+    // حذف `/` پایانی
+    folder = strings.TrimSuffix(folder, "/")
+
+    f, err := os.Open(folder)
+    if err != nil {
+        log.Fatal(err)
+    }
+    files, err := f.Readdir(-1)
+    f.Close()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    var path string
+
+    for _, file := range files {
+        if file.IsDir() {
+            path = folder + "/" + file.Name()
+            if file.Name() == ".git" {
+                path = strings.TrimSuffix(path, "/.git")
+                fmt.Println(path)
+                folders = append(folders, path)
+                continue
+            }
+            if file.Name() == "vendor" || file.Name() == "node_modules" {
+                continue
+            }
+            folders = scanGitFolders(folders, path)
+        }
+    }
+
+    return folders
+}</code></pre>
+        <p>برای وضوح، این را در یک فایل جداگانه به نام <code class="inline">scan.go</code> (در همان پوشهٔ
+        <code class="inline">main.go</code>) گذاشتم.</p>
+      </section>
+
+      <!-- ==================== بخش ۲ ==================== -->
+      <section>
+        <h2>بخش ۲: تولید آمار</h2>
+        <p>حالا بخش دوم: تولید آمار!</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/part2algo.png" alt="فلوچارت الگوریتم محاسبهٔ آمار: خواندن فهرست مخازن، پیمایش و شمارش، محاسبهٔ مشارکت‌های هر روز، رندر نمودار" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>من هم در یک فایل جداگانه به نام <code class="inline">stats.go</code> کار می‌کنم.</p>
+        <p>در این فایل از یک وابستگی (dependency) به نام <code class="inline">go-git</code> استفاده خواهم کرد که در
+        گیت‌هاب در دسترس است: <a href="https://github.com/src-d/go-git" target="_blank" rel="noopener">https://github.com/src-d/go-git</a>.
+        این کتابخانه جزئیات کار با نمایش داخلی گیت از commitها را انتزاعی می‌کند، یک API خوب در معرض دید قرار می‌دهد و
+        خودکفا است (به کتابخانه‌های خارجی مثل
+        <a href="https://github.com/libgit2/git2go" target="_blank" rel="noopener">اتصال‌های <code class="inline">libgit2</code></a>
+        نیاز ندارد)؛ که برای برنامهٔ من یک سازش (compromise) خوب است.</p>
+        <p>بیایید <code class="inline">stats()</code> را با ۲ فراخوانی تابع پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// stats آمار را محاسبه و چاپ می‌کند.
+func stats(email string) {
+    commits := processRepositories(email)
+    printCommitsStats(commits)
+}</code></pre>
+        <ol>
+          <li>فهرست commitها را بگیر</li>
+          <li>با توجه به commitها، نمودار را تولید کن</li>
+        </ol>
+        <p>به‌اندازهٔ کافی ساده به نظر می‌رسد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// processRepositories با گرفتن ایمیل کاربر،
+// commitهای انجام‌شده در ۶ ماه اخیر را برمی‌گرداند
+func processRepositories(email string) map[int]int {
+    filePath := getDotFilePath()
+    repos := parseFileLinesToSlice(filePath)
+    daysInMap := daysInLastSixMonths
+
+    commits := make(map[int]int, daysInMap)
+    for i := daysInMap; i &gt; 0; i-- {
+        commits[i] = 0
+    }
+
+    for _, path := range repos {
+        commits = fillCommits(email, path, commits)
+    }
+
+    return commits
+}</code></pre>
+        <p>خیلی آسان:</p>
+        <ol>
+          <li>مسیر فایل نقطه‌دار را بگیر</li>
+          <li>خطوط فایل را به فهرست (برش) مخازن تجزیه کن</li>
+          <li>یک <code class="inline">map</code> به نام <code class="inline">commits</code> را با مقادیر صحیح ۰ پر کن</li>
+          <li>روی مخازن پیمایش کن و <code class="inline">map</code> به نام <code class="inline">commits</code> را پر کن</li>
+        </ol>
+        <p><code class="inline">getDotFilePath()</code> و <code class="inline">parseFileLinesToSlice()</code> را از فایل
+        <code class="inline">scan.go</code> دوباره استفاده می‌کنم. چون پکیج یکسان است، لازم نیست کاری انجام دهم؛ آن‌ها برای
+        استفاده در دسترس هستند.</p>
+        <p>این پیاده‌سازی <code class="inline">fillCommits()</code> است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// fillCommits با گرفتن یک مخزن که در `path` پیدا شده، commitها را می‌گیرد و
+// آن‌ها را در map به نام `commits` می‌گذارد؛ پس از اتمام آن را برمی‌گرداند
+func fillCommits(email string, path string, commits map[int]int) map[int]int {
+    // ساخت شیء مخزن گیت از مسیر
+    repo, err := git.PlainOpen(path)
+    if err != nil {
+        panic(err)
+    }
+    // گرفتن ارجاع HEAD
+    ref, err := repo.Head()
+    if err != nil {
+        panic(err)
+    }
+    // گرفتن تاریخچهٔ commitها با شروع از HEAD
+    iterator, err := repo.Log(&amp;git.LogOptions{From: ref.Hash()})
+    if err != nil {
+        panic(err)
+    }
+    // پیمایش commitها
+    offset := calcOffset()
+    err = iterator.ForEach(func(c *object.Commit) error {
+        daysAgo := countDaysSinceDate(c.Author.When) + offset
+
+        if c.Author.Email != email {
+            return nil
+        }
+
+        if daysAgo != outOfRange {
+            commits[daysAgo]++
+        }
+
+        return nil
+    })
+    if err != nil {
+        panic(err)
+    }
+
+    return commits
+}</code></pre>
+        <p><code class="inline">daysInLastSixMonths</code> یک ثابت (constant) است که به این صورت تعریف می‌شود:
+        <code class="inline">const daysInLastSixMonths = 183</code>.</p>
+        <p><code class="inline">outOfRange</code> هم یک ثابت است؛ به این صورت تعریف می‌شود:
+        <code class="inline">const outOfRange = 99999</code>؛ که برخلاف <code class="inline">daysInLastSixMonths</code>
+        معنای واقعی ندارد. به‌عنوان مقدار بازگشتی <code class="inline">countDaysSinceDate()</code> تنظیم می‌شود؛ وقتی commit
+        قدیمی‌تر از ۶ ماه باشد؛ یعنی بازهٔ تحلیل داده‌های ما.</p>
+        <p><code class="inline">object</code> توسط پکیج <code class="inline">go-git</code> ارائه می‌شود؛ با ایمپورت کردن
+        <code class="inline">gopkg.in/src-d/go-git.v4/plumbing/object</code>.</p>
+        <p>من یک offset (انحراف) به محاسبهٔ «daysAgo» اضافه می‌کنم؛ به خاطر نحوهٔ کار نمودارِ شبیه گیت‌هاب: هر سطر
+        نمایانگر یک نام روز است (از یکشنبه شروع می‌شود) و هر سطر یک هفته را نشان می‌دهد. هفتهٔ جاری را با «دادهٔ جعلی»
+        (fake data) پر می‌کنم.</p>
+        <p><code class="inline">countDaysSinceDate()</code> برمی‌گرداند که commit چند روز پیش انجام شده است. تاریخ جاری را
+        به دقیقاً شروع روز (00:00:00) بازنشانی می‌کنم تا ساعت‌ها بخشی از معادله نباشند. منطقهٔ زمانی (timezone) از سیستم
+        استنتاج می‌شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// getBeginningOfDay با گرفتن یک time.Time، زمان شروع همان روز را محاسبه می‌کند
+func getBeginningOfDay(t time.Time) time.Time {
+    year, month, day := t.Date()
+    startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+    return startOfDay
+}
+
+// countDaysSinceDate شمارش می‌کند که از تاریخِ داده‌شدهٔ `date` چند روز گذشته است
+func countDaysSinceDate(date time.Time) int {
+    days := 0
+    now := getBeginningOfDay(time.Now())
+    for date.Before(now) {
+        date = date.Add(time.Hour * 24)
+        days++
+        if days &gt; daysInLastSixMonths {
+            return outOfRange
+        }
+    }
+    return days
+}</code></pre>
+        <p><code class="inline">calcOffset()</code> برای تعیین جای صحیح یک commit در map مربوط به commitهایمان استفاده
+        می‌شود تا به‌راحتی در خروجی کنسول نمایش داده شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// calcOffset تعداد روزهای لازم برای پر کردن
+// آخرین ردیف نمودار آمار را تعیین و برمی‌گرداند
+func calcOffset() int {
+    var offset int
+    weekday := time.Now().Weekday()
+
+    switch weekday {
+    case time.Sunday:
+        offset = 7
+    case time.Monday:
+        offset = 6
+    case time.Tuesday:
+        offset = 5
+    case time.Wednesday:
+        offset = 4
+    case time.Thursday:
+        offset = 3
+    case time.Friday:
+        offset = 2
+    case time.Saturday:
+        offset = 1
+    }
+
+    return offset
+}</code></pre>
+
+        <p>—</p>
+
+        <p>حالا پردازش commitها تمام شده است. حالا یک map از commitها داریم و می‌توانیم آن را چاپ کنیم. این‌جا مرکز
+        عملیات است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// printCommitsStats آمار commitها را چاپ می‌کند
+func printCommitsStats(commits map[int]int) {
+    keys := sortMapIntoSlice(commits)
+    cols := buildCols(keys, commits)
+    printCells(cols)
+}</code></pre>
+        <ol>
+          <li>map را مرتب کن</li>
+          <li>ستون‌ها را تولید کن</li>
+          <li>هر ستون را چاپ کن</li>
+        </ol>
+
+        <h3>مرتب‌سازی map</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// sortMapIntoSlice برشی از اندیس‌های یک map را برمی‌گرداند؛ به‌صورت مرتب
+func sortMapIntoSlice(m map[int]int) []int {
+    // مرتب‌سازی map
+    // برای ذخیرهٔ کلیدها در برش به ترتیب مرتب‌شده
+    var keys []int
+    for k := range m {
+        keys = append(keys, k)
+    }
+    sort.Ints(keys)
+
+    return keys
+}</code></pre>
+        <p><code class="inline">sortMapIntoSlice()</code> یک map می‌گیرد و برشی از کلیدهای map را برحسب مقدار صحیح آن‌ها
+        مرتب می‌کند. از این برای چاپ درست و مرتب map استفاده می‌شود.</p>
+
+        <h3>تولید ستون‌ها</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// buildCols یک map با ردیف‌ها و ستون‌های آمادهٔ چاپ روی صفحه تولید می‌کند
+func buildCols(keys []int, commits map[int]int) map[int]column {
+    cols := make(map[int]column)
+    col := column{}
+
+    for _, k := range keys {
+        week := int(k / 7) //26,25...1
+        dayinweek := k % 7 // 0,1,2,3,4,5,6
+
+        if dayinweek == 0 { //بازنشانی
+            col = column{}
+        }
+
+        col = append(col, commits[k])
+
+        if dayinweek == 6 {
+            cols[week] = col
+        }
+    }
+
+    return cols
+}</code></pre>
+        <p><code class="inline">buildCols()</code> برش کلیدهایی را می‌گیرد که در <code class="inline">sortMapIntoSlice()</code>
+        تولید کردیم و map را هم می‌گیرد. یک map جدید می‌سازد؛ به‌جای استفاده از روزها به‌عنوان کلید، از هفته‌ها استفاده
+        می‌کند. نوع <code class="inline">column</code> به‌صورت برشی از اعداد صحیح تعریف شده است:
+        <code class="inline">type column []int</code>.</p>
+        <p>هفته با تقسیم اندیس روز بر ۷ تعیین می‌شود و این‌که کدام روز از هفته است با عملیات پیمانه (modulo)
+        <code class="inline">k % 7</code> به‌راحتی به‌دست می‌آید. وقتی روز هفته یکشنبه باشد، یک ستون جدید می‌سازیم و آن را
+        پر می‌کنیم؛ و وقتی شنبه باشد، هفته را به map ستون‌ها اضافه می‌کنیم.</p>
+
+        <h3>چاپ سلول‌ها</h3>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// printCells سلول‌های نمودار را چاپ می‌کند
+func printCells(cols map[int]column) {
+	printMonths()
+	for j := 6; j &gt;= 0; j-- {
+		for i := weeksInLastSixMonths + 1; i &gt;= 0; i-- {
+			if i == weeksInLastSixMonths+1 {
+				printDayCol(j)
+			}
+			if col, ok := cols[i]; ok {
+				//حالت خاصِ امروز
+				if i == 0 &amp;&amp; j == calcOffset()-1 {
+					printCell(col[j], true)
+					continue
+				} else {
+					if len(col) &gt; j {
+						printCell(col[j], false)
+						continue
+					}
+				}
+			}
+			printCell(0, false)
+		}
+		fmt.Printf("\n")
+	}
+}</code></pre>
+        <p><code class="inline">printCells()</code> اول <code class="inline">printMonths()</code> را صدا می‌زند تا خط نام
+        ماه‌ها چاپ شود. سپس برای هر خط بعدی (روز هفته)، هر هفته را پردازش می‌کند و <code class="inline">printCell()</code>
+        را صدا می‌زند؛ مقدار و این‌که آیا امروز است یا نه را پاس می‌دهد. اگر ستون اول باشد، <code class="inline">printDayCol()</code>
+        را صدا می‌زند تا نام روز چاپ شود.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// printMonths نام ماه‌ها را در خط اول چاپ می‌کند؛ با تشخیص زمانی که
+// ماه بین جابه‌جایی هفته‌ها عوض شده است
+func printMonths() {
+	week := getBeginningOfDay(time.Now()).Add(-(daysInLastSixMonths * time.Hour * 24))
+	month := week.Month()
+	fmt.Printf("         ")
+	for {
+		if week.Month() != month {
+			fmt.Printf("%s ", week.Month().String()[:3])
+			month = week.Month()
+		} else {
+			fmt.Printf("    ")
+		}
+
+		week = week.Add(7 * time.Hour * 24)
+		if week.After(time.Now()) {
+			break
+		}
+	}
+	fmt.Printf("\n")
+}</code></pre>
+        <p>این‌جا <code class="inline">printMonths()</code> است. به شروع تاریخچه‌ای می‌رود که تحلیل می‌کنیم و
+        هفته‌به‌هفته جلو می‌رود. اگر هنگام رفتن به هفتهٔ بعد، ماه عوض شود، آن را چاپ می‌کند. وقتی از تاریخ جاری عبور کند،
+        حلقه را می‌شکند.</p>
+        <p><code class="inline">printDayCol()</code> بسیار ساده است؛ با گرفتن اندیس ردیف روز، نام روز را چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// printDayCol با گرفتن شمارهٔ روز (۰ یعنی یکشنبه) نام روز را چاپ می‌کند؛
+// با در میان‌گذاشتن ردیف‌ها (فقط ۲، ۴، ۶ را چاپ می‌کند)
+func printDayCol(day int) {
+	out := "     "
+	switch day {
+	case 1:
+		out = " Mon "
+	case 3:
+		out = " Wed "
+	case 5:
+		out = " Fri "
+	}
+
+	fmt.Printf(out)
+}</code></pre>
+        <p><code class="inline">printCell()</code> که در زیر آمده، دنبالهٔ escape صحیح را بر اساس تعداد commitهای داخل یک
+        سلول محاسبه می‌کند و همچنین عرض سلول را بسته به تعداد رقم‌های عدد چاپ‌شده استاندارد می‌کند. در پایان هم سلول را به
+        <code class="inline">io.Stdout</code> چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">// printCell با گرفتن مقدار یک سلول، آن را با فرمتی متفاوت چاپ می‌کند؛
+// بر اساس مقدار و فلگ `today`.
+func printCell(val int, today bool) {
+    escape := "\033[0;37;30m"
+    switch {
+    case val &gt; 0 &amp;&amp; val &lt; 5:
+        escape = "\033[1;30;47m"
+    case val &gt;= 5 &amp;&amp; val &lt; 10:
+        escape = "\033[1;30;43m"
+    case val &gt;= 10:
+        escape = "\033[1;30;42m"
+    }
+
+    if today {
+        escape = "\033[1;37;45m"
+    }
+
+    if val == 0 {
+        fmt.Printf(escape + "  - " + "\033[0m")
+        return
+    }
+
+    str := "  %d "
+    switch {
+    case val &gt;= 10:
+        str = " %d "
+    case val &gt;= 100:
+        str = "%d "
+    }
+
+    fmt.Printf(escape+str+"\033[0m", val)
+}</code></pre>
+        <p>در این‌جا کد کامل <code class="inline">stats.go</code> است؛ با محتوای این بخش دوم برنامه:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "fmt"
+    "sort"
+    "time"
+
+    "gopkg.in/src-d/go-git.v4"
+    "gopkg.in/src-d/go-git.v4/plumbing/object"
+)
+
+const outOfRange = 99999
+const daysInLastSixMonths = 183
+const weeksInLastSixMonths = 26
+
+type column []int
+
+// stats آمار را محاسبه و چاپ می‌کند.
+func stats(email string) {
+    commits := processRepositories(email)
+    printCommitsStats(commits)
+}
+
+// getBeginningOfDay با گرفتن یک time.Time، زمان شروع همان روز را محاسبه می‌کند
+func getBeginningOfDay(t time.Time) time.Time {
+    year, month, day := t.Date()
+    startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+    return startOfDay
+}
+
+// countDaysSinceDate شمارش می‌کند که از تاریخِ داده‌شدهٔ `date` چند روز گذشته است
+func countDaysSinceDate(date time.Time) int {
+    days := 0
+    now := getBeginningOfDay(time.Now())
+    for date.Before(now) {
+        date = date.Add(time.Hour * 24)
+        days++
+        if days &gt; daysInLastSixMonths {
+            return outOfRange
+        }
+    }
+    return days
+}
+
+// fillCommits با گرفتن یک مخزن که در `path` پیدا شده، commitها را می‌گیرد و
+// آن‌ها را در map به نام `commits` می‌گذارد؛ پس از اتمام آن را برمی‌گرداند
+func fillCommits(email string, path string, commits map[int]int) map[int]int {
+    // ساخت شیء مخزن گیت از مسیر
+    repo, err := git.PlainOpen(path)
+    if err != nil {
+        panic(err)
+    }
+    // گرفتن ارجاع HEAD
+    ref, err := repo.Head()
+    if err != nil {
+        panic(err)
+    }
+    // گرفتن تاریخچهٔ commitها با شروع از HEAD
+    iterator, err := repo.Log(&amp;git.LogOptions{From: ref.Hash()})
+    if err != nil {
+        panic(err)
+    }
+    // پیمایش commitها
+    offset := calcOffset()
+    err = iterator.ForEach(func(c *object.Commit) error {
+        daysAgo := countDaysSinceDate(c.Author.When) + offset
+
+        if c.Author.Email != email {
+            return nil
+        }
+
+        if daysAgo != outOfRange {
+            commits[daysAgo]++
+        }
+
+        return nil
+    })
+    if err != nil {
+        panic(err)
+    }
+
+    return commits
+}
+
+// processRepositories با گرفتن ایمیل کاربر،
+// commitهای انجام‌شده در ۶ ماه اخیر را برمی‌گرداند
+func processRepositories(email string) map[int]int {
+    filePath := getDotFilePath()
+    repos := parseFileLinesToSlice(filePath)
+    daysInMap := daysInLastSixMonths
+
+    commits := make(map[int]int, daysInMap)
+    for i := daysInMap; i &gt; 0; i-- {
+        commits[i] = 0
+    }
+
+    for _, path := range repos {
+        commits = fillCommits(email, path, commits)
+    }
+
+    return commits
+}
+
+// calcOffset تعداد روزهای لازم برای پر کردن
+// آخرین ردیف نمودار آمار را تعیین و برمی‌گرداند
+func calcOffset() int {
+    var offset int
+    weekday := time.Now().Weekday()
+
+    switch weekday {
+    case time.Sunday:
+        offset = 7
+    case time.Monday:
+        offset = 6
+    case time.Tuesday:
+        offset = 5
+    case time.Wednesday:
+        offset = 4
+    case time.Thursday:
+        offset = 3
+    case time.Friday:
+        offset = 2
+    case time.Saturday:
+        offset = 1
+    }
+
+    return offset
+}
+
+// printCell با گرفتن مقدار یک سلول، آن را با فرمتی متفاوت چاپ می‌کند؛
+// بر اساس مقدار و فلگ `today`.
+func printCell(val int, today bool) {
+    escape := "\033[0;37;30m"
+    switch {
+    case val &gt; 0 &amp;&amp; val &lt; 5:
+        escape = "\033[1;30;47m"
+    case val &gt;= 5 &amp;&amp; val &lt; 10:
+        escape = "\033[1;30;43m"
+    case val &gt;= 10:
+        escape = "\033[1;30;42m"
+    }
+
+    if today {
+        escape = "\033[1;37;45m"
+    }
+
+    if val == 0 {
+        fmt.Printf(escape + "  - " + "\033[0m")
+        return
+    }
+
+    str := "  %d "
+    switch {
+    case val &gt;= 10:
+        str = " %d "
+    case val &gt;= 100:
+        str = "%d "
+    }
+
+    fmt.Printf(escape+str+"\033[0m", val)
+}
+
+// printCommitsStats آمار commitها را چاپ می‌کند
+func printCommitsStats(commits map[int]int) {
+    keys := sortMapIntoSlice(commits)
+    cols := buildCols(keys, commits)
+    printCells(cols)
+}
+
+// sortMapIntoSlice برشی از اندیس‌های یک map را برمی‌گرداند؛ به‌صورت مرتب
+func sortMapIntoSlice(m map[int]int) []int {
+    // مرتب‌سازی map
+    // برای ذخیرهٔ کلیدها در برش به ترتیب مرتب‌شده
+    var keys []int
+    for k := range m {
+        keys = append(keys, k)
+    }
+    sort.Ints(keys)
+
+    return keys
+}
+
+// buildCols یک map با ردیف‌ها و ستون‌های آمادهٔ چاپ روی صفحه تولید می‌کند
+func buildCols(keys []int, commits map[int]int) map[int]column {
+    cols := make(map[int]column)
+    col := column{}
+
+    for _, k := range keys {
+        week := int(k / 7) //26,25...1
+        dayinweek := k % 7 // 0,1,2,3,4,5,6
+
+        if dayinweek == 0 { //بازنشانی
+            col = column{}
+        }
+
+        col = append(col, commits[k])
+
+        if dayinweek == 6 {
+            cols[week] = col
+        }
+    }
+
+    return cols
+}
+
+// printCells سلول‌های نمودار را چاپ می‌کند
+func printCells(cols map[int]column) {
+    printMonths()
+    for j := 6; j &gt;= 0; j-- {
+        for i := weeksInLastSixMonths + 1; i &gt;= 0; i-- {
+            if i == weeksInLastSixMonths+1 {
+                printDayCol(j)
+            }
+            if col, ok := cols[i]; ok {
+                //حالت خاصِ امروز
+                if i == 0 &amp;&amp; j == calcOffset()-1 {
+                    printCell(col[j], true)
+                    continue
+                } else {
+                    if len(col) &gt; j {
+                        printCell(col[j], false)
+                        continue
+                    }
+                }
+            }
+            printCell(0, false)
+        }
+        fmt.Printf("\n")
+    }
+}
+
+// printMonths نام ماه‌ها را در خط اول چاپ می‌کند؛ با تشخیص زمانی که
+// ماه بین جابه‌جایی هفته‌ها عوض شده است
+func printMonths() {
+    week := getBeginningOfDay(time.Now()).Add(-(daysInLastSixMonths * time.Hour * 24))
+    month := week.Month()
+    fmt.Printf("         ")
+    for {
+        if week.Month() != month {
+            fmt.Printf("%s ", week.Month().String()[:3])
+            month = week.Month()
+        } else {
+            fmt.Printf("    ")
+        }
+
+        week = week.Add(7 * time.Hour * 24)
+        if week.After(time.Now()) {
+            break
+        }
+    }
+    fmt.Printf("\n")
+}
+
+// printDayCol با گرفتن شمارهٔ روز (۰ یعنی یکشنبه) نام روز را چاپ می‌کند؛
+// با در میان‌گذاشتن ردیف‌ها (فقط ۲، ۴، ۶ را چاپ می‌کند)
+func printDayCol(day int) {
+    out := "     "
+    switch day {
+    case 1:
+        out = " Mon "
+    case 3:
+        out = " Wed "
+    case 5:
+        out = " Fri "
+    }
+
+    fmt.Printf(out)
+}</code></pre>
+        <p>این چیزی است که هنگام اجرای آن به دست می‌آورید:</p>
+        <img src="https://flaviocopes.com/images/go-git-contributions/output.png" alt="خروجی ترمینال؛ نمودار رنگی مشارکت‌های گیت با ماه‌های فوریه تا آگوست و شمارش اعداد مشارکت‌ها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>توجه:</strong> کتابخانهٔ <code class="inline">go-git</code> در
+          <a href="https://github.com/src-d/go-git" target="_blank" rel="noopener">github.com/src-d/go-git</a> در دسترس
+          است و نیاز به کتابخانه‌های خارجی ندارد؛ همین موضوع آن را برای این برنامه سازش خوبی کرده است.
+        </div>
+      </section>
+
+      <!-- بلاک کپی‌رایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> مقالهٔ «Visualizing local Git contributions with Go» اثر «فلاویو کوپس (Flavio Copes)»
+        است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به <a href="https://flaviocopes.com/go-git-contributions/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

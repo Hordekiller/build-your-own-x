@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Go CLI tutorial: fortune clone» (Flavio Copes)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش ساخت ابزار خط فرمان Go: کلون fortune</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>آموزش ساخت ابزار خط فرمان Go: کلون fortune</span>
+      </div>
+      <h1>آموزش ساخت ابزار خط فرمان Go: کلون fortune</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://flaviocopes.com/go-tutorial-fortune/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Go CLI tutorial: fortune clone» نوشته «فلاویو کوپس
+          (Flavio Copes)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://flaviocopes.com/go-tutorial-fortune/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>من دو آموزش ساخت ابزار خط فرمان نوشته‌ام برای ساخت
+        <code class="inline">gololcat</code> و <code class="inline">gocowsay</code>. در هر دوی آن‌ها از
+        <code class="inline">fortune</code> به‌عنوان تولیدکنندهٔ ورودی استفاده کردم.</p>
+        <p>در این مقاله، سه‌گانهٔ لوله‌کشی (pipe) را با <code class="inline">gofortune</code> کامل می‌کنم.</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/triologydraw.png"
+          alt="فلوچارت سه جعبه به‌صورت عمودی: Gofortune، Gocowsay و Gololcat"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اول از همه، <code class="inline">fortune</code> چیست؟ همان‌طور که
+        <a href="https://en.wikipedia.org/wiki/Fortune_(Unix)" target="_blank" rel="noopener">ویکی‌پدیا می‌گوید</a>،
+        Fortune یک برنامهٔ ساده است که یک پیام شبه‌تصادفی (pseudorandom) را از یک پایگاه‌داده از نقل‌قول‌ها
+        (quotations) نمایش می‌دهد.</p>
+        <p>اساساً، یک تولیدکنندهٔ نقل‌قول تصادفی (random quote generator).</p>
+        <p>تاریخچه‌ای بسیار طولانی دارد که به نسخهٔ ۷ یونیکس (Unix Version 7) در سال ۱۹۷۹ برمی‌گردد. هنوز هم
+        سرحال و فعال است. بسیاری از توزیع‌های لینوکس آن را از قبل نصب می‌کنند و در OSX می‌توانید آن را با
+        <code class="inline">brew install fortune</code> نصب کنید.</p>
+        <p>در برخی سیستم‌ها، هنگام استفاده از شل‌ها (shells) به‌عنوان پیام خوش‌آمدگویی یا پیام خداحافظی استفاده می‌شود.</p>
+        <p>ویکی‌پدیا همچنین می‌گوید:</p>
+        <blockquote>
+          بسیاری از افراد تصمیم می‌گیرند خروجی fortune را به دستور cowsay لوله‌کشی (pipe) کنند تا کمی طنز به دیالوگ اضافه شود.
+        </blockquote>
+        <p>این دقیقاً منم! به‌جز اینکه من از دستور <code class="inline">gocowsay</code> خودم استفاده می‌کنم.</p>
+        <p>بس است با مقدمه؛ <b>بیایید یک کلون fortune با Go بسازیم</b>.</p>
+      </section>
+
+      <!-- ==================== برنامه چه کاری انجام می‌دهد ==================== -->
+      <section>
+        <h2>برنامه چه کاری انجام می‌دهد</h2>
+        <p>در این‌جا تجزیهٔ کاری که برنامهٔ ما انجام می‌دهد آمده است:</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/algorithm.png"
+          alt="فلوچارت الگوریتم برنامهٔ fortune: شروع، یافتن فایل‌های fortune، خواندن فایل تصادفی، انتخاب fortune تصادفی، چاپ fortune"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== یافتن مسیر پوشهٔ fortunes ==================== -->
+      <section>
+        <h2>یافتن مسیر پوشهٔ fortunes</h2>
+        <p>موقعیت پوشهٔ fortunes به سیستم و توزیع بستگی دارد و یک پرچم ساخت (build flag) است. می‌توانستم آن را
+        هاردکد کنم یا از یک متغیر محیطی (environment variable) استفاده کنم؛ اما به‌عنوان یک تمرین، یک کار کثیف
+        انجام می‌دهم و مستقیماً از خود <code class="inline">fortune</code> می‌پرسم؛ با اجرای آن با پرچم
+        <code class="inline">-f</code>، که خروجی زیر را تولید می‌کند:</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/folder.png"
+          alt="خروجی ترمینال دستور fortune -f که مسیر پایگاه‌دادهٔ fortune و دسته‌بندی‌ها را با درصد نمایش می‌دهد"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>خط اول خروجی شامل مسیر پوشهٔ fortunes است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"fmt"
+	"os/exec"
+)
+
+func main() {
+	out, err := exec.Command("fortune", "-f").CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(out))
+}</code></pre>
+        <p>این قطعه‌کد خروجی را دقیقاً همان‌طور که دریافت کردم بازتولید می‌کند. به نظر می‌رسد
+        <code class="inline">fortune -f</code> خروجی را به <code class="inline">stderr</code> می‌نویسد؛ به همین دلیل
+        از <code class="inline">CombinedOutput</code> استفاده کردم تا هم <code class="inline">stdout</code> و هم
+        <code class="inline">stderr</code> را دریافت کنم.</p>
+      </section>
+
+      <!-- ==================== دریافت فقط خط اول ==================== -->
+      <section>
+        <h2>دریافت فقط خط اول</h2>
+        <p>اما من فقط خط اول را می‌خواهم. چطور این کار را انجام دهم؟ این کد تمام خروجی
+        <code class="inline">stderr</code> را خط‌به‌خط چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"bufio"
+	"fmt"
+	"os/exec"
+)
+
+func main() {
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	for outputStream.Scan() {
+	 	fmt.Println(outputStream.Text())
+	}
+}</code></pre>
+        <p>برای گرفتن فقط خط اول، حلقهٔ <code class="inline">for</code> را حذف می‌کنم و فقط خط اول را اسکن می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"bufio"
+	"fmt"
+	"os/exec"
+)
+
+func main() {
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	fortuneCommand.Start()
+	outputStream := bufio.NewScanner(pipe)
+	outputStream.Scan()
+	fmt.Println(outputStream.Text())
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/first-line.png"
+          alt="خروجی ترمینال: استخراج خط اول از خروجی دستور fortune -f که مسیر پوشهٔ fortunes را نمایش می‌دهد"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== استخراج مسیر ==================== -->
+      <section>
+        <h2>استخراج مسیر</h2>
+        <p>حالا آن خط را برمی‌داریم و مسیر را از آن استخراج می‌کنیم.</p>
+        <p>در سیستم من خط اول خروجی این است:
+        <code class="inline">100.00% /usr/local/Cellar/fortune/9708/share/games/fortunes</code>. بیایید یک
+        زیررشته (substring) بسازیم که از اولین رخداد کاراکتر <code class="inline">/</code> شروع می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>line := outputStream.Text()
+path := line[strings.Index(line, "/"):]</code></pre>
+        <p>حالا مسیر fortunes را دارم. می‌توانم فایل‌های موجود در آن‌جا را فهرست کنم. فایل‌های دودویی
+        <code class="inline">.dat</code> و فایل‌های متن ساده وجود دارند. من فایل‌های دودویی و کل پوشهٔ
+        <code class="inline">off/</code> را که حاوی fortuneهای توهین‌آمیز (offensive) است کنار می‌گذارم.</p>
+      </section>
+
+      <!-- ==================== فهرست کردن فایل‌ها ==================== -->
+      <section>
+        <h2>فهرست کردن فایل‌ها</h2>
+        <p>اول فایل‌ها را فهرست کنیم. من از متد <code class="inline">Walk</code> بستهٔ
+        <code class="inline">path/filepath</code> برای پیمایش درخت فایل‌ها از <code class="inline">root</code>
+        استفاده می‌کنم. آن را به‌جای <code class="inline">ioutil.ReadDir()</code> استفاده می‌کنم، چون ممکن است
+        پوشه‌های تو در توی fortunes داشته باشیم. در <code class="inline">WalkFunc</code> به نام
+        <code class="inline">visit</code>، فایل‌های <code class="inline">.dat</code> را با
+        <code class="inline">filepath.Ext()</code> کنار می‌گذارم، فایل‌های پوشه (مثلاً
+        <code class="inline">/off</code>، اما نه فایل‌های موجود در زیرپوشه‌ها) و تمام fortuneهای توهین‌آمیز را
+        که به‌طور مناسب زیر <code class="inline">/off</code> قرار دارند کنار می‌گذارم و مقدار هر فایل باقی‌مانده را
+        چاپ می‌کنم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func visit(path string, f os.FileInfo, err error) error {
+	if strings.Contains(path, "/off/") {
+		return nil
+	}
+	if filepath.Ext(path) == ".dat" {
+		return nil
+	}
+	if f.IsDir() {
+		return nil
+	}
+	files = append(files, path)
+	return nil
+}
+
+func main() {
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	fortuneCommand.Start()
+	outputStream := bufio.NewScanner(pipe)
+	outputStream.Scan()
+	line := outputStream.Text()
+	root := line[strings.Index(line, "/"):]
+
+	err = filepath.Walk(root, visit)
+	if err != nil {
+		panic(err)
+	}
+}</code></pre>
+        <p>بیایید این مقادیر را در یک برش (slice) قرار دهیم تا بعداً بتوانم یکی را به‌صورت تصادفی انتخاب کنم: یک
+        برش <code class="inline">files</code> از رشته‌ها تعریف می‌کنم و در تابع <code class="inline">visit()</code>
+        به آن اضافه می‌کنم. در پایان <code class="inline">main()</code> تعداد فایل‌هایی را که به‌دست آوردم چاپ
+        می‌کنم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"bufio"
+    "log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+)
+
+var files []string
+
+func visit(path string, f os.FileInfo, err error) error {
+    if err != nil {
+        log.Fatal(err)
+    }
+	if strings.Contains(path, "/off/") {
+		return nil
+	}
+	if filepath.Ext(path) == ".dat" {
+		return nil
+	}
+	if f.IsDir() {
+		return nil
+	}
+	files = append(files, path)
+	return nil
+}
+
+func main() {
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	fortuneCommand.Start()
+	outputStream := bufio.NewScanner(pipe)
+	outputStream.Scan()
+	line := outputStream.Text()
+	root := line[strings.Index(line, "/"):]
+
+	err = filepath.Walk(root, visit)
+	if err != nil {
+		panic(err)
+	}
+
+	println(len(files))
+}</code></pre>
+      </section>
+
+      <!-- ==================== انتخاب تصادفی ==================== -->
+      <section>
+        <h2>انتخاب تصادفی</h2>
+        <p>حالا از قابلیت <a href="https://flaviocopes.com/go-random/" target="_blank" rel="noopener">تولیدکنندهٔ
+        اعداد تصادفی (random number generator) در Go</a> استفاده می‌کنم تا یک مورد تصادفی از آرایه انتخاب کنم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// یک عدد صحیح بزرگ‌تر یا مساوی min و کوچک‌تر از max برمی‌گرداند
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func main() {
+
+    //...
+
+    rand.Seed(time.Now().UnixNano())
+	i := randomInt(1, len(files))
+	randomFile := files[i]
+	println(randomFile)
+}</code></pre>
+        <p>برنامهٔ ما حالا در هر اجرا یک نام فایل fortune تصادفی چاپ می‌کند.</p>
+      </section>
+
+      <!-- ==================== خواندن نقل‌قول تصادفی ==================== -->
+      <section>
+        <h2>خواندن نقل‌قول تصادفی از فایل</h2>
+        <p>چیزی که الان کم دارم، اسکن کردن fortuneهای داخل یک فایل و چاپ یک‌تای آن به‌صورت تصادفی است. در هر فایل،
+        نقل‌قول‌ها با یک <code class="inline">%</code> که روی یک خط به‌تنهایی نشسته است از هم جدا می‌شوند. به‌راحتی
+        می‌توانم این الگو را تشخیص دهم و هر نقل‌قول را در یک آرایه اسکن کنم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>file, err := os.Open(randomFile)
+if err != nil {
+    panic(err)
+}
+defer file.Close()
+
+b, err := ioutil.ReadAll(file)
+if err != nil {
+    panic(err)
+}
+
+quotes := string(b)
+
+quotesSlice := strings.Split(quotes, "%")
+j := randomInt(1, len(quotesSlice))
+
+fmt.Print(quotesSlice[j])</code></pre>
+        <p>این کار واقعاً کارآمد نیست، چون کل فایل fortune را در یک برش اسکن می‌کنم و بعد یک مورد تصادفی انتخاب
+        می‌کنم؛ اما کار می‌کند:</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/working.png"
+          alt="ترمینال با چند اجرای دستور gofortune که نقل‌قول‌های تصادفی شامل قانون کانوی و جملات دیگر را نمایش می‌دهد"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بنابراین، این نسخهٔ نهایی کلون fortune بسیار سادهٔ ماست. بخش‌های زیادی از دستور اصلی
+        <code class="inline">fortune</code> را ندارد، اما شروعی است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"bufio"
+	"fmt"
+	"io/ioutil"
+    "log"
+	"math/rand"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+var files []string
+
+// یک عدد صحیح بزرگ‌تر یا مساوی min و کوچک‌تر از max برمی‌گرداند
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func visit(path string, f os.FileInfo, err error) error {
+    if err != nil {
+        log.Fatal(err)
+    }
+	if strings.Contains(path, "/off/") {
+		return nil
+	}
+	if filepath.Ext(path) == ".dat" {
+		return nil
+	}
+	if f.IsDir() {
+		return nil
+	}
+	files = append(files, path)
+	return nil
+}
+
+func main() {
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	fortuneCommand.Start()
+	outputStream := bufio.NewScanner(pipe)
+	outputStream.Scan()
+	line := outputStream.Text()
+	root := line[strings.Index(line, "/"):]
+
+	err = filepath.Walk(root, visit)
+	if err != nil {
+		panic(err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	i := randomInt(1, len(files))
+	randomFile := files[i]
+
+	file, err := os.Open(randomFile)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+
+	quotes := string(b)
+
+	quotesSlice := strings.Split(quotes, "%")
+	j := randomInt(1, len(quotesSlice))
+
+	fmt.Print(quotesSlice[j])
+}</code></pre>
+      </section>
+
+      <!-- ==================== جمع‌بندی ==================== -->
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>برای جمع‌بندی، <code class="inline">visit</code> را به‌عنوان یک آرگومان تابع درون‌خطی (inline) برای
+        <code class="inline">filepath.Walk</code> منتقل می‌کنم و <code class="inline">files</code> را به‌جای یک
+        متغیر سراسری فایل، به یک متغیر محلی داخل <code class="inline">main()</code> تبدیل می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"bufio"
+	"fmt"
+	"io/ioutil"
+    "log"
+	"math/rand"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+// یک عدد صحیح بزرگ‌تر یا مساوی min و کوچک‌تر از max برمی‌گرداند
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func main() {
+	var files []string
+
+	fortuneCommand := exec.Command("fortune", "-f")
+	pipe, err := fortuneCommand.StderrPipe()
+	if err != nil {
+		panic(err)
+	}
+	fortuneCommand.Start()
+	outputStream := bufio.NewScanner(pipe)
+	outputStream.Scan()
+	line := outputStream.Text()
+	root := line[strings.Index(line, "/"):]
+
+	err = filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
+        if err != nil {
+            log.Fatal(err)
+        }
+		if strings.Contains(path, "/off/") {
+			return nil
+		}
+		if filepath.Ext(path) == ".dat" {
+			return nil
+		}
+		if f.IsDir() {
+			return nil
+		}
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	i := randomInt(1, len(files))
+	randomFile := files[i]
+
+	file, err := os.Open(randomFile)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+
+	quotes := string(b)
+
+	quotesSlice := strings.Split(quotes, "%")
+	j := randomInt(1, len(quotesSlice))
+
+	fmt.Print(quotesSlice[j])
+}</code></pre>
+        <p>حالا می‌توانم <code class="inline">go build</code> و <code class="inline">go install</code> را اجرا کنم
+        و سه‌گانهٔ <code class="inline">gofortune</code>، <code class="inline">gocowsay</code> و
+        <code class="inline">gololcat</code> کامل می‌شود:</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-fortune/triology.png"
+          alt="ترمینال نمایش نقل‌قول قانون کانوی در قالب cowsay رنگی با استفاده از سه‌گانهٔ کامل: gofortune، gocowsay و gololcat"
+          style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Go CLI tutorial: fortune clone» اثر «فلاویو کوپس (Flavio Copes)» است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به <a href="https://flaviocopes.com/go-tutorial-fortune/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

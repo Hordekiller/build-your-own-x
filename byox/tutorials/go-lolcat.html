@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Build a Command line app with Go: lolcat» (Flavio Copes)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک اپلیکیشن خط فرمان با Go: lolcat</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ابزار خط فرمان</a>
+        <span class="sep">←</span>
+        <span>ساخت یک اپلیکیشن خط فرمان با Go: lolcat</span>
+      </div>
+      <h1>ساخت یک اپلیکیشن خط فرمان با Go: lolcat</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">📁 دسته: ابزار خط فرمان</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://flaviocopes.com/go-tutorial-lolcat/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build a Command line app with Go: lolcat» نوشته «فلاویو
+          کوپس (Flavio Copes)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://flaviocopes.com/go-tutorial-lolcat/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>یاد بگیرید چگونه یک ابزار خط فرمان (CLI) از نوع <code class="inline">lolcat</code> در Go بسازید که متن را با
+        کدهای گریز ANSI و یک تابع <code class="inline">rgb()</code> رنگین‌کمانی می‌کند و به‌صورت یک پایپ (pipe) عمل
+        می‌کند که از <code class="inline">stdin</code> می‌خواند.</p>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> به اپلیکیشن‌های خط فرمان علاقه دارید؟ آموزش <b>cowsay</b> را هم از دست ندهید!
+        </div>
+
+        <p>داشتم دنبال اپلیکیشن‌های ترمینال می‌گشتم تا الهام بگیرم که به <code class="inline">lolcat</code> برخوردم.</p>
+        <p>نسخهٔ اصلی آن در <a href="https://github.com/busyloop/lolcat" target="_blank" rel="noopener">https://github.com/busyloop/lolcat</a>
+        است و همین حالا هم پیاده‌سازی‌های Go متعددی برای آن وجود دارد:</p>
+        <ul>
+          <li><a href="https://github.com/cezarsa/glolcat" target="_blank" rel="noopener">https://github.com/cezarsa/glolcat</a></li>
+          <li><a href="https://github.com/latotty/lolcat" target="_blank" rel="noopener">https://github.com/latotty/lolcat</a></li>
+          <li><a href="https://github.com/lalyos/lolcat" target="_blank" rel="noopener">https://github.com/lalyos/lolcat</a></li>
+          <li><a href="https://github.com/vbatts/gogololcat" target="_blank" rel="noopener">https://github.com/vbatts/gogololcat</a></li>
+        </ul>
+        <p>به نظر می‌رسد ساختنش کاملاً بی‌فایده باشد؛ پس بیایید آن را بسازیم!</p>
+        <p>بیایید با چاپ چند مقدار روی صفحه شروع کنیم؛ سپس به سراغ رنگ‌آمیزی آن‌ها می‌رویم و در نهایت بررسی می‌کنیم که
+        چگونه ورودی کاربر را بپذیریم تا به‌عنوان یک پایپ کار کند.</p>
+      </section>
+
+      <!-- ==================== تولید خروجی ساختگی ==================== -->
+      <section>
+        <h2>تولید خروجی ساختگی با faker</h2>
+        <p>برای تولید خروجی ساختگی از
+        <a href="https://github.com/enodata/faker" target="_blank" rel="noopener">https://github.com/enodata/faker</a>
+        استفاده می‌کنم.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">go get -u github.com/enodata/faker</code></pre>
+        <p>این برنامه تعدادی عبارت تولید می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "fmt"
+    "strings"
+
+    "github.com/enodata/faker"
+)
+
+func main() {
+    var phrases []string
+
+    for i := 1; i &lt; 3; i++ {
+        phrases = append(phrases, faker.Hacker().Phrases()...)
+    }
+
+    fmt.Println(strings.Join(phrases[:], "; "))
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/white.png"
+             alt="خروجی ترمینال با عبارات تولیدشده توسط faker به رنگ سفید روی پس‌زمینهٔ تیره"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== افزودن رنگ ==================== -->
+      <section>
+        <h2>افزودن رنگ</h2>
+        <p>متأسفانه، این همه سیاه‌وسفید خسته‌کننده است. بیایید کمی رنگ اضافه کنیم. می‌توانیم این کار را با پیشوند قرار دادن
+        یک دنبالهٔ کاراکتر گریز (escape character sequence) در <code class="inline">fmt.Printf</code> انجام دهیم. این کار
+        همهٔ رشته‌ها را به رنگ طلایی <code class="inline">#FFD700</code> چاپ می‌کند که
+        <a href="https://flaviocopes.com/rgb-color-codes/" target="_blank" rel="noopener">کد رنگ RGB</a> آن
+        (255,215,0) است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "fmt"
+    "strings"
+
+    "github.com/enodata/faker"
+)
+
+func main() {
+    var phrases []string
+
+    for i := 1; i &lt; 3; i++ {
+        phrases = append(phrases, faker.Hacker().Phrases()...)
+    }
+
+    output := strings.Join(phrases[:], "; ")
+    r, g, b := 255, 215, 0 // رنگ طلایی
+
+    for j := 0; j &lt; len(output); j++ {
+        fmt.Printf("\033[38;2;%d;%d;%dm%c\033[0m", r, g, b, output[j])
+    }
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/gold.png"
+             alt="خروجی ترمینال با متن تولیدشده توسط faker به رنگ طلایی با استفاده از کدهای گریز RGB"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== رنگین‌کمان ==================== -->
+      <section>
+        <h2>رنگین‌کمان</h2>
+        <p>حالا که یک رشته در دست داریم و زیرساخت لازم برای رنگ‌کردن هر کاراکتر به شکلی متفاوت را ساخته‌ایم، وقت آن رسیده
+        است که رنگین‌کمان را معرفی کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "fmt"
+    "math"
+    "strings"
+
+    "github.com/enodata/faker"
+)
+
+func rgb(i int) (int, int, int) {
+    var f = 0.1
+    return int(math.Sin(f*float64(i)+0)*127 + 128),
+        int(math.Sin(f*float64(i)+2*math.Pi/3)*127 + 128),
+        int(math.Sin(f*float64(i)+4*math.Pi/3)*127 + 128)
+}
+
+func main() {
+    var phrases []string
+
+    for i := 1; i &lt; 3; i++ {
+        phrases = append(phrases, faker.Hacker().Phrases()...)
+    }
+
+    output := strings.Join(phrases[:], "; ")
+
+    for j := 0; j &lt; len(output); j++ {
+        r, g, b := rgb(j)
+        fmt.Printf("\033[38;2;%d;%d;%dm%c\033[0m", r, g, b, output[j])
+    }
+    fmt.Println()
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/rainbow.png"
+             alt="خروجی ترمینال با متن رنگین‌کمانی با استفاده از تابع rgb برای هر کاراکتر"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این دیگر استایل است!</p>
+        <p>رنگ رنگین‌کمانی با تابع <code class="inline">rgb()</code> تولید می‌شود؛ همان‌طور که در کد منبع اصلی Ruby در
+        <a href="https://github.com/busyloop/lolcat/blob/master/lib/lolcat/lol.rb" target="_blank" rel="noopener">https://github.com/busyloop/lolcat/blob/master/lib/lolcat/lol.rb</a>
+        پیاده‌سازی شده است.</p>
+      </section>
+
+      <!-- ==================== کار به‌صورت پایپ ==================== -->
+      <section>
+        <h2>کار به‌صورت پایپ (Pipe)</h2>
+        <p>حالا بیایید برنامه را ویرایش کنیم و به‌جای اینکه خروجی خودش را تولید کند، بگذاریم به‌عنوان یک پایپ برای برنامه‌های
+        دیگر کار کند. محتوا را از <code class="inline">os.Stdin</code> می‌خواند و آن را رنگین‌کمانی می‌کند.</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "bufio"
+    "fmt"
+    "io"
+    "math"
+    "os"
+)
+
+func rgb(i int) (int, int, int) {
+    var f = 0.1
+    return int(math.Sin(f*float64(i)+0)*127 + 128),
+        int(math.Sin(f*float64(i)+2*math.Pi/3)*127 + 128),
+        int(math.Sin(f*float64(i)+4*math.Pi/3)*127 + 128)
+}
+
+func print(output []rune) {
+    for j := 0; j &lt; len(output); j++ {
+        r, g, b := rgb(j)
+        fmt.Printf("\033[38;2;%d;%d;%dm%c\033[0m", r, g, b, output[j])
+    }
+    fmt.Println()
+}
+
+func main() {
+    info, _ := os.Stdin.Stat()
+    var output []rune
+
+    if info.Mode()&amp;os.ModeCharDevice != 0 {
+        fmt.Println("The command is intended to work with pipes.")
+        fmt.Println("Usage: fortune | gorainbow")
+    }
+
+    reader := bufio.NewReader(os.Stdin)
+    for {
+        input, _, err := reader.ReadRune()
+        if err != nil &amp;&amp; err == io.EOF {
+            break
+        }
+        output = append(output, input)
+    }
+
+    print(output)
+}</code></pre>
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/pipe.png"
+             alt="ترمینال با خروجی فرمان fortune که به برنامهٔ Go پایپ شده و متن رنگین‌کمانی تولید می‌کند"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>هر بار یک رون (rune) از <code class="inline">os.Stdin</code> می‌خواند و آن را به برش (slice) رون‌های
+        <code class="inline">output</code> اضافه می‌کند.</p>
+        <p>رندر کردن خروجی به تابع <code class="inline">print()</code> منتقل شده است؛ اما می‌توانیم هر رون را همان لحظه
+        که خوانده می‌شود، «درجا» (just in time) پایپ کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">package main
+
+import (
+    "bufio"
+    "fmt"
+    "io"
+    "math"
+    "os"
+)
+
+func rgb(i int) (int, int, int) {
+    var f = 0.1
+    return int(math.Sin(f*float64(i)+0)*127 + 128),
+        int(math.Sin(f*float64(i)+2*math.Pi/3)*127 + 128),
+        int(math.Sin(f*float64(i)+4*math.Pi/3)*127 + 128)
+}
+
+func main() {
+    info, _ := os.Stdin.Stat()
+
+    if info.Mode()&amp;os.ModeCharDevice != 0 {
+        fmt.Println("The command is intended to work with pipes.")
+        fmt.Println("Usage: fortune | gorainbow")
+    }
+
+    reader := bufio.NewReader(os.Stdin)
+    j := 0
+    for {
+        input, _, err := reader.ReadRune()
+        if err != nil &amp;&amp; err == io.EOF {
+            break
+        }
+        r, g, b := rgb(j)
+        fmt.Printf("\033[38;2;%d;%d;%dm%c\033[0m", r, g, b, input)
+        j++
+    }
+}</code></pre>
+        <p>این هم دقیقاً مثل قبل کار می‌کند.</p>
+        <p>حالا می‌توانیم با <code class="inline">fortune</code> و
+        <a href="https://en.wikipedia.org/wiki/Cowsay" target="_blank" rel="noopener">cowsay</a> سرگرم شویم.</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/cowsay.png"
+             alt="ترمینال با هنر ASCII گاو cowsay و متن رنگین‌کمانی با استفاده از فرمان‌های fortune و lolcat"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://flaviocopes.com/images/go-tutorial-lolcat/meow.png"
+             alt="ترمینال با هنر ASCII گربهٔ meow در cowsay و متن رنگین‌کمانی"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== فرمان سیستمی ==================== -->
+      <section>
+        <h2>تبدیل به فرمان سیستمی</h2>
+        <p>بیایید با اجرای <code class="inline">go build</code> و <code class="inline">go install</code> این برنامه را
+        به یک فرمان سیستمی (system-wide command) تبدیل کنیم. این فرمان با نام <code class="inline">gololcat</code> اجرا
+        خواهد شد، چون ما از همین نام برای نام‌گذاری پوشه استفاده کردیم.</p>
+        <img src="https://flaviocopes.com/images/go-tutorial-cowsay/lolcat.png"
+             alt="ترمینال با اجرای فرمان gololcat به‌صورت یک فرمان سیستمی پس از go build و go install"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build a Command line app with Go: lolcat» اثر «فلاویو کوپس (Flavio Copes)» و
+        متعلق به سایت flaviocopes.com است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://flaviocopes.com/go-tutorial-lolcat/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
