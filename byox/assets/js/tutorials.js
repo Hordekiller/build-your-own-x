@@ -900,84 +900,64 @@ window.TUTORIALS = [
 "file": "tutorials/docker-bocker.html"
 },
 {
-"id": "",
+"id": "emulator-bytecode-interpreters",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C",
 "title": "مفسرهای بایت‌کد خانگی",
 "url": "https://medium.com/bumble-tech/home-grown-bytecode-interpreters-51e12d59b25c",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-bytecode-interpreters.html"
 },
 {
-"id": "",
+"id": "emulator-felixangell-vm",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C",
 "title": "ماشین مجازی در C",
 "url": "http://web.archive.org/web/20200121100942/https://blog.felixangell.com/virtual-machine-in-c/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-felixangell-vm.html"
 },
 {
-"id": "",
+"id": "emulator-lc3-vm",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C",
 "title": "ماشین مجازی خودت را بنویس",
 "url": "https://justinmeiners.github.io/lc3-vm/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-lc3-vm.html"
 },
 {
-"id": "",
+"id": "emulator-cinoop",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C",
 "title": "نوشتن شبیه‌ساز Game Boy با نام Cinoop",
 "url": "https://cturt.github.io/cinoop.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-cinoop.html"
 },
 {
-"id": "",
+"id": "emulator-chip8-multigesture",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C++",
 "title": "چگونه یک شبیه‌ساز بنویسیم (مفسر CHIP-8)",
 "url": "http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-chip8-multigesture.html"
 },
 {
-"id": "",
+"id": "emulator-chip8-codeslinger",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "C++",
 "title": "آموزش شبیه‌سازی (مفسر CHIP-8)",
 "url": "http://www.codeslinger.co.uk/pages/projects/chip8.html",
 "video": false,
-"done": false,
-"file": ""
-},
-{
-"id": "",
-"category": "شبیه‌ساز / ماشین مجازی",
-"lang": "C++",
-"title": "آموزش شبیه‌سازی (شبیه‌ساز GameBoy)",
-"url": "http://www.codeslinger.co.uk/pages/projects/gameboy.html",
-"video": false,
-"done": false,
-"file": ""
-},
-{
-"id": "",
-"category": "شبیه‌ساز / ماشین مجازی",
-"lang": "C++",
-"title": "آموزش شبیه‌سازی (شبیه‌ساز Master System)",
-"url": "http://www.codeslinger.co.uk/pages/projects/mastersystem/memory.html",
-"video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-chip8-codeslinger.html"
 },
 {
 "id": "",
@@ -1010,14 +990,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "emulator-chip8-python",
 "category": "شبیه‌ساز / ماشین مجازی",
 "lang": "Python",
 "title": "مبانی شبیه‌سازی: شبیه‌ساز/مفسر Chip 8 خودت را بنویس",
 "url": "http://omokute.blogspot.com.br/2012/06/emulation-basics-write-your-own-chip-8.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/emulator-chip8-python.html"
 },
 {
 "id": "",

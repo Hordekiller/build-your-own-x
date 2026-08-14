@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Virtual machine in C» (Felix Angell)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | «ماشین مجازی در C»</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>ماشین مجازی در C</span>
+      </div>
+      <h1>یک ماشین مجازی در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.felixangell.com/virtual-machine-in-c/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Virtual machine in C» نوشتهٔ «فلیکس آنجل (Felix Angell)» است.
+          نسخهٔ کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://blog.felixangell.com/virtual-machine-in-c/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>اینجا مخزن گیت‌هاب است تا ببینید چه چیزی قرار است بسازیم. اگر خطایی در کدتان داشتید، می‌توانید کد خود را با این
+        مخزن مقایسه کنید: <a href="https://github.com/felixangell/mac" target="_blank" rel="noopener">مخزن گیت‌هاب</a>.</p>
+        <p>دلم می‌خواست مقاله‌ای دربارهٔ ساختن ماشین مجازی (virtual machine) شخصی خودتان در زبان برنامه‌نویسی C بنویسم.
+        من عاشق کار روی برنامه‌های سطح پایین‌تر (lower level) هستم؛ مانند کامپایلرها، مفسرها، تجزیه‌گرها (parsers) و ماشین‌های
+        مجازی. پس فکر کردم این مقاله را بنویسم، زیرا یادگیری طرز کار ماشین‌های مجازی راهی عالی برای آشنایی با قلمروی کلی
+        برنامه‌نویسی سطح پایین است!</p>
+      </section>
+
+      <!-- ==================== پیش‌نیازها و نکات ==================== -->
+      <section>
+        <h2>پیش‌نیازها و نکات</h2>
+        <p>چند چیز وجود دارد که پیش از ادامه به آن‌ها نیاز دارید:</p>
+        <ul>
+          <li>GCC/Clang/... — من از clang استفاده می‌کنم، اما شما می‌توانید از هر کامپایلر مدرنی استفاده کنید؛</li>
+          <li>ویرایشگر متن — (وقتی C می‌نویسید) به‌جای یک IDE، یک ویرایشگر متن را پیشنهاد می‌کنم؛ من از Emacs استفاده
+          خواهم کرد؛</li>
+          <li>دانش پایه‌ٔ برنامه‌نویسی — فقط اصول اولیه: متغیرها، کنترل جریان (flow control)، توابع، ساختارها و...؛ و</li>
+          <li>GNU Make — یک سیستم ساخت (build system) تا مجبور نباشیم برای کامپایل کدمان مرتباً همان دستورها را در
+          ترمینال تایپ کنیم.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== چرا باید یک ماشین مجازی بنویسم؟ ==================== -->
+      <section>
+        <h2>چرا باید یک ماشین مجازی بنویسم؟</h2>
+        <p>در این‌جا چند دلیل می‌آورم که چرا <strong>شما</strong> باید یک ماشین مجازی بنویسید:</p>
+        <ul>
+          <li>می‌خواهید درک عمیق‌تری از طرز کار رایانه‌ها داشته باشید. این مقاله به شما کمک می‌کند بفهمید رایانه‌تان در سطح
+          پایین‌تر چه می‌کند؛ یک ماشین مجازی لایهٔ انتزاع (abstraction) ساده‌تر و زیبایی فراهم می‌کند. و هیچ راهی بهتر از ساختن
+          یکی برای یادگیری وجود ندارد، این‌طور نیست؟</li>
+          <li>فقط می‌خواهید دربارهٔ ماشین‌های مجازی یاد بگیرید، چون سرگرم‌کننده است.</li>
+          <li>می‌خواهید دربارهٔ طرز کار برخی زبان‌های برنامه‌نویسی بیشتر بدانید. برای مثال، زبان‌های گوناگونی این روزها ماشین
+          مجازی را هدف می‌گیرند — معمولاً ماشین مجازی‌ای که به‌طور خاص برای همان زبان نوشته شده است. نمونه‌ها شامل JVM،
+          ماشین مجازی لوا (Lua)، ماشین مجازی Hip-Hop فیسبوک (PHP/Hack) و... می‌شوند. همچنین فاصلهٔ انتزاعی بزرگ‌تری از
+          مثلاً یک برنامهٔ C++ تا اسمبلی (assembly) ماشین خودتان وجود دارد. وقتی به آن فکر می‌کنید، چیزهای زیادی را که
+          برنامه‌هایمان را با زبان شیک پارادایم شیءگرایمان، با جمع‌آوری زباله (garbage collection) و تمام این ویژگی‌های
+          خوب می‌نویسیم، بدیهی فرض می‌کنیم.</li>
+        </ul>
+
+        <h3>مجموعهٔ دستورالعمل (Instruction Set)</h3>
+        <p>ما مجموعهٔ دستورالعمل (instruction set) خودمان را پیاده‌سازی خواهیم کرد؛ نسبتاً ساده خواهد بود. به‌طور خلاصه
+        دستورالعمل‌هایی مانند جابه‌جایی مقادیر بین ثبات‌ها یا پرش به دستورالعمل‌های دیگر را پوشش خواهم داد، اما امیدوارم
+        بعد از خواندن مقاله خودتان این را درک کنید.</p>
+        <p>ماشین مجازی ما یک مجموعه ثبات (register) خواهد داشت: <code class="inline">A</code>، <code class="inline">B</code>،
+        <code class="inline">C</code>، <code class="inline">D</code>، <code class="inline">E</code> و
+        <code class="inline">F</code>. این‌ها ثبات‌های همه‌منظوره (general purpose) هستند؛ یعنی می‌توانند برای نگهداری هر
+        چیزی به کار روند. این در مقابل ثبات‌های خاص‌منظوره (special purpose) است؛ مانند ثبات‌هایی روی x86، مثل
+        <code class="inline">ip</code>، <code class="inline">flag</code>، <code class="inline">ds</code> و...</p>
+        <p>یک برنامه، دنباله‌ای فقط‌خواندنی (read-only) از دستورالعمل‌هاست. ماشین مجازی ما یک ماشین مجازی مبتنی بر پشته
+        (stack-based) است؛ یعنی پشته‌ای (stack) دارد که می‌توانیم به آن مقدار push کنیم یا از آن pop کنیم، و چند ثبات هم
+        می‌توانیم استفاده کنیم. این‌ها همچنین پیاده‌سازی‌شان بسیار ساده‌تر از ماشین مجازی مبتنی بر ثبات (register-based) است.</p>
+        <p>بدون مقدمه‌چینی بیشتر، این‌جا مثالی از مجموعهٔ دستورالعمل در عمل می‌آید که قصد پیاده‌سازی‌اش را داریم.
+        نقطه‌ویرگول‌ها کامنت هستند و توضیح می‌دهند هر خط چه می‌کند.</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">PSH 5       ; عدد 5 را به پشته push می‌کند
+PSH 10      ; عدد 10 را به پشته push می‌کند
+ADD         ; دو مقدار بالای پشته را pop می‌کند، آن‌ها را جمع می‌کند و push می‌کند
+POP         ; مقدار روی پشته را pop می‌کند، برای دیباگ آن را چاپ هم می‌کند
+SET A 0     ; ثبات A را 0 قرار می‌دهد
+HLT         ; برنامه را متوقف می‌کند</code></pre>
+        <p>این مجموعهٔ دستورالعمل ماست. توجه کنید که دستور POP مقدار پاپ‌شده را چاپ می‌کند؛ این بیشتر جنبهٔ دیباگ دارد
+        (ADD نتیجه را به پشته push می‌کند؛ پس می‌توانیم مقدار را از پشته POP کنیم تا مطمئن شویم آنجاست). من یک دستور SET هم
+        اضافه کرده‌ام تا متوجه شوید ثبات‌ها چگونه خوانده و نوشته می‌شوند. همچنین می‌توانید دست‌تان را در پیاده‌سازی
+        دستورالعمل‌هایی مانند <code class="inline">MOV A, B</code> (جابه‌جایی مقدار A به B) امتحان کنید.
+        <code class="inline">HLT</code> دستورالعملی است که نشان می‌دهد اجرای برنامه را تمام کرده‌ایم.</p>
+      </section>
+
+      <!-- ==================== یک ماشین مجازی چگونه کار می‌کند؟ ==================== -->
+      <section>
+        <h2>یک ماشین مجازی چگونه کار می‌کند؟</h2>
+        <p>ماشین‌های مجازی ساده‌تر از آن چیزی هستند که فکر می‌کنید؛ آن‌ها از یک الگوی ساده پیروی می‌کنند، «چرخهٔ دستورالعمل»
+        (instruction cycle)، که عبارت است از: واکشی (fetch)؛ رمزگشایی (decode)؛ و اجرا (execute). ابتدا دستورالعمل بعدی را
+        در لیست دستورالعمل‌ها یا کد واکشی می‌کنیم، سپس دستورالعمل را رمزگشایی می‌کنیم و دستورالعمل رمزگشایی‌شده را اجرا
+        می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== ساختار پروژه ==================== -->
+      <section>
+        <h2>ساختار پروژه</h2>
+        <p>قبل از شروع برنامه‌نویسی، باید پروژه‌مان را راه‌اندازی کنیم. به پوشه‌ای نیاز داریم که پروژه در آن قرار گیرد؛ من
+        دوست دارم پروژه‌هایم را زیر <code class="inline">~/dev</code> نگه دارم. روش راه‌اندازی پروژه در ترمینال این است.
+        فرض می‌کنیم از قبل یک پوشهٔ <code class="inline">~/dev/</code> دارید، اما می‌توانید به هر جایی که می‌خواهید
+        پروژه‌تان باشد <code class="inline">cd</code> کنید.</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">$ cd ~/dev/
+$ mkdir mac
+$ cd mac
+$ mkdir src</code></pre>
+        <p>در بالا به پوشهٔ <code class="inline">~/dev</code> خودمان (یا هر جایی که می‌خواهید پروژه‌تان باشد)
+        <code class="inline">cd</code> می‌کنیم، یک پوشه می‌سازیم (این ماشین مجازی را «mac» می‌نامم). سپس به آن پوشه
+        <code class="inline">cd</code> می‌کنیم و پوشهٔ <code class="inline">src</code> را می‌سازیم؛ جایی که کدهایمان در آن
+        قرار خواهد گرفت.</p>
+      </section>
+
+      <!-- ==================== فایل Makefile ==================== -->
+      <section>
+        <h2>فایل Makefile</h2>
+        <p>فایل makefile ما نسبتاً سرراست است؛ نیازی نیست چیزی را به چند فایل جدا کنیم و چیزی را هم
+        <code class="inline">include</code> نمی‌کنیم؛ پس فقط لازم است فایل را با چند پرچم (flag) کامپایل کنیم:</p>
+        <pre class="code"><span class="lang-tag">make</span><code style="direction:ltr;text-align:left">SRC_FILES = main.c
+CC_FLAGS = -Wall -Wextra -g -std=c11
+CC = clang
+
+all:
+    ${CC} ${SRC_FILES} ${CC_FLAGS} -o mac</code></pre>
+        <p>فعلاً همین کافی است؛ همیشه می‌توانید بعداً آن را بهبود دهید، اما تا وقتی کار را راه می‌اندازد، همه‌چیز خوب
+        است.</p>
+      </section>
+
+      <!-- ==================== دستورالعمل‌های برنامه ==================== -->
+      <section>
+        <h2>دستورالعمل‌های برنامه</h2>
+        <p>حالا سراغ کد ماشین مجازی می‌رویم. اول باید دستورالعمل‌های برنامهٔ خود را تعریف کنیم. برای این کار می‌توانیم از یک
+        <code class="inline">enum</code> استفاده کنیم، چون دستورالعمل‌های ما اساساً اعدادی از ۰ تا X هستند.</p>
+        <p>در واقع، یک برنامهٔ اسمبلر (assembler) فایل‌های اسمبلی شما را می‌گیرد و (تا حدی) همهٔ عملیات‌ها (ops) را به
+        معادل عددی‌شان ترجمه می‌کند. برای مثال، اگر برای mac یک اسمبلر می‌نوشتید، همهٔ عملیات‌های <code class="inline">MOV</code>
+        را به عدد <code class="inline">0</code> و به همین ترتیب ترجمه می‌کرد.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">typedef enum {
+    PSH,
+    ADD,
+    POP,
+    SET,
+    HLT
+} InstructionSet;</code></pre>
+        <p>حالا می‌توانیم یک برنامهٔ آزمایشی را به‌صورت یک آرایه ذخیره کنیم. برای یک آزمایش، برنامه‌ای ساده می‌نویسیم که
+        مقادیر <code class="inline">5</code> و <code class="inline">6</code> را جمع کند و بعد آن‌ها را چاپ کند.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> وقتی می‌گویم چاپ می‌کند، در واقع کاری که می‌کنم این است که وقتی «pop» صدا زده می‌شود،
+          ماشین مجازی ما مقدار پاپ‌شده را <code class="inline">printf</code> کند. در واقعیت چنین کاری نمی‌کردید، مگر اینکه
+          چیزی را دیباگ کنید.
+        </div>
+        <p>دستورالعمل‌ها باید به‌صورت یک آرایه ذخیره شوند؛ من آن را جایی بالای سند تعریف می‌کنم؛ احتمالاً می‌توانید آن را
+        در یک فایل header بگذارید. برنامهٔ آزمایشی ما این است:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">const int program[] = {
+    PSH, 5,
+    PSH, 6,
+    ADD,
+    POP,
+    HLT
+};</code></pre>
+        <p>برنامهٔ بالا مقادیر <code class="inline">5</code> و <code class="inline">6</code> را به پشته push می‌کند، دستور
+        جمع را اجرا می‌کند که دو مقدار بالای پشته را pop می‌کند، آن‌ها را با هم جمع می‌کند و نتیجه را دوباره به پشته push
+        می‌کند. سپس نتیجه را pop می‌کنیم، چون دستور pop ما مقدار را چاپ می‌کند (برای اهداف دیباگ).</p>
+        <p>در نهایت، دستور <code class="inline">HLT</code> یعنی خاتمهٔ برنامه. از این استفاده می‌شود که اگر جریان کنترل
+        (control flow) داشتیم، هر وقت خواستیم برنامه را خاتمه دهیم. البته ماشین مجازی ما اگر دستورالعمل دیگری باقی نمانده
+        باشد، خودبه‌خود خاتمه خواهد یافت.</p>
+        <p>حالا باید چرخهٔ دستورالعمل (واکشی، رمزگشایی، اجرا) را پیاده‌سازی کنیم. از نظر فنی، واقعاً مجبور نیستیم چیزی را
+        رمزگشایی کنیم. این بعداً واضح‌تر خواهد شد.</p>
+      </section>
+
+      <!-- ==================== واکشی دستورالعمل جاری ==================== -->
+      <section>
+        <h2>واکشی دستورالعمل جاری</h2>
+        <p>چون برنامهٔ خود را به‌صورت یک آرایه ذخیره کرده‌ایم، واکشی دستورالعمل جاری ساده است. یک ماشین مجازی شمارنده‌ای
+        دارد که معمولاً شمارندهٔ برنامه (Program Counter)، اشاره‌گر دستورالعمل (Instruction Pointer) و... نامیده می‌شود؛
+        این نام‌ها مترادف هستند و انتخاب‌شان به سلیقهٔ شخصی شما بستگی دارد. معمولاً به ترتیب به <code class="inline">PC</code>
+        یا <code class="inline">IP</code> کوتاه می‌شوند.</p>
+        <p>اگر به خاطر داشته باشید، قبلاً گفتم که شمارندهٔ برنامه را به‌صورت یک ثبات ذخیره خواهیم کرد... این کار را
+        خواهیم کرد، اما بعداً. فعلاً فقط یک متغیر به نام <code class="inline">ip</code> بالای کدمان می‌سازیم و آن را
+        <code class="inline">0</code> قرار می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int ip = 0;</code></pre>
+        <p>این <code class="inline">ip</code> مخفف اشاره‌گر دستورالعمل است. خود برنامه به‌صورت آرایه‌ای از اعداد صحیح ذخیره
+        شده است. متغیر <code class="inline">ip</code> به‌عنوان ایندکس آرایه عمل می‌کند و مشخص می‌کند کدام دستورالعمل در
+        حال اجراست.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int ip = 0;
+
+int main() {
+    int instr = program[ip];
+    return 0;
+}</code></pre>
+        <p>اگر متغیر <code class="inline">instr</code> را printf می‌کردیم، باید <code class="inline">PSH</code> (یا
+        <code class="inline">0</code>) را به ما می‌داد. می‌توانیم این را به‌صورت یک تابع واکشی (fetch function) بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int fetch() {
+    return program[ip];
+}</code></pre>
+        <p>این تابع وقتی صدا زده شود، دستورالعمل جاری را برمی‌گرداند. پس، اگر دستورالعمل بعدی را بخواهیم چه؟ کافی است
+        اشاره‌گر دستورالعمل را افزایش دهیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int main() {
+    int x = fetch(); // PSH
+    ip++; // افزایش اشاره‌گر دستورالعمل
+    int y = fetch(); // 5
+}</code></pre>
+        <p>خب، چطور این را خودکار کنیم؟ می‌دانیم که یک برنامه تا وقتی با دستور <code class="inline">HLT</code> متوقف نشود
+        اجرا می‌شود. پس فقط یک حلقهٔ بی‌نهایت داریم که تا وقتی دستورالعمل جاری <code class="inline">HLT</code> شود به
+        چرخش ادامه می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#include &lt;stdbool.h&gt;
+
+bool running = true;
+
+int main() {
+    while (running) {
+       int x = fetch();
+       if (x == HLT) running = false;
+       ip++;
+    }
+}</code></pre>
+        <p>این کار کاملاً درست اجرا خواهد شد، اما کمی شلخته است. کاری که می‌کنیم این است که می‌چرخیم و هر دستورالعمل را
+        بررسی می‌کنیم: اگر مقدار آن دستورالعمل <code class="inline">HLT</code> بود حلقه را متوقف می‌کنیم، وگرنه
+        دستورالعمل را می‌بلعیم و تکرار می‌کنیم.</p>
+      </section>
+
+      <!-- ==================== ارزیابی یک دستورالعمل ==================== -->
+      <section>
+        <h2>ارزیابی یک دستورالعمل</h2>
+        <p>پس این خلاصهٔ ماشین مجازی ماست، اما می‌توانیم بهتر عمل کنیم. یک ماشین مجازی آن‌قدر ساده است که می‌توانید یک
+        switch statement بزرگ بنویسید. در واقع، این معمولاً بهترین راه از نظر سرعت است، در مقابل مثلاً یک HashMap برای
+        همهٔ دستورالعمل‌ها و یک کلاس یا رابط (interface) انتزاعی با متد <code class="inline">execute</code>.</p>
+        <p>هر case در switch statement یک دستورالعمل است که در enum خودمان تعریف کرده‌ایم. تابع eval یک پارامتر واحد
+        می‌گیرد: دستورالعملی که باید ارزیابی شود. هیچ افزایش اشاره‌گر دستورالعمل‌ای در این تابع انجام نمی‌دهیم، مگر اینکه
+        عملوندها (operands) مصرف شوند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void eval(int instr) {
+    switch (instr) {
+    case HLT:
+        running = false;
+        break;
+    }
+}</code></pre>
+        <p>بیایید این را به حلقهٔ اصلی ماشین مجازی اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">bool running = true;
+int ip = 0;
+
+// enum دستورالعمل‌ها
+// تابع eval
+// تابع fetch
+
+int main() {
+    while (running) {
+        eval(fetch());
+        ip++; // افزایش ip در هر تکرار
+    }
+}</code></pre>
+      </section>
+
+      <!-- ==================== پشته! ==================== -->
+      <section>
+        <h2>پشته!</h2>
+        <p>عالی، باید بی‌نقص کار کند. حالا قبل از اضافه‌کردن بقیهٔ دستورالعمل‌ها، به یک پشته نیاز داریم. پشته ساختار
+        داده‌ای بسیار ساده‌ای است. برای آن به‌جای لیست پیوندی (linked list) از یک آرایه استفاده خواهیم کرد. چون پشتهٔ ما
+        اندازهٔ ثابتی دارد، نگرانی بابت تغییر اندازه/کپی (resizing/copying) نداریم. و احتمالاً از نظر کارایی حافظهٔ نهان
+        (cache) بهتر است به‌جای لیست پیوندی از آرایه استفاده کنیم!</p>
+        <p>مشابه اینکه یک <code class="inline">ip</code> داریم که به آرایهٔ برنامه ایندکس می‌زند، به یک اشاره‌گر پشته
+        (stack pointer، با کوتاه‌نویسی <code class="inline">sp</code>) نیز نیاز داریم تا نشان دهد کجای آرایهٔ پشته هستیم.</p>
+        <p>این‌جا یک نمایش کوچک از ساختار دادهٔ پشتهٔ ماست:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[] // خالی
+
+PSH 5 // 5 را در بالای پشته قرار بده
+[5]
+
+PSH 6 // 6 روی بالای پشته
+[5, 6]
+
+POP // 6 را از بالا pop کن
+[5]
+
+POP // 5 را pop کن
+[] // خالی
+
+PSH 6 // یک 6 push کن...
+[6]
+
+PSH 5 // و... همین‌طور
+[6, 5]</code></pre>
+        <p>بیایید برنامه‌مان را از نظر پشته تجزیه کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">PSH, 5,
+PSH, 6,
+ADD,
+POP,
+HLT</code></pre>
+        <p>خب، اول 5 را به پشته push می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[5]</code></pre>
+        <p>بعد 6 را push می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[5, 6]</code></pre>
+        <p>سپس دستور add اساساً این مقادیر را pop می‌کند و آن‌ها را با هم جمع می‌کند و نتیجه را روی پشته push می‌کند:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">[5, 6]
+
+// مقدار بالای پشته را pop کن و در متغیری به نام a ذخیره کن
+a = pop; // a برابر 6 است
+[5] // محتوای پشته
+
+// مقدار بالای پشته را pop کن و در متغیری به نام b ذخیره کن
+b = pop; // b برابر 5 است
+[] // محتوای پشته
+
+// حالا b و a را جمع می‌کنیم. توجه کنید این کار را برعکس انجام می‌دهیم؛ در جمع
+// این مهم نیست، اما در سایر دستورالعمل‌های احتمالی
+// برای مثال تقسیم 5 / 6 با 6 / 5 یکسان نیست
+result = b + a;
+push result // نتیجه را به پشته push کن
+[11] // محتوای پشته</code></pre>
+        <p>اشاره‌گر پشته کجا وارد بازی می‌شود؟ خب، اشاره‌گر پشته یا <code class="inline">sp</code> برابر
+        <code class="inline">1-</code> قرار می‌گیرد؛ یعنی پشته خالی است. آرایه‌ها در C ایندکس صفر دارند؛ پس اگر
+        <code class="inline">sp</code> برابر <code class="inline">0</code> بود، به هر عدد تصادفی‌ای که کامپایلر C آن‌جا
+        پرتاب می‌کند تنظیم می‌شد، چون حافظهٔ یک آرایه صفرسازی (zeroed out) نمی‌شود.</p>
+        <p>حالا اگر 3 مقدار push کنیم، <code class="inline">sp</code> برابر 2 می‌شود. این‌جا آرایه‌ای است با 3 مقدار:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">        -&gt; sp -1
+    psh -&gt; sp 0
+    psh -&gt; sp 1
+    psh -&gt; sp 3
+
+  sp به این‌جا اشاره می‌کند (sp = 2)
+       |
+       V
+[1, 5, 9]
+ 0  1  2 &lt;- ایندکس‌های آرایه یا «آدرس‌ها»</code></pre>
+        <p>حالا وقتی مقداری را از پشته <strong>pop</strong> می‌کنیم، اشاره‌گر پشته را کاهش می‌دهیم؛ یعنی 9 را pop می‌کنیم
+        و بالای پشته 5 خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">    sp به این‌جا اشاره می‌کند (sp = 1)
+        |
+        V
+    [1, 5]
+     0  1 &lt;- این‌ها ایندکس‌های آرایه هستند</code></pre>
+        <p>وقتی می‌خواهیم بالای پشته را ببینیم، به مقدارِ مکانی که <code class="inline">sp</code> فعلی اشاره می‌کند نگاه
+        می‌کنیم. خوب، امیدوارم حالا بدانید پشته چگونه کار می‌کند! اگر هنوز گیج هستید،
+        <a href="https://en.wikipedia.org/wiki/Stack_(abstract_data_type)" target="_blank" rel="noopener">این مقاله در
+        ویکی‌پدیا</a> را ببینید.</p>
+        <p>پیاده‌سازی یک پشته در C نسبتاً سرراست است. همراه با متغیر <code class="inline">ip</code>، باید متغیر
+        <code class="inline">sp</code> و آرایه‌ای که پشته خواهد بود را تعریف کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int ip = 0;
+int sp = -1;
+int stack[256];
+
+...</code></pre>
+        <p>حالا اگر بخواهیم مقداری را به پشته push کنیم، ابتدا اشاره‌گر پشته را افزایش می‌دهیم <strong>و بعد</strong> مقدار
+        را در مکانی که sp فعلی (که همین الآن افزایش دادیم) قرار می‌دهیم.</p>
+        <p><strong>ترتیب این‌جا بسیار مهم است!</strong> اگر اول مقدار را قرار دهید و بعد <code class="inline">sp</code>
+        را افزایش دهید، رفتاری خراب خواهید داشت، چون در حافظهٔ ایندکس <code class="inline">1-</code> می‌نویسیم؛ اصلاً
+        خوب نیست!</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">// sp = -1
+sp++; // sp = 0
+stack[sp] = 5; // مقدار را در stack[0] قرار بده -&gt; 5
+// بالای پشته حالا [5] است</code></pre>
+        <p>در تابع <code class="inline">eval</code> خودمان، می‌توانیم push پشته را این‌طور اضافه کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void eval(int instr) {
+    switch (instr) {
+        case HLT: {
+            running = false;
+            break;
+        }
+        case PSH: {
+            sp++;
+            stack[sp] = program[++ip];
+            break;
+        }
+    }
+}</code></pre>
+        <p>چند تفاوت بین تابع eval قبلی وجود دارد. اولاً، دور کلازهای case آکولاد گذاشته‌ایم. اگر با این ترفند آشنا
+        نیستید، به case یک scope می‌دهد تا بتوانید داخل کلاز متغیر تعریف کنید.</p>
+        <p>ثانیاً، عبارت <code class="inline">program[++ip]</code>. چرا این کار را می‌کنیم؟ چون دستور
+        <code class="inline">PSH</code> ما یک آرگومان دارد: <code class="inline">PSH, 5</code>. بلافاصله بعد از op کد
+        <code class="inline">PSH</code>، مقداری می‌آید که می‌خواهیم به پشته push کنیم. این‌جا <code class="inline">ip</code>
+        را افزایش می‌دهیم تا به <code class="inline">5</code> اشاره کند و بعد آن مقدار را از آرایهٔ برنامه می‌خوانیم.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">program = [ PSH, 5, PSH, 6, ]
+            0    1  2    3
+
+هنگام push کردن:
+ip از 0 شروع می‌شود (PSH)
+ip++، پس ip حالا 1 است (5)
+sp++، فضایی روی پشته اختصاص بده
+stack[sp] = program[ip]، مقدار 5 را روی پشته بگذار</code></pre>
+        <p>دستور <code class="inline">POP</code> به سادگیِ کاهشِ اشاره‌گر پشته است. اما می‌خواستم کاری کنم که دستور pop
+        مقدار پاپ‌شده را چاپ کند. به همین دلیل باید کمی کار بیشتر انجام دهیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">case POP: {
+    // مقدار موجود در پشته را در val_popped ذخیره کن و بعد اشاره‌گر پشته را کاهش بده
+    int val_popped = stack[sp--];
+
+    // چاپش کن!
+    printf("popped %d\n", val_popped);
+    break;
+}</code></pre>
+        <p>در نهایت، دستور <code class="inline">ADD</code>. این یکی شاید کمی سخت‌تر باشد که در ذهنتان جا بیفتد، و این‌جاست
+        که به ترفند scope روی کلاز case نیاز داریم، چون متغیرهایی معرفی می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">case ADD: {
+    // اول پشته را pop می‌کنیم و در 'a' ذخیره می‌کنیم
+    int a = stack[sp--];
+
+    // بعد بالای پشته را pop می‌کنیم و در 'b' ذخیره می‌کنیم
+    int b = stack[sp--];
+
+    // بعد نتیجه را جمع می‌کنیم و به پشته push می‌کنیم
+    int result = b + a;
+    sp++; // افزایش اشاره‌گر پشته **قبل از** آن
+    stack[sp] = result; // مقدار را در بالای پشته قرار بده
+
+    // تمام شد!
+    break;
+}</code></pre>
+        <p>توجه کنید که ترتیب در این‌جا برای برخی عملیات‌ها مهم است! اگر تقسیم را پیاده‌سازی می‌کردید، ممکن بود به دردسر
+        بیفتید، چون:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">5 / 4 != 4 / 5</code></pre>
+        <p>پشته‌ها LIFO هستند (آخرین ورودی، اولین خروجی؛ last in, first out). یعنی اگر اول 5 و بعد 4 را push کنیم، اول 4
+        را pop می‌کنیم و بعد 5 را. اگر <code class="inline">pop() / pop()</code> انجام دهیم، عبارت اشتباهی به ما می‌دهد؛
+        پس درست گرفتن ترتیب حیاتی است.</p>
+      </section>
+
+      <!-- ==================== ثبات‌ها ==================== -->
+      <section>
+        <h2>ثبات‌ها</h2>
+        <p>پیاده‌سازی ثبات‌ها بسیار آسان است؛ گفتم که ثبات‌های <code class="inline">A</code>، <code class="inline">B</code>،
+        <code class="inline">C</code>، <code class="inline">D</code>، <code class="inline">E</code> و
+        <code class="inline">F</code> را خواهیم داشت. مثل مجموعهٔ دستورالعمل می‌توانیم برای این کار از یک enum استفاده
+        کنیم.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">typedef enum {
+   A, B, C, D, E, F,
+   NUM_OF_REGISTERS
+} Registers;</code></pre>
+        <p>آخرین عضو enum یعنی <code class="inline">NUM_OF_REGISTERS</code> یک ترفند کوچک است تا اندازهٔ ثبات‌ها را حتی
+        اگر عضو بیشتری اضافه کنید به دست آوریم.</p>
+        <p>ثبات‌های خود را در یک آرایه ذخیره می‌کنیم. چون از enum استفاده می‌کنیم، A = 0، B = 1، C = 2 و...
+        پس وقتی می‌خواهیم ثبات A را تنظیم کنیم، به سادگیِ <code class="inline">register[A] = some_value</code> است.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int registers[NUM_OF_REGISTERS];</code></pre>
+        <p>چاپ مقدار درون ثبات <code class="inline">A</code>:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">printf("%d\n", registers[A]); // مقدار ثبات A را چاپ می‌کند</code></pre>
+
+        <h3>اشاره‌گر دستورالعمل (Instruction Pointer)</h3>
+        <p><strong>شاخه‌بندی (branching) چطور؟</strong> آن را به خودتان واگذار می‌کنم! به خاطر داشته باشید که اشاره‌گر
+        دستورالعمل به دستورالعمل جاری اشاره می‌کند. حالا چون این در کد منبع ماشین مجازی است، بهترین کار شما این است که
+        اشاره‌گر دستورالعمل را یک ثبات داشته باشید که بتوانید آن را از برنامه‌های ماشین مجازی بخوانید و دستکاری کنید.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">typedef enum {
+    A, B, C, D, E, F, PC, SP,
+    NUM_OF_REGISTERS
+} Registers;</code></pre>
+        <p>حالا باید کد خود را منتقل کنیم تا واقعاً از این اشاره‌گرهای دستورالعمل و پشته استفاده کند. یک روش سریع و کثیف
+        برای این کار با پایهٔ کد موجود این است که متغیرهای <code class="inline">sp</code> و <code class="inline">ip</code>
+        را از بالا حذف کنیم و به‌جایشان یک define بگذاریم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#define sp (registers[SP])
+#define ip (registers[IP])</code></pre>
+        <p>این راه‌حل مناسبی است تا مجبور نباشید بخش زیادی از کدتان را بازنویسی کنید و باید بی‌نقص کار کند. با این حال،
+        این روش ممکن است خیلی خوب مقیاس‌پذیر (scale) نباشد و برخی کدها را alias می‌کند؛ پس پیشنهاد می‌کنم از این روش
+        استفاده نکنید، اما برای یک ماشین مجازی اسباب‌بازی ساده کافی است.</p>
+        <p>وقتی بحث شاخه‌بندی در کدمان می‌شود، یک راهنمایی به شما می‌دهم. با ثبات جدید <code class="inline">IP</code>،
+        می‌توانیم با نوشتن مقدار دیگری در این IP شاخه‌بندی کنیم. این نمونه را امتحان کنید و ببینید چه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">PSH 10
+SET IP 0</code></pre>
+        <p>مشابه برنامهٔ BASIC که خیلی‌ها با آن آشنا هستند:</p>
+        <pre class="code"><span class="lang-tag">basic</span><code style="direction:ltr;text-align:left">10 PRINT "Hello, World"
+20 GOTO 10</code></pre>
+        <p>اما چون مدام مقادیر را به پشته push می‌کنیم، در نهایت وقتی بیشتر از مقداری که برایش فضا تعریف کرده‌ایم push
+        کنیم، به سرریز پشته (stack overflow) خواهیم رسید.</p>
+        <p>توجه کنید که هر «کلمه» یک دستورالعمل است؛ پس با برنامهٔ زیر:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">              ;  این‌ها دستورالعمل‌ها هستند
+PSH 10        ;  0 1
+PSH 20        ;  2 3
+SET IP 0      ;  4 5 6</code></pre>
+        <p>اگر می‌خواستیم به دستور دومِ <code class="inline">set</code> بپریم، به‌جای <code class="inline">0</code>، ثبات
+        <code class="inline">IP</code> را روی <code class="inline">2</code> تنظیم می‌کردیم.</p>
+      </section>
+
+      <!-- ==================== پایان ==================== -->
+      <section>
+        <h2>پایان (Fin)</h2>
+        <p>و تمام! اگر در پوشهٔ ریشهٔ پروژه <code class="inline">make</code> را اجرا کنید، می‌توانید ماشین مجازی را اجرا
+        کنید: <code class="inline">./mac</code>.</p>
+        <p>می‌توانید کد منبع را در گیت‌هاب
+        <a href="https://github.com/felixangell/mac" target="_blank" rel="noopener">اینجا</a> ببینید. اگر می‌خواهید نسخهٔ
+        توسعه‌یافته‌تری از ماشین مجازی را با دستورالعمل‌های <code class="inline">MOV</code> و <code class="inline">SET</code>
+        ببینید، پوشهٔ <code class="inline">mac-improved</code> را بگیرید. کد منبع ماشین مجازی که در این مقاله
+        پیاده‌سازی کردیم در <code class="inline">mac.c</code> است.</p>
+      </section>
+
+      <!-- ==================== مطالعهٔ بیشتر ==================== -->
+      <section>
+        <h2>مطالعهٔ بیشتر</h2>
+        <p>اگر به این موضوع علاقه‌مندید و می‌خواهید بیشتر گسترش دهید، منابع زیادی در اینترنت وجود دارد. «ناتچ» (Notch) یک
+        DCPU-16 نوشته است که اساساً یک ماشین مجازی ۱۶ بیتی برای بازی لغوشدهٔ 0x10c است. چند پیاده‌سازی از آن در اطراف
+        GitHub وجود دارد که می‌توانید بررسی کنید. همچنین می‌توانید به شبیه‌سازی (emulating) چیزی مانند یک CPU ساده نگاه
+        کنید؛ برای مثال یک Zilog Z80.</p>
+        <p>اگر می‌خواهید برای چنین چیزی یک شبیه‌ساز بنویسید، دفترچهٔ راهنما (manual) را بگیرید و ببینید آیا می‌توانید
+        مجموعهٔ دستورالعمل و ثبات‌ها را پیاده‌سازی کنید. اگر به کمک نیاز داشتید، چند پیاده‌سازی روی GitHub موجود است.</p>
+        <p>اگر این مقاله را پسندیدید، به من توییت کنید:
+        <a href="https://twitter.com/felix_angell" target="_blank" rel="noopener">@felix_angell</a>! ممنون از مطالعه‌تان!</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Virtual machine in C» اثر «فلیکس آنجل (Felix Angell)» است. این صفحه فقط
+        ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://blog.felixangell.com/virtual-machine-in-c/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه
+        کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

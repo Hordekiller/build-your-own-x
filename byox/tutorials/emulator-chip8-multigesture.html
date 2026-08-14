@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «How to write an emulator (CHIP-8 interpreter)» (Laurence Muller / Multigesture.net)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه یک شبیه‌ساز بنویسیم (مفسر CHIP-8)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>چگونه یک شبیه‌ساز بنویسیم (مفسر CHIP-8)</span>
+      </div>
+      <h1>چگونه یک شبیه‌ساز بنویسیم (مفسر CHIP-8)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to write an emulator (CHIP-8 interpreter)» نوشته «لورنس
+          مولر (Laurence Muller)» از سایت «Multigesture.net» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>این راهنما قصد دارد مقدمه‌ای کوتاه بر دنیای شبیه‌سازی (emulation) باشد و همچنین به شما بیاموزد که چگونه
+        خودتان از صفر یکی از آن‌ها را بنویسید.</p>
+        <p>من شخصاً از اواخر دههٔ ۹۰ میلادی به شبیه‌سازها علاقه‌مند بوده‌ام. از آنجا که در آن روزها کنسول بازی نداشتم
+        (خانوادهٔ ما فقط یک
+        <a href="http://en.wikipedia.org/wiki/Commodore_64" target="_blank" rel="noopener">کمودور ۶۴ (C64)</a>
+        داشت)، وقتی فهمیدم می‌توان با یک شبیه‌ساز بازی‌های کنسول را روی رایانهٔ شخصی اجرا کرد، بسیار خوشحال شدم. هنوز
+        به‌خاطر دارم که با یک شبیه‌ساز
+        <a href="http://en.wikipedia.org/wiki/Super_Nintendo_Entertainment_System" target="_blank" rel="noopener">سوپر نینتندو (SNES/Super Famicom)</a>
+        به نام
+        <a href="http://en.wikipedia.org/wiki/Snes9x" target="_blank" rel="noopener">Snes9x</a>
+        روی رایانهٔ شخصی
+        <a href="http://en.wikipedia.org/wiki/Super_Mario_Bros._3" target="_blank" rel="noopener">سوپر ماریو ۳</a>
+        بازی می‌کردم و چند سال بعد نیز با
+        <a href="http://en.wikipedia.org/wiki/Bleem!" target="_blank" rel="noopener">Bleem!</a>
+        (یک شبیه‌ساز
+        <a href="http://en.wikipedia.org/wiki/PlayStation_(console)" target="_blank" rel="noopener">پلی‌استیشن (PSX)</a>)
+        بازی
+        <a href="http://en.wikipedia.org/wiki/Metal_Gear_Solid" target="_blank" rel="noopener">متابال گیر سالید</a>
+        را به پایان رساندم.</p>
+        <p>این روزها اما بیشتر بر پشتیبانی از پروژه‌های شبیه‌سازی کنسول‌های جدیدتر متمرکز هستم؛ مانند:
+        <a href="http://pcsx2.net/" target="_blank" rel="noopener">PCSX2</a>
+        (پلی‌استیشن ۲ سونی)،
+        <a href="http://dolphin-emu.org/" target="_blank" rel="noopener">Dolphin-emu</a>
+        (گیم‌کیوب و وی نینتندو) و
+        <a href="http://code.google.com/p/nulldc/" target="_blank" rel="noopener">nullDC</a>
+        (دریم‌کست سگا).</p>
+        <p>هرچند این راهنما انتظار دارد دانش پایه‌ای از سیستم‌های کامپیوتری داشته باشید و فرض می‌کند با یک زبان
+        برنامه‌نویسی آشنا هستید، برای کسانی که به‌طور کلی به شبیه‌سازی علاقه‌مندند نیز خواندنی جذاب خواهد بود.</p>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/spaceinvaders_title.jpg"
+             alt="صفحهٔ عنوان بازی Space Invaders"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>صفحهٔ عنوان بازی Space Invaders</em></p>
+      </section>
+
+      <!-- ==================== شبیه‌ساز چیست ==================== -->
+      <section>
+        <h2>#define emulator (شبیه‌ساز چیست؟)</h2>
+        <p>فکر می‌کنم مهم است که اول بفهمیم شبیه‌ساز (emulator) چیست و چه چیز نیست.</p>
+        <p>شبیه‌ساز یک برنامهٔ کامپیوتری است که طراحی و عملکرد داخلی یک سیستم کامپیوتری (سیستم A) را بازسازی می‌کند؛
+        به کاربران این امکان را می‌دهد که نرم‌افزار طراحی‌شده برای آن سیستم خاص (سیستم A) را روی یک سیستم کامپیوتری یا
+        معماری کاملاً متفاوت (سیستم B) اجرا کنند.</p>
+        <p>اغلب مردم شبیه‌ساز (simulator) را با شبیه‌ساز (emulator) اشتباه می‌گیرند و برعکس. فقط به‌خاطر داشته باشید که
+        این دو واژه مترادف نیستند.</p>
+        <p>بیایید به مثال زیر نگاه کنیم:
+        <a href="http://en.wikipedia.org/wiki/Pong" target="_blank" rel="noopener">پونگ (Pong)</a>
+        یک بازی تنیس دوبعدی است که توسط
+        <a href="http://www.atari.com/" target="_blank" rel="noopener">آتاری (Atari)</a>
+        توسعه یافته و روی سخت‌افزار خود آن‌ها اجرا می‌شد. اما این بازی فقط روی سیستم‌های آتاری در دسترس نبود؛ بلکه روی
+        پلتفرم‌های رقیب مانند Amstrad، Amiga و C64 نیز ارائه شد.</p>
+        <p>از آنجا که هر بازی پونگ توسط آتاری برای اجرا روی این پلتفرم‌ها مجوز نداشت، بدین معنی بود که هر بازی هم کد
+        آتاری را اجرا نمی‌کرد. اساساً اتفاقی که افتاد این بود که مردم پیاده‌سازی خودشان (کلون‌ها) از بازی پونگ را می‌ساختند.
+        در این حالت آن‌ها ظاهر و رفتار بازی پونگ را <em>شبیه‌سازی</em> (simulate) می‌کردند.</p>
+        <p>در مورد یک شبیه‌ساز، ما تصمیم می‌گیریم بازی پونگ را برای سیستم بومی‌مان دوباره پیاده‌سازی نکنیم. در عوض، محیطی
+        را با یک برنامهٔ کامپیوتری بازسازی می‌کنیم که به ما اجازه می‌دهد کد ماشین اصلی پونگ را اجرا کنیم. مزیت این کار این
+        است که نه‌تنها پونگ، بلکه هر برنامهٔ دیگری که برای آن پلتفرم توسعه یافته باشد نیز قابل اجرا خواهد بود.</p>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/pong2.jpg"
+             alt="بازی پونگ"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>پونگ</em></p>
+      </section>
+
+      <!-- ==================== چیپ ۸ چیست ==================== -->
+      <section>
+        <h2>CHIP-8 چیست؟</h2>
+        <p>چیپ ۸ (Chip 8) در واقع هرگز یک سیستم واقعی نبود؛ بلکه بیشتر یک ماشین مجازی (virtual machine) بود که در دههٔ
+        ۷۰ میلادی توسط «جوزف وایزبکر» (Joseph Weisbecker) توسعه یافت. بازی‌های نوشته‌شده به زبان چیپ ۸ به‌راحتی می‌توانستند
+        روی سیستم‌هایی که مفسر (interpreter) چیپ ۸ داشتند اجرا شوند.</p>
+      </section>
+
+      <!-- ==================== چرا چیپ ۸ ==================== -->
+      <section>
+        <h2>چرا با یک شبیه‌ساز CHIP-8 شروع کنیم؟</h2>
+        <p>نوشتن شبیه‌ساز چیپ ۸ احتمالاً آسان‌ترین پروژهٔ شبیه‌سازی است که می‌توانید انجام دهید. به دلیل تعداد کم
+        <a href="http://en.wikipedia.org/wiki/Opcode" target="_blank" rel="noopener">کدهای عملیاتی (opcode)</a>
+        (در مجموع ۳۵ کد برای چیپ ۸) و این واقعیت که بسیاری از دستورالعمل‌ها در
+        <a href="http://en.wikipedia.org/wiki/Central_processing_unit" target="_blank" rel="noopener">واحد پردازش مرکزی (CPU)</a>
+        های پیشرفته‌تر نیز استفاده می‌شوند، پروژه‌ای مانند این آموزشی است (درک بهتر اینکه CPU چگونه کار می‌کند و کد ماشین
+        چگونه اجرا می‌شود)، قابل مدیریت است (تعداد کم کدهای عملیاتی برای پیاده‌سازی) و زمان‌بر نیست (پروژه را می‌توان در
+        چند روز به پایان رساند).</p>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/brix.jpg"
+             alt="بازی Brix؛ یک کلون از بازی Breakout"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>Brix: یک کلون از Breakout</em></p>
+      </section>
+
+      <!-- ==================== قبل از شروع ==================== -->
+      <section>
+        <h2>قبل از اینکه شروع کنید…</h2>
+        <ul>
+          <li>زبانی را انتخاب کنید که با آن آشنا هستید (معمولاً C/C++ یا جاوا). مثال‌های زیر از C/C++ استفاده می‌کنند.</li>
+          <li>از این پروژه به‌عنوان راهی برای یادگیری برنامه‌نویسی استفاده نکنید. (اگر
+          <a href="http://en.wikipedia.org/wiki/Bitwise_operation" target="_blank" rel="noopener">عملگرهای بیتی (bitwise)</a>
+          شما را گیج می‌کنند، اول آن‌ها را مطالعه کنید).</li>
+          <li>احتمالاً برای مدیریت خروجی صدا/ویدیو و ورودی کاربر به کتابخانه‌های شخص ثالث نیاز خواهید داشت
+          (<a href="http://www.opengl.org/resources/libraries/glut/" target="_blank" rel="noopener">GLUT</a> /
+          <a href="http://www.libsdl.org/" target="_blank" rel="noopener">SDL</a> /
+          <a href="http://www.microsoft.com/directx" target="_blank" rel="noopener">DirectX</a>).</li>
+          <li>بزن بریم!</li>
+        </ul>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/spaceinvaders.jpg"
+             alt="بازی Space Invaders"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>Space Invaders</em></p>
+      </section>
+
+      <!-- ==================== مشخصات CPU ==================== -->
+      <section>
+        <h2>مشخصات CPU</h2>
+        <p>وقتی شروع به نوشتن یک شبیه‌ساز می‌کنید، مهم است که تا حد ممکن اطلاعاتی دربارهٔ سیستمی که می‌خواهید شبیه‌سازی
+        کنید پیدا کنید. سعی کنید بفهمید سیستم چقدر حافظه و چند ثبات (register) دارد، از چه معماری استفاده می‌کند و ببینید
+        آیا می‌توانید به اسناد فنی توصیف‌کنندهٔ مجموعهٔ دستورالعمل‌ها (instruction set) دست یابید.</p>
+        <p>در مورد چیپ ۸، توصیه می‌کنم نگاهی به
+        <a href="http://en.wikipedia.org/wiki/CHIP-8#Virtual_machine_description" target="_blank" rel="noopener">توصیف چیپ ۸</a>
+        در ویکی‌پدیا بیندازید.</p>
+        <p>در ادامه نمای کلی کوتاهی از سیستم چیپ ۸ و چند راهنمایی برای پیاده‌سازی بخش‌های ضروری آن به شما می‌دهم:</p>
+        <ul>
+          <li>چیپ ۸ دارای
+          <a href="http://en.wikipedia.org/wiki/CHIP-8#Opcode_table" target="_blank" rel="noopener">۳۵ کد عملیاتی</a>
+          است که همگی دو بایت طول دارند. برای ذخیرهٔ کد عملیاتی جاری، به نوع داده‌ای نیاز داریم که اجازهٔ ذخیرهٔ دو بایت
+          را بدهد. یک <code class="inline">unsigned short</code> دو بایت طول دارد و بنابراین مناسب نیاز ماست:
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned short opcode;</code></pre>
+          </li>
+          <li>چیپ ۸ در مجموع ۴ کیلوبایت حافظه دارد که می‌توانیم آن‌را این‌گونه شبیه‌سازی کنیم:
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char memory[4096];</code></pre>
+          </li>
+          <li>ثبات‌های CPU: چیپ ۸ دارای ۱۵ ثبات همه‌منظورهٔ ۸ بیتی به نام‌های V0، V1 تا VE است. از شانزدهمین ثبات برای
+          «پرچم نقلی (carry flag)» استفاده می‌شود. هشت بیت برابر یک بایت است؛ بنابراین می‌توانیم برای این منظور از
+          <code class="inline">unsigned char</code> استفاده کنیم:
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char V[16];</code></pre>
+          </li>
+          <li>یک ثبات ایندکس I و یک شمارندهٔ برنامه (program counter) وجود دارد که می‌تواند مقداری از
+          <code class="inline">0x000</code> تا <code class="inline">0xFFF</code> داشته باشد:
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned short I;
+unsigned short pc;</code></pre>
+          </li>
+          <li>نقشهٔ حافظهٔ سیستم:
+            <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">0x000-0x1FF - مفسر چیپ ۸ (شامل فونست (font set) در شبیه‌ساز)
+0x050-0x0A0 - برای فونست 4x5 پیکسلی داخلی (0-F) استفاده می‌شود
+0x200-0xFFF - رام برنامه و RAM کاری</code></pre>
+          </li>
+          <li>سیستم گرافیکی: چیپ ۸ فقط یک دستورالعمل برای رسم اسپرایت (sprite) روی صفحه دارد. رسم در حالت XOR انجام
+          می‌شود و اگر در نتیجهٔ رسم، پیکسلی خاموش شود، ثبات VF تنظیم می‌شود. از این ویژگی برای تشخیص برخورد
+          (collision detection) استفاده می‌شود.</li>
+          <li>گرافیک چیپ ۸ سیاه‌وسفید است و صفحه در مجموع ۲۰۴۸ پیکسل (۶۴ در ۳۲) دارد. این را می‌توان به‌راحتی با آرایه‌ای
+          که وضعیت پیکسل (۱ یا ۰) را نگه می‌دارد پیاده‌سازی کرد:
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char gfx[64 * 32];</code></pre>
+          </li>
+          <li>وقفه‌ها (interrupts) و ثبات‌های سخت‌افزاری: چیپ ۸ هیچ‌کدام را ندارد، اما دو ثبات تایمر دارد که با فرکانس
+          ۶۰ هرتز شمارش می‌کنند. وقتی بالای صفر تنظیم شوند، به سمت صفر شمارش معکوس می‌کنند.
+            <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char delay_timer;
+unsigned char sound_timer;</code></pre>
+          </li>
+          <li>زنگ‌دار (buzzer) سیستم هر بار که تایمر صدا به صفر می‌رسد، صدا تولید می‌کند.</li>
+        </ul>
+        <p>مهم است بدانید مجموعهٔ دستورالعمل‌های چیپ ۸ دارای کدهای عملیاتی است که به برنامه اجازه می‌دهد به آدرس مشخصی
+        پرش کند یا یک زیربرنامه (subroutine) را فراخوانی کند. هرچند مشخصات به پشته (stack) اشاره‌ای نمی‌کند، شما باید
+        یکی از آن‌ها را به‌عنوان بخشی از مفسر خودتان پیاده‌سازی کنید. از پشته برای به‌خاطرسپردن موقعیت فعلی قبل از انجام
+        پرش استفاده می‌شود. بنابراین هر بار که پرش انجام می‌دهید یا زیربرنامه‌ای را فراخوانی می‌کنید، قبل از ادامه،
+        شمارندهٔ برنامه را در پشته ذخیره کنید. سیستم ۱۶ سطح پشته دارد و برای اینکه به‌خاطر بسپارید کدام سطح از پشته
+        استفاده می‌شود، باید یک اشاره‌گر پشته (stack pointer) پیاده‌سازی کنید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned short stack[16];
+unsigned short sp;</code></pre>
+        <p>در نهایت، چیپ ۸ دارای یک کیپد (keypad) مبتنی بر هگزادسیمال (<code class="inline">0x0-0xF</code>) است؛ می‌توانید
+        از یک آرایه برای ذخیرهٔ وضعیت فعلی کلیدها استفاده کنید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char key[16];</code></pre>
+      </section>
+
+      <!-- ==================== حلقه بازی ==================== -->
+      <section>
+        <h2>حلقهٔ بازی (Game Loop)</h2>
+        <p>برای اینکه ایده‌ای دربارهٔ نحوهٔ طراحی شبیه‌ساز خود به شما بدهم، یک مثال کوچک از یک چیدمان آماده کردم. این مثال
+        به شما یاد نمی‌دهد که چگونه از GLUT یا SDL برای مدیریت گرافیک و ورودی استفاده کنید؛ بلکه صرفاً نشان می‌دهد جریان
+        (flow) شبیه‌ساز شما چگونه باید باشد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left"> 1. #include 
+ 2. #include   // گرافیک و ورودی OpenGL
+ 3. #include "chip8.h" // پیاده‌سازی هستهٔ CPU شما
+ 
+ 5. chip8 myChip8;
+ 6. 
+ 7. int main(int argc, char **argv) 
+ 8. {
+ 9.   // راه‌اندازی سیستم رندر و ثبت callbackهای ورودی
+10.   setupGraphics();
+11.   setupInput();
+12. 
+13.   // مقداردهی اولیه سیستم چیپ ۸ و بارگذاری بازی در حافظه  
+14.   myChip8.initialize();
+15.   myChip8.loadGame("pong");
+16. 
+17.   // حلقهٔ شبیه‌سازی
+18.   for(;;)
+19.   {
+20.     // شبیه‌سازی یک سیکل
+21.     myChip8.emulateCycle();
+22. 
+23.     // اگر پرچم رسم (draw flag) تنظیم شده باشد، صفحه را به‌روزرسانی کن
+24.     if(myChip8.drawFlag)
+25.       drawGraphics();
+26. 
+27.     // ذخیرهٔ وضعیت فشرده‌شدن کلید (فشرده‌شدن و رهاشدن)
+28.     myChip8.setKeys();	
+29.   }
+30. 
+31.   return 0;
+32. }
+</code></pre>
+        <ul>
+          <li>خط ۳ تا ۵: در این مثال فرض می‌کنیم یک کلاس جداگانه برای مدیریت کدهای عملیاتی می‌سازید.</li>
+          <li>خط ۱۰ تا ۱۱: راه‌اندازی گرافیک (اندازهٔ پنجره، حالت نمایش و...) و سیستم ورودی (binding کردن callbackها).</li>
+          <li>خط ۱۴: پاک‌سازی حافظه، ثبات‌ها و صفحه.</li>
+          <li>خط ۱۵: کپی کردن برنامه در حافظه.</li>
+          <li>خط ۲۱: شبیه‌سازی یک سیکل از سیستم.</li>
+          <li>خط ۲۴: چون سیستم هر سیکل رسم نمی‌کند، باید وقتی لازم است صفحه‌مان را به‌روزرسانی کنیم، یک پرچم رسم تنظیم
+          کنیم. فقط دو کد عملیاتی باید این پرچم را تنظیم کنند:
+            <ul>
+              <li><code class="inline">0x00E0</code> – پاک‌سازی صفحه</li>
+              <li><code class="inline">0xDXYN</code> – رسم یک اسپرایت روی صفحه</li>
+            </ul>
+          </li>
+          <li>خط ۲۸: اگر کلیدی را فشار دهیم یا رها کنیم، باید این وضعیت را در بخشی که کیپد را شبیه‌سازی می‌کند ذخیره
+          کنیم.</li>
+        </ul>
+      </section>
+
+      <!-- ==================== چرخه شبیه‌سازی ==================== -->
+      <section>
+        <h2>چرخهٔ شبیه‌سازی (Emulation cycle)</h2>
+        <p>در ادامه به چرخهٔ شبیه‌سازی نگاه می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void chip8::initialize()
+{
+  // مقداردهی اولیه ثبات‌ها و حافظه فقط یک بار
+}
+
+void chip8::emulateCycle()
+{
+  // دریافت (Fetch) کد عملیاتی
+  // رمزگشایی (Decode) کد عملیاتی
+  // اجرا (Execute) کد عملیاتی
+
+  // به‌روزرسانی تایمرها
+}</code></pre>
+        <p>در هر سیکل، متد <code class="inline">emulateCycle</code> فراخوانی می‌شود که یک سیکل از CPU چیپ ۸ را شبیه‌سازی
+        می‌کند. در طول این سیکل، شبیه‌ساز یک کد عملیاتی را دریافت (Fetch)، رمزگشایی (Decode) و اجرا (Execute) می‌کند.</p>
+
+        <h3>دریافت کد عملیاتی (Fetch opcode)</h3>
+        <p>در این مرحله، سیستم یک کد عملیاتی را از حافظه در موقعیتی که شمارندهٔ برنامه (pc) مشخص کرده دریافت می‌کند. در
+        شبیه‌ساز چیپ ۸ ما، داده‌ها در آرایه‌ای ذخیره می‌شوند که هر آدرس آن یک بایت را در خود دارد. از آنجا که هر کد
+        عملیاتی ۲ بایت طول دارد، باید دو بایت پشت‌سرهم دریافت کنیم و آن‌ها را ادغام کنیم تا کد عملیاتی واقعی به‌دست آید.</p>
+        <p>برای نشان دادن نحوهٔ کار این روش، از کد عملیاتی <code class="inline">0xA2F0</code> استفاده می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">// موارد زیر را فرض کنید:
+memory[pc]     == 0xA2
+memory[pc + 1] == 0xF0</code></pre>
+        <p>برای ادغام هر دو بایت و ذخیرهٔ آن‌ها در یک <code class="inline">unsigned short</code> (نوع دادهٔ ۲ بایتی)، از
+        عملگر بیتی OR استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">opcode = memory[pc] &lt;&lt; 8 | memory[pc + 1];</code></pre>
+        <p>پس واقعاً چه اتفاقی افتاد؟ اول <code class="inline">0xA2</code> را ۸ بیت به چپ شیفت دادیم که ۸ صفر به آن اضافه
+        می‌کند.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">0xA2       0xA2 &lt;&lt; 8 = 0xA200   HEX
+10100010   1010001000000000     BIN</code></pre>
+        <p>سپس برای ادغام آن‌ها از عملگر بیتی OR استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">1010001000000000 | // 0xA200
+        11110000 = // 0xF0 (0x00F0)
+------------------
+1010001011110000   // 0xA2F0</code></pre>
+
+        <h3>رمزگشایی کد عملیاتی (Decode opcode)</h3>
+        <p>حالا که کد عملیاتی فعلی را ذخیره کرده‌ایم، باید آن را رمزگشایی کنیم و جدول کدهای عملیاتی را بررسی کنیم تا
+        ببینیم به چه معناست. با همان کد عملیاتی ادامه می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">0xA2F0 // اسمبلی: mvi 2F0h</code></pre>
+        <p>اگر به
+        <a href="https://en.wikipedia.org/wiki/CHIP-8#Opcode_table" target="_blank" rel="noopener">جدول کدهای عملیاتی</a>
+        نگاه کنیم، این‌ها را به ما می‌گوید:</p>
+        <ul>
+          <li><code class="inline">ANNN</code>: ایندکس I را روی آدرس NNN تنظیم می‌کند</li>
+        </ul>
+        <p>باید ثبات ایندکس <code class="inline">I</code> را روی مقدار <code class="inline">NNN (0x2F0)</code> تنظیم کنیم.</p>
+
+        <h3>اجرای کد عملیاتی (Execute opcode)</h3>
+        <p>حالا که می‌دانیم با کد عملیاتی چه کنیم، می‌توانیم آن را در شبیه‌سازمان اجرا کنیم. برای دستورالعمل نمونهٔ ما
+        یعنی <code class="inline">0xA2F0</code>، بدین معناست که باید مقدار <code class="inline">0x2F0</code> را در ثبات
+        ایندکس I ذخیره کنیم. از آنجا که فقط ۱۲ بیت حاوی مقداری است که باید ذخیره کنیم، از عملگر بیتی AND (&) استفاده
+        می‌کنیم تا از شر چهار بیت اول (نیم‌بایت) خلاص شویم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">1010001011110000 &amp; // 0xA2F0 (opcode)
+0000111111111111 = // 0x0FFF
+------------------
+0000001011110000   // 0x02F0 (0x2F0)</code></pre>
+        <p>کد حاصل:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">I = opcode &amp; 0x0FFF;
+pc += 2;</code></pre>
+        <p>چون هر دستورالعمل ۲ بایت طول دارد، باید بعد از اجرای هر کد عملیاتی، شمارندهٔ برنامه را دو واحد افزایش دهیم.
+        این کار همیشه صادق است؛ مگر اینکه به آدرس مشخصی در حافظه پرش کنید یا یک زیربرنامه را فراخوانی کنید (در این صورت
+        باید شمارندهٔ برنامه را در پشته ذخیره کنید). اگر کد عملیاتی بعدی باید رد شود (skip)، شمارندهٔ برنامه را چهار واحد
+        افزایش دهید.</p>
+
+        <h3>تایمرها (Timers)</h3>
+        <p>علاوه بر اجرای کدهای عملیاتی، چیپ ۸ دو تایمر نیز دارد که باید آن‌ها را پیاده‌سازی کنید. همان‌طور که در بالا
+        ذکر شد، هر دو تایمر (تایمر تأخیر و تایمر صدا) اگر روی مقداری بزرگ‌تر از صفر تنظیم شوند، به سمت صفر شمارش معکوس
+        می‌کنند. از آنجا که این تایمرها با فرکانس ۶۰ هرتز شمارش معکوس می‌کنند، شاید بخواهید چیزی پیاده‌سازی کنید که
+        چرخهٔ شبیه‌سازی شما را کندتر کند (در یک ثانیه ۶۰ کد عملیاتی اجرا کنید).</p>
+      </section>
+
+      <!-- ==================== شروع کار ==================== -->
+      <section>
+        <h2>شروع کار (Getting started)</h2>
+        <p>حالا که اصول شبیه‌سازی و نحوهٔ کار سیستم را می‌دانید، وقت آن است که همهٔ اجزا را کنار هم بگذارید و نوشتن
+        شبیه‌ساز را شروع کنید.</p>
+
+        <h3>مقداردهی اولیهٔ سیستم (Initialize system)</h3>
+        <p>قبل از اجرای اولین چرخهٔ شبیه‌سازی، باید وضعیت سیستم را آماده کنید. با پاک‌سازی حافظه و تنظیم مجدد ثبات‌ها روی
+        صفر شروع کنید. هرچند چیپ ۸ واقعاً
+        <a href="http://en.wikipedia.org/wiki/BIOS" target="_blank" rel="noopener">بایوس (BIOS)</a>
+        یا فریم‌ور (firmware) ندارد، اما یک فونست پایه در حافظه ذخیره شده دارد. این فونست باید در مکان حافظهٔ
+        <code class="inline">0x50 == 80</code> و به بعد بارگذاری شود. جزئیات بیشتر دربارهٔ نحوهٔ کار فونست را می‌توانید در
+        انتهای همین راهنما پیدا کنید.</p>
+        <p>نکتهٔ مهم دیگری که باید به‌خاطر بسپارید این است که سیستم انتظار دارد برنامه در مکان حافظهٔ
+        <code class="inline">0x200</code> بارگذاری شود. این بدان معناست که شمارندهٔ برنامه شما نیز باید روی همین مکان
+        تنظیم شود.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void chip8::initialize()
+{
+  pc     = 0x200;  // شمارندهٔ برنامه از 0x200 شروع می‌شود
+  opcode = 0;      // تنظیم مجدد کد عملیاتی جاری	
+  I      = 0;      // تنظیم مجدد ثبات ایندکس
+  sp     = 0;      // تنظیم مجدد اشاره‌گر پشته
+ 
+  // پاک‌سازی نمایش	
+  // پاک‌سازی پشته
+  // پاک‌سازی ثبات‌های V0-VF
+  // پاک‌سازی حافظه
+ 
+  // بارگذاری فونست
+  for(int i = 0; i &lt; 80; ++i)
+    memory[i] = chip8_fontset[i];		
+ 
+  // تنظیم مجدد تایمرها
+}</code></pre>
+
+        <h3>بارگذاری برنامه در حافظه (Loading the program into the memory)</h3>
+        <p>بعد از مقداردهی اولیهٔ شبیه‌ساز، برنامه را در حافظه بارگذاری کنید (با fopen در حالت باینری) و شروع به پر کردن
+        حافظه در مکان <code class="inline">0x200 == 512</code> کنید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">for(int i = 0; i &lt; bufferSize; ++i)
+  memory[i + 512] = buffer[i];</code></pre>
+
+        <h3>شروع شبیه‌سازی (Start the emulation)</h3>
+        <p>سیستم ما حالا آماده است اولین کد عملیاتی خود را اجرا کند. همان‌طور که در بالا ذکر شد، باید کد عملیاتی را دریافت،
+        رمزگشایی و اجرا کنیم. در این مثال، با خواندن ۴ بیت اول کد عملیاتی جاری شروع می‌کنیم تا بفهمیم کد عملیاتی چیست و
+        شبیه‌ساز چه کاری باید انجام دهد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">void chip8::emulateCycle()
+{
+  // دریافت کد عملیاتی
+  opcode = memory[pc] &lt;&lt; 8 | memory[pc + 1];
+ 
+  // رمزگشایی کد عملیاتی
+  switch(opcode &amp; 0xF000)
+  {    
+    // برخی کدهای عملیاتی //
+ 
+    case 0xA000: // ANNN: ایندکس I را روی آدرس NNN تنظیم می‌کند
+      // اجرای کد عملیاتی
+      I = opcode &amp; 0x0FFF;
+      pc += 2;
+    break;
+ 
+    // کدهای عملیاتی بیشتر //
+ 
+    default:
+      printf ("Unknown opcode: 0x%X\n", opcode);
+  }  
+ 
+  // به‌روزرسانی تایمرها
+  if(delay_timer &gt; 0)
+    --delay_timer;
+ 
+  if(sound_timer &gt; 0)
+  {
+    if(sound_timer == 1)
+      printf("BEEP!\n");
+    --sound_timer;
+  }  
+}</code></pre>
+        <p>در برخی موارد نمی‌توانیم فقط به چهار بیت اول تکیه کنیم تا ببینیم کد عملیاتی به چه معناست. برای مثال،
+        <code class="inline">0x00E0</code> و <code class="inline">0x00EE</code> هر دو با <code class="inline">0x0</code>
+        شروع می‌شوند. در این حالت یک switch اضافه اضافه می‌کنیم و چهار بیت آخر را مقایسه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">// رمزگشایی کد عملیاتی
+switch(opcode &amp; 0xF000)
+{    
+  case 0x0000:
+    switch(opcode &amp; 0x000F)
+    {
+      case 0x0000: // 0x00E0: پاک‌سازی صفحه        
+        // اجرای کد عملیاتی
+      break;
+ 
+      case 0x000E: // 0x00EE: بازگشت از زیربرنامه          
+        // اجرای کد عملیاتی
+      break;
+ 
+      default:
+        printf ("Unknown opcode [0x0000]: 0x%X\n", opcode);          
+    }
+  break;
+ 
+  // کدهای عملیاتی بیشتر //
+}</code></pre>
+      </section>
+
+      <!-- ==================== مثال‌های کد عملیاتی ==================== -->
+      <section>
+        <h2>مثال‌هایی از کدهای عملیاتی (Opcode examples)</h2>
+        <p>بیایید نگاهی به چند کد عملیاتی دیگر بیندازیم که شاید در ابتدا ترسناک به‌نظر برسند.</p>
+
+        <h3>مثال ۱: کد عملیاتی <code class="inline">0x2NNN</code></h3>
+        <p>این کد عملیاتی زیربرنامه‌ای را در آدرس NNN فراخوانی می‌کند. چون باید موقتاً به آدرس NNN پرش کنیم، بدان معناست
+        که باید آدرس فعلی شمارندهٔ برنامه را در پشته ذخیره کنیم. بعد از ذخیرهٔ مقدار شمارندهٔ برنامه در پشته، اشاره‌گر
+        پشته را افزایش دهید تا از بازنویسی سطح فعلی پشته جلوگیری شود. حالا که شمارندهٔ برنامه ذخیره شده، می‌توانیم آن را
+        روی آدرس NNN تنظیم کنیم. به‌خاطر داشته باشید، چون زیربرنامه‌ای را در یک آدرس مشخص فراخوانی می‌کنیم، نباید
+        شمارندهٔ برنامه را دو واحد افزایش دهید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">case 0x2000:
+  stack[sp] = pc;
+  ++sp;
+  pc = opcode &amp; 0x0FFF;
+break;</code></pre>
+
+        <h3>مثال ۲: کد عملیاتی <code class="inline">0x8XY4</code></h3>
+        <p>این کد عملیاتی مقدار VY را به VX اضافه می‌کند. ثبات VF وقتی نقلی (carry) وجود داشته باشد روی ۱ و وقتی نباشد روی
+        ۰ تنظیم می‌شود. چون ثبات فقط می‌تواند مقادیر ۰ تا ۲۵۵ (مقدار ۸ بیتی) را ذخیره کند، بدان معناست که اگر مجموع VX و
+        VY بزرگ‌تر از ۲۵۵ باشد، نمی‌تواند در ثبات ذخیره شود (یا در واقع از صفر دوباره شروع به شمارش می‌کند). اگر مجموع VX
+        و VY بزرگ‌تر از ۲۵۵ بود، از پرچم نقلی استفاده می‌کنیم تا به سیستم اطلاع دهیم مجموع هر دو مقدار واقعاً بزرگ‌تر از
+        ۲۵۵ بوده است. فراموش نکنید بعد از اجرای کد عملیاتی، شمارندهٔ برنامه را دو واحد افزایش دهید.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">case 0x0004:       
+  if(V[(opcode &amp; 0x00F0) &gt;&gt; 4] &gt; (0xFF - V[(opcode &amp; 0x0F00) &gt;&gt; 8]))
+    V[0xF] = 1; // نقلی
+  else
+    V[0xF] = 0;
+  V[(opcode &amp; 0x0F00) &gt;&gt; 8] += V[(opcode &amp; 0x00F0) &gt;&gt; 4];
+  pc += 2;          
+break;</code></pre>
+
+        <h3>مثال ۳: کد عملیاتی <code class="inline">0xFX33</code></h3>
+        <p>نمایش اعشاری کدشدهٔ باینری (Binary-coded decimal) مقدار VX را در آدرس‌های I، I بعلاوهٔ ۱ و I بعلاوهٔ ۲ ذخیره
+        می‌کند. باید اعتراف کنم که نمی‌توانستم بفهمم این کد عملیاتی را چگونه پیاده‌سازی کنم؛ بنابراین از
+        <a href="http://www.multigesture.net/wp-content/uploads/mirror/goldroad/chip8.shtml" target="_blank" rel="noopener">راه‌حل TJA</a>
+        استفاده کردم.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">case 0x0033:
+  memory[I]     = V[(opcode &amp; 0x0F00) &gt;&gt; 8] / 100;
+  memory[I + 1] = (V[(opcode &amp; 0x0F00) &gt;&gt; 8] / 10) % 10;
+  memory[I + 2] = (V[(opcode &amp; 0x0F00) &gt;&gt; 8] % 100) % 10;
+  pc += 2;
+break;</code></pre>
+      </section>
+
+      <!-- ==================== مدیریت گرافیک و ورودی ==================== -->
+      <section>
+        <h2>مدیریت گرافیک و ورودی (Handling graphics and input)</h2>
+
+        <h3>رسم پیکسل‌ها (Drawing pixels)</h3>
+        <p>کد عملیاتی مسئول رسم روی نمایشگر ما <code class="inline">0xDXYN</code> است. توصیف ویکی‌پدیا این‌ها را به ما
+        می‌گوید:</p>
+        <ul>
+          <li>اسپرایتی را در مختصات (VX, VY) رسم می‌کند که عرض آن ۸ پیکسل و ارتفاع آن N پیکسل است. هر ردیف ۸ پیکسلی
+          به‌صورت بیت‌کدشده از مکان حافظهٔ I خوانده می‌شود؛ مقدار I بعد از اجرای این دستورالعمل تغییر نمی‌کند.
+          همان‌طور که در بالا توضیح داده شد، اگر در هنگام رسم اسپرایت هر یک از پیکسل‌های صفحه از روشن به خاموش تغییر کند،
+          VF روی ۱ تنظیم می‌شود و اگر چنین اتفاقی نیفتد، روی ۰.</li>
+        </ul>
+        <p>همان‌طور که توصیف کد عملیاتی به ما می‌گوید، چیپ ۸ در واقع با رسم اسپرایت‌ها روی صفحه رسم می‌کند. به ما موقعیت
+        مکانی که اسپرایت باید در آن رسم شود (کد عملیاتی به ما می‌گوید برای دریافت مختصات X و Y باید کدام ثبات V را بررسی
+        کنیم) و تعداد ردیف‌ها (N) را می‌دهد. عرض هر اسپرایت ثابت است (۸ بیت / ۱ بایت). وضعیت هر پیکسل با استفاده از یک
+        عملگر بیتی XOR تنظیم می‌شود. این بدان معناست که وضعیت فعلی پیکسل را با مقدار فعلی حافظه مقایسه می‌کند. اگر مقدار
+        فعلی با مقدار موجود در حافظه متفاوت باشد، مقدار بیت ۱ خواهد بود. اگر هر دو مقدار یکسان باشند، مقدار بیت ۰ خواهد
+        بود.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">01000101 ^
+11110011 =
+----------
+10110110</code></pre>
+        <p>فرض کنیم کد عملیاتی <code class="inline">0xD003</code> بود. این بدان معناست که می‌خواهد اسپرایتی را در موقعیت
+        0,0 رسم کند که ۳ ردیف ارتفاع دارد. در مکان حافظهٔ I، مقادیر زیر تنظیم شده بودند:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">memory[I]     = 0x3C;
+memory[I + 1] = 0xC3;
+memory[I + 2] = 0xFF;</code></pre>
+        <p>این ۳ بایت چگونه یک اسپرایت را نشان می‌دهند؟ به مقادیر باینری هر بایت نگاه کنید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">HEX    BIN        Sprite
+0x3C   00111100     ****
+0xC3   11000011   **    **
+0xFF   11111111   ********</code></pre>
+        <p>برای پر کردن آرایهٔ خود (<code class="inline">gfx[]</code>) باید از نمایش باینری استفاده کنید. اما قبل از
+        تنظیم مقدار در <code class="inline">gfx[]</code> با استفاده از عملگر XOR، باید بررسی کنید که آیا هر یک از پیکسل‌ها
+        از ۱ به ۰ تغییر کرده است یا نه. اگر اینطور بود، باید ثبات VF را روی ۱ تنظیم کنید (این اساساً آزمایشی برای تشخیص
+        برخورد است).</p>
+        <p>مثالی از پیاده‌سازی کد عملیاتی <code class="inline">0xDXYN</code>:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left"> 1. case 0xD000:		   
+ 2. {
+ 3.   unsigned short x = V[(opcode &amp; 0x0F00) &gt;&gt; 8];
+ 4.   unsigned short y = V[(opcode &amp; 0x00F0) &gt;&gt; 4];
+ 5.   unsigned short height = opcode &amp; 0x000F;
+ 6.   unsigned short pixel;
+ 7.  
+ 8.   V[0xF] = 0;
+ 9.   for (int yline = 0; yline &lt; height; yline++)
+10.   {
+11.     pixel = memory[I + yline];
+12.     for(int xline = 0; xline &lt; 8; xline++)
+13.     {
+14.       if((pixel &amp; (0x80 &gt;&gt; xline)) != 0)
+15.       {
+16.         if(gfx[(x + xline + ((y + yline) * 64))] == 1)
+17.           V[0xF] = 1;                                 
+18.         gfx[x + xline + ((y + yline) * 64)] ^= 1;
+19.       }
+20.     }
+21.   }
+22.  
+23.   drawFlag = true;
+24.   pc += 2;
+25. }
+26. break;</code></pre>
+        <ul>
+          <li>خط ۳ تا ۴: دریافت موقعیت و ارتفاع اسپرایت.</li>
+          <li>خط ۵: مقدار پیکسل.</li>
+          <li>خط ۸: تنظیم مجدد ثبات VF.</li>
+          <li>خط ۹: حلقه روی هر ردیف.</li>
+          <li>خط ۱۱: دریافت مقدار پیکسل از حافظه با شروع از موقعیت I.</li>
+          <li>خط ۱۲: حلقه روی ۸ بیت یک ردیف.</li>
+          <li>خط ۱۴: بررسی اینکه آیا پیکسل در حال ارزیابی روی ۱ تنظیم شده است یا نه (توجه کنید که
+          <code class="inline">0x80 &gt;&gt; xline</code> در هر بار، یک بیت از بایت را پویش می‌کند).</li>
+          <li>خط ۱۶ تا ۱۷: بررسی اینکه آیا پیکسل روی نمایشگر روی ۱ تنظیم شده است. اگر تنظیم شده بود، باید برخورد را با
+          تنظیم ثبات VF ثبت کنیم.</li>
+          <li>خط ۱۸: تنظیم مقدار پیکسل با استفاده از XOR.</li>
+          <li>خط ۲۳: آرایهٔ <code class="inline">gfx[]</code> ما تغییر کرده است و بنابراین باید صفحه را به‌روزرسانی
+          کنیم.</li>
+          <li>خط ۲۴: به‌روزرسانی شمارندهٔ برنامه برای حرکت به کد عملیاتی بعدی.</li>
+        </ul>
+
+        <h3>ورودی (Input)</h3>
+        <p>سیستم چیپ ۸ از یک کیپد سادهٔ هگزادسیمال استفاده می‌کند که به کاربران اجازه می‌دهد با سیستم تعامل داشته باشند.
+        برای شبیه‌ساز ما این بدان معناست که باید متدی پیاده‌سازی کنیم که وضعیت هر کلید را در متغیری که وضعیت‌های کلید را
+        مدیریت می‌کند تنظیم کند. در هر سیکل باید وضعیت ورودی کلید را بررسی کنید و آن را در <code class="inline">key[]</code>
+        ذخیره کنید.</p>
+        <p>در واقع فرقی نمی‌کند چه مقداری ذخیره می‌کنید، زیرا کدهای عملیاتی <code class="inline">0xEX9E</code> و
+        <code class="inline">0xEXA1</code> فقط بررسی می‌کنند که کلید مشخصی فشرده شده یا فشرده نشده است. کد عملیاتی
+        <code class="inline">0xFX0A</code> فقط منتظر فشرده‌شدن یک کلید می‌ماند و وقتی آن را دریافت کرد، نام کلید را در ثبات
+        ذخیره می‌کند نه وضعیت کلید را.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">case 0xE000:
+  switch(opcode &amp; 0x00FF)
+  {
+    // EX9E: اگر کلید ذخیره‌شده در VX فشرده شده باشد،
+    // دستورالعمل بعدی را رد می‌کند
+    case 0x009E:
+      if(key[V[(opcode &amp; 0x0F00) &gt;&gt; 8]] != 0)
+        pc += 4;
+      else
+        pc += 2;
+    break;</code></pre>
+        <p>در زیر نمونه‌ای از چیدمان اصلی کیپد را می‌بینید. واقعاً مهم نیست که نگاشت کلیدها (key mapping) را چگونه
+        پیاده‌سازی می‌کنید، اما پیشنهاد می‌کنم چیزی شبیه به سمت راست باشد.</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Keypad                   Keyboard
++-+-+-+-+                +-+-+-+-+
+|1|2|3|C|                |1|2|3|4|
++-+-+-+-+                +-+-+-+-+
+|4|5|6|D|                |Q|W|E|R|
++-+-+-+-+       =&gt;       +-+-+-+-+
+|7|8|9|E|                |A|S|D|F|
++-+-+-+-+                +-+-+-+-+
+|A|0|B|F|                |Z|X|C|V|
++-+-+-+-+                +-+-+-+-+</code></pre>
+      </section>
+
+      <!-- ==================== فونست چیپ ۸ ==================== -->
+      <section>
+        <h2>فونست CHIP-8</h2>
+        <p>این فونست چیپ ۸ است. هر عدد یا کاراکتر ۴ پیکسل عرض و ۵ پیکسل ارتفاع دارد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">unsigned char chip8_fontset[80] =
+{ 
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};</code></pre>
+        <p>شاید فقط شبیه آرایه‌ای از اعداد تصادفی به‌نظر برسد، اما به موارد زیر دقت کنید:</p>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">DEC   HEX    BIN         RESULT    DEC   HEX    BIN         RESULT
+240   0xF0   1111 0000    ****     240   0xF0   1111 0000    ****
+144   0x90   1001 0000    *  *      16   0x10   0001 0000       *
+144   0x90   1001 0000    *  *      32   0x20   0010 0000      *
+144   0x90   1001 0000    *  *      64   0x40   0100 0000     *
+240   0xF0   1111 0000    ****      64   0x40   0100 0000     *</code></pre>
+        <p>به مثال سمت چپ نگاه کنید که عدد ۰ را رسم می‌کنیم. همان‌طور که می‌بینید، از ۵ مقدار تشکیل شده است. از نمایش
+        باینری هر مقدار برای رسم استفاده می‌کنیم. توجه کنید که فقط چهار بیت اول (نیم‌بایت) برای رسم یک عدد یا کاراکتر
+        استفاده می‌شود.</p>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/keypad_test.jpg"
+             alt="برنامهٔ آزمایش کیپد با استفاده از فونت‌های داخلی"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>برنامهٔ آزمایش کیپد با استفاده از فونت‌های داخلی</em></p>
+      </section>
+
+      <!-- ==================== نتیجه‌گیری ==================== -->
+      <section>
+        <h2>نتیجه‌گیری (Conclusion)</h2>
+        <p>امیدوارم این راهنما اطلاعات کافی برای شروع پروژهٔ شبیه‌ساز خودتان به شما داده باشد. حداقل باید حالا درک پایه‌ای
+        از اینکه شبیه‌سازی چگونه کار می‌کند و شاید درک بهتری از اینکه CPU چگونه کدهای عملیاتی را اجرا می‌کند داشته باشید.</p>
+        <p>پیاده‌سازی خودم از یک مفسر چیپ ۸ را در زیر گنجانده‌ام که می‌توانید از آن به‌عنوان مرجع استفاده کنید. فایل
+        zip هم یک باینری برای ویندوز دارد و هم کد منبع کامل شبیه‌ساز را شامل می‌شود. چون کد منبع کامل ارائه شده، توصیه
+        می‌کنم فقط به‌عنوان آخرین راه‌حل به فایل <code class="inline">chip8.cpp</code> نگاه کنید تا ببینید یک کد عملیاتی
+        خاص را چگونه پیاده‌سازی کرده‌ام. فایل‌های <code class="inline">chip8.h</code> و <code class="inline">main.cpp</code>
+        را می‌توان بدون اینکه زیاد لو برود، نگاه کرد. در واقع، <code class="inline">main.cpp</code> بیشتر کد GLUT دارد
+        که می‌توانید در پروژه‌های دیگر (غیرمرتبط با شبیه‌سازی) هم از آن استفاده کنید.</p>
+        <ul>
+          <li><a href="http://www.multigesture.net/wp-content/uploads/downloads/2011/03/myChip8-bin-src.zip" target="_blank" rel="noopener">myChip8</a>
+          — آخرین نسخه (باینری ویندوز + کد منبع)</li>
+          <li><a href="http://www.multigesture.net/projects/mychip8/" target="_blank" rel="noopener">نسخهٔ اولیهٔ myChip8 از سال ۲۰۰۳ (شامل یک دیباگر خوب)</a></li>
+          <li><a href="http://www.multigesture.net/projects/mychip8-android-port/" target="_blank" rel="noopener">پورتی به اندروید که در سال ۲۰۰۸ انجام دادم</a></li>
+        </ul>
+        <p>اگر این راهنما برایتان مفید بود به من خبر بدهید! اگر سؤالی دارید یا فکر می‌کنید بخش‌های ضروری جا افتاده است،
+        لطفاً از بخش نظرات استفاده کنید 🙂!</p>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/03/blinky.jpg"
+             alt="بازی Blinky"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>Blinky</em></p>
+
+        <h3>اعتبارها (Credits)</h3>
+        <p>تشکر ویژه از افراد زیر (که بسیاری فقط با نام مستعار شناخته می‌شوند) که در پروژه‌های شبیه‌سازی من در گذشته و
+        حال بسیار کمکم کرده‌اند.</p>
+        <ul>
+          <li>ector و F|RES (<a href="http://dolphin-emu.org/" target="_blank" rel="noopener">تیم Dolphin-emu</a>)</li>
+          <li>Saqib، zenogais، Absolute0، Shadow، gigaherz، Florin، Goldfinger (<a href="http://pcsx2.net/" target="_blank" rel="noopener">تیم PCSX2</a>)</li>
+          <li>drk||Raziel و ZeZu (<a href="http://code.google.com/p/nulldc/" target="_blank" rel="noopener">تیم nullDC</a>)</li>
+          <li>Hacktarux (<a href="http://mupen64.emulation64.com" target="_blank" rel="noopener">Mupen64</a>)</li>
+          <li>Muad (nSX2)</li>
+          <li>pSXAuthor (<a href="http://psxemulator.gazaxian.com/" target="_blank" rel="noopener">pSX</a>)</li>
+          <li>Shadowprince، Linker، Aprentice، SculleatR، ShizZy، Dave2001</li>
+        </ul>
+      </section>
+
+      <!-- ==================== پیشنهادها ==================== -->
+      <section>
+        <h2>پیشنهادها (Suggestions)</h2>
+        <p>بعد از اینکه اولین شبیه‌ساز چیپ ۸ خود را کامل کردید، شاید بخواهید یکی از کارهای زیر را امتحان کنید:</p>
+        <ul>
+          <li>افزودن کدهای عملیاتی Super CHIP-8</li>
+          <li>استفاده از
+          <a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/FunctionPointers.htm" target="_blank" rel="noopener">اشاره‌گرهای تابع (function pointers)</a>
+          به‌جای یک switch غول‌پیکر</li>
+          <li>بهبود گرافیک با افزودن فیلترها (<a href="http://en.wikipedia.org/wiki/Hqx" target="_blank" rel="noopener">Hqx</a>)</li>
+          <li>پورت کردن آن به پلتفرم‌های دیگر (موبایل؟) یا زبان‌های دیگر</li>
+          <li>حرکت به یک پروژهٔ پیچیده‌تر، مثلاً شبیه‌سازی یک
+          <a href="http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf" target="_blank" rel="noopener">گیم‌بوی (پردازندهٔ Z80)</a></li>
+        </ul>
+        <img src="https://www.multigesture.net/wp-content/uploads/2011/01/chip8-space-invaders.jpg"
+             alt="Space Invaders روی اندروید"
+             style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>Space Invaders روی اندروید</em></p>
+      </section>
+
+      <!-- ==================== منابع ==================== -->
+      <section>
+        <h2>منابع (Resources)</h2>
+        <ul>
+          <li><a href="https://en.wikipedia.org/wiki/CHIP-8" target="_blank" rel="noopener">CHIP-8 در ویکی‌پدیا</a>
+          — اطلاعات سیستم</li>
+          <li><a href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM" target="_blank" rel="noopener">مرجع فنی Cowgod برای Chip-8 نسخهٔ ۱.۰</a>
+          — پیشنهادی</li>
+          <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/goldroad/chip8.shtml" target="_blank" rel="noopener">آموزش Chip8</a>
+          — Goldroad.co.uk (آینه)</li>
+          <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/goldroad/chip8_instruction_set.shtml" target="_blank" rel="noopener">مجموعهٔ دستورالعمل‌های (S)Chip 8</a>
+          — Goldroad.co.uk (آینه)</li>
+          <li><a href="http://www.pong-story.com/chip8/" target="_blank" rel="noopener">صفحهٔ شبیه‌سازی CHIP-8 دیوید وینتر</a>
+          — شامل چند بازی</li>
+          <li><a href="http://devernay.free.fr/hacks/chip8/schip.txt" target="_blank" rel="noopener">نمای کلی مجموعهٔ دستورالعمل‌های (S)CHIP-8</a>
+          — (اریک براینتسه)</li>
+          <li><a href="http://www.emutalk.net/threads/19894-Chip-8" target="_blank" rel="noopener">موضوع شبیه‌ساز Chip8 در Emutalk</a></li>
+          <li><a href="http://forums.ngemu.com/web-development-programming/114578-chip8-thread.html" target="_blank" rel="noopener">موضوع شبیه‌ساز Chip8 در NGemu</a></li>
+        </ul>
+
+        <h3>منابع پیشرفتهٔ شبیه‌ساز (Advanced emulator resources)</h3>
+        <ul>
+          <li><a href="http://emubook.emulation64.com" target="_blank" rel="noopener">Emubook زیلمار</a>
+            <ul>
+              <li><a href="http://emubook.emulation64.com/cpu.htm" target="_blank" rel="noopener">فصل شبیه‌سازی CPU در Emubook</a></li>
+              <li><a href="http://emubook.emulation64.com/memory.htm" target="_blank" rel="noopener">فصل شبیه‌سازی حافظه در Emubook</a></li>
+            </ul>
+          </li>
+          <li>آموزش‌های شبیه‌سازی ZenoGais — (آفلاین، اما از طریق
+          <a href="http://replay.waybackmachine.org/20060107221912/http://www.zenogais.net/projects/tutorials/" target="_blank" rel="noopener">Archive.org</a>
+          در دسترس است)
+            <ul>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/Tutorials.htm" target="_blank" rel="noopener">آموزش‌های شبیه‌سازی ZenoGais</a> — (آینه)</li>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/Dynamic%20Recompiler.html" target="_blank" rel="noopener">کامپایلر پویا (Dynamic Recompiler)</a> — (آینه)</li>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/FunctionPointers.htm" target="_blank" rel="noopener">آرایه‌ای از اشاره‌گرهای تابع</a> — (آینه)</li>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/EmuDoc1.htm" target="_blank" rel="noopener">مقدمه‌ای بر شبیه‌سازی، بخش ۱</a> — (آینه)</li>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/EmuDoc2.html" target="_blank" rel="noopener">مقدمه‌ای بر شبیه‌سازی، بخش ۲</a> — (آینه)</li>
+              <li><a href="http://www.multigesture.net/wp-content/uploads/mirror/zenogais/GroundWork.html" target="_blank" rel="noopener">بسترسازی برای یک شبیه‌ساز</a> — (آینه)</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to write an emulator (CHIP-8 interpreter)» اثر «لورنس مولر (Laurence Muller)»
+        و متعلق به سایت «Multigesture.net» است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://www.multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

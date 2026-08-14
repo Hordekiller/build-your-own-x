@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Writing a Game Boy emulator, Cinoop» (Chris Turtel / CTurt)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک شبیه‌ساز Game Boy — سینوپ (Cinoop)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک شبیه‌ساز Game Boy — سینوپ (Cinoop)</span>
+      </div>
+      <h1>نوشتن یک شبیه‌ساز Game Boy — سینوپ (Cinoop)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://cturt.github.io/cinoop.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Writing a Game Boy emulator, Cinoop» نوشته «کریس
+          تورتل (Chris Turtel / CTurt)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://cturt.github.io/cinoop.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>همیشه دلم می‌خواست از صفر یک شبیه‌ساز (emulator) بنویسم، اما مدت طولانی‌ای آن را عقب انداختم؛ چون احتمالاً
+        پیشرفته‌ترین پروژهٔ برنامه‌نویسی‌ای است که تاکنون خواسته‌ام انجامش دهم.</p>
+        <p>انتخاب سیستمی که قرار است شبیه‌سازی شود، انتخاب آسانی نیست؛ پروژهٔ استانداردِ اولین شبیه‌ساز معمولاً یک شبیه‌ساز
+        <a href="http://en.wikipedia.org/wiki/CHIP-8" target="_blank" rel="noopener">CHIP-8</a> است. خواندن دربارهٔ CHIP-8
+        قطعاً به من کمک کرد مفاهیم زیادی از شبیه‌سازی را بفهمم، اما به‌نظرم کمی بیش از حد ابتدایی می‌آمد. حس می‌کردم با
+        صرفِ خواندن شبیه‌سازهای دیگران به اندازهٔ کافی از آن بهره برده‌ام و نوشتنِ یکی برای خودم تمرینی بی‌فایده خواهد بود.</p>
+        <p>از سوی دیگر، NES و Game Boy بودند؛ که هر دوی آن‌ها برای من خیلی پیشرفته به‌نظر می‌رسیدند!</p>
+        <p>در نهایت تصمیم گرفتم یک شبیه‌ساز مفسریِ (interpreting) مینیمال برای Game Boy بنویسم؛ بدون پشتیبانی از
+        مپرهای سفارشی (custom mappers) یا صدا (و احتمالاً با نادقتی‌های فراوان). نام پروژه را Cinoop گذاشتم.</p>
+        <p>سینوپ به زبان C نوشته شده و
+        <a href="https://github.com/CTurt/Cinoop" target="_blank" rel="noopener">متن‌باز (open source)</a> است. این برنامه
+        روی ویندوز، DS، گیم‌کیوب، 3DS، سیستمی‌عامل‌های مبتنی بر لینوکس، PSP و PS4 قابل اجراست.</p>
+
+        <div class="callout note">
+          <strong>ویدیوی نمایشی:</strong> نسخهٔ ویندوزی سینوپ که تتریس را پیش از پشتیبانی از تصادفی‌سازی اجرا می‌کند —
+          <a href="https://www.youtube.com/watch?v=1Sq1B_TefSA" target="_blank" rel="noopener">مشاهده در یوتیوب</a>.
+        </div>
+
+        <p>اگرچه خواندن شبیه‌سازی از کسی به‌بی‌تجربگیِ من را توصیه نمی‌کنم، می‌خواستم روند شروع ساخت یک شبیه‌ساز را برای
+        بار اول تشریح کنم، دربارهٔ اسنادی که بیشترین کمک را به من کردند صحبت کنم و همچنین دربارهٔ برخی از انتخاب‌های
+        طراحی که از آن‌ها گذشتم.</p>
+      </section>
+
+      <!-- ==================== شروع کار ==================== -->
+      <section>
+        <h2>شروع کار</h2>
+        <p>برای ساخت یک پنجره با کانتکست معتبر OpenGL از کتابخانهٔ خودم،
+        <a href="https://github.com/CTurt/LDFS" target="_blank" rel="noopener">LDFS</a>، استفاده کردم. انتخاب بهتر چیزی
+        استانداردتر و چندپلتفرمی مثل <a href="https://www.libsdl.org/" target="_blank" rel="noopener">SDL</a> بود؛ اما من
+        LDFS را انتخاب کردم فقط به این دلیل که با آن آشنا بودم.</p>
+        <p>سپس برای دید بهتر نسبت به پروژه چند سند
+        <a href="http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf" target="_blank" rel="noopener">مربوط به Game Boy</a> را
+        خواندم. با نگاهی به گذشته، باید زمان بسیار بیشتری صرف این کار می‌کردم تا مجبور نباشم بعداً مدام چیزهایی را دوباره
+        جست‌وجو کنم؛ اما هیجان‌زده بودم!</p>
+        <p>بیشتر کدهای مخصوص Game Boy که در ابتدا نوشتم، مثل بارگذاری یک رام (ROM)، به‌شدت بر پایهٔ شبیه‌سازهای دیگر بود.
+        بررسی کردم که دو یا سه شبیه‌ساز متفاوت چگونه این کار را انجام می‌دهند و سپس آن را به سبک خودم در سینوپ نوشتم.
+        هنوز ارزش نداشت کد را کاملاً خودم بنویسم؛ اول به پایه‌ای برای کار نیاز داشتم، تا بعد بتوانم روش خودم را تجربه کنم.</p>
+      </section>
+
+      <!-- ==================== حافظه ==================== -->
+      <section>
+        <h2>حافظه</h2>
+        <p>منابع گوناگون ممکن است به مناطق حافظه به شکل‌های متفاوتی اشاره کنند. رَم بالا (High RAM) گاهی «حافظهٔ صفحهٔ
+        صفر» (Zero Page Memory) نامیده می‌شود، دادهٔ کارتریج (Cartridge Data) گاهی به‌سادگی «رام» (ROM) خوانده می‌شود و
+        اگر سندی فقط «RAM» بگوید، معمولاً به رَم کاری (Working RAM) اشاره دارد. آگاهی از این نکته هنگام خواندن اسنادی
+        که توسط افراد مختلف نوشته شده‌اند ضروری است.</p>
+      </section>
+
+      <!-- ==================== ثبات‌ها ==================== -->
+      <section>
+        <h2>ثبات‌ها (Registers)</h2>
+        <p>Game Boy هشت ثبات ۸ بیتی دارد: A، B، C، D، E، F، H و L، به‌همراه دو ثبات ۱۶ بیتی: SP و PC. در ابتدا ثبات‌ها
+        را این‌گونه پیاده‌سازی کردم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">struct registers {
+	unsigned char a;
+	unsigned char b;
+	unsigned char c;
+	unsigned char d;
+	unsigned char e;
+	unsigned char h;
+	unsigned char l;
+	unsigned char flags;
+	unsigned short sp;
+	unsigned short pc;
+} extern registers;</code></pre>
+        <p>این مدل برای کار با دستورالعمل‌هایی که به ثبات‌های ۸ بیتی به‌صورت جداگانه دسترسی دارند خوب است؛ اما چیزی که
+        متوجه نشده بودم این است که ثبات‌های ۸ بیتی اغلب با هم گروه‌بندی می‌شوند تا ثبات‌های ۱۶ بیتی AF، BC، DE و HL را
+        بسازند.</p>
+        <p>ساختار ثبات‌هایم را بازبینی کردم تا دسترسی به ثبات‌های گروه‌بندی‌شده آسان‌تر شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">struct registers {
+	struct {
+		union {
+			struct {
+				unsigned char f;
+				unsigned char a;
+			};
+			unsigned short af;
+		};
+	};
+	
+	struct {
+		union {
+			struct {
+				unsigned char c;
+				unsigned char b;
+			};
+			unsigned short bc;
+		};
+	};
+	
+	struct {
+		union {
+			struct {
+				unsigned char e;
+				unsigned char d;
+			};
+			unsigned short de;
+		};
+	};
+	
+	struct {
+		union {
+			struct {
+				unsigned char l;
+				unsigned char h;
+			};
+			unsigned short hl;
+		};
+	};
+	
+	unsigned short sp;
+	unsigned short pc;
+} extern registers;</code></pre>
+        <p>از ساختارها و اتحادیه‌های بینام (anonymous structs and unions) استاندارد C11 استفاده کردم تا بتوانم مستقیماً
+        از ساختار ریشه به ثبات‌های تکی یا گروه‌بندی‌شده دسترسی داشته باشم؛ مثلاً <code class="inline">registers.a</code>
+        یا <code class="inline">registers.af</code>.</p>
+        <p>این یکی از جنبه‌های نسبتاً یکتای شبیه‌ساز من است؛ چون بیشتر شبیه‌سازهای دیگر Game Boy با استانداردهای قدیمی‌تر
+        C نوشته شده بودند (یا جایگزین نامطلوبی مثل C++)، به ساختارها و اتحادیه‌های بینام دسترسی نداشتند؛ یعنی مجبور بودند
+        با یک زنجیرهٔ به‌هم‌ریخته به ثبات‌ها دسترسی پیدا کنند، مثل
+        <code class="inline">gameboy_proc-&gt;AF.b.h</code> (این‌گونه است که
+        <a href="http://www.amidog.com/amiga/gbe/" target="_blank" rel="noopener">GBE</a> به ثبات a دسترسی پیدا می‌کند)
+        یا به عملیات بیتی (bit operations) تکیه کنند.</p>
+      </section>
+
+      <!-- ==================== پرچم‌ها ==================== -->
+      <section>
+        <h2>پرچم‌ها (Flags)</h2>
+        <p>Game Boy یک ثبات ۸ بیتی دارد که مشخص می‌کند آیا آخرین عملیات نتیجهٔ صفر، سرریز منفی (underflow)، سرریز
+        نیم‌بایتی (nibble overflow) یا سرریز بایتی (byte overflow) داشته است؛ این‌ها به‌ترتیب پرچم صفر (zero flag)،
+        پرچم منفی (negative flag)، پرچم نیم‌حمل (half carry flag) و پرچم حمل کامل (full carry flag) نامیده می‌شوند.</p>
+        <p>یک چیز که ابتدا مرا به خطا انداخت این بود که مطمئن نبودم آیا باید پرچم‌ها را بعد از هر دستورالعمل به‌روز کنم
+        یا فقط بعد از بعضی از آن‌ها؛ و اگر چنین است، کدام‌ها (و چگونه این اطلاعات را ذخیره کنم). سرانجام به
+        <a href="http://gameboy.mongenel.com/dmg/opcodes.html" target="_blank" rel="noopener">این سند عالی</a> برخوردم که
+        با جزئیات توضیح می‌دهد کدام دستورالعمل‌ها باید پرچم‌ها را و به چه مقادیری به‌روز کنند.</p>
+      </section>
+
+      <!-- ==================== پیاده‌سازی CPU ==================== -->
+      <section>
+        <h2>پیاده‌سازی CPU</h2>
+        <p>برای شروع، رویکرد کلاسیک <code class="inline">switch(instruction) {</code> را انتخاب کردم که در آن همهٔ
+        دستورالعمل‌ها در یک تابع قرار می‌گیرند.</p>
+        <p>هر بار که به یک دستورالعمل پیاده‌سازی‌نشده برمی‌خوردیم، مقادیر ثبات‌ها به‌همراه مقدار هگزادسیمال دستورالعمل
+        فعلی در یک فایل اشکال‌زدایی (debug file) نوشته می‌شد.</p>
+        <p>برای تست کردن، بازی
+        <a href="http://en.wikipedia.org/wiki/Tetris_%28Game_Boy%29" target="_blank" rel="noopener">تتریس</a> را انتخاب
+        کردم. هنگام اجرای آن پیامی دریافت کردم که می‌گفت «Undefined instruction 0x00!» (دستورالعمل تعریف‌نشده 0x00).</p>
+        <p>برای تأیید درستی این موضوع، بازی را در
+        <a href="http://problemkaputt.de/gmb.htm" target="_blank" rel="noopener">NO$GMB</a> اجرا کردم که اشکال‌زدا (debugger)
+        فوق‌العاده‌ای دارد. همان‌طور که انتظار می‌رفت، اولین دستورالعمل تتریس 0x00 است که یک
+        <a href="http://en.wikipedia.org/wiki/NOP" target="_blank" rel="noopener">NOP</a> است.</p>
+        <p>دستورالعمل NOP را پیاده‌سازی کردم و بازی را دوباره اجرا کردم تا دستورالعمل بعدیِ پشتیبانی‌نشده را بیابم. این
+        روش را برای چند دستورالعمل دیگر هم ادامه دادم و هر بار بررسی می‌کردم که مقادیر ثبات‌های نمایش‌داده‌شده توسط سینوپ
+        با مقادیر NO$GMB مطابقت داشته باشند.</p>
+      </section>
+
+      <!-- ==================== بهبود مدیریت دستورالعمل‌ها ==================== -->
+      <section>
+        <h2>بهبود مدیریت دستورالعمل‌ها</h2>
+        <p>جست‌وجوی هر دستورالعمل در NO$GMB یا در
+        <a href="http://imrannazar.com/Gameboy-Z80-Opcode-Map" target="_blank" rel="noopener">یک جدول آنلاین</a> داشت
+        خسته‌کننده می‌شد. اگرچه نمی‌خواستم یک اشکال‌زای کامل بنویسم، چیزی کمی پرمحتاتر برای کار می‌خواستم.</p>
+        <p>از رویکرد انجامِ همه‌چیز به‌صورت مستقیم در کد هر دستورالعمل فاصله گرفتم و به سمت این ایده رفتم که اطلاعات
+        مربوط به هر دستورالعمل را در یک ساختار (structure) ذخیره کنم تا کارهای مشترک بتوانند از کد یکسان استفاده کنند.</p>
+        <p>مثلاً به‌جای اینکه کد هر دستورالعمل مسئول واکشی عملوندهای (operands) خودش باشد، فکر کردم منطقی‌تر است طول
+        عملوندها را در ساختار ذخیره کنیم و برای واکشی عملوندِ هر دستورالعمل از کد مشترکی استفاده کنیم.</p>
+        <p>همچنین دیساسمبلی (disassembly) هر دستورالعمل را در ساختار کپی کردم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">struct instruction {
+	char *disassembly;
+	unsigned char operandLength;
+	void *execute;
+	//unsigned char ticks;
+} extern const instructions[256];
+
+...
+
+const struct instruction instructions[256] = {
+	{ "NOP", 0, nop },                          // 0x00
+	{ "LD BC, 0x%04X", 2, NULL },               // 0x01
+	{ "LD (BC), A", 0, NULL },                  // 0x02
+	...</code></pre>
+        <p>این کار در ترکیب با ذخیره‌سازی طول عملوندها، چاپ دستورالعمل را فوق‌العاده آسان می‌کرد.</p>
+        <p>تنها کاری که باید می‌کردم اجرای بازی بود؛ نه‌تنها مقدار هگزادسیمال دستورالعمل پشتیبانی‌نشده را می‌گفت، بلکه
+        دیساسمبلی کامل آن را هم نمایش می‌داد.</p>
+        <p>اجرای بازی حالا این پیام را به من می‌داد: «Unimplemented instruction 0x06 (LD B, 0x00)!» (دستورالعمل
+        پیاده‌سازی‌نشده). این تنها چیزی بود که برای نوشتن دستورالعمل 0x06 نیاز داشتم؛ دیگر لازم نبود توقف کنم و آن را در
+        یک برنامهٔ بیرونی یا سندی پیدا کنم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">// 0x06
+void ld_b_n(unsigned char operand) { registers.b = operand; }</code></pre>
+        <p>این کار سرعت پیاده‌سازی دستورالعمل‌های جدید را به‌شدت افزایش داد و بیشتر CPU را به همین روش ادامه دادم.</p>
+        <p>همچنین این ایده را در نظر گرفتم که آیا هر دستورالعمل باید پرچم‌های مشخصی را به‌روز کند یا نه در ساختار
+        دستورالعمل ذخیره شود؛ اما با آن مخالفت کردم، چون فقط سیستم را بی‌جهت پیچیده می‌کرد و احتمالاً اجرای آن را نیز
+        کندتر می‌کرد.</p>
+        <p>پیاده‌سازی CPU کار چندان سختی نبود؛ فقط وقت‌گیر بود. بیشتر دستورالعمل‌ها نسبتاً سرراست‌اند و بعضی از آن‌ها
+        جز در ثبات مقصد یکسان‌اند (مثل <code class="inline">INC A</code> و <code class="inline">INC B</code>). علاوه بر
+        این، چندین <code class="inline">NOP</code> وجود دارد (<code class="inline">LD A, A</code>،
+        <code class="inline">LD B, B</code> و...).</p>
+        <p>بااین‌حال، یک دستورالعمل بود که مدتی مرا گیج کرد:
+        <a href="http://www.worldofspectrum.org/faq/reference/z80reference.htm#DAA" target="_blank" rel="noopener">DAA</a>
+        که برای نمایش امتیاز در تتریس به‌کار می‌رود. پس از بررسی چند شبیه‌ساز دیگر، موفق شدم پیاده‌سازی خودم را بنویسم.
+        یک نکته این است که برخلاف CPU اصلی Z80A، پرچم نیم‌حمل (Half Carry) همیشه پاک می‌شود که کار را کمی ساده‌تر
+        می‌کند.</p>
+      </section>
+
+      <!-- ==================== اشکال‌زدایی بلادرنگ ==================== -->
+      <section>
+        <h2>اشکال‌زدایی بلادرنگ (Real time debugging)</h2>
+        <p>سرانجام متوجه شدم اجرای کل بازی تا رسیدن به یک دستورالعمل پیاده‌سازی‌نشده روش چندان منعطفی نیست.</p>
+        <p>می‌توانستم تابع <code class="inline">cpuStep</code> را طوری تنظیم کنم که چند نقطهٔ توقف (breakpoint) شبه‌ای به
+        من بدهد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">if(registers.pc == 0x300) {
+	printRegisters();
+}</code></pre>
+        <p>اما باز هم استفاده از این روش چندان آسان نبود. اگر در یکی از پیاده‌سازی‌های دستورالعمل‌هایم اشتباهی وجود
+        داشت، می‌خواستم بازی را قدم‌به‌قدم اجرا کنم تا آن را پیدا کنم. برای این کار، یک اشکال‌زای بلادرنگ پایه‌ای ساختم که
+        می‌توانستم هم‌زمان با NO$GMB اجرایش کنم تا مطمئن شوم دستورالعمل‌ها درست اجرا می‌شوند:</p>
+        <img src="https://cturt.github.io/images/cinoop/debug.png" alt="اشکال‌زای بلادرنگ سینوپ که اجرای دستورالعمل‌ها را قدم‌به‌قدم نشان می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همچنین توانستم در توابع <code class="inline">readByte</code> و <code class="inline">writeByte</code> نقاط
+        توقف اضافه کنم؛ یعنی می‌توانستم بر اساس هر شرطی که می‌خواهم یک اشکال‌زای بلادرنگِ قدم‌به‌قدم فعال کنم. در ترکیب
+        با امکان اجرای بازی در NO$GMB، این روش برای اشکال‌زدایی بیشتر مسائل کافی از آب درآمد.</p>
+      </section>
+
+      <!-- ==================== تایلست‌ها ==================== -->
+      <section>
+        <h2>تایل‌ست‌ها (Tilesets)</h2>
+        <p>اجرای فهرستی بی‌پایان از دستورالعمل‌های CPU برای اطمینان از درست‌کارکردن همه‌چیز مهم است، اما خیلی سریع
+        کسل‌کننده می‌شود. رسم تایل‌ست (tileset) اولین تأیید بصری من بود که سینوپ واقعاً به‌اندازهٔ کافی خوب کار می‌کند
+        تا گرافیک بارگذاری کند.</p>
+        <p>تتریس را در NO$GMB اجرا کردم تا ببینم کدام دستورالعمل‌ها تایل‌ست را در VRAM کپی می‌کنند. اولین تابعی که تایل‌ها
+        را بارگذاری می‌کند از آدرس <code class="inline">0x2817</code> شروع و در <code class="inline">0x282a</code> تمام
+        می‌شود.</p>
+        <p>در شبیه‌سازم برای شروع آن تابع یک نقطهٔ توقف گذاشتم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">if(registers.pc == 0x2817) {
+	realtimeDebugEnable = 1;
+}</code></pre>
+        <p>البته وقتی شبیه‌ساز را اجرا کردم، پیش از رسیدن به این تابع خارج می‌شد، چون به‌اندازهٔ کافی دستورالعمل
+        پیاده‌سازی نکرده بودم؛ اما به کار ادامه دادم و سرانجام نقطهٔ توقف فعال شد! سپس چند دستورالعمل دیگر هم بود که باید
+        پیاده‌سازی می‌کردم تا از آن تابع عبور کنم و بعد بتوانم اولین تایل را تخلیه (dump) کنم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">// انتهای تابع بارگذاری تایل‌ست
+if(registers.pc == 0x282a) {
+	FILE *f = fopen("tile0.bin", "wb");
+	fwrite(vram, 16, 1, f);
+	fclose(f);
+	
+	realtimeDebugEnable = 1;
+}</code></pre>
+        <p>این را با حافظهٔ NO$GMB مقایسه کردم و داده‌ها مطابقت داشتند!</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">00 00 3c 3c 66 66 66 66 66 66 66 66 3c 3c 00 00</code></pre>
+        <p>کار بعدی تخلیهٔ تایل پردازش‌شده بود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">FILE *f = fopen("tile0.txt", "wb");
+int x, y;
+for(y = 0; y &lt; 8; y++) {
+	for(x = 0; x &lt; 8; x++) fprintf(f, "%02x ", tiles[0][x][y]);
+	fprintf(f, "\n");
+}
+fclose(f);</code></pre>
+        <p>و این نتیجه بود:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">00 00 00 00 00 00 00 00 
+00 00 03 03 03 03 00 00 
+00 03 03 00 00 03 03 00 
+00 03 03 00 00 03 03 00 
+00 03 03 00 00 03 03 00 
+00 03 03 00 00 03 03 00 
+00 00 03 03 03 03 00 00 
+00 00 00 00 00 00 00 00</code></pre>
+        <p>برای واضح‌تر شدن تصویر بالا، «00» را با فاصله و «03» را با «xx» جایگزین می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">                        
+      xx xx xx xx       
+   xx xx       xx xx    
+   xx xx       xx xx    
+   xx xx       xx xx    
+   xx xx       xx xx    
+      xx xx xx xx       
+                       </code></pre>
+        <p>با این اطمینان که همه‌چیز آن‌طور که باید کار می‌کند، ۸ تایل اول را روی صفحه کپی کردم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int i, x, y;
+for(i = 0; i &lt; 8; i++) {
+	for(x = 0; x &lt; 8; x++) {
+		for(y = 0; y &lt; 8; y++) {
+			framebuffer[i * 8 + x + y * 160].r = palette[tiles[i][x][y]].r;
+			framebuffer[i * 8 + x + y * 160].g = palette[tiles[i][x][y]].g;
+			framebuffer[i * 8 + x + y * 160].b = palette[tiles[i][x][y]].b;
+		}
+	}
+}</code></pre>
+        <img src="https://cturt.github.io/images/cinoop/tiles.png" alt="نمایش ۸ تایل اول که روی صفحه رسم شده‌اند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بگذارید بازی کمی جلوتر برود و سپس هر تعداد تایل که روی صفحه جا می‌شود را کپی کردم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">// رسم تایل‌ست روی فریم‌بافر به‌عنوان تست
+int i;
+for(i = 0; i &lt; (144 / 8) * (160 / 8); i++) {
+	int x;
+	for(x = 0; x &lt; 8; x++) {
+		int y;
+		for(y = 0; y &lt; 8; y++) {
+			framebuffer[(i * 8 % 160) + x + (y + i * 8 / 160 * 8) * 160].r = palette[tiles[i][x][y]].r;
+			framebuffer[(i * 8 % 160) + x + (y + i * 8 / 160 * 8) * 160].g = palette[tiles[i][x][y]].g;
+			framebuffer[(i * 8 % 160) + x + (y + i * 8 / 160 * 8) * 160].b = palette[tiles[i][x][y]].b;
+		}
+	}
+}</code></pre>
+        <img src="https://cturt.github.io/images/cinoop/fullTileset.png" alt="تایل‌ست کامل تتریس که روی صفحه رسم شده است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== نقشه‌ها ==================== -->
+      <section>
+        <h2>نقشه‌ها (Maps)</h2>
+        <p>اولین تلاش من برای خواندن نقشه‌ها (maps) به این نتیجه رسید:</p>
+        <img src="https://cturt.github.io/images/cinoop/map1.png" alt="نتیجهٔ نادرست خواندن نقشه در تلاش اول" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مطمئن نیستم این مشکل از آموزش GPU که دنبال می‌کردم بود یا پیاده‌سازی من، اما تغییر خط زیر:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">mapOffset += ((gpu.scanline + gpu.scrollY) &amp; 255) &gt;&gt; 3;</code></pre>
+        <p>به:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">mapOffset += (((gpu.scanline + gpu.scrollY) &amp; 255) &gt;&gt; 3) &lt;&lt; 5;</code></pre>
+        <p>مشکل را حل کرد. شبیه‌سازم حالا می‌توانست به صفحهٔ کپی‌رایت تتریس برسد!</p>
+        <img src="https://cturt.github.io/images/cinoop/map2.png" alt="صفحه کپی‌رایت تتریس پس از اصلاح افست نقشه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== رد شدن از صفحه کپی‌رایت ==================== -->
+      <section>
+        <h2>رد شدن از صفحهٔ کپی‌رایت</h2>
+        <p>سینوپ در یک حلقه گیر کرده بود و از صفحهٔ کپی‌رایت جلوتر نمی‌رفت. پس از کمی اشکال‌زدایی، متوجه شدم که مسدود کردن
+        هرگونه نوشتن در اولین بایت رَم بالا (HRAM) یعنی آدرس <code class="inline">0xff80</code>، کامل‌شدن حلقه را ممکن
+        می‌کند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void writeByte(unsigned short address, unsigned char value) {
+	// مسدود کردن نوشتن‌ها به ff80
+	if(tetrisPatch &amp;&amp; address == 0xff80) return;</code></pre>
+        <p>استفاده از وصله‌های مخصوص بازی به‌جای درست‌کردن درست اشکال‌ها قصد من نبود؛ اما حدس می‌زدم اگر این وصله را
+        موقتاً فعال کنم، مشکل با بهبود سینوپ بالاخره خودش حل شود (که همین‌طور هم شد).</p>
+        <p>پس از رفع موقت مشکل قبلیِ تکرار حلقه، با مشکل دیگری روبه‌رو شدم؛ بازی این سه دستورالعمل را بی‌نهایت بار تکرار
+        می‌کرد:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">ld a, 0xff80
+and a
+jr z</code></pre>
+        <p>متوجه شدم احتمالاً منتظر است مقدار آن توسط یک وقفه (interrupt) نوشته شود؛ بنابراین ثبات فعال‌سازی وقفه‌ها
+        (interrupt enable register) را تخلیه کردم: <code class="inline">0x09</code>؛ یعنی هم وقفهٔ VBlank و هم وقفهٔ
+        سریال (Serial) فعال بودند (<code class="inline">(1 &lt;&lt; 0) | (1 &lt;&lt; 3)</code>). چون احتمالاً به وقفهٔ
+        سریال وابسته نبود، حدس زدم کد VBlank من اشتباه است.</p>
+        <p>واقعاً هم همین‌طور بود! پس از اصلاح هندلر وقفهٔ VBlank، با چند دستورالعمل پیاده‌سازی‌نشدهٔ دیگر روبه‌رو شدم و
+        سرانجام سینوپ به منوی تتریس رسید!</p>
+        <img src="https://cturt.github.io/images/cinoop/menu.png" alt="منوی تتریس که توسط شبیه‌ساز سینوپ رندر شده است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== اسپرایت‌ها ==================== -->
+      <section>
+        <h2>اسپرایت‌ها (Sprites)</h2>
+        <p>آخرین افزودهٔ مهم به هسته، پشتیبانی از اسپرایت‌ها (sprites) بود؛ پیاده‌سازی آن پس از پیاده‌سازی نقشه‌های
+        پس‌زمینه کار چندان سختی نبود. Game Boy می‌تواند حداکثر ۴۰ اسپرایت نمایش دهد که ویژگی‌های هرکدام در یک جدول
+        پایهٔ OAM ذخیره می‌شود و شامل موقعیت، شمارهٔ تایل، شمارهٔ پالت (palette)، وارون‌سازی (flip) و اولویت
+        (priority) است.</p>
+      </section>
+
+      <!-- ==================== تصادفی‌سازی ==================== -->
+      <section>
+        <h2>تصادفی‌سازی (Randomisation)</h2>
+        <p>تتریس برای تعیین اینکه بلوک تصادفی بعدی کدام است، به خواندن ثبات تقسیم‌کننده (divider register) در آدرس
+        <code class="inline">0xff04</code> به‌عنوان منبع آنتروپی (source of entropy) تکیه می‌کند. معمولاً این ثبات یک
+        تایمر است که به‌صورت خطی افزایش می‌یابد تا یا سرریز کند یا با نوشتن هر مقداری در آن به صفر بازنشانی شود.</p>
+        <p>در عوض تصمیم گرفتم هنگام تلاش برای خواندن این مقدار، <code class="inline">rand</code> را برگردانم. چون این
+        ثبات فقط به‌عنوان تولیدکنندهٔ اعداد تصادفی برای تتریس استفاده می‌شود، این تغییر بدون هیچ اثر نامطلوبی برای این
+        بازی، منبع آنتروپی بهتری فراهم می‌کند.</p>
+        <p>هنگام استفاده از <code class="inline">rand</code> باید دانهٔ (seed) آن را با <code class="inline">srand</code>
+        تغییر دهید (معمولاً با زمان فعلی)؛ در غیر این صورت، اگر با همان دانه <code class="inline">srand</code> کنید،
+        بازی را با دقیقاً همان ترتیب بلوک‌ها بازی می‌کنید.</p>
+      </section>
+
+      <!-- ==================== پورت کردن ==================== -->
+      <section>
+        <h2>پورت کردن (Porting)</h2>
+        <p>برای اینکه سینوپ کاربردی‌تر شود، تصمیم گرفتم آن را به چند سیستم دیگر پورت کنم.</p>
+
+        <h3>DS</h3>
+        <p>اولین سیستمی که سینوپ را به آن پورت کردم DS بود؛ چون با آن بسیار آشنا بودم، واقعاً زمان زیادی نبرد.</p>
+        <p>با رندر کردن به DS در حالت فریم‌بافر (framebuffer mode) شروع کردم که می‌تواند به شکل زیر انجام شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">videoSetMode(MODE_FB0);
+vramSetBankA(VRAM_A_LCD);
+VRAM_A[x + y * 256] = RGB15(red, green, blue);</code></pre>
+        <p>این کار ابتدا خوب بود، چون یعنی می‌توانستم کد رندر ویندوز را دوباره استفاده کنم؛ بنابراین توانستم سینوپ را
+        نسبتاً سریع بالا بیاورم.</p>
+        <p>بااین‌حال، DS از قبل پشتیبانی از تایل‌ها و اسپرایت‌ها دارد؛ رندر کردن به فریم‌بافر کند است.</p>
+        <p>کد را برای استفاده از رندر تایل بومیِ DS بازبینی کردم. از رندر فریم‌بافر سریع‌تر اجرا می‌شد، اما روی برخی
+        تایل‌ها گلیچ‌های گرافیکی جزئی داشت (هم روی سخت‌افزار واقعی و هم روی شبیه‌سازها اتفاق می‌افتاد):</p>
+        <img src="https://cturt.github.io/images/cinoop/dsTiles.png" alt="گلیچ گرافیکی روی تایل‌ها هنگام رندر با تایل‌های بومی DS" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مطمئن نیستم دقیقاً چه چیزی باعث این شد، اما فکر می‌کنم چون بیش از حد به VRAM می‌نوشتم. مشکل را با نوشتن در یک
+        آرایه در رَم و تنظیم یک متغیر <code class="inline">dirtyTileset</code> حل کردم. در طول VBlank دستگاه DS بررسی
+        می‌کردم که آیا تایل‌ست تغییر کرده است و اگر تغییر کرده بود، تایل‌ها را از رَم به VRAM کپی می‌کردم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void dsVblank(void) {
+	if(dirtyTileset) {
+		memcpy(bgGetGfxPtr(layer), tiles, 160 / 8 * 144 / 8 * 32);
+		dirtyTileset = 0;
+	}
+}
+
+int main(void) {
+	irqSet(IRQ_VBLANK, dsVblank);
+	...
+
+void updateTile(unsigned short address, unsigned char value) {
+	...
+	
+	#ifdef DS
+		dirtyTileset = 1;
+	#endif
+}</code></pre>
+        <p>طرز طراحی حالت‌های ویدیویی DS به‌گونه‌ای است که مانند Game Boy، اسپرایت‌ها و پس‌زمینه‌ها نمی‌توانند یک
+        تایل‌ست مشترک داشته باشند. در نتیجهٔ این موضوع، مجبور بودم در روال <code class="inline">dsVblank</code> تایل‌ست
+        را هم در حافظهٔ پس‌زمینه و هم در حافظهٔ اسپرایت‌ها کپی کنم.</p>
+        <p>در پایان، یک تایل مشکی ساده در VRAM نوشتم و از آن برای حاشیه استفاده کردم. با قرار گرفتن سیستم رندر تایل نهایی،
+        شبیه‌ساز هیچ آرتیفکت گرافیکی نداشت و به‌طرز محسوسی سریع‌تر اجرا می‌شد (اما باز هم با سرعت کامل نه).</p>
+        <img src="https://cturt.github.io/images/cinoop/ds.png" alt="اجرای تتریس با رندر تایل بومی روی DS" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>گیم‌کیوب (GameCube)</h3>
+        <p>گیم‌کیوب سیستمی نیست که تاکنون برایش برنامه‌نویسی کرده باشم؛ بنابراین تصمیم گرفتم این پروژهٔ خوبی برای شروع
+        باشد. اگرچه مستندات آن به‌اندازهٔ DS زیاد نیست، با کمک libogc و devkitPPC شروع کار همچنان آسان بود.</p>
+        <p>برخلاف x86 و DS، پردازندهٔ PowerPC گیم‌کیوب بیگ‌اندین (big endian) است. این یک دردسر جزئی بود، اما در نظر
+        گرفتن آن ساده بود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#ifdef WIN
+	#define LITTLE_E
+#endif
+
+#ifdef DS
+	#define LITTLE_E
+#endif
+
+#ifdef GC
+	#define BIG_E
+#endif
+
+struct registers {
+	struct {
+		union {
+			struct {
+				#ifdef LITTLE_E
+					unsigned char f;
+					unsigned char a;
+				#else
+					unsigned char a;
+					unsigned char f;
+				#endif
+			};
+			unsigned short af;
+		};
+	};
+	
+	struct {
+		union {
+			struct {
+				#ifdef LITTLE_E
+					unsigned char c;
+					unsigned char b;
+				#else
+					unsigned char b;
+					unsigned char c;
+				#endif
+			};
+			unsigned short bc;
+		};
+	};
+	...</code></pre>
+        <p>شبیه‌سازی که برای تست استفاده کردم، gcube، از خواندن فایل از کارت حافظه پشتیبانی نمی‌کند؛ بنابراین مجبور بودم
+        رام تتریس را به‌صورت هاردکد در باینری بگذارم که دردسر جزئی دیگری بود. با انجام همهٔ این کارها، سینوپ روی
+        گیم‌کیوب اجرا شد!</p>
+        <img src="https://cturt.github.io/images/cinoop/gamecube.png" alt="اجرای تتریس توسط سینوپ روی گیم‌کیوب" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>3DS</h3>
+        <p>توسعه برای 3DS بسیار سخت‌تر از توسعه برای DS است، چون زمان کمتری برای بلوغ داشته است. مستندات بسیار کمتری
+        دارد و در نتیجه توسعه برای آن احساس ناهمواری می‌کند.</p>
+        <p>مثلاً libfat دستگاه DS از خواندن فایل با روال‌های استاندارد C پشتیبانی می‌کند
+        (<code class="inline">fopen</code> و...)، اما ctrulib دستگاه 3DS روش خاص خودش را برای خواندن فایل‌ها دارد
+        (<code class="inline">FSUSER_OpenFileDirectly</code> و...).</p>
+        <p>صحنهٔ 3DS در حال حاضر بسیار به‌هم‌ریخته است؛ چندین لانچر وجود دارد که هنگام انتشار چیزی باید از آن‌ها
+        پشتیبانی کنید:</p>
+        <ul>
+          <li>3ds — فلش‌کارت‌ها (Flashcards)</li>
+          <li>3dsx و smdh — Homebrew Launcher</li>
+          <li>cia — فریم‌ورهای سفارشی (Custom firmwares)</li>
+          <li>elf — شبیه‌سازها</li>
+        </ul>
+        <p>همچنین توجه کنید که برخی برنامه‌ها به‌صورت زنجیرهٔ ROP «.dat» منتشر می‌شوند، چون نیاز به اجرا در محیط یک
+        اکسپلویت خاص دارند (معمولاً برای دسترسی به برخی فراخوانی‌های سیستم).</p>
+        <p>شبیه‌سازی 3DS هم در حال حاضر چندان خوب نیست؛ بنابراین مجبور بودم روی سخت‌افزار واقعی تست کنم که زمان‌بر بود.</p>
+        <p>به‌جز این چند دردسر جزئی، پورت 3DS زمان زیادی نبرد. در آینده امیدوارم پشتیبانی از رندر اسپرایت‌ها روی
+        پس‌زمینه با استفاده از 3D را اضافه کنم.</p>
+
+        <h3>اوبونتو (Ubuntu)</h3>
+        <p>تعدادی توزیع لینوکس را امتحان کردم و اوبونتو را پلتفرم دلپذیری برای پورت سینوپ یافتم.</p>
+        <img src="https://cturt.github.io/images/cinoop/ubuntu.png" alt="اجرای تتریس توسط سینوپ روی اوبونتو" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>PSP</h3>
+        <p>PSP به‌مراتب آسان‌ترین پلتفرم برای توسعه بود که برایم تازگی داشت.</p>
+        <p>
+          <a href="http://sourceforge.net/projects/minpspw/" target="_blank" rel="noopener">Minimalist PSP SDK</a> و
+          شبیه‌ساز <a href="http://www.ppsspp.org/" target="_blank" rel="noopener">PPSSPP</a> را راه‌اندازی کردم و
+          توانستم سینوپ را فقط در یک روز پورت کنم!
+        </p>
+        <img src="https://cturt.github.io/images/cinoop/psp.png" alt="اجرای تتریس توسط سینوپ روی PSP" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>PS2</h3>
+        <p>برنامه‌هایی برای پورت سینوپ به PS2 داشتم، اما به دلیل مشکلات فراوان توسعه برای PS2 منصرف شدم.</p>
+        <p>اولین دلیل آن ماهیت غیرمتمرکز این صحنه است؛ هر اطلاعاتی دربارهٔ توسعهٔ PS2 که هنوز در دسترس است، مثل لگو در
+        اتاق کودک در اینترنت پراکنده شده است.</p>
+        <p>سعی کردم زنجیرهٔ ابزار <a href="https://github.com/ps2dev" target="_blank" rel="noopener">ps2dev</a> را از
+        GitHub نصب کنم؛ روی ویندوز ۷، اوبونتو 14.04 و مک OS X Lion امتحانش کردم. اما هر کاری کردم، با خطاهای کامپایل
+        متعددی روبه‌رو شدم؛ بنابراین کلاً منصرف شدم.</p>
+        <p>برای هرکسی که واقعاً بتواند کیت توسعهٔ PS2 را راه‌اندازی کند، برخلاف هر سیستم دیگری که سینوپ را به آن پورت
+        کردم، هیچ راه آسانی برای رسم مستقیم پیکسل‌ها روی فریم‌بافر وجود ندارد.</p>
+        <div class="callout note">
+          <strong>نقل‌قول از لیو وون یونگ (Liu Woon Yung):</strong>
+          <p>راهی برای نوشتن مستقیم روی فریم‌بافر وجود ندارد، چون VRAM داخل رَم EE نیست و به فضای حافظهٔ EE نگاشت نشده
+          است. تنها راه این است که یک فریم‌بافر محلی در رَم EE داشته باشیم که بتوانیم آن را در هر فریم از طریق DMA به
+          فریم‌بافر واقعی داخل VRAM منتقل کنیم. VRAM در واقع ۴ مگابایت eRAM داخل GS است.</p>
+          <p>برای فهمیدن اینکه این کار چگونه انجام می‌شود، مهم است ابتدا بفهمیم چگونه می‌توان تکسچرها را در حین اجرای
+          برنامه آپلود کرد. فریم‌بافر اساساً یک تکسچر بسیار بزرگ است. برخی کتابخانه‌های گرافیکی (مثل gsKit) توابع
+          مناسبی برای تسهیل چنین فرایندهایی دارند.</p>
+          <p>فکر می‌کنم ممکن است انتقال مستقیم دادهٔ بیت‌مپ به فریم‌بافر روی GS امکان‌پذیر باشد؛ چون فکر می‌کنم FMCB
+          (و احتمالاً چند دموی هومبروی قدیمی‌تر) همین کار را برای رسم لوگوی بوتش انجام می‌دهند. اما تاکنون فقط دادهٔ
+          بیت‌مپ را به‌عنوان دادهٔ تکسچر به GS منتقل کرده‌ام (به بافری داخل VRAM که بیرون از فریم‌بافر است) که بعداً
+          به‌صورت یک تکسچر دو بعدی تمام‌صفحه روی فریم‌بافر رسم می‌شود.</p>
+          <p>حالا شاید از خود بپرسید چرا انجام کاری به سادگی به‌روزرسانی فریم‌بافر این‌قدر سخت است. خب، به این دلیل است
+          که پلی‌استیشن ۲ در درجهٔ اول برای پشتیبانی از 3D ساخته شده بود، نه 2D. همان‌طور که در بالا اشاره شد، VRAM
+          داخل GS است که پردازنده‌ای جدا از EE است.</p>
+          <p dir="ltr" style="text-align:left;font-size:0.9rem">— <a href="https://github.com/sp193" target="_blank" rel="noopener">Liu Woon Yung</a></p>
+        </div>
+        <p>پس، من از پورت PS2 کلاً منصرف شدم.</p>
+
+        <h3>مک OS X</h3>
+        <p>همچنین برنامه‌هایی برای پورت به مک OS X داشتم، اما مانند PS2، این کار هم بیش از حد دشوار بود؛ چون نتوانستم یک
+        کامپایلر C و محیط توسعهٔ کارا روی مک OS X نصب کنم.</p>
+        <p>در حالی که روی OS X هیچ‌چیز برایم کار نمی‌کرد، در روحیهٔ متن‌باز،
+        <a href="https://github.com/nsenica" target="_blank" rel="noopener">nsenica</a> موفق شد سینوپ را با XQuartz به
+        OS X پورت کند و یک درخواست کشش (pull request) فرستاد!</p>
+        <img src="https://cturt.github.io/images/cinoop/osx.png" alt="اجرای تتریس توسط سینوپ روی مک OS X با XQuartz" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>PS4</h3>
+        <p>پورت پلی‌استیشن ۴ احتمالاً جالب‌ترین پورت است؛ چون هومبرو هنوز روی آن رایج نشده است؛ فقط چند نفر روی PS4 اجرای
+        کد دارند و با دسترسی‌ای که تا زمان نوشتن این مقاله داریم، هومبرو روی این کنسول از محدودیت‌های جدی رنج می‌برد.</p>
+        <p>مشکل اول کنترلر است. مطمئن نیستم چه اشکالی دارد، اما
+        <a href="https://github.com/CTurt/PS4-SDK/blob/master/examples/pad/source/main.c" target="_blank" rel="noopener">استفاده از
+        ماژول رسمی <code class="inline">libScePad.sprx</code></a> کار نمی‌کند. شاید به این دلیل است که کنترلر از قبل در
+        حال استفاده است و اتصال کنترلر دوم جواب می‌دهد؛ اما من فقط یک کنترلر برای تست دارم.</p>
+        <p>دو راه‌کار برای این مشکل وجود دارد: استفاده از کتابخانهٔ USB برای دریافت ورودی از یک کنترلر شخص ثالث، یا
+        استفاده از هر دستگاه سازگار با وای‌فای که دکمه داشته باشد برای ارسال ورودی از طریق سوکت UDP. من انتخاب کردم که
+        از یک نینتندو DS به‌صورت بی‌سیم استفاده کنم.</p>
+        <p>مشکل دوم این است که ماژول <code class="inline">libSceVideoOut.sprx</code> برای ما کار نمی‌کند. همهٔ چیزهایی
+        که برای خروجی ویدیو امتحان کردم را در مقالهٔ بعدی‌ام دربارهٔ PS4 با جزئیات بیشتری توضیح خواهم داد؛ اما راه‌حلی
+        که پیدا کردم ساخت یک بوم HTML5 (HTML5 canvas) و رندر کردن روی آن به‌جای آن است.</p>
+        <p>با این دو راه‌کار توانستم یک بازی پونگ کوچک روی PS4 بسازم:</p>
+        <div class="callout tip">
+          <strong>ویدیوی نمایشی:</strong> بازی پونگ کوچکی که با دو راه‌کار یادشده روی PS4 ساخته شد —
+          <a href="https://www.youtube.com/watch?v=aNqKyuTDbjE" target="_blank" rel="noopener">مشاهده در یوتیوب</a>.
+        </div>
+        <p>محدودیت نهایی این است که اجازهٔ mount کردن فلش‌درایوهای USB و خواندن آن‌ها به‌صورت عادی را نداریم.</p>
+        <p>بااین‌حال به ماژول <code class="inline">libUsbd.sprx</code> دسترسی داریم (که اساساً همان
+        <a href="http://libusb.info/" target="_blank" rel="noopener">libusb</a> است) و به ما امکان می‌دهد مستقیماً با
+        دستگاه‌های USB ارتباط برقرار کنیم.</p>
+        <p>اگرچه ممکن است در آینده امکان پورت یک پیاده‌سازی کامل FAT بر پایهٔ دستورهای خام USB فراهم شود، برای حالا فقط
+        رام تتریس را با
+        <a href="http://sourceforge.net/projects/win32diskimager/" target="_blank" rel="noopener">Win32 Disk Imager</a>
+        به‌صورت تصویر خام فلش‌درایو USB نوشتم.</p>
+        <p>با قرار گرفتن این سه راه‌کار در جای خود، با استفاده از
+        <a href="https://github.com/CTurt/PS4-SDK" target="_blank" rel="noopener">PS4-SDK</a> توانستم سینوپ را به PS4
+        پورت کنم!</p>
+        <div class="callout tip">
+          <strong>ویدیوی نمایشی:</strong> اجرای سینوپ (تتریس) روی PS4 —
+          <a href="https://www.youtube.com/watch?v=94Q91xDJatE" target="_blank" rel="noopener">مشاهده در یوتیوب</a>.
+        </div>
+      </section>
+
+      <!-- ==================== افکار نهایی ==================== -->
+      <section>
+        <h2>افکار نهایی</h2>
+        <p>آزادانه در <a href="https://github.com/CTurt/Cinoop" target="_blank" rel="noopener">کد منبع سینوپ</a> بگردید؛
+        با وجود اینکه همهٔ پورت‌ها کنار هم هستند، کمی به‌هم‌ریخته شده، اما هستهٔ مفسر هنوز نسبتاً تمیز است و رفع اشکال‌های
+        آن نباید خیلی دشوار باشد.</p>
+        <p>اگرچه تتریس احتمالاً تنها بازی قابل‌بازی است، باز هم از این پروژه چیزهای زیادی یاد گرفتم و امیدوارم به‌مرور
+        آن را بهبود دهم.</p>
+        <p>در بیشتر دورهٔ توسعه، از NO$GMB برای تأیید درست‌کارکردن شبیه‌سازم استفاده کردم؛ اما
+        <a href="http://bgb.bircd.org/" target="_blank" rel="noopener">bgb</a> دقیق‌تر است، هنوز به‌صورت فعال نگهداری
+        می‌شود و اشکال‌زدایی به همان خوبیِ NO$GMB دارد؛ توصیه می‌کنم به‌جای NO$GMB از آن استفاده کنید.</p>
+      </section>
+
+      <!-- ==================== سپاسگزاری ==================== -->
+      <section>
+        <h2>سپاسگزاری</h2>
+        <p>
+          <a href="http://imrannazar.com/GameBoy-Emulation-in-JavaScript" target="_blank" rel="noopener">ایمران نظار
+          (Imran Nazar)</a>،
+          <a href="http://www.amidog.com/amiga/gbe/" target="_blank" rel="noopener">چاک میسون و استیون فولر
+          (Chuck Mason and Steven Fuller)</a>،
+          <a href="http://problemkaputt.de/gmb.htm" target="_blank" rel="noopener">مارتین کورت (Martin Korth)</a>،
+          <a href="http://bgb.bircd.org/" target="_blank" rel="noopener">beware</a> و
+          <a href="http://blog.gg8.se/" target="_blank" rel="noopener">nitro2k01</a>.
+        </p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Writing a Game Boy emulator, Cinoop» اثر «کریس تورتل (Chris Turtel)» است.
+        این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به <a href="https://cturt.github.io/cinoop.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

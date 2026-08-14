@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Emulation Basics: Write your own Chip 8 Emulator/Interpreter»
+  (Matthew Bauer — وبلاگ moises' blog)
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مبانی شبیه‌سازی: شبیه‌ساز/مفسر Chip 8 خودتان را بنویسید</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>مبانی شبیه‌سازی: شبیه‌ساز/مفسر Chip 8 خودتان را بنویسید</span>
+      </div>
+      <h1>مبانی شبیه‌سازی: شبیه‌ساز/مفسر Chip 8 خودتان را بنویسید</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://omokute.blogspot.com.br/2012/06/emulation-basics-write-your-own-chip-8.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Emulation Basics: Write your own Chip 8
+          Emulator/Interpreter» نوشته «متیو بائر (Matthew Bauer)» در وبلاگ «moises' blog» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://omokute.blogspot.com.br/2012/06/emulation-basics-write-your-own-chip-8.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه</h2>
+        <p>مدت زیادی است که اینجا مطلبی ننوشته‌ام؛ مشغله‌های کاری و توسعهٔ برنامه‌های iOS مرا به خود مشغول کرده بودند.
+        دو سال پیش یک شناسهٔ توسعه‌دهنده (Developer ID) خریدم (هم برای iOS و هم برای مک) و به خودم قول دادم که برای هر دو
+        پلتفرم، حداقل دوبار در سال اپ بسازم؛ فقط برای اینکه پولی را که خرج کرده‌ام برگردانم.</p>
+        <p>خلاصه، چندی پیش <a href="http://www.raspberrypi.org/" target="_blank" rel="noopener">Raspberry Pi</a> که سفارش
+        داده بودم به دستم رسید و دنبال کارهایی برای انجام‌دادن با آن می‌گشتم. اولین چیزی که به ذهنم رسید، بدیهی است که
+        بازی‌کردن بود! اما آن دستگاه کوچک مبتنی بر معماری ARM است و شبیه‌سازهای زیادی برای بهره‌برداری حداکثری از GPU
+        قدرتمند آن ساخته نشده‌اند.</p>
+        <p>این فکر مرا به اینجا رساند — چه می‌شد اگر شبیه‌سازهای خودم را برای آن می‌نوشتم؟ یک پردازندهٔ تقریباً ۷۰۰
+        مگاهرتزی به‌اندازهٔ کافی سریع است و این تجربه می‌تواند چیزهای زیادی به من یاد بدهد. ضمناً، روی آن پایتون هم نصب
+        است. چه کسی پایتون را دوست ندارد؟ هرچه کمتر به کدهای تکراری (boilerplate) فکر کنم، کارهای بیشتری انجام می‌دهم.</p>
+        <p>پس بیایید شروع کنیم.</p>
+        <img src="http://i.imgur.com/A5KeV.png" alt="نماد پردازندهٔ CHIP8 در ابتدای مقاله" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <!-- ==================== پردازنده: CHIP8 ==================== -->
+      <section>
+        <h2>پردازنده: CHIP8</h2>
+        <p>برای شروع شبیه‌سازی، بیایید از یک ماشین کوچک شروع کنیم. بله، فرض کنید یک ماشین نظری (theoretical). با کمتر
+        از ۵۰ دستورالعمل (اگر گیم‌بوی را انجام می‌دادیم که مبتنی بر Z80 است، حدود ۲۵۰ دستورالعمل می‌شد — کمی زیاد برای
+        یک مقالهٔ وبلاگی. یا شاید فقط من تنبلم).</p>
+        <p>آها! یک ماشین واقعاً این معیارها را دارد —
+        <a href="http://en.wikipedia.org/wiki/CHIP-8" target="_blank" rel="noopener">CHIP8</a>. CHIP8 در معنای فیزیکی
+        واقعاً یک ماشین نیست؛ در حقیقت یک مفسر (interpreter) است که برنامه‌هایش را در یک ماشین مجازی (virtual machine)
+        اجرا می‌کند. این ماشین توسط زنده‌یاد جوزف وایسبکر (Joseph Weisbecker) ساخته شد. نخستین بار در ماشین‌حساب‌های
+        نموداری (graphing calculators) ظاهر شد — و دلیل افت بهره‌وری آن‌ها به‌خاطر بازی بیش از حد PONG بود!</p>
+        <p>اولین قدم در شبیه‌سازی، تلاش برای درک اجزای درونی سخت‌افزار است. خوشبختانه برای ما، CHIP8 به‌خوبی مستند شده
+        است؛ مورد علاقهٔ من <a href="http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#0.0" target="_blank" rel="noopener">مرجع
+        فنی CHIP-8 کاگوود (Cogwood)</a> است. حتی دستورالعمل‌های افزونهٔ SuperChip را هم شامل می‌شود.
+        <a href="http://en.wikipedia.org/wiki/CHIP-8" target="_blank" rel="noopener">ویکی‌پدیا</a> نیز منبع عالی دیگری
+        برای این کار است — توصیف‌های اپ‌کد (opcode) آن در واقع همان چیزهایی هستند که قبل از کشف مقالهٔ کاگوود از آن‌ها
+        استفاده می‌کردم.</p>
+        <p>پس بیایید شروع کنیم. اول سخت‌افزار را بفهمیم. اساساً همهٔ ماشین‌ها از ۳ بخش تشکیل شده‌اند (حداقل از نگاه من :)):</p>
+        <ol>
+          <li>ورودی (Input)</li>
+          <li>خروجی (Output)</li>
+          <li>CPU</li>
+          <li>حافظه (Memory)</li>
+        </ol>
+
+        <h3>ورودی‌ها (Inputs)</h3>
+        <p>برای ماشین مجازی CHIP8، ورودی از یک صفحه‌کلید ۱۶ دکمه‌ای می‌آید (خیلی به‌جاست که تعداد کلیدها در یک نیبل
+        (nibble) جا می‌شود). ماشین همچنین با برنامه‌هایی که قرار است اجرا کند تغذیه می‌شود.</p>
+        <p>در پایتون فقط باید وضعیت‌های کلیدهای ورودی را ذخیره کنیم و در هر چرخه آن‌ها را بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.key_inputs = [0]*16</code></pre>
+
+        <h3>خروجی (Output)</h3>
+        <p>برای خروجی، ماشین از یک نمایشگر ۶۴×۳۲ و یک بوزر صدای ساده استفاده می‌کند. نمایشگر اساساً فقط یک آرایه از
+        پیکسل‌هاست که هرکدام در یکی از حالت‌های روشن یا خاموش هستند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.display_buffer = [0]*32*64 # 64*32</code></pre>
+      </section>
+
+      <!-- ==================== CPU و حافظه ==================== -->
+      <section>
+        <h2>CPU و حافظه</h2>
+        <p>حالا بخش «سخت» ماجرا. پردازندهٔ Chip 8 چند بخش قابل توجه دارد و درک همگی آن‌ها برای فهمیدن نحوهٔ کار آن مهم
+        است. من آن‌ها را اینجا مرور می‌کنم؛ اما برای اطلاعات بیشتر به مرجع کاگوود که قبلاً لینکش را دادم مراجعه کنید.</p>
+
+        <h3>حافظه (Memory)</h3>
+        <p>CHIP8 حافظه‌ای دارد که می‌تواند تا ۴۰۹۶ بایت را نگه دارد. این حافظه شامل خود مفسر، فونت‌ها (بعداً بیشتر
+        دربارهٔ آن صحبت می‌کنیم) و جایی است که برنامه‌ای که قرار است اجرا شود (از ورودی) در آن بارگذاری می‌شود. در
+        پایتون، این‌گونه خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.memory = [0]*4096 # max 4096</code></pre>
+
+        <h3>ثبات‌ها (Registers)</h3>
+        <p>CHIP8 دارای ۱۶ ثبات ۸ بیتی است (در مرجع کاگوود معمولاً با Vx نامیده می‌شوند که x شمارهٔ ثبات است). این‌ها
+        عموماً برای ذخیرهٔ مقادیر در عملیات‌ها به کار می‌روند. آخرین ثبات، Vf، بیشتر برای پرچم‌ها (flags) استفاده می‌شود
+        و باید در برنامه‌ها از آن اجتناب شود. در پایتون، مقادیر ثبات‌های خود را این‌گونه ذخیره خواهیم کرد:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.gpio = [0]*16 # 16 zeroes</code></pre>
+        <p>همچنین ۲ ثبات زمان‌سنج (timer) دارد که اساساً فقط با کاهش‌یافتن به صفر در هر چرخه، تأخیر ایجاد می‌کنند و در
+        این فرایند یک عملیات را هدر می‌دهند. باز هم، در پایتون، این کار به سادگی تعریف دو متغیر است که در هر چرخه
+        کاهششان می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.sound_timer = 0
+  self.delay_timer = 0</code></pre>
+        <p>یک ثبات ایندکس (index) دارد که ۱۶ بیتی است.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.index = 0</code></pre>
+        <p>ثبات شمارندهٔ برنامه (program counter) نیز ۱۶ بیتی است.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.pc = 0</code></pre>
+        <p>یک اشاره‌گر پشته (stack pointer) هم هست که آدرس بالاترین عنصر پشته را نگه می‌دارد. پشته در هر زمان حداکثر ۱۶
+        عنصر دارد. از آنجا که این کار را با پایتون انجام می‌دهیم که لیستی دارد و می‌توانیم روی آن pop/append کنیم،
+        می‌توانیم این را نادیده بگیریم. در پایتون فقط یک لیست می‌سازیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  self.stack = []</code></pre>
+      </section>
+
+      <!-- ==================== به سراغ کد! ==================== -->
+      <section>
+        <h2>به سراغ کد!</h2>
+        <p>برای ورودی/خروجی خود، از <a href="http://www.pyglet.org/" target="_blank" rel="noopener">pyglet</a> استفاده
+        می‌کنیم؛ ماژولی برای پایتون که کدهای تکراری OpenGL را می‌پوشاند تا به‌سادگی بتوانیم گرافیک خروجی بگیریم. این
+        ماژول می‌تواند خروجی صدا را هم مدیریت کند. و آه، ورودی صفحه‌کلید را هم انجام می‌دهد! حالا فقط CPU باقی مانده
+        است.</p>
+        <p>نکات کوچکی دربارهٔ پیاده‌سازی من. از آنجا که از pyglet روی پایتون ۲.۶ استفاده می‌کنیم و pyglet با نخ‌ها
+        (threads) کار نمی‌کند، اساساً کاری که می‌کنیم این است که از کلاس <code class="inline">Window</code> مربوط به
+        pyglet زیرکلاس می‌سازیم و مفسر CHIP8 خود را از همان‌جا اجرا می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  class cpu (pyglet.window.Window)</code></pre>
+        <p>مزیت افزوده این است که مجبور نیستیم کنترل‌کننده‌های ورودی خودمان را بسازیم — فقط باید متدهای ورودی
+        صفحه‌کلید را بازنویسی (override) کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def on_key_press(self, symbol, modifiers):
+
+
+  def on_key_release(self, symbol, modifiers):</code></pre>
+        <p>اساساً همهٔ شبیه‌سازها ساختار حلقهٔ اصلی این‌گونه دارند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def main(self):
+
+    self.initialize()
+
+    self.load_rom(sys.argv[1])
+
+    while not self.has_exit:
+
+      self.dispatch_events()      
+
+      self.cycle()
+
+      self.draw()</code></pre>
+        <p>بیایید کمی در این کد بچرخیم. اولین قدم، مقداردهی اولیهٔ متغیرهای ماست. همهٔ ثبات‌ها را صفر کنید، همهٔ
+        ورودی‌های کلید را بازنشانی کنید و شمارندهٔ برنامه (<code class="inline">self.pc</code>) را بازنشانی کنید. یک
+        رام بارگذاری کنید، سپس هر چرخه را انجام دهید و نمایشگر را در صورت نیاز به‌روزرسانی کنید.</p>
+        <p>شمارندهٔ برنامه؟! این دیوانگی چیست؟ خوب، اساساً شمارندهٔ برنامه یک اشاره‌گر به آدرس حافظه‌ای از دستورالعمل
+        است که قرار است در مرحلهٔ بعد پردازشش کنیم. در CHIP8، چون مفسر بخش ابتدایی حافظه را اشغال می‌کند، باید این را
+        به آفست (offset) که برابر 0x200 است اشاره دهیم (به مرجع کاگوود مراجعه کنید؛ زیاد به آن مراجعه خواهیم کرد).
+        بیشتر این کارها در متد <code class="inline">cycle()</code> انجام می‌شود که بعداً به آن خواهیم پرداخت.</p>
+        <p>ولی صبر کن! مگر من نگفتم فونت‌ها هم قرار است در حافظه ذخیره شوند؟ بله، و شاید اگر حرفم را قطع نمی‌کردی، دوست
+        خیالی من، به آن هم می‌رسیدم. اساساً CHIP8 از «اسپرایت» (sprite)ها برای گرافیک استفاده می‌کند. اسپرایت‌ها
+        اساساً مجموعه‌ای از بیت‌ها هستند که وضعیت روشن/خاموش مجموعه‌ای متناظر از پیکسل‌ها را نشان می‌دهند. برای مثال،
+        اسپرایت عدد صفر این‌گونه به نظر می‌رسد (برگرفته از مرجع کاگوود، همان منبع عالی):</p>
+        <table style="width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:0.9rem">
+          <thead>
+            <tr>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">«0»</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">باینری</th>
+              <th style="border:1px solid var(--line);padding:8px 12px;text-align:right">هگز</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">****</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">11110000</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">0xF0</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">*&nbsp;&nbsp;*</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">10010000</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">0x90</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">*&nbsp;&nbsp;*</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">10010000</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">0x90</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">*&nbsp;&nbsp;*</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">10010000</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">0x90</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">****</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">11110000</td>
+              <td style="border:1px solid var(--line);padding:8px 12px;text-align:center;direction:ltr">0xF0</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>حالا، CHIP8 (حداقل پیاده‌سازی اصلی) اسپرایت‌های ۱۶ رقم هگزادسیمال را در حافظه دارد. چون هر کاراکتر فونت ۸×۵
+        بیت است، برای هر کاراکتر به ۵ بایت حافظه نیاز داریم. پس تابع init ما حالا این‌گونه خواهد بود، با بارگذاری فونت:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def initialize(self):
+
+    self.clear()
+
+    self.memory = [0]*4096 # max 4096
+
+    self.gpio = [0]*16 # max 16
+
+    self.display_buffer = [0]*64*32 # 64*32
+
+    self.stack = []
+
+    self.key_inputs = [0]*16    
+
+    self.opcode = 0
+
+    self.index = 0
+
+    self.delay_timer = 0
+
+    self.sound_timer = 0
+
+    self.should_draw = False
+
+    self.pc = 0x200
+
+    i = 0
+
+    while i < 80:
+
+      # load 80-char font set
+
+      self.memory[i] = self.fonts[i]
+
+      i += 1</code></pre>
+        <p>من یک پرچم <code class="inline">should_draw</code> آن‌جا گذاشتم تا فقط وقتی لازم است نمایشگر را به‌روزرسانی
+        کنیم. همچنین <code class="inline">self.clear()</code> فقط پنجرهٔ pyglet را پاک می‌کند.</p>
+        <p>با این دانش، حالا می‌توانیم بارگذاری ROM را در حافظه شروع کنیم. ROMها به‌سادگی با باز کردن آن‌ها به‌صورت
+        باینری می‌توانند در حافظه خوانده شوند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def load_rom(self, rom_path):
+
+    log("Loading %s..." % rom_path)
+
+    binary = open(rom_path, "rb").read()
+
+    i = 0
+
+    while i < len(binary):
+
+      self.memory[i+0x200] = ord(binary[i])
+
+      i += 1</code></pre>
+        <p>در ضمن، تابع <code class="inline">log()</code> که آن‌جا گذاشتم، به این دلیل است که کاربر هنگام اجرا گزینهٔ
+        روشن/خاموش‌کردن پیام‌های لاگ را داشته باشد.</p>
+        <p>حالا شروع به پردازش می‌کنیم!</p>
+      </section>
+
+      <!-- ==================== متد cycle() ==================== -->
+      <section>
+        <h2>متد cycle()</h2>
+        <p>هر چرخه این کار را می‌کند:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def cycle(self): 
+
+    self.opcode = self.memory[self.pc]
+
+    #
+
+    # TODO: process this opcode here
+
+    #
+
+    # After 
+
+    self.pc += 2
+
+    # decrement timers
+
+    if self.delay_timer > 0:
+
+      self.delay_timer -= 1
+
+    if self.sound_timer > 0:
+
+      self.sound_timer -= 1
+
+      if self.sound_timer == 0:
+
+        # Play a sound here with pyglet!</code></pre>
+        <p>اپ‌کد (opcode) اساساً دستورالعملی است که باید انجام دهیم. بنابراین در قلب ماجرا، ما اساساً باینری را
+        خط‌به‌خط می‌خوانیم و اقدامات مرتبط با هر خط را انجام می‌دهیم (این کار در واقع خیلی کند است — CHIP8 ساده است،
+        بنابراین ما متوجهش نمی‌شویم؛ اما برای سایر ماشین‌های شبیه‌سازیشده، رویکردهای دیگری ممکن است که خارج از حوصلهٔ
+        این مقاله است). حالا کمی به TODO فکر کنیم.</p>
+        <p>هر اپ‌کد در CHIP8 دو بایت طول دارد. شمارندهٔ برنامه به اپ‌کدی که باید پردازش کنیم اشاره می‌کند؛ پس از دریافت
+        و پردازش اپ، شمارندهٔ برنامه دو بایت افزایش می‌یابد. سپس این فرایند تا پایان برنامه تکرار می‌شود.</p>
+        <p>اینجا بخش پیچیدهٔ ماجراست. در C می‌توانیم به‌راحتی برای اپ‌کدها یک دستور switch بسازیم تا هر کاری که می‌خواهیم
+        انجام دهد. اما ما از پایتون استفاده می‌کنیم. پایتون دستور switch ندارد — باید از if-else ترکیبی استفاده کنیم.
+        از آنجا که CHIP8 بسیار ساده است، در واقع می‌توانیم این کار را انجام دهیم، اما کد بسیار زشتی خواهد بود و ما این
+        را نمی‌خواهیم. خوشبختانه، در پایتون می‌توانیم از دیکشنری‌ها برای ذخیرهٔ جفت‌های اپ‌کد-متد استفاده کنیم. پس بخش
+        TODO به‌سادگی این‌گونه خواهد بود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">    self.vx = (self.opcode &amp; 0x0f00) &gt;&gt; 8
+
+    self.vy = (self.opcode &amp; 0x00f0) &gt;&gt; 4
+
+    self.pc += 2
+
+    # 2. check ops, lookup and execute
+
+    extracted_op = self.opcode &amp; 0xf000
+
+    try:
+
+      self.funcmap[extracted_op]() # call the associated method
+
+    except:
+
+      print "Unknown instruction: %X" % self.opcode</code></pre>
+        <p>اطلاعات کوچکی دربارهٔ اپ‌کدهای CHIP8. آن‌ها معمولاً در قالب XXXX هستند. معمولاً می‌توانید دستورالعمل را از
+        اولین نیبل (سمت چپ) آن رمزگشایی کنید؛ پس اپ را با یک AND بیتی استخراج می‌کنیم و آن را در نقشهٔ توابع خود
+        (<code class="inline">self.funcmap</code>) جست‌وجو می‌کنیم. اگر آن‌جا نبود، فقط یک خطا پرتاب می‌کنیم. توجه:
+        مقدار <code class="inline">self.pc</code> قبل از اجرای دستور افزایش می‌یابد؛ بنابراین هر تغییر در آن (مثلاً در
+        پرش‌ها) حفظ می‌شود.</p>
+        <p>همین! ما دیگر اسکلت پایهٔ شبیه‌ساز خود را داریم. حالا فقط باید همهٔ دستورالعمل‌ها را یک‌به‌یک پیاده‌سازی
+        کنیم (بخش «باحال» ماجرا).</p>
+      </section>
+
+      <!-- ==================== نمونه دستور: پاک کردن صفحه ==================== -->
+      <section>
+        <h2>نمونه دستور: پاک‌کردن صفحه با 00E0 و بازگشت با 00EE</h2>
+        <p>مرجع عالی کاگوود همهٔ دستورالعمل‌های لازم را در سندی که قبلاً لینک شد فهرست کرده است. در اینجا اولین و
+        ساده‌ترین دستور را پیاده‌سازی می‌کنیم — دستور پاک‌کردن صفحه. این با اپ‌کد 0x00E0 مطابقت دارد. اما صبر کن؛ از
+        آنجا که در <code class="inline">cycle()</code> ما فقط از نیبل سمت چپ استفاده کردیم، این احتمال وجود دارد که با
+        دستورالعمل دیگری که در قالب 0x0XXX قرار می‌گیرد تداخل پیدا کنیم: 0x00EE یا اپ‌کد «بازگشت از زیربرنامه». پس کاری
+        که می‌توانیم بکنیم این است که استخراج دیگری انجام دهیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _0ZZZ(self):
+
+    extracted_op = self.opcode &amp; 0xf0ff
+
+    try:
+
+      self.funcmap[extracted_op]()
+
+    except:
+
+      print "Unknown instruction: %X" % self.opcode</code></pre>
+        <p>در اینجا، وقتی با اپ‌کدی مواجه می‌شویم که نیبل سمت چپش 0 است، دو نیبل اول و آخر را استخراج می‌کنیم و متد
+        متناظر را در نقشهٔ توابع جست‌وجو می‌کنیم. 0x00E0 باید به CLS نگاشت شود و 0x00EE باید به بازگشت از زیربرنامه:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _0ZZ0(self):
+
+    log("Clears the screen")
+
+    self.display_buffer = [0]*64*32 # 64*32
+
+    self.should_draw = True</code></pre>
+        <p>برای بازگشت از یک زیربرنامه، فقط باید بالاترین آدرس را از پشتهٔ خود pop کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _0ZZE(self):
+
+    log("Returns from subroutine")
+
+    self.pc = self.stack.pop()</code></pre>
+        <p>و در <code class="inline">self.funcmap</code>:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">    self.funcmap = {0x0000: self._0ZZZ,
+
+                    0x00e0: self._0ZZ0,
+
+                    0x00ee: self._0ZZE,
+
+    ....</code></pre>
+        <p>که در آن <code class="inline">self._0ZZE</code> متد «بازگشت» خواهد بود. چرا فقط 0x00E0 و 0x00EE را
+        مستقیماً به متدهای لازم تنظیم نمی‌کنیم؟ خوب، در واقع می‌توانستیم، اما دستورالعمل‌های 0x0xxx در واقع موارد خاصی
+        هستند، چون ورودی ندارند. معمولاً سه نیبل آخر حاوی ورودی‌های عملیات‌اند و ثابت نیستند؛ بنابراین نمی‌توانند همان‌طور
+        که هستند نگاشت شوند. برای مثال، به دستورالعمل بعدی نگاه کنید که یک پرش (JUMP) انجام می‌دهد:</p>
+      </section>
+
+      <!-- ==================== نمونه دستور: پرش با 1XXX ==================== -->
+      <section>
+        <h2>نمونه دستور: پرش با 1XXX</h2>
+        <p>اپ‌کد پرش (JUMP)، که با 1 شروع می‌شود، با سه نیبل متناظر با آدرس دستورالعملی که باید بعداً اجرا شود دنبال
+        می‌شود. حالا می‌بینید که چرا باید نیبل‌ها را به‌صورت بیتی استخراج کنیم — آدرس پرش تغییر می‌کند، اما شناسهٔ اپ‌کد
+        تغییر نمی‌کند و ما می‌توانیم از آن برای شناسایی دستورالعمل استفاده کنیم.</p>
+        <p>برای انجام یک پرش، به‌سادگی شمارندهٔ برنامه را روی آدرس دستورالعمل بعدی تنظیم کنید تا در چرخهٔ بعدی اجرا شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _1ZZZ(self):
+
+    log("Jumps to address NNN.")
+
+    self.pc = self.opcode &amp; 0x0fff</code></pre>
+        <p>و در نقشهٔ توابع ما:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">    self.funcmap = {0x0000: self._0ZZZ,
+
+                    0x00e0: self._0ZZ0,
+
+                    0x00ee: self._0ZZE,
+
+                    0x1000: self._1ZZZ,
+
+    ....</code></pre>
+        <p>همین است! حالا برای هر یک از اپ‌کدهای تعریف‌شده در مجموعهٔ دستورالعمل‌ها این کار را تکرار (بشویید و تکرار
+        کنید) کنید و وویلا! شبیه‌ساز CHIP8 خودتان.</p>
+      </section>
+
+      <!-- ==================== نکاتی درباره اپکدهای مهم ==================== -->
+      <section>
+        <h2>نکاتی دربارهٔ اپ‌کدهای مهم</h2>
+
+        <h3>اپ‌کدهایی که از ثبات‌های V0 تا VF استفاده می‌کنند</h3>
+        <p>نکته دربارهٔ پیاده‌سازی <code class="inline">cycle()</code> من. این دو خط را خواهید دید:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">    self.vx = (self.opcode &amp; 0x0f00) &gt;&gt; 8
+
+    self.vy = (self.opcode &amp; 0x00f0) &gt;&gt; 4</code></pre>
+        <p>برخی اپ‌کدها از ثبات‌های همه‌کاره (general purpose) استفاده می‌کنند. برای مثال، 0x4XNN که «اگر VX برابر NN
+        نبود، دستورالعمل بعدی را رد می‌کند (skip)». برای مدیریت این، دستورالعمل‌های بالا فقط نیبل‌ها را با عملیات بیتی
+        استخراج می‌کنند تا ثبات‌های مرتبط را بگیرند (که معمولاً در نیبل دوم و سوم ذخیره شده‌اند). سپس می‌توانم از این
+        برای انجام skip استفاده کنم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _4ZZZ(self):
+
+    log("Skips the next instruction if VX doesn't equal NN.")
+
+    if self.gpio[self.vx] != (self.opcode &amp; 0x00ff):
+
+      self.pc += 2</code></pre>
+        <p>همین موضوع برای مقایسه صادق است:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _5ZZZ(self):
+
+    log("Skips the next instruction if VX equals VY.")
+
+    if self.gpio[self.vx] == self.gpio[self.vy]:
+
+      self.pc += 2</code></pre>
+
+        <h3>استفاده از پرچم حمل (carry flag)</h3>
+        <p>هنگام خواندن مرجع کاگوود باید مراقب باشید، چون برخی عملیات‌ها به تنظیم پرچم VF نیاز دارند. برای مثال، عملیات
+        0x8XX4 از VF به‌عنوان پرچم حمل (carry flag) در جمع استفاده می‌کند. چرا این لازم است؟ یادتان می‌آید که گفتیم
+        ثبات‌ها فقط مقادیر ۸ بیتی ذخیره می‌کنند؟ اگر دو مقدار ۸ بیتی را جمع کنیم، احتمال دارد نتیجه سرریز (overflow)
+        شود (۱ بایت حداکثر مقدار 0xFF را دارد). اگر نتیجه از حداکثر بزرگ‌تر باشد، پرچم حمل تنظیم می‌شود.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _8ZZ4(self):
+
+    log("Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.")
+
+    if self.gpio[self.vx] + self.gpio[self.vy] &gt; 0xff:
+
+      self.gpio[0xf] = 1
+
+    else:
+
+      self.gpio[0xf] = 0
+
+    self.gpio[self.vx] += self.gpio[self.vy]
+
+    self.gpio[self.vx] &amp;= 0xff</code></pre>
+        <p>همچنین در تفریق به‌عنوان پرچم «قرض» (borrow) استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _8ZZ5(self):
+
+    log("VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't")
+
+    if self.gpio[self.vy] &gt; self.gpio[self.vx]:
+
+      self.gpio[0xf] = 0
+
+    else:
+
+      self.gpio[0xf] = 1
+
+    self.gpio[self.vx] = self.gpio[self.vx] - self.gpio[self.vy]
+
+    self.gpio[self.vx] &amp;= 0xff</code></pre>
+
+        <h3>رسم (Drawing)</h3>
+        <p>حالا برای دشوارترین بخش. خوب، در واقع نه. رسم در CHIP8 کاملاً سرراست است. یک پیکسل یا روشن است یا خاموش، و ما
+        حالت‌ها را در <code class="inline">display_buffer</code> که قبلاً تعریف کردیم ذخیره می‌کنیم. دو اپ‌کد رسم وجود
+        دارد: 0xDXXX که اسپرایت‌های بارگذاری‌شده از ROM را رسم می‌کند و 0xFZ29 که فقط یک کاراکتر رسم می‌کند. بیایید اول
+        ساده‌تر را پیاده‌سازی کنیم؛ رسم یک کاراکتر.</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _FZ29(self):
+
+    log("Set index to point to a character")
+
+    self.index = (5*(self.gpio[self.vx])) &amp; 0xfff</code></pre>
+        <p>بله، همین است. این اپ فقط ثبات ایندکس را روی آدرس اولین بایت کاراکتر متناظر تنظیم می‌کند. این به این دلیل
+        است که کد اصلی رسم، که حالا آن را پیاده‌سازی می‌کنیم، از این ثبات برای یافتن اسپرایتی که باید رسم شود استفاده
+        می‌کند. برای درک بهتر، بیایید دوباره مستندات را بخوانیم. طبق گفتهٔ کاگوود، DXYN یعنی:</p>
+        <div class="callout note">
+          <strong>مستندات:</strong> «Display <em>n</em>-byte sprite starting at memory location I at (V<em>x</em>,
+          V<em>y</em>), set VF = collision.» — اسپرایت <em>n</em> بایتی را که از محل حافظهٔ I در (V<em>x</em>,
+          V<em>y</em>) شروع می‌شود نمایش بده؛ VF = برخورد (collision).
+        </div>
+        <p>بحث اسپرایت‌های فونت را از قبل به خاطر دارید؟ برای اسپرایت‌های سفارشی هم صدق می‌کند. هر سطر (بایت) با یک
+        سطر ۸ پیکسلی روی صفحه متناظر است. اما در اینجا، به‌جای اینکه ۵ بایت ثابت باشد، مقدار N می‌تواند با ارتفاع
+        اسپرایت سفارشی متناظر باشد. همچنین، بایت‌ها روی صفحه XOR می‌شوند. این در واقع مبتکرانه است — چون منابع CHIP8
+        محدود است، از خود نمایشگر برای ذخیرهٔ وضعیت اسپرایت‌ها استفاده می‌کند! پس XOR کردن یک پیکسل با مقدار جدید به شما
+        می‌گوید که وضعیت تغییر کرده است یا نه و بنابراین برخورد را نشان می‌دهد. در اینجا، برخورد در VF علامت‌گذاری
+        می‌شود: اگر پیکسلی از ۱ به ۰ تغییر کند، VF برابر ۱ تنظیم می‌شود. حالا برای پیاده‌سازی کد به‌روزرسانی بافر:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _DZZZ(self):
+
+    log("Draw a sprite")
+
+    self.gpio[0xf] = 0
+
+    x = self.gpio[self.vx] &amp; 0xff
+
+    y = self.gpio[self.vy] &amp; 0xff
+
+    height = self.opcode &amp; 0x000f
+
+    row = 0
+
+    while row &lt; height:
+
+      curr_row = self.memory[row + self.index]
+
+      pixel_offset = 0
+
+      while pixel_offset &lt; 8:
+
+        loc = x + pixel_offset + ((y + row) * 64)
+
+        pixel_offset += 1
+
+        if (y + row) &gt;= 32 or (x + pixel_offset - 1) &gt;= 64:
+
+          # ignore pixels outside the screen
+
+          continue
+
+        mask = 1 &lt;&lt; 8-pixel_offset
+
+        curr_pixel = (curr_row &amp; mask) &gt;&gt; (8-pixel_offset)
+
+        self.display_buffer[loc] ^= curr_pixel
+
+        if self.display_buffer[loc] == 0:
+
+          self.gpio[0xf] = 1
+
+        else:
+
+          self.gpio[0xf] = 0
+
+      row += 1
+
+    self.should_draw = True</code></pre>
+        <p>اینجا داریم چه کار می‌کنیم؟ اساساً به پیکسل نشان‌داده‌شده در x,y می‌رویم — سپس هر پیکسل در اسپرایت خود را
+        با بافر مقایسه می‌کنیم و در صورت نیاز XOR می‌کنیم. سپس فقط پرچم رسم خود را روی True تنظیم می‌کنیم تا فراخوانی
+        <code class="inline">draw()</code> آن را بگیرد.</p>
+        <p>نکاتی دربارهٔ متد <code class="inline">draw()</code> من. من از pyglet استفاده کردم که یک پوشش‌دهندهٔ OpenGL
+        است، اما در کارهای سطح پایین، مثل رسم پیکسل‌به‌پیکسل، واقعاً کند است. پس در اینجا آن را شبه‌پیکسل‌به‌پیکسل رسم
+        می‌کنم — یک پیکسل ۱۰×۱۰ دارم (که پنجرهٔ من را ۶۴۰×۳۲۰ می‌کند) و پیکسل را در x*10 و y*10 رسم می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def draw(self):
+
+    if self.should_draw:
+
+      # draw
+
+      self.clear()
+
+      line_counter = 0
+
+      i = 0
+
+      while i &lt; 2048:
+
+        if self.display_buffer[i] == 1:
+
+          # draw a square pixel
+
+          self.pixel.blit((i%64)*10, 310 - ((i/64)*10))
+
+        i += 1
+
+      self.flip()
+
+      self.should_draw = False</code></pre>
+        <p>این برای سایر کاربردها کند خواهد بود، اما برای اهداف نمایش ما به‌اندازهٔ کافی سریع است.</p>
+
+        <h3>ورودی صفحه‌کلید (Keyboard input)</h3>
+        <p>از آنجا که از <code class="inline">Window</code> مربوط به pyglet زیرکلاس ساخته‌ایم، فقط می‌توانیم متدهای
+        ورودی صفحه‌کلید را بازنویسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def on_key_press(self, symbol, modifiers):
+
+    log("Key pressed: %r" % symbol)
+
+    if symbol in KEY_MAP.keys():
+
+      self.key_inputs[KEY_MAP[symbol]] = 1
+
+      if self.key_wait:
+
+        self.key_wait = False
+
+    else:
+
+      super(cpu, self).on_key_press(symbol, modifiers)
+
+
+  def on_key_release(self, symbol, modifiers):
+
+    log("Key released: %r" % symbol)
+
+    if symbol in KEY_MAP.keys():
+
+      self.key_inputs[KEY_MAP[symbol]] = 0</code></pre>
+        <p>کد بالا کاملاً خودتوضیح است — ما فقط حالت‌های کلید را مطابق ورودی صفحه‌کلید به‌روزرسانی می‌کنیم. در شبیه‌ساز،
+        فقط می‌توانیم مقادیر را در صورت نیاز بخوانیم. ورودی با صفحه‌کلید توسط 0xExxE و 0xExx1 مدیریت می‌شود:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _EZZE(self):
+
+    log("Skips the next instruction if the key stored in VX is pressed.")
+
+    key = self.gpio[self.vx] &amp; 0xf
+
+    if self.key_inputs[key] == 1:
+
+      self.pc += 2</code></pre>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">  def _EZZ1(self):
+
+    log("Skips the next instruction if the key stored in VX isn't pressed.")
+
+    key = self.gpio[self.vx] &amp; 0xf
+
+    if self.key_inputs[key] == 0:
+
+      self.pc += 2</code></pre>
+
+        <h3>BCD: FX33</h3>
+        <p>این دستورالعمل همان جایی است که بیشتر مردم به مشکل برمی‌خورند، و من آن را به‌عنوان تمرینی برای خواننده
+        می‌گذارم. اما اساساً، فقط باید مقدار VX را به‌صورت BCD سه‌رقمی ذخیره کنید، از
+        <code class="inline">memory[self.index]</code> به‌عنوان مهم‌ترین رقم تا
+        <code class="inline">memory[self.index+2]</code> به‌عنوان کم‌اهمیت‌ترین رقم. برای مثال، اگر:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">self.gpio[self.vx] = 123</code></pre>
+        <p>آنگاه:</p>
+        <pre class="code"><span class="lang-tag">py</span><code style="direction:ltr;text-align:left">self.memory[self.index] = 1
+
+self.memory[self.index+1] = 2
+
+self.memory[self.index+2] = 3</code></pre>
+      </section>
+
+      <!-- ==================== در نهایت، تمام شد! ==================== -->
+      <section>
+        <h2>در نهایت، تمام شد!</h2>
+        <p>و این بیشتر ماجراست! پیاده‌سازی سایر دستورالعمل‌ها باید کاملاً سرراست باشد. مثل همیشه، در صورت تردید به
+        مستندات مراجعه کنید و همیشه تست کنید. مرجع کاگوود یک منبع عالی است؛ برای خیر و صلاح خودتان آن را بوکمارک کنید.
+        برای تست، همیشه می‌توانید ROMهای CHIP8 در مالکیت عمومی را از اینترنت دانلود کنید (یک گوگل ساده حجم زیادی از
+        لینک‌ها به شما می‌دهد). همچنین،
+        <a href="https://github.com/maranas/pyChip8Emu" target="_blank" rel="noopener">کد منبع شبیه‌ساز (تا حدی کامل) در
+        گیت‌هاب است؛ از آنجا دانلودش کنید!</a> می‌گویم «تا حدی»، چون دستورالعمل‌های SuperChip را هنوز پیاده‌سازی نکرده‌ام
+        — شاید شما این کار را بکنید و به من pull request بدهید؟ البته با PONG و PONG2 کار می‌کند که تنها چیزی است که
+        برای من اهمیت دارد.</p>
+        <p>این هم برای این مقالهٔ (طولانی). مدتی است چیزی ننوشته‌ام، پس مرا ببخشید. لذت ببرید و از بازی PONG لذت ببرید!</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Emulation Basics: Write your own Chip 8 Emulator/Interpreter» اثر «متیو بائر
+        (Matthew Bauer)» در وبلاگ «moises' blog» است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و کدها
+        متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://omokute.blogspot.com.br/2012/06/emulation-basics-write-your-own-chip-8.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

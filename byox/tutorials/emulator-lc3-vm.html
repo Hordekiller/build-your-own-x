@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی مقاله «Write your Own Virtual Machine» (Justin Meiners و Ryan Pendleton)
+  منبع: https://justinmeiners.github.io/lc3-vm/
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | خودت یک ماشین مجازی بنویس (LC-3)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبیه‌ساز / ماشین مجازی</a>
+        <span class="sep">←</span>
+        <span>خودت یک ماشین مجازی بنویس (LC-3)</span>
+      </div>
+      <h1>خودت یک ماشین مجازی بنویس (LC-3)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">📁 دسته: شبیه‌ساز / ماشین مجازی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://justinmeiners.github.io/lc3-vm/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کتابچه «Write your Own Virtual Machine» نوشته «جاستین
+          ماینرز (Justin Meiners)» و «رایان پندلتون (Ryan Pendleton)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://justinmeiners.github.io/lc3-vm/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== سرآغاز ==================== -->
+      <section>
+        <p>نوشته: <a href="https://www.jmeiners.com" target="_blank" rel="noopener">جاستین ماینرز (Justin Meiners)</a>
+        و <a href="https://www.ryanp.me" target="_blank" rel="noopener">رایان پندلتون (Ryan Pendleton)</a></p>
+        <p>کد نهایی و سایر منابع را در <a href="https://github.com/justinmeiners/lc3-vm" target="_blank" rel="noopener">مخزن
+        GitHub</a> ببینید.</p>
+        <p>در این آموزش، به شما یاد می‌دهم چگونه ماشین مجازی (Virtual Machine) خودتان را بنویسید؛ ماشین مجازی‌ای که بتواند
+        برنامه‌های زبان اسمبلی (Assembly) مانند بازی <a href="https://github.com/rpendleton/lc3-2048" target="_blank" rel="noopener">2048</a>
+        دوستم یا <a href="https://github.com/justinmeiners/lc3-rogue" target="_blank" rel="noopener">Roguelike</a> من را
+        اجرا کند. اگر برنامه‌نویسی بلدید، اما دوست دارید شناختی عمیق‌تر از آنچه در داخل کامپیوتر می‌گذرد به دست آورید و
+        بهتر بفهمید زبان‌های برنامه‌نویسی چگونه کار می‌کنند، این پروژه برای شماست. نوشتن ماشین مجازی خودتان ممکن است کمی
+        ترسناک به نظر برسد، اما قول می‌دهم که آن را شگفت‌انگیزِ ساده و روشنگر خواهید یافت.</p>
+        <p>کد نهایی حدود ۲۵۰ خط C است (<a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3.c" target="_blank" rel="noopener">نسخه یونیکس</a>،
+        <a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3-win.c" target="_blank" rel="noopener">نسخه ویندوز</a>).
+        تمام چیزی که باید بلد باشید، خواندن C یا C++ پایه و انجام
+        <a href="https://www.swarthmore.edu/NatSci/echeeve1/Ref/BinaryMath/BinaryMath.html" target="_blank" rel="noopener">محاسبات باینری</a> است.</p>
+        <h3>فهرست مطالب</h3>
+        <ol>
+          <li><a href="#what-is-a-vm">ماشین مجازی چیست؟</a></li>
+          <li><a href="#lc3-architecture">معماری LC-3</a></li>
+          <li><a href="#assembly-examples">مثال‌های اسمبلی</a></li>
+          <li><a href="#executing-programs">اجرای برنامه‌ها</a></li>
+          <li><a href="#implementing-instructions">پیاده‌سازی دستورها</a></li>
+          <li><a href="#instruction-cheat-sheet">برگه راهنمای دستورها</a></li>
+          <li><a href="#trap-routines">روال‌های وقفه (Trap routines)</a></li>
+          <li><a href="#trap-cheat-sheet">برگه راهنمای روال‌های وقفه</a></li>
+          <li><a href="#loading-programs">بارگذاری برنامه‌ها</a></li>
+          <li><a href="#memory-mapped">ثبات‌های نگاشت‌شده به حافظه</a></li>
+          <li><a href="#platform-specifics">جزئیات ویژهٔ سکو (Platform)</a></li>
+          <li><a href="#running-the-vm">اجرای ماشین مجازی</a></li>
+          <li><a href="#alternate-cpp">تکنیک جایگزین C++</a></li>
+          <li><a href="#contributions">مشارکت‌ها</a></li>
+        </ol>
+
+        <div class="callout note">
+          <strong>توجه:</strong> این آموزش یک <a href="https://en.wikipedia.org/wiki/Literate_programming" target="_blank" rel="noopener">برنامهٔ ادبی (literate program)</a>
+          است؛ یعنی همین حالا دارید کد منبع را می‌خوانید! هر قطعه کد از پروژهٔ ماشین مجازی در همین‌جا نمایش داده و
+          کاملاً توضیح داده می‌شود تا مطمئن باشید هیچ چیز جا نیفتاده است. کد نهایی با «بافتن» (tangling) این بلوک‌های
+          کد با یکدیگر ساخته شده است.
+        </div>
+      </section>
+
+      <!-- ==================== ماشین مجازی چیست؟ ==================== -->
+      <section id="what-is-a-vm">
+        <h2>ماشین مجازی چیست؟</h2>
+        <p>ماشین مجازی (VM) برنامه‌ای است که مثل یک کامپیوتر رفتار می‌کند. این برنامه یک پردازندهٔ مرکزی (CPU) را به همراه
+        چند جزء سخت‌افزاری دیگر شبیه‌سازی می‌کند و به آن اجازه می‌دهد عملیات حسابی انجام دهد، در حافظه بخواند و بنویسد و با
+        دستگاه‌های ورودی/خروجی (I/O) تعامل کند؛ دقیقاً مثل یک کامپیوتر فیزیکی. مهم‌تر از همه، می‌تواند زبان ماشین را بفهمد
+        و شما می‌توانید با آن برنامه‌نویسی‌اش کنید.</p>
+        <p>میزان سخت‌افزار کامپیوتری که ماشین مجازی تلاش می‌کند شبیه‌سازی کند، به هدف آن بستگی دارد. برخی از ماشین‌های مجازی
+        برای بازتولید رفتار یک کامپیوتر خاص طراحی شده‌اند؛ مانند شبیه‌سازهای بازی‌های ویدیویی. بیشتر مردم دیگر دستگاه
+        NES در خانه ندارند، اما همچنان می‌توانیم بازی‌های NES را با شبیه‌سازی سخت‌افزار NES در یک برنامه اجرا کنیم. این
+        شبیه‌سازها باید <a href="http://wiki.nesdev.com/w/index.php/Tricky-to-emulate_games" target="_blank" rel="noopener">صادقانه</a>
+        هر <a href="http://wiki.nesdev.com/w/index.php/Emulator_tests" target="_blank" rel="noopener">جزئیات</a> و هر جزء
+        مهم سخت‌افزاری دستگاه اصلی را بازآفرینی کنند.</p>
+        <p>ماشین‌های مجازی دیگری هم هستند که مانند هیچ کامپیوتر واقعی رفتار نمی‌کنند و کاملاً ساخته و پرداختهٔ ذهن‌اند! این
+        کار عمدتاً برای آسان‌تر کردن توسعهٔ نرم‌افزار انجام می‌شود. تصور کنید بخواهید برنامه‌ای بسازید که روی چند معماری
+        کامپیوتری مختلف اجرا شود. یک ماشین مجازی می‌تواند سکوی استانداردی ارائه دهد که قابلیت انتقال (portability) را
+        برای همهٔ آن‌ها فراهم کند. به‌جای بازنویسی یک برنامه به لهجه‌های مختلف اسمبلی برای هر معماری CPU، فقط باید برنامهٔ
+        کوچک ماشین مجازی را به هر زبان اسمبلی بنویسید. سپس هر برنامه فقط یک بار، به زبان اسمبلی خود ماشین مجازی، نوشته
+        می‌شود.</p>
+        <img src="https://justinmeiners.github.io/lc3-vm/img/no_vm.gif" alt="پیاده‌سازی وابسته به معماری: برنامه باید برای هر معماری CPU جداگانه نوشته شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <img src="https://justinmeiners.github.io/lc3-vm/img/vm.gif" alt="یک ماشین مجازی برای هر معماری: برنامه یک بار نوشته و روی هر سکو اجرا می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>توجه:</strong> یک کامپایلر (compiler) مشکل مشابهی را با کامپایل یک <em>زبان سطح بالا</em> استاندارد به
+          چند معماری CPU حل می‌کند؛ در حالی که ماشین مجازی یک <em>معماری CPU</em> استاندارد می‌سازد که روی دستگاه‌های
+          سخت‌افزاری مختلف شبیه‌سازی می‌شود. یکی از مزیت‌های کامپایلر این است که هیچ سرباری هنگام اجرا ندارد، در حالی که
+          ماشین مجازی دارد. حتی اگر کامپایلرها کارشان را خوب انجام می‌دهند، نوشتن یک کامپایلر جدید که سکوهای متعدد را هدف
+          قرار دهد بسیار دشوار است؛ بنابراین ماشین‌های مجازی همچنان در این‌جا مفیدند. در عمل، ماشین‌های مجازی و کامپایلرها
+          در سطوح مختلف با هم ترکیب می‌شوند.
+        </div>
+        <p><a href="https://en.wikipedia.org/wiki/Java_virtual_machine" target="_blank" rel="noopener">ماشین مجازی جاوا (JVM)</a>
+        مثال بسیار موفقی است. خود JVM برنامه‌ای با اندازهٔ متوسط است که به‌قدر کافی کوچک است که یک برنامه‌نویس بتواند آن را
+        بفهمد. همین امر نوشتن آن را برای هزاران دستگاه از جمله تلفن‌ها ممکن کرده است. به محض پیاده‌سازی JVM روی یک دستگاه
+        جدید، هر برنامه‌ای که تا به حال به زبان جاوا، کاتلین یا Clojure نوشته شده باشد، بدون هیچ تغییری می‌تواند روی آن
+        اجرا شود. تنها هزینهٔ آن، سربار خود ماشین مجازی و
+        <a href="https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/" target="_blank" rel="noopener">سطح انتزاع بیشتر</a>
+        از ماشین است. در بیشتر مواقع، این معامله‌ای نسبتاً خوب است.</p>
+        <p>ماشین مجازی برای ارائهٔ چنین مزیتی لازم نیست بزرگ یا فراگیر باشد. <a href="https://fabiensanglard.net/anotherWorld_code_review/" target="_blank" rel="noopener">بازی‌های ویدیویی قدیمی</a>
+        اغلب از ماشین‌های مجازی کوچک برای فراهم کردن <a href="https://sf2platinum.wordpress.com/2017/01/20/the-ai-engine/" target="_blank" rel="noopener">سیستم‌های اسکریپت‌نویسی ساده</a>
+        استفاده می‌کردند.</p>
+        <p>ماشین‌های مجازی برای اجرای امن یا ایزولهٔ کد نیز مفیدند. یکی از کاربردهای آن، جمع‌آوری زباله (Garbage Collection)
+        است. <a href="https://www.lua.org/pil/24.2.html" target="_blank" rel="noopener">هیچ راه پیش پا افتاده‌ای</a> برای
+        پیاده‌سازی جمع‌آوری خودکار زباله روی C یا C++ وجود ندارد، زیرا برنامه نمی‌تواند پشته یا متغیرهای خودش را ببیند.
+        اما ماشین مجازی «خارج» از برنامه‌ای است که اجرا می‌کند و می‌تواند همهٔ
+        <a href="https://en.wikipedia.org/wiki/Tracing_garbage_collection" target="_blank" rel="noopener">ارجاع‌های حافظه</a>
+        روی پشته را مشاهده کند.</p>
+        <p>نمونهٔ دیگری از این رفتار، <a href="https://solidity.readthedocs.io/en/v0.4.24/introduction-to-smart-contracts.html" target="_blank" rel="noopener">قراردادهای هوشمند اتریوم</a>
+        است. قراردادهای هوشمند برنامه‌های کوچکی هستند که هر گرهٔ اعتبارسنج (validating node) در شبکهٔ بلاک‌چین آن‌ها را
+        اجرا می‌کند. این کار مستلزم آن است که گردانندگان گره، برنامه‌هایی را روی ماشین‌های خودشان اجرا کنند که توسط
+        غریبه‌های کامل نوشته شده‌اند و هیچ فرصتی برای بررسی قبلی آن‌ها وجود ندارد. برای جلوگیری از کارهای مخرب قراردادها،
+        آن‌ها در یک <a href="http://ethdocs.org/en/latest/introduction/what-is-ethereum.html#ethereum-virtual-machine" target="_blank" rel="noopener">ماشین مجازی</a>
+        اجرا می‌شوند که به سیستم فایل، شبکه، دیسک و… دسترسی ندارد. اتریوم همچنین کاربرد خوبی از ویژگی‌های قابلیت انتقال
+        ناشی از استفاده از ماشین مجازی است. از آنجا که گره‌های اتریوم می‌توانند روی انواع زیادی از کامپیوترها و سیستم‌عامل‌ها
+        اجرا شوند، استفاده از ماشین مجازی به قراردادهای هوشمند اجازه می‌دهد بدون هیچ در نظر گرفتن سکوهای متعددی که روی آن‌ها
+        اجرا می‌شوند، نوشته شوند.</p>
+      </section>
+
+      <!-- ==================== معماری LC-3 ==================== -->
+      <section id="lc3-architecture">
+        <h2>معماری LC-3</h2>
+        <p>ماشین مجازی ما <a href="https://en.wikipedia.org/wiki/Little_Computer_3" target="_blank" rel="noopener">LC-3</a>
+        را شبیه‌سازی می‌کند؛ معماری کامپیوتری آموزشی‌ای که معمولاً برای آموزش معماری کامپیوتر و اسمبلی به دانشجویان
+        دانشگاه استفاده می‌شود. LC-3 <a href="http://ref.x86asm.net/coder64.html" target="_blank" rel="noopener">در مقایسه با x86</a>
+        مجموعه دستور (instruction set) ساده‌شده‌ای دارد، اما ایده‌های اصلی‌ای را نشان می‌دهد که CPUهای مدرن از آن‌ها
+        استفاده می‌کنند.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> LC-3 در کتاب «Introduction to Computing Systems: From Bits &amp; Gates to C/C++ &amp;
+          Beyond» نوشتهٔ Yale N. Patt و Sanjay J. Patel تعریف شده است. این آموزش بر اساس ویرایش دوم است.
+        </div>
+        <p>برای شروع، باید اجزای سخت‌افزاری ضروری ماشین را شبیه‌سازی کنیم. سعی کنید بفهمید هر جزء چیست، اما اگر هنوز
+        مطمئن نیستید که چگونه در تصویر بزرگ‌تر جا می‌گیرد، الان نگرانش نباشید. با ساخت یک فایل C شروع کنید. هر یک از قطعه
+        کدهای این بخش باید در محدودهٔ سراسری (global scope) این فایل قرار بگیرند.</p>
+
+        <h3>حافظه (Memory)</h3>
+        <p>LC-3 دارای ۶۵٬۵۳۶ مکان حافظه است (حداکثر مقداری که با یک عدد صحیح بدون علامت ۱۶ بیتی، یعنی
+        <code class="inline">2^16</code>، قابل آدرس‌دهی است) و هر کدام یک مقدار ۱۶ بیتی را ذخیره می‌کند. یعنی در مجموع می‌تواند
+        تنها ۱۲۸ کیلوبایت ذخیره کند که نسبت به آنچه عادت دارید خیلی کوچک‌تر است! در برنامهٔ ما، این حافظه در یک آرایهٔ
+        ساده ذخیره می‌شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#define MEMORY_MAX (1 &lt;&lt; 16)
+uint16_t memory[MEMORY_MAX];  /* 65536 خانه */</code></pre>
+
+        <h3>ثبات‌ها (Registers)</h3>
+        <p>ثبات (register) جایگاهی برای ذخیرهٔ یک مقدار واحد روی CPU است. ثبات‌ها مانند «میزکار» CPU هستند. برای اینکه
+        CPU با یک تکه داده کار کند، آن داده باید در یکی از ثبات‌ها باشد. با این حال، چون فقط چند ثبات وجود دارد، تنها
+        مقدار کمی داده می‌تواند در هر زمان بارگذاری شود. برنامه‌ها با بارگذاری مقادیر از حافظه در ثبات‌ها، محاسبهٔ مقادیر
+        در ثبات‌های دیگر و سپس ذخیرهٔ نتایج نهایی در حافظه، راهی برای دور زدن این محدودیت پیدا می‌کنند.</p>
+        <p>LC-3 در مجموع ۱۰ ثبات دارد که هر کدام ۱۶ بیتی‌اند. بیشتر آن‌ها همه‌منظوره (general purpose) هستند، اما چند
+        تایی نقش‌های مشخصی دارند.</p>
+        <ul>
+          <li>۸ ثبات همه‌منظوره (<code class="inline">R0</code> تا <code class="inline">R7</code>)</li>
+          <li>۱ ثبات شمارندهٔ برنامه (PC - Program Counter)</li>
+          <li>۱ ثبات نشان‌های وضعیت (COND - Condition Flags)</li>
+        </ul>
+        <p>ثبات‌های همه‌منظوره را می‌توان برای انجام هر محاسبهٔ برنامه استفاده کرد. شمارندهٔ برنامه یک عدد صحیح بدون علامت
+        است که آدرس دستور بعدی در حافظه را برای اجرا نگه می‌دارد. نشان‌های وضعیت اطلاعاتی دربارهٔ محاسبهٔ قبلی به ما
+        می‌دهند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">enum
+{
+    R_R0 = 0,
+    R_R1,
+    R_R2,
+    R_R3,
+    R_R4,
+    R_R5,
+    R_R6,
+    R_R7,
+    R_PC, /* شمارنده برنامه */
+    R_COND,
+    R_COUNT
+};</code></pre>
+        <p>دقیقاً مثل حافظه، ثبات‌ها را در یک آرایه ذخیره می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">uint16_t reg[R_COUNT];</code></pre>
+
+        <h3>مجموعه دستورها (Instruction set)</h3>
+        <p>دستور (instruction) فرمانی است که به CPU می‌گوید کاری بنیادی انجام دهد؛ مانند جمع دو عدد. دستورها هم یک
+        <b>کد عملیات (opcode)</b> دارند که نوع کار را نشان می‌دهد و هم مجموعه‌ای از <b>پارامترها</b> که ورودی‌های کار
+        انجام‌شده را فراهم می‌کنند.</p>
+        <p>هر <b>کد عملیات</b> نمایانگر یک کار است که CPU «بلد است» انجام دهد. در LC-3 فقط ۱۶ کد عملیات وجود دارد. هرچه
+        کامپیوتر می‌تواند محاسبه کند، دنباله‌ای از همین دستورهای ساده است. هر دستور ۱۶ بیت طول دارد که ۴ بیت سمت چپ، کد
+        عملیات را ذخیره می‌کنند. بقیهٔ بیت‌ها برای ذخیرهٔ پارامترها استفاده می‌شوند.</p>
+        <p>بعداً به‌طور مفصل دربارهٔ کار هر دستور بحث خواهیم کرد. فعلاً کدهای عملیات زیر را تعریف کنید. مطمئن شوید ترتیب
+        آن‌ها حفظ می‌شود تا مقدار enum مناسب به آن‌ها اختصاص یابد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">enum
+{
+    OP_BR = 0, /* پرش شرطی */
+    OP_ADD,    /* جمع  */
+    OP_LD,     /* بارگذاری */
+    OP_ST,     /* ذخیره */
+    OP_JSR,    /* پرش به زیرروال */
+    OP_AND,    /* و بیتی */
+    OP_LDR,    /* بارگذاری از طریق ثبات */
+    OP_STR,    /* ذخیره از طریق ثبات */
+    OP_RTI,    /* استفاده نشده */
+    OP_NOT,    /* نقیض بیتی */
+    OP_LDI,    /* بارگذاری غیرمستقیم */
+    OP_STI,    /* ذخیره غیرمستقیم */
+    OP_JMP,    /* پرش */
+    OP_RES,    /* رزرو شده (استفاده نشده) */
+    OP_LEA,    /* بارگذاری آدرس مؤثر */
+    OP_TRAP    /* اجرای روال وقفه */
+};</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> معماری Intel x86 صدها دستور دارد، در حالی که معماری‌هایی مانند ARM و LC-3 دستورهای بسیار
+          کمی دارند. مجموعه دستورهای کوچک را <a href="https://en.wikipedia.org/wiki/Reduced_instruction_set_computer" target="_blank" rel="noopener">RISC</a>
+          می‌نامند و مجموعه‌های بزرگ‌تر را <a href="https://en.wikipedia.org/wiki/Complex_instruction_set_computer" target="_blank" rel="noopener">CISC</a>.
+          مجموعه دستورهای بزرگ‌تر معمولاً امکانات بنیادی جدیدی ارائه نمی‌دهند، اما <a href="https://cs.stanford.edu/people/eroberts/courses/soco/projects/risc/risccisc/" target="_blank" rel="noopener">اغلب نوشتن اسمبلی را راحت‌تر می‌کنند</a>.
+          یک دستور واحد در CISC ممکن است جای چند دستور در RISC را بگیرد. با این حال، آن‌ها برای مهندسان پیچیده‌تر و
+          پرهزینه‌تر از نظر طراحی و ساخت هستند. همین و سایر مبادله‌ها باعث می‌شود این طراحی‌ها <a href="https://cs.stackexchange.com/questions/269/why-would-anyone-want-cisc" target="_blank" rel="noopener">مد شوند و مد از سرشان بیفتد</a>.
+        </div>
+
+        <h3>نشان‌های وضعیت (Condition flags)</h3>
+        <p>ثبات <code class="inline">R_COND</code> نشان‌های وضعیت را ذخیره می‌کند که اطلاعاتی دربارهٔ تازه‌ترین
+        محاسبهٔ انجام‌شده ارائه می‌دهند. این کار به برنامه‌ها اجازه می‌دهد شرایط منطقی مانند
+        <code class="inline">if (x &gt; 0) { ... }</code> را بررسی کنند.</p>
+        <p>هر CPU نشان‌های وضعیت گوناگونی برای علامت دادن موقعیت‌های مختلف دارد. LC-3 تنها از ۳ نشان وضعیت استفاده می‌کند
+        که علامت (مثبت/صفر/منفی) محاسبهٔ قبلی را نشان می‌دهند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">enum
+{
+    FL_POS = 1 &lt;&lt; 0, /* P */
+    FL_ZRO = 1 &lt;&lt; 1, /* Z */
+    FL_NEG = 1 &lt;&lt; 2, /* N */
+};</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> (نماد «<code class="inline">&lt;&lt;</code>» عملگر
+          <a href="https://msdn.microsoft.com/en-us/library/336xbhcz.aspx" target="_blank" rel="noopener">جابه‌جایی بیتی به چپ</a>
+          نامیده می‌شود. «<code class="inline">(n &lt;&lt; k)</code>» بیت‌های <code class="inline">n</code> را به اندازهٔ
+          <code class="inline">k</code> خانه به چپ جابه‌جا می‌کند. بنابراین «<code class="inline">1 &lt;&lt; 2</code>» برابر
+          با «4» خواهد بود. اگر با آن آشنا نیستید آن لینک را بخوانید؛ مهم خواهد بود.)
+        </div>
+        <p>تنظیم اجزای سخت‌افزاری ماشین مجازی ما تمام شد! پس از افزودن includeهای استاندارد (به مرجع نگاه کنید)، فایل شما
+        باید چیزی شبیه این باشد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">@{Includes}
+
+@{Registers}
+@{Condition Flags}
+@{Opcodes}</code></pre>
+      </section>
+
+      <!-- ==================== مثال‌های اسمبلی ==================== -->
+      <section id="assembly-examples">
+        <h2>مثال‌های اسمبلی</h2>
+        <p>حالا بیایید به یک برنامهٔ اسمبلی LC-3 نگاه کنیم تا ایده‌ای از آنچه ماشین مجازی واقعاً اجرا می‌کند به دست
+        بیاوریم. لازم نیست بلد باشید اسمبلی برنامه‌نویسی کنید یا همهٔ اتفاقات را بفهمید. فقط سعی کنید تصوری کلی از آنچه
+        می‌گذرد به دست آورید. این یک «سلام دنیا!» (Hello World) ساده است:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">.ORIG x3000                        ; این آدرس حافظه‌ای است که برنامه در آن بارگذاری می‌شود
+LEA R0, HELLO_STR                  ; آدرس رشته HELLO_STR را در R0 بارگذاری کن
+PUTs                               ; رشته‌ای را که R0 به آن اشاره می‌کند در کنسول چاپ کن
+HALT                               ; برنامه را متوقف کن
+HELLO_STR .STRINGZ "Hello World!"  ; این رشته را در این نقطه از برنامه ذخیره کن
+.END                               ; پایان فایل را مشخص کن</code></pre>
+        <p>دقیقاً مثل C، برنامه از بالا شروع می‌شود و هر دستور را یکی‌یکی اجرا می‌کند. با این حال، برخلاف C، هیچ محدودهٔ
+        تو در تویی «<code class="inline">{}</code>» یا ساختارهای کنترلی مانند «<code class="inline">if</code>» یا
+        «<code class="inline">while</code>» وجود ندارد؛ فقط فهرستی تخت از دستورهاست. این کار اجرا را بسیار آسان‌تر می‌کند.</p>
+        <p>توجه کنید که برخی دستورها نام‌هایی دارند که با کدهای عملیاتی که قبلاً تعریف کردیم یکی است. پیش‌تر یاد گرفتیم هر
+        دستور ۱۶ بیت است، اما هر خط تعداد کاراکتر متفاوتی دارد. این ناسازگاری چطور ممکن است؟</p>
+        <p>علتش این است که کدی که می‌خوانیم به زبان <b>اسمبلی</b> نوشته شده است؛ شکل قابل‌خواندن و قابل‌نوشتن برای انسان
+        که به‌صورت متن ساده رمزگذاری شده است. ابزاری به نام <b>اسمبلر (assembler)</b> برای تبدیل هر خط متن به یک دستور
+        باینری ۱۶ بیتی که ماشین مجازی می‌فهمد استفاده می‌شود. این شکل باینری، که اساساً آرایه‌ای از دستورهای ۱۶ بیتی است،
+        <b>کد ماشین (machine code)</b> نامیده می‌شود و همان چیزی است که ماشین مجازی واقعاً اجرا می‌کند.</p>
+        <img src="https://justinmeiners.github.io/lc3-vm/img/assembler.gif" alt="نمودار اسمبلر: متن اسمبلی به کد ماشین دودویی تبدیل می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <div class="callout note">
+          <strong>توجه:</strong> اگرچه کامپایلر و اسمبلر نقش مشابهی در توسعه دارند، اما یکسان نیستند. اسمبلر صرفاً آنچه
+          برنامه‌نویس به‌صورت متن نوشته را به باینری رمزگذاری می‌کند: نمادها را با نمایش دودویی‌شان جایگزین می‌کند و آن‌ها را
+          در دستورها بسته‌بندی می‌کند.
+        </div>
+        <p>فرمان‌های «<code class="inline">.ORIG</code>» و «<code class="inline">.STRINGZ</code>» شبیه دستور به نظر
+        می‌رسند اما دستور نیستند. آن‌ها دستورالعمل‌های اسمبلر (assembler directives) هستند که تکه‌ای کد یا داده تولید
+        می‌کنند (مثل ماکروها). برای مثال، «<code class="inline">.STRINGZ</code>» رشته‌ای از کاراکترها را در نقطه‌ای که
+        نوشته شده در باینری برنامه درج می‌کند.</p>
+        <p>حلقه‌ها و شرایط با دستوری شبیه <a href="https://en.wikipedia.org/wiki/Goto" target="_blank" rel="noopener">goto</a>
+        انجام می‌شوند. این هم مثال دیگری که تا ۱۰ می‌شمارد:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">AND R0, R0, 0                      ; صفر کردن R0
+LOOP                               ; برچسب بالای حلقه
+ADD R0, R0, 1                      ; 1 را به R0 اضافه کن و دوباره در R0 ذخیره کن
+ADD R1, R0, -10                    ; 10 را از R0 کم کن و در R1 ذخیره کن
+BRn LOOP                           ; اگر نتیجه منفی بود به LOOP برگرد
+... ; R0 حالا 10 است!</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> یادگیری نوشتن اسمبلی برای این آموزش ضروری نیست. با این حال، اگر علاقه‌مندید، می‌توانید
+          برنامه‌های LC-3 خودتان را با <a href="http://highered.mheducation.com/sites/0072467509/student_view0/lc-3_simulator.html" target="_blank" rel="noopener">ابزارهای LC-3</a>
+          بنویسید و اسمبل کنید.
+        </div>
+      </section>
+
+      <!-- ==================== اجرای برنامه‌ها ==================== -->
+      <section id="executing-programs">
+        <h2>اجرای برنامه‌ها</h2>
+        <p>باز هم می‌گویم، مثال‌های قبلی فقط برای این بودند که ایده‌ای از کاری که ماشین مجازی انجام می‌دهد به شما بدهند.
+        برای نوشتن ماشین مجازی لازم نیست در اسمبلی مسلط باشید. تا وقتی رویهٔ درست خواندن و اجرای دستورها را دنبال کنید،
+        <em>هر</em> برنامهٔ LC-3 درست اجرا می‌شود؛ مهم نیست چقدر پیچیده باشد. در تئوری حتی می‌تواند یک مرورگر وب یا یک
+        سیستم‌عامل مثل لینوکس را اجرا کند!</p>
+        <p>اگر عمیقاً به این ویژگی فکر کنید، ایده‌ای خیره‌کننده از نظر فلسفی است. خود برنامه‌ها می‌توانند انواع کارهای
+        هوشمندانه‌ای انجام دهند که ما هرگز پیش‌بینی نکرده بودیم و شاید نتوانیم بفهمیم، اما در عین حال، هر کاری که می‌توانند
+        انجام دهند به کد ساده‌ای که ما می‌نویسیم محدود است! ما هم‌زمان همه‌چیز و هیچ‌چیز را دربارهٔ نحوهٔ کار هر برنامه
+        می‌دانیم. تورینگ این ایدهٔ شگفت‌آور را مشاهده کرد:</p>
+        <div class="callout note">
+          «این دیدگاه که ماشین‌ها نمی‌توانند سبب شگفتی شوند، به باور من برخاسته از مغالطه‌ای است که فیلسوفان و
+          ریاضی‌دانان به‌ویژه بدان مبتلا هستند. این فرض که به محض ارائهٔ یک واقعیت به ذهن، همهٔ پیامدهای آن واقعیت
+          هم‌زمان با آن در ذهن پدیدار می‌شوند. در بسیاری از شرایط فرض بسیار مفیدی است، اما به‌راحتی فراموش می‌شود که
+          نادرست است.» — <a href="https://academic.oup.com/mind/article-pdf/LIX/236/433/9866119/433.pdf" target="_blank" rel="noopener">آلن‌ام. تورینگ</a>
+        </div>
+
+        <h3>رویه (Procedure)</h3>
+        <p>رویه‌ای که باید بنویسیم این است:</p>
+        <ol>
+          <li>یک دستور را از حافظه، در آدرس مقدار ثبات <code class="inline">PC</code>، بارگذاری کن.</li>
+          <li>ثبات <code class="inline">PC</code> را افزایش بده.</li>
+          <li>به <em>کد عملیات</em> نگاه کن تا مشخص شود چه نوع دستوری باید انجام شود.</li>
+          <li>دستور را با استفاده از پارامترهای موجود در آن اجرا کن.</li>
+          <li>به مرحلهٔ ۱ برگرد.</li>
+        </ol>
+        <p>شاید تعجب کنید: «اگر حلقه مدام <code class="inline">PC</code> را افزایش می‌دهد، و ما «<code class="inline">if</code>» یا
+        «<code class="inline">while</code>» نداریم، آیا به‌سرعت دستورها تمام نمی‌شوند؟» نه. همان‌طور که پیش‌تر اشاره کردیم،
+        برخی دستورهای شبیه goto با پرش دادن <code class="inline">PC</code> جریان اجرا را تغییر می‌دهند.</p>
+        <p>بیایید این فرایند را در حلقهٔ اصلی outline کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int main(int argc, const char* argv[])
+{
+    @{Load Arguments}
+    @{Setup}
+
+    /* از آنجا که در هر لحظه فقط یکی از نشان‌های وضعیت باید تنظیم باشد، نشان Z را فعال می‌کنیم */
+    reg[R_COND] = FL_ZRO;
+
+    /* PC را در موقعیت شروع قرار می‌دهیم */
+    /* 0x3000 مقدار پیش‌فرض است */
+    enum { PC_START = 0x3000 };
+    reg[R_PC] = PC_START;
+
+    int running = 1;
+    while (running)
+    {
+        /* واکشی (FETCH) */
+        uint16_t instr = mem_read(reg[R_PC]++);
+        uint16_t op = instr &gt;&gt; 12;
+
+        switch (op)
+        {
+            case OP_ADD:
+                @{ADD}
+                break;
+            case OP_AND:
+                @{AND}
+                break;
+            case OP_NOT:
+                @{NOT}
+                break;
+            case OP_BR:
+                @{BR}
+                break;
+            case OP_JMP:
+                @{JMP}
+                break;
+            case OP_JSR:
+                @{JSR}
+                break;
+            case OP_LD:
+                @{LD}
+                break;
+            case OP_LDI:
+                @{LDI}
+                break;
+            case OP_LDR:
+                @{LDR}
+                break;
+            case OP_LEA:
+                @{LEA}
+                break;
+            case OP_ST:
+                @{ST}
+                break;
+            case OP_STI:
+                @{STI}
+                break;
+            case OP_STR:
+                @{STR}
+                break;
+            case OP_TRAP:
+                @{TRAP}
+                break;
+            case OP_RES:
+            case OP_RTI:
+            default:
+                @{BAD OPCODE}
+                break;
+        }
+    }
+    @{Shutdown}
+}</code></pre>
+        <p>وقتی در حلقهٔ اصلی هستیم، ورودی خط فرمان را هم مدیریت کنیم تا برنامهٔ ما قابل‌استفاده شود. ما یک یا چند مسیر به
+        تصاویر VM انتظار داریم و اگر هیچ‌کدام داده نشده بود، یک رشتهٔ راهنما نشان می‌دهیم.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">if (argc &lt; 2)
+{
+    /* نمایش رشته راهنما */
+    printf("lc3 [image-file1] ...\n");
+    exit(2);
+}
+
+for (int j = 1; j &lt; argc; ++j)
+{
+    if (!read_image(argv[j]))
+    {
+        printf("failed to load image: %s\n", argv[j]);
+        exit(1);
+    }
+}</code></pre>
+      </section>
+
+      <!-- ==================== پیاده‌سازی دستورها ==================== -->
+      <section id="implementing-instructions">
+        <h2>پیاده‌سازی دستورها</h2>
+        <p>وظیفهٔ شما حالا این است که هر case از کدهای عملیات را با پیاده‌سازی درست پر کنید. این کار آسان‌تر از آن چیزی است
+        که به نظر می‌رسد. مشخصات دقیق هر دستور در <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/lc3-isa.pdf" target="_blank" rel="noopener">مستندات پروژه</a>
+        آمده است. مشخصات هر یک به‌راحتی به چند خط کد تبدیل می‌شود. من در این‌جا پیاده‌سازی دوتای آن‌ها را نشان
+        می‌دهم. کد بقیه را در بخش بعدی پیدا خواهید کرد.</p>
+
+        <h3>ADD (جمع)</h3>
+        <p>دستور <code class="inline">ADD</code> دو عدد می‌گیرد، آن‌ها را با هم جمع می‌کند و نتیجه را در یک ثبات
+        ذخیره می‌کند. مشخصات آن در صفحهٔ ۵۲۶ است. هر دستور <code class="inline">ADD</code> به این شکل است:</p>
+        <img src="https://justinmeiners.github.io/lc3-vm/img/add_layout.gif" alt="چیدمان بیت‌های دستور ADD با دو حالت ثبات و مقدار مستقیم" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>رمزگذاری دو ردیف را نشان می‌دهد، چون این دستور دو «حالت» (mode) مختلف دارد. قبل از اینکه حالت‌ها را توضیح دهم،
+        بیایید شباهت‌های بین آن‌ها را پیدا کنیم. در هر دو ردیف می‌بینیم که با ۴ بیت، «0001» شروع می‌کنیم. این مقدار کد
+        عملیات <code class="inline">OP_ADD</code> است. ۳ بیت بعدی با «DR» مشخص شده‌اند که مخفف ثبات مقصد (destination
+        register) است. ثبات مقصد جایی است که حاصل جمع در آن ذخیره می‌شود. ۳ بیت بعدی «SR1» هستند؛ ثباتی که اولین عدد
+        برای جمع را در خود دارد.</p>
+        <p>پس می‌دانیم نتیجه را کجا می‌خواهیم ذخیره کنیم و اولین عدد را برای جمع می‌دانیم. آخرین اطلاعات موردنیاز،
+        دومین عدد برای جمع است. در این نقطه، دو ردیف متفاوت به نظر می‌رسند. توجه کنید در ردیف بالا بیت پنجم «0» است و در
+        ردیف دوم «1». این بیت مشخص می‌کند که حالت <em>مقدار مستقیم (immediate mode)</em> است یا <em>حالت ثبات (register
+        mode)</em>. در <em>حالت ثبات</em>، دومین عدد درست مثل عدد اول در یک ثبات ذخیره می‌شود. این ثبات با «SR2» مشخص شده
+        و در بیت‌های 0-2 قرار دارد. بیت‌های 3 و 4 استفاده نشده‌اند. در اسمبلی، این‌گونه نوشته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">ADD R2 R0 R1 ; محتویات R0 و R1 را با هم جمع کن و در R2 ذخیره کن.</code></pre>
+        <p>حالت مقدار مستقیم (immediate mode) امکانی است که طول یک برنامهٔ معمولی را کاهش می‌دهد. به‌جای جمع دو مقداری که
+        در دو ثبات جداگانه ذخیره شده‌اند، مقدار دوم در خود دستور جاسازی می‌شود؛ در نمودار با «imm5» مشخص شده است. این
+        کار نیاز به نوشتن دستورهایی برای بارگذاری مقدار از حافظه را از بین می‌برد. هزینهٔ این کار این است که دستور فقط
+        جا برای عدد کوچکی دارد؛ حداکثر <code class="inline">2^5=32</code> (بدون علامت) که حالت مستقیم را عمدتاً برای
+        افزایش و کاهش (increment/decrement) مفید می‌کند. در اسمبلی می‌توان این‌گونه نوشت:</p>
+        <pre class="code"><span class="lang-tag">asm</span><code style="direction:ltr;text-align:left">ADD R0 R0 1 ; 1 را به R0 اضافه کن و دوباره در R0 ذخیره کن</code></pre>
+        <p>در این‌جا خلاصه‌ای از مشخصات آمده است:</p>
+        <div class="callout note">
+          اگر بیت [5] برابر 0 باشد، عملوند منبع دوم از SR2 به دست می‌آید. اگر بیت [5] برابر 1 باشد، عملوند منبع دوم با
+          بسط علامت (sign-extend) میدان imm5 به ۱۶ بیت به دست می‌آید. در هر دو حالت، عملوند منبع دوم به محتویات SR1
+          اضافه می‌شود و نتیجه در DR ذخیره می‌شود. (صفحه ۵۲۶)
+        </div>
+        <p>این دقیقاً همان رفتاری است که درباره‌اش بحث کردیم، اما «بسط علامت» (sign extension) چیست؟ مقدار حالت مستقیم
+        فقط ۵ بیت دارد، اما باید به یک عدد ۱۶ بیتی اضافه شود. برای انجام جمع، آن ۵ بیت باید به ۱۶ بیت گسترش یابند تا با
+        عدد دیگر هم‌اندازه شوند. برای اعداد مثبت، به‌سادگی می‌توانیم بیت‌های اضافه را با 0 پر کنیم. برای اعداد منفی، این
+        کار مشکل ایجاد می‌کند. برای مثال، 1- در ۵ بیت «1 1111» است. اگر فقط با 0 آن را گسترش دهیم، می‌شود «0000 0000 0001
+        1111» که برابر با 31 است. بسط علامت این مشکل را با پر کردن 0 برای اعداد مثبت و 1 برای اعداد منفی اصلاح می‌کند تا
+        مقادیر اصلی حفظ شوند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">uint16_t sign_extend(uint16_t x, int bit_count)
+{
+    if ((x &gt;&gt; (bit_count - 1)) &amp; 1) {
+        x |= (0xFFFF &lt;&lt; bit_count);
+    }
+    return x;
+}</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> اگر به این علاقه‌مندید که دقیقاً چطور می‌توان اعداد منفی را در باینری نمایش داد، دربارهٔ
+          <a href="https://en.wikipedia.org/wiki/Two%27s_complement" target="_blank" rel="noopener">متمم دو (Two's Complement)</a>
+          بخوانید. با این حال، این موضوع ضروری نیست. می‌توانید کد بالا را کپی کنید و هر وقت مشخصات گفت عددها را بسط علامت
+          بدهید، از آن استفاده کنید.
+        </div>
+        <p>یک جملهٔ آخر در مشخصات هست:</p>
+        <div class="callout note">
+          کدهای وضعیت (condition codes) بر اساس اینکه نتیجه منفی، صفر یا مثبت است تنظیم می‌شوند. (صفحه ۵۲۶)
+        </div>
+        <p>قبلاً enum نشان‌های وضعیت را تعریف کردیم و حالا وقت استفاده از آن‌هاست. <em>هر بار</em> که مقدار در ثباتی
+        نوشته می‌شود، باید نشان‌ها را به‌روزرسانی کنیم تا علامت آن را نشان دهند. تابعی می‌نویسیم تا بتوان این کار را
+        دوباره استفاده کرد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void update_flags(uint16_t r)
+{
+    if (reg[r] == 0)
+    {
+        reg[R_COND] = FL_ZRO;
+    }
+    else if (reg[r] &gt;&gt; 15) /* وجود 1 در چپ‌ترین بیت به معنای منفی بودن است */
+    {
+        reg[R_COND] = FL_NEG;
+    }
+    else
+    {
+        reg[R_COND] = FL_POS;
+    }
+}</code></pre>
+        <p>حالا آماده‌ایم کد case مربوط به <code class="inline">ADD</code> را بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    /* ثبات مقصد (DR) */
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    /* عملوند اول (SR1) */
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+    /* اینکه در حالت مقدار مستقیم هستیم یا نه */
+    uint16_t imm_flag = (instr &gt;&gt; 5) &amp; 0x1;
+
+    if (imm_flag)
+    {
+        uint16_t imm5 = sign_extend(instr &amp; 0x1F, 5);
+        reg[r0] = reg[r1] + imm5;
+    }
+    else
+    {
+        uint16_t r2 = instr &amp; 0x7;
+        reg[r0] = reg[r1] + reg[r2];
+    }
+
+    update_flags(r0);
+}</code></pre>
+        <p>این بخش اطلاعات زیادی داشت؛ بیایید خلاصه کنیم.</p>
+        <ul>
+          <li><code class="inline">ADD</code> دو مقدار می‌گیرد و آن‌ها را در یک ثبات ذخیره می‌کند.</li>
+          <li>در حالت ثبات، دومین مقدار برای جمع در یک ثبات پیدا می‌شود.</li>
+          <li>در حالت مقدار مستقیم، دومین مقدار در ۵ بیت سمت راستِ دستور جاسازی شده است.</li>
+          <li>مقادیری که کوتاه‌تر از ۱۶ بیت‌اند باید بسط علامت شوند.</li>
+          <li>هر بار که دستوری یک ثبات را تغییر می‌دهد، نشان‌های وضعیت باید به‌روزرسانی شوند.</li>
+        </ul>
+        <p>ممکن است از نوشتن ۱۵ دستور دیگر احساس سردرگمی کنید. با این حال، همهٔ آنچه این‌جا یاد گرفتید دوباره استفاده
+        خواهد شد. بیشتر دستورها از ترکیبی از بسط علامت، حالت‌های مختلف و به‌روزرسانی نشان‌ها استفاده می‌کنند.</p>
+
+        <h3>LDI (بارگذاری غیرمستقیم)</h3>
+        <p><code class="inline">LDI</code> مخفف «load indirect» (بارگذاری غیرمستقیم) است. این دستور برای بارگذاری یک
+        مقدار از یک مکان در حافظه به یک ثبات استفاده می‌شود. مشخصات آن در صفحهٔ ۵۳۲ است.</p>
+        <p>این هم چیدمان دودویی آن:</p>
+        <img src="https://justinmeiners.github.io/lc3-vm/img/ldi_layout.gif" alt="چیدمان بیت‌های دستور LDI شامل DR و PCoffset9" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در مقایسه با <code class="inline">ADD</code>، هیچ حالتی نیست و پارامترهای کمتری دارد. این بار کد عملیات «1010»
+        است که با مقدار enum <code class="inline">OP_LDI</code> مطابقت دارد. درست مثل <code class="inline">ADD</code>،
+        شامل یک <code class="inline">DR</code> سه‌بیتی (ثبات مقصد) برای ذخیرهٔ مقدار بارگذاری‌شده است. بیت‌های باقی‌مانده
+        با «PCoffset9» مشخص شده‌اند. این یک مقدار مستقیم جاسازی‌شده در دستور است (شبیه <code class="inline">imm5</code>).
+        چون این دستور از حافظه بارگذاری می‌کند، می‌توانیم حدس بزنیم این عدد نوعی آدرس است که به ما می‌گوید از کجا
+        بارگذاری کنیم. مشخصات جزئیات بیشتری ارائه می‌دهد:</p>
+        <div class="callout note">
+          آدرسی با بسط علامت بیت‌های `[8:0]` به ۱۶ بیت و افزودن این مقدار به <code class="inline">PC</code> افزایش‌یافته
+          محاسبه می‌شود. آنچه در این آدرس در حافظه ذخیره شده، آدرس داده‌ای است که باید در <code class="inline">DR</code>
+          بارگذاری شود. (صفحه ۵۳۲)
+        </div>
+        <p>درست مثل قبل، باید این مقدار ۹ بیتی را بسط علامت بدهیم، اما این بار آن را به <code class="inline">PC</code>
+        فعلی اضافه کنیم. (اگر به حلقهٔ اجرا برگردید، <code class="inline">PC</code> درست بعد از بارگذاری این دستور
+        افزایش یافته بود.) حاصلِ جمع، آدرسی برای یک مکان در حافظه است و آن آدرس <em>حاوی، باز هم</em>، مقدار دیگری است که
+        آدرس مقداری است که باید بارگذاری شود.</p>
+        <p>این ممکن است راهی غیرمستقیم برای خواندن از حافظه به نظر برسد، اما غیرقابل‌جایگزین است. دستور
+        <code class="inline">LD</code> به آفست‌های آدرس ۹ بیتی محدود است، در حالی که حافظه برای آدرس‌دهی ۱۶ بیت لازم
+        دارد. <code class="inline">LDI</code> برای بارگذاری مقادیری که در مکان‌های دور از PC فعلی ذخیره شده‌اند مفید
+        است، اما برای استفاده از آن، آدرس مکان نهایی باید در همسایگی نزدیک ذخیره شده باشد. می‌توانید آن را مثل داشتن یک
+        متغیر محلی در C در نظر بگیرید که اشاره‌گری به برخی داده‌هاست:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">// مقدار far_data یک آدرس است
+// البته خود far_data (موقعیت حافظه‌ای که آدرس را در خود دارد) هم آدرسی دارد
+char* far_data = "apple";
+
+// در حافظه ممکن است این‌گونه چیده شده باشد:
+
+// آدرس    برچسب      مقدار
+// 0x123:  far_data = 0x456
+// ...
+// 0x456:  string   = 'a'
+
+// اگر PC در 0x100 بود
+// LDI R0 0x023
+// مقدار 'a' را در R0 بارگذاری می‌کرد</code></pre>
+        <p>مثل قبل، بعد از قرار دادن مقدار در <code class="inline">DR</code> باید نشان‌ها به‌روزرسانی شوند:</p>
+        <div class="callout note">
+          کدهای وضعیت بر اساس اینکه مقدار بارگذاری‌شده منفی، صفر یا مثبت است تنظیم می‌شوند. (صفحه ۵۳۲)
+        </div>
+        <p>کد این case این است: (در بخش بعدی دربارهٔ <code class="inline">mem_read</code> بحث خواهیم کرد.)</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    /* ثبات مقصد (DR) */
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    /* PCoffset 9 */
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    /* pc_offset را به PC فعلی اضافه کن؛ به آن مکان حافظه نگاه کن تا آدرس نهایی را به دست بیاوری */
+    reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
+    update_flags(r0);
+}</code></pre>
+        <p>همان‌طور که گفتم، این دستور بخش زیادی از کد و دانش آموخته‌شده از <code class="inline">ADD</code> را به اشتراک
+        می‌گذارد. خواهید دید که دربارهٔ دستورهای باقی‌مانده نیز همین‌طور است.</p>
+        <p>حالا باید برگردید و بقیهٔ caseهای switch دستورها را پیاده‌سازی کنید.
+        <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/lc3-isa.pdf" target="_blank" rel="noopener">مشخصات را دنبال کنید</a> و
+        برای تکمیل بقیه از کدهایی که این‌جا آمده استفاده کنید. کد همهٔ دستورها در انتهای آموزش فهرست شده است. دو کد
+        عملیاتی که قبلاً مشخص شدند استفاده نخواهند شد؛ آن‌ها <code class="inline">OP_RTI</code> و
+        <code class="inline">OP_RES</code> هستند. می‌توانید این caseها را نادیده بگیرید یا اگر اجرا شدند خطا بدهید. بعد از
+        اتمام، بخش عمدهٔ ماشین مجازی شما تکمیل خواهد شد!</p>
+      </section>
+
+      <!-- ==================== برگه راهنمای دستورها ==================== -->
+      <section id="instruction-cheat-sheet">
+        <h2>برگه راهنمای دستورها</h2>
+        <p>این بخش شامل پیاده‌سازی کامل دستورهای باقی‌مانده است؛ اگر گیر کردید به آن مراجعه کنید.</p>
+
+        <h3>RTI و RES</h3>
+        <p>(این‌ها استفاده نشده‌اند)</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">abort();</code></pre>
+
+        <h3>و بیتی (Bitwise and)</h3>
+        <p><a href="https://en.wikipedia.org/wiki/Bitwise_operation#AND" target="_blank" rel="noopener">اطلاعات بیشتر</a></p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+    uint16_t imm_flag = (instr &gt;&gt; 5) &amp; 0x1;
+
+    if (imm_flag)
+    {
+        uint16_t imm5 = sign_extend(instr &amp; 0x1F, 5);
+        reg[r0] = reg[r1] &amp; imm5;
+    }
+    else
+    {
+        uint16_t r2 = instr &amp; 0x7;
+        reg[r0] = reg[r1] &amp; reg[r2];
+    }
+    update_flags(r0);
+}</code></pre>
+
+        <h3>نقیض بیتی (Bitwise not)</h3>
+        <p><a href="https://en.wikipedia.org/wiki/Bitwise_operation#NOT" target="_blank" rel="noopener">اطلاعات بیشتر</a></p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+
+    reg[r0] = ~reg[r1];
+    update_flags(r0);
+}</code></pre>
+
+        <h3>پرش شرطی (Branch)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    uint16_t cond_flag = (instr &gt;&gt; 9) &amp; 0x7;
+    if (cond_flag &amp; reg[R_COND])
+    {
+        reg[R_PC] += pc_offset;
+    }
+}</code></pre>
+
+        <h3>پرش (Jump)</h3>
+        <p><code class="inline">RET</code> در مشخصات به‌عنوان دستور جداگانه‌ای فهرست شده است، چون در اسمبلی کلمهٔ دیگری
+        است. با این حال، در واقع حالت خاصی از <code class="inline">JMP</code> است. <code class="inline">RET</code> هر
+        بار که <code class="inline">R1</code> برابر 7 باشد اتفاق می‌افتد.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    /* همچنین RET را پوشش می‌دهد */
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+    reg[R_PC] = reg[r1];
+}</code></pre>
+
+        <h3>پرش به زیرروال (Jump register)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t long_flag = (instr &gt;&gt; 11) &amp; 1;
+    reg[R_R7] = reg[R_PC];
+    if (long_flag)
+    {
+        uint16_t long_pc_offset = sign_extend(instr &amp; 0x7FF, 11);
+        reg[R_PC] += long_pc_offset;  /* JSR */
+    }
+    else
+    {
+        uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+        reg[R_PC] = reg[r1]; /* JSRR */
+    }
+}</code></pre>
+
+        <h3>بارگذاری (Load)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    reg[r0] = mem_read(reg[R_PC] + pc_offset);
+    update_flags(r0);
+}</code></pre>
+
+        <h3>بارگذاری از طریق ثبات (Load register)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+    uint16_t offset = sign_extend(instr &amp; 0x3F, 6);
+    reg[r0] = mem_read(reg[r1] + offset);
+    update_flags(r0);
+}</code></pre>
+
+        <h3>بارگذاری آدرس مؤثر (Load effective address)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    reg[r0] = reg[R_PC] + pc_offset;
+    update_flags(r0);
+}</code></pre>
+
+        <h3>ذخیره (Store)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    mem_write(reg[R_PC] + pc_offset, reg[r0]);
+}</code></pre>
+
+        <h3>ذخیرهٔ غیرمستقیم (Store indirect)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t pc_offset = sign_extend(instr &amp; 0x1FF, 9);
+    mem_write(mem_read(reg[R_PC] + pc_offset), reg[r0]);
+}</code></pre>
+
+        <h3>ذخیره از طریق ثبات (Store register)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    uint16_t r0 = (instr &gt;&gt; 9) &amp; 0x7;
+    uint16_t r1 = (instr &gt;&gt; 6) &amp; 0x7;
+    uint16_t offset = sign_extend(instr &amp; 0x3F, 6);
+    mem_write(reg[r1] + offset, reg[r0]);
+}</code></pre>
+      </section>
+
+      <!-- ==================== روال‌های وقفه ==================== -->
+      <section id="trap-routines">
+        <h2>روال‌های وقفه (Trap routines)</h2>
+        <p>LC-3 چند روال از پیش تعریف‌شده برای انجام کارهای رایج و تعامل با دستگاه‌های ورودی/خروجی فراهم می‌کند. برای
+        مثال، روال‌هایی برای دریافت ورودی از صفحه‌کلید و نمایش رشته‌ها در کنسول وجود دارد. به این‌ها <em>روال‌های وقفه
+        (trap routines)</em> می‌گویند که می‌توانید آن‌ها را سیستم‌عامل یا API برای LC-3 در نظر بگیرید. به هر روال وقفه،
+        یک <em>کد وقفه (trap code)</em> اختصاص داده شده که آن را شناسایی می‌کند (شبیه کد عملیات). برای اجرای یک روال،
+        دستور <code class="inline">TRAP</code> با کد وقفهٔ روال موردنظر فراخوانی می‌شود.</p>
+        <img src="https://justinmeiners.github.io/lc3-vm/img/trap_layout.gif" alt="چیدمان بیت‌های دستور TRAP شامل کد trap در ۸ بیت آخر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای هر کد وقفه یک enum تعریف کنید:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">enum
+{
+    TRAP_GETC = 0x20,  /* دریافت کاراکتر از صفحه‌کلید، بدون نمایش روی ترمینال */
+    TRAP_OUT = 0x21,   /* خروجی یک کاراکتر */
+    TRAP_PUTS = 0x22,  /* خروجی یک رشته کلمه‌ای */
+    TRAP_IN = 0x23,    /* دریافت کاراکتر از صفحه‌کلید، با نمایش روی ترمینال */
+    TRAP_PUTSP = 0x24, /* خروجی یک رشته بایتی */
+    TRAP_HALT = 0x25   /* توقف برنامه */
+};</code></pre>
+        <p>ممکن است تعجب کنید چرا کدهای وقفه در دستورها گنجانده نشده‌اند. علتش این است که آن‌ها در واقع هیچ قابلیت جدیدی
+        به LC-3 اضافه نمی‌کنند؛ فقط راهی راحت برای انجام یک کار فراهم می‌کنند (شبیه تماس‌های سیستمی سیستم‌عامل). در
+        شبیه‌ساز رسمی LC-3، روال‌های وقفه <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/os.asm" target="_blank" rel="noopener">به زبان اسمبلی نوشته شده‌اند</a>.
+        وقتی یک کد وقفه فراخوانی می‌شود، <code class="inline">PC</code> به آدرس آن کد منتقل می‌شود. CPU دستورهای آن روال
+        را اجرا می‌کند و وقتی کامل شد، <code class="inline">PC</code> به موقعیت بعد از فراخوانی اولیه بازنشانی می‌شود.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> به همین دلیل است که برنامه‌ها از آدرس <code class="inline">0x3000</code> شروع می‌شوند،
+          نه <code class="inline">0x0</code>. آدرس‌های پایین‌تر خالی می‌مانند تا برای کد روال‌های وقفه جا باز بماند.
+        </div>
+        <p>مشخصاتی برای <em>نحوهٔ</em> پیاده‌سازی روال‌های وقفه وجود ندارد؛ فقط مشخص می‌کند آن‌ها قرار است چه کاری
+        انجام دهند. در ماشین مجازی ما، کارها را کمی متفاوت انجام می‌دهیم و آن‌ها را به زبان C می‌نویسیم. وقتی کد وقفه‌ای
+        فراخوانی می‌شود، تابعی C صدا زده می‌شود. وقتی تمام شد، اجرا به دستورها بازمی‌گردد. (اگر دربارهٔ کدهای وقفه در
+        اسمبلی کنجکاوید، <a href="https://github.com/rpendleton/lc3sim-c" target="_blank" rel="noopener">پیاده‌سازی
+        رایان</a> را ببینید.)</p>
+        <p>حتی اگر روال‌های وقفه را می‌توان به زبان اسمبلی نوشت و این کاری است که کامپیوتر فیزیکی LC-3 انجام می‌دهد، برای
+        یک ماشین مجازی بهترین گزینه نیست. به‌جای نوشتن روال‌های ورودی/خروجی ابتدایی خودمان، می‌توانیم از آن‌هایی که سیستم‌عامل
+        ما در اختیار دارد استفاده کنیم. این کار ماشین مجازی را بهتر روی کامپیوترهای ما اجرا می‌کند، کد را ساده‌تر می‌کند و
+        سطح انتزاع بالاتری برای قابلیت انتقال فراهم می‌کند.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> دریافت ورودی از صفحه‌کلید یکی از نمونه‌های مشخص این موضوع است. نسخهٔ اسمبلی از حلقه‌ای
+          استفاده می‌کند که مدام صفحه‌کلید را برای ورودی بررسی می‌کند. این کار زمان CPU زیادی را بیهوده مصرف می‌کند! استفاده
+          از یک تابع ورودی صحیح سیستم‌عامل به برنامه اجازه می‌دهد تا زمانی که ورودی دریافت نشده، بخوابد.
+        </div>
+        <p>در case مربوط به کد عملیات <code class="inline">TRAP</code>، یک switch دیگر اضافه کنید:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">reg[R_R7] = reg[R_PC];
+
+switch (instr &amp; 0xFF)
+{
+    case TRAP_GETC:
+        @{TRAP GETC}
+        break;
+    case TRAP_OUT:
+        @{TRAP OUT}
+        break;
+    case TRAP_PUTS:
+        @{TRAP PUTS}
+        break;
+    case TRAP_IN:
+        @{TRAP IN}
+        break;
+    case TRAP_PUTSP:
+        @{TRAP PUTSP}
+        break;
+    case TRAP_HALT:
+        @{TRAP HALT}
+        break;
+}</code></pre>
+        <p>درست مثل دستورها، پیاده‌سازی یک روال وقفه را به شما نشان می‌دهم و بقیه را به خودتان واگذار می‌کنم.</p>
+
+        <h3>PUTS</h3>
+        <p>کد وقفهٔ <code class="inline">PUTS</code> برای خروجی یک رشتهٔ با پایان null (شبیه <code class="inline">printf</code>
+        در C) استفاده می‌شود. مشخصات آن در صفحهٔ ۵۴۳ است.</p>
+        <p>برای نمایش یک رشته، باید به روال وقفه رشته‌ای برای نمایش بدهیم. این کار با ذخیرهٔ آدرس اولین کاراکتر در
+        <code class="inline">R0</code> قبل از شروع روال انجام می‌شود.</p>
+        <p>مشخصات می‌گوید:</p>
+        <div class="callout note">
+          رشته‌ای از کاراکترهای ASCII را در نمایشگر کنسول بنویس. کاراکترها در مکان‌های حافظهٔ پشت‌سرهم قرار دارند، در هر
+          مکان حافظه یک کاراکتر، که از آدرس مشخص‌شده در <code class="inline">R0</code> شروع می‌شود. نوشتن با وقوع
+          <code class="inline">x0000</code> در یک مکان حافظه پایان می‌یابد. (صفحه ۵۴۳)
+        </div>
+        <p>توجه کنید که برخلاف رشته‌های C، کاراکترها در یک <em>بایت</em> تکی ذخیره نمی‌شوند، بلکه در یک <em>مکان حافظهٔ
+        تکی</em> ذخیره می‌شوند. مکان‌های حافظه در LC-3 ۱۶ بیتی‌اند، پس هر کاراکتر در رشته ۱۶ بیت عرض دارد. برای نمایش
+        این با یک تابع C، باید هر مقدار را به یک char تبدیل کنیم و آن‌ها را یکی‌یکی خروجی بدهیم.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    /* در هر کلمه یک کاراکتر */
+    uint16_t* c = memory + reg[R_R0];
+    while (*c)
+    {
+        putc((char)*c, stdout);
+        ++c;
+    }
+    fflush(stdout);
+}</code></pre>
+        <p>همین برای این روال کافی است. اگر با C آشنا باشید، روال‌های وقفه کاملاً سرراست‌اند. به مشخصات برگردید و بقیه را
+        حالا پیاده‌سازی کنید. درست مثل دستورها، کد کامل را در انتهای آموزش پیدا خواهید کرد.</p>
+      </section>
+
+      <!-- ==================== برگه راهنمای روال‌های وقفه ==================== -->
+      <section id="trap-cheat-sheet">
+        <h2>برگه راهنمای روال‌های وقفه</h2>
+        <p>این بخش شامل پیاده‌سازی کامل روال‌های وقفهٔ باقی‌مانده است.</p>
+
+        <h3>دریافت کاراکتر (Input Character)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">/* خواندن یک کاراکتر ASCII */
+reg[R_R0] = (uint16_t)getchar();
+update_flags(R_R0);</code></pre>
+
+        <h3>خروجی کاراکتر (Output Character)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">putc((char)reg[R_R0], stdout);
+fflush(stdout);</code></pre>
+
+        <h3>درخواست دریافت کاراکتر (Prompt for Input Character)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    printf("Enter a character: ");
+    char c = getchar();
+    putc(c, stdout);
+    fflush(stdout);
+    reg[R_R0] = (uint16_t)c;
+    update_flags(R_R0);
+}</code></pre>
+
+        <h3>خروجی رشته (Output String)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">{
+    /* در هر بایت یک کاراکتر (در هر کلمه دو بایت)
+       در اینجا باید دوباره به
+       قالب big endian برگردیم */
+    uint16_t* c = memory + reg[R_R0];
+    while (*c)
+    {
+        char char1 = (*c) &amp; 0xFF;
+        putc(char1, stdout);
+        char char2 = (*c) &gt;&gt; 8;
+        if (char2) putc(char2, stdout);
+        ++c;
+    }
+    fflush(stdout);
+}</code></pre>
+
+        <h3>توقف برنامه (Halt Program)</h3>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">puts("HALT");
+fflush(stdout);
+running = 0;</code></pre>
+      </section>
+
+      <!-- ==================== بارگذاری برنامه‌ها ==================== -->
+      <section id="loading-programs">
+        <h2>بارگذاری برنامه‌ها</h2>
+        <p>ما خیلی دربارهٔ بارگذاری و اجرای دستورها از حافظه صحبت کرده‌ایم، اما دستورها اصلاً اولِ کار چگونه وارد حافظه
+        می‌شوند؟ وقتی یک برنامهٔ اسمبلی به کد ماشین تبدیل می‌شود، نتیجه فایلی شامل آرایه‌ای از دستورها و داده‌هاست. این
+        فایل را می‌توان با کپی کردن محتویات مستقیم در یک آدرس از حافظه بارگذاری کرد.</p>
+        <p>۱۶ بیت اول فایل برنامه، آدرس حافظه‌ای را مشخص می‌کند که برنامه باید از آنجا شروع شود. به این آدرس
+        <b>مبدأ (origin)</b> می‌گویند. باید اول خوانده شود و بعد از آن، بقیهٔ داده‌ها را می‌توان از فایل در حافظه، از آدرس
+        مبدأ شروع کرد.</p>
+        <p>کد خواندن یک برنامهٔ LC-3 در حافظه این است:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void read_image_file(FILE* file)
+{
+    /* origin به ما می‌گوید که تصویر را کجا در حافظه قرار دهیم */
+    uint16_t origin;
+    fread(&amp;origin, sizeof(origin), 1, file);
+    origin = swap16(origin);
+
+    /* حداکثر اندازه فایل را می‌دانیم، پس فقط به یک fread نیاز داریم */
+    uint16_t max_read = MEMORY_MAX - origin;
+    uint16_t* p = memory + origin;
+    size_t read = fread(p, sizeof(uint16_t), max_read, file);
+
+    /* تبدیل به little endian */
+    while (read-- &gt; 0)
+    {
+        *p = swap16(*p);
+        ++p;
+    }
+}</code></pre>
+        <p>توجه کنید که روی هر مقدار بارگذاری‌شده <code class="inline">swap16</code> صدا زده می‌شود. برنامه‌های LC-3
+        big-endian هستند، اما بیشتر کامپیوترهای مدرن little-endian هستند. پس باید هر <code class="inline">uint16</code>
+        بارگذاری‌شده را جابه‌جا کنیم. (اگر اتفاقاً از کامپیوتر عجیبی استفاده می‌کنید، مثلاً یک <a href="https://en.wikipedia.org/wiki/PowerPC#Endian_modes" target="_blank" rel="noopener">PPC</a>
+        <a href="https://en.wikipedia.org/wiki/Power_Mac_G4_Cube" target="_blank" rel="noopener">مک</a> قدیمی، جابه‌جا نکنید.)</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">uint16_t swap16(uint16_t x)
+{
+    return (x &lt;&lt; 8) | (x &gt;&gt; 8);
+}</code></pre>
+        <div class="callout note">
+          <strong>توجه:</strong> <a href="https://en.wikipedia.org/wiki/Endianness" target="_blank" rel="noopener">ترتیب
+          بایت‌ها (Endianness)</a> به نحوهٔ تفسیر بایت‌های یک عدد صحیح اشاره دارد. در little-endian، اولین بایت کم‌ارزش‌ترین
+          رقم است و در big-endian برعکس است. تا جایی که می‌دانم، این تصمیم <em>بیشتر</em> دلبخواهانه است. شرکت‌های مختلف
+          تصمیم‌های متفاوتی گرفتند، پس حالا با پیاده‌سازی‌های متغیری روبه‌روییم. برای این پروژه لازم نیست چیز دیگری دربارهٔ
+          ترتیب بایت‌ها بدانید.
+        </div>
+        <p>همچنین یک تابع کمکی برای <code class="inline">read_image_file</code> اضافه کنیم که مسیر را به‌صورت رشته
+        می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">int read_image(const char* image_path)
+{
+    FILE* file = fopen(image_path, "rb");
+    if (!file) { return 0; };
+    read_image_file(file);
+    fclose(file);
+    return 1;
+}</code></pre>
+      </section>
+
+      <!-- ==================== ثبات‌های نگاشت‌شده به حافظه ==================== -->
+      <section id="memory-mapped">
+        <h2>ثبات‌های نگاشت‌شده به حافظه (Memory mapped registers)</h2>
+        <p>برخی ثبات‌های خاص از جدول ثبات‌های معمولی قابل دسترسی نیستند. به‌جای آن، آدرس خاصی برای آن‌ها در حافظه رزرو
+        شده است. برای خواندن و نوشتن در این ثبات‌ها، فقط در مکان حافظهٔ آن‌ها می‌خوانید و می‌نویسید. به این‌ها
+        <b>ثبات‌های نگاشت‌شده به حافظه (memory mapped registers)</b> می‌گویند. معمولاً برای تعامل با دستگاه‌های
+        سخت‌افزاری خاص استفاده می‌شوند.</p>
+        <p>LC-3 دو ثبات نگاشت‌شده به حافظه دارد که باید پیاده‌سازی شوند: ثبات وضعیت صفحه‌کلید (<code class="inline">KBSR</code>)
+        و ثبات دادهٔ صفحه‌کلید (<code class="inline">KBDR</code>). <code class="inline">KBSR</code> نشان می‌دهد که آیا
+        کلیدی فشار داده شده است و <code class="inline">KBDR</code> مشخص می‌کند کدام کلید فشار داده شده است.</p>
+        <p>اگرچه می‌توانید ورودی صفحه‌کلید را با <code class="inline">GETC</code> درخواست کنید، این کار اجرا را تا دریافت
+        ورودی مسدود می‌کند. <code class="inline">KBSR</code> و <code class="inline">KBDR</code> به شما اجازه می‌دهند
+        <a href="https://en.wikipedia.org/wiki/Polling_(computer_science)" target="_blank" rel="noopener">وضعیت دستگاه را
+        نظرسنجی (poll)</a> کنید و اجرا را ادامه دهید؛ بنابراین برنامه می‌تواند در حالی که منتظر ورودی است پاسخگو بماند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">enum
+{
+    MR_KBSR = 0xFE00, /* وضعیت صفحه‌کلید */
+    MR_KBDR = 0xFE02  /* داده صفحه‌کلید */
+};</code></pre>
+        <p>ثبات‌های نگاشت‌شده به حافظه، دسترسی به حافظه را کمی پیچیده‌تر می‌کنند. دیگر نمی‌توانیم مستقیم در آرایهٔ حافظه
+        بخوانیم و بنویسیم، بلکه باید توابع setter و getter را صدا بزنیم. وقتی حافظه از <code class="inline">KBSR</code>
+        خوانده می‌شود، getter صفحه‌کلید را بررسی می‌کند و هر دو مکان حافظه را به‌روزرسانی می‌کند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void mem_write(uint16_t address, uint16_t val)
+{
+    memory[address] = val;
+}
+
+uint16_t mem_read(uint16_t address)
+{
+    if (address == MR_KBSR)
+    {
+        if (check_key())
+        {
+            memory[MR_KBSR] = (1 &lt;&lt; 15);
+            memory[MR_KBDR] = getchar();
+        }
+        else
+        {
+            memory[MR_KBSR] = 0;
+        }
+    }
+    return memory[address];
+}</code></pre>
+        <p>با این کار آخرین جزء ماشین مجازی تکمیل شد! به شرطی که بقیهٔ روال‌های وقفه و دستورها را پیاده‌سازی کرده باشید،
+        تقریباً آماده‌اید آن را امتحان کنید!</p>
+      </section>
+
+      <!-- ==================== جزئیات ویژه سکو ==================== -->
+      <section id="platform-specifics">
+        <h2>جزئیات ویژهٔ سکو (Platform)</h2>
+        <p>این بخش شامل برخی جزئیات خسته‌کننده است که برای دسترسی به صفحه‌کلید و رفتار مناسب لازم است. این موارد برای
+        یادگیری دربارهٔ ماشین‌های مجازی روشنگر یا مرتبط نیستند. راحت باشید و کپی‌پیست کنید! این توابع باید بالای تابع
+        main شما اعلان شوند.</p>
+
+        <h3>لینوکس / مک‌اواس / یونیکس</h3>
+        <p>توجه: برای نسخه‌های <b>ویندوز</b> این توابع به بخش بعد بروید.</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">struct termios original_tio;
+
+void disable_input_buffering()
+{
+    tcgetattr(STDIN_FILENO, &amp;original_tio);
+    struct termios new_tio = original_tio;
+    new_tio.c_lflag &amp;= ~ICANON &amp; ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &amp;new_tio);
+}
+
+void restore_input_buffering()
+{
+    tcsetattr(STDIN_FILENO, TCSANOW, &amp;original_tio);
+}
+
+uint16_t check_key()
+{
+    fd_set readfds;
+    FD_ZERO(&amp;readfds);
+    FD_SET(STDIN_FILENO, &amp;readfds);
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    return select(1, &amp;readfds, NULL, NULL, &amp;timeout) != 0;
+}</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;signal.h&gt;
+/* فقط یونیکس */
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/time.h&gt;
+#include &lt;sys/types.h&gt;
+#include &lt;sys/termios.h&gt;
+#include &lt;sys/mman.h&gt;</code></pre>
+
+        <h3>ویندوز</h3>
+        <p>توجه: اگر قبلاً نسخه‌های <b>یونیکس</b> را اضافه کرده‌اید، این‌ها را اضافه نکنید!</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">HANDLE hStdin = INVALID_HANDLE_VALUE;
+DWORD fdwMode, fdwOldMode;
+
+void disable_input_buffering()
+{
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(hStdin, &amp;fdwOldMode); /* ذخیره حالت قبلی */
+    fdwMode = fdwOldMode
+            ^ ENABLE_ECHO_INPUT  /* بدون بازتاب ورودی */
+            ^ ENABLE_LINE_INPUT; /* وقتی یک یا چند کاراکتر در
+                                    دسترس بود برگرد */
+    SetConsoleMode(hStdin, fdwMode); /* تنظیم حالت جدید */
+    FlushConsoleInputBuffer(hStdin); /* پاک کردن بافر */
+}
+
+void restore_input_buffering()
+{
+    SetConsoleMode(hStdin, fdwOldMode);
+}
+
+uint16_t check_key()
+{
+    return WaitForSingleObject(hStdin, 1000) == WAIT_OBJECT_0 &amp;&amp; _kbhit();
+}</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+#include &lt;signal.h&gt;
+/* فقط ویندوز */
+#include &lt;Windows.h&gt;
+#include &lt;conio.h&gt;  // _kbhit</code></pre>
+
+        <h3>همهٔ سکوها</h3>
+        <p>برای مدیریت صحیح ورودی ترمینال، باید برخی تنظیمات بافر را اصلاح کنیم. پیاده‌سازی این‌ها برای هر سکو متفاوت
+        است و باید بالای این‌جا تعریف شده باشد.</p>
+        <p>این کد راه‌اندازی را در ابتدای برنامه (شروع main) قرار می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">signal(SIGINT, handle_interrupt);
+disable_input_buffering();</code></pre>
+        <p>وقتی برنامه قطع می‌شود، می‌خواهیم تنظیمات ترمینال را به حالت عادی برگردانیم. این کار باید در انتهای برنامه
+        انجام شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">restore_input_buffering();</code></pre>
+        <p>اگر سیگنالی برای پایان برنامه دریافت کنیم، تنظیمات نیز باید بازیابی شوند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">void handle_interrupt(int signal)
+{
+    restore_input_buffering();
+    printf("\n");
+    exit(-2);
+}</code></pre>
+        <p>هر آنچه تا این‌جا نوشته‌ایم باید به فایل C، به ترتیب زیر اضافه شده باشد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code style="direction:ltr;text-align:left">@{Memory Mapped Registers}
+@{TRAP Codes}
+
+@{Memory Storage}
+@{Register Storage}
+
+@{Input Buffering}
+@{Handle Interrupt}
+@{Sign Extend}
+@{Swap}
+@{Update Flags}
+@{Read Image File}
+@{Read Image}
+@{Memory Access}
+
+@{Main Loop}</code></pre>
+      </section>
+
+      <!-- ==================== اجرای ماشین مجازی ==================== -->
+      <section id="running-the-vm">
+        <h2>اجرای ماشین مجازی</h2>
+        <p>حالا می‌توانید ماشین مجازی LC-3 را بیلد و اجرا کنید!</p>
+        <ol>
+          <li>ماشین مجازی را با کامپایلر C دلخواهتان کامپایل کنید. (کد منبع نهایی: <a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3.c" target="_blank" rel="noopener">یونیکس</a>،
+          <a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3-win.c" target="_blank" rel="noopener">ویندوز</a>)</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left"> $ gcc lc3.c -o lc3-vm</code></pre>
+        <ol start="2">
+          <li>نسخهٔ اسمبل‌شدهٔ <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/2048.obj" target="_blank" rel="noopener">2048</a>
+          یا <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/rogue.obj" target="_blank" rel="noopener">Rogue</a> را دانلود کنید.</li>
+          <li>ماشین مجازی را با فایل .obj به‌عنوان آرگومان اجرا کنید:</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">bash</span><code style="direction:ltr;text-align:left"> $ lc3-vm path/to/2048.obj</code></pre>
+        <ol start="4">
+          <li>بازی 2048 را انجام دهید!</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left"> Control the game using WASD keys.
+ Are you on an ANSI terminal (y/n)? y
+ +--------------------------+
+ |                          |
+ |                          |
+ |                          |
+ |                     2    |
+ |                          |
+ |   2                      |
+ |                          |
+ |                          |
+ |                          |
+ +--------------------------+</code></pre>
+
+        <h3>اشکال‌زدایی (Debugging)</h3>
+        <p>اگر برنامه درست کار نمی‌کند، احتمالاً به این دلیل است که یکی از دستورها را اشتباه برنامه‌نویسی کرده‌اید. این
+        کار می‌تواند برای اشکال‌زدایی مشکل‌ساز باشد. توصیه می‌کنم هم‌زمان کد منبع اسمبلی یک برنامهٔ LC-3 را بخوانید و با
+        یک اشکال‌زدا (debugger) دستورهای ماشین مجازی را یکی‌یکی step کنید. همان‌طور که اسمبلی را می‌خوانید، مطمئن شوید
+        ماشین مجازی به دستوری می‌رود که انتظارش را دارید. اگر ناهماهنگی رخ داد، می‌دانید کدام دستور مشکل را ایجاد کرده
+        است. مشخصاتش را دوباره بخوانید و کدتان را دوباره بررسی کنید.</p>
+      </section>
+
+      <!-- ==================== تکنیک جایگزین C++ ==================== -->
+      <section id="alternate-cpp">
+        <h2>تکنیک جایگزین C++</h2>
+        <p>این‌جا راه پیشرفته‌ای برای سازمان‌دهی دستورها داریم که کد را بسیار کوتاه‌تر می‌کند. این بخش کاملاً اختیاری
+        است.</p>
+        <p>احتمالاً متوجه شده‌اید که بیشتر دستورها کارهای مشابهی را تکرار می‌کنند. مثلاً برخی از آدرس‌دهی غیرمستقیم
+        استفاده می‌کنند یا مقداری را بسط علامت می‌دهند و به مقدار PC فعلی اضافه می‌کنند. خوب نبود اگر می‌توانستیم این کد را
+        فقط یک بار برای همه بنویسیم؟</p>
+        <p>قسمت مشکل‌ساز این است که مشخص نیست چگونه این تکرار را در توابع اضافی فشرده کنیم، چون آن‌ها به بافت اطراف نیاز
+        دارند. اما کاری که می‌توانیم انجام دهیم، استفاده از قدرت genericهای C++ برای به هم دوختن تکه‌های قابلیت در زمان
+        کامپایل است. ایده این است که اجرای دستور را به‌عنوان خط لوله‌ای (pipeline) از مراحل پردازشِ کوچک‌تر در نظر بگیریم.
+        هر نوع دستور فقط زیرمجموعه‌ای یا «ترتیب‌بندی» (permutation) از مراحل موجود است.</p>
+        <p>این کار را با استفاده از نشان‌های بیتی پیاده‌سازی می‌کنیم. وجود 1 در بیتی که با شمارهٔ دستور مطابقت دارد، به
+        کامپایلر می‌گوید این بخش کد را برای آن دستور در نظر بگیرد؛ و 0 یعنی آن را کنار بگذارد.</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">template &lt;unsigned op&gt;
+void ins(uint16_t instr)
+{
+    uint16_t r0, r1, r2, imm5, imm_flag;
+    uint16_t pc_plus_off, base_plus_off;
+
+    constexpr uint16_t opbit = (1 &lt;&lt; op);
+    if (0x4EEE &amp; opbit) { r0 = (instr &gt;&gt; 9) &amp; 0x7; }
+    if (0x12F3 &amp; opbit) { r1 = (instr &gt;&gt; 6) &amp; 0x7; }
+    if (0x0022 &amp; opbit)
+    {
+        imm_flag = (instr &gt;&gt; 5) &amp; 0x1;
+
+        if (imm_flag)
+        {
+            imm5 = sign_extend(instr &amp; 0x1F, 5);
+        }
+        else
+        {
+            r2 = instr &amp; 0x7;
+        }
+    }
+    if (0x00C0 &amp; opbit)
+    {   // Base + offset  (پایه + آفست)
+        base_plus_off = reg[r1] + sign_extend(instr &amp; 0x3F, 6);
+    }
+    if (0x4C0D &amp; opbit)
+    {
+        // Indirect address  (آدرس غیرمستقیم)
+        pc_plus_off = reg[R_PC] + sign_extend(instr &amp; 0x1FF, 9);
+    }
+    if (0x0001 &amp; opbit)
+    {
+        // BR  (پرش شرطی)
+        uint16_t cond = (instr &gt;&gt; 9) &amp; 0x7;
+        if (cond &amp; reg[R_COND]) { reg[R_PC] = pc_plus_off; }
+    }
+    if (0x0002 &amp; opbit)  // ADD  (جمع)
+    {
+        if (imm_flag)
+        {
+            reg[r0] = reg[r1] + imm5;
+        }
+        else
+        {
+            reg[r0] = reg[r1] + reg[r2];
+        }
+    }
+    if (0x0020 &amp; opbit)  // AND  (و بیتی)
+    {
+        if (imm_flag)
+        {
+            reg[r0] = reg[r1] &amp; imm5;
+        }
+        else
+        {
+            reg[r0] = reg[r1] &amp; reg[r2];
+        }
+    }
+    if (0x0200 &amp; opbit) { reg[r0] = ~reg[r1]; } // NOT  (نقیض بیتی)
+    if (0x1000 &amp; opbit) { reg[R_PC] = reg[r1]; } // JMP  (پرش)
+    if (0x0010 &amp; opbit)  // JSR  (پرش به زیرروال)
+    {
+        uint16_t long_flag = (instr &gt;&gt; 11) &amp; 1;
+        reg[R_R7] = reg[R_PC];
+        if (long_flag)
+        {
+            pc_plus_off = reg[R_PC] + sign_extend(instr &amp; 0x7FF, 11);
+            reg[R_PC] = pc_plus_off;
+        }
+        else
+        {
+            reg[R_PC] = reg[r1];
+        }
+    }
+
+    if (0x0004 &amp; opbit) { reg[r0] = mem_read(pc_plus_off); } // LD  (بارگذاری)
+    if (0x0400 &amp; opbit) { reg[r0] = mem_read(mem_read(pc_plus_off)); } // LDI  (بارگذاری غیرمستقیم)
+    if (0x0040 &amp; opbit) { reg[r0] = mem_read(base_plus_off); }  // LDR  (بارگذاری از طریق ثبات)
+    if (0x4000 &amp; opbit) { reg[r0] = pc_plus_off; } // LEA  (بارگذاری آدرس مؤثر)
+    if (0x0008 &amp; opbit) { mem_write(pc_plus_off, reg[r0]); } // ST  (ذخیره)
+    if (0x0800 &amp; opbit) { mem_write(mem_read(pc_plus_off), reg[r0]); } // STI  (ذخیره غیرمستقیم)
+    if (0x0080 &amp; opbit) { mem_write(base_plus_off, reg[r0]); } // STR  (ذخیره از طریق ثبات)
+    if (0x8000 &amp; opbit)  // TRAP  (روال وقفه)
+    {
+         @{TRAP}
+    }
+    //if (0x0100 &amp; opbit) { } // RTI
+    if (0x4666 &amp; opbit) { update_flags(r0); }
+}</code></pre>
+        <pre class="code"><span class="lang-tag">cpp</span><code style="direction:ltr;text-align:left">static void (*op_table[16])(uint16_t) = {
+    ins&lt;0&gt;, ins&lt;1&gt;, ins&lt;2&gt;, ins&lt;3&gt;,
+    ins&lt;4&gt;, ins&lt;5&gt;, ins&lt;6&gt;, ins&lt;7&gt;,
+    NULL, ins&lt;9&gt;, ins&lt;10&gt;, ins&lt;11&gt;,
+    ins&lt;12&gt;, NULL, ins&lt;14&gt;, ins&lt;15&gt;
+};</code></pre>
+        <p>این روش نه‌تنها تکرار کد را کاهش می‌دهد، بلکه به نحوهٔ سیم‌کشی واقعی یک کامپیوتر در سخت‌افزار نیز نزدیک‌تر
+        است؛ جایی که هر مرحلهٔ پردازش باید فضای فیزیکی روی تراشه را اشغال کند.</p>
+        <div class="callout note">
+          <strong>توجه:</strong> من این تکنیک را از <a href="https://www.youtube.com/watch?v=QIUVSD3yqqE" target="_blank" rel="noopener">شبیه‌ساز NES بیسکویت (Bisqwit)</a>
+          یاد گرفتم. اگر به شبیه‌سازی یا NES علاقه‌مندید، اکیداً ویدیوهای او را توصیه می‌کنم.
+        </div>
+        <p>بقیهٔ نسخهٔ C++ از کدی که قبلاً نوشته‌ایم استفاده می‌کند! کد منبع کامل این‌جاست:
+        <a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3-alt.cpp" target="_blank" rel="noopener">یونیکس</a>،
+        <a href="https://github.com/justinmeiners/lc3-vm/blob/master/src/lc3-alt-win.cpp" target="_blank" rel="noopener">ویندوز</a>.</p>
+      </section>
+
+      <!-- ==================== مشارکت‌ها ==================== -->
+      <section id="contributions">
+        <h2>مشارکت‌ها</h2>
+        <p><a href="https://github.com/atul-g/rust_vm" target="_blank" rel="noopener">atul-g</a> یک
+        <a href="https://github.com/justinmeiners/lc3-vm/blob/master/supplies/lc3-ref-card.png" target="_blank" rel="noopener">کارت مرجع</a>
+        مفید مشارکت داده است که خلاصه‌ای از نحوهٔ کار کل سیستم است.</p>
+        <p>بسیاری از برنامه‌نویسان این آموزش را کامل کرده‌اند و پیاده‌سازی‌هایشان را به زبان‌های مختلف به اشتراک گذاشته‌اند.
+        منتخبی از آن‌ها قبلاً فهرست می‌شد، اما چون تعدادشان بسیار زیاد بود، تصمیم گرفتیم از برچسب‌های GitHub برای
+        سازمان‌دهی آن‌ها استفاده کنیم.</p>
+        <ul>
+          <li><a href="https://github.com/topics/lc3?l=c" target="_blank" rel="noopener">C</a></li>
+          <li><a href="https://github.com/topics/lc3?l=c%2B%2B" target="_blank" rel="noopener">C++</a></li>
+          <li><a href="https://github.com/topics/lc3?l=common-lisp" target="_blank" rel="noopener">Common Lisp</a></li>
+          <li><a href="https://github.com/topics/lc3?l=crystal" target="_blank" rel="noopener">Crystal</a></li>
+          <li><a href="https://github.com/topics/lc3?l=d" target="_blank" rel="noopener">D</a></li>
+          <li><a href="https://github.com/topics/lc3?l=f%23" target="_blank" rel="noopener">F#</a></li>
+          <li><a href="https://github.com/topics/lc3?l=go" target="_blank" rel="noopener">Go</a></li>
+          <li><a href="https://github.com/topics/lc3?l=haskell" target="_blank" rel="noopener">Haskell</a></li>
+          <li><a href="https://github.com/topics/lc3?l=java" target="_blank" rel="noopener">Java</a></li>
+          <li><a href="https://github.com/topics/lc3?l=javascript" target="_blank" rel="noopener">JavaScript</a></li>
+          <li><a href="https://github.com/topics/lc3?l=kotlin" target="_blank" rel="noopener">Kotlin</a></li>
+          <li><a href="https://github.com/topics/lc3?l=lean" target="_blank" rel="noopener">Lean</a></li>
+          <li><a href="https://github.com/topics/lc3?l=lua" target="_blank" rel="noopener">Lua</a></li>
+          <li><a href="https://github.com/topics/lc3?l=ocaml" target="_blank" rel="noopener">OCaml</a></li>
+          <li><a href="https://github.com/topics/lc3?l=odin" target="_blank" rel="noopener">Odin</a></li>
+          <li><a href="https://github.com/topics/lc3?l=python" target="_blank" rel="noopener">Python</a></li>
+          <li><a href="https://github.com/topics/lc3?l=racket" target="_blank" rel="noopener">Racket</a></li>
+          <li><a href="https://github.com/topics/lc3?l=ruby" target="_blank" rel="noopener">Ruby</a></li>
+          <li><a href="https://github.com/topics/lc3?l=rust" target="_blank" rel="noopener">Rust</a></li>
+          <li><a href="https://github.com/topics/lc3?l=scala" target="_blank" rel="noopener">Scala</a></li>
+          <li><a href="https://github.com/topics/lc3?l=swift" target="_blank" rel="noopener">Swift</a></li>
+          <li><a href="https://github.com/topics/lc3?l=typescript" target="_blank" rel="noopener">TypeScript</a></li>
+          <li><a href="https://github.com/topics/lc3?l=zig" target="_blank" rel="noopener">Zig</a></li>
+        </ul>
+        <p>برای فهرست کردن پروژهٔ خودتان، فقط مطمئن شوید روی آن برچسب موضوع GitHub یعنی «lc3» گذاشته شده است. اگر زبان شما
+        غایب است، در ارسال pull request آزاد باشید.</p>
+        <p>تشکر ویژه از <a href="https://github.com/inkydragon" target="_blank" rel="noopener">inkydragon</a> برای مشارکت
+        در پشتیبانی از سکوی ویندوز.</p>
+        <p>می‌خواهید مشارکت کنید؟ ما به کمک برای یک تست یکپارچه‌سازی نیاز داریم. این یک
+        <a href="https://github.com/justinmeiners/lc3-vm/issues/13" target="_blank" rel="noopener">issue خوب اول</a> برای
+        یادگیری است.</p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتابچه «Write your Own Virtual Machine» اثر «جاستین ماینرز (Justin Meiners)» و
+        «رایان پندلتون (Ryan Pendleton)» است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندگان اصلی است. برای مشاهده اصل مطلب به <a href="https://justinmeiners.github.io/lc3-vm/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>
