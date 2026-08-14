@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی سری کامل «SavjeeCoin — ساخت بلاکچین با جاوااسکریپت»
+  نویسنده اصلی: Xavier Decuyper (Savjee / Simply Explained)
+  موضوع: بلاکچین / ارز دیجیتال | زبان: JavaScript
+  پوشش کامل: بخش ۱ (بلاکچین) + بخش ۲ (اثبات کار) + بخش ۳ (تراکنش‌ها و پاداش)
+  + بخش ۴ (امضای تراکنش‌ها) + README مخزن گیت‌هاب + سری ویدیویی کامل یوتیوب
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | SavjeeCoin — ساخت بلاکچین با جاوااسکریپت (سری کامل)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاکچین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>SavjeeCoin — ساخت بلاکچین با جاوااسکریپت</span>
+      </div>
+      <h1>SavjeeCoin — ساخت بلاکچین با جاوااسکریپت (سری کامل)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">📁 دسته: بلاکچین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://simplyexplained.com/blog/Writing-tiny-blockchain-in-JavaScript/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه کامل و فارسی سری مقالات «Writing a tiny blockchain
+          in JavaScript» (+ مخزن گیت‌هاب SavjeeCoin و سری ویدیویی یوتیوب) نوشته «Xavier Decuyper
+          (Savjee / Simply Explained)» است — همان آرشیو آموزشی که قبلاً در savjee.be منتشرشده بود و
+          امروز در simplyexplained.com میزبانی می‌شود. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://simplyexplained.com/blog/Writing-tiny-blockchain-in-JavaScript/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ==================== مقدمه ==================== -->
+      <section>
+        <h2>مقدمه: این سری درباره چیست؟</h2>
+        <p>تقریباً همه درباره ارزهای دیجیتال مانند بیت‌کوین و اتریوم شنیده‌اند، اما افراد کمی واقعاً
+        می‌دانند فناوری پشت این‌ها چگونه کار می‌کند. در این سری مقاله، یک بلاکچین ساده در جاوااسکریپت
+        می‌سازیم تا نشان دهیم آن‌ها در داخل چگونه کار می‌کنند. اسم این ارز را می‌گذاریم
+        <b>SavjeeCoin</b>!</p>
+
+        <img src="https://i.imgur.com/VELRxXl.png" alt="لوگوی پروژه SavjeeCoin — یک ارز دیجیتال آموزشی ساخته‌شده با جاوااسکریپت" style="max-width:260px;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>این سری شامل چهار بخش وبلاگی، یک مخزن کد کامل در گیت‌هاب و یک سری ویدیویی پنج‌قسمتی در
+        یوتیوب است. فهرست همه بخش‌ها:</p>
+        <ul>
+          <li><b>بخش ۱:</b> پیاده‌سازی یک بلاکچین پایه (Blockchain)</li>
+          <li><b>بخش ۲:</b> پیاده‌سازی اثبات کار (Proof-of-work)</li>
+          <li><b>بخش ۳:</b> تراکنش‌ها و پاداش ماینینگ (Transactions &amp; mining rewards)</li>
+          <li><b>بخش ۴:</b> امضای تراکنش‌ها (Signing transactions)</li>
+          <li><b>بخش ۵ (ویدیو):</b> ساخت فرانت‌اند با Angular</li>
+        </ul>
+        <p>هر بخش یک مقاله کامل در وبلاگ نویسنده و یک ویدیوی یوتیوب همراه دارد. این ترجمه، تمام متن،
+        تمام کدها و تمام لینک‌های ویدیویی همه بخش‌ها را کامل پوشش می‌دهد.</p>
+
+        <div class="callout tip">
+          <strong>راهنمای مطالعه:</strong> بهتر است بخش‌ها را به ترتیب دنبال کنید؛ هر بخش روی دستاورد
+          بخش قبلی ساخته می‌شود. کد نهایی هر بخش در ادامه همان بخش، کامل با کامنت فارسی آمده است.
+        </div>
+      </section>
+
+      <!-- ==================== بخش ۱ ==================== -->
+      <section>
+        <h2>بخش ۱: بلاکچین — پیاده‌سازی پایه</h2>
+        <p>مقاله اصلی: <a href="https://simplyexplained.com/blog/Writing-tiny-blockchain-in-JavaScript/" target="_blank" rel="noopener">«Writing a tiny blockchain in JavaScript»</a>
+        — ویدیو: <a href="https://www.youtube.com/watch?v=zVqczFZr124" target="_blank" rel="noopener">Creating a blockchain with Javascript (part 1)</a></p>
+
+        <h3>بلاکچین‌ها (Blockchains)</h3>
+        <p>بلاکچین یک پایگاه‌داده عمومی است که از بلاک‌هایی تشکیل‌شده که هرکسی می‌تواند آن‌ها را
+        بخواند. هیچ چیز خاصی نیست، اما یک خاصیت جالب دارند: <b>تغییرناپذیر هستند (immutable)</b>.
+        به محض اینکه یک بلاک به زنجیره اضافه شود، دیگر نمی‌توان آن را تغییر داد — مگر اینکه بقیه
+        زنجیره را هم باطل کنید.</p>
+        <p>به همین دلیل است که ارزهای دیجیتال بر پایه بلاکچین ساخته می‌شوند. شما نمی‌خواهید مردم
+        بعد از انجام تراکنش‌هایشان آن‌ها را تغییر دهند!</p>
+
+        <h3>ساخت یک بلاک (Building a Block)</h3>
+        <p>یک بلاکچین از بلاک‌های زیادی تشکیل‌شده که به یکدیگر زنجیرشده‌اند. زنجیرکردن بلاک‌ها به
+        شکلی انجام می‌شود که به ما اجازه می‌دهد تشخیص دهیم آیا کسی یکی از بلاک‌های قبلی را دستکاری
+        کرده است یا نه.</p>
+        <p>پس چگونه یکپارچگی (integrity) را تضمین می‌کنیم؟ هر بلاک یک هش (hash) دارد که بر اساس
+        محتوایش محاسبه می‌شود. همچنین هش بلاک قبلی را هم در خود نگه می‌دارد.</p>
+        <p>یک کلاس Block در جاوااسکریپت می‌تواند این‌گونه باشد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// کتابخانه crypto-js را وارد می‌کنیم؛
+// چون تابع هش sha256 به‌صورت داخلی در جاوااسکریپت وجود ندارد
+const SHA256 = require("crypto-js/sha256");
+
+class Block {
+	// سازنده بلاک: ایندکس، زمان‌سنج، داده و هش بلاک قبلی را می‌گیرد
+	constructor(index, timestamp, data, previousHash = '') {
+		this.index = index;                 // جایگاه بلاک روی زنجیره
+		this.previousHash = previousHash;   // هش بلاک قبل
+		this.timestamp = timestamp;         // زمان ایجاد بلاک
+		this.data = data;                   // داده‌هایی که در بلاک ذخیره می‌شود
+		this.hash = this.calculateHash();   // هش این بلاک
+	}
+
+	// محاسبه هش: ایندکس + هش قبلی + زمان + داده‌ها
+	calculateHash() {
+		return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+	}
+}</code></pre>
+
+        <p>ابتدا کتابخانه crypto-js را وارد می‌کنم، چون تابع هش sha256 در جاوااسکریپت موجود نیست.
+        بعد از آن یک سازنده تعریف می‌کنم که خصوصیات بلاک من را مقداردهی می‌کند. به هر بلاک یک
+        ایندکس داده می‌شود که می‌گوید بلاک در چه جایگاهی از زنجیره قرار دارد. همچنین یک زمان‌سنج،
+        مقداری داده برای ذخیره در بلاک و در نهایت هش بلاک قبلی را هم اضافه می‌کنیم.</p>
+
+        <h3>ساخت زنجیره (Building the chain)</h3>
+        <p>حالا می‌توانیم بلاک‌ها را در یک کلاس Blockchain به هم زنجیر کنیم! در جاوااسکریپت
+        این‌گونه خواهد بود:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+	// سازنده: زنجیره را با ساخت بلاک جنسیس (بلاک اول) مقداردهی می‌کند
+	constructor() {
+		this.chain = [this.createGenesisBlock()];
+	}
+
+	// بلاک جنسیس: بلاک اول زنجیره که نمی‌تواند به بلاک قبلی اشاره کند
+	createGenesisBlock() {
+		return new Block(0, "01/01/2017", "Genesis block", "0");
+	}
+
+	// آخرین بلاک زنجیره را برمی‌گرداند
+	getLatestBlock() {
+		return this.chain[this.chain.length - 1];
+	}
+
+	// افزودن بلاک جدید به زنجیره
+	addBlock(newBlock) {
+		// هش آخرین بلاک را به‌عنوان previousHash بلاک جدید تنظیم می‌کنیم
+		newBlock.previousHash = this.getLatestBlock().hash;
+		// چون محتوای بلاک عوض شده، هش آن را دوباره محاسبه می‌کنیم
+		newBlock.hash = newBlock.calculateHash();
+		// بلاک را به زنجیره اضافه می‌کنیم
+		this.chain.push(newBlock);
+	}
+
+	// بررسی صحت زنجیره: آیا کسی بلاکچین را دستکاری کرده است؟
+	isChainValid() {
+		for (let i = 1; i &lt; this.chain.length; i++) {
+			const currentBlock = this.chain[i];   // بلاک فعلی
+			const previousBlock = this.chain[i - 1]; // بلاک قبلی
+
+			// اگر هش فعلی با هش بازمحاسبه‌شده فرق داشت، زنجیره باطل است
+			if (currentBlock.hash !== currentBlock.calculateHash()) {
+				return false;
+			}
+
+			// اگر بلاک فعلی به بلاک قبلی درست اشاره نکند، زنجیره باطل است
+			if (currentBlock.previousHash !== previousBlock.hash) {
+				return false;
+			}
+		}
+		// اگر همه چیز درست بود، زنجیره معتبر است
+		return true;
+	}
+}</code></pre>
+
+        <p>در سازنده، زنجیره را با ساخت یک آرایه که حاوی بلاک جنسیس (genesis block) است مقداردهی
+        می‌کنم. بلاک اول ویژه است؛ چون نمی‌تواند به بلاک قبلی اشاره کند. همچنین دو متد اضافه کرده‌ام:</p>
+        <ul>
+          <li><code>getLatestBlock()</code> آخرین بلاک بلاکچین ما را برمی‌گرداند.</li>
+          <li><code>addBlock()</code> مسئول افزودن بلاک جدید به زنجیره است. برای این کار، هش بلاک
+          قبلی را به بلاک جدید اضافه می‌کنیم تا یکپارچگی زنجیره حفظ شود. چون محتوای بلاک جدید را
+          تغییر داده‌ایم، باید هش آن را دوباره محاسبه کنیم. وقتی تمام شد، بلاک را روی زنجیره (آرایه)
+          push می‌کنیم.</li>
+        </ul>
+        <p>در نهایت متد <code>isChainValid()</code> را ساخته‌ام تا مطمئن شویم کسی دستکاری نکرده است.
+        روی همه بلاک‌ها پیمایش می‌کند و بررسی می‌کند هش هر بلاک درست است. همچنین بررسی می‌کند هر بلاک
+        با مقایسه مقدار <code>previousHash</code> به بلاک قبلیِ درست اشاره می‌کند. اگر همه چیز درست
+        باشد <code>true</code> و اگر مشکلی باشد <code>false</code> برمی‌گرداند.</p>
+
+        <h3>استفاده از بلاکچین</h3>
+        <p>حالا که کلاس Blockchain تمام شده، واقعاً می‌توانیم از آن استفاده کنیم!</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// ساخت یک نمونه از بلاکچین به نام ساوجی‌کوین
+let savjeeCoin = new Blockchain();
+
+// افزودن چند بلاک آزمایشی به زنجیره
+savjeeCoin.addBlock(new Block(1, "20/07/2017", { amount: 4 }));
+savjeeCoin.addBlock(new Block(2, "20/07/2017", { amount: 8 }));</code></pre>
+
+        <p>اینجا فقط یک نمونه جدید از Blockchain ساخته و نامش را SavjeeCoin گذاشته‌ام. بعد چند بلاک
+        آزمایشی روی زنجیره اضافه می‌کنم. بلاک‌ها می‌توانند هر داده‌ای که می‌خواهید داشته باشند، اما
+        در این مورد یک آبجکت با خصوصیت amount انتخاب کردم.</p>
+
+        <h3>تلاش برای دستکاری</h3>
+        <p>در مقدمه گفتم بلاکچین‌ها تغییرناپذیر هستند. با این تست مطمئن می‌شویم که این واقعاً
+        درست است!</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی صحت زنجیره (خروجی: true)
+console.log('Blockchain valid? ' + savjeeCoin.isChainValid());
+
+// حالا داده‌ها را دستکاری می‌کنیم
+savjeeCoin.chain[1].data = { amount: 100 };
+
+// دوباره زنجیره را بررسی می‌کنیم (خروجی: false)
+console.log("Blockchain valid? " + savjeeCoin.isChainValid());</code></pre>
+
+        <p>با اجرای <code>isChainValid()</code> شروع می‌کنم تا یکپارچگی زنجیره را بررسی کنم.
+        هیچ بلاکی را دستکاری نکرده‌ام پس <code>true</code> برمی‌گرداند.</p>
+        <p>بعد از آن بلاک اول زنجیره (ایندکس ۱) را برمی‌دارم و مقدار amount آن را دستکاری می‌کنم.
+        سپس دوباره یکپارچگی زنجیره را بررسی می‌کنم و این بار تشخیص می‌دهد که مشکلی وجود دارد.
+        زنجیره ما دیگر معتبر نیست.</p>
+
+        <h3>ویدیوی بخش ۱</h3>
+        <img src="https://i.ytimg.com/vi/zVqczFZr124/maxresdefault.jpg" alt="تصویر بندانگشتی ویدیوی بخش ۱ — ساخت یک بلاکچین با جاوااسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این ویدیو، نویسنده همان محتوای بالا را قدم‌به‌قدم همراه با اجرای کد و تست دستکاری
+        زنجیره نشان می‌دهد.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=zVqczFZr124" target="_blank" rel="noopener">▶ تماشای ویدیوی بخش ۱ در یوتیوب</a></p>
+
+        <h3>جمع‌بندی بخش ۱</h3>
+        <p>این پیاده‌سازی به‌هیچ‌وجه کامل نیست. در آن اثبات کار (proof-of-work) یا شبکه P2P برای
+        ارتباط با دیگر ماینرها پیاده‌سازینشده است.</p>
+        <p>بااین‌حال نشان می‌دهد بلاکچین چگونه کار می‌کند. خیلی از مردم فکر می‌کنند بلاکچین
+        بسیار پیچیده است، اما این مقاله نشان می‌دهد مفاهیم پایه بلاکچین به‌راحتی قابل درک و
+        پیاده‌سازی هستند.</p>
+
+        <div class="callout note">
+          <strong>ادامه دارد:</strong> این بلاکچین کامل و کاملاً امن نیست. در
+          <a href="#part2">بخش ۲: اثبات کار</a> آن را در برابر هرزنگاری و دستکاری امن می‌کنیم.
+        </div>
+      </section>
+
+      <!-- ==================== بخش ۲ ==================== -->
+      <section id="part2">
+        <h2>بخش ۲: پیاده‌سازی اثبات کار (Proof-of-work)</h2>
+        <p>مقاله اصلی: <a href="https://simplyexplained.com/blog/Implementing-proof-of-work-javascript-blockchain/" target="_blank" rel="noopener">«Implementing proof-of-work (part 2)»</a>
+        — ویدیو: <a href="https://www.youtube.com/watch?v=HneatE69814" target="_blank" rel="noopener">Adding proof-of-work (part 2)</a></p>
+
+        <p>در مقاله قبلی، یک بلاکچین ساده در جاوااسکریپت ساختیم تا نشان دهیم بلاکچین چگونه کار
+        می‌کند. اما خیلی از افراد کامنت گذاشتند و گفتند که پیاده‌سازی کامل نیست و هنوز می‌توان
+        سیستم را گول زد. آن‌ها درست می‌گویند! بلاکچین ما به سازوکار دیگری برای محافظت از خود در
+        برابر حملات نیاز دارد. ببینیم این کار را چطور انجام دهیم!</p>
+
+        <h3>مسئله (The problem)</h3>
+        <p>در حال حاضر می‌توانیم خیلی سریع بلاک بسازیم و به بلاکچین اضافه کنیم. این سه مشکل ایجاد
+        می‌کند:</p>
+        <ul>
+          <li>اول: مردم می‌توانند با سرعت بسیار زیاد بلاک بسازند و بلاکچین ما را هرزنگاری (spam)
+          کنند. سیل بلاک‌ها بلاکچین را غرق می‌کند و غیرقابل‌استفاده می‌شود.</li>
+          <li>دوم: چون ساختن بلاک معتبر خیلی آسان است، مردم می‌توانند یکی از بلاک‌های زنجیره را
+          دستکاری کنند و سپس به‌سادگی هش همه بلاک‌های بعدی را دوباره محاسبه کنند. نتیجه یک
+          بلاکچین «معتبر» می‌شود، حتی با وجود دستکاری!</li>
+          <li>سوم: می‌توانید دو مشکل بالا را ترکیب کنید تا عملاً کنترل بلاکچین را به دست بگیرید.
+          بلاکچین‌ها با یک شبکه همتا‌به‌همتا (peer-to-peer) کار می‌کنند که در آن نودها بلاک‌هایشان
+          را به طولانی‌ترین زنجیره اضافه می‌کنند. پس می‌توانید یک بلاک را دستکاری کنید، بقیه
+          بلاک‌ها را بازمحاسبه کنید و بعد هر چقدر می‌خواهید بلاک اضافه کنید. در نهایت طولانی‌ترین
+          زنجیره را خواهید داشت و همه همتاها آن را می‌پذیرند و شروع به اضافه‌کردن بلاک‌های خودشان
+          به آن می‌کنند.</li>
+        </ul>
+        <p>به‌وضوح برای این مشکلات به یک راه‌حل نیاز داریم. نام آن: اثبات کار (proof-of-work).</p>
+
+        <h3>اثبات کار چیست؟</h3>
+        <p>اثبات کار، سازوکاری است که قبل از ساخت اولین بلاکچین هم وجود داشت. یک تکنیک ساده است که
+        با مطالبه مقدار مشخصی «کار محاسباتی» از سوءاستفاده جلوگیری می‌کند. همین مقدار کار، کلید
+        جلوگیری از هرزنگاری و دستکاری است. وقتی هرزنگاری نیازمند قدرت محاسباتی زیاد باشد، دیگر
+        به‌صرفه نیست.</p>
+        <p>بیت‌کوین اثبات کار را این‌گونه پیاده‌سازی می‌کند که هش هر بلاک باید با تعداد مشخصی صفر
+        شروع شود. به این تعداد، <b>سختی (difficulty)</b> گفته می‌شود.</p>
+        <p>اما یک لحظه صبر کنید! هش یک بلاک چطور می‌تواند تغییر کند؟ در مورد بیت‌کوین، هر بلاک
+        جزئیات یک تراکنش مالی است. مطمئناً نمی‌خواهیم فقط برای گرفتن یک هش درست، آن داده‌ها را
+        خراب کنیم!</p>
+        <p>برای حل این مشکل، بلاکچین‌ها یک مقدار <b>nonce</b> اضافه می‌کنند. این یک عدد است که
+        آن‌قدر افزایش می‌یابد تا یک هش خوب پیدا شود. و چون نمی‌توان خروجی یک تابع هش را پیش‌بینی
+        کرد، باید ترکیب‌های زیادی را امتحان کنید تا به هشی برسید که سختی را راضی کند. جست‌وجوی یک
+        هش معتبر (برای ساخت بلاک جدید) در دنیای ارز دیجیتال «ماینینگ» نامیده می‌شود.</p>
+        <p>در مورد بیت‌کوین، سازوکار اثبات کار تضمین می‌کند که فقط هر ۱۰ دقیقه یک بلاک اضافه شود.
+        می‌توانید تصور کنید هرزنگارها چه سختی خواهند کشید تا شبکه را گول بزنند، وقتی برای ساخت هر
+        بلاک جدید به این‌همه قدرت محاسباتی نیاز دارند — چه برسد به دستکاری کل زنجیره!</p>
+
+        <h3>پیاده‌سازی اثبات کار</h3>
+        <p>پس چطور آن را پیاده‌سازی می‌کنیم؟ با تغییر کلاس Block شروع می‌کنیم و متغیر nonce را به
+        سازنده آن اضافه می‌کنیم. مقدار اولیه آن را ۰ تنظیم می‌کنم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// سازنده جدید بلاک با متغیر nonce
+constructor(index, timestamp, data, previousHash = '') {
+	this.index = index;
+	this.previousHash = previousHash;
+	this.timestamp = timestamp;
+	this.data = data;
+	this.hash = this.calculateHash();
+	this.nonce = 0; // عددی که تا پیدا شدن هش معتبر افزایش می‌یابد
+}</code></pre>
+
+        <p>به یک متد جدید هم نیاز داریم که nonce را آن‌قدر افزایش دهد تا به یک هش معتبر برسیم.
+        باز هم این مقدار توسط سختی تعیین می‌شود، پس سختی را به‌عنوان پارامتر دریافت می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// استخراج بلاک: nonce را افزایش می‌دهیم تا هش با تعداد صفرهای لازم شروع شود
+mineBlock(difficulty) {
+	// تا وقتی هش با «difficulty» عدد صفر شروع نشده، nonce را زیاد می‌کنیم
+	while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+		this.nonce++;
+		this.hash = this.calculateHash();
+	}
+	// وقتی هش معتبر پیدا شد، آن را چاپ می‌کنیم
+	console.log("BLOCK MINED: " + this.hash);
+}</code></pre>
+
+        <p>و در نهایت باید تابع <code>calculateHash()</code> را هم تغییر دهیم؛ چون الان از متغیر
+        nonce برای محاسبه هش استفاده نمی‌کند.</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// هش جدید: این بار nonce هم در محاسبه شرکت می‌کند
+calculateHash() {
+	return SHA256(this.index +
+		this.previousHash +
+		this.timestamp +
+		JSON.stringify(this.data) +
+		this.nonce
+	).toString();
+}</code></pre>
+
+        <p>اگر همه این‌ها را کنار هم بگذارید، کلاس Block این‌شکلی می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+	// سازنده بلاک: همه خصوصیات به‌جز nonce با مقداردهی اولیه ۰
+	constructor(index, timestamp, data, previousHash = '') {
+		this.index = index;
+		this.previousHash = previousHash;
+		this.timestamp = timestamp;
+		this.data = data;
+		this.hash = this.calculateHash();
+		this.nonce = 0;
+	}
+
+	// محاسبه هش با درنظرگرفتن nonce
+	calculateHash() {
+		return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+	}
+
+	// استخراج بلاک با تنظیم سختی
+	mineBlock(difficulty) {
+		while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+			this.nonce++;
+			this.hash = this.calculateHash();
+		}
+		console.log("BLOCK MINED: " + this.hash);
+	}
+}</code></pre>
+
+        <h3>تغییرات بلاکچین</h3>
+        <p>حالا که بلاک‌های ما nonce دارند و قابل استخراج‌اند، باید مطمئن شویم بلاکچین هم از این
+        رفتار جدید پشتیبانی می‌کند. اول یک خصوصیت جدید به بلاکچین اضافه می‌کنیم تا سختی زنجیره را
+        نگه دارد. مقدار اولیه آن را ۲ می‌گذارم (یعنی هش بلاک‌ها باید با ۲ صفر شروع شوند):</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// سازنده بلاکچین با سختی اولیه ۲
+constructor() {
+	this.chain = [this.createGenesisBlock()];
+	this.difficulty = 2; // هش بلاک‌ها باید با ۲ صفر شروع شوند
+}</code></pre>
+
+        <p>حالا فقط کافی است متد <code>addBlock()</code> را طوری تغییر دهیم که قبل از افزودن بلاک
+        به زنجیره، واقعاً آن را استخراج کند. اینجا سختی را به بلاک پاس می‌دهیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// افزودن بلاک: ابتدا استخراج (ماینینگ) سپس push به زنجیره
+addBlock(newBlock) {
+	newBlock.previousHash = this.getLatestBlock().hash;
+	newBlock.mineBlock(this.difficulty); // استخراج بلاک با سختی زنجیره
+	this.chain.push(newBlock);
+}</code></pre>
+
+        <p>همین! بلاکچین ما حالا اثبات کار دارد و در برابر هرزنگاری و دستکاری محافظت می‌شود.</p>
+
+        <h3>تست آن</h3>
+        <p>حالا بلاکچین را تست کنیم و ببینیم اثبات کار چه تأثیری بر افزودن بلاک‌های جدید دارد.
+        از همان کد قبلی استفاده می‌کنم؛ یک نمونه جدید می‌سازیم و ۲ بلاک ساده به آن اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">let savjeeCoin = new Blockchain();
+
+// استخراج بلاک ۱
+console.log('Mining block 1');
+savjeeCoin.addBlock(new Block(1, "20/07/2017", { amount: 4 }));
+
+// استخراج بلاک ۲
+console.log('Mining block 2');
+savjeeCoin.addBlock(new Block(2, "20/07/2017", { amount: 8 }));</code></pre>
+
+        <p>اگر این را اجرا کنید، می‌بینید افزودن بلاک‌های جدید هنوز خیلی سریع است؛ چون سختی فقط
+        ۲ است (و چون کامپیوترها واقعاً سریع‌اند).</p>
+        <p>اگر سختی را به ۵ افزایش دهید، می‌بینید که یک کامپیوتر مدرن حدود ۱۰ ثانیه برای استخراج
+        یک بلاک وقت می‌گیرد. بیشترش کنید و محافظت بسیار خوبی در برابر مهاجمان خواهید داشت.</p>
+
+        <h3>ویدیوی بخش ۲</h3>
+        <img src="https://i.ytimg.com/vi/HneatE69814/maxresdefault.jpg" alt="تصویر بندانگشتی ویدیوی بخش ۲ — افزودن اثبات کار به بلاکچین جاوااسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این ویدیو، نویسنده مشکل هرزنگاری را توضیح می‌دهد و الگوریتم اثبات کار را قدم‌به‌قدم
+        به بلاکچین اضافه و اجرا می‌کند.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=HneatE69814" target="_blank" rel="noopener">▶ تماشای ویدیوی بخش ۲ در یوتیوب</a></p>
+
+        <h3>سلب مسئولیت</h3>
+        <p>مثل قبل یک هشدار سریع: این به‌هیچ‌وجه یک پیاده‌سازی کامل بلاکچین نیست و هنوز خیلی از
+        ویژگی‌ها (مثل شبکه P2P) را کم دارد. این فقط برای نشان‌دادن عملکرد داخلی بلاکچین است.</p>
+        <p>ضمناً استخراج بلاک در جاوااسکریپت واقعاً سریع نیست، چون فقط از یک رشته (single thread)
+        استفاده می‌کند.</p>
+
+        <h3>جمع‌بندی بخش ۲</h3>
+        <p>اثبات کار برای امنیت و یکپارچگی بلاکچین ضروری است. بدون آن، نمی‌توانیم به‌اندازه کافی
+        به آن برای ذخیره اطلاعات اعتماد کنیم. کد منبع این پروژه روی گیت‌هاب در دسترس است.</p>
+      </section>
+
+      <!-- ==================== بخش ۳ ==================== -->
+      <section>
+        <h2>بخش ۳: تراکنش‌ها و پاداش ماینینگ</h2>
+        <p>مقاله اصلی: <a href="https://simplyexplained.com/blog/Transactions-and-mining-rewards/" target="_blank" rel="noopener">«Transactions &amp; Mining Rewards (part 3)»</a>
+        — ویدیو: <a href="https://www.youtube.com/watch?v=fRV6cGXVQ4I" target="_blank" rel="noopener">Mining rewards &amp; transactions (part 3)</a></p>
+
+        <p>این بخش سوم از سری مقالات ساخت بلاکچین با جاوااسکریپت است. در مقاله‌های قبلی یک
+        بلاکچین ساده ساختیم و برای محافظت در برابر هرزنگارها و مهاجمان، اثبات کار پیاده‌سازی
+        کردیم. اما در طول راه میان‌برهایی زدیم: بلاکچین ما فقط می‌تواند ۱ تراکنش در هر بلاک ذخیره
+        کند و پاداشی هم برای ماینرها وجود ندارد. بیایید آن را درست کنیم!</p>
+
+        <h3>بازسازی کلاس Block</h3>
+        <p>در حال حاضر یک بلاک خصوصیات index، previousHash، timestamp، data، hash و nonce دارد.
+        خصوصیت index واقعاً کاربردی نیست؛ راستش حتی نمی‌دانم اول چرا اضافه‌اش کردم. پس بیایید
+        آن را حذف کنیم و نام data را به transactions تغییر دهیم که منطقی‌تر است:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
+	// سازنده جدید: به‌جای index و data، زمان و لیست تراکنش‌ها را می‌گیرد
+	constructor(timestamp, transactions, previousHash = '') {
+		this.previousHash = previousHash;
+		this.timestamp = timestamp;
+		this.transactions = transactions; // لیست تراکنش‌های داخل بلاک
+		this.hash = this.calculateHash();
+		this.nonce = 0;
+	}
+}</code></pre>
+
+        <p>وقتی کلاس Block را تغییر می‌دهیم، باید تابع <code>calculateHash()</code> را هم عوض
+        کنیم؛ چون هنوز از خصوصیات قدیمی index و data استفاده می‌کند که حذف کردیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// محاسبه هش: این بار با تراکنش‌ها به‌جای data
+calculateHash() {
+	return SHA256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
+}</code></pre>
+
+        <h3>کلاس Transaction</h3>
+        <p>داخل هر بلاک می‌توانیم چند تراکنش ذخیره کنیم. پس بیایید یک کلاس Transaction هم تعریف
+        کنیم تا مشخص کنیم یک تراکنش باید چه خصوصیاتی داشته باشد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Transaction {
+	// یک تراکنش: فرستنده، گیرنده و مقدار
+	constructor(fromAddress, toAddress, amount) {
+		this.fromAddress = fromAddress; // آدرس فرستنده
+		this.toAddress = toAddress;     // آدرس گیرنده
+		this.amount = amount;           // مقدار انتقالی
+	}
+}</code></pre>
+
+        <p>در این مثال یک تراکنش خیلی ساده است و فقط شامل فرستنده (fromAddress)، گیرنده
+        (toAddress) و یک مقدار است. در صورت نیاز می‌توانید فیلدهای بیشتری به تراکنش اضافه کنید،
+        اما این‌ها حداقل مطلق هستند.</p>
+
+        <h3>سازگارکردن بلاکچین</h3>
+        <p>حالا بزرگ‌ترین کار: هماهنگ‌کردن بلاکچین با همه این تغییرات. اولین چیزی که نیاز داریم
+        جایی برای ذخیره تراکنش‌های در انتظار (pending) است.</p>
+        <p>همان‌طور که می‌دانید بلاکچین‌ها با کمک الگوریتم اثبات کار در بازه‌های زمانی منظم بلاک
+        می‌سازند. در مورد بیت‌کوین، سختی طوری تنظیم می‌شود که تقریباً هر ۱۰ دقیقه یک بلاک جدید
+        ساخته شود. اما باید بتوان بین ساخت دو بلاک، تراکنش‌های جدیدی ثبت کرد.</p>
+        <p>برای این کار، سازنده Blockchain را طوری تغییر می‌دهیم که جایی برای ذخیره تراکنش‌های در
+        انتظار داشته باشد. همچنین یک خصوصیت تعریف می‌کنیم که مشخص می‌کند ماینر بابت تلاشش چند
+        سکه پاداش می‌گیرد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Blockchain {
+	// سازنده: زنجیره + سختی + تراکنش‌های در انتظار + پاداش ماینر
+	constructor() {
+		this.chain = [this.createGenesisBlock()];
+		this.difficulty = 5;
+
+		// جایی برای ذخیره تراکنش‌ها بین ساخت دو بلاک
+		this.pendingTransactions = [];
+
+		// پاداشی که ماینر بابت تلاشش دریافت می‌کند (سکه)
+		this.miningReward = 100;
+	}
+}</code></pre>
+
+        <p>قدم بعدی: متد <code>addBlock()</code> را باید تغییر دهیم — و با «تغییر» یعنی کاملاً
+        حذفش کنیم و از نو بنویسیم! دیگر اجازه نمی‌دهیم مردم مستقیماً بلاک به زنجیره اضافه کنند.
+        در عوض باید تراکنش اضافه کنند که در بلاک بعدی گنجانده می‌شود. پس متد <code>addBlock()</code>
+        را با <code>createTransaction()</code> جایگزین کنیم که منطقی‌تر است:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// ثبت تراکنش: تراکنش را به لیست در انتظار اضافه می‌کند
+createTransaction(transaction) {
+	// اینجا باید بررسی‌هایی هم انجام شود!
+
+	// اضافه‌کردن به آرایه «تراکنش‌های در انتظار»
+	this.pendingTransactions.push(transaction);
+}</code></pre>
+
+        <h3>استخراج بلاک (ماینینگ)</h3>
+        <p>مردم حالا می‌توانند تراکنش‌های جدید به لیست در انتظار اضافه کنند. اما به هر حال باید
+        آن‌ها را از لیست خارج و داخل بلاک‌های واقعی قرار دهیم. برای این کار متدی به نام
+        <code>minePendingTransactions()</code> می‌سازیم. این متد نه‌تنها یک بلاک جدید با همه
+        تراکنش‌های در انتظار استخراج می‌کند، بلکه پاداش ماینینگ را هم به ماینر می‌فرستد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// استخراج یک بلاک شامل همه تراکنش‌های در انتظار + ارسال پاداش به ماینر
+minePendingTransactions(miningRewardAddress) {
+	// بلاک جدید با همه تراکنش‌های در انتظار می‌سازیم و استخراجش می‌کنیم
+	let block = new Block(Date.now(), this.pendingTransactions);
+	block.mineBlock(this.difficulty);
+
+	// بلاک استخراج‌شده را به زنجیره اضافه می‌کنیم
+	this.chain.push(block);
+
+	// لیست تراکنش‌های در انتظار را خالی می‌کنیم و پاداش ماینر را ثبت می‌کنیم
+	this.pendingTransactions = [
+		new Transaction(null, miningRewardAddress, this.miningReward)
+	];
+}</code></pre>
+
+        <p>توجه کنید که این متد یک آرگومان <code>miningRewardAddress</code> می‌گیرد. اگر شروع به
+        ماینینگ کنید، می‌توانید آدرس کیف پولتان را به این متد بدهید. وقتی با موفقیت یک بلاک را
+        استخراج کنید، سیستم یک تراکنش جدید برای دادن پاداش ماینینگ (در این مورد ۱۰۰ سکه) می‌سازد.</p>
+        <p>یک نکته: در این پیاده‌سازی همه تراکنش‌های در انتظار را گرفته و داخل یک بلاک می‌گذاریم.
+        در واقعیت اما این کار نمی‌کند؛ چون اندازه بلاک محدود است. در مورد بیت‌کوین سقف اندازه بلاک
+        ۲ مگابایت است. اگر تراکنش‌ها بیشتر از ظرفیت یک بلاک باشند، ماینر انتخاب می‌کند کدام
+        تراکنش را بگنجاند و کدام را نه (معمولاً تراکنش‌هایی با کارمزد بالاتر برنده‌اند).</p>
+
+        <h3>موجودی یک آدرس (Balance)</h3>
+        <p>قبل از تست کد، یک کار دیگر انجام دهیم! خوب است بتوانیم موجودی آدرس‌های بلاکچین‌مان
+        را بررسی کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// محاسبه موجودی یک آدرس با پیمایش همه بلاک‌ها و تراکنش‌ها
+getBalanceOfAddress(address) {
+	let balance = 0; // از صفر شروع می‌کنیم!
+
+	// روی هر بلاک و هر تراکنش داخل بلاک پیمایش می‌کنیم
+	for (const block of this.chain) {
+		for (const trans of block.transactions) {
+
+			// اگر آدرس بدهد فرستنده بود، موجودی کم می‌شود
+			if (trans.fromAddress === address) {
+				balance -= trans.amount;
+			}
+
+			// اگر آدرس گیرنده بود، موجودی زیاد می‌شود
+			if (trans.toAddress === address) {
+				balance += trans.amount;
+			}
+		}
+	}
+
+	return balance;
+}</code></pre>
+
+        <h3>تست آن</h3>
+        <p>خوب، تمام شد و بالاخره می‌توانیم تست کنیم که همه چیز کار می‌کند! برای این کار چند
+        تراکنش می‌سازیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// ساخت نمونه بلاکچین
+let savjeeCoin = new Blockchain();
+
+// ساخت چند تراکنش
+console.log('Creating some transactions...');
+savjeeCoin.createTransaction(new Transaction('address1', 'address2', 100));
+savjeeCoin.createTransaction(new Transaction('address2', 'address1', 50));</code></pre>
+
+        <p>این تراکنش‌ها در حال حاضر در انتظار هستند و برای اینکه تأیید شوند، باید ماینر را
+        راه بیندازیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// راه‌اندازی ماینر
+console.log('Starting the miner...');
+savjeeCoin.minePendingTransactions('xaviers-address');</code></pre>
+
+        <p>وقتی ماینر را راه می‌اندازیم، آدرسی هم پاس می‌دهیم که می‌خواهیم پاداش ماینینگ را
+        روی آن دریافت کنیم. در این مثال آدرس من xaviers-address است (خیلی پیچیده!).
+        بعد از آن، موجودی xaviers-address را بررسی کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی موجودی آدرس خاویر
+console.log('Balance of Xaviers address is', savjeeCoin.getBalanceOfAddress('xaviers-address'));
+// خروجی: 0</code></pre>
+
+        <p>خروجی می‌گوید موجودی من صفر است. صبر کن، چی؟ مگر قرار نبود پاداش ماینینگ بگیرم؟
+        اگر با دقت به کد نگاه کنید، می‌بینید سیستم یک بلاک جدید می‌سازد و سپس پاداش ماینینگ شما را
+        به‌صورت یک تراکنشِ در انتظارِ جدید اضافه می‌کند. آن تراکنش در بلاک بعدی قرار می‌گیرد.
+        پس اگر دوباره ماینر را راه بیندازیم، پاداش ۱۰۰ سکه‌ای خود را دریافت می‌کنیم!</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// راه‌اندازی دوباره ماینر
+console.log('Starting the miner again!');
+savjeeCoin.minePendingTransactions("xaviers-address");
+
+// بررسی دوباره موجودی
+console.log('Balance of Xaviers address is', savjeeCoin.getBalanceOfAddress('xaviers-address'));
+// خروجی: 100</code></pre>
+
+        <h3>ویدیوی بخش ۳</h3>
+        <img src="https://i.ytimg.com/vi/fRV6cGXVQ4I/maxresdefault.jpg" alt="تصویر بندانگشتی ویدیوی بخش ۳ — تراکنش‌ها و پاداش ماینینگ در بلاکچین جاوااسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این ویدیو، تراکنش‌ها، تراکنش‌های در انتظار و مکانیزم پاداش ماینینگ با مثال عملی
+        نشان داده می‌شود.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=fRV6cGXVQ4I" target="_blank" rel="noopener">▶ تماشای ویدیوی بخش ۳ در یوتیوب</a></p>
+
+        <h3>محدودیت‌ها و جمع‌بندی</h3>
+        <p>الان بلاکچین کوچک ما می‌تواند چند تراکنش را در یک بلاک ذخیره کند و به ماینرها پاداش
+        بدهد.</p>
+        <p>اما هنوز چیزهایی کم است: هنگام انتقال پول بررسی نمی‌کنیم که فرستنده موجودی کافی برای
+        انجام آن تراکنش را دارد یا نه. البته این چیز ساده‌ای برای حل است. همچنین راهی برای ساخت
+        کیف پول جدید و امضای تراکنش‌ها نداریم (در حالت سنتی این کار با رمزنگاری کلید عمومی/خصوصی
+        انجام می‌شود).</p>
+        <div class="callout note">
+          <strong>سلب مسئولیت:</strong> این به‌هیچ‌وجه یک پیاده‌سازی کامل بلاکچین نیست و خیلی از
+          ویژگی‌ها را کم دارد. این فقط یک اثبات مفهوم (proof-of-concept) است که برای کمک به درک
+          عملکرد داخلی بلاکچین طراحی شده. کد منبع پروژه روی گیت‌هاب در دسترس است.
+        </div>
+      </section>
+
+      <!-- ==================== بخش ۴ ==================== -->
+      <section>
+        <h2>بخش ۴: امضای تراکنش‌ها</h2>
+        <p>مقاله اصلی: <a href="https://simplyexplained.com/blog/Signing-transactions-blockchain-javascript/" target="_blank" rel="noopener">«Signing Transactions (part 4)»</a>
+        — ویدیو: <a href="https://www.youtube.com/watch?v=kWQ84S13-hw" target="_blank" rel="noopener">Signing transactions (part 4)</a></p>
+
+        <p>این بخش چهارم از سری مقالات ساخت بلاکچین با جاوااسکریپت است. در مقالات قبلی کیف پول و
+        پاداش ماینینگ را به بلاکچین ساده‌مان اضافه کردیم. اما پیاده‌سازی فعلی تراکنش‌ها را اعتبارسنجی
+        نمی‌کند. عملاً می‌توانیم از کیف پول دیگران پول خرج کنیم! بیایید این را درست کنیم.</p>
+
+        <h3>ساخت یک تولیدکننده کلید (Key generator)</h3>
+        <p>برای حل این مشکل باید تراکنش‌ها را امضا کنیم. این کار را با یک جفت‌کلید عمومی/خصوصی
+        انجام می‌دهیم. کلید عمومی به‌عنوان آدرس کیف پول ما استفاده می‌شود و آزادانه قابل
+        اشتراک‌گذاری است، در حالی که کلید خصوصی برای امضای تراکنش‌ها استفاده می‌شود. این یعنی فقط
+        در صورتی می‌توانیم از کیف پول پول خرج کنیم که کلید خصوصی مرتبط با آن را داشته باشیم. همین
+        سیستم در بیت‌کوین، اتریوم و سایر ارزهای دیجیتال استفاده می‌شود.</p>
+        <p>پس با تولید یک کلید عمومی و خصوصی برای خودمان شروع می‌کنیم. برای این کار فایلی به نام
+        <code>keygenerator.js</code> می‌سازم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// کتابخانه elliptic را وارد می‌کنیم و یک منحنی را مقداردهی می‌کنیم.
+// اگر خواستید می‌توانید از منحنی‌های بیضوی دیگری هم استفاده کنید.
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
+
+// یک جفت‌کلید جدید تولید می‌کنیم و به رشته‌های hex تبدیل می‌کنیم
+const key = ec.genKeyPair();
+const publicKey = key.getPublic('hex');
+const privateKey = key.getPrivate('hex');
+
+// کلیدها را در کنسول چاپ می‌کنیم
+console.log();
+console.log('Your public key:', publicKey);
+
+console.log();
+console.log('Your private key', privateKey);</code></pre>
+
+        <p>برای تولید جفت‌کلید از کتابخانه elliptic استفاده می‌کنیم. باید پکیج را هم نصب کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install elliptic</code></pre>
+
+        <p>حالا اجرایش کنیم!</p>
+
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">node keygenerator.js</code></pre>
+
+        <p>اسکریپت یک کلید عمومی و یک کلید خصوصی برمی‌گرداند. آن‌ها را جایی یادداشت کنید؛ به‌عنوان
+        آدرس کیف پول و راهی برای برداشت پول از کیف پول استفاده می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">Your public key:
+0481758cb017885d884d1a8eb309c82e2644bc1776a0244b000adef2bb05755e8bbca68905b1387cf2e97b044a4287befa9400c1bd6c2ee6bf1241341ab4338f7a
+
+Your private key:
+854de2a5ab09aa1ed51fd878a917c9778f606ca010effb7bc488c643744b9a38</code></pre>
+
+        <h3>تغییر کلاس Transaction</h3>
+        <p>حالا باید کلاس Transaction خود را تغییر دهیم. متدهایی اضافه می‌کنیم که به ما اجازه می‌دهند
+        یک تراکنش را امضا کنیم، امضا را بررسی کنیم و هش تراکنش‌ها را هم محاسبه می‌کنیم.</p>
+        <p>با هش شروع کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// محاسبه هش تراکنش از روی فرستنده، گیرنده و مبلغ
+calculateHash() {
+	return SHA256(this.fromAddress + this.toAddress + this.amount)
+			.toString();
+}</code></pre>
+
+        <p>چرا باید برای هر تراکنش هش محاسبه کنیم؟ چون نمی‌خواهیم همه داده‌های داخل آبجکت
+        Transaction را امضا کنیم. فقط هش تراکنش را امضا می‌کنیم.</p>
+        <p>بعد، متدی به نام <code>signTransaction</code> می‌سازیم که باید یک <code>signingKey</code>
+        به‌عنوان پارامتر بگیرد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// امضای تراکنش با کلید خصوصی فرستنده
+signTransaction(signingKey) {
+	// فقط می‌توان از کیف پولی که کلیدش را داریم تراکنش فرستاد؛
+	// پس بررسی می‌کنیم که fromAddress با کلید عمومی مطابقت دارد
+	if (signingKey.getPublic('hex') !== this.fromAddress) {
+		throw new Error('You cannot sign transactions for other wallets!');
+	}
+
+	// هش تراکنش را محاسبه و با کلید امضا می‌کنیم
+	const hashTx = this.calculateHash();
+	const sig = signingKey.sign(hashTx, 'base64');
+	this.signature = sig.toDER('hex');
+}</code></pre>
+
+        <p>همچنین یک بررسی اضافه کرده‌ایم که مطمئن شود کلید داده‌شده با فرستنده تراکنش مطابقت دارد.
+        یادتان باشد: فقط زمانی می‌توانید تراکنش‌ها را امضا کنید که از جیب خودتان بیرون آمده باشند.
+        نمی‌توانید سکه‌های دیگری را خرج کنید.</p>
+        <p>در نهایت یک متد <code>isValid</code> اضافه می‌کنیم که امضای روی تراکنش را بررسی می‌کند
+        و اگر همه چیز درست بود <code>true</code> برمی‌گرداند و اگر کسی سعی کرده باشد تراکنش را
+        دستکاری کند و امضا نامعتبر باشد <code>false</code>:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی صحت امضای تراکنش با کلید عمومی فرستنده
+isValid() {
+	// اگر تراکنش فرستنده ندارد (مثل پاداش ماینینگ)، معتبر فرض می‌کنیم
+	if (this.fromAddress === null) return true;
+
+	// اگر امضایی روی تراکنش نیست، خطا پرتاب می‌کنیم
+	if (!this.signature || this.signature.length === 0) {
+		throw new Error('No signature in this transaction');
+	}
+
+	// امضا را با کلید عمومی فرستنده اعتبارسنجی می‌کنیم
+	const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
+	return publicKey.verify(this.calculateHash(), this.signature);
+}</code></pre>
+
+        <h3>کلاس Block</h3>
+        <p>برای قراردادن یک تراکنش در بلاکچین، باید آن را به یک Block اضافه کنید. یک بلاک می‌تواند
+        چند تراکنش داشته باشد؛ پس برای راحتی کارمان، یک متد ساده می‌سازم که بررسی می‌کند همه
+        تراکنش‌های داخل بلاک معتبر و درست امضاشده‌اند:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی معتبربودن همه تراکنش‌های داخل بلاک
+hasValidTransactions() {
+	// روی همه تراکنش‌ها پیمایش و متد isValid آن‌ها را صدا می‌زنیم
+	for (const tx of this.transactions) {
+		if (!tx.isValid()) {
+			return false;
+		}
+	}
+
+	return true;
+}</code></pre>
+
+        <p>کار کلاس Block تمام شد. حالا برویم سراغ کلاس بزرگ Blockchain!</p>
+
+        <h3>کلاس Blockchain</h3>
+        <p>در نهایت باید کلاس Blockchain را تغییر دهیم.</p>
+        <p>با تغییر متد <code>isChainValid</code> شروع می‌کنیم. در حال حاضر به همه بلاک‌ها نگاه
+        می‌کند و بررسی می‌کند که همگی به بلاک قبلیِ درست اشاره می‌کنند. می‌توانیم همه آن بررسی‌ها را
+        نگه داریم، اما باید چک کنیم بلاک‌ها تراکنش‌های معتبر و امضاشده دارند یا نه:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی صحت زنجیره — نسخه جدید با اعتبارسنجی تراکنش‌ها
+isChainValid() {
+
+	// .... (بررسی‌های قبلی: صحت هش‌ها و اتصال بلاک‌ها)
+
+	for (let i = 1; i &lt; this.chain.length; i++) {
+		const currentBlock = this.chain[i];
+		const previousBlock = this.chain[i - 1];
+
+		// .... (بررسی صحت هش و previousHash)
+
+		// اگر هرکدام از تراکنش‌های بلاک نامعتبر یا بد امضاشده باشند
+		if (!currentBlock.hasValidTransactions()) {
+			return false;
+		}
+	}
+}</code></pre>
+
+        <p>می‌توانیم از متد <code>hasValidTransactions</code> استفاده کنیم که همین الان به کلاس
+        Block اضافه کردیم! خیلی راحت شد.</p>
+        <p>بعد باید متد <code>createTransaction</code> را هم تغییر دهیم. اول نامش را به
+        <code>addTransaction</code> عوض می‌کنم؛ چون منطقی‌تر است: متد تراکنش نمی‌سازد، فقط یک آبجکت
+        Transaction که کاربر می‌دهد را می‌پذیرد.</p>
+        <p>قدم بعدی، مطمئن‌شدن از این است که کاربر فقط می‌تواند یک تراکنش معتبر به بلاکچین اضافه
+        کند. یعنی بررسی کنیم آدرس‌های from و to پر شده‌اند و تراکنش به‌درستی امضاشده است:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// افزودن تراکنش معتبر به لیست در انتظار
+addTransaction(transaction) {
+	// بررسی وجود آدرس فرستنده و گیرنده
+	if (!transaction.fromAddress || !transaction.toAddress) {
+		throw new Error('Transaction must include from and to address');
+	}
+
+	// اگر تراکنش معتبر نباشد (امضا اشتباه/دستکاری)، رد می‌کنیم
+	if (!transaction.isValid()) {
+		throw new Error('Cannot add invalid transaction to chain');
+	}
+
+	// تراکنش معتبر را به لیست در انتظار اضافه می‌کنیم
+	this.pendingTransactions.push(transaction);
+}</code></pre>
+
+        <p>و این تمام کاری بود که باید انجام می‌دادیم!</p>
+
+        <h3>تست همه چیز</h3>
+        <p>آماده‌ایم پیاده‌سازی جدیدمان را تست کنیم. با واردکردن کلید خصوصی که در ابتدای این مقاله
+        تولید کردیم شروع می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// واردکردن کتابخانه elliptic
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
+
+// ساخت آبجکت کلید از کلید خصوصی
+const myKey = ec.keyFromPrivate('7c4c45907dec40c91bab3480c39032e90049f1a44f3e18c3e07c23e3273995cf');
+const myWalletAddress = myKey.getPublic('hex');</code></pre>
+
+        <p>حالا که کلید را داریم، می‌توانیم یک نمونه جدید از Blockchain بسازیم و یک تراکنش انجام
+        دهیم! در این مثال من تنها کسی هستم که روی شبکه است؛ پس پولم را به یک کلید عمومی تصادفی
+        می‌فرستم. توجه کنید با این کار، سکه‌هایتان برای همیشه در آن آدرس قفل می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// ساخت نمونه جدید از کلاس Blockchain
+const savjeeCoin = new Blockchain();
+
+// انجام یک تراکنش: از کیف پول من به کلید عمومی گیرنده، به مبلغ ۱۰
+const tx1 = new Transaction(myWalletAddress, 'public key of recipient', 10);
+tx1.signTransaction(myKey);      // امضای تراکنش با کلید خصوصی
+savjeeCoin.addTransaction(tx1);  // افزودن تراکنش به لیست در انتظار
+
+// استخراج بلاک
+savjeeCoin.minePendingTransactions(myWalletAddress);</code></pre>
+
+        <p>بعد از استخراج بلاک جدید، می‌توانیم موجودی‌مان را با دادن کلید عمومی به متد بررسی
+        کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بررسی موجودی کیف پول
+console.log('Balance of xavier is', savjeeCoin.getBalanceOfAddress(myWalletAddress));</code></pre>
+
+        <p>این گزارش می‌دهد که موجودی کیف پول من ۹۰ است. دلیلش این است که ۱۰۰ سکه بابت استخراج
+        بلاک جدید (پاداش ماینینگ) و ۱۰ سکه بابت ارسال یک تراکنش کم شده‌ام.</p>
+
+        <h3>ضد دستکاری (Tamper-proof)</h3>
+        <p>مثل قبل، بلاکچین ما ضد دستکاری باقی مانده؛ در واقع می‌توان گفت حالا حتی مقاوم‌تر شده؛
+        چون برای تراکنش‌ها امضای با کلید خصوصی را لازم می‌دانیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// دستکاری: مبلغ اولین تراکنش بلاک اول را عوض می‌کنیم
+savjeeCoin.chain[1].transactions[0].amount = 10;
+
+// بررسی صحت زنجیره
+console.log();
+console.log('Blockchain valid?', savjeeCoin.isChainValid() ? 'Yes' : 'No');</code></pre>
+
+        <h3>ویدیوی بخش ۴</h3>
+        <img src="https://i.ytimg.com/vi/kWQ84S13-hw/maxresdefault.jpg" alt="تصویر بندانگشتی ویدیوی بخش ۴ — امضای تراکنش‌ها با کلید عمومی و خصوصی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در این ویدیو تولید کلید، امضای تراکنش‌ها و اعتبارسنجی امضا با اجرای کامل کد نشان داده
+        می‌شود.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=kWQ84S13-hw" target="_blank" rel="noopener">▶ تماشای ویدیوی بخش ۴ در یوتیوب</a></p>
+
+        <h3>محدودیت‌ها و جمع‌بندی</h3>
+        <p>این بلاکچین محدودیت‌هایی دارد. هنوز به شما اجازه می‌دهد بیشتر از موجودی کیف پول‌تان سکه
+        خرج کنید و شبکه P2P هم ندارد. ادامه دارد!</p>
+        <div class="callout note">
+          <strong>سلب مسئولیت:</strong> این به‌هیچ‌وجه یک پیاده‌سازی کامل بلاکچین نیست! فقط برای
+          اهداف آموزشی است تا بفهمید بلاکچین در سطح فنی چگونه کار می‌کند. کد منبع پروژه روی
+          گیت‌هاب در دسترس است.
+        </div>
+      </section>
+
+      <!-- ==================== بخش ۵: مخزن گیت‌هاب ==================== -->
+      <section>
+        <h2>بخش ۵: مخزن گیت‌هاب — نصب و استفاده از کتابخانه savjeecoin</h2>
+        <p>مخزن: <a href="https://github.com/SavjeeTutorials/SavjeeCoin" target="_blank" rel="noopener">github.com/SavjeeTutorials/SavjeeCoin</a></p>
+
+        <p>تمام کدهای این سری در مخزن گیت‌هاب <b>SavjeeCoin</b> جمع‌آوری شده‌اند. این کتابخانه
+        از npm قابل نصب است و این ویژگی‌ها را دارد:</p>
+        <ul>
+          <li>الگوریتم ساده اثبات کار (proof-of-work)</li>
+          <li>بررسی بلاکچین (برای جلوگیری از دستکاری)</li>
+          <li>تولید کیف پول (کلید خصوصی/عمومی)</li>
+          <li>امضای تراکنش‌ها</li>
+        </ul>
+
+        <div class="callout warning">
+          <strong>هشدار:</strong> این پروژه صرفاً برای اهداف آموزشی است و به‌هیچ‌وجه یک
+          پیاده‌سازی کامل نیست و امن هم نیست!
+        </div>
+
+        <h3>نصب کتابخانه</h3>
+        <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install --save savjeecoin</code></pre>
+
+        <h3>تولید یک جفت‌کلید</h3>
+        <p>برای انجام تراکنش روی این بلاکچین به یک جفت‌کلید نیاز دارید. کلید عمومی، آدرس کیف پول
+        شما می‌شود و از کلید خصوصی برای امضای تراکنش‌ها استفاده می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// واردکردن و مقداردهی کتابخانه elliptic با منحنی secp256k1
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
+
+// تولید یک جفت‌کلید جدید
+const myKey = ec.genKeyPair();</code></pre>
+
+        <p>آبجکت <code>myKey</code> حالا کلید عمومی و خصوصی شما را در خود دارد:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// نمایش کلیدها
+console.log('Public key:', myKey.getPublic('hex'));
+console.log('Private key:', myKey.getPrivate('hex'));</code></pre>
+
+        <h3>ساخت نمونه بلاکچین</h3>
+        <p>حالا می‌توانید یک نمونه جدید از Blockchain بسازید:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// واردکردن کلاس‌های Blockchain و Transaction از کتابخانه
+const {Blockchain, Transaction} = require('savjeecoin');
+
+// ساخت نمونه جدید بلاکچین
+const myChain = new Blockchain();</code></pre>
+
+        <h3>افزودن تراکنش‌ها</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// انتقال ۱۰۰ سکه از کیف پول من به «toAddress»
+const tx = new Transaction(myKey.getPublic('hex'), 'toAddress', 100);
+tx.sign(myKey);               // امضای تراکنش با کلید خصوصی
+
+myChain.addTransaction(tx);   // ثبت تراکنش در بلاکچین</code></pre>
+
+        <p>برای نهایی‌کردن این تراکنش باید یک بلاک جدید استخراج کنیم. آدرس کیف پول‌مان را به این
+        متد می‌دهیم چون پاداش ماینینگ دریافت می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// استخراج بلاک جدید؛ آدرس ما پاداش ماینینگ را می‌گیرد
+myChain.minePendingTransactions(myKey.getPublic('hex'));</code></pre>
+      </section>
+
+      <!-- ==================== کد کامل نهایی ==================== -->
+      <section>
+        <h2>بخش ۶: کد کامل نهایی مخزن گیت‌هاب</h2>
+        <p>برای مطالعه کامل‌تر، این‌جا سه فایل اصلی مخزن برنامه SavjeeCoin آمده است: فایل
+        <code>src/keygenerator.js</code> برای تولید جفت‌کلید، فایل <code>src/main.js</code> به‌عنوان
+        نقطه شروع برنامه، و فایل <code>src/blockchain.js</code> که کلاس‌های Transaction، Block و
+        Blockchain را پیاده‌سازی می‌کند (نسخه کامل‌شده نسبت به مقالات سری، با بررسی موجودی و
+        تراکنش‌های در انتظار).</p>
+
+        <h3>src/keygenerator.js — تولید کلید کیف پول</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+const EC = require('elliptic').ec;
+
+// می‌توانید از هر منحنی بیضوی که می‌خواهید استفاده کنید
+const ec = new EC('secp256k1');
+
+// تولید یک جفت‌کلید جدید و تبدیل به رشته‌های hex
+const key = ec.genKeyPair();
+const publicKey = key.getPublic('hex');
+const privateKey = key.getPrivate('hex');
+
+// چاپ کلیدها در کنسول
+console.log();
+console.log(
+  'Your public key (also your wallet address, freely shareable)\n',
+  publicKey
+);
+
+console.log();
+console.log(
+  'Your private key (keep this secret! To sign transactions)\n',
+  privateKey
+);</code></pre>
+
+        <h3>src/main.js — برنامه اصلی</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+// واردکردن کلاس‌های بلاکچین و تراکنش از فایل بلاکچین
+const { Blockchain, Transaction } = require('./blockchain');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
+
+// کلید خصوصی شما اینجا قرار می‌گیرد
+const myKey = ec.keyFromPrivate(
+  '7c4c45907dec40c91bab3480c39032e90049f1a44f3e18c3e07c23e3273995cf'
+);
+
+// از روی آن کلید عمومی (که آدرس کیف پول هم هست) محاسبه می‌شود
+const myWalletAddress = myKey.getPublic('hex');
+
+// ساخت نمونه جدید از کلاس Blockchain
+const savjeeCoin = new Blockchain();
+
+// استخراج اولین بلاک
+savjeeCoin.minePendingTransactions(myWalletAddress);
+
+// ساخت یک تراکنش و امضای آن با کلید خصوصی
+const tx1 = new Transaction(myWalletAddress, 'address2', 100);
+tx1.sign(myKey);
+savjeeCoin.addTransaction(tx1);
+
+// استخراج بلاک
+savjeeCoin.minePendingTransactions(myWalletAddress);
+
+// ساخت تراکنش دوم
+const tx2 = new Transaction(myWalletAddress, 'address1', 50);
+tx2.sign(myKey);
+savjeeCoin.addTransaction(tx2);
+
+// استخراج بلاک
+savjeeCoin.minePendingTransactions(myWalletAddress);
+
+console.log();
+console.log(
+  `Balance of xavier is ${savjeeCoin.getBalanceOfAddress(myWalletAddress)}`
+);
+
+// این خط را برای تست دستکاری زنجیره از کامنت خارج کنید
+// savjeeCoin.chain[1].transactions[0].amount = 10;
+
+// بررسی صحت زنجیره
+console.log();
+console.log('Blockchain valid?', savjeeCoin.isChainValid() ? 'Yes' : 'No');</code></pre>
+
+        <h3>src/blockchain.js — کلاس‌های Transaction، Block و Blockchain</h3>
+        <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">'use strict';
+const crypto = require('crypto');
+const EC = require('elliptic').ec;
+const ec = new EC('secp256k1');
+const debug = require('debug')('savjeecoin:blockchain');
+
+class Transaction {
+  /**
+   * @param {string} fromAddress آدرس فرستنده
+   * @param {string} toAddress آدرس گیرنده
+   * @param {number} amount مبلغ تراکنش
+   */
+  constructor(fromAddress, toAddress, amount) {
+    this.fromAddress = fromAddress;
+    this.toAddress = toAddress;
+    this.amount = amount;
+    this.timestamp = Date.now();
+  }
+
+  /**
+   * هش SHA256 تراکنش را می‌سازد
+   *
+   * @returns {string}
+   */
+  calculateHash() {
+    return crypto
+      .createHash('sha256')
+      .update(this.fromAddress + this.toAddress + this.amount + this.timestamp)
+      .digest('hex');
+  }
+
+  /**
+   * تراکنش را با کلید امضا (signingKey که یک جفت‌کلید elliptic شامل کلید خصوصی است)
+   * امضا می‌کند. امضا داخل آبجکت تراکنش ذخیره و بعداً روی بلاکچین ثبت می‌شود.
+   *
+   * @param {string} signingKey
+   */
+  sign(signingKey) {
+    // فقط می‌توان از کیف پولی که کلیدش را دارید تراکنش فرستاد؛
+    // پس بررسی می‌کنیم fromAddress با کلید عمومی مطابقت دارد
+    if (signingKey.getPublic('hex') !== this.fromAddress) {
+      throw new Error('You cannot sign transactions for other wallets!');
+    }
+
+    // هش تراکنش را محاسبه، با کلید امضا
+    // و داخل آبجکت تراکنش ذخیره می‌کنیم
+    const hashTx = this.calculateHash();
+    const sig = signingKey.sign(hashTx, 'base64');
+
+    this.signature = sig.toDER('hex');
+  }
+
+  /**
+   * بررسی می‌کند امضا معتبر است (تراکنش دستکاری نشده).
+   * از fromAddress به‌عنوان کلید عمومی استفاده می‌کند.
+   *
+   * @returns {boolean}
+   */
+  isValid() {
+    // اگر تراکنش آدرس فرستنده ندارد، فرض می‌کنیم پاداش ماینینگ
+    // است و معتبر است (می‌توانید به شکل دیگری هم بررسی کنید)
+    if (this.fromAddress === null) return true;
+
+    if (!this.signature || this.signature.length === 0) {
+      throw new Error('No signature in this transaction');
+    }
+
+    const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
+    return publicKey.verify(this.calculateHash(), this.signature);
+  }
+}
+
+class Block {
+  /**
+   * @param {number} timestamp
+   * @param {Transaction[]} transactions
+   * @param {string} previousHash
+   */
+  constructor(timestamp, transactions, previousHash = '') {
+    this.previousHash = previousHash;
+    this.timestamp = timestamp;
+    this.transactions = transactions;
+    this.nonce = 0;
+    this.hash = this.calculateHash();
+  }
+
+  /**
+   * هش SHA256 این بلاک را برمی‌گرداند
+   * (با پردازش همه داده‌های ذخیره‌شده داخل بلاک)
+   *
+   * @returns {string}
+   */
+  calculateHash() {
+    return crypto
+      .createHash('sha256')
+      .update(
+        this.previousHash +
+          this.timestamp +
+          JSON.stringify(this.transactions) +
+          this.nonce
+      )
+      .digest('hex');
+  }
+
+  /**
+   * فرایند ماینینگ را روی بلاک شروع می‌کند. مقدار «nonce» را آن‌قدر تغییر
+   * می‌دهد تا هش بلاک با تعداد کافی صفر (= سختی) شروع شود.
+   *
+   * @param {number} difficulty
+   */
+  mineBlock(difficulty) {
+    while (
+      this.hash.substring(0, difficulty) !== Array(difficulty + 1).join('0')
+    ) {
+      this.nonce++;
+      this.hash = this.calculateHash();
+    }
+
+    debug(`Block mined: ${this.hash}`);
+  }
+
+  /**
+   * همه تراکنش‌های داخل این بلاک را (امضا + هش) اعتبارسنجی می‌کند.
+   * اگر همه چیز درست باشد true و اگر بلاک نامعتبر باشد false.
+   *
+   * @returns {boolean}
+   */
+  hasValidTransactions() {
+    for (const tx of this.transactions) {
+      if (!tx.isValid()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+class Blockchain {
+  constructor() {
+    this.chain = [this.createGenesisBlock()];
+    this.difficulty = 2;
+    this.pendingTransactions = [];
+    this.miningReward = 100;
+  }
+
+  /**
+   * @returns {Block}
+   */
+  createGenesisBlock() {
+    return new Block(Date.parse('2017-01-01'), [], '0');
+  }
+
+  /**
+   * آخرین بلاک زنجیره را برمی‌گرداند. وقتی می‌خواهید بلاک جدید بسازید
+   * و به هش بلاک قبلی نیاز دارید، مفید است.
+   *
+   * @returns {Block[]}
+   */
+  getLatestBlock() {
+    return this.chain[this.chain.length - 1];
+  }
+
+  /**
+   * همه تراکنش‌های در انتظار را می‌گیرد، داخل یک بلاک قرار می‌دهد و فرایند
+   * ماینینگ را شروع می‌کند. همچنین یک تراکنش برای ارسال پاداش ماینینگ
+   * به آدرس داده‌شده اضافه می‌کند.
+   *
+   * @param {string} miningRewardAddress
+   */
+  minePendingTransactions(miningRewardAddress) {
+    const rewardTx = new Transaction(
+      null,
+      miningRewardAddress,
+      this.miningReward
+    );
+    this.pendingTransactions.push(rewardTx);
+
+    const block = new Block(
+      Date.now(),
+      this.pendingTransactions,
+      this.getLatestBlock().hash
+    );
+    block.mineBlock(this.difficulty);
+
+    debug('Block successfully mined!');
+    this.chain.push(block);
+
+    this.pendingTransactions = [];
+  }
+
+  /**
+   * یک تراکنش جدید به لیست در انتظار اضافه می‌کند (تا دفعه بعد که ماینینگ
+   * شروع شد اضافه شود). بررسی می‌کند تراکنش به‌درستی امضاشده است.
+   *
+   * @param {Transaction} transaction
+   */
+  addTransaction(transaction) {
+    if (!transaction.fromAddress || !transaction.toAddress) {
+      throw new Error('Transaction must include from and to address');
+    }
+
+    // بررسی معتبربودن تراکنش
+    if (!transaction.isValid()) {
+      throw new Error('Cannot add invalid transaction to chain');
+    }
+
+    if (transaction.amount &lt;= 0) {
+      throw new Error('Transaction amount should be higher than 0');
+    }
+
+    // مطمئن می‌شویم مقدار ارسال‌شده از موجودی فعلی بیشتر نیست
+    const walletBalance = this.getBalanceOfAddress(transaction.fromAddress);
+    if (walletBalance &lt; transaction.amount) {
+      throw new Error('Not enough balance');
+    }
+
+    // دریافت همه تراکنش‌های در انتظار دیگر برای کیف پول «from»
+    const pendingTxForWallet = this.pendingTransactions.filter(
+      tx =&gt; tx.fromAddress === transaction.fromAddress
+    );
+
+    // اگر کیف پول تراکنش‌های در انتظار بیشتری دارد، مجموع سکه‌های هزینه‌شده
+    // تا این لحظه را محاسبه می‌کنیم. اگر از موجودی بیشتر شد، از اضافه‌کردن
+    // این تراکنش خودداری می‌کنیم.
+    if (pendingTxForWallet.length &gt; 0) {
+      const totalPendingAmount = pendingTxForWallet
+        .map(tx =&gt; tx.amount)
+        .reduce((prev, curr) =&gt; prev + curr);
+
+      const totalAmount = totalPendingAmount + transaction.amount;
+      if (totalAmount &gt; walletBalance) {
+        throw new Error(
+          'Pending transactions for this wallet is higher than its balance.'
+        );
+      }
+    }
+
+    this.pendingTransactions.push(transaction);
+    debug('transaction added: %s', transaction);
+  }
+
+  /**
+   * موجودی یک آدرس کیف پول را برمی‌گرداند.
+   *
+   * @param {string} address
+   * @returns {number} موجودی کیف پول
+   */
+  getBalanceOfAddress(address) {
+    let balance = 0;
+
+    for (const block of this.chain) {
+      for (const trans of block.transactions) {
+        if (trans.fromAddress === address) {
+          balance -= trans.amount;
+        }
+
+        if (trans.toAddress === address) {
+          balance += trans.amount;
+        }
+      }
+    }
+
+    debug('getBalanceOfAdrees: %s', balance);
+    return balance;
+  }
+
+  /**
+   * لیست همه تراکنش‌هایی که به یک آدرس کیف پول ارسال یا از آن دریافت
+   * شده‌اند را برمی‌گرداند.
+   *
+   * @param  {string} address
+   * @return {Transaction[]}
+   */
+  getAllTransactionsForWallet(address) {
+    const txs = [];
+
+    for (const block of this.chain) {
+      for (const tx of block.transactions) {
+        if (tx.fromAddress === address || tx.toAddress === address) {
+          txs.push(tx);
+        }
+      }
+    }
+
+    debug('get transactions for wallet count: %s', txs.length);
+    return txs;
+  }
+
+  /**
+   * روی همه بلاک‌های زنجیره پیمایش می‌کند و بررسی می‌کند درست به هم
+   * متصل شده‌اند و کسی هش‌ها را دستکاری نکرده. با بررسی بلاک‌ها،
+   * تراکنش‌های (امضاشده) داخل آن‌ها را هم اعتبارسنجی می‌کند.
+   *
+   * @returns {boolean}
+   */
+  isChainValid() {
+    // بررسی دستکاری‌نشدن بلاک جنسیس با مقایسه خروجی
+    // createGenesisBlock با اولین بلاک زنجیره
+    const realGenesis = JSON.stringify(this.createGenesisBlock());
+
+    if (realGenesis !== JSON.stringify(this.chain[0])) {
+      return false;
+    }
+
+    // بررسی بلاک‌های باقی‌مانده زنجیره از نظر صحت هش و امضا
+    for (let i = 1; i &lt; this.chain.length; i++) {
+      const currentBlock = this.chain[i];
+      const previousBlock = this.chain[i - 1];
+
+      if (previousBlock.hash !== currentBlock.previousHash) {
+        return false;
+      }
+
+      if (!currentBlock.hasValidTransactions()) {
+        return false;
+      }
+
+      if (currentBlock.hash !== currentBlock.calculateHash()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+module.exports.Blockchain = Blockchain;
+module.exports.Block = Block;
+module.exports.Transaction = Transaction;</code></pre>
+      </section>
+
+      <!-- ==================== سری ویدیویی ==================== -->
+      <section>
+        <h2>سری ویدیویی کامل یوتیوب (۵ قسمت)</h2>
+        <p>کد منبع این پروژه از <a href="https://www.youtube.com/watch?v=zVqczFZr124&list=PLzvRQMJ9HDiTqZmbtFisdXFxul5k0F-Q4" target="_blank" rel="noopener">سری ویدیویی نویسنده در یوتیوب</a>
+        گرفته‌شده است. ویدیوها میزبانی نمی‌شوند و فقط از طریق لینک اصلی یوتیوب قابل تماشا هستند.
+        همه قسمت‌ها:</p>
+
+        <h3>ویدیو ۱: پیاده‌سازی ساده (Simple implementation)</h3>
+        <img src="https://i.ytimg.com/vi/zVqczFZr124/maxresdefault.jpg" alt="بندانگشتی ویدیو ۱ — ساخت یک بلاکچین با جاوااسکریپت: پیاده‌سازی ساده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>کلاس Block، کلاس Blockchain، بلاک جنسیس و بررسی صحت زنجیره با مثال عملی.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=zVqczFZr124" target="_blank" rel="noopener">▶ تماشای ویدیو ۱</a></p>
+
+        <h3>ویدیو ۲: افزودن اثبات کار (Adding Proof-of-work)</h3>
+        <img src="https://i.ytimg.com/vi/HneatE69814/maxresdefault.jpg" alt="بندانگشتی ویدیو ۲ — افزودن اثبات کار به بلاکچین جاوااسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مشکل هرزنگاری، مفهوم nonce و سختی، و استخراج بلاک‌ها.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=HneatE69814" target="_blank" rel="noopener">▶ تماشای ویدیو ۲</a></p>
+
+        <h3>ویدیو ۳: پاداش ماینینگ و تراکنش‌ها (Mining rewards &amp; transactions)</h3>
+        <img src="https://i.ytimg.com/vi/fRV6cGXVQ4I/maxresdefault.jpg" alt="بندانگشتی ویدیو ۳ — پاداش ماینینگ و تراکنش‌ها در بلاکچین جاوااسکریپت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تراکنش‌های در انتظار، بلاک‌سازی از تراکنش‌ها و پاداش‌دهی به ماینر.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=fRV6cGXVQ4I" target="_blank" rel="noopener">▶ تماشای ویدیو ۳</a></p>
+
+        <h3>ویدیو ۴: امضای تراکنش‌ها (Signing transactions)</h3>
+        <img src="https://i.ytimg.com/vi/kWQ84S13-hw/maxresdefault.jpg" alt="بندانگشتی ویدیو ۴ — امضای تراکنش‌ها با کلید عمومی و خصوصی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>تولید جفت‌کلید، امضای تراکنش‌ها و اعتبارسنجی امضاها در بلاکچین.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=kWQ84S13-hw" target="_blank" rel="noopener">▶ تماشای ویدیو ۴</a></p>
+
+        <h3>ویدیو ۵: ساخت فرانت‌اند با Angular (Building a front-end in Angular)</h3>
+        <img src="https://i.ytimg.com/vi/AQV0WNpE_3g/maxresdefault.jpg" alt="بندانگشتی ویدیو ۵ — ساخت فرانت‌اند Angular برای نمایش بلاکچین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اتصال بلاکچین به یک رابط کاربری وب با Angular تا بتوانید بلاک‌ها، تراکنش‌ها و موجودی
+        آدرس‌ها را به‌صورت بصری ببینید.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=AQV0WNpE_3g" target="_blank" rel="noopener">▶ تماشای ویدیو ۵</a></p>
+
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=zVqczFZr124&list=PLzvRQMJ9HDiTqZmbtFisdXFxul5k0F-Q4" target="_blank" rel="noopener">▶ تماشای کل پلی‌لیست در یوتیوب</a></p>
+      </section>
+
+      <!-- ==================== جمع‌بندی نهایی ==================== -->
+      <section>
+        <h2>جمع‌بندی نهایی سری</h2>
+        <p>در این سری کامل یاد گرفتید:</p>
+        <ul>
+          <li>بلاکچین چیست و چرا تغییرناپذیر است (بخش ۱).</li>
+          <li>چطور با اثبات کار از زنجیره در برابر هرزنگاری و دستکاری محافظت کنیم (بخش ۲).</li>
+          <li>چطور تراکنش‌ها، تراکنش‌های در انتظار، پاداش ماینینگ و موجودی آدرس‌ها را مدیریت کنیم (بخش ۳).</li>
+          <li>چطور با رمزنگاری کلید عمومی/خصوصی، تراکنش‌ها را امضا و اعتبارسنجی کنیم (بخش ۴).</li>
+          <li>چطور از کتابخانه نهایی savjeecoin استفاده کنیم و کد کامل آن را بخوانیم (بخش ۵ و ۶).</li>
+        </ul>
+        <p>مهم‌ترین پیام سری: پیاده‌سازی‌های آموزشی این‌چنینی هرگز مخصوص محیط تولید نیستند؛ اما درک
+        آن‌ها پایه بسیار خوبی برای خواندن و ساخت سیستم‌های واقعی مانند بیت‌کوین و اتریوم است.</p>
+      </section>
+
+      <!-- ==================== بلاک کپیرایت ==================== -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری مقالات «Writing a tiny blockchain in JavaScript» (شامل بخش‌های
+        پیاده‌سازی بلاکچین، اثبات کار، تراکنش‌ها و پاداش ماینینگ، و امضای تراکنش‌ها)، مخزن گیت‌هاب
+        SavjeeCoin و سری ویدیویی یوتیوب، اثر «Xavier Decuyper (Savjee / Simply Explained)» است.
+        این صفحه فقط ترجمه کامل فارسی آن‌هاست و تمام حقوق محتوا، تصاویر، کدها و ویدیوها متعلق به
+        نویسنده اصلی است. برای مشاهده اصل مطالب به
+        <a href="https://simplyexplained.com/blog/Writing-tiny-blockchain-in-JavaScript/" target="_blank" rel="noopener">وبلاگ Simply Explained (سایت اصلی، محل جدید انتشار مقالات savjee.be)</a>،
+        <a href="https://github.com/SavjeeTutorials/SavjeeCoin" target="_blank" rel="noopener">مخزن گیت‌هاب</a>
+        یا <a href="https://www.youtube.com/watch?v=zVqczFZr124&list=PLzvRQMJ9HDiTqZmbtFisdXFxul5k0F-Q4" target="_blank" rel="noopener">سری ویدیویی یوتیوب</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

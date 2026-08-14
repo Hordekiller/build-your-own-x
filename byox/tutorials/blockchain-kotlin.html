@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک ارز دیجیتال در Kotlin پیاده‌سازی کنیم (سری کامل)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>بیایید یک ارز دیجیتال در Kotlin پیاده‌سازی کنیم</span>
+      </div>
+      <h1>بیایید یک ارز دیجیتال در Kotlin پیاده‌سازی کنیم (سری کامل)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Kotlin</span>
+        <span class="meta-badge">⛓ بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-1-blockchain-8704069f8580" target="_blank" rel="noopener">🔗 منبع اصلی — بخش ۱</a></span>
+        <span class="meta-badge"><a href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-2-wallets-and-transactions-7aa55239c0d9" target="_blank" rel="noopener">🔗 منبع اصلی — بخش ۲</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی سری دو بخشی «Let's implement a cryptocurrency in Kotlin» نوشته «Vasily Fomchenkov (Vasily Fomin)» است.
+          بخش‌های اصلی در Medium منتشر شده‌اند: بخش ۱ (Blockchain) و بخش ۲ (Wallets and Transactions)؛
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید. کد کامل پروژه نیز در GitHub (مخزن kCoin) در دسترس است.
+        </div>
+        <a class="btn solid" href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-1-blockchain-8704069f8580" target="_blank" rel="noopener">↗ مشاهده منبع اصلی — بخش ۱</a>
+        <a class="btn solid" href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-2-wallets-and-transactions-7aa55239c0d9" target="_blank" rel="noopener">↗ مشاهده منبع اصلی — بخش ۲</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>بخش ۱ — بلاک‌چین (Blockchain)</h2>
+
+        <p>
+          با الهام از <b>build-your-own-x</b> نوشته دانیل استفانوویچ تصمیم گرفتم وقت آن رسیده که خواندن را کنار بگذارم
+          و شروع به ساختن کنم.
+        </p>
+        <div class="callout tip">
+          «آنچه نمی‌توانم بسازم، درک نمی‌کنم.» — ریچارد فاینمن
+        </div>
+        <p>
+          در این مجموعه دو مقاله‌ای، توضیح می‌دهم چطور می‌توانید یک ارز دیجیتال بسیار ساده و در عین حال کاربردی بسازید.
+          این پیاده‌سازی بر پایه بیت‌کوین است و امیدوارم تا پایان این مجموعه بتوانید بگویید تفاوت بین بلاک‌چین و یک
+          دارایی رمزارزی (cryptoasset) چیست.
+        </p>
+        <p>
+          فرض می‌کنم خواننده کمی تجربه برنامه‌نویسی دارد، اما حتی اگر مبتدی باشید هم می‌توانید ادامه دهید.
+          من از زبان Kotlin استفاده خواهم کرد، چون مدتی است با آن سر و کار دارم، اما این کار عملاً در هر زبانی
+          قابل پیاده‌سازی است؛ بروید و آن را به زبان برنامه‌نویسی موردعلاقه خودتان پیاده‌سازی کنید!
+        </p>
+
+        <h3>شروع کار</h3>
+        <p>
+          این احتمالاً ساده‌ترین بخش خواهد بود: به سایت رسمی <b>IntelliJ</b> بروید، نسخه Community را دانلود کنید و
+          یک پروژه جدید بسازید.
+        </p>
+        <img src="https://miro.medium.com/v2/resize:fit:1100/1*Zbzev2P5f6ypyqWux8q9UQ.png" alt="تصویر نمادین سکه kCoin — نام انتخاب‌شده برای ارز دیجیتال این آموزش" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          در حال حاضر سکه‌های زیادی با نام KOIN وجود دارد، از جمله <b>KOIN</b> که یک فریم‌ورک تزریق وابستگی (DI)
+          برای Kotlin است؛ پس نام <b>kCoin</b> را انتخاب کردیم.
+        </p>
+
+        <h3>کمی تئوری</h3>
+        <p>دو روش برای سازمان‌دهی ارتباط بین طرف‌ها وجود دارد:</p>
+        <ul>
+          <li>
+            <b>متمرکز (Centralized):</b> در این روش تمام ارتباطات از طریق یک واسطه انجام می‌شود. مثلاً در بانکداری
+            سنتی، اگر بخواهید پولی به دوست‌تان منتقل کنید، این کار را از طریق رابط کاربری بانک انجام می‌دهید و بانک
+            ممکن است برای این کار کارمزد بگیرد.
+          </li>
+          <li>
+            <b>غیرمتمرکز یا توزیع‌شده (Decentralized / Distributed):</b> در این روش هر طرف می‌تواند بدون واسطه با
+            طرف دیگر ارتباط برقرار کند. مثلاً بیت‌تورنت (BitTorrent) که در آن فایل‌ها را مستقیم از کاربران دانلود
+            می‌کنید، به‌جای یک سرور.
+          </li>
+        </ul>
+        <p>
+          در هر دو حالت، نیازی به ذخیره اطلاعات در جایی وجود دارد؛ خواه فهرستی از تراکنش‌های انجام‌شده روی حساب شما
+          باشد، خواه فهرستی از کاربرانی که می‌خواهید فایل‌ها را از آن‌ها دانلود کنید.
+        </p>
+        <p>
+          در مورد اول اطلاعات به‌صورت متمرکز روی سرورهای بانک ذخیره می‌شود و در مورد دوم — بین کاربران توزیع می‌شود.
+        </p>
+        <div class="callout tip">
+          <b>بلاک‌چین یک راه‌حل ذخیره‌سازی برای یک سیستم توزیع‌شده است.</b>
+        </div>
+        <p>
+          آن را مانند Amazon S3 تصور کنید، اما متعلق به همه و نه به آمازون.
+        </p>
+        <p>
+          بلاک‌چین از فهرستی از بلوک‌ها ساخته شده است که هر بلوک هش خودش، هش بلوک قبلی (والد) و داده کمکی مانند
+          برچسب زمانی (timestamp) و مثلاً فهرست تراکنش‌های موجود در آن بلوک را دارد. در اصل، هر بلوک وضعیت سیستم را
+          در یک لحظه خاص ثبت می‌کند.
+        </p>
+        <img src="https://miro.medium.com/v2/resize:fit:1100/1*Ln0zuMCaf71iwmO3PcEqmw.png" alt="تصویرسازی بلاک‌چین: زنجیره‌ای از بلوک‌ها که هر بلوک به بلوک قبلی متصل است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>مهم است ببینیم هش بلوک از چه چیزهایی ساخته می‌شود:</p>
+        <div class="callout tip">
+          <b>هش بلوک = هش (هش والد + داده‌های کمکی)</b>
+        </div>
+        <p>
+          گنجاندن هش والد یعنی امکان تغییر داده‌های والد بدون تأثیر بر بلوک‌های فرزند در طول زنجیره وجود ندارد؛
+          به همین دلیل است که به آن «بلاک‌چین» (زنجیره بلوک‌ها) می‌گویند.
+        </p>
+
+        <h3>پیاده‌سازی</h3>
+
+        <h4>ابزارهای هش (Hash utils)</h4>
+        <p>
+          از آن‌جایی که دو‌سوم از داده‌های هر بلوک شامل هش است، یک تابع کمکی کوچک می‌نویسیم تا از روی یک String هش بگیریم.
+        </p>
+        <p>
+          بلاک‌چین‌ها از انواع خاصی از هش استفاده می‌کنند که به آن‌ها <b>هش رمزنگاری‌شده (cryptographic hash)</b>
+          گفته می‌شود. بیت‌کوین از SHA-256 استفاده می‌کند و ما هم از همین الگوریتم استفاده خواهیم کرد. پیاده‌سازی
+          واقعی به‌صورت یک <b>تابع توسعه‌ای (Extension Function)</b> روی کلاس موجود String انجام می‌شود.
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.math.BigInteger
+import java.security.MessageDigest
+
+// تابع توسعه‌ای روی String که هش SHA-256 را برمی‌گرداند؛
+// الگوریتم پیش‌فرض «SHA-256» است (همان الگوریتم بیت‌کوین)
+fun String.hash(algorithm: String = "SHA-256"): String {
+    // یک نمونه از MessageDigest با الگوریتم خواسته‌شده می‌سازیم
+    val messageDigest = MessageDigest.getInstance(algorithm)
+    // میزان MessageDigest را با بایت‌های رشته به‌روزرسانی می‌کنیم
+    messageDigest.update(this.toByteArray())
+    // مقدار digest را به‌صورت یک عدد BigInteger و سپس رشته HEX ۶۴ رقمی برمی‌گردانیم
+    return String.format("%064x", BigInteger(1, messageDigest.digest()))
+}</code></pre>
+        <p>
+          بسیار ساده است: String را به یک ByteArray تبدیل کنید، MessageDigest را با آن به‌روزرسانی کنید و در نهایت
+          digest را به رشته HEX تبدیل کنید.
+        </p>
+
+        <h4>بلوک‌ها (Blocks)</h4>
+        <p>
+          مدل‌سازی بلوک‌ها با <b>کلاس‌های داده (Data Classes)</b> آسان است. آن‌ها تمام کدهای تکراری (boilerplate)
+          جاوا را تولید می‌کنند و تغییرناپذیری (immutability) را هنگام کامپایل تضمین می‌کنند.
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.time.Instant
+
+data class Block(val previousHash: String,   // هش بلوک قبلی (والد)
+                 val data: String,           // داده بلوک؛ فعلاً خالی است
+                 val timestamp: Long = Instant.now().toEpochMilli(), // زمان ایجاد بلوک
+                 var hash: String = "") {    // هش این بلوک
+
+    // هنگام ساخت هر بلوک، هش آن محاسبه و تنظیم می‌شود
+    init {
+        hash = calculateHash()
+    }
+
+    // هش بلوک = هش(هش والد + داده + زمان)
+    fun calculateHash(): String {
+        return "$previousHash$data$timestamp".hash()
+    }
+}</code></pre>
+        <p>
+          همان‌طور که قبلاً اشاره کردم، هش شامل previousHash، data (که در مورد ما خالی است) و timestamp می‌شود.
+          بیت‌کوین ساختار بسیار مشابهی با چند فیلد اضافه دیگر دارد که فعلاً می‌توانیم از آن‌ها صرف‌نظر کنیم.
+        </p>
+        <p>بیایید چند بلوک بسازیم!</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>fun main(args: Array&lt;String&gt;) {
+
+    // بلوک اول: هش والد آن «۰» است (بلوک نخست زنجیره)
+    val block1 = Block(previousHash = "0", data = "I'm the first")
+
+    // بلوک دوم: به بلوک اول متصل می‌شود
+    val block2 = Block(previousHash = block1.hash, data = "I'm the second")
+
+    // بلوک سوم: به بلوک دوم متصل می‌شود
+    val block3 = Block(previousHash = block2.hash, data = "I'm the third")
+
+    println(block1)
+    println(block2)
+    println(block3)
+}</code></pre>
+        <p>و خروجی احتمالی:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>Block(previousHash=0, data=I'm the first, timestamp=1530024961908, hash=dc5e733f548bc8240d04f02884ead8c2ddb4a2add0606277bd8ec7c75983d793)
+Block(previousHash=dc5e733f548bc8240d04f02884ead8c2ddb4a2add0606277bd8ec7c75983d793, data=I'm the second, timestamp=1530024961935, hash=1621970956c63d89e077a9122e122fa45ba86d5f478f4fa2b4d7b6cf3f39efa7)
+Block(previousHash=1621970956c63d89e077a9122e122fa45ba86d5f478f4fa2b4d7b6cf3f39efa7, data=I'm the third, timestamp=1530024961936, hash=d5a1d82930d157013adb2f8bfb90449dbae66b768c211a207202a80f478d4f64)</code></pre>
+
+        <h4>بلاک‌چین (Blockchain)</h4>
+        <p>
+          تا اینجا فقط بلوک ساختیم؛ حالا یک ظرف (container) برای نگهداری آن‌ها اضافه می‌کنیم — یعنی بلاک‌چین.
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>class BlockChain {
+
+    // فهرست بلوک‌های زنجیره
+    private val blocks: MutableList&lt;Block&gt; = mutableListOf()
+
+    // بلوک جدید به انتهای زنجیره اضافه می‌شود
+    fun add(block: Block) {
+        blocks.add(block)
+    }
+}</code></pre>
+
+        <h4>استخراج (Mining)</h4>
+        <p>
+          در حال حاضر هیچ محدودیتی برای تعداد بلوک‌هایی که می‌توان به بلاک‌چین اضافه کرد و سرعت افزودن آن‌ها وجود
+          ندارد. در یک سیستم متمرکز، مرجع مرکزی این فرایند را کنترل می‌کند، اما چون با یک سیستم توزیع‌شده سر و کار
+          داریم، نمی‌توانیم چنین چیزی را بپذیریم.
+        </p>
+        <p>
+          همان‌طور که مشخص شد، این مشکل تازه نیست و صندوق ایمیل شما هر روز در قالب اسپم با آن دست‌وپنجه نرم می‌کند:
+          تعداد زیادی اسپمر می‌خواهند برای شما بنویسند (ارسال کنند).
+        </p>
+        <p>
+          حدود ۲۰ سال پیش، <b>آدام بک (Adam Back)</b> راه‌حل <b>HashCash</b> را پیشنهاد کرد. ایده آدام این بود که به
+          هر ایمیل ارسالی هزینه‌ای اضافه شود تا ارسال انبوه ایمیل پرهزینه شود؛ اما او نمی‌خواست پول بگیرد؛ در عوض
+          ایده‌اش این بود که از فرستنده بخواهد یک کار سنگین پردازشی انجام دهد، مثلاً یافتن یک هش با قالب خاص.
+          نکته جالب این راه‌حل این است که هیچ راه آسانی برای یافتن چنین هشی بدون انجام brute force وجود ندارد.
+        </p>
+        <p>بیت‌کوین از همین ایده استفاده می‌کند و برای معتبر بودن، هش خاصی از بلوک انتظار می‌رود:</p>
+        <div class="callout tip">
+          <b>برای اینکه یک بلوک معتبر باشد، هش آن باید با تعداد معینی صفر شروع شود.</b>
+        </div>
+        <p>
+          همان‌طور که قبلاً اشاره کردم، این فقط با brute force قابل دستیابی است، اما مدل فعلی بلوک ما تغییرناپذیر
+          (immutable) است و هیچ تغییری را اجازه نمی‌دهد. پس فیلد جدیدی به نام <b>nonce</b> اضافه می‌کنیم که بتوانیم
+          آن را تغییر دهیم:
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.time.Instant
+
+data class Block(val previousHash: String,   // هش بلوک قبلی
+                 val data: String,           // داده بلوک
+                 val timestamp: Long = Instant.now().toEpochMilli(), // زمان ایجاد بلوک
+                 val nonce: Long = 0,        // عددی که در فرایند استخراج تغییر می‌کند
+                 var hash: String = "") {    // هش بلوک
+
+    init {
+        hash = calculateHash()
+    }
+
+    // حالا هش شامل nonce هم می‌شود
+    fun calculateHash(): String {
+        return "$previousHash$data$timestamp$nonce".hash()
+    }
+}</code></pre>
+        <p>
+          حالا که این فیلد را داریم، الگوریتم واقعی استخراج بسیار ساده است: در یک حلقه، nonce را یکی‌یکی افزایش
+          می‌دهیم تا هش خاص پیدا شود:
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>class BlockChain {
+
+    private val blocks: MutableList&lt;Block&gt; = mutableListOf()
+
+    // تعداد صفرهای ابتدایی هش بلوک معتبر؛ هرچه بیشتر باشد، استخراج سخت‌تر است
+    private val difficulty = 2
+    private val validPrefix = "0".repeat(difficulty)
+
+    // اگر بلوک از قبل استخراج نشده باشد، آن را استخراج می‌کنیم
+    fun add(block: Block) : Block {
+        val minedBlock = if (isMined(block)) block else mine(block)
+        blocks.add(minedBlock)
+        return minedBlock
+    }
+
+    // بلوک معتبر است اگر هش آن با پیشوند صفرها شروع شود
+    private fun isMined(block: Block) : Boolean {
+        return block.hash.startsWith(validPrefix)
+    }
+
+    // حلقه استخراج: nonce را افزایش می‌دهیم تا هش معتبر پیدا شود
+    private fun mine(block: Block) : Block {
+
+        println("Mining: $block")
+
+        // از روش کپی کلاس داده برای ساخت نسخه جدید با nonce جدید استفاده می‌کنیم
+        var minedBlock = block.copy()
+        while (!isMined(minedBlock)) {
+            minedBlock = minedBlock.copy(nonce = minedBlock.nonce + 1)
+        }
+
+        println("Mined : $minedBlock")
+        return minedBlock
+    }
+}</code></pre>
+        <p>
+          باز هم، کلاس داده (Data Class) کاتلین با ویژگی <b>کپی (Copying)</b> خود، کدهای تکراری را حذف می‌کند.
+          همچنین تابع add را تغییر دادم تا بلوک را استخراج کند، اگر از قبل استخراج نشده باشد.
+        </p>
+        <p>
+          <b>Difficulty</b> به ما اجازه می‌دهد کنترل کنیم چقدر سریع می‌توانیم یک بلوک پیدا کنیم. بیت‌کوین این
+          پارامتر را هر چند هفته یک‌بار بر اساس میانگین زمانی که در آن دوره برای استخراج بلوک‌ها صرف شده تنظیم
+          می‌کند. من MacBook Pro مدل ۲۰۱۵ دارم و با difficulty بیشتر از ۱۰، استخراج یک بلوک زمان قابل‌توجهی
+          می‌گیرد.
+        </p>
+
+        <h4>اعتبارسنجی (Validation)</h4>
+        <p>
+          حالا که می‌توانیم بلوک بسازیم، استخراج کنیم و اضافه کنیم، تابعی برای اعتبارسنجی بلاک‌چین اضافه می‌کنیم.
+        </p>
+        <p>برای اینکه بلاک‌چین ما معتبر باشد:</p>
+        <ul>
+          <li>بلاک‌چین معتبر است اگر خالی باشد</li>
+          <li>بلاک‌چین شامل یک بلوک واحد با هش معتبر باشد</li>
+          <li>همه بلوک‌ها استخراج شده باشند</li>
+          <li>
+            برای هر بلوک در بلاک‌چین:
+            <ul>
+              <li>هش بلوک جاری معتبر باشد</li>
+              <li>هش بلوک قبلی معتبر باشد</li>
+            </ul>
+          </li>
+        </ul>
+        <p>من از ساختار when استفاده کردم و به نظر تمیز می‌رسد:</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>    // بررسی اعتبار کل زنجیره
+    fun isValid() : Boolean {
+        when {
+            // زنجیره خالی معتبر است
+            blocks.isEmpty() -> return true
+
+            // زنجیره تک‌بلوکی: فقط هش بلوک را بررسی می‌کنیم
+            blocks.size == 1 -> return blocks[0].hash == blocks[0].calculateHash()
+
+            else -> {
+                // از بلوک دوم به بعد، پیوند والد/فرزند را بررسی می‌کنیم
+                for (i in 1 until blocks.size) {
+                    val previousBlock = blocks[i - 1]
+                    val currentBlock = blocks[i]
+
+                    when {
+                        // هش بلوک جاری باید معتبر باشد
+                        currentBlock.hash != currentBlock.calculateHash() -> return false
+
+                        // بلوک جاری باید به بلوک قبلی اشاره کند
+                        currentBlock.previousHash != previousBlock.calculateHash() -> return false
+
+                        // هر دو بلوک باید استخراج شده باشند
+                        !(isMined(previousBlock) && isMined(currentBlock)) -> return false
+                    }
+                }
+                return true
+            }
+        }
+    }</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          ما همین حالا یک بلاک‌چین بسیار پایه اما کاربردی را در کمتر از ۱۰۰ خط کد پیاده‌سازی کردیم؛
+          تبریک! 🎉
+        </p>
+        <p>
+          امیدوارم شما هم مثل من حالا درک بهتری از طرز کار بلاک‌چین‌ها داشته باشید؛ در بخش دوم درباره اینکه چطور
+          تراکنش‌ها را روی بلاک‌چین ذخیره کنیم و در نهایت از آن یک ارز دیجیتال بسازیم، خواهم نوشت؛ پس همراه ما باشید.
+        </p>
+        <p>کد منبع روی <a href="https://github.com/VasilyFomin/kCoin" target="_blank" rel="noopener">GitHub</a>.</p>
+      </section>
+
+      <section>
+        <h2>بخش ۲ — کیف پول‌ها و تراکنش‌ها (Wallets and Transactions)</h2>
+
+        <p>
+          در بخش دوم، قطعات نهایی و آخر را برای ساختن یک ارز دیجیتال روی بلاک‌چین پیاده‌سازی می‌کنیم — یعنی
+          <b>تراکنش‌ها</b>؛ و همان‌طور که بعداً خواهیم دید به یک <b>کیف پول (Wallet)</b> هم نیاز داریم، اما اول کمی
+          تئوری.
+        </p>
+        <p>
+          تراکنش‌ها در بیت‌کوین بسیار شبیه به چک‌های فیزیکی کار می‌کنند. برای انجام تراکنش روی بلاک‌چین، اساساً
+          باید:
+        </p>
+        <ol>
+          <li>یک تراکنش بسازیم و فیلدهای <code>From</code>، <code>To</code> و <code>Amount</code> را پر کنیم</li>
+          <li>تراکنش را امضا کنیم</li>
+        </ol>
+        <p>
+          در دنیای فیزیکی از شماره حساب خودتان برای فیلد <code>From</code> و شماره حساب گیرنده برای فیلد
+          <code>To</code> استفاده می‌کنید و با یک خودکار تراکنش را امضا می‌کنید. از آن‌جایی که در فضای دیجیتال هستیم،
+          از <b>کلیدهای دیجیتال (Digital Keys)</b> برای نمایش شماره حساب‌ها و از <b>امضای دیجیتال (Digital
+          Signatures)</b> برای امضای تراکنش‌ها استفاده می‌کنیم.
+        </p>
+        <p>
+          امضای دیجیتال به دو کلید نیاز دارد: <b>کلید عمومی (Public)</b> که می‌توانید با هر کسی به اشتراک بگذارید و
+          <b>کلید خصوصی (Private)</b> که باید محرمانه بماند. شما تراکنش را با کلید خصوصی <b>امضا</b> می‌کنید و امضا
+          را با کلید عمومی <b>تأیید (verify)</b> می‌کنید.
+        </p>
+        <div class="callout tip">
+          <b>کلیدهای دیجیتال به ما اجازه می‌دهند بدون اینکه واقعاً بدانیم شما کی هستید، تأیید کنیم که واقعاً خودتان
+          تراکنش را ایجاد کرده‌اید.</b>
+        </div>
+        <p>
+          در بانکداری سنتی شما یک حساب در سیستم دارید و شماره حسابی می‌گیرید، اما در بیت‌کوین هیچ حسابی وجود ندارد
+          و در عوض از کلیدهای عمومی به‌عنوان شماره حساب استفاده می‌شود. همان‌طور که بعداً خواهیم دید، ایجاد
+          <code>KeyPair</code> بسیار آسان است و غیرمعمول نیست که چند جفت کلید (KeyPair) برای اهداف مختلف داشته
+          باشید؛ مثلاً می‌توانید یک جفت کلید برای خریدهای کوچک روزمره داشته باشید و جفت دیگری برای نگهداری بیشتر
+          سکه‌هایتان.
+        </p>
+
+        <h3>کیف پول (Wallet)</h3>
+        <img src="https://miro.medium.com/v2/resize:fit:1100/1*rjjc8wEczrNEsux4R7OSng@2x.jpeg" alt="تصویر کیف پول — کیفی که کلیدهای عمومی و خصوصی کاربر را نگه می‌دارد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید کلاسی به نام <code>Wallet</code> بسازیم که کلیدهای عمومی و خصوصی را ذخیره کند.</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
+
+// کیف پول: کلیدهای عمومی و خصوصی + ارجاع به بلاک‌چین
+data class Wallet(val publicKey: PublicKey, val privateKey: PrivateKey, val blockChain: BlockChain) {
+
+    companion object {
+
+        // ساخت کیف پول جدید: یک جفت کلید RSA جدید تولید می‌کنیم
+        fun create(blockChain: BlockChain): Wallet {
+            val generator = KeyPairGenerator.getInstance("RSA")
+            generator.initialize(2048)          // طول کلید ۲۰۴۸ بیت
+            val keyPair = generator.generateKeyPair()
+
+            return Wallet(keyPair.public, keyPair.private, blockChain)
+        }
+    }
+
+    // موجودی = مجموع همه UTXOهایی که مالک آن‌ها هستیم
+    val balance: Int get() {
+        return getMyTransactions().sumBy { it.amount }
+    }
+
+    // همه خروجی‌های تراکنش خرج‌نشده (UTXO) متعلق به کلید عمومی ما
+    private fun getMyTransactions() : Collection&lt;TransactionOutput&gt; {
+        return blockChain.UTXO.filterValues { it.isMine(publicKey) }.values
+    }
+}</code></pre>
+        <p>
+          به‌خاطر سادگی مثال، هر بار که یک کیف پول می‌سازیم یک <code>KeyPair</code> جدید ایجاد می‌کنیم؛ همچنین،
+          برخلاف بیت‌کوین، از کلیدهای <b>RSA</b> استفاده می‌کنیم.
+        </p>
+        <p>
+          وقتی سکه‌ای ارسال می‌کنید، آن را به کلید عمومی گیرنده می‌فرستید و این اطلاعات را روی بلاک‌چین ذخیره
+          می‌کنیم. به این‌ها <b>خروجی تراکنش خرج‌نشده</b> یا <b>UTXO</b> گفته می‌شود و مفهوم <em>موجودی (balance)</em>
+          توسط کیف پول ساخته می‌شود که همه آن‌ها را جمع می‌کند:
+        </p>
+        <div class="callout tip">
+          <b>موجودی، مجموع همه UTXOهایی است که کیف پول کاربر می‌تواند با کلید عمومیای که در اختیار دارد خرج کند.</b>
+        </div>
+        <p>
+          برای اینکه سکه‌ای داشته باشید، اول باید کسی آن را برای شما ارسال کند؛ این کار در قالب UTXO مرتبط با کلید
+          شما انجام می‌شود.
+        </p>
+
+        <h3>تراکنش‌ها (Transactions)</h3>
+        <p>
+          در بیت‌کوین، هر تراکنش اساساً فهرستی از UTXOها را <b>مصرف (consume)</b> می‌کند و فهرست دیگری از UTXO
+          تولید می‌کند. همچنین، چون موجودی در جایی ثبت نمی‌شود، در صورت لزوم کیف پول باید یک <em>باقی‌مانده
+          (change)</em> در قالب UTXO تولید کند که به فرستنده بازگردانده می‌شود.
+        </p>
+        <div class="callout tip">
+          <b>اگر فقط ۱۰ سکه به‌صورت یک واحد داشته باشید و بخواهید ۵ سکه برای باب (Bob) بفرستید، کیف پول دو UTXO
+          تولید می‌کند: یکی برای باب با ۵ سکه و یکی دیگر برای خودتان با همان ۵ سکه.</b>
+        </div>
+        <p>
+          هر تراکنش باید با کلید خصوصی فرستنده امضا شود تا تأیید شود که واقعاً فرستنده است که می‌خواهد وجوه را
+          ارسال کند. از نظر پیاده‌سازی، یعنی باید چند تابع توسعه‌ای دیگر به کلاس استاندارد String اضافه کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.math.BigInteger
+import java.security.*
+import java.util.*
+
+// هش رمزنگاری‌شده SHA-256 روی رشته
+fun String.hash(algorithm: String = "SHA-256"): String {
+    val messageDigest = MessageDigest.getInstance(algorithm)
+    messageDigest.update(this.toByteArray())
+    return String.format("%064x", BigInteger(1, messageDigest.digest()))
+}
+
+// امضای دیجیتال رشته با کلید خصوصی (SHA256withRSA)
+fun String.sign(privateKey: PrivateKey, algorithm: String = "SHA256withRSA") : ByteArray {
+    val rsa = Signature.getInstance(algorithm)
+    rsa.initSign(privateKey)
+    rsa.update(this.toByteArray())
+    return rsa.sign()
+}
+
+// تأیید امضای دیجیتال با کلید عمومی
+fun String.verifySignature(publicKey: PublicKey, signature: ByteArray, algorithm: String = "SHA256withRSA") : Boolean {
+    val rsa = Signature.getInstance(algorithm)
+    rsa.initVerify(publicKey)
+    rsa.update(this.toByteArray())
+    return rsa.verify(signature)
+}
+
+// نمایش کلید به‌صورت رشته Base64 (به‌عنوان شماره حساب)
+fun Key.encodeToString() : String {
+    return Base64.getEncoder().encodeToString(this.encoded)
+}</code></pre>
+        <p>پیاده‌سازی بسیار ساده است.</p>
+        <p>بعد از آن، وقت آن است که کلاس <code>Transaction</code> را بسازیم:</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.security.PrivateKey
+import java.security.PublicKey
+
+// خروجی تراکنش: گیرنده، مبلغ و پیوند به تراکنش مبدأ
+data class TransactionOutput(val recipient: PublicKey,
+                             val amount: Int,
+                             val transactionHash: String,
+                             var hash: String = "") {
+
+    // هش خروجی بر اساس گیرنده، مبلغ و هش تراکنش
+    init {
+        hash = "${recipient.encodeToString()}$amount$transactionHash".hash()
+    }
+
+    // آیا این خروجی متعلق به کلید عمومی من است؟
+    fun isMine(me: PublicKey) : Boolean {
+        return recipient == me
+    }
+}
+
+// تراکنش: فرستنده، گیرنده، مبلغ + ورودی‌ها و خروجی‌ها
+data class Transaction(val sender: PublicKey,
+                       val recipient: PublicKey,
+                       val amount: Int,
+                       var hash: String = "",
+                       val inputs: MutableList&lt;TransactionOutput&gt; = mutableListOf(),
+                       val outputs: MutableList&lt;TransactionOutput&gt; = mutableListOf()) {
+
+    private var signature: ByteArray = ByteArray(0)
+
+    init {
+        // Salt باعث می‌شود دو تراکنش یکسان، هش‌های متفاوتی داشته باشند
+        hash = "${sender.encodeToString()}${recipient.encodeToString()}$amount$salt".hash()
+    }
+
+    companion object {
+        fun create(sender: PublicKey, recipient: PublicKey, amount: Int) : Transaction {
+            return Transaction(sender, recipient, amount)
+        }
+
+        // شمارنده Salt: با هر تراکنش جدید مقدارش افزایش می‌یابد
+        var salt: Long = 0
+            get() {
+                field += 1
+                return field
+            }
+    }
+
+    // امضای تراکنش با کلید خصوصی فرستنده
+    fun sign(privateKey: PrivateKey) : Transaction {
+        signature = "${sender.encodeToString()}${recipient.encodeToString()}$amount".sign(privateKey)
+        return this
+    }
+
+    // بررسی معتبر بودن امضای تراکنش با کلید عمومی فرستنده
+    fun isSignatureValid() : Boolean {
+        return "${sender.encodeToString()}${recipient.encodeToString()}$amount".verifySignature(sender, signature)
+    }
+}</code></pre>
+        <p>Salt برای این است که مطمئن شویم دو تراکنش یکسان نداریم.</p>
+
+        <h3>جمع‌آوری همه قطعات (Putting it all together)</h3>
+        <p>
+          حالا که کلاس Transaction را داریم، وقت آن است که توابعی به کلاس Wallet اضافه کنیم تا بتواند وجوه ارسال
+          کند، و همچنین Block را گسترش دهیم تا تراکنش‌های ایجادشده را شامل شود و BlockChain را به‌روزرسانی کنیم تا
+          UTXO خود را پس از موفقیت‌آمیز بودن استخراج بلوک به‌روز کند.
+        </p>
+        <p>
+          برای ارسال وجوه، اول بررسی می‌کنیم که واقعاً سکه کافی داریم و سپس <code>TransactionOutput</code>ها را
+          برای ذخیره داده‌های تراکنش تولید می‌کنیم. همچنین، در صورت لزوم، خروجی باقی‌مانده (change) تولید می‌کنیم
+          تا باقی‌مانده را به کلید عمومی خودمان برگردانیم.
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
+
+data class Wallet(val publicKey: PublicKey, val privateKey: PrivateKey, val blockChain: BlockChain) {
+
+    companion object {
+        fun create(blockChain: BlockChain): Wallet {
+            val generator = KeyPairGenerator.getInstance("RSA")
+            generator.initialize(2048)
+            val keyPair = generator.generateKeyPair()
+
+            return Wallet(keyPair.public, keyPair.private, blockChain)
+        }
+    }
+
+    val balance: Int get() {
+        return getMyTransactions().sumBy { it.amount }
+    }
+
+    private fun getMyTransactions() : Collection&lt;TransactionOutput&gt; {
+        return blockChain.UTXO.filterValues { it.isMine(publicKey) }.values
+    }
+
+    // ارسال وجوه به گیرنده
+    fun sendFundsTo(recipient: PublicKey, amountToSend: Int) : Transaction {
+
+        // اول بررسی می‌کنیم موجودی کافی داریم
+        if (amountToSend > balance) {
+            throw IllegalArgumentException("Insufficient funds")
+        }
+
+        // تراکنش را می‌سازیم؛ فعلاً فرستنده و گیرنده خودمان هستند تا هش تراکنش شکل بگیرد
+        val tx = Transaction.create(sender = publicKey, recipient = publicKey, amount = amountToSend)
+        tx.outputs.add(TransactionOutput(recipient = recipient, amount = amountToSend, transactionHash = tx.hash))
+
+        // UTXOهای خودمان را به‌عنوان ورودی مصرف می‌کنیم تا مبلغ جمع شود
+        var collectedAmount = 0
+        for (myTx in getMyTransactions()) {
+            collectedAmount += myTx.amount
+            tx.inputs.add(myTx)
+
+            // اگر بیشتر از مبلغ لازم جمع شد، باقی‌مانده را به خودمان برمی‌گردانیم
+            if (collectedAmount > amountToSend) {
+                val change = collectedAmount - amountToSend
+                tx.outputs.add(TransactionOutput(recipient = publicKey, amount = change, transactionHash = tx.hash))
+            }
+
+            // اگر مبلغ کافی جمع شد، ادامه نمی‌دهیم
+            if (collectedAmount >= amountToSend) {
+                break
+            }
+        }
+        // در نهایت تراکنش را با کلید خصوصی خودمان امضا می‌کنیم
+        return tx.sign(privateKey)
+    }
+}</code></pre>
+        <p>هر بلوک حالا همچنین فهرستی از تراکنش‌ها را نگه می‌دارد:</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import java.time.Instant
+
+data class Block(val previousHash: String,                                              // هش بلوک قبلی
+                 val transactions: MutableList&lt;Transaction&gt; = mutableListOf(),           // تراکنش‌های این بلوک
+                 val timestamp: Long = Instant.now().toEpochMilli(),                     // زمان ایجاد بلوک
+                 val nonce: Long = 0,                                                    // عدد استخراج
+                 var hash: String = "") {                                                // هش بلوک
+
+    init {
+        hash = calculateHash()
+    }
+
+    // هش بلوک حالا از تراکنش‌ها هم محاسبه می‌شود
+    fun calculateHash(): String {
+        return "$previousHash$transactions$timestamp$nonce".hash()
+    }
+
+    // افزودن تراکنش به بلوک؛ فقط تراکنش‌های با امضای معتبر پذیرفته می‌شوند
+    fun addTransaction(transaction: Transaction) : Block {
+
+        if (transaction.isSignatureValid())
+            transactions.add(transaction)
+        return this
+    }
+}</code></pre>
+        <p>
+          در نهایت، BlockChain را گسترش می‌دهیم و آرایه UTXO را با <code>TransactionOutput</code>های جدید به‌روزرسانی
+          می‌کنیم و همچنین موارد قدیمی را حذف می‌کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>class BlockChain {
+
+    private val blocks: MutableList&lt;Block&gt; = mutableListOf()
+    private val difficulty = 2
+    private val validPrefix = "0".repeat(difficulty)
+
+    // نگاشت همه خروجی‌های تراکنش خرج‌نشده (UTXO) بر اساس هش آن‌ها
+    var UTXO: MutableMap&lt;String, TransactionOutput&gt; = mutableMapOf()
+
+    // همان تابع اعتبارسنجی بخش اول
+    fun isValid() : Boolean {
+        when {
+            blocks.isEmpty() -> return true
+            blocks.size == 1 -> return blocks[0].hash == blocks[0].calculateHash()
+            else -> {
+                for (i in 1 until blocks.size) {
+                    val previousBlock = blocks[i - 1]
+                    val currentBlock = blocks[i]
+
+                    when {
+                        currentBlock.hash != currentBlock.calculateHash() -> return false
+                        currentBlock.previousHash != previousBlock.calculateHash() -> return false
+                        !(isMined(previousBlock) && isMined(currentBlock)) -> return false
+                    }
+                }
+                return true
+            }
+        }
+    }
+
+    fun add(block: Block) : Block {
+        val minedBlock = if (isMined(block)) block else mine(block)
+        blocks.add(minedBlock)
+        return minedBlock
+    }
+
+    private fun isMined(block: Block) : Boolean {
+        return block.hash.startsWith(validPrefix)
+    }
+
+    private fun mine(block: Block) : Block {
+
+        println("Mining: $block")
+
+        var minedBlock = block.copy()
+        while (!isMined(minedBlock)) {
+            minedBlock = minedBlock.copy(nonce = minedBlock.nonce + 1)
+        }
+
+        println("Mined : $minedBlock")
+
+        // پس از استخراج موفق، UTXOها را به‌روزرسانی می‌کنیم
+        updateUTXO(minedBlock)
+
+        return minedBlock
+    }
+
+    // خروجی‌های مصرف‌شده (ورودی‌های تراکنش) حذف و خروجی‌های جدید اضافه می‌شوند
+    private fun updateUTXO(block: Block) {
+
+        // همه UTXOهایی که به‌عنوان ورودی مصرف شدند را حذف کن
+        block.transactions.flatMap { it.inputs }.map { it.hash }.forEach { UTXO.remove(it) }
+
+        // خروجی‌های جدید را اضافه کن
+        UTXO.putAll(block.transactions.flatMap { it.outputs }.associateBy { it.hash })
+    }
+}</code></pre>
+        <p>و حالا می‌توانیم تراکنش انجام دهیم:</p>
+        <pre class="code"><span class="lang-tag">kotlin</span><code>import kcoin.*
+
+fun main(args: Array&lt;String&gt;) {
+
+    // بلاک‌چین و دو کیف پول می‌سازیم
+    val blockChain = BlockChain()
+    val wallet1 = Wallet.create(blockChain)
+    val wallet2 = Wallet.create(blockChain)
+
+    println("Wallet 1 balance: ${wallet1.balance}")
+    println("Wallet 2 balance: ${wallet2.balance}")
+
+    // بلوک پیدایش (genesis): ۱۰۰ سکه به کیف پول ۱ صادر می‌کنیم
+    val tx1 = Transaction.create(sender = wallet1.publicKey, recipient = wallet1.publicKey, amount = 100)
+    tx1.outputs.add(TransactionOutput(recipient = wallet1.publicKey, amount = 100, transactionHash = tx1.hash))
+    tx1.sign(wallet1.privateKey)
+
+    var genesisBlock = Block(previousHash = "0")
+    genesisBlock.addTransaction(tx1)
+    genesisBlock = blockChain.add(genesisBlock)
+
+    println("Wallet 1 balance: ${wallet1.balance}")
+    println("Wallet 2 balance: ${wallet2.balance}")
+
+    // کیف پول ۱ یک تراکنش واقعی می‌فرستد: ۳۳ سکه برای کیف پول ۲
+    val tx2 = wallet1.sendFundsTo(recipient = wallet2.publicKey, amountToSend = 33)
+    val secondBlock = blockChain.add(Block(genesisBlock.hash).addTransaction(tx2))
+
+    println("Wallet 1 balance: ${wallet1.balance}")
+    println("Wallet 2 balance: ${wallet2.balance}")
+}
+
+// خروجی نمونه:
+// Wallet 1 balance: 0
+// Wallet 2 balance: 0
+// Wallet 1 balance: 100
+// Wallet 2 balance: 0
+// Wallet 1 balance: 67
+// Wallet 2 balance: 33</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          این‌جا پایان کار است. من به هدفم که یادگیری کمی بیشتر درباره عملکرد درونی بلاک‌چین بود رسیدم و امیدوارم
+          شما هم چیز جدیدی یاد گرفته باشید یا حالا آن را بهتر درک کنید. البته، این یک پیاده‌سازی آماده تولید
+          (production ready) نیست و هنوز شبکه‌سازی و تعداد زیادی بررسی خطا و حالت‌های مرزی باقی مانده است، اما هدف
+          من پیاده‌سازی یک بلاک‌چین آماده تولید نبوده است.
+        </p>
+        <p>
+          مثل قبل، همه کدها روی <a href="https://github.com/VasilyFomin/kCoin/tree/master" target="_blank" rel="noopener">GitHub</a>
+          در دسترس است و ممنون که برای خواندن آن سر زدید!
+        </p>
+      </section>
+
+      <!-- بلاک کپیرایت -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی سری «Let's implement a cryptocurrency in Kotlin» اثر
+        «Vasily Fomchenkov (Vasily Fomin)» است که در دو بخش (بخش ۱: Blockchain و بخش ۲: Wallets and Transactions)
+        در Medium منتشر شده است. تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-1-blockchain-8704069f8580" target="_blank" rel="noopener">بخش ۱</a>
+        و
+        <a href="https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-2-wallets-and-transactions-7aa55239c0d9" target="_blank" rel="noopener">بخش ۲</a>
+        در سایت اصلی مراجعه کنید. کد منبع کامل نیز در مخزن
+        <a href="https://github.com/VasilyFomin/kCoin" target="_blank" rel="noopener">kCoin (GitHub)</a> موجود است.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

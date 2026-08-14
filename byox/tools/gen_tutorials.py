@@ -32,6 +32,27 @@ DONE = {
     "xmonader.github.io/nimdays/day02_bencode": "bencode-parser-nim",
     "allenkim67.github.io/programming/2016/05/04": "bittorrent-node",
     "markuseliasson.se/article/bittorrent-in-python": "bittorrent-python",
+    "observablehq.com/@galletti94/functional-blockchain": "functional-blockchain-ats",
+    "write-your-own-blockchain-and-pow-algorithm-using-crystal": "blockchain-crystal-pow",
+    "jeiwan.net/posts/building-blockchain-in-go-part-1": "blockchain-go-jeiwan",
+    "code-your-own-blockchain-in-less-than-200-lines-of-go": "blockchain-go-200lines",
+    "create-simple-blockchain-java-tutorial-from-scratch": "blockchain-java-first",
+    "github.com/conradoqg/naivecoin": "naivecoin-js",
+    "github.com/nambrot/blockchain-in-js": "blockchain-js-nambrot",
+    "learn-build-a-javascript-blockchain-part-1": "blockchain-js-learn-build",
+    "github.com/SavjeeTutorials/SavjeeCoin": "savjeecoin-js",
+    "how-to-launch-your-own-production-ready-cryptocurrency": "cryptocurrency-js-production",
+    "cryptocurrency-blockchain-node-js": "blockchain-node-smashing",
+    "implement-a-cryptocurrency-in-kotlin-part-1": "blockchain-kotlin",
+    "learn-blockchains-by-building-one": "blockchain-python-learn",
+    "ecomunsing.com/build-your-own-blockchain": "blockchain-python-ecomunsing",
+    "intro-blockchain-bitcoin-python": "blockchain-python-adilmoujahid",
+    "lets-build-the-tiniest-blockchain": "blockchain-python-tiniest",
+    "github.com/yukimotopress/programming-blockchains-step-by-step": "blockchain-ruby-book",
+    "simple-actor-based-blockchain": "blockchain-scala-actor",
+    "lhartikk.github.io": "naivecoin-ts",
+    "naivecoinstake.learn.uno": "naivecoinstake-ts",
+    "building-a-blockchain-in-rust-and-substrate": "blockchain-rust-substrate",
 }
 
 EN2FA = {"Distributed Systems": "سیستم\u200cهای توزیع\u200cشده"}
@@ -63,9 +84,11 @@ for raw in open(SRC, encoding="utf-8"):
     }
     for needle, slug in DONE.items():
         if needle in t["url"]:
-            t["done"] = True
-            t["file"] = "tutorials/" + slug + ".html"
-            t["id"] = slug
+            page = os.path.join(HERE, "..", "tutorials", slug + ".html")
+            if os.path.exists(page):
+                t["done"] = True
+                t["file"] = "tutorials/" + slug + ".html"
+                t["id"] = slug
             break
     tutorials.append(t)
 

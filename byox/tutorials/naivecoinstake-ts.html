@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — NaivecoinStake | ترجمه فارسی آموزش ساخت ارز دیجیتال با Proof of Stake
+  منبع اصلی: https://naivecoinstake.learn.uno/
+  سازنده: Sandoche Adittane (بر پایه Naivecoin از Lauri Hartikka)
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | NaivecoinStake — آموزش ساخت ارز دیجیتال با Proof of Stake</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>NaivecoinStake</span>
+      </div>
+      <h1>NaivecoinStake — آموزش ساخت ارز دیجیتال با Proof of Stake</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: TypeScript</span>
+        <span class="meta-badge">🗂 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://naivecoinstake.learn.uno/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «NaivecoinStake» از «Sandoche Adittane» است که بر پایه
+          آموزش معروف Naivecoin نوشتهٔ «Lauri Hartikka» ساخته شده و در آن، سازوکار «اثبات کار (Proof of Work)» با
+          «اثبات سهام (Proof of Stake)» جایگزین شده است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://naivecoinstake.learn.uno/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ============================================================
+           فصل ۱ — بلاک‌چین کاری حداقلی
+           ============================================================ -->
+      <section>
+        <h2>۱. بلاک‌چین کاری حداقلی (Minimal working blockchain)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>
+          مفهوم پایهٔ بلاک‌چین بسیار ساده است: یک پایگاه دادهٔ توزیع‌شده که فهرستی پیوسته‌درحال‌رشد از
+          رکوردهای مرتب را نگهداری می‌کند. در این فصل نسخهٔ آزمایشی (اسباب‌بازی) از چنین بلاک‌چینی را
+          پیاده‌سازی می‌کنیم. در پایان فصل این قابلیت‌های پایه را خواهیم داشت:
+        </p>
+        <ul>
+          <li>ساختار مشخص بلاک و بلاک‌چین</li>
+          <li>متدهایی برای افزودن بلاک‌های جدید به بلاک‌چین با داده‌های دلخواه</li>
+          <li>گره‌های بلاک‌چین که با گره‌های دیگر ارتباط برقرار می‌کنند و بلاک‌چین را همگام‌سازی می‌کنند</li>
+          <li>یک API سادهٔ HTTP برای کنترل گره</li>
+        </ul>
+        <p>
+          این فصل از آموزش اصلی <a href="https://lhartikk.github.io" target="_blank" rel="noopener">Naivecoin</a>
+          نوشتهٔ <a href="https://github.com/lhartikk" target="_blank" rel="noopener">Lauri Hartikka</a> کپی شده و
+          برای سازوکار اجماع «اثبات سهام» (Proof of Stake) تطبیق داده شده است. صفحهٔ اصلی آن را
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/14/chapter1.html" target="_blank" rel="noopener">اینجا</a>
+          ببینید.
+        </p>
+
+        <h3>ساختار بلاک</h3>
+        <p>کار را با تعریف ساختار بلاک آغاز می‌کنیم. در این مرحله فقط اساسی‌ترین ویژگی‌ها در بلاک قرار می‌گیرند:</p>
+        <ul>
+          <li><code>index</code>: ارتفاع بلاک در بلاک‌چین</li>
+          <li><code>data</code>: هر داده‌ای که در بلاک قرار می‌گیرد</li>
+          <li><code>timestamp</code>: برچسب زمانی</li>
+          <li><code>hash</code>: هش sha256 گرفته‌شده از محتوای بلاک</li>
+          <li><code>previousHash</code>: ارجاع به هش بلاک قبلی؛ این مقدار بلاک قبلی را به‌صراحت مشخص می‌کند</li>
+        </ul>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/blockchain.png" alt="نمایش بلاک‌های زنجیره‌ای که هر بلاک به هش بلاک قبلی ارجاع می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>کد ساختار بلاک به این صورت است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس بلاک: ساختار پایه هر بلاک در بلاک‌چین
+class Block {
+
+    public index: number;          // ارتفاع بلاک در زنجیره
+    public hash: string;           // هش بلاک (شناسه یکتا)
+    public previousHash: string;   // هش بلاک قبلی
+    public timestamp: number;      // برچسب زمانی (ثانیه)
+    public data: string;           // داده‌های ذخیره‌شده در بلاک
+
+    constructor(index: number, hash: string, previousHash: string, timestamp: number, data: string) {
+        this.index = index;
+        this.previousHash = previousHash;
+        this.timestamp = timestamp;
+        this.data = data;
+        this.hash = hash;
+    }
+}</code></pre>
+
+        <h3>هش بلاک</h3>
+        <p>
+          هش بلاک یکی از مهم‌ترین ویژگی‌های آن است. هش روی تمام داده‌های بلاک محاسبه می‌شود؛ یعنی اگر هر چیزی
+          در بلاک تغییر کند، هش اصلی دیگر معتبر نیست. هش بلاک را می‌توان شناسهٔ یکتای بلاک هم در نظر گرفت؛
+          برای مثال ممکن است بلاک‌هایی با index یکسان وجود داشته باشند، اما همهٔ آن‌ها هش‌های یکتا دارند.
+        </p>
+        <p>هش بلاک را با کد زیر محاسبه می‌کنیم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// محاسبه هش بلاک با تابع SHA256 بر اساس محتوای بلاک
+const calculateHash = (index: number, previousHash: string, timestamp: number, data: string): string =&gt;
+    CryptoJS.SHA256(index + previousHash + timestamp + data).toString();</code></pre>
+
+        <p>
+          باید توجه داشت که هش بلاک هنوز هیچ ارتباطی با استخراج (mining) ندارد، چون هیچ مسئلهٔ
+          «اثبات کار» برای حل وجود ندارد. ما از هش بلاک برای حفظ یکپارچگی (integrity) بلاک و ارجاع
+          صریح به بلاک قبلی استفاده می‌کنیم.
+        </p>
+        <p>
+          یک پیامد مهم ویژگی‌های <code>hash</code> و <code>previousHash</code> این است که نمی‌توان بلاکی را
+          تغییر داد بدون آنکه هشِ همهٔ بلاک‌های متوالی بعدی تغییر کند.
+        </p>
+        <p>
+          این موضوع در مثال زیر نشان داده شده است: اگر دادهٔ بلاک ۴۴ از «DESERT» به «STREET» تغییر کند،
+          باید هش همهٔ بلاک‌های بعدی نیز تغییر کند. علت این است که <code>hash</code> هر بلاک به مقدار
+          <code>previousHash</code> (در میان چیزهای دیگر) وابسته است.
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/Blockchain_integrity.png" alt="تغییر داده یک بلاک باعث نامعتبر شدن هش تمام بلاک‌های بعدی می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>
+          این ویژگی به‌ویژه وقتی اثبات کار معرفی شود اهمیت دارد: هرچه بلاک در اعماق بلاک‌چین باشد،
+          تغییر آن سخت‌تر است، چون مستلزم تغییر همهٔ بلاک‌های متوالی است.
+        </p>
+
+        <h3>بلاک پیدایش (Genesis block)</h3>
+        <p>
+          بلاک پیدایش اولین بلاک در بلاک‌چین است و تنها بلاکی است که <code>previousHash</code> ندارد.
+          بلاک پیدایش را به‌صورت ثابت (hard code) در کد منبع قرار می‌دهیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بلاک پیدایش: اولین بلاک زنجیره که بلاک قبلی ندارد
+const genesisBlock: Block = new Block(
+    0, '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7', null, 1465154705, 'my genesis block!!'
+);</code></pre>
+
+        <h3>تولید یک بلاک</h3>
+        <p>
+          برای تولید بلاک باید هش بلاک قبلی را بدانیم و بقیهٔ محتوای لازم (یعنی index، hash، data و timestamp)
+          را بسازیم. دادهٔ بلاک توسط کاربر نهایی ارائه می‌شود، اما بقیهٔ پارامترها با کد زیر تولید می‌شوند:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// تولید بلاک بعدی بر اساس آخرین بلاک زنجیره و داده ورودی
+const generateNextBlock = (blockData: string) =&gt; {
+    const previousBlock: Block = getLatestBlock();               // آخرین بلاک فعلی
+    const nextIndex: number = previousBlock.index + 1;           // ارتفاع بلاک بعدی
+    const nextTimestamp: number = new Date().getTime() / 1000;   // زمان فعلی به ثانیه
+    const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, blockData);
+    const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, blockData);
+    return newBlock;
+};</code></pre>
+
+        <h3>ذخیره‌سازی بلاک‌چین</h3>
+        <p>
+          فعلاً برای ذخیرهٔ بلاک‌چین فقط از یک آرایهٔ جاوااسکریپتی در حافظه استفاده می‌کنیم؛ یعنی وقتی گره
+          خاموش شود، داده‌ها ماندگار نخواهند بود.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بلاک‌چین: آرایه‌ای در حافظه که با بلاک پیدایش شروع می‌شود
+const blockchain: Block[] = [genesisBlock];</code></pre>
+
+        <h3>اعتبارسنجی یکپارچگی بلاک‌ها</h3>
+        <p>
+          در هر لحظه باید بتوانیم اعتبار یک بلاک یا زنجیره‌ای از بلاک‌ها را از نظر یکپارچگی بررسی کنیم.
+          این موضوع به‌ویژه وقتی بلاک‌های جدیدی از گره‌های دیگر دریافت می‌کنیم و باید تصمیم بگیریم که
+          آن‌ها را بپذیریم یا نه، اهمیت دارد.
+        </p>
+        <p>برای معتبر بودن یک بلاک باید این شرایط برقرار باشد:</p>
+        <ul>
+          <li>شمارهٔ index بلاک باید دقیقاً یک عدد بزرگ‌تر از بلاک قبلی باشد</li>
+          <li><code>previousHash</code> بلاک باید با <code>hash</code> بلاک قبلی یکسان باشد</li>
+          <li><code>hash</code> خود بلاک باید معتبر باشد</li>
+        </ul>
+        <p>این بررسی‌ها با کد زیر انجام می‌شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بررسی اعتبار یک بلاک جدید نسبت به بلاک قبلی
+const isValidNewBlock = (newBlock: Block, previousBlock: Block) =&gt; {
+    if (previousBlock.index + 1 !== newBlock.index) {
+        console.log('invalid index');              // شاخص نامعتبر است
+        return false;
+    } else if (previousBlock.hash !== newBlock.previousHash) {
+        console.log('invalid previoushash');       // هش بلاک قبلی مطابقت ندارد
+        return false;
+    } else if (calculateHashForBlock(newBlock) !== newBlock.hash) {
+        console.log(typeof (newBlock.hash) + ' ' + typeof calculateHashForBlock(newBlock));
+        console.log('invalid hash: ' + calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
+        return false;
+    }
+    return true;
+};</code></pre>
+
+        <p>
+          باید ساختار بلاک را هم اعتبارسنجی کنیم تا محتوای خرابی که یک همتا (peer) می‌فرستد باعث
+          از کار افتادن گره نشود:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بررسی اعتبار ساختار بلاک (انواع فیلدها)
+const isValidBlockStructure = (block: Block): boolean =&gt; {
+    return typeof block.index === 'number'
+        &amp;&amp; typeof block.hash === 'string'
+        &amp;&amp; typeof block.previousHash === 'string'
+        &amp;&amp; typeof block.timestamp === 'number'
+        &amp;&amp; typeof block.data === 'string';
+};</code></pre>
+
+        <p>
+          حالا که ابزار اعتبارسنجی یک بلاک را داریم، می‌توانیم سراغ اعتبارسنجی کل زنجیره برویم. ابتدا بررسی
+          می‌کنیم که اولین بلاک زنجیره با <code>genesisBlock</code> یکسان باشد و سپس همهٔ بلاک‌های متوالی
+          را با روش‌های قبلاً شرح‌داده‌شده اعتبارسنجی می‌کنیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// اعتبارسنجی کل زنجیره بلاک‌ها
+const isValidChain = (blockchainToValidate: Block[]): boolean =&gt; {
+    const isValidGenesis = (block: Block): boolean =&gt; {
+        return JSON.stringify(block) === JSON.stringify(genesisBlock);  // بلاک اول باید با بلاک پیدایش یکسان باشد
+    };
+
+    if (!isValidGenesis(blockchainToValidate[0])) {
+        return false;
+    }
+
+    // اعتبارسنجی تک‌تک بلاک‌های بعدی نسبت به بلاک قبلی
+    for (let i = 1; i &lt; blockchainToValidate.length; i++) {
+        if (!isValidNewBlock(blockchainToValidate[i], blockchainToValidate[i - 1])) {
+            return false;
+        }
+    }
+    return true;
+};</code></pre>
+
+        <h3>انتخاب بلندترین زنجیره</h3>
+        <p>
+          در هر لحظه باید فقط یک مجموعهٔ صریح از بلاک‌ها در زنجیره وجود داشته باشد. در صورت بروز تعارض
+          (مثلاً دو گره هر دو بلاک شمارهٔ ۷۲ را تولید کنند)، زنجیره‌ای را انتخاب می‌کنیم که تعداد بلاک‌های
+          بیشتری دارد. در مثال زیر، دادهٔ معرفی‌شده در بلاک ۷۲ یعنی <code>a350235b00</code> در بلاک‌چین
+          لحاظ نخواهد شد، چون توسط زنجیرهٔ بلندتر بازنویسی می‌شود.
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/conflict_resolving.png" alt="در صورت تعارض، زنجیره‌ای که بلاک‌های بیشتری دارد برنده می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>این منطق با کد زیر پیاده‌سازی می‌شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// جایگزینی زنجیره فعلی با زنجیره جدید اگر معتبرتر و بلندتر باشد
+const replaceChain = (newBlocks: Block[]) =&gt; {
+    if (isValidChain(newBlocks) &amp;&amp; newBlocks.length &gt; getBlockchain().length) {
+        console.log('Received blockchain is valid. Replacing current blockchain with received blockchain');
+        blockchain = newBlocks;   // زنجیره دریافتی معتبر است؛ زنجیره فعلی جایگزین می‌شود
+        broadcastLatest();        // اعلام جدیدترین بلاک به شبکه
+    } else {
+        console.log('Received blockchain invalid');
+    }
+};</code></pre>
+
+        <h3>ارتباط با گره‌های دیگر</h3>
+        <p>
+          بخش اساسی هر گره، به اشتراک‌گذاری و همگام‌سازی بلاک‌چین با گره‌های دیگر است. برای همگام نگه‌داشتن
+          شبکه این قوانین به کار می‌روند:
+        </p>
+        <ul>
+          <li>وقتی گره بلاک جدیدی تولید می‌کند، آن را به شبکه پخش (broadcast) می‌کند</li>
+          <li>وقتی گره به همتای جدیدی متصل می‌شود، آخرین بلاک را از آن می‌پرسد</li>
+          <li>وقتی گره به بلاکی برخورد می‌کند که index آن بزرگ‌تر از بلاک شناخته‌شدهٔ فعلی است، آن بلاک را به
+              زنجیرهٔ فعلی خود اضافه می‌کند یا کل بلاک‌چین را درخواست می‌کند</li>
+        </ul>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/p2p_communication.png" alt="نمودار ارتباط همتا به همتا بین گره‌های شبکه بلاک‌چین" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>
+          برای ارتباط همتا به همتا از وب‌سوکت (websocket) استفاده می‌کنیم. سوکت‌های فعال هر گره در متغیر
+          <code>const sockets: WebSocket[]</code> ذخیره می‌شوند. هیچ کشف خودکار همتا استفاده نمی‌شود و
+          آدرس‌ها (= URLهای وب‌سوکت) همتایان باید به‌صورت دستی اضافه شوند.
+        </p>
+
+        <h3>کنترل گره</h3>
+        <p>کاربر باید بتواند به نحوی گره را کنترل کند. این کار با راه‌اندازی یک سرور HTTP انجام می‌شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// راه‌اندازی سرور HTTP برای کنترل گره
+const initHttpServer = ( myHttpPort: number ) =&gt; {
+    const app = express();
+    app.use(bodyParser.json());
+
+    // دریافت لیست تمام بلاک‌ها
+    app.get('/blocks', (req, res) =&gt; {
+        res.send(getBlockchain());
+    });
+
+    // تولید بلاک جدید با داده ارسال‌شده
+    app.post('/mintBlock', (req, res) =&gt; {
+        const newBlock: Block = generateNextBlock(req.body.data);
+        res.send(newBlock);
+    });
+
+    // دریافت لیست همتایان متصل
+    app.get('/peers', (req, res) =&gt; {
+        res.send(getSockets().map(( s: any ) =&gt; s._socket.remoteAddress + ':' + s._socket.remotePort));
+    });
+
+    // افزودن همتای جدید
+    app.post('/addPeer', (req, res) =&gt; {
+        connectToPeers(req.body.peer);
+        res.send();
+    });
+
+    app.listen(myHttpPort, () =&gt; {
+        console.log('Listening http on port: ' + myHttpPort);
+    });
+};</code></pre>
+
+        <p>همان‌طور که دیده می‌شود، کاربر به این روش‌ها می‌تواند با گره تعامل کند:</p>
+        <ul>
+          <li>فهرست کردن همهٔ بلاک‌ها</li>
+          <li>ساخت بلاک جدید با محتوایی که کاربر تعیین می‌کند</li>
+          <li>فهرست کردن یا افزودن همتاها</li>
+        </ul>
+        <p>ساده‌ترین راه کنترل گره مثلاً با Curl است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">bash</span><code># دریافت همه بلاک‌ها از گره
+&gt; curl http://localhost:3001/blocks</code></pre>
+
+        <h3>معماری</h3>
+        <p>
+          باید توجه داشت که گره در واقع دو وب‌سرور را در معرض دید قرار می‌دهد: یکی برای کنترل گره توسط
+          کاربر (سرور HTTP) و یکی برای ارتباط همتا به همتا بین گره‌ها (سرور وب‌سوکت HTTP).
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/naivechain_architecture.png" alt="معماری گره: سرور HTTP کنترل و سرور وب‌سوکت همتا به همتا" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          Naivecoin در حال حاضر فقط یک بلاک‌چین «همه‌منظوره»ٔ آزمایشی است. این فصل نشان می‌دهد که می‌توان برخی
+          از اصول پایهٔ بلاک‌چین را به روشی نسبتاً ساده پیاده‌سازی کرد. در فصل بعد، الگوریتم اثبات سهام
+          (minting) را به naivecoin اضافه می‌کنیم.
+        </p>
+      </section>
+
+      <!-- ============================================================
+           فصل ۲ — اثبات سهام
+           ============================================================ -->
+      <section>
+        <h2>۲. اثبات سهام (Proof of Stake)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>
+          در این فصل اجماعی را پیاده‌سازی می‌کنیم که به‌صورت توزیع‌شده تصمیم می‌گیرد کدام بلاک باید بعدی
+          در بلاک‌چین باشد. الگوریتم‌های اجماع گوناگونی با قواعد متفاوت برای رسیدن به این هدف وجود دارد
+          (<a href="https://medium.com/learning-lab/proof-of-what-understand-the-distributed-consensuses-in-blockchain-1d9304ae4afe" target="_blank" rel="noopener">اطلاعات بیشتر اینجا</a>).
+          دو اجماع مشهور «اثبات کار» (Proof of Work یا PoW) و «اثبات سهام» (Proof of Stake یا PoS) هستند.
+        </p>
+        <p>
+          در اثبات کار، هرچه توان محاسباتی گره شما بیشتر باشد، شانس بیشتری برای یافتن بلاک بعدی دارید؛ گره‌ها
+          برای یافتن بلاک باید هش‌های بسیار زیادی محاسبه کنند. این فرایند «استخراج» (mining) نام دارد و برق
+          زیادی مصرف می‌کند. برای جلوگیری از این اتلاف، کوین Peercoin اجماع «اثبات سهام» را معرفی کرد که به
+          گره‌هایی که کوین بیشتری در اختیار دارند، شانس بیشتری برای یافتن بلاک می‌دهد. این فرایند «ضراب‌زنی»
+          (minting) نام دارد. الگوریتم اثبات سهام پیاده‌سازی‌شده در اینجا بر اساس
+          <a href="https://blog.ethereum.org/2014/07/05/stake/" target="_blank" rel="noopener">این مقاله</a>
+          از Vitalik Buterin است. همچنین به یاد داشته باشید که پیاده‌سازی‌های گوناگونی از اثبات سهام وجود دارد.
+        </p>
+        <p>
+          این فصل همچنین نشان می‌دهد که چگونه می‌توان با تغییر سختی (difficulty)، بازهٔ تولید بلاک را کنترل کرد.
+        </p>
+        <p>
+          باید توجه داشت که در این فصل هنوز تراکنش‌ها را معرفی نمی‌کنیم؛ یعنی در واقع انگیزه‌ای برای ضراب‌زن‌ها
+          (minters) جهت تولید بلاک وجود ندارد. معمولاً در ارزهای دیجیتال، گره برای یافتن بلاک پاداش می‌گیرد،
+          اما هنوز در بلاک‌چین ما چنین نیست.
+        </p>
+        <p>
+          اگر به دنبال پیاده‌سازی اجماع اثبات کار هستید، توصیه می‌کنیم آموزش اصلی Naivecoin را بخوانید:
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/13/chapter2.html" target="_blank" rel="noopener">https://lhartikk.github.io/jekyll/update/2017/07/13/chapter2.html</a>.
+        </p>
+
+        <h3>سختی و معمای اثبات سهام</h3>
+        <p>سه ویژگی به ساختار بلاک اضافه می‌کنیم:</p>
+        <ul>
+          <li><code>difficulty</code>: عددی که برای ثابت نگه‌داشتن فاصلهٔ زمانی بین بلاک‌ها استفاده می‌شود</li>
+          <li><code>minterBalance</code>: موجودی گره‌ای که در حال ضراب‌زنی است (بلاک را می‌یابد)</li>
+          <li><code>minterAddress</code>: آدرس گره‌ای که در حال ضراب‌زنی است (بلاک را می‌یابد)</li>
+        </ul>
+        <p>
+          توجه کنید که <code>minterBalance</code> و <code>minterAddress</code> برای ساده‌سازی کد اضافه شده‌اند؛
+          برای <code>minterAddress</code> می‌توان آن را با استفاده از اطلاعات coinbase حذف کرد و
+          <code>minterBalance</code> نیز با خروجی‌های مصرف‌نشده (UnspentOutput) در شمارهٔ بلاک مشخص قابل محاسبه
+          است و باید محاسبه شود.
+        </p>
+        <p>ساختار فعلی بلاک به این صورت است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس بلاک با ویژگی‌های اثبات سهام
+class Block {
+
+    public index: number;
+    public hash: string;
+    public previousHash: string;
+    public timestamp: number;
+    public data: Transaction[];
+    public difficulty: number;                 // سختی شبکه در این بلاک
+    public nonce: number;
+    public minterBalance: number;              // موجودی ضراب‌زن — برای اجتناب از محاسبه مجدد موجودی در ارتفاع دقیق
+    public minterAddress: string;              // آدرس ضراب‌زن
+
+    constructor(index: number, hash: string, previousHash: string,
+                timestamp: number, data: Transaction[], difficulty: number, minterBalance: number, minterAddress: string) {
+        this.index = index;
+        this.previousHash = previousHash;
+        this.timestamp = timestamp;
+        this.data = data;
+        this.hash = hash;
+        this.difficulty = difficulty;
+        this.minterBalance = minterBalance;
+        this.minterAddress = minterAddress;
+    }
+}</code></pre>
+
+        <p>همچنین محاسبهٔ هش باید با داده‌های جدید به‌روزرسانی شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// محاسبه هش با در نظر گرفتن سختی، موجودی و آدرس ضراب‌زن
+const calculateHash = (index: number, previousHash: string, timestamp: number, data: Transaction[],
+                       difficulty: number, minterBalance: number, minterAddress: string): string =&gt;
+    CryptoJS.SHA256(index + previousHash + timestamp + data + difficulty + minterBalance + minterAddress).toString();</code></pre>
+
+        <p>
+          حالا معمای اثبات سهام را که برای تصمیم‌گیری دربارهٔ یافتن بلاک به کار می‌رود، در کد شبه (pseudo code)
+          از Vitalik Buterin ببینیم:
+          <a href="https://blog.ethereum.org/2014/07/05/stake/" target="_blank" rel="noopener">https://blog.ethereum.org/2014/07/05/stake/</a>
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">text</span><code>// معمای اثبات سهام: هش باید کوچک‌تر یا مساوی مقدار هدف باشد
+SHA256(prevhash + address + timestamp) &lt;= 2^256 * balance / diff</code></pre>
+
+        <p>و در ادامه، پیاده‌سازی آن در TypeScript:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بررسی اعتبار ضراب‌زنی: هش حاصل باید از مقدار هدف کوچک‌تر باشد
+const isBlockStakingValid = (prevhash: string, address: string, timestamp: number, balance: number, difficulty: number, index: number): boolean =&gt; {
+    difficulty = difficulty + 1;
+
+    // برای چند بلاک اول، ضراب‌زنی بدون کوین مجاز است
+    if(index &lt;= mintingWithoutCoinIndex) {
+        balance = balance + 1;
+    }
+
+    // مقدار هدف: (2^256) * balance / difficulty
+    const balanceOverDifficulty = new BigNumber(2).exponentiatedBy(256).times(balance).dividedBy(difficulty);
+    const stakingHash: string = CryptoJS.SHA256(prevhash + address + timestamp);
+    const decimalStakingHash = new BigNumber(stakingHash, 16);   // تبدیل هش به عدد پایه ۱۶
+    const difference = balanceOverDifficulty.minus(decimalStakingHash).toNumber();
+
+    return difference &gt;= 0;   // اگر هش از هدف کوچک‌تر باشد، بلاک یافت شده است
+};</code></pre>
+
+        <p>
+          چون این معما اعداد بسیار بزرگی را مقایسه می‌کند، باید از کتابخانه‌ای استفاده کنیم که توانایی کار با
+          این اعداد را داشته باشد.
+        </p>
+        <p>
+          همچنین همان‌طور که می‌بینید تابع <code>SHA256()</code> سه ورودی می‌گیرد: <code>prevhash</code> که
+          قابل تغییر نیست، <code>address</code> که بدون تغییر <code>balance</code> قابل تغییر نیست و
+          <code>timestamp</code> که فقط هر یک ثانیه تغییر می‌کند. به همین دلیل هر ثانیه یک‌بار می‌توانید
+          برای یافتن بلاک تلاش کنید که انرژی بسیار کمتری نسبت به اثبات کار مصرف می‌کند.
+        </p>
+        <p>
+          توجه کنید که اثبات سهام یک محدودیت بزرگ دارد: وقتی بلاک‌چین را با موجودی صفر برای همهٔ حساب‌ها شروع
+          کنید، هیچ‌کس نمی‌تواند کوین خود را stake کند و بلاک بیابد. راه‌های گوناگونی برای حل این مشکل وجود دارد:
+        </p>
+        <ul>
+          <li>تولید مقدار مشخصی کوین در بلاک پیدایش و توزیع دستی آن بین گره‌ها (یا فروش آن)</li>
+          <li>استفاده از اجماع اثبات سهام در کنار اثبات کار تا حساب‌های بدون کوین هم شانس موفقیت داشته باشند</li>
+          <li>شبیه‌سازی افزایش موجودی در تعداد محدودی بلاک (که در کد بالا می‌بینیم)</li>
+        </ul>
+        <p>
+          همچنین توجه کنید که گره‌ها همچنان می‌توانند با تغییر timestamp تقلب کنند. برای جلوگیری از این کار،
+          برخی ارزهای دیجیتال نقطه‌های بازرسی (checkpoints) اضافه می‌کنند (که متمرکز هستند و توسط یک مرجع ارسال می‌شوند).
+        </p>
+
+        <h3>یافتن بلاک</h3>
+        <p>همان‌طور که در بالا شرح داده شد، برای یافتن بلاک باید هر ثانیه معما را امتحان کنیم. این کار با کد زیر انجام می‌شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// حلقه یافتن بلاک: هر ثانیه یک بار تلاش برای ضراب‌زنی
+const findBlock = (index: number, previousHash: string, data: Transaction[], difficulty: number): Block =&gt; {
+    let pastTimestamp: number = 0;
+    while (true) {
+        let timestamp: number = getCurrentTimestamp();   // زمان فعلی
+        if(pastTimestamp !== timestamp) {                // فقط یک بار در هر ثانیه تلاش کن
+            let hash: string = calculateHash(index, previousHash, timestamp, data, difficulty, getAccountBalance(), getPublicFromWallet());
+            if (isBlockStakingValid(previousHash, getPublicFromWallet(), timestamp, getAccountBalance(), difficulty, index)) {
+                // بلاک پیدا شد؛ آن را بازگردان
+                return new Block(index, hash, previousHash, timestamp, data, difficulty, getAccountBalance(), getPublicFromWallet());
+            }
+            pastTimestamp = timestamp;   // برای اینکه تا ثانیه بعد دوباره تلاش نشود
+        }
+    }
+};</code></pre>
+
+        <h3>اجماع روی سختی</h3>
+        <p>
+          حالا ابزار یافتن و بررسی هش برای یک سختی مشخص را داریم، اما سختی چگونه تعیین می‌شود؟ باید راهی وجود
+          داشته باشد که گره‌ها روی سختی فعلی شبکه توافق کنند. برای این کار قواعد جدیدی معرفی می‌کنیم که برای
+          محاسبهٔ سختی فعلی شبکه استفاده می‌شوند.
+        </p>
+        <p>ثابت‌های جدید شبکه را این‌گونه تعریف می‌کنیم:</p>
+        <ul>
+          <li><code>BLOCK_GENERATION_INTERVAL</code>: مشخص می‌کند هر چند وقت یک‌بار باید بلاک یافت شود
+              (در بیت‌کوین این مقدار ۱۰ دقیقه است)</li>
+          <li><code>DIFFICULTY_ADJUSTMENT_INTERVAL</code>: مشخص می‌کند سختی هر چند وقت یک بار باید با
+              افزایش یا کاهش نرخ هش شبکه تنظیم شود (در بیت‌کوین این مقدار ۲۰۱۶ بلاک است)</li>
+        </ul>
+        <p>
+          بازهٔ تولید بلاک را ۱۰ ثانیه و بازهٔ تنظیم سختی را ۱۰ بلاک قرار می‌دهیم. این ثابت‌ها با گذشت زمان
+          تغییر نمی‌کنند و به‌صورت ثابت در کد قرار دارند:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بازه تولید بلاک (بر حسب ثانیه)
+const BLOCK_GENERATION_INTERVAL: number = 10;
+
+// بازه تنظیم سختی (بر حسب بلاک)
+const DIFFICULTY_ADJUSTMENT_INTERVAL: number = 10;</code></pre>
+
+        <p>
+          حالا ابزار توافق روی سختی بلاک را داریم. برای هر ۱۰ بلاکی که تولید می‌شود بررسی می‌کنیم که زمان
+          صرف‌شده برای تولید این بلاک‌ها از زمان مورد انتظار بزرگ‌تر است یا کوچک‌تر. زمان مورد انتظار این‌گونه
+          محاسبه می‌شود: <code>BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL</code>. زمان مورد
+          انتظار حالتی را نشان می‌دهد که نرخ هش دقیقاً با سختی فعلی یکسان باشد.
+        </p>
+        <p>
+          اگر زمان صرف‌شده حداقل دو برابر بزرگ‌تر یا کوچک‌تر از زمان مورد انتظار باشد، سختی را یک واحد زیاد یا
+          کم می‌کنیم. تنظیم سختی با کد زیر انجام می‌شود:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// دریافت سختی فعلی شبکه
+const getDifficulty = (aBlockchain: Block[]): number =&gt; {
+    const latestBlock: Block = aBlockchain[blockchain.length - 1];
+    if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 &amp;&amp; latestBlock.index !== 0) {
+        return getAdjustedDifficulty(latestBlock, aBlockchain);   // وقت تنظیم سختی است
+    } else {
+        return latestBlock.difficulty;                            // سختی را تغییر نده
+    }
+};
+
+// محاسبه سختی تنظیم‌شده بر اساس زمان واقعی تولید بلاک‌ها
+const getAdjustedDifficulty = (latestBlock: Block, aBlockchain: Block[]) =&gt; {
+    const prevAdjustmentBlock: Block = aBlockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
+    const timeExpected: number = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;  // زمان مورد انتظار
+    const timeTaken: number = latestBlock.timestamp - prevAdjustmentBlock.timestamp;          // زمان واقعی
+    if (timeTaken &lt; timeExpected / 2) {
+        return prevAdjustmentBlock.difficulty + 1;   // بلاک‌ها خیلی سریع ساخته شدند؛ سختی را زیاد کن
+    } else if (timeTaken &gt; timeExpected * 2) {
+        return prevAdjustmentBlock.difficulty - 1;   // بلاک‌ها خیلی کند ساخته شدند؛ سختی را کم کن
+    } else {
+        return prevAdjustmentBlock.difficulty;       // در حد انتظار بود؛ تغییر نده
+    }
+};</code></pre>
+
+        <h3>اعتبارسنجی برچسب زمانی</h3>
+        <p>
+          در نسخهٔ فصل ۱ بلاک‌چین، برچسب زمانی هیچ نقشی و اعتبارسنجی نداشت؛ در واقع هر چیزی که کلاینت تصمیم
+          می‌گرفت تولید می‌شد. حالا که تنظیم سختی معرفی شده است، این موضوع تغییر می‌کند، چون متغیر
+          <code>timeTaken</code> (در کد قبلی) بر اساس برچسب‌های زمانی بلاک‌ها محاسبه می‌شود.
+        </p>
+        <p>
+          برای کاهش حملهٔ درج برچسب زمانی جعلی با هدف دستکاری سختی، این قواعد معرفی می‌شوند:
+        </p>
+        <ul>
+          <li>بلاک معتبر است اگر برچسب زمانی آن حداکثر ۱ دقیقه در آینده، نسبت به زمانی که ما درک می‌کنیم، باشد.</li>
+          <li>بلاک در زنجیره معتبر است اگر برچسب زمانی آن حداکثر ۱ دقیقه در گذشتهٔ بلاک قبلی باشد.</li>
+        </ul>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// اعتبارسنجی برچسب زمانی بلاک جدید نسبت به بلاک قبلی و زمان فعلی
+const isValidTimestamp = (newBlock: Block, previousBlock: Block): boolean =&gt; {
+    return ( previousBlock.timestamp - 60 &lt; newBlock.timestamp )
+        &amp;&amp; newBlock.timestamp - 60 &lt; getCurrentTimestamp();
+};</code></pre>
+
+        <h3>سختی تجمعی (Cumulative difficulty)</h3>
+        <p>
+          در نسخهٔ فصل ۱ بلاک‌چین، همیشه «بلندترین» بلاک‌چین را معتبر انتخاب می‌کردیم. حالا که سختی معرفی شده،
+          این موضوع باید تغییر کند. از این پس زنجیرهٔ «صحیح»، بلندترین زنجیره نیست، بلکه زنجیره‌ای است که بیشترین
+          سختی تجمعی را دارد. به عبارت دیگر، زنجیرهٔ صحیح زنجیره‌ای است که تولیدش بیشترین منابع (= نرخ هش × زمان)
+          را نیاز داشته است.
+        </p>
+        <p>
+          برای به‌دست آوردن سختی تجمعی یک زنجیره، برای هر بلاک <code>2^difficulty</code> را محاسبه و مجموع همهٔ
+          این اعداد را می‌گیریم. باید از <code>2^difficulty</code> استفاده کنیم، چون سختی را به‌صورت تعداد صفرهایی
+          که باید در ابتدای هش (در قالب دودویی) باشد تعریف کرده‌ایم. برای مثال در مقایسهٔ سختی‌های ۵ و ۱۱، برای
+          یافتن بلاک با سختی بیشتر، به <code>2^(11-5) = 2^6</code> برابر کار بیشتر نیاز داریم.
+        </p>
+        <p>
+          این ویژگی به «اجماع ناکاموتو» (Nakamoto consensus) نیز معروف است و یکی از مهم‌ترین اختراعاتِ ساتوشی
+          هنگام ساخت بیت‌کوین بوده است. در صورت وقوع fork، ضراب‌زن‌ها باید تصمیم بگیرند منابع فعلی خودشان (= نرخ
+          هش) را روی کدام زنجیره بگذارند. از آنجا که در منافع ضراب‌زن‌هاست بلاکی تولید کنند که در بلاک‌چین قرار
+          بگیرد، آن‌ها در نهایت ترغیب می‌شوند زنجیرهٔ یکسانی را انتخاب کنند.
+        </p>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          اجماع اثبات سهام جایگزین نسبتاً جالبی برای اثبات کار است، چون انرژی زیادی مصرف نمی‌کند. البته حملات
+          مختلفی هم ممکن است انجام شود، مانند تغییر برچسب زمانی که naivecoin فعلی در برابر آن محافظت ندارد.
+        </p>
+        <p>
+          همچنین در پیاده‌سازی فعلی، موجودی حساب بر اساس بلاک‌چین محاسبه نمی‌شود، بلکه از خود زنجیره خوانده و
+          نوشته می‌شود (برای ساده‌سازی، چون بیشتر به خود معما علاقه‌مند بودم). این اصلاً خوب نیست و باید حل شود!
+        </p>
+      </section>
+
+      <!-- ============================================================
+           فصل ۳ — تراکنش‌ها
+           ============================================================ -->
+      <section>
+        <h2>۳. تراکنش‌ها (Transactions)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>
+          در این فصل مفهوم تراکنش‌ها را معرفی می‌کنیم. با این تغییر، پروژه‌مان از یک بلاک‌چین «همه‌منظوره» به
+          یک ارز دیجیتال واقعی تبدیل می‌شود. در نتیجه می‌توانیم کوین‌ها را به آدرس‌ها بفرستیم، به شرط آنکه
+          ابتدا ثابت کنیم مالک آن‌ها هستیم.
+        </p>
+        <p>
+          برای ممکن‌شدن همهٔ این‌ها باید مفاهیم تازهٔ زیادی معرفی شود، از جمله رمزنگاری کلید عمومی، امضاها و
+          ورودی‌ها و خروجی‌های تراکنش.
+        </p>
+        <p>
+          این فصل از آموزش اصلی <a href="https://lhartikk.github.io" target="_blank" rel="noopener">Naivecoin</a>
+          نوشتهٔ <a href="https://github.com/lhartikk" target="_blank" rel="noopener">Lauri Hartikka</a> کپی شده و
+          برای اجماع اثبات سهام تطبیق داده شده است. صفحهٔ اصلی آن را
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/12/chapter3.html" target="_blank" rel="noopener">اینجا</a> ببینید.
+        </p>
+
+        <h3>رمزنگاری کلید عمومی و امضاها</h3>
+        <p>
+          در رمزنگاری کلید عمومی یک جفت کلید دارید: یک کلید خصوصی و یک کلید عمومی. کلید عمومی را می‌توان از
+          کلید خصوصی استخراج کرد، اما کلید خصوصی را نمی‌توان از کلید عمومی استخراج کرد. کلید عمومی (همان‌طور
+          که از نامش پیداست) می‌تواند با خیال راحت با هر کسی به اشتراک گذاشته شود.
+        </p>
+        <p>
+          هر پیامی را می‌توان با کلید خصوصی امضا کرد تا یک امضا ایجاد شود. با این امضا و کلید عمومی متناظر، هر
+          کسی می‌تواند تأیید کند که امضا توسط کلید خصوصیِ منطبق با آن کلید عمومی تولید شده است.
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/Digital_signatures.png" alt="امضای دیجیتال: پیام با کلید خصوصی امضا و با کلید عمومی تأیید می‌شود" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>
+          برای رمزنگاری کلید عمومی از کتابخانه‌ای به نام <code>elliptic</code> استفاده می‌کنیم که از
+          منحنی‌های بیضوی استفاده می‌کند. (= ECDSA)
+        </p>
+        <p>خلاصه اینکه در ارز دیجیتال از دو تابع رمزنگاری متفاوت برای دو هدف متفاوت استفاده می‌شود:</p>
+        <ul>
+          <li>تابع هش (SHA256) برای استخراج اثبات کار (هش برای حفظ یکپارچگی بلاک هم استفاده می‌شود)</li>
+          <li>رمزنگاری کلید عمومی (ECDSA) برای تراکنش‌ها (که در همین فصل پیاده‌سازی می‌کنیم)</li>
+        </ul>
+
+        <h3>کلیدهای خصوصی و عمومی (در ECDSA)</h3>
+        <p>
+          یک کلید خصوصی معتبر هر رشتهٔ ۳۲ بایتی تصادفی است، مثلاً
+          <code>19f128debc1b9122da0635954488b208b829879cf13b3d6cac5d1260c0fd967c</code>
+        </p>
+        <p>
+          یک کلید عمومی معتبر «04» به‌همراه یک رشتهٔ ۶۴ بایتی است، مثلاً
+          <code>04bfcab8722991ae774db48f934ca79cfb7dd991229153b9f732ba5334aafcd8e7266e47076996b55a14bf9913ee3145ce0cfc1372ada8ada74bd287450313534a</code>
+        </p>
+        <p>
+          کلید عمومی را می‌توان از کلید خصوصی استخراج کرد. کلید عمومی به‌عنوان «گیرنده» (= آدرس) کوین‌ها در
+          تراکنش استفاده می‌شود.
+        </p>
+
+        <h3>مرور کلی تراکنش‌ها</h3>
+        <p>
+          قبل از نوشتن هر کدی، نگاهی به ساختار تراکنش‌ها بیندازیم. تراکنش‌ها از دو مؤلفه تشکیل شده‌اند:
+          ورودی‌ها (inputs) و خروجی‌ها (outputs). خروجی‌ها مشخص می‌کنند کوین‌ها به کجا فرستاده می‌شوند و
+          ورودی‌ها اثبات می‌کنند که کوین‌های واقعاً ارسال‌شده از ابتدا وجود داشته‌اند و متعلق به «فرستنده» هستند.
+          ورودی‌ها همیشه به یک خروجی موجود (مصرف‌نشده) ارجاع می‌دهند.
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/transactions.png" alt="نمایش تراکنش با ورودی‌ها (txIn) که به خروجی‌های قبلی ارجاع می‌دهند و خروجی‌ها (txOut)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>خروجی‌های تراکنش</h3>
+        <p>
+          خروجی‌های تراکنش (txOut) از یک آدرس و یک مقدار کوین تشکیل شده‌اند. آدرس یک کلید عمومی ECDSA است؛ یعنی
+          کاربری که کلید خصوصی کلید عمومیِ ارجاع‌داده‌شده (= آدرس) را دارد، می‌تواند به کوین‌ها دسترسی پیدا کند.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس خروجی تراکنش: آدرس گیرنده و مقدار کوین
+class TxOut {
+    public address: string;   // آدرس گیرنده (کلید عمومی ECDSA)
+    public amount: number;    // مقدار کوین
+
+    constructor(address: string, amount: number) {
+        this.address = address;
+        this.amount = amount;
+    }
+}</code></pre>
+
+        <h3>ورودی‌های تراکنش</h3>
+        <p>
+          ورودی‌های تراکنش (txIn) اطلاعات «از کجا» بودن کوین‌ها را فراهم می‌کنند. هر txIn به یک خروجی قبلی ارجاع
+          می‌دهد و با امضا، آن کوین‌ها «قفل‌گشایی» (unlock) می‌شوند. این کوین‌های قفل‌گشایی‌شده حالا برای txOutها
+          «در دسترس» هستند. امضا اثبات می‌کند فقط کاربری که کلید خصوصی کلید عمومی ارجاع‌داده‌شده (= آدرس) را
+          دارد می‌توانسته این تراکنش را ایجاد کند.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس ورودی تراکنش: ارجاع به خروجی قبلی و امضای مالک
+class TxIn {
+    public txOutId: string;     // شناسه تراکنش حاوی خروجی مصرف‌شده
+    public txOutIndex: number;  // اندیس خروجی در آن تراکنش
+    public signature: string;   // امضای ایجادشده با کلید خصوصی
+}</code></pre>
+
+        <p>
+          باید توجه داشت که txIn فقط امضا (که با کلید خصوصی ساخته شده) را شامل می‌شود و هرگز خود کلید خصوصی را
+          ندارد. بلاک‌چین شامل کلیدهای عمومی و امضاهاست، نه کلیدهای خصوصی.
+        </p>
+        <p>
+          در نهایت می‌توان این‌گونه هم فکر کرد که txInها کوین‌ها را قفل‌گشایی می‌کنند و txOutها کوین‌ها را
+          دوباره «قفل» می‌کنند:
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/transactions2.png" alt="ورودی تراکنش کوین‌ها را قفل‌گشایی و خروجی تراکنش آن‌ها را برای گیرنده قفل می‌کند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>ساختار تراکنش</h3>
+        <p>خود ساختار تراکنش بسیار ساده است، چون txIn و txOut را تعریف کرده‌ایم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس تراکنش: شناسه، ورودی‌ها و خروجی‌ها
+class Transaction {
+    public id: string;        // شناسه یکتای تراکنش
+    public txIns: TxIn[];     // ورودی‌ها
+    public txOuts: TxOut[];   // خروجی‌ها
+}</code></pre>
+
+        <h3>شناسهٔ تراکنش</h3>
+        <p>
+          شناسهٔ تراکنش با گرفتن هش از محتوای تراکنش محاسبه می‌شود. البته امضاهای ورودی‌ها در هش تراکنش لحاظ
+          نمی‌شوند، چون بعداً به تراکنش اضافه می‌شوند.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// محاسبه شناسه تراکنش با هش گرفتن از محتوای ورودی‌ها و خروجی‌ها
+const getTransactionId = (transaction: Transaction): string =&gt; {
+    // ترکیب محتوای ورودی‌ها (شناسه خروجی + اندیس)
+    const txInContent: string = transaction.txIns
+        .map((txIn: TxIn) =&gt; txIn.txOutId + txIn.txOutIndex)
+        .reduce((a, b) =&gt; a + b, '');
+
+    // ترکیب محتوای خروجی‌ها (آدرس + مقدار)
+    const txOutContent: string = transaction.txOuts
+        .map((txOut: TxOut) =&gt; txOut.address + txOut.amount)
+        .reduce((a, b) =&gt; a + b, '');
+
+    return CryptoJS.SHA256(txInContent + txOutContent).toString();
+};</code></pre>
+
+        <h3>امضای تراکنش</h3>
+        <p>
+          مهم است که محتوای تراکنش پس از امضا شدن قابل تغییر نباشد. چون تراکنش‌ها عمومی هستند، هر کسی حتی قبل
+          از اینکه در بلاک‌چین قرار بگیرند به آن‌ها دسترسی دارد.
+        </p>
+        <p>
+          هنگام امضای ورودی‌های تراکنش فقط <code>txId</code> امضا می‌شود. اگر هر یک از محتویات تراکنش تغییر کند،
+          <code>txId</code> باید تغییر کند و در نتیجه تراکنش و امضا نامعتبر می‌شوند.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// امضای یک ورودی تراکنش با کلید خصوصی
+const signTxIn = (transaction: Transaction, txInIndex: number,
+                  privateKey: string, aUnspentTxOuts: UnspentTxOut[]): string =&gt; {
+    const txIn: TxIn = transaction.txIns[txInIndex];
+    const dataToSign = transaction.id;   // فقط شناسه تراکنش امضا می‌شود
+    const referencedUnspentTxOut: UnspentTxOut = findUnspentTxOut(txIn.txOutId, txIn.txOutIndex, aUnspentTxOuts);
+    const referencedAddress = referencedUnspentTxOut.address;   // آدرس مالک خروجی مصرف‌نشده
+    const key = ec.keyFromPrivate(privateKey, 'hex');
+    const signature: string = toHexString(key.sign(dataToSign).toDER());
+    return signature;
+};</code></pre>
+
+        <p>ببینیم اگر کسی بخواهد تراکنش را تغییر دهد چه اتفاقی می‌افتد:</p>
+        <ol>
+          <li>مهاجم یک گره اجرا می‌کند و تراکنشی با محتوای «۱۰ کوین از آدرس AAA به BBB بفرست» با txId برابر 0x555.. دریافت می‌کند</li>
+          <li>مهاجم آدرس گیرنده را به CCC تغییر می‌دهد و تراکنش را در شبکه پخش می‌کند. حالا محتوای تراکنش «۱۰ کوین از آدرس AAA به CCC بفرست» است</li>
+          <li>اما چون آدرس گیرنده تغییر کرده، txId دیگر معتبر نیست. یک txId معتبر جدید 0x567… خواهد بود</li>
+          <li>اگر txId به مقدار جدید تغییر داده شود، امضا معتبر نیست؛ امضا فقط با txId اصلی 0x555.. مطابقت دارد</li>
+          <li>تراکنش تغییرداده‌شده توسط گره‌های دیگر پذیرفته نمی‌شود، چون در هر صورت نامعتبر است</li>
+        </ol>
+
+        <h3>خروجی‌های تراکنش مصرف‌نشده (uTxO)</h3>
+        <p>
+          ورودی تراکنش همیشه باید به یک خروجی تراکنش مصرف‌نشده (unspent transaction output) ارجاع دهد. در نتیجه
+          وقتی صاحب کوین‌هایی در بلاک‌چین هستید، چیزی که واقعاً دارید فهرستی از خروجی‌های تراکنش مصرف‌نشده
+          است که کلید عمومی‌شان با کلید خصوصیِ در اختیار شما مطابقت دارد.
+        </p>
+        <p>
+          از نظر اعتبارسنجی تراکنش‌ها، برای فهمیدن معتبر بودن یک تراکنش فقط می‌توانیم روی فهرست خروجی‌های
+          مصرف‌نشده تمرکز کنیم. این فهرست همیشه قابل استخراج از بلاک‌چین فعلی است. در این پیاده‌سازی، فهرست
+          خروجی‌های مصرف‌نشده را هنگام پردازش و افزودن تراکنش‌ها به بلاک‌چین به‌روزرسانی می‌کنیم.
+        </p>
+        <p>ساختار دادهٔ یک خروجی تراکنش مصرف‌نشده این‌گونه است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// کلاس خروجی تراکنش مصرف‌نشده: با آدرس و مقدار
+class UnspentTxOut {
+    public readonly txOutId: string;     // شناسه تراکنش حاوی خروجی
+    public readonly txOutIndex: number;  // اندیس خروجی در تراکنش
+    public readonly address: string;     // آدرس مالک
+    public readonly amount: number;      // مقدار کوین
+
+    constructor(txOutId: string, txOutIndex: number, address: string, amount: number) {
+        this.txOutId = txOutId;
+        this.txOutIndex = txOutIndex;
+        this.address = address;
+        this.amount = amount;
+    }
+}</code></pre>
+
+        <p>ساختار دادهٔ آن به‌سادگی یک فهرست است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// فهرست خروجی‌های تراکنش مصرف‌نشده
+let unspentTxOuts: UnspentTxOut[] = [];</code></pre>
+
+        <h3>به‌روزرسانی خروجی‌های تراکنش مصرف‌نشده</h3>
+        <p>
+          هر بار که بلاک جدیدی به زنجیره اضافه می‌شود، باید فهرست خروجی‌های مصرف‌نشده خود را به‌روزرسانی کنیم؛
+          چون تراکنش‌های جدید برخی از خروجی‌های موجود را مصرف می‌کنند و خروجی‌های مصرف‌نشدهٔ جدیدی معرفی می‌کنند.
+        </p>
+        <p>برای این کار، ابتدا همهٔ خروجی‌های مصرف‌نشدهٔ جدید (<code>newUnspentTxOuts</code>) را از بلاک جدید استخراج می‌کنیم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // استخراج خروجی‌های جدید هر تراکنش به‌صورت خروجی مصرف‌نشده
+    const newUnspentTxOuts: UnspentTxOut[] = newTransactions
+        .map((t) =&gt; {
+            return t.txOuts.map((txOut, index) =&gt; new UnspentTxOut(t.id, index, txOut.address, txOut.amount));
+        })
+        .reduce((a, b) =&gt; a.concat(b), []);</code></pre>
+
+        <p>
+          همچنین باید بدانیم کدام خروجی‌ها توسط تراکنش‌های جدید بلاک مصرف شده‌اند
+          (<code>consumedTxOuts</code>). این کار با بررسی ورودی‌های تراکنش‌های جدید حل می‌شود:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // پیدا کردن خروجی‌های مصرف‌شده از طریق ورودی‌های تراکنش‌های جدید
+    const consumedTxOuts: UnspentTxOut[] = newTransactions
+        .map((t) =&gt; t.txIns)
+        .reduce((a, b) =&gt; a.concat(b), [])
+        .map((txIn) =&gt; new UnspentTxOut(txIn.txOutId, txIn.txOutIndex, '', 0));</code></pre>
+
+        <p>
+          در نهایت، با حذف <code>consumedTxOuts</code> و افزودن <code>newUnspentTxOuts</code> به خروجی‌های
+          مصرف‌نشدهٔ موجودمان، فهرست جدید را می‌سازیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // فهرست نهایی: حذف موارد مصرف‌شده و افزودن موارد جدید
+    const resultingUnspentTxOuts = aUnspentTxOuts
+        .filter(((uTxO) =&gt; !findUnspentTxOut(uTxO.txOutId, uTxO.txOutIndex, consumedTxOuts)))
+        .concat(newUnspentTxOuts);</code></pre>
+
+        <p>
+          کد و عملکرد توصیف‌شده در متد <code>updateUnspentTxOuts</code> قرار دارد. توجه کنید این متد فقط بعد از
+          اعتبارسنجیِ تراکنش‌های بلاک (و خود بلاک) فراخوانی می‌شود.
+        </p>
+
+        <h3>اعتبارسنجی تراکنش‌ها</h3>
+        <p>حالا می‌توانیم قواعد معتبر بودن یک تراکنش را مشخص کنیم:</p>
+
+        <h4>ساختار صحیح تراکنش</h4>
+        <p>تراکنش باید با کلاس‌های تعریف‌شدهٔ <code>Transaction</code>، <code>TxIn</code> و <code>TxOut</code> مطابقت داشته باشد:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // بررسی صحت ساختار تراکنش
+    const isValidTransactionStructure = (transaction: Transaction) =&gt; {
+        if (typeof transaction.id !== 'string') {
+            console.log('transactionId missing');   // شناسه تراکنش وجود ندارد
+            return false;
+        }
+        ...
+       // بقیه اعضای کلاس نیز بررسی شوند
+    }</code></pre>
+
+        <h4>شناسهٔ معتبر تراکنش</h4>
+        <p>شناسه در تراکنش باید به‌درستی محاسبه شده باشد:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // محاسبه مجدد شناسه و مقایسه با شناسه ارسالی
+    if (getTransactionId(transaction) !== transaction.id) {
+        console.log('invalid tx id: ' + transaction.id);   // شناسه تراکنش نامعتبر است
+        return false;
+    }</code></pre>
+
+        <h4>ورودی‌های معتبر</h4>
+        <p>امضاهای txInها باید معتبر باشند و خروجی‌های ارجاع‌داده‌شده نباید قبلاً مصرف شده باشند:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// اعتبارسنجی یک ورودی تراکنش
+const validateTxIn = (txIn: TxIn, transaction: Transaction, aUnspentTxOuts: UnspentTxOut[]): boolean =&gt; {
+    // پیدا کردن خروجی مصرف‌نشده ارجاع‌داده‌شده
+    const referencedUTxOut: UnspentTxOut =
+        aUnspentTxOuts.find((uTxO) =&gt; uTxO.txOutId === txIn.txOutId &amp;&amp; uTxO.txOutId === txIn.txOutId);
+    if (referencedUTxOut == null) {
+        console.log('referenced txOut not found: ' + JSON.stringify(txIn));   // خروجی ارجاعی پیدا نشد
+        return false;
+    }
+    const address = referencedUTxOut.address;
+
+    // تأیید امضا با کلید عمومی مالک
+    const key = ec.keyFromPublic(address, 'hex');
+    return key.verify(transaction.id, txIn.signature);
+};</code></pre>
+
+        <h4>مقادیر معتبر خروجی‌ها</h4>
+        <p>
+          مجموع مقادیر مشخص‌شده در خروجی‌ها باید با مجموع مقادیر ورودی‌ها برابر باشد. اگر به خروجی‌ای ارجاع
+          دهید که ۵۰ کوین دارد، مجموع مقادیر خروجی‌های جدید هم باید ۵۰ کوین باشد.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // مجموع مقادیر ورودی‌ها
+    const totalTxInValues: number = transaction.txIns
+        .map((txIn) =&gt; getTxInAmount(txIn, aUnspentTxOuts))
+        .reduce((a, b) =&gt; (a + b), 0);
+
+    // مجموع مقادیر خروجی‌ها
+    const totalTxOutValues: number = transaction.txOuts
+        .map((txOut) =&gt; txOut.amount)
+        .reduce((a, b) =&gt; (a + b), 0);
+
+    if (totalTxOutValues !== totalTxInValues) {
+        console.log('totalTxOutValues !== totalTxInValues in tx: ' + transaction.id);   // ورودی و خروجی برابر نیستند
+        return false;
+    }</code></pre>
+
+        <h3>تراکنش Coinbase</h3>
+        <p>
+          ورودی‌های تراکنش همیشه باید به خروجی‌های مصرف‌نشده ارجاع دهند، اما کوین‌های اولیه از کجا وارد
+          بلاک‌چین می‌شوند؟ برای حل این مشکل، نوع خاصی از تراکنش معرفی می‌شود: تراکنش coinbase.
+        </p>
+        <p>
+          تراکنش coinbase فقط یک خروجی دارد و هیچ ورودی ندارد؛ یعنی تراکنش coinbase کوین‌های جدیدی به گردش
+          اضافه می‌کند. مقدار خروجی coinbase را ۵۰ کوین تعیین می‌کنیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// مقدار پاداش تراکنش coinbase
+const COINBASE_AMOUNT: number = 50;</code></pre>
+
+        <p>
+          تراکنش coinbase همیشه اولین تراکنش بلاک است و توسط ضراب‌زن بلاک ایجاد می‌شود. پاداش coinbase به‌عنوان
+          انگیزهٔ گره‌ها عمل می‌کند: اگر بلاک را پیدا کنید، می‌توانید ۵۰ کوین جمع کنید.
+        </p>
+        <p>
+          ارتفاع بلاک را به ورودی تراکنش coinbase اضافه می‌کنیم تا هر تراکنش coinbase یک txId یکتا داشته باشد.
+          بدون این قاعده، مثلاً تراکنش coinbase «۵۰ کوین به آدرس 0xabc بده» همیشه یک txId یکسان داشت.
+        </p>
+        <p>اعتبارسنجی تراکنش coinbase کمی با تراکنش «عادی» تفاوت دارد:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// اعتبارسنجی تراکنش coinbase
+const validateCoinbaseTx = (transaction: Transaction, blockIndex: number): boolean =&gt; {
+    if (getTransactionId(transaction) !== transaction.id) {
+        console.log('invalid coinbase tx id: ' + transaction.id);   // شناسه coinbase نامعتبر است
+        return false;
+    }
+    if (transaction.txIns.length !== 1) {
+        console.log('one txIn must be specified in the coinbase transaction');   // دقیقاً یک ورودی لازم است
+        return;
+    }
+    if (transaction.txIns[0].txOutIndex !== blockIndex) {
+        console.log('the txIn index in coinbase tx must be the block height');   // اندیس ورودی باید برابر ارتفاع بلاک باشد
+        return false;
+    }
+    if (transaction.txOuts.length !== 1) {
+        console.log('invalid number of txOuts in coinbase transaction');   // تعداد خروجی‌ها نامعتبر است
+        return false;
+    }
+    if (transaction.txOuts[0].amount != COINBASE_AMOUNT) {
+        console.log('invalid coinbase amount in coinbase transaction');   // مقدار coinbase نامعتبر است
+        return false;
+    }
+    return true;
+};</code></pre>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          مفهوم تراکنش‌ها را به بلاک‌چین اضافه کردیم. ایدهٔ پایه بسیار ساده است: در ورودی‌های تراکنش به خروجی‌های
+          مصرف‌نشده ارجاع می‌دهیم و از امضاها برای نشان دادن معتبر بودن قفل‌گشایی استفاده می‌کنیم؛ سپس با خروجی‌ها،
+          آن‌ها را برای آدرس گیرنده دوباره «قفل» می‌کنیم.
+        </p>
+        <p>
+          با این حال، ساخت تراکنش‌ها همچنان بسیار دشوار است: باید به‌صورت دستی ورودی‌ها و خروجی‌های تراکنش را
+          بسازیم و با کلیدهای خصوصی‌مان امضا کنیم. این موضوع با معرفی کیف پول در فصل بعد تغییر می‌کند.
+        </p>
+        <p>
+          هنوز پخش تراکنش (transaction relaying) هم وجود ندارد: برای قرار دادن تراکنش در بلاک‌چین، باید خودتان
+          آن را ضراب‌زنی کنید. این هم دلیل معرفی‌نشدن مفهوم کارمزد تراکنش است.
+        </p>
+      </section>
+
+      <!-- ============================================================
+           فصل ۴ — کیف پول
+           ============================================================ -->
+      <section>
+        <h2>۴. کیف پول (Wallet)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>هدف کیف پول، ایجاد رابط انتزاعی‌تر برای کاربر نهایی است.</p>
+        <p>کاربر نهایی باید بتواند:</p>
+        <ul>
+          <li>کیف پول جدید بسازد (= در این مورد کلید خصوصی)</li>
+          <li>موجودی کیف پولش را ببیند</li>
+          <li>کوین به آدرس‌های دیگر بفرستد</li>
+        </ul>
+        <p>
+          همهٔ موارد بالا باید طوری کار کنند که کاربر نهایی نیازی به درک کارکرد txIn و txOut نداشته باشد؛
+          درست مثل مثلاً بیت‌کوین: کوین‌ها را به آدرس‌ها می‌فرستید و آدرس خودتان را منتشر می‌کنید تا بقیه به آن
+          کوین بفرستند.
+        </p>
+        <p>
+          این فصل از آموزش اصلی <a href="https://lhartikk.github.io" target="_blank" rel="noopener">Naivecoin</a>
+          نوشتهٔ <a href="https://github.com/lhartikk" target="_blank" rel="noopener">Lauri Hartikka</a> کپی شده و
+          برای اجماع اثبات سهام تطبیق داده شده است. صفحهٔ اصلی آن را
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/11/chapter4.html" target="_blank" rel="noopener">اینجا</a> ببینید.
+        </p>
+
+        <h3>تولید و ذخیره‌سازی کلید خصوصی</h3>
+        <p>
+          در این آموزش از ساده‌ترین روش ممکن برای تولید و ذخیرهٔ کیف پول استفاده می‌کنیم: یک کلید خصوصی
+          رمزنشده در فایل <code>node/wallet/private_key</code> تولید می‌کنیم.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// محل ذخیره کلید خصوصی
+const privateKeyLocation = 'node/wallet/private_key';
+
+// تولید کلید خصوصی تصادفی
+const generatePrivatekey = (): string =&gt; {
+    const keyPair = EC.genKeyPair();
+    const privateKey = keyPair.getPrivate();
+    return privateKey.toString(16);   // تبدیل به قالب هگز
+};
+
+// مقداردهی اولیه کیف پول
+const initWallet = () =&gt; {
+    // کلیدهای خصوصی موجود بازنویسی نشوند
+    if (existsSync(privateKeyLocation)) {
+        return;
+    }
+    const newPrivateKey = generatePrivatekey();
+
+    writeFileSync(privateKeyLocation, newPrivateKey);   // ذخیره کلید جدید در فایل
+    console.log('new wallet with private key created');
+};</code></pre>
+
+        <p>و همان‌طور که گفته شد، کلید عمومی (= آدرس) از کلید خصوصی قابل محاسبه است:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// استخراج کلید عمومی (آدرس) از کلید خصوصی
+const getPublicFromWallet = (): string =&gt; {
+    const privateKey = getPrivateFromWallet();
+    const key = EC.keyFromPrivate(privateKey, 'hex');
+    return key.getPublic().encode('hex');
+};</code></pre>
+
+        <p>
+          باید توجه داشت که ذخیرهٔ کلید خصوصی به‌صورت رمزنشده بسیار ناامن است. این کار را فقط برای ساده نگه‌داشتن
+          اوضاع فعلاً انجام می‌دهیم. همچنین کیف پول فقط از یک کلید خصوصی پشتیبانی می‌کند؛ بنابراین برای دریافت
+          یک آدرس عمومی جدید باید کیف پول جدیدی بسازید.
+        </p>
+
+        <h3>موجودی کیف پول</h3>
+        <p>
+          یادآوری از فصل قبل: وقتی صاحب کوین‌هایی در بلاک‌چین هستید، چیزی که واقعاً دارید فهرستی از خروجی‌های
+          تراکنش مصرف‌نشده است که کلید عمومی‌شان با کلید خصوصیِ در اختیار شما مطابقت دارد.
+        </p>
+        <p>
+          یعنی محاسبهٔ موجودی یک آدرس بسیار ساده است: کافی است مجموع همهٔ تراکنش‌های مصرف‌نشدهٔ «مالک» آن آدرس
+          را حساب کنید:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// محاسبه موجودی یک آدرس از روی خروجی‌های مصرف‌نشده
+const getBalance = (address: string, unspentTxOuts: UnspentTxOut[]): number =&gt; {
+    return _(unspentTxOuts)
+        .filter((uTxO: UnspentTxOut) =&gt; uTxO.address === address)  // فقط خروجی‌های متعلق به این آدرس
+        .map((uTxO: UnspentTxOut) =&gt; uTxO.amount)
+        .sum();   // مجموع مقادیر
+};</code></pre>
+
+        <p>
+          همان‌طور که در کد مشخص است، برای پرسوجوی موجودی آدرس به کلید خصوصی نیازی نیست؛ یعنی هر کسی می‌تواند
+          موجودی یک آدرس معین را محاسبه کند.
+        </p>
+
+        <h3>تولید تراکنش‌ها</h3>
+        <p>
+          هنگام ارسال کوین، کاربر باید بتواند مفاهیم ورودی‌ها و خروجی‌های تراکنش را نادیده بگیرد. اما اگر کاربر
+          A موجودی ۵۰ کوین داشته باشد (در یک خروجی تراکنش تکی) و بخواهد ۱۰ کوین به کاربر B بفرستد، چه باید کرد؟
+        </p>
+        <p>
+          در این حالت راه‌حل این است که ۱۰ کوین به آدرس کاربر B و ۴۰ کوین به آدرس کاربر A برگردد. خروجی تراکنش
+          همیشه باید کامل خرج شود، بنابراین بخش «تقسیم» باید هنگام اختصاص کوین‌ها به خروجی‌های جدید انجام شود.
+          این حالت ساده در تصویر زیر نشان داده شده است (txInها نمایش داده نشده‌اند):
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/tx_generation.png" alt="ارسال ۱۰ کوین از موجودی ۵۰ کوینی: ۱۰ کوین به گیرنده و ۴۰ کوین به فرستنده برمی‌گردد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>یک سناریوی کمی پیچیده‌تر تراکنش را باز کنیم:</p>
+        <ol>
+          <li>کاربر C ابتدا ۰ کوین دارد</li>
+          <li>کاربر C سه تراکنش به ارزش ۱۰، ۲۰ و ۳۰ کوین دریافت می‌کند</li>
+          <li>کاربر C می‌خواهد ۵۵ کوین به کاربر D بفرستد. تراکنش چگونه خواهد بود؟</li>
+        </ol>
+        <p>
+          در این حالت هر سه خروجی باید استفاده شوند و خروجی‌ها باید شامل ۵۵ کوین برای کاربر D و ۵ کوین برای
+          کاربر C باشند.
+        </p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/tx_generation2.png" alt="استفاده از سه خروجی مصرف‌نشده برای ارسال ۵۵ کوین و بازگشت ۵ کوین به فرستنده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>منطق توصیف‌شده را به کد تبدیل کنیم. ابتدا ورودی‌های تراکنش را می‌سازیم. برای این کار روی خروجی‌های
+        مصرف‌نشدهٔ خودمان حلقه می‌زنیم تا مجموع این خروجی‌ها بزرگ‌تر یا مساوی مبلغ موردنظر برای ارسال شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// یافتن خروجی‌های مصرف‌نشده لازم برای پوشش مبلغ درخواستی
+const findTxOutsForAmount = (amount: number, myUnspentTxOuts: UnspentTxOut[]) =&gt; {
+    let currentAmount = 0;
+    const includedUnspentTxOuts = [];
+    for (const myUnspentTxOut of myUnspentTxOuts) {
+        includedUnspentTxOuts.push(myUnspentTxOut);
+        currentAmount = currentAmount + myUnspentTxOut.amount;
+        if (currentAmount &gt;= amount) {                 // به اندازه کافی جمع شد
+            const leftOverAmount = currentAmount - amount;   // مبلغ باقی‌مانده برای بازگشت
+            return {includedUnspentTxOuts, leftOverAmount}
+        }
+    }
+    throw Error('not enough coins to send transaction');   // کوین کافی برای تراکنش وجود ندارد
+};</code></pre>
+
+        <p>
+          همان‌طور که دیده می‌شود، <code>leftOverAmount</code> را هم محاسبه می‌کنیم؛ مقداری که به آدرس خودمان
+          بازگردانده می‌شود.
+        </p>
+        <p>حالا که فهرست خروجی‌های مصرف‌نشده را داریم، می‌توانیم ورودی‌های (txIn) تراکنش را بسازیم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// تبدیل یک خروجی مصرف‌نشده به ورودی تراکنش (بدون امضا)
+const toUnsignedTxIn = (unspentTxOut: UnspentTxOut) =&gt; {
+    const txIn: TxIn = new TxIn();
+    txIn.txOutId = unspentTxOut.txOutId;       // شناسه خروجی
+    txIn.txOutIndex = unspentTxOut.txOutIndex; // اندیس خروجی
+    return txIn;
+};
+
+// انتخاب خروجی‌های لازم و محاسبه مبلغ باقی‌مانده
+const {includedUnspentTxOuts, leftOverAmount} = findTxOutsForAmount(amount, myUnspentTxouts);
+const unsignedTxIns: TxIn[] = includedUnspentTxOuts.map(toUnsignedTxIn);   // ورودی‌های بدون امضا</code></pre>
+
+        <p>
+          در ادامه دو خروجی تراکنش ساخته می‌شود: یک خروجی برای گیرندهٔ کوین‌ها و یک خروجی برای
+          <code>leftOverAmount</code>. اگر ورودی‌ها دقیقاً مبلغ موردنظر را داشته باشند
+          (<code>leftOverAmount</code> صفر باشد)، خروجی «باقی‌مانده» را ایجاد نمی‌کنیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// ساخت خروجی‌های تراکنش: یکی برای گیرنده و در صورت نیاز یکی برای بازگشت باقی‌مانده
+const createTxOuts = (receiverAddress:string, myAddress:string, amount, leftOverAmount: number) =&gt; {
+    const txOut1: TxOut = new TxOut(receiverAddress, amount);   // خروجی گیرنده
+    if (leftOverAmount === 0) {
+        return [txOut1]   // اگر باقی‌مانده صفر است فقط یک خروجی
+    } else {
+        const leftOverTx = new TxOut(myAddress, leftOverAmount);   // بازگرداندن باقی‌مانده به خودمان
+        return [txOut1, leftOverTx];
+    }
+};</code></pre>
+
+        <p>در نهایت شناسهٔ تراکنش را محاسبه و ورودی‌ها را امضا می‌کنیم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    const tx: Transaction = new Transaction();
+    tx.txIns = unsignedTxIns;   // ورودی‌های بدون امضا
+    tx.txOuts = createTxOuts(receiverAddress, myAddress, amount, leftOverAmount);   // خروجی‌ها
+    tx.id = getTransactionId(tx);   // محاسبه شناسه تراکنش
+
+    // امضای همه ورودی‌ها با کلید خصوصی
+    tx.txIns = tx.txIns.map((txIn: TxIn, index: number) =&gt; {
+        txIn.signature = signTxIn(tx, index, privateKey, unspentTxOuts);
+        return txIn;
+    });</code></pre>
+
+        <h3>استفاده از کیف پول</h3>
+        <p>یک نقطهٔ کنترل معنادار هم برای قابلیت‌های کیف پول اضافه می‌کنیم:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // نقطه پایانی ارسال تراکنش: فقط آدرس و مبلغ کافی است
+    app.post('/mintTransaction', (req, res) =&gt; {
+        const address = req.body.address;   // آدرس گیرنده
+        const amount = req.body.amount;     // مقدار کوین
+        const resp = generatenextBlockWithTransaction(address, amount);   // ضراب‌زنی بلاک حاوی تراکنش
+        res.send(resp);
+    });</code></pre>
+
+        <p>همان‌طور که دیده می‌شود، کاربر نهایی فقط باید آدرس و مقدار کوین را به گره بدهد؛ بقیه را گره محاسبه می‌کند.</p>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          کیف پول رمزنشدهٔ ساده‌ای با تولید تراکنش ساده پیاده‌سازی کردیم. اگرچه این الگوریتم تولید تراکنش هیچ‌وقت
+          تراکنشی با بیش از ۲ خروجی نمی‌سازد، باید توجه داشت که خود بلاک‌چین از هر تعداد خروجی پشتیبانی می‌کند.
+          می‌توانید تراکنش معتبری با ورودی ۵۰ کوین و خروجی‌های ۵، ۱۵ و ۳۰ کوین بسازید، اما این خروجی‌ها باید
+          به‌صورت دستی با رابط <code>/mintRawBlock</code> ساخته شوند.
+        </p>
+        <p>
+          همچنین تنها راه قرار دادن یک تراکنش دلخواه در بلاک‌چین، ضراب‌زنی آن توسط خودتان است؛ گره‌ها اطلاعات مربوط
+          به تراکنش‌هایی را که هنوز در بلاک‌چین نیستند مبادله نمی‌کنند. این موضوع در فصل بعد حل می‌شود.
+        </p>
+      </section>
+
+      <!-- ============================================================
+           فصل ۵ — پخش تراکنش
+           ============================================================ -->
+      <section>
+        <h2>۵. پخش تراکنش (Transaction relaying)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>
+          در این فصل پخش تراکنش‌هایی را پیاده‌سازی می‌کنیم که هنوز در بلاک‌چین قرار نگرفته‌اند. در بیت‌کوین به این
+          تراکنش‌ها «تراکنش‌های تأییدنشده» (unconfirmed transactions) هم گفته می‌شود. معمولاً وقتی کسی می‌خواهد
+          تراکنشی در بلاک‌چین قرار بگیرد (= کوین به آدرسی بفرستد)، تراکنش را در شبکه پخش می‌کند و امیدوار است
+          گره‌ای آن را ضراب‌زنی و به بلاک‌چین اضافه کند.
+        </p>
+        <p>
+          این قابلیت برای یک ارز دیجیتال کاری بسیار مهم است، چون یعنی برای قرار دادن یک تراکنش در بلاک‌چین
+          لازم نیست خودتان بلاک را ضراب‌زنی کنید.
+        </p>
+        <p>در نتیجه، گره‌ها هنگام ارتباط با یکدیگر دو نوع داده به اشتراک می‌گذارند:</p>
+        <ul>
+          <li>وضعیت بلاک‌چین (= بلاک‌ها و تراکنش‌هایی که در بلاک‌چین قرار گرفته‌اند)</li>
+          <li>تراکنش‌های تأییدنشده (= تراکنش‌هایی که هنوز در بلاک‌چین قرار نگرفته‌اند)</li>
+        </ul>
+        <p>
+          این فصل از آموزش اصلی <a href="https://lhartikk.github.io" target="_blank" rel="noopener">Naivecoin</a>
+          نوشتهٔ <a href="https://github.com/lhartikk" target="_blank" rel="noopener">Lauri Hartikka</a> کپی شده و
+          برای اجماع اثبات سهام تطبیق داده شده است. صفحهٔ اصلی آن را
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/10/chapter5.html" target="_blank" rel="noopener">اینجا</a> ببینید.
+        </p>
+
+        <h3>استخر تراکنش (Transaction pool)</h3>
+        <p>
+          تراکنش‌های تأییدنشده را در موجودیت جدیدی به نام «استخر تراکنش» ذخیره می‌کنیم (در بیت‌کوین به «مم‌پول»
+          یا mempool معروف است). استخر تراکنش ساختاری است که همهٔ «تراکنش‌های تأییدنشدهٔ» شناخته‌شده توسط گره را
+          شامل می‌شود. در این پیاده‌سازی ساده فقط از یک فهرست استفاده می‌کنیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// استخر تراکنش: فهرست تراکنش‌های تأییدنشده
+let transactionPool: Transaction[] = [];</code></pre>
+
+        <p>
+          یک نقطهٔ پایانی جدید هم به گره اضافه می‌کنیم: <code>POST /sendTransaction</code>. این متد بر اساس
+          قابلیت‌های موجود کیف پول، تراکنشی را در استخر تراکنش محلی ما ایجاد می‌کند. از این پس وقتی می‌خواهیم
+          تراکنش جدیدی در بلاک‌چین قرار بگیرد، از این روش به‌عنوان رابط «ترجیحی» استفاده می‌کنیم.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // نقطه پایانی ارسال تراکنش به استخر تراکنش
+    app.post('/sendTransaction', (req, res) =&gt; {
+        ...
+    })</code></pre>
+
+        <p>
+          تراکنش را دقیقاً مثل فصل ۴ می‌سازیم؛ فقط به‌جای اینکه بلافاصله تلاش کنیم بلاکی ضراب‌زنی کنیم، تراکنش
+          ساخته‌شده را به استخر اضافه می‌کنیم:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// ایجاد تراکنش و افزودن آن به استخر تراکنش
+const sendTransaction = (address: string, amount: number): Transaction =&gt; {
+    const tx: Transaction = createTransaction(address, amount, getPrivateFromWallet(), getUnspentTxOuts(), getTransactionPool());
+    addToTransactionPool(tx, getUnspentTxOuts());   // افزودن به استخر تراکنش
+    return tx;
+};</code></pre>
+
+        <h3>پخش (Broadcasting)</h3>
+        <p>
+          نکتهٔ اصلی تراکنش‌های تأییدنشده این است که در سراسر شبکه پخش می‌شوند و در نهایت گره‌ای آن‌ها را
+          ضراب‌زنی می‌کند و وارد بلاک‌چین می‌کند. برای این کار قواعد سادهٔ زیر را برای شبکه‌سازی تراکنش‌های
+          تأییدنشده معرفی می‌کنیم:
+        </p>
+        <ul>
+          <li>وقتی گره تراکنش تأییدنشده‌ای دریافت می‌کند که قبلاً ندیده است، کل استخر تراکنش را به همهٔ همتایان پخش می‌کند.</li>
+          <li>وقتی گره برای اولین بار به گرهٔ دیگری متصل می‌شود، استخر تراکنش آن گره را درخواست می‌کند. دو نوع
+              پیام جدید <code>MessageType</code> برای این منظور اضافه می‌کنیم: <code>QUERY_TRANSACTION_POOL</code>
+              و <code>RESPONSE_TRANSACTION_POOL</code>.</li>
+        </ul>
+        <p>پَسوایند (enum) MessageType حالا این‌گونه خواهد بود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// انواع پیام‌های شبکه بین گره‌ها
+enum MessageType {
+    QUERY_LATEST = 0,                 // درخواست آخرین بلاک
+    QUERY_ALL = 1,                    // درخواست کل بلاک‌چین
+    RESPONSE_BLOCKCHAIN = 2,          // پاسخ بلاک‌چین
+    QUERY_TRANSACTION_POOL = 3,       // درخواست استخر تراکنش
+    RESPONSE_TRANSACTION_POOL = 4     // پاسخ استخر تراکنش
+}</code></pre>
+
+        <p>پیام‌های استخر تراکنش به این شکل ساخته می‌شوند:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// ساخت پیام پاسخ استخر تراکنش
+const responseTransactionPoolMsg = (): Message =&gt; ({
+    'type': MessageType.RESPONSE_TRANSACTION_POOL,
+    'data': JSON.stringify(getTransactionPool())   // استخر تراکنش به‌صورت JSON
+});
+
+// ساخت پیام درخواست استخر تراکنش
+const queryTransactionPoolMsg = (): Message =&gt; ({
+    'type': MessageType.QUERY_TRANSACTION_POOL,
+    'data': null
+});</code></pre>
+
+        <p>
+          برای پیاده‌سازی منطق پخش تراکنشِ توصیف‌شده، کد مربوط به نوع پیام
+          <code>MessageType.RESPONSE_TRANSACTION_POOL</code> را اضافه می‌کنیم. هر بار که تراکنش‌های تأییدنشده
+          دریافت می‌کنیم، سعی می‌کنیم آن‌ها را به استخر تراکنش خود اضافه کنیم. اگر موفق به افزودن تراکنش به استخر
+          شدیم، یعنی تراکنش معتبر است و گره ما قبلاً آن را ندیده است. در این صورت استخر تراکنش خودمان را به همهٔ
+          همتایان پخش می‌کنیم.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// مدیریت پیام دریافت استخر تراکنش از یک همتا
+case MessageType.RESPONSE_TRANSACTION_POOL:
+    const receivedTransactions: Transaction[] = JSONToObject&lt;Transaction[]&gt;(message.data);
+    receivedTransactions.forEach((transaction: Transaction) =&gt; {
+        try {
+            handleReceivedTransaction(transaction);
+            // اگر خطایی رخ ندهد، تراکنش واقعاً به استخر اضافه شده است؛ پس استخر را پخش کن
+            broadCastTransactionPool();
+        } catch (e) {
+            // تراکنش تأییدنشده معتبر نیست (احتمالاً قبلاً در استخر ماست)
+        }
+    });</code></pre>
+
+        <h3>اعتبارسنجی تراکنش‌های تأییدنشدهٔ دریافتی</h3>
+        <p>
+          چون همتایان می‌توانند هر نوع تراکنشی برای ما بفرستند، باید تراکنش‌ها را قبل از افزودن به استخر تراکنش
+          اعتبارسنجی کنیم. همهٔ قواعد اعتبارسنجی تراکنش قبلی اعمال می‌شوند؛ مثلاً تراکنش باید قالب صحیح داشته
+          باشد و ورودی‌ها، خروجی‌ها و امضاها با هم مطابقت داشته باشند.
+        </p>
+        <p>
+          علاوه بر قواعد موجود، قاعدهٔ جدیدی اضافه می‌کنیم: اگر هر یک از ورودی‌های تراکنش از قبل در استخر تراکنش
+          موجود باشد، نمی‌توان آن تراکنش را به استخر اضافه کرد. این قاعدهٔ جدید در کد زیر آمده است:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// بررسی اینکه ورودی‌های تراکنش از قبل در استخر نباشند
+const isValidTxForPool = (tx: Transaction, aTtransactionPool: Transaction[]): boolean =&gt; {
+    const txPoolIns: TxIn[] = getTxPoolIns(aTtransactionPool);   // همه ورودی‌های موجود در استخر
+
+    // بررسی وجود یک ورودی مشخص در استخر
+    const containsTxIn = (txIns: TxIn[], txIn: TxIn) =&gt; {
+        return _.find(txPoolIns, (txPoolIn =&gt; {
+            return txIn.txOutIndex === txPoolIn.txOutIndex &amp;&amp; txIn.txOutId === txPoolIn.txOutId;
+        }))
+    };
+
+    for (const txIn of tx.txIns) {
+        if (containsTxIn(txPoolIns, txIn)) {
+            console.log('txIn already found in the txPool');   // این ورودی قبلاً در استخر است
+            return false;
+        }
+    }
+    return true;
+};</code></pre>
+
+        <p>
+          هیچ راه صریحی برای حذف تراکنش از استخر تراکنش وجود ندارد؛ اما استخر تراکنش هر بار که بلاک جدیدی یافت
+          می‌شود به‌روزرسانی می‌شود.
+        </p>
+
+        <h3>از استخر تراکنش تا بلاک‌چین</h3>
+        <p>
+          حالا راهی پیاده‌سازی کنیم که تراکنش تأییدنشده از استخر تراکنش محلی به بلاکی که توسط همان گره ضراب‌زنی
+          می‌شود راه پیدا کند. این کار ساده است: وقتی گره شروع به ضراب‌زنی یک بلاک می‌کند، تراکنش‌های استخر
+          تراکنش را در بلاک کاندیدای جدید قرار می‌دهد.
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// تولید بلاک بعدی شامل coinbase و همه تراکنش‌های استخر
+const generateNextBlock = () =&gt; {
+    // تراکنش coinbase به‌عنوان پاداش ضراب‌زن
+    const coinbaseTx: Transaction = getCoinbaseTransaction(getPublicFromWallet(), getLatestBlock().index + 1);
+    // ترکیب coinbase با همه تراکنش‌های استخر
+    const blockData: Transaction[] = [coinbaseTx].concat(getTransactionPool());
+    return generateRawNextBlock(blockData);
+};</code></pre>
+
+        <p>
+          چون تراکنش‌ها قبل از افزودن به استخر از قبل اعتبارسنجی شده‌اند، در این مرحله اعتبارسنجی دیگری انجام
+          نمی‌دهیم.
+        </p>
+
+        <h3>به‌روزرسانی استخر تراکنش</h3>
+        <p>
+          با ضراب‌زنی بلاک‌های جدیدِ دارای تراکنش به بلاک‌چین، باید استخر تراکنش را هر بار که بلاک جدیدی یافت
+          می‌شود دوباره اعتبارسنجی کنیم. ممکن است بلاک جدید حاوی تراکنش‌هایی باشد که برخی تراکنش‌های استخر را
+          نامعتبر می‌کند؛ مثلاً در این موارد:
+        </p>
+        <ul>
+          <li>تراکنشی که در استخر بود ضراب‌زنی شده باشد (توسط خود گره یا گره‌ای دیگر)</li>
+          <li>خروجی مصرف‌نشده‌ای که در تراکنش تأییدنشده ارجاع شده، توسط تراکنش دیگری مصرف شده باشد</li>
+        </ul>
+        <p>استخر تراکنش با کد زیر به‌روزرسانی می‌شود:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>// حذف تراکنش‌های نامعتبر از استخر تراکنش
+const updateTransactionPool = (unspentTxOuts: UnspentTxOut[]) =&gt; {
+    const invalidTxs = [];
+    for (const tx of transactionPool) {
+        for (const txIn of tx.txIns) {
+            // اگر ورودی به خروجی مصرف‌نشده معتبری ارجاع ندهد، تراکنش نامعتبر است
+            if (!hasTxIn(txIn, unspentTxOuts)) {
+                invalidTxs.push(tx);
+                break;
+            }
+        }
+    }
+    if (invalidTxs.length &gt; 0) {
+        console.log('removing the following transactions from txPool: %s', JSON.stringify(invalidTxs));
+        transactionPool = _.without(transactionPool, ...invalidTxs)   // حذف تراکنش‌های نامعتبر
+    }
+};</code></pre>
+
+        <p>
+          همان‌طور که دیده می‌شود، برای تصمیم‌گیری دربارهٔ حذف یک تراکنش از استخر فقط دانستن خروجی‌های
+          مصرف‌نشدهٔ فعلی کافی است.
+        </p>
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          حالا می‌توانیم تراکنش‌ها را بدون اینکه لزوماً خودمان بلاک‌ها را ضراب‌زنی کنیم، وارد بلاک‌چین کنیم.
+          با این حال هنوز انگیزه‌ای برای گره‌ها برای قرار دادن تراکنش دریافتی در بلاک وجود ندارد، چون مفهوم
+          کارمزد تراکنش را پیاده‌سازی نکرده‌ایم.
+        </p>
+        <p>
+          کد منبع کامل را اینجا ببینید:
+          <a href="https://github.com/sandoche/NaivecoinStake-Proof-of-Stake-Core" target="_blank" rel="noopener">NaivecoinStake-Proof-of-Stake-Core</a>
+        </p>
+      </section>
+
+      <!-- ============================================================
+           فصل ۶ — رابط کاربری کیف پول و کاوشگر بلاک‌چین
+           ============================================================ -->
+      <section>
+        <h2>۶. رابط کاربری کیف پول و کاوشگر بلاک‌چین (Wallet UI and blockchain explorer)</h2>
+
+        <h3>مرور کلی</h3>
+        <p>
+          در این فصل یک رابط کاربری (UI) برای کیف پول اضافه می‌کنیم و برای بلاک‌چین‌مان کاوشگر بلاک‌چین
+          (blockchain explorer) می‌سازیم. گره ما قابلیت‌هایش را از قبل با نقطه‌های پایانی HTTP در معرض دید قرار
+          می‌دهد؛ بنابراین یک صفحهٔ وب می‌سازیم که به این نقطه‌های پایانی درخواست می‌فرستد و نتایج را نمایش می‌دهد.
+        </p>
+        <p>برای رسیدن به این هدف، باید چند نقطهٔ پایانی و منطق اضافه به گره بیفزاییم، مثلاً:</p>
+        <ul>
+          <li>پرس‌وجوی اطلاعات دربارهٔ بلاک‌ها و تراکنش‌ها</li>
+          <li>پرس‌وجوی اطلاعات دربارهٔ یک آدرس مشخص</li>
+        </ul>
+        <p>
+          این فصل از آموزش اصلی <a href="https://lhartikk.github.io" target="_blank" rel="noopener">Naivecoin</a>
+          نوشتهٔ <a href="https://github.com/lhartikk" target="_blank" rel="noopener">Lauri Hartikka</a> کپی شده و
+          برای اجماع اثبات سهام تطبیق داده شده است. صفحهٔ اصلی آن را
+          <a href="https://lhartikk.github.io/jekyll/update/2017/07/09/chapter6.html" target="_blank" rel="noopener">اینجا</a> ببینید.
+        </p>
+
+        <h3>نقطه‌های پایانی جدید</h3>
+        <p>نقطهٔ پایانی‌ای اضافه می‌کنیم که کاربر با دانستن هش بتواند یک بلاک مشخص را پرس‌وجو کند:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // دریافت یک بلاک مشخص بر اساس هش آن
+    app.get('/block/:hash', (req, res) =&gt; {
+        const block = _.find(getBlockchain(), {'hash' : req.params.hash});
+        res.send(block);
+    });</code></pre>
+
+        <p>همین کار برای پرس‌وجوی یک تراکنش مشخص:</p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // دریافت یک تراکنش مشخص بر اساس شناسه آن (جستجو در همه بلاک‌ها)
+    app.get('/transaction/:id', (req, res) =&gt; {
+        const tx = _(getBlockchain())
+            .map((blocks) =&gt; blocks.data)     // استخراج تراکنش‌های همه بلاک‌ها
+            .flatten()
+            .find({'id': req.params.id});     // پیدا کردن تراکنش با شناسه درخواستی
+        res.send(tx);
+    });</code></pre>
+
+        <p>
+          دوست داریم اطلاعاتی هم دربارهٔ یک آدرس مشخص نشان دهیم. فعلاً فهرست خروجی‌های مصرف‌نشدهٔ آن آدرس را
+          برمی‌گردانیم، چون از این اطلاعات می‌توان مثلاً کل موجودی آن آدرس را محاسبه کرد:
+        </p>
+
+        <pre class="code" style="direction:ltr;text-align:left"><span class="lang-tag">typescript</span><code>    // دریافت خروجی‌های مصرف‌نشده متعلق به یک آدرس
+    app.get('/address/:address', (req, res) =&gt; {
+        const unspentTxOuts: UnspentTxOut[] =
+            _.filter(getUnspentTxOuts(), (uTxO) =&gt; uTxO.address === req.params.address)
+        res.send({'unspentTxOuts': unspentTxOuts});
+    });</code></pre>
+
+        <p>
+          می‌توانیم اطلاعات خروجی‌های مصرف‌شدهٔ یک آدرس را هم اضافه کنیم تا تاریخچهٔ کامل یک آدرس نمایش داده شود.
+        </p>
+
+        <h3>فناوری‌های فرانت‌اند</h3>
+        <p>
+          برای پیاده‌سازی بخش‌های رابط کاربری کیف پول و کاوشگر بلاک‌چین از Vue.js استفاده می‌کنیم. چون این آموزش
+          دربارهٔ توسعهٔ فرانت‌اند نیست، بخش فرانت‌اند را به‌صورت کد مرور نمی‌کنیم. مخزن کد رابط کاربری را
+          <a href="https://github.com/sandoche/NaivecoinStake-Proof-of-Stake-UI" target="_blank" rel="noopener">اینجا</a> می‌توانید ببینید.
+        </p>
+
+        <h3>کاوشگر بلاک‌چین</h3>
+        <p>
+          کاوشگر بلاک‌چین وب‌سایتی است که برای نمایش وضعیت بلاک‌چین استفاده می‌شود. کاربرد نمونهٔ آن بررسی آسان
+          موجودی یک آدرس یا تأیید اینکه یک تراکنش مشخص در بلاک‌چین قرار گرفته است.
+        </p>
+        <p>
+          در مورد ما، به‌سادگی درخواست‌های HTTP به گره می‌فرستیم و پاسخ‌ها را به شکلی معنادار نمایش می‌دهیم.
+          هرگز درخواستی که وضعیت بلاک‌چین را تغییر دهد نمی‌فرستیم؛ بنابراین ساخت کاوشگر بلاک‌چین فقط دربارهٔ
+          نمایش معنادار اطلاعاتی است که گره ارائه می‌دهد.
+        </p>
+        <p>تصویری از کاوشگر بلاک‌چین:</p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/explorer_ui.png" alt="تصویری از رابط کاربری کاوشگر بلاک‌چین که بلاک‌ها و تراکنش‌ها را نمایش می‌دهد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>رابط کاربری کیف پول</h3>
+        <p>
+          برای رابط کاربری کیف پول هم وب‌سایت مشابهی مثل کاوشگر بلاک‌چین می‌سازیم. کاربر باید بتواند کوین بفرستد
+          و موجودی آدرس را ببیند. استخر تراکنش را هم نمایش می‌دهیم.
+        </p>
+        <p>تصویری از کیف پول:</p>
+
+        <img src="https://naivecoinstake.learn.uno/assets/images/wallet_ui.png" alt="تصویری از رابط کاربری کیف پول با قابلیت ارسال کوین و نمایش موجودی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <h3>جمع‌بندی</h3>
+        <p>
+          کد منبع کامل رابط کاربری را اینجا ببینید:
+          <a href="https://github.com/sandoche/NaivecoinStake-Proof-of-Stake-UI" target="_blank" rel="noopener">NaivecoinStake-Proof-of-Stake-UI</a>
+        </p>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «NaivecoinStake — آموزش ساخت ارز دیجیتال با Proof of Stake» اثر
+        «Sandoche Adittane» است (بر پایهٔ آموزش Naivecoin از Lauri Hartikka). این صفحه فقط ترجمهٔ فارسی آن است
+        و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://naivecoinstake.learn.uno/" target="_blank" rel="noopener">سایت اصلی NaivecoinStake</a>
+        و مخازن
+        <a href="https://github.com/sandoche/NaivecoinStake-Proof-of-Stake-Core" target="_blank" rel="noopener">هسته</a>
+        و
+        <a href="https://github.com/sandoche/NaivecoinStake-Proof-of-Stake-UI" target="_blank" rel="noopener">رابط کاربری</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

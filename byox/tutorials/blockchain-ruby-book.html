@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | برنامه‌نویسی بلاک‌چین قدم‌به‌قدم (کتاب کامل — Ruby)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+  <style>
+    .content table { border-collapse: collapse; margin: 1rem 0; max-width: 100%; overflow-x: auto; display: block; }
+    .content table th, .content table td { border: 1px solid var(--line, #ddd); padding: .45rem .7rem; font-size: .88em; text-align: right; }
+    .content table th { background: var(--bg-soft, #f5f5f5); font-weight: 600; }
+    .content table td code, .content table th code { font-size: .85em; }
+    .toc { background: var(--bg-soft, #f7f8fa); border: 1px solid var(--line, #e3e6ea); border-radius: 12px; padding: 1.1rem 1.4rem; margin: 1.2rem 0; }
+    .toc ol { margin: .4rem 1.2rem; padding: 0; }
+    .toc li { margin: .3rem 0; }
+    .quiz { background: #fdf6e3; border: 1px solid #e8d9a0; border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+    .quiz ul { margin: .3rem 1.2rem; }
+    pre.code { direction: ltr; text-align: left; overflow-x: auto; }
+    .lang-tag { direction: ltr; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>برنامه‌نویسی بلاک‌چین قدم‌به‌قدم (کتاب کامل)</span>
+      </div>
+      <h1>برنامه‌نویسی بلاک‌چین قدم‌به‌قدم (کتاب کامل — Ruby)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">📚 کتاب چندفصلی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/yukimotopress/programming-blockchains-step-by-step" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه کامل کتاب «Programming Blockchains Step-by-Step» نوشتهٔ
+          جرالد بائر (Gerald Bauer) و همکاران، از انتشارات Yuki &amp; Moto Press (yukimotopress) است.
+          نسخهٔ کامل و به‌روز را از مخزن اصلی مطالعه کنید.
+        </div>
+        <a class="btn solid" href="https://github.com/yukimotopress/programming-blockchains-step-by-step" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <!-- ============ مقدمه ============ -->
+      <section>
+        <h2>مقدمه — بلاک‌چین را از صفر بسازیم</h2>
+        <p>
+          بیایید بلاک‌چین را قدم‌به‌قدم از صفر بسازیم.
+          از <b>هش‌های رمزنگاری</b> شروع می‌کنیم؛ سپس بلاک می‌سازیم، اثبات کار را اضافه می‌کنیم،
+          بلاک‌ها را در زنجیره به هم پیوند می‌زنیم، زمان‌سنج (timestamp) اضافه می‌کنیم،
+          استخراج (maining) را اندازه‌گیری می‌کنیم و در نهایت هش بلاک کلاسیک بیت‌کوین را از صفر محاسبه می‌کنیم.
+          همهٔ مثال‌ها با زبان <b>Ruby</b> و فقط با کتابخانهٔ استاندارد اجرا می‌شوند.
+        </p>
+        <div class="callout note">
+          <strong>نکته:</strong> کتاب اصلی به‌صورت پیش‌فرض برای استفادهٔ عمومی (Public Domain) منتشر شده است؛
+          یعنی می‌توانید آزادانه از آن استفاده کنید. فصل‌های بعدی کتاب اصلی (تراکنش‌ها و ...) هنوز
+          «ادامه دارد» (To be continued) اعلام شده‌اند و این ترجمه، دقیقاً همان محتوای موجود در مخزن اصلی را پوشش می‌دهد.
+        </div>
+
+        <h3>فهرست فصل‌ها</h3>
+        <div class="toc">
+          <ol>
+            <li>فصل ۱ — هش رمزنگاری (Crypto Hash)</li>
+            <li>فصل ۲ — بلاک رمزنگاری (Crypto Block) و بلاک با اثبات کار (Proof-of-Work)</li>
+            <li>فصل ۳ — بلاک‌چین؛ و آیا بلاک‌چین می‌شکند؟ (Blockchain Broken?)</li>
+            <li>فصل ۴ — زمان‌سنجی (Timestamping)</li>
+            <li>فصل ۵ — استخراج، استخراج، استخراج (Mining, Mining, Mining)</li>
+            <li>فصل ۶ — بیت‌کوین، بیت‌کوین، بیت‌کوین (Bitcoin, Bitcoin, Bitcoin)</li>
+            <li>پیوست الف — مراجع و پیوندها (References / Links)</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ============ فصل ۱ ============ -->
+      <section>
+        <h2>فصل ۱ — هش رمزنگاری (Crypto Hash)</h2>
+        <p>
+          بیایید بلاک‌چین را قدم‌به‌قدم از صفر بسازیم.
+          با هش‌های رمزنگاری شروع می‌کنیم.
+        </p>
+        <p>
+          بیت‌کوین کلاسیک از الگوریتم هش <b>SHA256</b> استفاده می‌کند. بیایید امتحان کنیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+
+Digest::SHA256.hexdigest( 'Hello, Cryptos!' )</code></pre>
+
+        <p>که نتیجه می‌دهد:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>#=&gt; "33eedea60b0662c66c289ceba71863a864cf84b00e10002ca1069bf58f9362d5"</code></pre>
+
+        <p>چند نمونهٔ دیگر را امتحان کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( 'Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' )
+#=&gt; "c4b5e2b9685062ecca5d0f6f6ba605b3f99eafed3a3729d2ae1ccaa2b440b1cc"
+Digest::SHA256.hexdigest( 'Your Name Here' )
+#=&gt; "39459289c09c33a7b516bef926c1873c6ecd2e6db09218b065d7465b6736f801"
+Digest::SHA256.hexdigest( 'Data Data Data Data' )
+#=&gt; "a7bbfc531b2ecf641b9abcd7ad8e50267e1c873e5a396d1919f504973090565a"</code></pre>
+
+        <h3>نتیجهٔ هش همیشه ۲۵۶ بیت است</h3>
+        <p>
+          توجه کنید: اندازهٔ هش حاصل همیشه ۲۵۶ بیت است؛ یعنی ۶۴ کاراکتر هگزادسیمال (۰-۹ و a-f)
+          حتی اگر ورودی کمتر از ۲۵۶ بیت یا خیلی بزرگ‌تر از ۲۵۶ بیت باشد:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( &lt;&lt;TXT )
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+TXT
+#=&gt; "c51023e2c874b6cf46cb0acef183ee1c05f14746636352d1b2cb9fc6aa5c3cee"
+
+## استفاده از String#length
+
+Digest::SHA256.hexdigest( 'Hello, Cryptos!' ).length
+# =&gt; 64
+Digest::SHA256.hexdigest( 'Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' ).length
+# =&gt; 64</code></pre>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> هر کاراکتر هگزادسیمال ۴ بیت است؛ ۲ کاراکتر هگزادسیمال ۴×۲=۸ بیت
+          و ۶۴ کاراکتر هگزادسیمال ۴×۶۴=۲۵۶ بیت می‌شود.
+        </div>
+
+        <h3>جدول هگزادسیمال</h3>
+        <table>
+          <tr><th>باینری</th><th>هگز (2^4=16)</th><th>اعشاری</th><th>باینری</th><th>هگز (2^4=16)</th><th>اعشاری</th></tr>
+          <tr><td>0000</td><td><b>0</b></td><td>0</td><td>1000</td><td><b>8</b></td><td>8</td></tr>
+          <tr><td>0001</td><td><b>1</b></td><td>1</td><td>1001</td><td><b>9</b></td><td>9</td></tr>
+          <tr><td>0010</td><td><b>2</b></td><td>2</td><td>1010</td><td><b>a</b></td><td>10</td></tr>
+          <tr><td>0011</td><td><b>3</b></td><td>3</td><td>1011</td><td><b>b</b></td><td>11</td></tr>
+          <tr><td>0100</td><td><b>4</b></td><td>4</td><td>1100</td><td><b>c</b></td><td>12</td></tr>
+          <tr><td>0101</td><td><b>5</b></td><td>5</td><td>1101</td><td><b>d</b></td><td>13</td></tr>
+          <tr><td>0110</td><td><b>6</b></td><td>6</td><td>1110</td><td><b>e</b></td><td>14</td></tr>
+          <tr><td>0111</td><td><b>7</b></td><td>7</td><td>1111</td><td><b>f</b></td><td>15</td></tr>
+        </table>
+
+        <h3>تبدیل هگز (پایهٔ ۱۶) به عدد اعشاری (پایهٔ ۱۰)</h3>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>hex = Digest::SHA256.hexdigest( 'Hello, Cryptos!' )
+#=&gt; "33eedea60b0662c66c289ceba71863a864cf84b00e10002ca1069bf58f9362d5"
+
+hex.to_i( 16 )
+#=&gt; 23490001543365037720284007500157053051505610714786813679598750288695740555989</code></pre>
+
+        <p>و تبدیل به عدد باینری ۲۵۶ بیتی (۳۲ بایتی) به‌صورت رشته:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>hex.to_i( 16 ).to_s( 2 )
+# =&gt; "0011 0011 1110 1110 1101 1110 1010 0110 0000 1011 0000 0110 0110 0010 1100 0110
+#     0110 1100 0010 1000 1001 1100 1110 1011 1010 0111 0001 1000 0110 0011 1010 1000
+#     0110 0100 1100 1111 1000 0100 1011 0000 0000 1110 0001 0000 0000 0000 0010 1100
+#     1010 0001 0000 0110 1001 1011 1111 0101 1000 1111 1001 0011 0110 0010 1101 0101"</code></pre>
+
+        <h3>کوییز: SHA256 چیست؟</h3>
+        <div class="quiz">
+          <p><strong>کوییز سرگرمی:</strong> SHA256 مخفف چیست؟</p>
+          <ul>
+            <li>(الف) Still Hacking Anyway (هنوز در حال هک کردن)</li>
+            <li>(ب) Secure Hash Algorithm (الگوریتم هش امن)</li>
+            <li>(ج) Sweet Home Austria (خانهٔ شیرین اتریش)</li>
+            <li>(د) Super High Aperture (دیافراگم فوق‌العاده بالا)</li>
+          </ul>
+          <p>
+            پاسخ: (ب). SHA256 == الگوریتم‌های هش امن ۲۵۶ بیتی.
+            SHA256 یک الگوریتم هش (امن) است که توسط آژانس امنیت ملی آمریکا (NSA) طراحی شده است.
+          </p>
+        </div>
+        <p>
+          اطلاعات بیشتر: <a href="https://en.wikipedia.org/wiki/Secure_Hash_Algorithms" target="_blank" rel="noopener">الگوریتم‌های هش امن (SHA) در ویکی‌پدیا</a>.
+        </p>
+
+        <h3>نام‌های دیگر هش امن</h3>
+        <p>یک هش (امن) همچنین با این نام‌ها شناخته می‌شود:</p>
+        <ul>
+          <li>اثر انگشت رمزنگاری دیجیتال (Digital Crypto Fingerprint) == هش (امن)</li>
+          <li>چکیدهٔ رمزنگاری دیجیتال (Digital Crypto Digest) == هش (امن)</li>
+          <li>جمع کنترلی رمزنگاری دیجیتال (Digital Crypto Checksum) == هش (امن)</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکته:</strong> یک هش، همان «اثر انگشت» یک بلاک است؛ تمام فصل‌های بعدی همین ایدهٔ ساده را گسترش می‌دهند.
+        </div>
+      </section>
+
+      <!-- ============ فصل ۲ ============ -->
+      <section>
+        <h2>فصل ۲ — بلاک رمزنگاری (Crypto Block)</h2>
+        <p>
+          بیایید بلاک‌ها را با هش‌های رمزنگاری بسازیم (ایمن کنیم).
+          ابتدا یک کلاس <code>Block</code> تعریف می‌کنیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+require 'pp'      ## pp = چاپ زیبا (pretty print)
+
+class Block
+  attr_reader :data
+  attr_reader :hash
+
+  def initialize(data)
+    @data = data
+    @hash = Digest::SHA256.hexdigest( data )
+  end
+end</code></pre>
+
+        <p>و حالا بگذارید چند بلاک با هش‌های رمزنگاری «استخراج» کنیم (بسازیم):</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>pp Block.new( 'Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1ef9a68
+#       @data="Hello, Cryptos!",
+#       @hash="33eedea60b0662c66c289ceba71863a864cf84b00e10002ca1069bf58f9362d5"&gt;
+
+pp Block.new( 'Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1eebdd0
+#      @data="Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!",
+#      @hash="c4b5e2b9685062ecca5d0f6f6ba605b3f99eafed3a3729d2ae1ccaa2b440b1cc"&gt;
+
+pp Block.new( 'Your Name Here' )
+#=&gt; #&lt;Block:0x1eeac78
+#       @data="Your Name Here",
+#       @hash="39459289c09c33a7b516bef926c1873c6ecd2e6db09218b065d7465b6736f801"&gt;
+
+pp Block.new( 'Data Data Data Data' )
+#=&gt; #&lt;Block:0x1ee9b98
+#      @data="Data Data Data Data",
+#      @hash="a7bbfc531b2ecf641b9abcd7ad8e50267e1c873e5a396d1919f504973090565a"&gt;</code></pre>
+
+        <div class="callout note">
+          <strong>نکته:</strong> همهٔ هش‌ها (جمع‌های کنترلی/چکیده‌ها/اثر انگشت‌ها) دقیقاً مثل قبل هستند!
+          ورودی یکسان، مثلاً <code>'Hello, Cryptos!'</code> ⇒ هش یکسان، مثلاً
+          <code>33eedea60b0662c66c289ceba71863a864cf84b00e10002ca1069bf58f9362d5</code>
+          و طول یکسان، مثلاً ۶۴ کاراکتر هگز!
+        </div>
+
+        <p>و مورد بزرگ:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>pp Block.new( &lt;&lt;TXT )
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+  Data Data Data Data Data Data
+TXT
+
+# =&gt; #&lt;Block:0x1e489a8
+#       @data="  Data Data Data Data Data Data\n
+#                Data Data Data Data Data Data\n
+#                Data Data Data Data Data Data\n
+#                Data Data Data Data Data Data\n
+#                Data Data Data Data Data Data\n",
+#       @hash="c51023e2c874b6cf46cb0acef183ee1c05f14746636352d1b2cb9fc6aa5c3cee"&gt;</code></pre>
+
+        <h3>بلاک رمزنگاری با اثبات کار (Proof-of-Work)</h3>
+        <p>
+          بیایید به بلاک و هش، «اثبات کار» اضافه کنیم و استخراج را برای پیدا کردن
+          <b>nonce</b> (= عددی که فقط یک‌بار استفاده می‌شود — Number used ONCE) شروع کنیم؛
+          و از سختی «کدسخت‌شدهٔ» دو صفر ابتدایی <code>'00'</code> شروع کنیم.
+        </p>
+        <p>
+          در بیت‌کوین کلاسیک باید هشی محاسبه کنید که با صفرهای ابتدایی (<code>00</code>) شروع شود.
+          هرچه صفرهای ابتدایی بیشتر باشند، محاسبه سخت‌تر (دشوارتر) است.
+          بگذارید محاسبه را آسان نگه داریم و با دو صفر ابتدایی (<code>00</code>) شروع کنیم؛
+          یعنی ۱۶² = ۲۵۶ حالت ممکن (پانوشت ۱ و ۲).
+          سه صفر ابتدایی (<code>000</code>) یعنی ۱۶³ = ۴۰۹۶ حالت ممکن
+          و چهار صفر (<code>0000</code>) یعنی ۱۶⁴ = ۶۵۵۳۶ حالت و به همین ترتیب.
+        </p>
+        <div class="callout tip">
+          <strong>پانوشت ۱:</strong> ۱۶ حالت ممکن است، چون عدد هگزادسیمال یا پایهٔ ۱۶ است:
+          <code>0 1 2 3 4 5 6 7 8 9 a(10) b(11) c(12) d(13) e(14) f(15)</code>.
+        </div>
+        <div class="callout tip">
+          <strong>پانوشت ۲:</strong> یک الگوریتم هش امن تصادفی به‌طور میانگین به ۲۵۶ تلاش نیاز دارد
+          (ممکن است مثلاً ۳۰۵ تلاش باشد، چون توزیع آماری کاملاً دقیق نیست).
+        </div>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+require 'pp'      ## pp = چاپ زیبا (pretty print)
+
+class Block
+  attr_reader :data
+  attr_reader :hash
+  attr_reader :nonce  # عددی که فقط یک‌بار استفاده می‌شود - عدد بخت‌آزمایی (استخراج)
+
+  def initialize(data)
+    @data          = data
+    @nonce, @hash  = compute_hash_with_proof_of_work
+  end
+
+  def compute_hash_with_proof_of_work( difficulty='00' )
+    nonce = 0
+    loop do
+      hash = Digest::SHA256.hexdigest( "#{nonce}#{data}" )
+      if hash.start_with?( difficulty )
+        return [nonce,hash]    ## آفرین! اثبات کار یعنی هش با صفرهای ابتدایی شروع شود (00)
+      else
+        nonce += 1             ## به تلاش ادامه بده (و ادامه و ادامه)
+      end
+    end # loop
+  end # تابع compute_hash_with_proof_of_work
+
+end # کلاس Block</code></pre>
+
+        <p>
+          و حالا چند بلاک با هش‌های رمزنگاری
+          با سختی «کدسخت‌شدهٔ» دو صفر ابتدایی <code>'00'</code> استخراج کنیم (بسازیم):
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>pp Block.new( 'Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1d84b50
+#       @data="Hello, Cryptos!",
+#       @hash="00ecb8b247998f9ddd15d2a5693777ee0041d138fa3bc5c1f6ccc12ec1cfece4",
+#       @nonce=143&gt;
+
+pp Block.new( 'Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1d67f18
+#       @data="Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!",
+#       @hash="0014406a868d202e2c6c3896af997e189daafc9df1878f9824cba2050fda199f",
+#       @nonce=59&gt;
+
+pp Block.new( 'Your Name Here' )
+#=&gt; #&lt;Block:0x1d64270
+#       @data="Your Name Here",
+#       @hash="0012c3a90e58c9569ef0c036e6220c86c7c253ac94c0eb0064bf98df59acdfad",
+#       @nonce=57&gt;
+
+pp Block.new( 'Data Data Data Data' )
+#=&gt; #&lt;Block:0x139b828
+#       @data="Data Data Data Data",
+#       @hash="00e2da510b97434713d63234f3ba2d816c8d52f29f9ffd267423c39d9ced7a70",
+#       @nonce=73&gt;</code></pre>
+
+        <p>تفاوت را می‌بینید؟ حالا همهٔ هش‌ها با <code>'00'</code> شروع می‌شوند، مثلاً:</p>
+
+        <table>
+          <tr><th>بلاک</th><th>هش با اثبات کار</th></tr>
+          <tr><td>#1</td><td><code>00ecb8b247998f9ddd15d2a5693777ee0041d138fa3bc5c1f6ccc12ec1cfece4</code></td></tr>
+          <tr><td>#2</td><td><code>0014406a868d202e2c6c3896af997e189daafc9df1878f9824cba2050fda199f</code></td></tr>
+          <tr><td>#3</td><td><code>0012c3a90e58c9569ef0c036e6220c86c7c253ac94c0eb0064bf98df59acdfad</code></td></tr>
+          <tr><td>#4</td><td><code>00e2da510b97434713d63234f3ba2d816c8d52f29f9ffd267423c39d9ced7a70</code></td></tr>
+        </table>
+
+        <p>
+          این جادوی اثبات کار است. شما کار را انجام داده‌اید؛ یعنی عدد بخت‌آزمایی را
+          که فقط یک‌بار استفاده می‌شود (nonce) پیدا کرده‌اید
+          و «اثبات» آن، هشِ دارای سختی منطبق، یعنی همان دو صفر ابتدایی <code>00</code> است.
+        </p>
+        <p>
+          در بلاک اول، تابع <code>compute_hash_with_proof_of_work</code>
+          ۱۴۳ بار nonce را امتحان کرد تا عدد بخت‌آزمایی منطبق را پیدا کند.
+          آمار همهٔ بلاک‌ها:
+        </p>
+
+        <table>
+          <tr><th>بلاک</th><th>تعداد حلقه‌ها / تعداد محاسبات هش</th></tr>
+          <tr><td>#1</td><td>143</td></tr>
+          <tr><td>#2</td><td>59</td></tr>
+          <tr><td>#3</td><td>57</td></tr>
+          <tr><td>#4</td><td>73</td></tr>
+        </table>
+
+        <p>عدد بخت‌آزمایی (nonce) برای بلاک #1 عدد ۱۴۳ است. امتحان کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( '0Hello, Cryptos!' )   # به تلاش ادامه بده...
+# =&gt; "8954dec596f0baa0cb6b8cc9f5837037d4380e28338ccccdf5f00658010caf07"
+Digest::SHA256.hexdigest( '1Hello, Cryptos!' )   # به تلاش ادامه بده...
+# =&gt; "831c988d0745d1f02cf790c3b3d9c9f610ddb7d36d5b96c7b3413ccd1b6f46e1"
+Digest::SHA256.hexdigest( '2Hello, Cryptos!' )   # به تلاش ادامه بده...
+# =&gt; "ac6ccb11092f867dc5f10daaebcd7938f90d1627a7e277b940cdd2e4881ea712"
+# ...</code></pre>
+
+        <p>حالا این را امتحان کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( '143Hello, Cryptos!' )   # آفرین!!!
+# =&gt; "00ecb8b247998f9ddd15d2a5693777ee0041d138fa3bc5c1f6ccc12ec1cfece4"</code></pre>
+
+        <h3>بزرگ‌تر کردن سختی: چهار صفر ابتدایی '0000'</h3>
+        <p>
+          بیایید سختیِ چهار صفر ابتدایی <code>'0000'</code> را امتحان کنیم.
+        </p>
+        <div class="callout tip">
+          <strong>نکته:</strong> هر کاراکتر هگز ۴ بیت است؛ پس <code>'0'</code> در هگز (پایهٔ ۱۶)
+          برابر <code>'0000'</code> در باینری (پایهٔ ۲) است؛ بنابراین <code>'00'</code> در هگز
+          برابر ۲×۴=۸ صفر در باینری است، مثلاً <code>'0000 0000'</code>
+          و به همین ترتیب <code>'0000'</code> در هگز برابر ۴×۴=۱۶ صفر در باینری است،
+          مثلاً <code>'0000 0000 0000 0000'</code>.
+        </div>
+        <p>سختی «کدسخت‌شده» را از <code>00</code> به <code>0000</code> تغییر دهید، مثلاً:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>def compute_hash_with_proof_of_work( difficulty='0000' )
+...
+end</code></pre>
+
+        <p>و دوباره اجرا کنید یا بگذارید دوباره بلاک‌ها را استخراج کنیم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>pp Block.new( 'Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1ef4b60
+#       @data="Hello, Cryptos!",
+#       @hash="0000a1ee5cb18c8d9fff5262b6dcb1bc95d54a331713e247f699f158f2022143",
+#       @nonce=26762&gt;
+
+pp Block.new( 'Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' )
+#=&gt; #&lt;Block:0x1f4c160
+#       @data="Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!",
+#       @hash="0000b27eeebe56b2daafeb935454d0e3f423fc7f5ac7a99e952f9b80475ef6c3",
+#       @nonce=68419&gt;
+
+pp Block.new( 'Your Name Here' )
+#=&gt; #&lt;Block:0x1ee8800
+#       @data="Your Name Here",
+#       @hash="00000e59a4a7fb35d0d03def6ce31f503c208e6c291dcc9a217a7278ad1b95ce",
+#       @nonce=23416&gt;
+
+pp Block.new( 'Data Data Data Data' )
+# =&gt; #&lt;Block:0x1f7a960
+#        @data="Data Data Data Data",
+#        @hash="00000e3cff496c5afc18645dba31ae9ba5c6077e5a5d980d8512e4581e7d61ec",
+#        @nonce=15353&gt;</code></pre>
+
+        <p>تفاوت را می‌بینید؟ حالا همهٔ هش‌ها با <code>'0000'</code> شروع می‌شوند، مثلاً:</p>
+
+        <table>
+          <tr><th>بلاک</th><th>هش با اثبات کار</th></tr>
+          <tr><td>#1</td><td><code>0000a1ee5cb18c8d9fff5262b6dcb1bc95d54a331713e247f699f158f2022143</code></td></tr>
+          <tr><td>#2</td><td><code>0000b27eeebe56b2daafeb935454d0e3f423fc7f5ac7a99e952f9b80475ef6c3</code></td></tr>
+          <tr><td>#3</td><td><code>00000e59a4a7fb35d0d03def6ce31f503c208e6c291dcc9a217a7278ad1b95ce</code></td></tr>
+          <tr><td>#4</td><td><code>00000e3cff496c5afc18645dba31ae9ba5c6077e5a5d980d8512e4581e7d61ec</code></td></tr>
+        </table>
+
+        <p>آمار محاسبات هش nonce برای همهٔ بلاک‌ها:</p>
+
+        <table>
+          <tr><th>بلاک</th><th>تعداد حلقه‌ها / تعداد محاسبات هش</th></tr>
+          <tr><td>#1</td><td>26 762</td></tr>
+          <tr><td>#2</td><td>68 419</td></tr>
+          <tr><td>#3</td><td>23 416</td></tr>
+          <tr><td>#4</td><td>15 353</td></tr>
+        </table>
+
+        <p>
+          در بلاک اول، تابع <code>compute_hash_with_proof_of_work</code>
+          حالا ۲۶۷۶۲ بار nonce را امتحان کرد (در مقایسه با ۱۴۳ بار در سختی <code>'00'</code>)
+          تا عدد بخت‌آزمایی منطبق را پیدا کند.
+        </p>
+        <p>
+          حالا آن را با جدیدترین سختی بیت‌کوین امتحان کنید؛ یعنی ۲۴ صفر ابتدایی —
+          فقط شوخی کردم. به تریلیون‌ها «مگا زیلیون» محاسبهٔ هش نیاز خواهید داشت
+          و همهٔ کامپیوترهای استخراج جهان در مجموع به حدود ده (۱۰) دقیقه زمان
+          نیاز دارند تا عدد بخت‌آزمایی (nonce) را پیدا کنند
+          و بلاک بعدی را استخراج کنند.
+        </p>
+
+        <p>بیایید محاسبات هش با سختی <code>'0000'</code> را «با دست» دوباره امتحان کنیم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( '26762Hello, Cryptos!' )
+#=&gt; "0000a1ee5cb18c8d9fff5262b6dcb1bc95d54a331713e247f699f158f2022143"
+Digest::SHA256.hexdigest( '68419Hello, Cryptos! - Hello, Cryptos! - Hello, Cryptos!' )
+#=&gt; "0000b27eeebe56b2daafeb935454d0e3f423fc7f5ac7a99e952f9b80475ef6c3"
+Digest::SHA256.hexdigest( '23416Your Name Here' )
+#=&gt; "00000e59a4a7fb35d0d03def6ce31f503c208e6c291dcc9a217a7278ad1b95ce"
+Digest::SHA256.hexdigest( '15353Data Data Data Data' )
+#=&gt; "00000e3cff496c5afc18645dba31ae9ba5c6077e5a5d980d8512e4581e7d61ec"</code></pre>
+      </section>
+
+      <!-- ============ فصل ۳ ============ -->
+      <section>
+        <h2>فصل ۳ — بلاک‌چین (Blockchain)</h2>
+        <p>بلاک‌چین! بلاک‌چین! بلاک‌چین!</p>
+
+        <img src="https://raw.githubusercontent.com/yukimotopress/programming-blockchains-step-by-step/master/i/fake-dilbert-blockchain.png"
+             alt="کاریکاتور دیلبرت دربارهٔ بلاک‌چین؛ ایدهٔ «بلاک جدید» به‌عنوان رشتهٔ بلاک‌های به‌هم‌پیوسته" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>
+          بیایید بلاک‌های رمزنگاری را به‌صورت زنجیره‌ای از بلاک‌ها، یعنی بلاک‌چین، به هم پیوند بزنیم
+          تا دنیا را یک‌بلاک‌در-یک‌بلاک متحول کنیم!
+        </p>
+
+        <h3>کوییز: شناسهٔ یکتا (ID) بلاک چیست؟</h3>
+        <div class="quiz">
+          <ul>
+            <li>(الف) هش (امن)</li>
+            <li>(ب) هش بلاک</li>
+            <li>(ج) چکیدهٔ رمزنگاری دیجیتال</li>
+          </ul>
+          <p>
+            پاسخ: همهٔ موارد بالا :-). هش (امن) == هش بلاک == چکیدهٔ رمزنگاری دیجیتال.
+          </p>
+        </div>
+        <p>
+          بنابراین هش (امن) بلاک قبلی را به بلاک جدید اضافه کنید و در محاسبهٔ هش لحاظ کنید، مثلاً:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Digest::SHA256.hexdigest( "#{nonce}#{prev}#{data}" )</code></pre>
+
+        <p>آفرین! بلاک‌چین! بلاک‌چین! بلاک‌چین! همه با هم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+require 'pp'      ## pp = چاپ زیبا (pretty print)
+
+
+class Block
+  attr_reader :data
+  attr_reader :prev   # هش بلاک قبلی
+  attr_reader :hash
+  attr_reader :nonce  # عددی که فقط یک‌بار استفاده می‌شود - عدد بخت‌آزمایی (استخراج)
+
+  def initialize(data, prev)
+    @data          = data
+    @prev          = prev
+    @nonce, @hash  = compute_hash_with_proof_of_work
+  end
+
+  def compute_hash_with_proof_of_work( difficulty='0000' )
+    nonce = 0
+    loop do
+      hash = Digest::SHA256.hexdigest( "#{nonce}#{prev}#{data}" )
+      if hash.start_with?( difficulty )
+        return [nonce,hash]    ## آفرین! اثبات کار یعنی هش با صفرهای ابتدایی شروع شود (00)
+      else
+        nonce += 1             ## به تلاش ادامه بده (و ادامه و ادامه)
+      end
+    end # loop
+  end # تابع compute_hash_with_proof_of_work
+
+end # کلاس Block</code></pre>
+
+        <div class="callout note">
+          <strong>نکته:</strong> برای بلاک اول، یعنی بلاک پیدایش (genesis block)،
+          بلاک قبلی وجود ندارد. از کدام هش بلاک استفاده کنیم؟
+          مثل قرارداد کلاسیک بیت‌کوین عمل کنید و از همه صفر استفاده کنید؛
+          مثلاً <code>0000000000000000000000000000000000000000000000000000000000000000</code>.
+        </div>
+
+        <h3>پیدایش (Genesis)؛ یک بلاک‌چین جدید متولد می‌شود!</h3>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b0 = Block.new( 'Hello, Cryptos!', '0000000000000000000000000000000000000000000000000000000000000000' )
+#=&gt; #&lt;Block:0x4d11ce0
+#       @data="Hello, Cryptos!",
+#       @hash="000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af",
+#       @nonce=24287,
+#       @prev="0000000000000000000000000000000000000000000000000000000000000000"&gt;</code></pre>
+
+        <p>بیایید چند بلاک دیگر استخراج کنیم (بسازیم) که با هش‌های رمزنگاری به هم پیوند (زنجیر) خورده‌اند:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b1 = Block.new( 'Hello, Cryptos! - Hello, Cryptos!',
+                '000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af' )
+# - یا -
+b1 = Block.new( 'Hello, Cryptos! - Hello, Cryptos!', b0.hash )
+#=&gt; #&lt;Block:0x4dce620
+#      @data="Hello, Cryptos! - Hello, Cryptos!",
+#      @hash="00002acb41e00fb252b8fedeed7d4a629dafb28517bcf6235b90367ee6f63a7f",
+#      @nonce=191453,
+#      @prev="000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af"&gt;
+
+b2 = Block.new( 'Your Name Here', b1.hash )
+#=&gt; #&lt;Block:0x4d9d798
+#       @data="Your Name Here",
+#       @hash="0000d85423bc8d3ccda0e83ddd6e7e9d6a30f393b73705409b481be57eeaad37",
+#       @nonce=109213,
+#       @prev="00002acb41e00fb252b8fedeed7d4a629dafb28517bcf6235b90367ee6f63a7f"&gt;
+
+b3 = Block.new( 'Data Data Data Data', b2.hash )
+#=&gt; #&lt;Block:0x46cfc80
+#       @data="Data Data Data Data",
+#       @hash="000000c652265dcf44f0b18911435100f4677bdc468f8f1dd85910d581b3542d",
+#       @nonce=129257,
+#       @prev="0000d85423bc8d3ccda0e83ddd6e7e9d6a30f393b73705409b481be57eeaad37"&gt;</code></pre>
+
+        <p>بیایید همهٔ بلاک‌ها را با هم (در یک آرایه) ذخیره کنیم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>blockchain = [b0, b1, b2, b3]
+
+pp blockchain      ## چاپ زیبای بلاک‌چین
+
+#=&gt; [#&lt;Block:0x4d010a8
+#        @data="Hello, Cryptos!",
+#        @hash="000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af",
+#        @nonce=24287,
+#        @prev="0000000000000000000000000000000000000000000000000000000000000000"&gt;,
+#    #&lt;Block:0x4685388
+#        @data="Hello, Cryptos! - Hello, Cryptos!",
+#        @hash="00002acb41e00fb252b8fedeed7d4a629dafb28517bcf6235b90367ee6f63a7f",
+#        @nonce=191453,
+#        @prev="000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af"&gt;,
+#    #&lt;Block:0x4d6d120
+#        @data="Your Name Here",
+#        @hash="0000d85423bc8d3ccda0e83ddd6e7e9d6a30f393b73705409b481be57eeaad37",
+#        @nonce=109213,
+#        @prev="00002acb41e00fb252b8fedeed7d4a629dafb28517bcf6235b90367ee6f63a7f"&gt;,
+#    #&lt;Block:0x469ec30
+#        @data="Data Data Data Data",
+#        @hash="000000c652265dcf44f0b18911435100f4677bdc468f8f1dd85910d581b3542d",
+#        @nonce=129257,
+#        @prev="0000d85423bc8d3ccda0e83ddd6e7e9d6a30f393b73705409b481be57eeaad37"&gt;]</code></pre>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر بخواهید داده‌های بلاک b1 را تغییر دهید، مثلاً،
+          باید همهٔ بلاک‌های بالای آن (یعنی b2 و b3) را هم تغییر دهید و هش‌هایشان را هم به‌روز کنید!
+          با هر بلاکی که اضافه می‌شود، شکستن زنجیره سخت‌تر و سخت‌تر و سخت‌تر می‌شود
+          (نگوییم عملاً غیرممکن!). این جادوی بلاک‌چین است — اگر کپی‌های مشترک/کلون‌شدهٔ زیادی داشته باشید
+          (تقریباً) نشکن است. با هر بلاکی که (روی آن) اضافه می‌شود، داده‌ها امن‌تر می‌شوند...
+        </div>
+
+        <h3>بلاک‌چین شکسته؟ (Blockchain Broken?)</h3>
+        <p>
+          از کجا بفهمید کسی بلاک‌چین (تقریباً) نشکن را تغییر داده (شکسته)
+          و داده‌های بعضی بلاک‌ها را عوض کرده است؟
+          بگذارید تست‌هایی اجرا کنیم که هش‌های زنجیرشده/به‌هم‌پیوسته را بررسی می‌کنند:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b0.prev == '0000000000000000000000000000000000000000000000000000000000000000'
+#=&gt; true
+b1.prev == b0.hash
+#=&gt; true
+b2.prev == b1.hash
+#=&gt; true
+b3.prev == b2.hash
+#=&gt; true</code></pre>
+
+        <p>
+          همه true، true، true، true. همه مرتب هستند؟ چه می‌شود اگر کسی داده را تغییر دهد
+          اما هشِ اصلی (که حالا جعلی و غیرمنطبق است) را نگه دارد؟
+          بگذارید تست‌های بیشتری اجرا کنیم که هش‌ها را با محاسبهٔ مجدد
+          (با استفاده از <code>nonce</code>+<code>prev</code>+<code>data</code>) همان‌جا بررسی می‌کنند
+          و علاوه بر آن سختی اثبات کار را هم چک می‌کنند (هش باید با <code>0000</code> شروع شود):
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>## تابع کمکی میان‌بر
+def sha256( data )
+  Digest::SHA256.hexdigest( data )
+end
+
+b0.hash == sha256( "#{b0.nonce}#{b0.prev}#{b0.data}" )
+# =&gt; true
+b1.hash == sha256( "#{b1.nonce}#{b1.prev}#{b1.data}" )
+# =&gt; true
+b2.hash == sha256( "#{b2.nonce}#{b2.prev}#{b2.data}" )
+# =&gt; true
+b3.hash == sha256( "#{b3.nonce}#{b3.prev}#{b3.data}" )
+# =&gt; true
+
+b0.hash.start_with?( '0000' )
+# =&gt; true
+b1.hash.start_with?( '0000' )
+# =&gt; true
+b2.hash.start_with?( '0000' )
+# =&gt; true
+b3.hash.start_with?( '0000' )
+# =&gt; true</code></pre>
+
+        <p>
+          همه true، true، true، true، true، true، true، true. همه مرتب هستند؟ بله.
+          بلاک‌چین (تقریباً) نشکن است.
+        </p>
+        <p>
+          بیایید تلاش کنیم نشکن را بشکنیم.
+          بلاک b1 را از <code>'Hello, Cryptos!'</code> به <code>'Hello, Koruptos!'</code> تغییر بدهیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b1 = Block.new( 'Hello, Koruptos! - Hello, Koruptos!', b0.hash )
+#=&gt; #&lt;Block:0x4daa9f8
+#       @data="Hello, Koruptos! - Hello, Koruptos!",
+#       @hash="00000c915e240a2b386fc86ef6170261a19292b9fdebebce049c621da1ab7e8f",
+#       @nonce=27889,
+#       @prev="000047954e7d5877b6dea6915c48e84579b5c64fb58d5b6488863c241f1ce2af"&gt;</code></pre>
+
+        <p>حالا اگر بررسی کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b0.prev == '0000000000000000000000000000000000000000000000000000000000000000'
+#=&gt; true
+b1.prev == b0.hash
+#=&gt; true
+b2.prev == b1.hash
+#=&gt; false
+b3.prev == b2.hash
+#=&gt; true</code></pre>
+
+        <p>
+          شکست! false! دیگر همه true نیستند. زنجیره حالا شکسته است.
+          هش‌های زنجیرشده/به‌هم‌پیوسته:
+        </p>
+        <ul>
+          <li><code>b1.hash</code> =&gt; <code>00002acb41e00fb252b8fedeed7d4a629dafb28517bcf6235b90367ee6f63a7f</code></li>
+          <li><code>b2.prev</code> =&gt; <code>00000c915e240a2b386fc86ef6170261a19292b9fdebebce049c621da1ab7e8f</code></li>
+        </ul>
+        <p>
+          دیگر با هم منطبق نیستند.
+          تنها راه بازگرداندن هش‌های زنجیرشده به حالت مرتب
+          (true، true، true، true) این است که همهٔ بلاک‌های بالایی را دوباره بسازید (بازاستخراج کنید).
+        </p>
+      </section>
+
+      <!-- ============ فصل ۴ ============ -->
+      <section>
+        <h2>فصل ۴ — زمان‌سنجی (Timestamping)</h2>
+        <p>
+          چطور می‌توانید بلاک‌چین را حتی امن‌تر کنید؟
+          آن را به دنیای واقعی پیوند بزنید! بیایید یک برچسب زمانی (timestamp) اضافه کنیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Time.now
+# =&gt; 2018-03-17 14:12:01 +0100</code></pre>
+
+        <p>یا به‌صورت زمان اپوک (Epoch) (یعنی ثانیه‌های سپری‌شده از اول ژانویهٔ ۱۹۷۰):</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Time.now.to_i
+# =&gt; 1521292321</code></pre>
+
+        <div class="callout note">
+          <strong>نکته:</strong> می‌توانید از <code>Time.at</code> برای تبدیلِ دوبارهٔ زمان اپوک
+          به فرمت استاندارد «کلاسیک» استفاده کنید:
+        </div>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Time.at( 1521292321 )
+# =&gt; 2018-03-17 14:12:01 +0100</code></pre>
+
+        <p>
+          حالا بلاک‌چین همیشه باید به جلو حرکت کند؛
+          یعنی فقط وقتی می‌توانید بلاک جدید اضافه کنید که برچسب زمانیِ آن بزرگ‌تر / جوان‌تر
+          از برچسب زمانی بلاک قبلی باشد.
+        </p>
+
+        <p><b>نشکن. نشکن. نشکن.</b> چه چیز دیگری؟</p>
+        <p>
+          بیایید سختی اثبات کار (مثلاً <code>'00'</code>، <code>'000'</code>، <code>'0000'</code> و ...)
+          را هم به هش اضافه کنیم تا سختی نیز نشکن/تغییرناپذیر شود!
+        </p>
+        <p>
+          و در آخر، بیایید ویژگی (attr) هشِ «از قبل محاسبه‌شده» را حذف کنیم
+          و همیشه هش را در لحظه محاسبه کنیم، مثلاً:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>def hash
+  Digest::SHA256.hexdigest( "#{nonce}#{time}#{difficulty}#{prev}#{data}" )
+end</code></pre>
+
+        <div class="callout tip">
+          <strong>یادآوری:</strong> محاسبهٔ هش رمزنگاری بلاک سریع، سریع، سریع است.
+          چیزی که بسته به سختی اثبات کار زمان می‌برد، پیدا کردن nonce است؛
+          یعنی همان عدد بخت‌آزمایی که فقط یک‌بار استفاده می‌شود.
+        </div>
+
+        <h3>نمایان شدن نتیجه: همه با هم</h3>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+require 'pp'      ## pp = چاپ زیبا (pretty print)
+
+
+class Block
+  attr_reader :data
+  attr_reader :prev
+  attr_reader :difficulty
+  attr_reader :time
+  attr_reader :nonce  # عددی که فقط یک‌بار استفاده می‌شود - عدد بخت‌آزمایی (استخراج)
+
+  def hash
+    Digest::SHA256.hexdigest( "#{nonce}#{time}#{difficulty}#{prev}#{data}" )
+  end
+
+  def initialize(data, prev, difficulty: '0000' )
+    @data         = data
+    @prev         = prev
+    @difficulty   = difficulty
+    @nonce, @time = compute_hash_with_proof_of_work( difficulty )
+  end
+
+  def compute_hash_with_proof_of_work( difficulty='00' )
+    nonce = 0
+    time  = Time.now.to_i
+    loop do
+      hash = Digest::SHA256.hexdigest( "#{nonce}#{time}#{difficulty}#{prev}#{data}" )
+      if hash.start_with?( difficulty )
+        return [nonce,time]    ## آفرین! اثبات کار یعنی هش با صفرهای ابتدایی شروع شود (00)
+      else
+        nonce += 1             ## به تلاش ادامه بده (و ادامه و ادامه)
+      end
+    end # loop
+  end # تابع compute_hash_with_proof_of_work
+
+end # کلاس Block</code></pre>
+
+        <p>
+          اثباتِ حقیقت (آزمونِ پودینگ!). بیایید یک بلاک‌چین جدید (امن‌تر) را
+          از صفر بسازیم. پیدایش (Genesis)!
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b0 = Block.new( 'Hello, Cryptos!', '0000000000000000000000000000000000000000000000000000000000000000' )
+#=&gt; #&lt;Block:0x4d00700
+#       @data="Hello, Cryptos!",
+#       @difficulty="0000",
+#       @nonce=215028,
+#       @prev="0000000000000000000000000000000000000000000000000000000000000000",
+#       @time=1521292321&gt;</code></pre>
+
+        <p>بیایید چند بلاک دیگر استخراج کنیم که با هش‌های رمزنگاری به هم پیوند خورده‌اند:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b1 = Block.new( 'Hello, Cryptos! - Hello, Cryptos!', b0.hash )
+#=&gt; #&lt;Block:0x4ed7940
+#       @data="Hello, Cryptos! - Hello, Cryptos!",
+#       @difficulty="0000",
+#       @nonce=3264,
+#       @prev="0000071b9c71675db90b0bb819236d76be97ac75f9f379d078456495133b18c6",
+#       @time=1521292325&gt;
+
+b2 = Block.new( 'Your Name Here', b1.hash )
+#=&gt; #&lt;Block:0x2f297e8
+#       @data="Your Name Here",
+#       @difficulty="0000",
+#       @nonce=81552,
+#       @prev="0000a6f83a7883891afea2536891df228a1c527add36c1cc38999e566eeed6a7",
+#       @time=1521292325&gt;
+
+b3 = Block.new( 'Data Data Data Data', b2.hash )
+#=&gt; #&lt;Block:0x4dbd9d0
+#       @data="Data Data Data Data",
+#       @difficulty="0000",
+#       @nonce=43010,
+#       @prev="00009b581870a4e0792f84786e1d089e32f2820459cd878298c6b62974afd0bc",
+#       @time=1521292326&gt;</code></pre>
+
+        <h3>آیا بلاک‌چین شکسته است؟ همهٔ تست‌ها</h3>
+        <p>
+          بیایید همهٔ تست‌ها را اجرا کنیم: بررسی هش‌های زنجیرشده/به‌هم‌پیوسته،
+          برچسب‌های زمانی، سختی اثبات کار و موارد دیگر:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>## تابع کمکی میان‌بر
+def sha256( data )
+  Digest::SHA256.hexdigest( data )
+end
+
+b0.hash == sha256( "#{b0.nonce}#{b0.time}#{b0.difficulty}#{b0.prev}#{b0.data}" )
+# =&gt; true
+b1.hash == sha256( "#{b1.nonce}#{b1.time}#{b1.difficulty}#{b1.prev}#{b1.data}" )
+# =&gt; true
+b2.hash == sha256( "#{b2.nonce}#{b2.time}#{b2.difficulty}#{b2.prev}#{b2.data}" )
+# =&gt; true
+b3.hash == sha256( "#{b3.nonce}#{b3.time}#{b3.difficulty}#{b3.prev}#{b3.data}" )
+# =&gt; true
+
+# بررسی سختی اثبات کار (مثلاً '0000')
+b0.hash.start_with?( b0.difficulty )
+# =&gt; true
+b1.hash.start_with?( b1.difficulty )
+# =&gt; true
+b2.hash.start_with?( b2.difficulty )
+# =&gt; true
+b3.hash.start_with?( b3.difficulty )
+# =&gt; true
+
+## بررسی هش‌های زنجیرشده / به‌هم‌پیوسته
+b0.prev == '0000000000000000000000000000000000000000000000000000000000000000'
+#=&gt; true
+b1.prev == b0.hash
+#=&gt; true
+b2.prev == b1.hash
+#=&gt; true
+b3.prev == b2.hash
+#=&gt; true
+
+# بررسی حرکتِ رو به جلوی زمان؛ برچسب زمانی همیشه بزرگ‌تر/تازه‌تر
+b1.time &gt; b0.time
+#=&gt; true
+b2.time &gt; b1.time
+#=&gt; true
+b3.time &gt; b2.time
+#=&gt; true
+Time.now.to_i &gt; b3.time   ## بازگشت به آینده (هنوز) ممکن نیست :-)
+#=&gt; true</code></pre>
+
+        <p>
+          همه true، true، true، true، true، true، true، true.
+          همه مرتب هستند؟ بله. بلاک‌چین (تقریباً) نشکن است.
+        </p>
+      </section>
+
+      <!-- ============ فصل ۵ ============ -->
+      <section>
+        <h2>فصل ۵ — استخراج، استخراج، استخراج (Mining, Mining, Mining)</h2>
+        <p>نرخ هش شما چقدر است؟ بگذارید بفهمیم.</p>
+        <p>
+          بیایید از نسخهٔ «مستقل» تابعِ تاکنون «کلاسیک»ِ
+          <code>compute_hash_with_proof_of_work</code> استفاده کنیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+
+def compute_hash_with_proof_of_work( data, difficulty='00' )
+  nonce = 0
+  loop do
+    hash = Digest::SHA256.hexdigest( "#{nonce}#{data}" )
+    if hash.start_with?( difficulty )
+      return [nonce,hash]    ## آفرین! اثبات کار یعنی هش با صفرهای ابتدایی شروع شود (00)
+    else
+      nonce += 1             ## به تلاش ادامه بده (و ادامه و ادامه)
+    end
+  end # loop
+end # تابع compute_hash_with_proof_of_work</code></pre>
+
+        <p>
+          بیایید بنچمارک‌ها را برای سختی از <code>0</code> (۴ بیت)
+          تا <code>0000000</code> (۲۸ بیت) اجرا کنیم.
+          به‌یاد داشته باشید: <code>0</code> در هگز (پایهٔ ۱۶، ۲⁴ بیت) برابر <code>0000</code> در باینری (پایهٔ ۲) است؛
+          بنابراین <code>0000000</code> در هگز برابر ۰ × ۴ × ۷ = ۲۸ بیت صفر
+          در باینری است. مثال:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>(1..7).each do |factor|
+   difficulty = '0' * factor
+   puts "difficulty: #{difficulty} (#{difficulty.length*4} bits)"
+end
+
+# =&gt; difficulty: 0 (4 bits)
+#    difficulty: 00 (8 bits)
+#    difficulty: 000 (12 bits)
+#    difficulty: 0000 (16 bits)
+#    difficulty: 00000 (20 bits)
+#    difficulty: 000000 (24 bits)
+#    difficulty: 0000000 (28 bits)</code></pre>
+
+        <p>بیایید ماشین‌آلات محاسبهٔ هش اثبات کار را اضافه کنیم و دوباره اجرا کنیم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>(1..7).each do |factor|
+   difficulty = '0' * factor
+   puts "Difficulty: #{difficulty} (#{difficulty.length*4} bits)"
+
+   puts "Starting search..."
+   t1 = Time.now
+   nonce, hash = compute_hash_with_proof_of_work( 'Hello, Cryptos!', difficulty )
+   t2 = Time.now
+
+   delta = t2 - t1
+   puts "Elapsed Time: %.4f seconds, Hashes Calculated: %d" % [delta,nonce]
+
+   if delta &gt; 0
+     hashrate = Float( nonce / delta )
+     puts "Hash Rate: %d hashes per second" % hashrate
+   end
+   puts
+end</code></pre>
+
+        <p>نتیجه بر روی یک کامپیوتر خانگی «پایین‌رده»:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Difficulty: 0 (4 bits)
+Starting search...
+Elapsed Time: 0.0156 seconds, Hashes Calculated: 56
+Hash Rate: 3 588 hashes per second
+
+Difficulty: 00 (8 bits)
+Starting search...
+Elapsed Time: 0.0000 seconds, Hashes Calculated: 143
+Hash Rate: Infinity ;-)
+
+Difficulty: 000 (12 bits)
+Starting search...
+Elapsed Time: 0.0313 seconds, Hashes Calculated: 3 834
+Hash Rate: 122 684 hashes per second
+
+Difficulty: 0000 (16 bits)
+Starting search...
+Elapsed Time: 0.2656 seconds, Hashes Calculated: 26 762
+Hash Rate: 100 753 hashes per second
+
+Difficulty: 00000 (20 bits)
+Starting search...
+Elapsed Time: 1.2031 seconds, Hashes Calculated: 118 592
+Hash Rate: 98 569 hashes per second
+
+Difficulty: 000000 (24 bits)
+Starting search...
+Elapsed Time: 220.5767 seconds, Hashes Calculated: 21 554 046
+Hash Rate: 97 716 hashes per second
+
+Difficulty: 0000000 (28 bits)
+Starting search...</code></pre>
+
+        <p>
+          در مجموع، نرخ هش روی یک کامپیوتر خانگی «پایین‌رده» حدود ۱۰۰۰۰۰ هش در ثانیه است.
+          نرخ هش شما چقدر است؟ بنچمارک را روی سیستم خودتان اجرا کنید!
+        </p>
+        <p>
+          جست‌وجو برای هش اثبات کار با سختی ۲۸ بیت هنوز در حال اجرا است...
+          انتظار می‌رود عدد بخت‌آزمایی در چند ساعت آینده پیدا شود...
+        </p>
+
+        <h3>کوییز: نرخ هش شبکهٔ بیت‌کوین کلاسیک چقدر است؟</h3>
+        <div class="quiz">
+          <p>
+            پاسخ الف: حدود ۲۵ میلیون تریلیون هش در ثانیه (در مارس ۲۰۱۸)
+          </p>
+          <p>
+            تعداد تقریبی هش‌های ترا (تریلیون‌ها هش در ثانیه)
+            که شبکهٔ بیت‌کوین انجام می‌دهد.
+          </p>
+        </div>
+
+        <img src="https://raw.githubusercontent.com/yukimotopress/programming-blockchains-step-by-step/master/i/bitcoin-hashrate.png"
+             alt="نمودار نرخ هش شبکهٔ بیت‌کوین در طول زمان از وب‌سایت blockchain.info" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>(منبع: <a href="https://blockchain.info/charts/hash-rate" target="_blank" rel="noopener">blockchain.info</a>)</p>
+
+        <div class="callout note">
+          <strong>⚠️ هشدار: بیت‌کوین یک طرح پانزی غول‌پیکر است¹. تا ماه!؟ استاندارد جدید طلا!؟
+          «سرمایه‌گذاری» نکنید و برای پول‌دارشدنِ سریع HODL نکنید.
+          چرا؟ کد بیت‌کوین کهنه و قدیمی است.
+          بسوز، عزیزم، بسوز! اثبات کار / اتلاف انرژی یک فاجعهٔ زیست‌محیطی جهانی است؛
+          هر تراکنش بیت‌کوین ۳۰۰ کیلووات‌ساعت انرژی مصرف می‌کند (!) که حدود ۱۷۹ کیلوگرم انتشار CO₂ است².
+          پول برنامه‌پذیر (یا اینترنت ارزش) برای همهٔ نسل‌های آینده با اسکریپت (بیت‌کوین)
+          بدون حلقه و پرش (goto) و کاملاً بدون «وضعیت»!؟ LOL.</strong>
+        </div>
+
+        <img src="https://raw.githubusercontent.com/yukimotopress/programming-blockchains-step-by-step/master/i/trolly-ponzi.png"
+             alt="کاریکاتور گاری (ترالی) پانزی؛ انتقاد طنز از اقتصاد پانزی رمزارزها" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+
+        <p>
+          ¹ منبع: <a href="https://bitsblocks.github.io/bitcoin-maximalist" target="_blank" rel="noopener">Best of Bitcoin Maximalist — Scammers, Morons, Clowns, Shills &amp; BagHODLers — Inside The New New Crypto Ponzi Economics</a>
+        </p>
+        <p>
+          ² با فرض ۰/۵۹۶ کیلوگرم CO₂ به‌ازای هر کیلووات‌ساعت (بازده انرژی در آلمان)،
+          هر تراکنش بیت‌کوین حدود ۱۷۹ کیلوگرم CO₂ تولید می‌کند (۳۰۰ کیلووات‌ساعت × ۰/۵۹۶ کیلوگرم).
+          برای بینش بیشتر به
+          <a href="https://digiconomist.net/bitcoin-energy-consumption" target="_blank" rel="noopener">شاخص مصرف انرژی بیت‌کوین</a>
+          مراجعه کنید.
+        </p>
+      </section>
+
+      <!-- ============ فصل ۶ ============ -->
+      <section>
+        <h2>فصل ۶ — بیت‌کوین، بیت‌کوین، بیت‌کوین (Bitcoin, Bitcoin, Bitcoin)</h2>
+        <p>
+          بیایید هش بلاک رمزنگاری کلاسیک بیت‌کوین را از صفر محاسبه کنیم.
+          از بلاک پیدایش شروع می‌کنیم؛ یعنی بلاک #0
+          با شناسهٔ هش یکتای <code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code>.
+        </p>
+        <div class="callout note">
+          <strong>نکته:</strong> می‌توانید بلاک‌های بیت‌کوین را با «کاوشگرهای بلاک» (block explorers) آنلاین جست‌وجو و مرور کنید. مثال:
+          <ul style="direction:ltr;text-align:left;margin:.4rem 0;">
+            <li><a href="https://blockchain.info/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" target="_blank" rel="noopener">blockchain.info/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+            <li><a href="https://blockexplorer.com/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f" target="_blank" rel="noopener">blockexplorer.com/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></li>
+            <li>و سایر کاوشگرها</li>
+          </ul>
+        </div>
+
+        <p>
+          هش بلاک رمزنگاری کلاسیک بیت‌کوین از هدر ۸۰ بایتی بلاک محاسبه می‌شود:
+        </p>
+
+        <table>
+          <tr><th>فیلد</th><th>اندازه (بایت)</th><th>توضیحات</th></tr>
+          <tr><td>version</td><td>۴ بایت</td><td>شمارهٔ نسخهٔ بلاک</td></tr>
+          <tr><td>prev</td><td>۳۲ بایت</td><td>هش ۲۵۶ بیتی هدر بلاک قبلی</td></tr>
+          <tr><td>merkleroot</td><td>۳۲ بایت</td><td>هش ۲۵۶ بیتی همهٔ تراکنش‌های داخل بلاک</td></tr>
+          <tr><td>time</td><td>۴ بایت</td><td>برچسب زمانی جاری به‌صورت ثانیه از 1970-01-01 00:00</td></tr>
+          <tr><td>bits</td><td>۴ بایت</td><td>هدف سختی جاری در قالب باینری فشرده</td></tr>
+          <tr><td>nonce</td><td>۴ بایت</td><td>عدد ۳۲ بیتی عدد بخت‌آزمایی (استخراج‌شده) که فقط یک‌بار استفاده می‌شود</td></tr>
+        </table>
+
+        <div class="callout tip"><strong>نکته:</strong> ۳۲ بایت × ۸ بیت = ۲۵۶ بیت</div>
+
+        <p>با استفاده از داده‌های بلاک پیدایش، تنظیمات به این شکل است:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>version    = 1
+prev       = '0000000000000000000000000000000000000000000000000000000000000000'
+merkleroot = '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b'
+time       = 1231006505
+bits       = '1d00ffff'
+nonce      = 2083236893</code></pre>
+
+        <p>یادآوری: برای تبدیل زمان اپوک (ثانیه از اول ژانویهٔ ۱۹۷۰) به زمان کلاسیک از این استفاده کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Time.at( 1231006505 ).utc
+#=&gt; "2009-01-03 18:15:05"</code></pre>
+
+        <p>
+          بله، بیت‌کوین کلاسیک در ۳ ژانویهٔ ۲۰۰۹ ساعت ۱۸:۱۵:۰۵ (2009-01-03 18:15:05) شروع شد.
+          یا در جهت مخالف از این استفاده کنید:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>Time.utc( 2009, 1, 3, 18, 15, 5 ).to_i
+#=&gt; 1231006505</code></pre>
+
+        <p>
+          UTC چیست؟ زمان هماهنگ جهانی (Coordinated Universal Time) زمان «استاندارد» جهان است.
+          توجه: UTC ساعت تابستانی (Daylight Saving Time) را رعایت نمی‌کند.
+        </p>
+
+        <h3>بایت‌های باینری — انتیان کوچک (Little Endian) در برابر انتیان بزرگ (Big Endian)</h3>
+        <p>در تئوری، محاسبهٔ هش بلاک به همین سادگی است:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>## شبه‌کد
+header = "..."           # 80 بایت (باینری)
+d1 = sha256( header )
+d2 = sha256( d1 )
+d2.to_s                  # تبدیل 32 بایت (256 بیت) باینری به رشتهٔ هگز
+#=&gt; "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"</code></pre>
+
+        <div class="callout note">
+          <strong>نکته:</strong> بیت‌کوین کلاسیک از «هش دوگانه» استفاده می‌کند؛ یعنی
+          برای امنیتِ حتی بیشتر، هش با الگوریتم SHA256 دو بار هش می‌شود؛
+          مثلاً <code>sha256(sha256(header))</code>.
+        </div>
+        <p>
+          در عمل با تبدیل‌های مختلف ترتیب بایتی سر و کار داریم:
+          از انتیان بزرگ (بزرگ‌ترین بیت اول) به انتیان کوچک (کوچک‌ترین بیت اول) و بالعکس.
+        </p>
+        <div class="callout tip">
+          <strong>راهنما:</strong> بیشتر دربارهٔ
+          <a href="https://en.wikipedia.org/wiki/Endianness" target="_blank" rel="noopener">انتیان (Endianness) در ویکی‌پدیا</a>
+          بخوانید.
+        </div>
+
+        <p>
+          بیایید هدر ۸۰ بایتی (باینری) را با استفاده از توابع کمکیِ تبدیل
+          ترتیب بایتیِ انتیان بزرگ به انتیان کوچک (به بایت باینری) یعنی
+          <code>int4</code> و <code>hex32</code> کنار هم بگذاریم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>header =
+   int4( version       ) +
+  hex32( prev          ) +
+  hex32( merkleroot    ) +
+   int4( time          ) +
+   int4( bits.to_i(16) ) +
+   int4( nonce         )
+
+header.size
+#=&gt; 80
+
+bin_to_hex( header )
+# =&gt; "01000000" +
+#    "0000000000000000000000000000000000000000000000000000000000000000" +
+#    "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a" +
+#    "29ab5f49" +
+#    "ffff001d" +
+#    "1dac2b7c"</code></pre>
+
+        <p>و محاسبات هش را اجرا کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>d1 = Digest::SHA256.digest( header )
+d2 = Digest::SHA256.digest( d1 )
+bin_to_hex32( d2 )
+#=&gt; '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'</code></pre>
+
+        <p>
+          آفرین! هش بلاک حاصل
+          <code>000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</code>
+          است.
+        </p>
+
+        <h3>گام به عقب: توابع کمکی تبدیل باینری</h3>
+        <p>
+          بیایید عقب برگردیم و توابع کمکیِ تبدیل باینریِ جاافتاده را اضافه کنیم؛
+          یعنی <code>int4</code>، <code>hex32</code>، <code>bin_to_hex32</code> و <code>bin_to_hex</code>:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>def int4( num )   ##  عدد صحیح 4 بایتی (32 بیتی) به باینری (انتیان کوچک)
+  [num].pack( 'V' )
+end
+
+def hex32( hex )   ## رشتهٔ هگز 32 بایتی (256 بیتی) / 64 کاراکتر هگز به باینری
+  [hex].pack( 'H*' ).reverse     ## تغییر ترتیب بایت‌ها (با reverse)
+end
+
+def bin_to_hex32( bytes )
+  bytes.reverse.unpack( 'H*' )[0]   ## توجه: تغییر ترتیب بایت‌ها (با reverse)
+end
+
+def bin_to_hex( bytes )
+  bytes.unpack( 'H*' )[0]
+end</code></pre>
+
+        <p>برای تبدیل اعداد صحیح (۴ بایت / ۳۲ بیت) به بایت باینری (در انتیان کوچک) از این استفاده کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>int4( version )
+#=&gt; "\x01\x00\x00\x00"
+bin_to_hex( int4( version ))
+#=&gt; "01000000"</code></pre>
+
+        <p>مقایسه با رشتهٔ هگز «کلاسیک» (در انتیان بزرگ):</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>pp "%08x" % version
+#=&gt; "00000001"</code></pre>
+
+        <p>
+          کدام بهتر است؟ انتیان بزرگِ <code>00000001</code> یا انتیان کوچکِ <code>01000000</code>؟
+          کدام بهتر است؟ Ruby یا Python؟ قرمز یا آبی؟ Bitshilling یا Bitcoin؟
+        </p>
+        <p>
+          بیایید جشن بگیریم که «بیش از یک راه برای انجام آن وجود دارد» :-). ادامه می‌دهیم.
+        </p>
+
+        <p>برای تبدیل رشتهٔ هگز (۳۲ بایت / ۲۵۶ بیت / ۶۴ کاراکتر هگز) به بایت باینری (در انتیان کوچک) از این استفاده کنید:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>hex32( merkleroot )
+#=&gt; ";\xA3\xED\xFDz{\x12\xB2z\xC7,>gv\x8Fa\x7F\xC8\e\xC3\x88\x8A..."
+bin_to_hex( hex32( merkleroot ))
+#=&gt; "3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a"</code></pre>
+
+        <p>و برای تبدیل از بایت باینری (در انتیان کوچک) به رشتهٔ هگز:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>bin_to_hex32( hex32( merkleroot ))   # به انتیان کوچک و باینری و دوباره برگشت
+#=&gt; "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"</code></pre>
+
+        <p>
+          کدام بهتر است؟ انتیان بزرگِ <code>4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</code>
+          یا انتیان کوچکِ <code>3ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a</code>؟
+        </p>
+        <p>
+          آن جادوی <code>pack</code>/<code>unpack</code> چیست؟
+          مستندات Ruby برای <code>Array#pack</code> و <code>String#unpack</code>
+          را برای ماشین‌آلات بسته‌بندی و بازکردن دادهٔ باینری ببینید.
+        </p>
+
+        <h3>جمع‌بندی: بلاک #125552 نمونهٔ ویکی</h3>
+        <p>
+          برای جمع‌بندی، همه را با هم استفاده کنیم. بلاک #125552 که به‌عنوان نمونه
+          در صفحهٔ ویکی
+          <a href="https://en.bitcoin.it/wiki/Block_hashing_algorithm" target="_blank" rel="noopener">الگوریتم هش بلاک بیت‌کوین</a>
+          استفاده شده است:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>version    =  1
+prev       = '00000000000008a3a41b85b8b29ad444def299fee21793cd8b9e567eab02cd81'
+merkleroot = '2b12fcf1b09288fcaff797d71e950e71ae42b91e8bdb2304758dfcffc2b620e3'
+time       =  1305998791     ## 2011-05-21 17:26:31
+bits       = '1a44b9f2'
+nonce      =  2504433986
+
+header =  int4( version       ) +
+         hex32( prev          ) +
+         hex32( merkleroot    ) +
+          int4( time          ) +
+          int4( bits.to_i(16) ) +
+          int4( nonce         )
+
+d1 = Digest::SHA256.digest( header )
+d2 = Digest::SHA256.digest( d1 )
+bin_to_hex32( d2 )
+#=&gt; "00000000000000001e8d6829a8a21adc5d38d0a473b144b6765798e61f98bd1d"</code></pre>
+
+        <h3>بونوس: بسته‌بندی کد هدر بلاک بیت‌کوین در یک کلاس</h3>
+        <p>
+          برای استفادهٔ مجدد آسان، بیایید کد هدر بلاک بیت‌کوین را در یک کلاس بسته‌بندی کنیم:
+        </p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>require 'digest'
+
+module Bitcoin
+  class Header
+    attr_reader :version
+    attr_reader :prev
+    attr_reader :merkleroot
+    attr_reader :time
+    attr_reader :bits
+    attr_reader :nonce
+
+    def initialize( version, prev, merkleroot, time, bits, nonce )
+       @version    = version
+       @prev       = prev
+       @merkleroot = merkleroot
+       @time       = time
+       @bits       = bits
+       @nonce      = nonce
+    end
+
+    ## بیایید یک تابع کمکی سازنده (c'tor) اضافه کنیم
+    def self.from_hash( h )
+      new( h[:version],
+           h[:prev],
+           h[:merkleroot],
+           h[:time],
+           h[:bits],
+           h[:nonce] )
+    end
+
+    def to_bin
+       i4( version )       +
+      h32( prev )          +
+      h32( merkleroot )    +
+       i4( time )          +
+       i4( bits.to_i(16) ) +
+       i4( nonce )
+    end
+
+    def hash
+      bytes = sha256(sha256( to_bin ))
+      bin_to_h32( bytes )
+    end
+
+    def sha256( bytes )
+       Digest::SHA256.digest( bytes )
+    end
+
+    ## توابع کمکی تبدیل بسته‌بندی/بازکردن باینری
+    def i4( num )   ##  عدد صحیح (4 بایت / 32 بیت) به باینری (در انتیان کوچک)
+      [num].pack( 'V' )
+    end
+
+    def h32( hex )   ## رشتهٔ هگز (32 بایت / 256 بیت / 64 کاراکتر هگز) به باینری
+      [hex].pack( 'H*' ).reverse     ## تغییر ترتیب بایت‌ها (با reverse)
+    end
+
+    def bin_to_h32( bytes )
+      bytes.reverse.unpack( 'H*' )[0]   ## توجه: تغییر ترتیب بایت‌ها (با reverse)
+    end
+  end # کلاس Header
+end # ماژول Bitcoin</code></pre>
+
+        <p>و بیایید آن را با بلاک پیدایش #0 و بلاک #125552 تست کنیم:</p>
+
+<pre class="code"><span class="lang-tag">ruby</span><code>b0 =
+Bitcoin::Header.from_hash(
+  version:     1,
+  prev:       '0000000000000000000000000000000000000000000000000000000000000000',
+  merkleroot: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+  time:        1231006505,
+  bits:       '1d00ffff',
+  nonce:       2083236893 )
+
+b0.hash
+#=&gt; "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+
+b125552 =
+Bitcoin::Header.from_hash(
+  version:     1,
+  prev:       '00000000000008a3a41b85b8b29ad444def299fee21793cd8b9e567eab02cd81',
+  merkleroot: '2b12fcf1b09288fcaff797d71e950e71ae42b91e8bdb2304758dfcffc2b620e3',
+  time:        1305998791,
+  bits:       '1a44b9f2',
+  nonce:       2504433986 )
+
+b125552.hash
+#=&gt; "00000000000000001e8d6829a8a21adc5d38d0a473b144b6765798e61f98bd1d"</code></pre>
+      </section>
+
+      <!-- ============ پیوست ============ -->
+      <section>
+        <h2>پیوست الف — مراجع و پیوندها (References / Links)</h2>
+        <ul>
+          <li>
+            <a href="http://yukimotopress.github.io/blockchains" target="_blank" rel="noopener">سری Gem — برنامه‌نویسی رمزارزها و بلاک‌چین‌ها در Ruby</a>
+            — از <a href="http://yukimotopress.github.io" target="_blank" rel="noopener">کتابخانهٔ Yuki &amp; Moto Press</a>، دفترچهٔ رایگان (آنلاین)
+          </li>
+          <li>
+            <a href="https://github.com/openblockchains/awesome-blockchains" target="_blank" rel="noopener">Awesome Blockchains</a>
+            — از <a href="https://github.com/openblockchains" target="_blank" rel="noopener">Open Blockchains</a>
+          </li>
+          <li>
+            <a href="https://github.com/planetruby/awesome-crypto" target="_blank" rel="noopener">Awesome Crypto</a>
+            — از <a href="https://github.com/planetruby" target="_blank" rel="noopener">Planet Ruby</a>
+          </li>
+        </ul>
+
+        <div class="callout tip">
+          <strong>ادامه دارد (To be continued):</strong> کتاب اصلی فصل‌های بعدی را
+          (بلاک با تراکنش‌ها (Tx) و ...) هنوز منتشر نکرده است؛ نگارش اولیهٔ این فصل‌ها
+          در نسخهٔ آنلاین کتاب در حال تکمیل است. با انتشار فصل‌های جدید، این ترجمه نیز به‌روزرسانی می‌شود.
+        </div>
+      </section>
+
+      <!-- بلاک کپیرایت (اجباری، در انتهای محتوا) -->
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Programming Blockchains Step-by-Step» اثر
+        جرالد بائر (Gerald Bauer) و همکاران، منتشرشده در انتشارات
+        Yuki &amp; Moto Press (yukimotopress) است و بنابر اعلام نویسنده به
+        دامنهٔ عمومی (Public Domain) اختصاص داده شده است. این صفحه فقط ترجمهٔ فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. ترجمهٔ فارسی توسط
+        Mani برای پلتفرم BYOX تهیه شده است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/yukimotopress/programming-blockchains-step-by-step" target="_blank" rel="noopener">مخزن اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

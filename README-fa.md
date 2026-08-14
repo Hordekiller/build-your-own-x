@@ -1,5 +1,7 @@
 [![Banner](https://codecrafters.io/images/new-ccgithub-banner.png)](https://codecrafters.io/github-banner)
 
+> 🌐 نسخهٔ اصلی انگلیسی این مخزن: [codecrafters-io/build-your-own-x](https://github.com/codecrafters-io/build-your-own-x) · نسخهٔ انگلیسی ترجمهٔ این آموزش‌ها نیز به‌زودی در همین مخزن گردآوری می‌شود.
+
 ## خودت «فناوری موردنظرت» را بساز
 
 این مخزن مجموعه‌ای از راهنماهای خوش‌نویس و گام‌به‌گام برای بازسازیِ از صفرِ فناوری‌های محبوب است.

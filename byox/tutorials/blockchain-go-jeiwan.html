@@ -1,0 +1,3364 @@
+<!DOCTYPE html>
+<!--
+  BYOX — ترجمه فارسی سری «Building Blockchain in Go» از Ivan Kuznetsov (jeiwan.net)
+  قوانین اجباری رعایت شده: lang="fa" dir="rtl" | CSS نسبی | کد در pre.code | تصاویر مستقیم از سایت اصلی | بلاک کپیرایت
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت بلاک‌چین در Go (سری کامل ۷+ قسمت)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین / ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>ساخت بلاک‌چین در Go (سری کامل ۷+ قسمت)</span>
+      </div>
+      <h1>ساخت بلاک‌چین در Go (سری کامل ۷+ قسمت)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">🔗 بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی سری مقالات «Building Blockchain in Go» از «Ivan Kuznetsov (jeiwan.net)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <div class="callout tip">
+        این آموزش یک سری چندصفحه‌ای است: تمام هفت قسمت اصلی سری «ساخت بلاک‌چین در Go» در این صفحه به‌صورت کامل ترجمه شده‌اند.
+        برای پیمایش سریع از فهرست زیر استفاده کنید. کدهای کامل هر قسمت در مخزن
+        <a href="https://github.com/Jeiwan/blockchain_go" target="_blank" rel="noopener">github.com/Jeiwan/blockchain_go</a> (شاخه‌های part_1 تا part_7) موجود است.
+      </div>
+
+      <section>
+        <h2 id="part1">قسمت ۱: نمونه اولیه (Basic Prototype)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          بلاک‌چین یکی از انقلابی‌ترین فناوری‌های قرن بیست‌ویکم است که هنوز در حال بلوغ است و پتانسیل آن هنوز به‌طور کامل
+          محقق نشده است. بلاک‌چین در ذات خود، صرفاً یک پایگاه‌داده توزیع‌شده از رکوردهاست. اما چیزی که آن را منحصربه‌فرد
+          می‌کند این است که یک پایگاه‌داده خصوصی نیست، بلکه عمومی است؛ یعنی هر کسی که از آن استفاده می‌کند، نسخه کامل یا
+          جزئی از آن را دارد. و یک رکورد جدید فقط با رضایت سایر نگهدارندگان پایگاه‌داده اضافه می‌شود. همچنین، این
+          بلاک‌چین بود که ارزهای رمزنگاری‌شده و قراردادهای هوشمند را ممکن ساخت.
+        </p>
+        <p>
+          در این سری از مقالات، یک ارز رمزنگاری‌شده ساده‌شده می‌سازیم که بر پایه یک پیاده‌سازی ساده از بلاک‌چین است.
+        </p>
+
+        <h3>بلاک</h3>
+        <p>
+          بیایید با بخش «بلاک» از «بلاک‌چین» شروع کنیم. در بلاک‌چین، این بلاک‌ها هستند که اطلاعات ارزشمند را ذخیره
+          می‌کنند. مثلاً بلاک‌های بیت‌کوین تراکنش‌ها را ذخیره می‌کنند که جوهره هر ارز رمزنگاری‌شده است. علاوه بر این، یک
+          بلاک حاوی اطلاعات فنی نیز هست، مانند نسخه آن، زمان‌بندی فعلی و هش بلاک قبلی.
+        </p>
+        <p>
+          در این مقاله قرار نیست بلاک را آن‌طور که در مشخصات بلاک‌چین یا بیت‌کوین توصیف شده پیاده‌سازی کنیم؛ در عوض از
+          نسخه ساده‌شده‌ای استفاده می‌کنیم که فقط اطلاعات مهم را دارد. شکل آن به این صورت است:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Block struct {
+	Timestamp     int64
+	Data          []byte
+	PrevBlockHash []byte
+	Hash          []byte
+}</code></pre>
+        <p>
+          <code>Timestamp</code> زمان‌بندی فعلی است (زمانی که بلاک ساخته می‌شود)، <code>Data</code> اطلاعات ارزشمند واقعی
+          موجود در بلاک است، <code>PrevBlockHash</code> هش بلاک قبلی را ذخیره می‌کند و <code>Hash</code> هش خود بلاک است.
+          در مشخصات بیت‌کوین، <code>Timestamp</code>، <code>PrevBlockHash</code> و <code>Hash</code> هدرهای بلاک هستند که
+          یک ساختار داده جداگانه را تشکیل می‌دهند و تراکنش‌ها (در مورد ما <code>Data</code>) یک ساختار داده جداگانه
+          هستند. پس برای سادگی آن‌ها را با هم مخلوط کرده‌ایم.
+        </p>
+        <p>
+          پس هش‌ها را چگونه محاسبه می‌کنیم؟ روش محاسبه هش‌ها یک ویژگی بسیار مهم بلاک‌چین است و همین ویژگی است که
+          بلاک‌چین را امن می‌کند. نکته اینجاست که محاسبه یک هش یک عملیات محاسباتی دشوار است و حتی روی کامپیوترهای سریع
+          هم زمان می‌برد (به همین دلیل مردم برای استخراج بیت‌کوین کارت‌های گرافیک قدرتمند می‌خرند). این یک طراحی معماری
+          عمدی است که افزودن بلاک‌های جدید را دشوار می‌کند و در نتیجه از تغییر آن‌ها پس از افزودن جلوگیری می‌کند. این
+          مکانیسم را در مقاله‌ای آینده بحث و پیاده‌سازی خواهیم کرد.
+        </p>
+        <p>
+          فعلاً فقط فیلدهای بلاک را برمی‌داریم، آن‌ها را به هم می‌چسبانیم و یک هش SHA-256 روی ترکیب به‌هم‌چسبیده محاسبه
+          می‌کنیم. این کار را در متد <code>SetHash</code> انجام می‌دهیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (b *Block) SetHash() {
+	timestamp := []byte(strconv.FormatInt(b.Timestamp, 10))
+	headers := bytes.Join([][]byte{b.PrevBlockHash, b.Data, timestamp}, []byte{})
+	hash := sha256.Sum256(headers)
+
+	b.Hash = hash[:]
+}</code></pre>
+        <p>
+          در ادامه و طبق قراردادهای زبان Go، تابعی را پیاده‌سازی می‌کنیم که ساخت یک بلاک را ساده می‌کند:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(data string, prevBlockHash []byte) *Block {
+	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}}
+	block.SetHash()
+	return block
+}</code></pre>
+        <p>و این هم تمام کار بلاک بود!</p>
+
+        <h3>بلاک‌چین</h3>
+        <p>
+          حالا بیایید یک بلاک‌چین پیاده‌سازی کنیم. بلاک‌چین در ذات خود فقط یک پایگاه‌داده با ساختار مشخص است: یک لیست
+          مرتب با اتصال به عقب (back-linked list). یعنی بلاک‌ها به ترتیب درج ذخیره می‌شوند و هر بلاک به بلاک قبلی متصل
+          است. این ساختار به ما امکان می‌دهد آخرین بلاک زنجیره را سریع به دست آوریم و یک بلاک را با هش آن (به‌طور
+          کارآمد) بازیابی کنیم.
+        </p>
+        <p>
+          در زبان Go این ساختار را می‌توان با یک آرایه و یک map پیاده‌سازی کرد: آرایه هش‌های مرتب را نگه می‌دارد
+          (آرایه‌ها در Go مرتب هستند) و map جفت‌های <code>hash ← block</code> را نگه می‌دارد (mapها نامرتب هستند). اما
+          برای نمونه اولیه بلاک‌چین خود فقط از یک آرایه استفاده می‌کنیم، چون فعلاً نیازی به بازیابی بلاک‌ها با هش آن‌ها
+          نداریم.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Blockchain struct {
+	blocks []*Block
+}</code></pre>
+        <p>این اولین بلاک‌چین ماست! هرگز فکر نمی‌کردم این‌قدر آسان باشد 😉</p>
+        <p>حالا امکان افزودن بلاک به آن را فراهم می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) AddBlock(data string) {
+	prevBlock := bc.blocks[len(bc.blocks)-1]
+	newBlock := NewBlock(data, prevBlock.Hash)
+	bc.blocks = append(bc.blocks, newBlock)
+}</code></pre>
+        <p>تمام شد! یا نه؟..</p>
+        <p>
+          برای افزودن یک بلاک جدید به یک بلاک موجود نیاز داریم، اما در بلاک‌چین ما هیچ بلاکی وجود ندارد! پس در هر
+          بلاک‌چینی باید حداقل یک بلاک وجود داشته باشد و چنین بلاکی که اولین بلاک زنجیره است <strong>بلاک پیدایش
+          (genesis block)</strong> نامیده می‌شود. بیایید متدی را پیاده‌سازی کنیم که چنین بلاکی می‌سازد:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewGenesisBlock() *Block {
+	return NewBlock("Genesis Block", []byte{})
+}</code></pre>
+        <p>حالا می‌توانیم تابعی پیاده‌سازی کنیم که بلاک‌چینی با بلاک پیدایش می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewBlockchain() *Blockchain {
+	return &Blockchain{[]*Block{NewGenesisBlock()}}
+}</code></pre>
+        <p>بیایید بررسی کنیم که بلاک‌چین درست کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func main() {
+	bc := NewBlockchain()
+
+	bc.AddBlock("Send 1 BTC to Ivan")
+	bc.AddBlock("Send 2 more BTC to Ivan")
+
+	for _, block := range bc.blocks {
+		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
+		fmt.Printf("Data: %s\n", block.Data)
+		fmt.Printf("Hash: %x\n", block.Hash)
+		fmt.Println()
+	}
+}</code></pre>
+        <p>خروجی:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>Prev. hash:
+Data: Genesis Block
+Hash: aff955a50dc6cd2abfe81b8849eab15f99ed1dc333d38487024223b5fe0f1168
+
+Prev. hash: aff955a50dc6cd2abfe81b8849eab15f99ed1dc333d38487024223b5fe0f1168
+Data: Send 1 BTC to Ivan
+Hash: d75ce22a840abb9b4e8fc3b60767c4ba3f46a0432d3ea15b71aef9fde6a314e1
+
+Prev. hash: d75ce22a840abb9b4e8fc3b60767c4ba3f46a0432d3ea15b71aef9fde6a314e1
+Data: Send 2 more BTC to Ivan
+Hash: 561237522bb7fcfbccbc6fe0e98bbbde7427ffe01c6fb223f7562288ca2295d1</code></pre>
+        <p>تمام شد!</p>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          ما یک نمونه اولیه بسیار ساده از بلاک‌چین ساختیم: صرفاً یک آرایه از بلاک‌ها که هر بلاک به بلاک قبلی متصل است.
+          اما بلاک‌چین واقعی بسیار پیچیده‌تر است. در بلاک‌چین ما، افزودن بلاک‌های جدید آسان و سریع است، اما در بلاک‌چین
+          واقعی افزودن بلاک‌های جدید به کار نیاز دارد: قبل از گرفتن مجوز افزودن بلاک، باید محاسبات سنگینی انجام داد
+          (این مکانیسم «اثبات کار» یا Proof-of-Work نامیده می‌شود). همچنین، بلاک‌چین یک پایگاه‌داده توزیع‌شده است که
+          هیچ تصمیم‌گیرنده واحدی ندارد. بنابراین، یک بلاک جدید باید توسط سایر شرکت‌کنندگان شبکه تأیید و تصویب شود (این
+          مکانیسم «اجماع» یا consensus نامیده می‌شود). و در بلاک‌چین ما هنوز هیچ تراکنشی وجود ندارد!
+        </p>
+        <p>در مقالات آینده هر یک از این ویژگی‌ها را پوشش خواهیم داد.</p>
+        <p>پیوندها:</p>
+        <ol>
+          <li>کدهای کامل منبع: <a href="https://github.com/Jeiwan/blockchain_go/tree/part_1" target="_blank" rel="noopener">https://github.com/Jeiwan/blockchain_go/tree/part_1</a></li>
+          <li>الگوریتم هش کردن بلاک: <a href="https://en.bitcoin.it/wiki/Block_hashing_algorithm" target="_blank" rel="noopener">https://en.bitcoin.it/wiki/Block_hashing_algorithm</a></li>
+        </ol>
+      </section>
+
+      <section>
+        <h2 id="part2">قسمت ۲: اثبات کار (Proof-of-Work)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          در <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">مقاله
+          قبلی</a> یک ساختار داده بسیار ساده ساختیم که جوهره پایگاه‌داده بلاک‌چین است. و امکان افزودن بلاک به آن را با
+          رابطه زنجیره‌ای بین بلاک‌ها فراهم کردیم: هر بلاک به بلاک قبلی متصل است. اما پیاده‌سازی بلاک‌چین ما یک نقص
+          قابل توجه دارد: افزودن بلاک‌ها به زنجیره آسان و ارزان است. یکی از سنگ‌های بنیادین بلاک‌چین و بیت‌کوین این است
+          که افزودن بلاک‌های جدید یک کار سخت است. امروز می‌خواهیم این نقص را برطرف کنیم.
+        </p>
+
+        <h3>اثبات کار (Proof-of-Work)</h3>
+        <p>
+          ایده کلیدی بلاک‌چین این است که برای قرار دادن داده در آن باید کار سختی انجام داد. همین کار سخت است که
+          بلاک‌چین را امن و سازگار (consistent) می‌کند. همچنین، برای این کار سخت پاداشی پرداخت می‌شود (این‌گونه مردم در
+          ازای استخراج سکه می‌گیرند).
+        </p>
+        <p>
+          این مکانیسم شباهت زیادی به مکانیسم زندگی واقعی دارد: برای گرفتن پاداش و تداوم زندگی باید سخت کار کرد. در
+          بلاک‌چین، برخی از شرکت‌کنندگان شبکه (ماینرها) برای پایداری شبکه کار می‌کنند، بلاک‌های جدید به آن اضافه
+          می‌کنند و در ازای کار خود پاداش می‌گیرند. در نتیجه کار آن‌ها، یک بلاک به‌شکل امن در بلاک‌چین ثبت می‌شود که
+          پایداری کل پایگاه‌داده بلاک‌چین را حفظ می‌کند. شایان ذکر است که کسی که کار را تمام کرده باید این را ثابت کند.
+        </p>
+        <p>
+          این مکانیسمِ کلیِ «کار سخت انجام بده و ثابت کن» اثبات کار نامیده می‌شود. سخت است چون به توان محاسباتی زیادی
+          نیاز دارد: حتی کامپیوترهای پرقدرت هم نمی‌توانند آن را سریع انجام دهند. علاوه بر این، دشواری این کار هر از
+          گاهی افزایش می‌یابد تا نرخ ساخت بلاک‌های جدید حدود ۶ بلاک در ساعت بماند. در بیت‌کوین، هدف چنین کاری یافتن
+          هشی برای یک بلاک است که الزامات خاصی را برآورده کند. و همین هش است که به‌عنوان اثبات عمل می‌کند. بنابراین،
+          یافتن یک اثبات همان کار واقعی است.
+        </p>
+        <p>
+          یک نکته آخر: الگوریتم‌های اثبات کار باید یک الزام را برآورده کنند — انجام کار سخت است، اما راستی‌آزمایی اثبات
+          آسان. یک اثبات معمولاً به شخص دیگری داده می‌شود، پس برای او نباید زمان زیادی برای راستی‌آزمایی آن صرف شود.
+        </p>
+
+        <h3>هش کردن (Hashing)</h3>
+        <p>
+          در این بخش درباره هش کردن بحث می‌کنیم. اگر با این مفهوم آشنا هستید، می‌توانید این بخش را رد کنید.
+        </p>
+        <p>
+          هش کردن فرایند به‌دست آوردن یک هش برای داده مشخص است. هش یک نمایش یکتا از داده‌ای است که روی آن محاسبه شده
+          است. تابع هش تابعی است که داده‌ای با هر اندازه‌ای می‌گیرد و یک هش با اندازه ثابت تولید می‌کند. در اینجا چند
+          ویژگی کلیدی هش کردن آمده است:
+        </p>
+        <ul>
+          <li>داده اصلی را نمی‌توان از هش بازسازی کرد. بنابراین هش کردن رمزنگاری (encryption) نیست.</li>
+          <li>داده مشخص فقط می‌تواند یک هش داشته باشد و این هش یکتا است.</li>
+          <li>تغییر حتی یک بایت در داده ورودی منجر به یک هش کاملاً متفاوت می‌شود.</li>
+        </ul>
+        <img src="https://jeiwan.net/images/hashing-example.png" alt="نمونه هش کردن: داده «I like donuts» و هش متفاوت آن با تغییر یک کاراکتر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          توابع هش به‌طور گسترده برای بررسی سازگاری داده استفاده می‌شوند. برخی از ارائه‌دهندگان نرم‌افزار علاوه بر بسته
+          نرم‌افزاری، چک‌سام (checksum) هم منتشر می‌کنند. پس از دانلود فایل می‌توانید آن را به یک تابع هش بدهید و هش
+          تولیدشده را با هش ارائه‌شده توسط توسعه‌دهنده نرم‌افزار مقایسه کنید.
+        </p>
+        <p>
+          در بلاک‌چین، هش کردن برای تضمین سازگاری یک بلاک استفاده می‌شود. داده ورودی برای الگوریتم هش شامل هش بلاک
+          قبلی است و در نتیجه تغییر یک بلاک در زنجیره غیرممکن (یا حداقل بسیار دشوار) می‌شود: باید هش آن و هش همه
+          بلاک‌های بعد از آن دوباره محاسبه شود.
+        </p>
+
+        <h3>هش‌کش (Hashcash)</h3>
+        <p>
+          بیت‌کوین از <a href="https://en.wikipedia.org/wiki/Hashcash" target="_blank" rel="noopener">هش‌کش</a>
+          استفاده می‌کند، الگوریتم اثبات کاری که در ابتدا برای جلوگیری از اسپم ایمیل توسعه داده شد. می‌توان آن را به
+          مراحل زیر تقسیم کرد:
+        </p>
+        <ol>
+          <li>برخی داده‌های شناخته‌شده عمومی را بگیرید (در مورد ایمیل، آدرس ایمیل گیرنده است؛ در مورد بیت‌کوین، هدرهای بلاک).</li>
+          <li>یک شمارنده به آن اضافه کنید. شمارنده از ۰ شروع می‌شود.</li>
+          <li>یک هش از ترکیب <code>داده + شمارنده</code> بگیرید.</li>
+          <li>بررسی کنید که هش الزامات خاصی را برآورده می‌کند.</li>
+          <li>اگر برآورده می‌کند، کار تمام است.</li>
+          <li>اگر برآورده نمی‌کند، شمارنده را افزایش دهید و مراحل ۳ و ۴ را تکرار کنید.</li>
+        </ol>
+        <p>
+          بنابراین این یک الگوریتم جست‌وجوی فراگیر (brute force) است: شمارنده را تغییر می‌دهید، هش جدید محاسبه
+          می‌کنید، بررسی می‌کنید، شمارنده را افزایش می‌دهید، هش محاسبه می‌کنید و همین‌طور ادامه می‌دهید. به همین دلیل
+          از نظر محاسباتی پرهزینه است.
+        </p>
+        <p>
+          حالا بیایید به الزاماتی که یک هش باید برآورده کند دقیق‌تر نگاه کنیم. در پیاده‌سازی اصلی هش‌کش، الزام این‌گونه
+          است: «۲۰ بیت اول هش باید صفر باشد». در بیت‌کوین، این الزام هر از گاهی تنظیم می‌شود، زیرا طبق طراحی، یک بلاک
+          باید هر ۱۰ دقیقه تولید شود، با وجودی که قدرت محاسباتی با زمان افزایش می‌یابد و ماینرهای بیشتری به شبکه
+          ملحق می‌شوند.
+        </p>
+        <p>
+          برای نشان دادن این الگوریتم، داده مثال قبلی («I like donuts») را برداشتم و هشی را پیدا کردم که با ۳ بایت صفر
+          شروع می‌شود:
+        </p>
+        <img src="https://jeiwan.net/images/hashcash-example.png" alt="نمونه هش‌کش: پیدا کردن هش با سه بایت صفر ابتدایی برای داده «I like donuts»" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          <code>ca07ca</code> مقدار هگزادسیمال شمارنده است که در سیستم ده‌دهی برابر ۱۳۲۴۰۲۶۶ است.
+        </p>
+
+        <h3>پیاده‌سازی</h3>
+        <p>خوب، کار تئوری تمام شد، بیایید کد بنویسیم! اول دشواری استخراج را تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>const targetBits = 24</code></pre>
+        <p>
+          در بیت‌کوین، «بیت‌های هدف» (target bits) هدر بلاکی است که دشواری استخراج بلاک را ذخیره می‌کند. فعلاً
+          الگوریتم تنظیم هدف را پیاده‌سازی نمی‌کنیم، پس می‌توانیم دشواری را به‌صورت یک ثابت سراسری تعریف کنیم.
+        </p>
+        <p>
+          ۲۴ یک عدد دلخواه است؛ هدف ما داشتن هدفی است که کمتر از ۲۵۶ بیت حافظه اشغال کند. و می‌خواهیم اختلاف به‌اندازه
+          کافی قابل توجه باشد، اما نه بیش از حد، چون هرچه اختلاف بزرگ‌تر باشد، یافتن هش مناسب دشوارتر است.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type ProofOfWork struct {
+	block  *Block
+	target *big.Int
+}
+
+func NewProofOfWork(b *Block) *ProofOfWork {
+	target := big.NewInt(1)
+	target.Lsh(target, uint(256-targetBits))
+
+	pow := &ProofOfWork{b, target}
+
+	return pow
+}</code></pre>
+        <p>
+          در اینجا ساختار <code>ProofOfWork</code> را می‌سازیم که یک اشاره‌گر به بلاک و یک اشاره‌گر به هدف (target)
+          نگه می‌دارد. «هدف» نام دیگری برای الزام توصیف‌شده در بخش قبل است. از یک <a href="https://golang.org/pkg/math/big/" target="_blank" rel="noopener">عدد بزرگ (big integer)</a> استفاده می‌کنیم به خاطر روشی که هش را با هدف مقایسه خواهیم کرد: هش را به یک عدد بزرگ تبدیل می‌کنیم و بررسی می‌کنیم که آیا از هدف کوچک‌تر است.
+        </p>
+        <p>
+          در تابع <code>NewProofOfWork</code>، یک <code>big.Int</code> را با مقدار ۱ مقداردهی می‌کنیم و آن را به
+          اندازه <code>256 - targetBits</code> بیت به چپ شیفت می‌دهیم. <code>256</code> طول یک هش SHA-256 بر حسب بیت
+          است و این الگوریتم هش SHA-256 است که قرار است استفاده کنیم. نمایش هگزادسیمال <code>target</code> این است:
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>0x10000000000000000000000000000000000000000000000000000000000</code></pre>
+        <p>و ۲۹ بایت از حافظه را اشغال می‌کند. و این هم مقایسه تصویری آن با هش‌های مثال‌های قبلی:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>0fac49161af82ed938add1d8725835cc123a1a87b1b196488360e58d4bfb51e3
+0000010000000000000000000000000000000000000000000000000000000000
+0000008b0f41ec78bab747864db66bcb9fb89920ee75f43fdaaeb5544f7f76ca</code></pre>
+        <p>
+          هش اول (محاسبه‌شده روی «I like donuts») از هدف بزرگ‌تر است، پس اثبات کار معتبری نیست. هش دوم (محاسبه‌شده روی
+          «I like donutsca07ca») از هدف کوچک‌تر است، پس اثبات معتبری است.
+        </p>
+        <p>
+          می‌توانید هدف را حد بالایی یک محدوده در نظر بگیرید: اگر یک عدد (هش) از این حد پایین‌تر باشد معتبر است و
+          بالعکس. پایین‌آوردن حد منجر به تعداد کمتر اعداد معتبر و در نتیجه کار دشوارتر برای یافتن عدد معتبر می‌شود.
+        </p>
+        <p>حالا به داده‌ای برای هش کردن نیاز داریم. بیایید آن را آماده کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (pow *ProofOfWork) prepareData(nonce int) []byte {
+	data := bytes.Join(
+		[][]byte{
+			pow.block.PrevBlockHash,
+			pow.block.Data,
+			IntToHex(pow.block.Timestamp),
+			IntToHex(int64(targetBits)),
+			IntToHex(int64(nonce)),
+		},
+		[]byte{},
+	)
+
+	return data
+}</code></pre>
+        <p>
+          این قطعه ساده است: فقط فیلدهای بلاک را با هدف و nonce ادغام می‌کنیم. <code>nonce</code> در اینجا همان شمارنده
+          از توصیف هش‌کش بالاست؛ این یک اصطلاح رمزنگاری است.
+        </p>
+        <p>خوب، همه آماده‌سازی‌ها انجام شد، بیایید هسته الگوریتم PoW را پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (pow *ProofOfWork) Run() (int, []byte) {
+	var hashInt big.Int
+	var hash [32]byte
+	nonce := 0
+
+	fmt.Printf("Mining the block containing \"%s\"\n", pow.block.Data)
+	for nonce &lt; maxNonce {
+		data := pow.prepareData(nonce)
+		hash = sha256.Sum256(data)
+		fmt.Printf("\r%x", hash)
+		hashInt.SetBytes(hash[:])
+
+		if hashInt.Cmp(pow.target) == -1 {
+			break
+		} else {
+			nonce++
+		}
+	}
+	fmt.Print("\n\n")
+
+	return nonce, hash[:]
+}</code></pre>
+        <p>
+          اول متغیرها را مقداردهی می‌کنیم: <code>hashInt</code> نمایش عددی <code>hash</code> است؛ <code>nonce</code>
+          شمارنده است. سپس یک حلقه «بی‌نهایت» اجرا می‌کنیم: این حلقه با <code>maxNonce</code> محدود می‌شود که برابر با
+          <code>math.MaxInt64</code> است؛ این کار برای جلوگیری از سرریز احتمالی <code>nonce</code> انجام می‌شود. هرچند
+          دشواری پیاده‌سازی PoW ما برای سرریز کردن شمارنده خیلی کم است، اما باز هم بهتر است این بررسی وجود داشته
+          باشد، برای احتیاط.
+        </p>
+        <p>در حلقه این کارها را انجام می‌دهیم:</p>
+        <ol>
+          <li>آماده‌سازی داده.</li>
+          <li>هش کردن آن با SHA-256.</li>
+          <li>تبدیل هش به یک عدد بزرگ.</li>
+          <li>مقایسه عدد با هدف.</li>
+        </ol>
+        <p>به همان آسانی که قبلاً توضیح داده شد. حالا می‌توانیم متد <code>SetHash</code> بلاک را حذف کنیم و تابع <code>NewBlock</code> را تغییر دهیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(data string, prevBlockHash []byte) *Block {
+	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
+}</code></pre>
+        <p>
+          اینجا می‌بینید که <code>nonce</code> به‌عنوان یک ویژگی <code>Block</code> ذخیره می‌شود. این لازم است چون
+          <code>nonce</code> برای راستی‌آزمایی یک اثبات مورد نیاز است. ساختار <code>Block</code> حالا این‌گونه است:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Block struct {
+	Timestamp     int64
+	Data          []byte
+	PrevBlockHash []byte
+	Hash          []byte
+	Nonce         int
+}</code></pre>
+        <p>عالی! بیایید برنامه را اجرا کنیم تا ببینیم همه‌چیز درست کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>Mining the block containing "Genesis Block"
+00000041662c5fc2883535dc19ba8a33ac993b535da9899e593ff98e1eda56a1
+
+Mining the block containing "Send 1 BTC to Ivan"
+00000077a856e697c69833d9effb6bdad54c730a98d674f73c0b30020cc82804
+
+Mining the block containing "Send 2 more BTC to Ivan"
+000000b33185e927c9a989cc7d5aaaed739c56dad9fd9361dea558b9bfaf5fbe
+
+Prev. hash:
+Data: Genesis Block
+Hash: 00000041662c5fc2883535dc19ba8a33ac993b535da9899e593ff98e1eda56a1
+
+Prev. hash: 00000041662c5fc2883535dc19ba8a33ac993b535da9899e593ff98e1eda56a1
+Data: Send 1 BTC to Ivan
+Hash: 00000077a856e697c69833d9effb6bdad54c730a98d674f73c0b30020cc82804
+
+Prev. hash: 00000077a856e697c69833d9effb6bdad54c730a98d674f73c0b30020cc82804
+Data: Send 2 more BTC to Ivan
+Hash: 000000b33185e927c9a989cc7d5aaaed739c56dad9fd9361dea558b9bfaf5fbe</code></pre>
+        <p>
+          آفرین! می‌بینید که هر هش حالا با سه بایت صفر شروع می‌شود و گرفتن این هش‌ها مدتی زمان می‌برد.
+        </p>
+        <p>یک کار دیگر هم باقی مانده: بیایید امکان راستی‌آزمایی اثبات‌های کار را فراهم کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (pow *ProofOfWork) Validate() bool {
+	var hashInt big.Int
+
+	data := pow.prepareData(pow.block.Nonce)
+	hash := sha256.Sum256(data)
+	hashInt.SetBytes(hash[:])
+
+	isValid := hashInt.Cmp(pow.target) == -1
+
+	return isValid
+}</code></pre>
+        <p>و اینجاست که به nonce ذخیره‌شده نیاز داریم.</p>
+        <p>بیایید یک بار دیگر بررسی کنیم که همه‌چیز درست است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func main() {
+	...
+
+	for _, block := range bc.blocks {
+		...
+		pow := NewProofOfWork(block)
+		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Println()
+	}
+}</code></pre>
+        <p>خروجی:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>...
+
+Prev. hash:
+Data: Genesis Block
+Hash: 00000093253acb814afb942e652a84a8f245069a67b5eaa709df8ac612075038
+PoW: true
+
+Prev. hash: 00000093253acb814afb942e652a84a8f245069a67b5eaa709df8ac612075038
+Data: Send 1 BTC to Ivan
+Hash: 0000003eeb3743ee42020e4a15262fd110a72823d804ce8e49643b5fd9d1062b
+PoW: true
+
+Prev. hash: 0000003eeb3743ee42020e4a15262fd110a72823d804ce8e49643b5fd9d1062b
+Data: Send 2 more BTC to Ivan
+Hash: 000000e42afddf57a3daa11b43b2e0923f23e894f96d1f24bfd9b8d2d494c57a
+PoW: true</code></pre>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          بلاک‌چین ما یک قدم به معماری واقعی خود نزدیک‌تر شد: افزودن بلاک‌ها حالا به کار سخت نیاز دارد، پس استخراج
+          ممکن است. اما هنوز برخی ویژگی‌های حیاتی را کم دارد: پایگاه‌داده بلاک‌چین پایدار (persistent) نیست، کیف پول،
+          آدرس و تراکنش وجود ندارد و مکانیسم اجماع هم وجود ندارد. همه این‌ها را در مقالات آینده پیاده‌سازی خواهیم کرد و
+          فعلاً استخراج مبارک!
+        </p>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_2" target="_blank" rel="noopener">کدهای کامل منبع</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Block_hashing_algorithm" target="_blank" rel="noopener">الگوریتم هش کردن بلاک‌چین</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Proof_of_work" target="_blank" rel="noopener">اثبات کار</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Hashcash" target="_blank" rel="noopener">هش‌کش</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="part3">قسمت ۳: ماندگاری (Persistence) و CLI</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          تا اینجا در <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">قسمت
+          ۱</a> و <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-2/" target="_blank" rel="noopener">قسمت
+          ۲</a> یک بلاک‌چین با سیستم اثبات کار ساخته‌ایم که استخراج را ممکن می‌کند. پیاده‌سازی ما روزبه‌روز به یک
+          بلاک‌چین کاملاً کاربردی نزدیک‌تر می‌شود، اما هنوز برخی ویژگی‌های مهم را کم دارد. امروز ذخیره‌سازی بلاک‌چین
+          در یک پایگاه‌داده را شروع می‌کنیم و بعد از آن یک رابط خط فرمان ساده برای انجام عملیات با بلاک‌چین می‌سازیم.
+          بلاک‌چین در ذات خود یک پایگاه‌داده توزیع‌شده است. فعلاً بخش «توزیع‌شده» را کنار می‌گذاریم و روی بخش
+          «پایگاه‌داده» تمرکز می‌کنیم.
+        </p>
+
+        <h3>انتخاب پایگاه‌داده</h3>
+        <p>
+          در حال حاضر در پیاده‌سازی ما هیچ پایگاه‌داده‌ای وجود ندارد؛ در عوض هر بار که برنامه را اجرا می‌کنیم بلاک‌ها را
+          می‌سازیم و در حافظه ذخیره می‌کنیم. ما نمی‌توانیم بلاک‌چین را دوباره استفاده کنیم، نمی‌توانیم آن را با دیگران
+          به اشتراک بگذاریم، پس باید آن را روی دیسک ذخیره کنیم.
+        </p>
+        <p>
+          به چه پایگاه‌داده‌ای نیاز داریم؟ در واقع به هر کدام از آن‌ها. در <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">مقاله اصلی بیت‌کوین</a> هیچ‌چیز درباره استفاده از یک پایگاه‌داده خاص گفته نشده است، پس انتخاب پایگاه‌داده با توسعه‌دهنده است. <a href="https://github.com/bitcoin/bitcoin" target="_blank" rel="noopener">بیت‌کوین کور (Bitcoin Core)</a> که در ابتدا توسط ساتوشی ناکاموتو منتشر شد و امروزه پیاده‌سازی مرجع بیت‌کوین است، از <a href="https://github.com/google/leveldb" target="_blank" rel="noopener">LevelDB</a> استفاده می‌کند (البته فقط از سال ۲۰۱۲ به این کلاینت اضافه شد). و ما از...
+        </p>
+
+        <h3>BoltDB</h3>
+        <p>چون:</p>
+        <ul>
+          <li>ساده و مینیمال است.</li>
+          <li>در زبان Go پیاده‌سازی شده است.</li>
+          <li>نیازی به اجرای سرور ندارد.</li>
+          <li>به ما اجازه می‌دهد ساختار داده‌ای که می‌خواهیم را بسازیم.</li>
+        </ul>
+        <p>از <a href="https://github.com/boltdb/bolt" target="_blank" rel="noopener">README بولت‌دی‌بی در گیت‌هاب</a>:</p>
+        <blockquote>
+          <p>
+            Bolt یک فروشگاه کلید/مقدار خالصِ Go است که از پروژه LMDB هاوارد چو الهام گرفته است. هدف این پروژه فراهم
+            کردن یک پایگاه‌داده ساده، سریع و قابل اعتماد برای پروژه‌هایی است که به یک سرور پایگاه‌داده کامل مثل
+            Postgres یا MySQL نیاز ندارند.
+          </p>
+          <p>
+            چون قرار است Bolt به‌عنوان چنین قطعه عملکردی سطح‌پایین استفاده شود، سادگی کلید است. API کوچک خواهد بود و
+            فقط روی گرفتن مقدارها و تنظیم مقدارها تمرکز می‌کند. تمام.
+          </p>
+        </blockquote>
+        <p>به نظر برای نیاز ما عالی است! بیایید یک دقیقه برای بررسی آن وقت بگذاریم.</p>
+        <p>
+          BoltDB یک فروشگاه کلید/مقدار است؛ یعنی مثل RDBMSهای SQL (MySQL، PostgreSQL و غیره) جدول، سطر و ستون ندارد.
+          در عوض، داده به‌صورت جفت‌های کلید-مقدار ذخیره می‌شود (مثل mapهای Go). جفت‌های کلید-مقدار در سطل‌ها
+          (buckets) ذخیره می‌شوند که برای گروه‌بندی جفت‌های مشابه در نظر گرفته شده‌اند (این شبیه جدول‌ها در RDBMS
+          است). بنابراین برای گرفتن یک مقدار باید سطل و کلید را بشناسید.
+        </p>
+        <p>
+          یک نکته مهم درباره BoltDB این است که هیچ نوع داده‌ای وجود ندارد: کلیدها و مقدارها آرایه‌های بایتی هستند. چون
+          می‌خواهیم ساختارهای Go (به‌طور خاص <code>Block</code>) را در آن ذخیره کنیم، باید آن‌ها را سریال‌سازی کنیم؛
+          یعنی مکانیسمی پیاده‌سازی کنیم که یک ساختار Go را به آرایه بایتی تبدیل می‌کند و آن را از آرایه بایتی
+          بازسازی می‌کند. برای این کار از <a href="https://golang.org/pkg/encoding/gob/" target="_blank" rel="noopener">encoding/gob</a> استفاده می‌کنیم، اما JSON، XML، Protocol Buffers و غیره هم قابل استفاده‌اند. از <code>encoding/gob</code> استفاده می‌کنیم چون ساده است و بخشی از کتابخانه استاندارد Go است.
+        </p>
+
+        <h3>ساختار پایگاه‌داده</h3>
+        <p>
+          قبل از شروع پیاده‌سازی منطق ماندگاری، اول باید تصمیم بگیریم داده‌ها را چگونه در پایگاه‌داده ذخیره کنیم. برای
+          این کار به روش بیت‌کوین کور مراجعه می‌کنیم.
+        </p>
+        <p>به زبان ساده، بیت‌کوین کور از دو «سطل» برای ذخیره داده استفاده می‌کند:</p>
+        <ul>
+          <li><code>blocks</code>: متادیتای تمام بلاک‌های یک زنجیره را ذخیره می‌کند.</li>
+          <li><code>chainstate</code>: وضعیت زنجیره را ذخیره می‌کند که همان همه خروجی‌های تراکنش خرج‌نشده فعلی و برخی متادیتاهاست.</li>
+        </ul>
+        <p>
+          همچنین، بلاک‌ها به‌صورت فایل‌های جداگانه روی دیسک ذخیره می‌شوند. این کار به دلیل عملکرد انجام می‌شود: خواندن
+          یک بلاک نیازی به بارگذاری همه (یا برخی) آن‌ها در حافظه ندارد. ما این را پیاده‌سازی نمی‌کنیم.
+        </p>
+        <p>در <code>blocks</code>، جفت‌های <code>key → value</code> این‌ها هستند:</p>
+        <ul>
+          <li><code>'b' + هش بلاک ۳۲-بایتی → رکورد ایندکس بلاک</code></li>
+          <li><code>'f' + شماره فایل ۴-بایتی → رکورد اطلاعات فایل</code></li>
+          <li><code>'l' → شماره فایل ۴-بایتی: آخرین شماره فایل بلاک استفاده‌شده</code></li>
+          <li><code>'R' → بولی ۱-بایتی: آیا در حال فرایند بازایندکس کردن هستیم</code></li>
+          <li><code>'F' + طول نام پرچم + نام پرچم → بولی ۱-بایتی: پرچم‌های مختلفی که می‌توانند روشن یا خاموش باشند</code></li>
+          <li><code>'t' + هش تراکنش ۳۲-بایتی → رکورد ایندکس تراکنش</code></li>
+        </ul>
+        <p>در <code>chainstate</code>، جفت‌های <code>key → value</code> این‌ها هستند:</p>
+        <ul>
+          <li><code>'c' + هش تراکنش ۳۲-بایتی → رکورد خروجی تراکنش خرج‌نشده برای آن تراکنش</code></li>
+          <li><code>'B' → هش بلاک ۳۲-بایتی: هش بلکی که پایگاه‌داده تا آن، خروجی‌های تراکنش خرج‌نشده را نشان می‌دهد</code></li>
+        </ul>
+        <p>(توضیح دقیق را می‌توانید <a href="https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage" target="_blank" rel="noopener">اینجا</a> پیدا کنید)</p>
+        <p>
+          چون هنوز تراکنش نداریم، فقط سطل <code>blocks</code> را خواهیم داشت. همچنین همان‌طور که در بالا گفته شد، کل
+          پایگاه‌داده را به‌صورت یک فایل واحد ذخیره می‌کنیم، بدون ذخیره بلاک‌ها در فایل‌های جداگانه. پس به چیزی مرتبط
+          با شماره فایل نیاز نخواهیم داشت. این‌ها جفت‌های <code>key → value</code>ای هستند که استفاده خواهیم کرد:
+        </p>
+        <ul>
+          <li><code>هش بلاک ۳۲-بایتی → ساختار Block (سریال‌شده)</code></li>
+          <li><code>'l' → هش آخرین بلاک زنجیره</code></li>
+        </ul>
+        <p>این تمام چیزی است که برای شروع پیاده‌سازی مکانیسم ماندگاری باید بدانیم.</p>
+
+        <h3>سریال‌سازی</h3>
+        <p>
+          همان‌طور که قبلاً گفته شد، در BoltDB مقدارها فقط می‌توانند از نوع <code>[]byte</code> باشند و ما می‌خواهیم
+          ساختارهای <code>Block</code> را در پایگاه‌داده ذخیره کنیم. برای سریال‌سازی ساختارها از <a href="https://golang.org/pkg/encoding/gob/" target="_blank" rel="noopener">encoding/gob</a> استفاده می‌کنیم.
+        </p>
+        <p>بیایید متد <code>Serialize</code> بلاک را پیاده‌سازی کنیم (پردازش خطاها برای اختصار حذف شده است):</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
+
+	return result.Bytes()
+}</code></pre>
+        <p>
+          این قطعه ساده است: اول یک بافر اعلام می‌کنیم که داده سریال‌شده را ذخیره می‌کند؛ سپس یک انکودر <code>gob</code>
+          را مقداردهی می‌کنیم و بلاک را انکود می‌کنیم؛ نتیجه به‌صورت یک آرایه بایتی برگردانده می‌شود.
+        </p>
+        <p>
+          در ادامه به یک تابع دی‌سریال‌سازی نیاز داریم که یک آرایه بایتی را به‌عنوان ورودی بگیرد و یک <code>Block</code>
+          برگرداند. این یک متد نیست بلکه یک تابع مستقل است:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func DeserializeBlock(d []byte) *Block {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&block)
+
+	return &block
+}</code></pre>
+        <p>و این هم تمام کار سریال‌سازی!</p>
+
+        <h3>ماندگاری</h3>
+        <p>
+          بیایید با تابع <code>NewBlockchain</code> شروع کنیم. در حال حاضر، آن یک نمونه جدید از <code>Blockchain</code>
+          می‌سازد و بلاک پیدایش را به آن اضافه می‌کند. کاری که می‌خواهیم انجام دهد این است که:
+        </p>
+        <ol>
+          <li>فایل پایگاه‌داده را باز کند.</li>
+          <li>بررسی کند که آیا بلاک‌چینی در آن ذخیره شده است.</li>
+          <li>اگر بلاک‌چین وجود دارد:
+            <ul>
+              <li>یک نمونه جدید <code>Blockchain</code> بسازد.</li>
+              <li>نوک (tip) نمونه <code>Blockchain</code> را روی هش آخرین بلاک ذخیره‌شده در پایگاه‌داده تنظیم کند.</li>
+            </ul>
+          </li>
+          <li>اگر بلاک‌چین موجودی وجود ندارد:
+            <ul>
+              <li>بلاک پیدایش را بسازد.</li>
+              <li>آن را در پایگاه‌داده ذخیره کند.</li>
+              <li>هش بلاک پیدایش را به‌عنوان هش آخرین بلاک ذخیره کند.</li>
+              <li>یک نمونه جدید <code>Blockchain</code> بسازد که نوک آن به بلاک پیدایش اشاره کند.</li>
+            </ul>
+          </li>
+        </ol>
+        <p>در کد، این‌گونه به نظر می‌رسد:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewBlockchain() *Blockchain {
+	var tip []byte
+	db, err := bolt.Open(dbFile, 0600, nil)
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+
+		if b == nil {
+			genesis := NewGenesisBlock()
+			b, err := tx.CreateBucket([]byte(blocksBucket))
+			err = b.Put(genesis.Hash, genesis.Serialize())
+			err = b.Put([]byte("l"), genesis.Hash)
+			tip = genesis.Hash
+		} else {
+			tip = b.Get([]byte("l"))
+		}
+
+		return nil
+	})
+
+	bc := Blockchain{tip, db}
+
+	return &bc
+}</code></pre>
+        <p>بیایید این را قطعه‌به‌قطعه بررسی کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>db, err := bolt.Open(dbFile, 0600, nil)</code></pre>
+        <p>این روش استاندارد باز کردن یک فایل BoltDB است. توجه کنید که اگر چنین فایلی وجود نداشته باشد خطا برنمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>err = db.Update(func(tx *bolt.Tx) error {
+...
+})</code></pre>
+        <p>
+          در BoltDB، عملیات با پایگاه‌داده داخل یک تراکنش اجرا می‌شوند. و دو نوع تراکنش وجود دارد: فقط‌خواندنی و
+          خواندن-نوشتن. در اینجا یک تراکنش خواندن-نوشتن باز می‌کنیم (<code>db.Update(...)</code>)، چون انتظار داریم بلاک
+          پیدایش را در پایگاه‌داده قرار دهیم.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>b := tx.Bucket([]byte(blocksBucket))
+
+if b == nil {
+	genesis := NewGenesisBlock()
+	b, err := tx.CreateBucket([]byte(blocksBucket))
+	err = b.Put(genesis.Hash, genesis.Serialize())
+	err = b.Put([]byte("l"), genesis.Hash)
+	tip = genesis.Hash
+} else {
+	tip = b.Get([]byte("l"))
+}</code></pre>
+        <p>
+          این هسته تابع است. در اینجا سطل ذخیره‌کننده بلاک‌ها را به دست می‌آوریم: اگر وجود داشته باشد، کلید <code>l</code>
+          را از آن می‌خوانیم؛ اگر وجود نداشته باشد، بلاک پیدایش را تولید می‌کنیم، سطل را می‌سازیم، بلاک را در آن ذخیره
+          می‌کنیم و کلید <code>l</code> را که هش آخرین بلاک زنجیره را ذخیره می‌کند به‌روزرسانی می‌کنیم.
+        </p>
+        <p>همچنین، به روش جدید ساخت <code>Blockchain</code> توجه کنید:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>bc := Blockchain{tip, db}</code></pre>
+        <p>
+          دیگر همه بلاک‌ها را در آن ذخیره نمی‌کنیم، فقط نوک زنجیره ذخیره می‌شود. همچنین یک اتصال پایگاه‌داده ذخیره
+          می‌کنیم، چون می‌خواهیم آن را یک بار باز کنیم و در طول اجرای برنامه باز نگه داریم. بنابراین، ساختار
+          <code>Blockchain</code> حالا این‌گونه است:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Blockchain struct {
+	tip []byte
+	db  *bolt.DB
+}</code></pre>
+        <p>
+          چیز بعدی که می‌خواهیم به‌روزرسانی کنیم متد <code>AddBlock</code> است: افزودن بلاک‌ها به زنجیره حالا به سادگی
+          افزودن یک عنصر به آرایه نیست. از این پس بلاک‌ها را در پایگاه‌داده ذخیره می‌کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) AddBlock(data string) {
+	var lastHash []byte
+
+	err := bc.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		lastHash = b.Get([]byte("l"))
+
+		return nil
+	})
+
+	newBlock := NewBlock(data, lastHash)
+
+	err = bc.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		err := b.Put(newBlock.Hash, newBlock.Serialize())
+		err = b.Put([]byte("l"), newBlock.Hash)
+		bc.tip = newBlock.Hash
+
+		return nil
+	})
+}</code></pre>
+        <p>بیایید این را قطعه‌به‌قطعه بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>err := bc.db.View(func(tx *bolt.Tx) error {
+	b := tx.Bucket([]byte(blocksBucket))
+	lastHash = b.Get([]byte("l"))
+
+	return nil
+})</code></pre>
+        <p>
+          این نوع دیگر (فقط‌خواندنی) تراکنش‌های BoltDB است. در اینجا هش آخرین بلاک را از پایگاه‌داده می‌گیریم تا برای
+          استخراج هش یک بلاک جدید استفاده شود.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>newBlock := NewBlock(data, lastHash)
+b := tx.Bucket([]byte(blocksBucket))
+err := b.Put(newBlock.Hash, newBlock.Serialize())
+err = b.Put([]byte("l"), newBlock.Hash)
+bc.tip = newBlock.Hash</code></pre>
+        <p>
+          پس از استخراج یک بلاک جدید، نمایش سریال‌شده آن را در پایگاه‌داده ذخیره می‌کنیم و کلید <code>l</code> را
+          به‌روزرسانی می‌کنیم که حالا هش بلاک جدید را ذخیره می‌کند.
+        </p>
+        <p>تمام شد! سخت نبود، نه؟</p>
+
+        <h3>بازرسی بلاک‌چین</h3>
+        <p>
+          همه بلاک‌های جدید حالا در یک پایگاه‌داده ذخیره می‌شوند، پس می‌توانیم یک بلاک‌چین را دوباره باز کنیم و بلاک
+          جدیدی به آن اضافه کنیم. اما بعد از پیاده‌سازی این، یک ویژگی خوب را از دست دادیم: دیگر نمی‌توانیم بلاک‌های
+          بلاک‌چین را چاپ کنیم چون دیگر بلاک‌ها را در آرایه ذخیره نمی‌کنیم. بیایید این نقص را برطرف کنیم!
+        </p>
+        <p>
+          BoltDB اجازه می‌دهد روی همه کلیدهای یک سطل پیمایش (iterate) کنیم، اما کلیدها به ترتیب مرتب‌سازی بایتی ذخیره
+          می‌شوند و ما می‌خواهیم بلاک‌ها به ترتیبی که در بلاک‌چین دارند چاپ شوند. همچنین، چون نمی‌خواهیم همه بلاک‌ها را
+          در حافظه بارگذاری کنیم (پایگاه‌داده بلاک‌چین ما می‌تواند عظیم باشد!.. یا بیایید فقط فرض کنیم می‌تواند)،
+          آن‌ها را یکی‌یکی می‌خوانیم. برای این منظور به یک پیمایش‌گر (iterator) بلاک‌چین نیاز داریم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type BlockchainIterator struct {
+	currentHash []byte
+	db          *bolt.DB
+}</code></pre>
+        <p>
+          هر بار که بخواهیم روی بلاک‌های یک بلاک‌چین پیمایش کنیم یک پیمایش‌گر ساخته می‌شود و هش بلاک پیمایش فعلی و یک
+          اتصال به پایگاه‌داده را ذخیره می‌کند. به دلیل مورد دوم، پیمایش‌گر به‌صورت منطقی به یک بلاک‌چین متصل است
+          (نمونه <code>Blockchain</code> است که اتصال پایگاه‌داده را ذخیره می‌کند) و بنابراین در یک متد
+          <code>Blockchain</code> ساخته می‌شود:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) Iterator() *BlockchainIterator {
+	bci := &BlockchainIterator{bc.tip, bc.db}
+
+	return bci
+}</code></pre>
+        <p>
+          توجه کنید که پیمایش‌گر در ابتدا به نوک بلاک‌چین اشاره می‌کند، بنابراین بلاک‌ها از بالا به پایین، از جدیدترین
+          به قدیمی‌ترین به دست می‌آیند. در واقع، انتخاب نوک به معنای «رأی دادن» به یک بلاک‌چین است. یک بلاک‌چین
+          می‌تواند شاخه‌های متعددی داشته باشد و بلندترین آن‌هاست که اصلی در نظر گرفته می‌شود. پس از به دست آوردن نوک
+          (که می‌تواند هر بلاکی در بلاک‌چین باشد) می‌توانیم کل بلاک‌چین را بازسازی کنیم و طول آن و کار لازم برای ساختش
+          را پیدا کنیم. این واقعیت همچنین به این معناست که نوک نوعی شناسه بلاک‌چین است.
+        </p>
+        <p><code>BlockchainIterator</code> فقط یک کار انجام می‌دهد: بلاک بعدی را از بلاک‌چین برمی‌گرداند.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (i *BlockchainIterator) Next() *Block {
+	var block *Block
+
+	err := i.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		encodedBlock := b.Get(i.currentHash)
+		block = DeserializeBlock(encodedBlock)
+
+		return nil
+	})
+
+	i.currentHash = block.PrevBlockHash
+
+	return block
+}</code></pre>
+        <p>و این هم تمام کار بخش پایگاه‌داده!</p>
+
+        <h3>CLI</h3>
+        <p>
+          تا به حال پیاده‌سازی ما هیچ رابطی برای تعامل با برنامه فراهم نکرده بود: ما به‌سادگی <code>NewBlockchain</code>
+          و <code>bc.AddBlock</code> را در تابع <code>main</code> اجرا می‌کردیم. وقت آن رسیده که این را بهبود ببخشیم! ما
+          این دستورها را می‌خواهیم:
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>blockchain_go addblock "Pay 0.031337 for a coffee"
+blockchain_go printchain</code></pre>
+        <p>همه عملیات مرتبط با خط فرمان توسط ساختار <code>CLI</code> پردازش می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type CLI struct {
+	bc *Blockchain
+}</code></pre>
+        <p>«نقطه ورود» آن تابع <code>Run</code> است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) Run() {
+	cli.validateArgs()
+
+	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
+	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+
+	addBlockData := addBlockCmd.String("data", "", "Block data")
+
+	switch os.Args[1] {
+	case "addblock":
+		err := addBlockCmd.Parse(os.Args[2:])
+	case "printchain":
+		err := printChainCmd.Parse(os.Args[2:])
+	default:
+		cli.printUsage()
+		os.Exit(1)
+	}
+
+	if addBlockCmd.Parsed() {
+		if *addBlockData == "" {
+			addBlockCmd.Usage()
+			os.Exit(1)
+		}
+		cli.addBlock(*addBlockData)
+	}
+
+	if printChainCmd.Parsed() {
+		cli.printChain()
+	}
+}</code></pre>
+        <p>ما از بسته استاندارد <a href="https://golang.org/pkg/flag/" target="_blank" rel="noopener">flag</a> برای تجزیه آرگومان‌های خط فرمان استفاده می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
+printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+addBlockData := addBlockCmd.String("data", "", "Block data")</code></pre>
+        <p>
+          اول دو زیردستور <code>addblock</code> و <code>printchain</code> می‌سازیم، سپس پرچم <code>-data</code> را به
+          اولی اضافه می‌کنیم. <code>printchain</code> هیچ پرچمی نخواهد داشت.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>switch os.Args[1] {
+case "addblock":
+	err := addBlockCmd.Parse(os.Args[2:])
+case "printchain":
+	err := printChainCmd.Parse(os.Args[2:])
+default:
+	cli.printUsage()
+	os.Exit(1)
+}</code></pre>
+        <p>در ادامه دستوری را که کاربر ارائه کرده بررسی می‌کنیم و زیردستور <code>flag</code> مرتبط را تجزیه می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if addBlockCmd.Parsed() {
+	if *addBlockData == "" {
+		addBlockCmd.Usage()
+		os.Exit(1)
+	}
+	cli.addBlock(*addBlockData)
+}
+
+if printChainCmd.Parsed() {
+	cli.printChain()
+}</code></pre>
+        <p>در ادامه بررسی می‌کنیم کدام یک از زیردستورها تجزیه شده‌اند و توابع مرتبط را اجرا می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) addBlock(data string) {
+	cli.bc.AddBlock(data)
+	fmt.Println("Success!")
+}
+
+func (cli *CLI) printChain() {
+	bci := cli.bc.Iterator()
+
+	for {
+		block := bci.Next()
+
+		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
+		fmt.Printf("Data: %s\n", block.Data)
+		fmt.Printf("Hash: %x\n", block.Hash)
+		pow := NewProofOfWork(block)
+		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Println()
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+}</code></pre>
+        <p>
+          این قطعه بسیار شبیه به قطعه‌ای است که قبلاً داشتیم. تنها تفاوت این است که حالا از یک <code>BlockchainIterator</code>
+          برای پیمایش روی بلاک‌های بلاک‌چین استفاده می‌کنیم.
+        </p>
+        <p>همچنین فراموش نکنیم تابع <code>main</code> را بر این اساس تغییر دهیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func main() {
+	bc := NewBlockchain()
+	defer bc.db.Close()
+
+	cli := CLI{bc}
+	cli.Run()
+}</code></pre>
+        <p>توجه کنید که بدون توجه به آرگومان‌های خط فرمان ارائه‌شده، یک <code>Blockchain</code> جدید ساخته می‌شود.</p>
+        <p>و تمام شد! بیایید بررسی کنیم که همه‌چیز مطابق انتظار کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go printchain
+No existing blockchain found. Creating a new one...
+Mining the block containing "Genesis Block"
+000000edc4a82659cebf087adee1ea353bd57fcd59927662cd5ff1c4f618109b
+
+Prev. hash:
+Data: Genesis Block
+Hash: 000000edc4a82659cebf087adee1ea353bd57fcd59927662cd5ff1c4f618109b
+PoW: true
+
+$ blockchain_go addblock -data "Send 1 BTC to Ivan"
+Mining the block containing "Send 1 BTC to Ivan"
+000000d7b0c76e1001cdc1fc866b95a481d23f3027d86901eaeb77ae6d002b13
+
+Success!
+
+$ blockchain_go addblock -data "Pay 0.31337 BTC for a coffee"
+Mining the block containing "Pay 0.31337 BTC for a coffee"
+000000aa0748da7367dec6b9de5027f4fae0963df89ff39d8f20fd7299307148
+
+Success!
+
+$ blockchain_go printchain
+Prev. hash: 000000d7b0c76e1001cdc1fc866b95a481d23f3027d86901eaeb77ae6d002b13
+Data: Pay 0.31337 BTC for a coffee
+Hash: 000000aa0748da7367dec6b9de5027f4fae0963df89ff39d8f20fd7299307148
+PoW: true
+
+Prev. hash: 000000edc4a82659cebf087adee1ea353bd57fcd59927662cd5ff1c4f618109b
+Data: Send 1 BTC to Ivan
+Hash: 000000d7b0c76e1001cdc1fc866b95a481d23f3027d86901eaeb77ae6d002b13
+PoW: true
+
+Prev. hash:
+Data: Genesis Block
+Hash: 000000edc4a82659cebf087adee1ea353bd57fcd59927662cd5ff1c4f618109b
+PoW: true</code></pre>
+        <p>(صدای باز شدن قوطی آبجو)</p>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>دفعه بعد آدرس‌ها، کیف پول‌ها و (احتمالاً) تراکنش‌ها را پیاده‌سازی می‌کنیم. پس منتظر باشید!</p>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_3" target="_blank" rel="noopener">کدهای کامل منبع</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage" target="_blank" rel="noopener">ذخیره‌سازی داده در بیت‌کوین کور</a></li>
+          <li><a href="https://github.com/boltdb/bolt" target="_blank" rel="noopener">boltdb</a></li>
+          <li><a href="https://golang.org/pkg/encoding/gob/" target="_blank" rel="noopener">encoding/gob</a></li>
+          <li><a href="https://golang.org/pkg/flag/" target="_blank" rel="noopener">flag</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="part4">قسمت ۴: تراکنش‌ها ۱ (Transactions 1)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          تراکنش‌ها قلب بیت‌کوین هستند و تنها هدف بلاک‌چین، ذخیره امن و قابل اعتماد تراکنش‌هاست تا هیچ‌کس نتواند آن‌ها
+          را پس از ایجاد تغییر دهد. امروز پیاده‌سازی تراکنش‌ها را شروع می‌کنیم. اما چون این موضوع نسبتاً بزرگی است، آن
+          را به دو بخش تقسیم می‌کنم: در این بخش، مکانیسم کلی تراکنش‌ها را پیاده‌سازی می‌کنیم و در بخش دوم جزئیات را
+          کار می‌کنیم.
+        </p>
+        <p>
+          همچنین، چون تغییرات کد عظیم هستند، توصیف همه آن‌ها در اینجا بی‌معنی است. می‌توانید همه تغییرات را
+          <a href="https://github.com/Jeiwan/blockchain_go/compare/part_3...part_4#files_bucket" target="_blank" rel="noopener">اینجا</a> ببینید.
+        </p>
+
+        <h3>قاشقی وجود ندارد</h3>
+        <p>
+          اگر تا به حال یک برنامه وب توسعه داده باشید، برای پیاده‌سازی پرداخت‌ها احتمالاً این جدول‌ها را در پایگاه‌داده
+          می‌ساختید: <code>accounts</code> و <code>transactions</code>. یک حساب اطلاعات کاربر را ذخیره می‌کرد، از جمله
+          اطلاعات شخصی و موجودی او را، و یک تراکنش اطلاعات انتقال پول از یک حساب به حساب دیگر را. در بیت‌کوین،
+          پرداخت‌ها به روشی کاملاً متفاوت انجام می‌شوند. در آنجا:
+        </p>
+        <ul>
+          <li>حسابی وجود ندارد.</li>
+          <li>موجودی وجود ندارد.</li>
+          <li>آدرسی وجود ندارد.</li>
+          <li>سکه‌ای وجود ندارد.</li>
+          <li>فرستنده و گیرنده‌ای وجود ندارد.</li>
+        </ul>
+        <p>
+          چون بلاک‌چین یک پایگاه‌داده عمومی و باز است، نمی‌خواهیم اطلاعات حساس درباره صاحبان کیف پول را ذخیره کنیم.
+          سکه‌ها در حساب‌ها جمع نمی‌شوند. تراکنش‌ها پول را از یک آدرس به آدرس دیگر منتقل نمی‌کنند. هیچ فیلد یا
+          ویژگی‌ای وجود ندارد که موجودی حساب را نگه دارد. فقط تراکنش‌ها وجود دارند. اما داخل یک تراکنش چیست؟
+        </p>
+
+        <h3>تراکنش بیت‌کوین</h3>
+        <p>یک تراکنش ترکیبی از ورودی‌ها و خروجی‌هاست:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Transaction struct {
+	ID   []byte
+	Vin  []TXInput
+	Vout []TXOutput
+}</code></pre>
+        <p>
+          ورودی‌های یک تراکنش جدید به خروجی‌های یک تراکنش قبلی ارجاع می‌دهند (البته یک استثنا وجود دارد که بعداً در
+          مورد آن بحث می‌کنیم). خروجی‌ها همان جایی هستند که سکه‌ها واقعاً ذخیره می‌شوند. نمودار زیر ارتباط متقابل
+          تراکنش‌ها را نشان می‌دهد:
+        </p>
+        <img src="https://jeiwan.net/images/transactions-diagram.png" alt="نمودار تراکنش‌ها: ورودی‌های هر تراکنش به خروجی‌های تراکنش‌های قبلی ارجاع می‌دهند و برخی خروجی‌ها به هیچ ورودی متصل نیستند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>توجه کنید که:</p>
+        <ul>
+          <li>خروجی‌هایی وجود دارند که به هیچ ورودی متصل نیستند.</li>
+          <li>در یک تراکنش، ورودی‌ها می‌توانند به خروجی‌های چند تراکنش مختلف ارجاع دهند.</li>
+          <li>یک ورودی باید به یک خروجی ارجاع دهد.</li>
+        </ul>
+        <p>
+          در سراسر این مقاله از کلماتی مثل «پول»، «سکه»، «خرج کردن»، «ارسال»، «حساب» و غیره استفاده می‌کنیم. اما چنین
+          مفاهیمی در بیت‌کوین وجود ندارند. تراکنش‌ها فقط مقدارها را با یک اسکریپت قفل می‌کنند که فقط کسی که آن‌ها را
+          قفل کرده می‌تواند باز کند.
+        </p>
+
+        <h3>خروجی‌های تراکنش</h3>
+        <p>بیایید اول با خروجی‌ها شروع کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type TXOutput struct {
+	Value        int
+	ScriptPubKey string
+}</code></pre>
+        <p>
+          در واقع این خروجی‌ها هستند که «سکه‌ها» را ذخیره می‌کنند (به فیلد <code>Value</code> در بالا توجه کنید). و
+          ذخیره کردن یعنی قفل کردن آن‌ها با یک معما که در <code>ScriptPubKey</code> ذخیره می‌شود. بیت‌کوین در داخل خود
+          از یک زبان اسکریپت‌نویسی به نام اسکریپت (Script) استفاده می‌کند که برای تعریف منطق قفل و بازکردن خروجی‌ها
+          استفاده می‌شود. این زبان نسبتاً ابتدایی است (این کار عمدی انجام شده تا از هک‌ها و سوءاستفاده‌های احتمالی
+          جلوگیری شود)، اما ما با جزئیات درباره آن بحث نمی‌کنیم. توضیح دقیق آن را می‌توانید <a href="https://en.bitcoin.it/wiki/Script" target="_blank" rel="noopener">اینجا</a> پیدا کنید.
+        </p>
+        <p>
+          در بیت‌کوین، فیلد مقدار تعداد ساتوشی‌ها را ذخیره می‌کند، نه تعداد بیت‌کوین‌ها. یک ساتوشی صد‌میلیونیوم یک
+          بیت‌کوین است (۰.۰۰۰۰۰۰۰۱ BTC) و بنابراین کوچک‌ترین واحد ارز در بیت‌کوین است (مثل یک سنت).
+        </p>
+        <p>
+          چون آدرس‌ها را پیاده‌سازی نکرده‌ایم، فعلاً از کل منطق مرتبط با اسکریپت‌نویسی اجتناب می‌کنیم.
+          <code>ScriptPubKey</code> یک رشته دلخواه (آدرس کیف پول تعریف‌شده توسط کاربر) را ذخیره می‌کند.
+        </p>
+        <p>به هر حال، داشتن چنین زبان اسکریپت‌نویسی به این معناست که بیت‌کوین می‌تواند به‌عنوان پلتفرم قرارداد هوشمند هم استفاده شود.</p>
+        <p>
+          یک نکته مهم درباره خروجی‌ها این است که آن‌ها تقسیم‌ناپذیرند؛ یعنی نمی‌توانید به بخشی از مقدار آن ارجاع دهید.
+          وقتی یک خروجی در یک تراکنش جدید ارجاع داده می‌شود، به‌صورت کامل خرج می‌شود. و اگر مقدارش بیشتر از نیاز
+          باشد، یک باقی‌مانده (change) تولید و به فرستنده برگردانده می‌شود. این شبیه وضعیت دنیای واقعی است که مثلاً با
+          یک اسکناس ۵ دلاری چیزی را که ۱ دلار قیمت دارد می‌پردازید و ۴ دلار باقی‌مانده می‌گیرید.
+        </p>
+
+        <h3>ورودی‌های تراکنش</h3>
+        <p>و این هم ورودی:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type TXInput struct {
+	Txid      []byte
+	Vout      int
+	ScriptSig string
+}</code></pre>
+        <p>
+          همان‌طور که قبلاً اشاره شد، یک ورودی به یک خروجی قبلی ارجاع می‌دهد: <code>Txid</code> شناسه چنین تراکنشی را
+          ذخیره می‌کند و <code>Vout</code> ایندکس یک خروجی در تراکنش را. <code>ScriptSig</code> اسکریپتی است که داده‌ای
+          برای استفاده در <code>ScriptPubKey</code> خروجی فراهم می‌کند. اگر داده درست باشد، خروجی قابل باز کردن است و
+          مقدار آن می‌تواند برای تولید خروجی‌های جدید استفاده شود؛ اگر درست نباشد، نمی‌توان به خروجی در ورودی ارجاع
+          داد. این مکانیسم تضمین می‌کند که کاربران نمی‌توانند سکه‌های متعلق به افراد دیگر را خرج کنند.
+        </p>
+        <p>
+          باز هم، چون هنوز آدرس‌ها را پیاده‌سازی نکرده‌ایم، <code>ScriptSig</code> فقط یک آدرس کیف پول دلخواه
+          تعریف‌شده توسط کاربر را ذخیره می‌کند. کلیدهای عمومی و بررسی امضا را در مقاله بعدی پیاده‌سازی می‌کنیم.
+        </p>
+        <p>
+          بیایید جمع‌بندی کنیم. خروجی‌ها جایی هستند که «سکه‌ها» ذخیره می‌شوند. هر خروجی با یک اسکریپت بازکردن همراه
+          است که منطق باز کردن خروجی را تعیین می‌کند. هر تراکنش جدید باید حداقل یک ورودی و یک خروجی داشته باشد. یک
+          ورودی به یک خروجی از یک تراکنش قبلی ارجاع می‌دهد و داده‌ای (فیلد <code>ScriptSig</code>) فراهم می‌کند که در
+          اسکریپت بازکردن خروجی برای باز کردن آن و استفاده از مقدارش برای ساخت خروجی‌های جدید به کار می‌رود.
+        </p>
+        <p>اما کدام اول آمد: ورودی‌ها یا خروجی‌ها؟</p>
+
+        <h3>تخم‌مرغ</h3>
+        <p>
+          در بیت‌کوین، این تخم‌مرغ بود که قبل از مرغ آمد. منطقِ «ورودی‌ها به خروجی‌ها ارجاع می‌دهند» همان وضعیت
+          کلاسیک «مرغ یا تخم‌مرغ» است: ورودی‌ها خروجی‌ها را تولید می‌کنند و خروجی‌ها ورودی‌ها را ممکن می‌سازند. و در
+          بیت‌کوین، خروجی‌ها قبل از ورودی‌ها می‌آیند.
+        </p>
+        <p>
+          وقتی یک ماینر استخراج یک بلاک را شروع می‌کند، یک تراکنش کوین‌بیس (coinbase) به آن اضافه می‌کند. تراکنش
+          کوین‌بیس نوع خاصی از تراکنش‌هاست که به خروجی‌های موجود قبلی نیاز ندارد. این تراکنش خروجی‌ها (یعنی «سکه‌ها»)
+          را از هیچ می‌سازد. تخم‌مرغ بدون مرغ. این پاداشی است که ماینرها برای استخراج بلاک‌های جدید می‌گیرند.
+        </p>
+        <p>
+          همان‌طور که می‌دانید، در ابتدای هر بلاک‌چینی بلاک پیدایش وجود دارد. همین بلاک است که اولین خروجی را در
+          بلاک‌چین تولید می‌کند. و هیچ خروجی قبلی لازم نیست چون هیچ تراکنش قبلی و چنین خروجی‌هایی وجود ندارد.
+        </p>
+        <p>بیایید یک تراکنش کوین‌بیس بسازیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewCoinbaseTX(to, data string) *Transaction {
+	if data == "" {
+		data = fmt.Sprintf("Reward to '%s'", to)
+	}
+
+	txin := TXInput{[]byte{}, -1, data}
+	txout := TXOutput{subsidy, to}
+	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
+	tx.SetID()
+
+	return &tx
+}</code></pre>
+        <p>
+          یک تراکنش کوین‌بیس فقط یک ورودی دارد. در پیاده‌سازی ما <code>Txid</code> آن خالی است و <code>Vout</code>
+          برابر -۱ است. همچنین، تراکنش کوین‌بیس اسکریپتی در <code>ScriptSig</code> ذخیره نمی‌کند. در عوض، داده دلخواه
+          در آنجا ذخیره می‌شود.
+        </p>
+        <p>
+          در بیت‌کوین، اولین تراکنش کوین‌بیس حاوی این پیام است: «The Times 03/Jan/2009 Chancellor on brink of second
+          bailout for banks». <a href="https://blockchain.info/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b?show_adv=true" target="_blank" rel="noopener">می‌توانید خودتان آن را ببینید</a>.
+        </p>
+        <p>
+          <code>subsidy</code> میزان پاداش است. در بیت‌کوین، این عدد هیچ‌جا ذخیره نمی‌شود و فقط بر اساس تعداد کل بلاک‌ها
+          محاسبه می‌شود: تعداد بلاک‌ها بر <code>210000</code> تقسیم می‌شود. استخراج بلاک پیدایش ۵۰ بیت‌کوین تولید کرد و
+          هر <code>210000</code> بلاک پاداش نصف می‌شود. در پیاده‌سازی ما، پاداش را به‌صورت یک ثابت ذخیره می‌کنیم (حداقل
+          فعلاً 😉).
+        </p>
+
+        <h3>ذخیره تراکنش‌ها در بلاک‌چین</h3>
+        <p>
+          از این پس هر بلاک باید حداقل یک تراکنش ذخیره کند و دیگر استخراج بلاک‌ها بدون تراکنش ممکن نیست. این یعنی باید
+          فیلد <code>Data</code> بلاک را حذف کنیم و به جای آن تراکنش‌ها را ذخیره کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Block struct {
+	Timestamp     int64
+	Transactions  []*Transaction
+	PrevBlockHash []byte
+	Hash          []byte
+	Nonce         int
+}</code></pre>
+        <p><code>NewBlock</code> و <code>NewGenesisBlock</code> نیز باید بر این اساس تغییر کنند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+	...
+}
+
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
+}</code></pre>
+        <p>چیز بعدی برای تغییر، ساخت یک بلاک‌چین جدید است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func CreateBlockchain(address string) *Blockchain {
+	...
+	err = db.Update(func(tx *bolt.Tx) error {
+		cbtx := NewCoinbaseTX(address, genesisCoinbaseData)
+		genesis := NewGenesisBlock(cbtx)
+
+		b, err := tx.CreateBucket([]byte(blocksBucket))
+		err = b.Put(genesis.Hash, genesis.Serialize())
+		...
+	})
+	...
+}</code></pre>
+        <p>حالا، تابع یک آدرس می‌گیرد که پاداش استخراج بلاک پیدایش را دریافت خواهد کرد.</p>
+
+        <h3>اثبات کار</h3>
+        <p>
+          الگوریتم اثبات کار باید تراکنش‌های ذخیره‌شده در یک بلاک را در نظر بگیرد تا سازگاری و قابلیت اطمینان بلاک‌چین
+          را به‌عنوان یک ذخیره‌گاه تراکنش تضمین کند. پس حالا باید متد <code>ProofOfWork.prepareData</code> را تغییر
+          دهیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (pow *ProofOfWork) prepareData(nonce int) []byte {
+	data := bytes.Join(
+		[][]byte{
+			pow.block.PrevBlockHash,
+			pow.block.HashTransactions(), // این خط تغییر کرده است
+			IntToHex(pow.block.Timestamp),
+			IntToHex(int64(targetBits)),
+			IntToHex(int64(nonce)),
+		},
+		[]byte{},
+	)
+
+	return data
+}</code></pre>
+        <p>به جای <code>pow.block.Data</code> حالا از <code>pow.block.HashTransactions()</code> استفاده می‌کنیم که این است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+
+	return txHash[:]
+}</code></pre>
+        <p>
+          باز هم از هش کردن به‌عنوان مکانیسم فراهم کردن نمایش یکتای داده استفاده می‌کنیم. می‌خواهیم همه تراکنش‌های یک
+          بلاک با یک هش واحد به‌طور یکتا شناسایی شوند. برای رسیدن به این هدف، هش هر تراکنش را می‌گیریم، آن‌ها را به هم
+          می‌چسبانیم و هش ترکیب به‌هم‌چسبیده را می‌گیریم.
+        </p>
+        <p>
+          بیت‌کوین از تکنیک پیچیده‌تری استفاده می‌کند: همه تراکنش‌های موجود در یک بلاک را به‌صورت یک <a href="https://en.wikipedia.org/wiki/Merkle_tree" target="_blank" rel="noopener">درخت مرکل (Merkle tree)</a> نشان می‌دهد و از هش ریشه درخت در سیستم اثبات کار استفاده می‌کند. این رویکرد امکان بررسی سریع وجود یک تراکنش مشخص در بلاک را می‌دهد، فقط با داشتن هش ریشه و بدون دانلود همه تراکنش‌ها.
+        </p>
+        <p>بیایید بررسی کنیم که تا اینجا همه‌چیز درست است:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go createblockchain -address Ivan
+00000093450837f8b52b78c25f8163bb6137caf43ff4d9a01d1b731fa8ddcc8a
+
+Done!</code></pre>
+        <p>خوب! اولین پاداش استخراج خود را دریافت کردیم. اما موجودی را چگونه بررسی کنیم؟</p>
+
+        <h3>خروجی‌های تراکنش خرج‌نشده</h3>
+        <p>
+          باید همه خروجی‌های تراکنش خرج‌نشده (UTXO) را پیدا کنیم. خرج‌نشده یعنی این خروجی‌ها در هیچ ورودی ارجاع
+          داده نشده‌اند. در نمودار بالا، این‌ها هستند:
+        </p>
+        <ul>
+          <li>tx0، خروجی ۱؛</li>
+          <li>tx1، خروجی ۰؛</li>
+          <li>tx3، خروجی ۰؛</li>
+          <li>tx4، خروجی ۰.</li>
+        </ul>
+        <p>
+          البته، وقتی موجودی را بررسی می‌کنیم به همه آن‌ها نیاز نداریم، فقط به آن‌هایی نیاز داریم که توسط کلیدی که
+          داریم قابل باز شدن هستند (فعلاً کلیدها را پیاده‌سازی نکرده‌ایم و از آدرس‌های تعریف‌شده توسط کاربر استفاده
+          می‌کنیم). اول، بیایید متدهای قفل-بازکردن را روی ورودی‌ها و خروجی‌ها تعریف کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
+	return in.ScriptSig == unlockingData
+}
+
+func (out *TXOutput) CanBeUnlockedWith(unlockingData string) bool {
+	return out.ScriptPubKey == unlockingData
+}</code></pre>
+        <p>
+          در اینجا فقط فیلدهای اسکریپت را با <code>unlockingData</code> مقایسه می‌کنیم. این قطعه‌ها در مقاله‌ای آینده و
+          پس از پیاده‌سازی آدرس‌های مبتنی بر کلید خصوصی بهبود خواهند یافت.
+        </p>
+        <p>قدم بعدی — پیدا کردن تراکنش‌های حاوی خروجی‌های خرج‌نشده — نسبتاً دشوار است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
+	var unspentTXs []Transaction
+	spentTXOs := make(map[string][]int)
+	bci := bc.Iterator()
+
+	for {
+		block := bci.Next()
+
+		for _, tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+
+		Outputs:
+			for outIdx, out := range tx.Vout {
+				// آیا خروجی خرج شده است؟
+				if spentTXOs[txID] != nil {
+					for _, spentOut := range spentTXOs[txID] {
+						if spentOut == outIdx {
+							continue Outputs
+						}
+					}
+				}
+
+				if out.CanBeUnlockedWith(address) {
+					unspentTXs = append(unspentTXs, *tx)
+				}
+			}
+
+			if tx.IsCoinbase() == false {
+				for _, in := range tx.Vin {
+					if in.CanUnlockOutputWith(address) {
+						inTxID := hex.EncodeToString(in.Txid)
+						spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+					}
+				}
+			}
+		}
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+
+	return unspentTXs
+}</code></pre>
+        <p>
+          چون تراکنش‌ها در بلاک‌ها ذخیره می‌شوند، باید هر بلاک در بلاک‌چین را بررسی کنیم. با خروجی‌ها شروع می‌کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if out.CanBeUnlockedWith(address) {
+	unspentTXs = append(unspentTXs, tx)
+}</code></pre>
+        <p>
+          اگر یک خروجی با همان آدرسی که ما خروجی‌های خرج‌نشده را برایش جست‌وجو می‌کنیم قفل شده باشد، این همان خروجی
+          مورد نظر ماست. اما قبل از گرفتن آن، باید بررسی کنیم که آیا خروجی قبلاً در یک ورودی ارجاع داده شده است یا
+          نه:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if spentTXOs[txID] != nil {
+	for _, spentOut := range spentTXOs[txID] {
+		if spentOut == outIdx {
+			continue Outputs
+		}
+	}
+}</code></pre>
+        <p>
+          آن‌هایی را که در ورودی‌ها ارجاع داده شده‌اند رد می‌کنیم (مقدار آن‌ها به خروجی‌های دیگر منتقل شده است، پس
+          نمی‌توانیم آن‌ها را حساب کنیم). پس از بررسی خروجی‌ها، همه ورودی‌هایی را جمع می‌کنیم که می‌توانند خروجی‌های
+          قفل‌شده با آدرس ارائه‌شده را باز کنند (این شامل تراکنش‌های کوین‌بیس نمی‌شود، چون آن‌ها خروجی‌ای را باز
+          نمی‌کنند):
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if tx.IsCoinbase() == false {
+	for _, in := range tx.Vin {
+		if in.CanUnlockOutputWith(address) {
+			inTxID := hex.EncodeToString(in.Txid)
+			spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
+		}
+	}
+}</code></pre>
+        <p>
+          این تابع فهرستی از تراکنش‌های حاوی خروجی‌های خرج‌نشده برمی‌گرداند. برای محاسبه موجودی به یک تابع دیگر نیاز
+          داریم که تراکنش‌ها را بگیرد و فقط خروجی‌ها را برگرداند:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) FindUTXO(address string) []TXOutput {
+	var UTXOs []TXOutput
+	unspentTransactions := bc.FindUnspentTransactions(address)
+
+	for _, tx := range unspentTransactions {
+		for _, out := range tx.Vout {
+			if out.CanBeUnlockedWith(address) {
+				UTXOs = append(UTXOs, out)
+			}
+		}
+	}
+
+	return UTXOs
+}</code></pre>
+        <p>تمام شد! حالا می‌توانیم دستور <code>getbalance</code> را پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) getBalance(address string) {
+	bc := NewBlockchain(address)
+	defer bc.db.Close()
+
+	balance := 0
+	UTXOs := bc.FindUTXO(address)
+
+	for _, out := range UTXOs {
+		balance += out.Value
+	}
+
+	fmt.Printf("Balance of '%s': %d\n", address, balance)
+}</code></pre>
+        <p>
+          موجودی حساب، مجموع مقادیر همه خروجی‌های تراکنش خرج‌نشده‌ای است که با آدرس حساب قفل شده‌اند.
+        </p>
+        <p>بیایید موجودی خود را پس از استخراج بلاک پیدایش بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go getbalance -address Ivan
+Balance of 'Ivan': 10</code></pre>
+        <p>این اولین پول ماست!</p>
+
+        <h3>ارسال سکه‌ها</h3>
+        <p>
+          حالا می‌خواهیم سکه‌هایی به شخص دیگری بفرستیم. برای این کار باید یک تراکنش جدید بسازیم، آن را در یک بلاک قرار
+          دهیم و بلاک را استخراج کنیم. تا اینجا فقط تراکنش کوین‌بیس (که نوع خاصی از تراکنش‌هاست) را پیاده‌سازی
+          کرده‌ایم، حالا به یک تراکنش عمومی نیاز داریم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewUTXOTransaction(from, to string, amount int, bc *Blockchain) *Transaction {
+	var inputs []TXInput
+	var outputs []TXOutput
+
+	acc, validOutputs := bc.FindSpendableOutputs(from, amount)
+
+	if acc &lt; amount {
+		log.Panic("ERROR: Not enough funds")
+	}
+
+	// ساخت فهرست ورودی‌ها
+	for txid, outs := range validOutputs {
+		txID, err := hex.DecodeString(txid)
+
+		for _, out := range outs {
+			input := TXInput{txID, out, from}
+			inputs = append(inputs, input)
+		}
+	}
+
+	// ساخت فهرست خروجی‌ها
+	outputs = append(outputs, TXOutput{amount, to})
+	if acc &gt; amount {
+		outputs = append(outputs, TXOutput{acc - amount, from}) // باقی‌مانده
+	}
+
+	tx := Transaction{nil, inputs, outputs}
+	tx.SetID()
+
+	return &tx
+}</code></pre>
+        <p>
+          قبل از ساخت خروجی‌های جدید، اول باید همه خروجی‌های خرج‌نشده را پیدا کنیم و مطمئن شویم مقدار کافی ذخیره
+          می‌کنند. این کاری است که متد <code>FindSpendableOutputs</code> انجام می‌دهد. پس از آن، برای هر خروجی پیدا
+          شده، یک ورودی ساخته می‌شود که به آن ارجاع می‌دهد. در ادامه، دو خروجی می‌سازیم:
+        </p>
+        <ul>
+          <li>یکی که با آدرس گیرنده قفل شده است. این انتقال واقعی سکه‌ها به آدرس دیگر است.</li>
+          <li>یکی که با آدرس فرستنده قفل شده است. این باقی‌مانده است. فقط وقتی ساخته می‌شود که خروجی‌های خرج‌نشده مقدار بیشتری از مقدار لازم برای تراکنش جدید نگه دارند. به یاد داشته باشید: خروجی‌ها تقسیم‌ناپذیرند.</li>
+        </ul>
+        <p>متد <code>FindSpendableOutputs</code> بر پایه متد <code>FindUnspentTransactions</code> است که قبلاً تعریف کردیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
+	unspentOutputs := make(map[string][]int)
+	unspentTXs := bc.FindUnspentTransactions(address)
+	accumulated := 0
+
+Work:
+	for _, tx := range unspentTXs {
+		txID := hex.EncodeToString(tx.ID)
+
+		for outIdx, out := range tx.Vout {
+			if out.CanBeUnlockedWith(address) &amp;&amp; accumulated &lt; amount {
+				accumulated += out.Value
+				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+
+				if accumulated &gt;= amount {
+					break Work
+				}
+			}
+		}
+	}
+
+	return accumulated, unspentOutputs
+}</code></pre>
+        <p>
+          این متد روی همه تراکنش‌های خرج‌نشده پیمایش می‌کند و مقادیر آن‌ها را جمع می‌زند. وقتی مقدار جمع‌شده بیشتر یا
+          مساوی مقدار مورد نظر برای انتقال شد، متوقف می‌شود و مقدار جمع‌شده و ایندکس‌های خروجی گروه‌بندی‌شده با
+          شناسه‌های تراکنش را برمی‌گرداند. ما نمی‌خواهیم بیش از آنچه قرار است خرج کنیم برداریم.
+        </p>
+        <p>حالا می‌توانیم متد <code>Blockchain.MineBlock</code> را تغییر دهیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) MineBlock(transactions []*Transaction) {
+	...
+	newBlock := NewBlock(transactions, lastHash)
+	...
+}</code></pre>
+        <p>بالاخره، بیایید دستور <code>send</code> را پیاده‌سازی کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) send(from, to string, amount int) {
+	bc := NewBlockchain(from)
+	defer bc.db.Close()
+
+	tx := NewUTXOTransaction(from, to, amount, bc)
+	bc.MineBlock([]*Transaction{tx})
+	fmt.Println("Success!")
+}</code></pre>
+        <p>
+          ارسال سکه‌ها یعنی ایجاد یک تراکنش و افزودن آن به بلاک‌چین از طریق استخراج یک بلاک. اما بیت‌کوین این کار را
+          بلافاصله انجام نمی‌دهد (مثل ما). در عوض، همه تراکنش‌های جدید را در استخر حافظه (memory pool یا mempool)
+          قرار می‌دهد و وقتی یک ماینر آماده استخراج یک بلاک شد، همه تراکنش‌ها را از مم‌پول برمی‌دارد و یک بلاک
+          کاندید می‌سازد. تراکنش‌ها فقط وقتی تایید (confirmed) می‌شوند که بلاک حاوی آن‌ها استخراج و به بلاک‌چین اضافه
+          شود.
+        </p>
+        <p>بیایید بررسی کنیم که ارسال سکه‌ها کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from Ivan -to Pedro -amount 6
+00000001b56d60f86f72ab2a59fadb197d767b97d4873732be505e0a65cc1e37
+
+Success!
+
+$ blockchain_go getbalance -address Ivan
+Balance of 'Ivan': 4
+
+$ blockchain_go getbalance -address Pedro
+Balance of 'Pedro': 6</code></pre>
+        <p>عالی! حالا بگذارید تراکنش‌های بیشتری ایجاد کنیم و مطمئن شویم ارسال از چند خروجی درست کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from Pedro -to Helen -amount 2
+00000099938725eb2c7730844b3cd40209d46bce2c2af9d87c2b7611fe9d5bdf
+
+Success!
+
+$ blockchain_go send -from Ivan -to Helen -amount 2
+000000a2edf94334b1d94f98d22d7e4c973261660397dc7340464f7959a7a9aa
+
+Success!</code></pre>
+        <p>
+          حالا سکه‌های هلن در دو خروجی قفل شده‌اند: یکی از پدرو و یکی از ایوان. بیایید آن‌ها را به شخص دیگری بفرستیم:
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from Helen -to Rachel -amount 3
+000000c58136cffa669e767b8f881d16e2ede3974d71df43058baaf8c069f1a0
+
+Success!
+
+$ blockchain_go getbalance -address Ivan
+Balance of 'Ivan': 2
+
+$ blockchain_go getbalance -address Pedro
+Balance of 'Pedro': 4
+
+$ blockchain_go getbalance -address Helen
+Balance of 'Helen': 1
+
+$ blockchain_go getbalance -address Rachel
+Balance of 'Rachel': 3</code></pre>
+        <p>به نظر درست می‌آید! حالا بیایید یک شکست را آزمایش کنیم:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from Pedro -to Ivan -amount 5
+panic: ERROR: Not enough funds
+
+$ blockchain_go getbalance -address Pedro
+Balance of 'Pedro': 4
+
+$ blockchain_go getbalance -address Ivan
+Balance of 'Ivan': 2</code></pre>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          اوه! آسان نبود، اما حالا تراکنش داریم! هرچند، برخی ویژگی‌های کلیدی یک ارز رمزنگاری‌شده شبیه بیت‌کوین
+          جا مانده‌اند:
+        </p>
+        <ul>
+          <li><b>آدرس‌ها.</b> ما هنوز آدرس‌های واقعی مبتنی بر کلید خصوصی نداریم.</li>
+          <li><b>پاداش‌ها.</b> استخراج بلاک‌ها اصلاً سودآور نیست!</li>
+          <li><b>مجموعه UTXO.</b> گرفتن موجودی مستلزم اسکن کل بلاک‌چین است که وقتی بلاک‌های بسیار زیادی وجود دارند می‌تواند زمان بسیار طولانی ببرد. همچنین، اگر بخواهیم تراکنش‌های بعدی را اعتبارسنجی کنیم می‌تواند زمان زیادی ببرد. مجموعه UTXO برای حل این مشکلات و سریع کردن عملیات با تراکنش‌ها در نظر گرفته شده است.</li>
+          <li><b>مم‌پول.</b> این جایی است که تراکنش‌ها قبل از بسته‌بندی در یک بلاک ذخیره می‌شوند. در پیاده‌سازی فعلی ما، یک بلاک فقط یک تراکنش دارد و این کاملاً ناکارآمد است.</li>
+        </ul>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_4" target="_blank" rel="noopener">کدهای کامل منبع</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Transaction" target="_blank" rel="noopener">تراکنش</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Protocol_documentation#Merkle_Trees" target="_blank" rel="noopener">درخت مرکل</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Coinbase" target="_blank" rel="noopener">کوین‌بیس</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="part5">قسمت ۵: آدرس‌ها (Addresses)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          در <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-4/" target="_blank" rel="noopener">مقاله
+          قبلی</a>، پیاده‌سازی تراکنش‌ها را شروع کردیم. همچنین با ماهیت غیرشخصی تراکنش‌ها آشنا شدید: هیچ حساب
+          کاربری وجود ندارد، داده شخصی شما (مثل نام، شماره پاسپورت یا شماره تأمین اجتماعی) لازم نیست و هیچ‌جا در
+          بیت‌کوین ذخیره نمی‌شود. اما هنوز باید چیزی وجود داشته باشد که شما را به‌عنوان صاحب خروجی‌های تراکنش (یعنی
+          صاحب سکه‌های قفل‌شده روی این خروجی‌ها) شناسایی کند. و این همان چیزی است که آدرس‌های بیت‌کوین برای آن لازم
+          هستند. تا اینجا از رشته‌های دلخواه تعریف‌شده توسط کاربر به‌عنوان آدرس استفاده کرده‌ایم و وقت آن رسیده که
+          آدرس‌های واقعی را همان‌طور که در بیت‌کوین پیاده‌سازی شده‌اند پیاده‌سازی کنیم.
+        </p>
+        <p>
+          این بخش تغییرات کد قابل توجهی ایجاد می‌کند، پس توضیح همه آن‌ها در اینجا بی‌معنی است. لطفاً برای دیدن همه
+          تغییرات از <a href="https://github.com/Jeiwan/blockchain_go/compare/part_4...part_5#files_bucket" target="_blank" rel="noopener">این صفحه</a> استفاده کنید.
+        </p>
+
+        <h3>آدرس بیت‌کوین</h3>
+        <p>
+          این یک نمونه آدرس بیت‌کوین است: <a href="https://blockchain.info/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" target="_blank" rel="noopener">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</a>. این اولین آدرس بیت‌کوین است که گفته می‌شود متعلق به ساتوشی ناکاموتو است. آدرس‌های بیت‌کوین عمومی هستند. اگر می‌خواهید به کسی سکه بفرستید، باید آدرس او را بدانید. اما آدرس‌ها (با وجود یکتا بودن) چیزی نیستند که شما را به‌عنوان صاحب یک «کیف پول» شناسایی کنند. در واقع، چنین آدرس‌هایی نمایشی خواندنی برای انسان از کلیدهای عمومی هستند. در بیت‌کوین، هویت شما یک جفت (یا چند جفت) کلید خصوصی و عمومی است که روی کامپیوتر شما ذخیره شده (یا در جای دیگری که به آن دسترسی دارید). بیت‌کوین برای ایجاد این کلیدها به ترکیبی از الگوریتم‌های رمزنگاری تکیه می‌کند و تضمین می‌کند که هیچ‌کس دیگری در دنیا بدون دسترسی فیزیکی به کلیدهای شما نمی‌تواند به سکه‌های شما دست بزند. بیایید درباره این الگوریتم‌ها بحث کنیم.
+        </p>
+
+        <h3>رمزنگاری کلید عمومی</h3>
+        <p>
+          الگوریتم‌های رمزنگاری کلید عمومی از جفت کلیدها استفاده می‌کنند: کلیدهای عمومی و کلیدهای خصوصی. کلیدهای عمومی
+          حساس نیستند و می‌توانند به هر کسی داده شوند. در مقابل، کلیدهای خصوصی نباید فاش شوند: هیچ‌کس به جز صاحب نباید
+          به آن‌ها دسترسی داشته باشد، چون کلیدهای خصوصی به‌عنوان شناسه مالک عمل می‌کنند. شما کلید خصوصی خودتان هستید
+          (البته در دنیای ارزهای رمزنگاری‌شده).
+        </p>
+        <p>
+          در ذات خود، یک کیف پول بیت‌کوین فقط یک جفت از این کلیدهاست. وقتی یک برنامه کیف پول نصب می‌کنید یا از یک
+          کلاینت بیت‌کوین برای تولید یک آدرس جدید استفاده می‌کنید، یک جفت کلید برای شما تولید می‌شود. هر کس کنترل کلید
+          خصوصی را داشته باشد، همه سکه‌هایی را کنترل می‌کند که در بیت‌کوین به این کلید فرستاده شده‌اند.
+        </p>
+        <p>
+          کلیدهای خصوصی و عمومی فقط دنباله‌های تصادفی از بایت‌ها هستند، پس نمی‌توان آن‌ها را روی صفحه چاپ کرد و توسط
+          انسان خواند. به همین دلیل بیت‌کوین از الگوریتمی برای تبدیل کلیدهای عمومی به رشته‌ای خوانا برای انسان استفاده
+          می‌کند.
+        </p>
+        <p>
+          اگر تا به حال از یک برنامه کیف پول بیت‌کوین استفاده کرده باشید، احتمالاً یک عبارت یادآور (mnemonic pass
+          phrase) برای شما تولید شده است. چنین عبارت‌هایی به جای کلیدهای خصوصی استفاده می‌شوند و می‌توان از آن‌ها برای
+          تولید کلیدهای خصوصی استفاده کرد. این مکانیسم در <a href="https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki" target="_blank" rel="noopener">BIP-039</a> پیاده‌سازی شده است.
+        </p>
+        <p>خوب، حالا می‌دانیم چه چیزی کاربران را در بیت‌کوین شناسایی می‌کند. اما بیت‌کوین مالکیت خروجی‌های تراکنش (و سکه‌های ذخیره‌شده روی آن‌ها) را چگونه بررسی می‌کند؟</p>
+
+        <h3>امضای دیجیتال</h3>
+        <p>
+          در ریاضیات و رمزنگاری، مفهومی به نام امضای دیجیتال وجود دارد — الگوریتم‌هایی که تضمین می‌کنند:
+        </p>
+        <ul>
+          <li>داده هنگام انتقال از فرستنده به گیرنده تغییر نکرده است؛</li>
+          <li>داده توسط یک فرستنده مشخص ایجاد شده است؛</li>
+          <li>فرستنده نمی‌تواند ارسال داده را انکار کند.</li>
+        </ul>
+        <p>
+          با اعمال یک الگوریتم امضا روی داده (یعنی امضای داده)، یک امضا به دست می‌آید که بعداً قابل راستی‌آزمایی است.
+          امضای دیجیتال با استفاده از یک کلید خصوصی انجام می‌شود و راستی‌آزمایی به یک کلید عمومی نیاز دارد.
+        </p>
+        <p>برای امضای داده به این چیزها نیاز داریم:</p>
+        <ul>
+          <li>داده برای امضا؛</li>
+          <li>کلید خصوصی.</li>
+        </ul>
+        <p>
+          عملیات امضا یک امضا تولید می‌کند که در ورودی‌های تراکنش ذخیره می‌شود. برای راستی‌آزمایی یک امضا، این موارد
+          لازم است:
+        </p>
+        <ul>
+          <li>داده‌ای که امضا شده است؛</li>
+          <li>امضا؛</li>
+          <li>کلید عمومی.</li>
+        </ul>
+        <p>
+          به زبان ساده، فرایند راستی‌آزمایی را می‌توان این‌گونه توصیف کرد: بررسی کنید که این امضا از این داده با کلید
+          خصوصی‌ای که برای تولید کلید عمومی استفاده شده به دست آمده است.
+        </p>
+        <p>
+          امضای دیجیتال رمزنگاری نیست؛ نمی‌توانید داده را از امضا بازسازی کنید. این شبیه هش کردن است: داده را از یک
+          الگوریتم هش عبور می‌دهید و یک نمایش یکتا از داده به دست می‌آورید. تفاوت امضاها و هش‌ها در جفت کلیدهاست:
+          آن‌ها راستی‌آزمایی امضا را ممکن می‌سازند.
+        </p>
+        <p>
+          اما از جفت کلیدها می‌توان برای رمزنگاری داده‌ها هم استفاده کرد: کلید خصوصی برای رمزنگاری استفاده می‌شود و
+          کلید عمومی برای رمزگشایی داده. اما بیت‌کوین از الگوریتم‌های رمزنگاری استفاده نمی‌کند.
+        </p>
+        <p>هر ورودی تراکنش در بیت‌کوین توسط کسی که تراکنش را ایجاد کرده امضا می‌شود. هر تراکنش در بیت‌کوین قبل از قرار گرفتن در یک بلاک باید راستی‌آزمایی شود. راستی‌آزمایی به این معناست (علاوه بر سایر روش‌ها):</p>
+        <ul>
+          <li>بررسی اینکه ورودی‌ها اجازه استفاده از خروجی‌های تراکنش‌های قبلی را دارند.</li>
+          <li>بررسی اینکه امضای تراکنش درست است.</li>
+        </ul>
+        <p>به‌صورت شماتیک، فرایند امضای داده و راستی‌آزمایی امضا این‌گونه به نظر می‌رسد:</p>
+        <img src="https://jeiwan.net/images/signing-scheme.png" alt="نمودار امضای دیجیتال: فرستنده با کلید خصوصی خود داده را امضا می‌کند و گیرنده با کلید عمومی امضا را راستی‌آزمایی می‌کند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بیایید حالا چرخه کامل عمر یک تراکنش را بررسی کنیم:</p>
+        <ol>
+          <li>در ابتدا، بلاک پیدایش وجود دارد که حاوی یک تراکنش کوین‌بیس است. در تراکنش‌های کوین‌بیس ورودی واقعی وجود ندارد، پس امضا لازم نیست. خروجی تراکنش کوین‌بیس حاوی یک کلید عمومی هش‌شده است (از الگوریتم‌های <code>RIPEMD160(SHA256(PubKey))</code> استفاده می‌شود).</li>
+          <li>وقتی کسی سکه می‌فرستد، یک تراکنش ایجاد می‌شود. ورودی‌های تراکنش به خروجی‌های تراکنش(های) قبلی ارجاع می‌دهند. هر ورودی یک کلید عمومی (هش‌نشده) و امضای کل تراکنش را ذخیره می‌کند.</li>
+          <li>سایر گره‌های شبکه بیت‌کوین که تراکنش را دریافت می‌کنند آن را راستی‌آزمایی می‌کنند. علاوه بر چیزهای دیگر، بررسی می‌کنند که: هش کلید عمومی در یک ورودی با هش خروجی ارجاع‌داده‌شده مطابقت دارد (این تضمین می‌کند فرستنده فقط سکه‌های متعلق به خودش را خرج می‌کند)؛ امضا درست است (این تضمین می‌کند تراکنش توسط صاحب واقعی سکه‌ها ایجاد شده است).</li>
+          <li>وقتی یک گره ماینر آماده استخراج یک بلاک جدید شد، تراکنش را در یک بلاک قرار می‌دهد و استخراج آن را شروع می‌کند.</li>
+          <li>وقتی بلاک استخراج شد، هر گره دیگری در شبکه پیامی مبنی بر استخراج بلاک دریافت می‌کند و بلاک را به بلاک‌چین اضافه می‌کند.</li>
+          <li>پس از افزودن بلاک به بلاک‌چین، تراکنش کامل می‌شود و خروجی‌های آن می‌توانند در تراکنش‌های جدید ارجاع داده شوند.</li>
+        </ol>
+
+        <h3>رمزنگاری منحنی بیضوی</h3>
+        <p>
+          همان‌طور که در بالا توضیح داده شد، کلیدهای عمومی و خصوصی دنباله‌هایی از بایت‌های تصادفی هستند. چون کلیدهای
+          خصوصی برای شناسایی صاحبان سکه‌ها استفاده می‌شوند، یک شرط لازم وجود دارد: الگوریتم تصادفی باید بایت‌های
+          واقعاً تصادفی تولید کند. ما نمی‌خواهیم به‌طور تصادفی کلید خصوصی‌ای تولید کنیم که متعلق به شخص دیگری باشد.
+        </p>
+        <p>
+          بیت‌کوین از منحنی‌های بیضوی برای تولید کلیدهای خصوصی استفاده می‌کند. منحنی‌های بیضوی یک مفهوم ریاضی پیچیده
+          هستند که قرار نیست در اینجا با جزئیات توضیح دهیم (اگر کنجکاو هستید، این <a href="http://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/" target="_blank" rel="noopener">معرفی ملایم منحنی‌های بیضوی</a> را ببینید — هشدار: فرمول‌های ریاضی!). چیزی که باید بدانیم این است که از این منحنی‌ها می‌توان برای تولید اعداد واقعاً بزرگ و تصادفی استفاده کرد. منحنی‌ای که بیت‌کوین استفاده می‌کند می‌تواند به‌طور تصادفی عددی بین ۰ و ۲²⁵⁶ انتخاب کند (که تقریباً ۱۰⁷⁷ است، در حالی که بین ۱۰⁷⁸ تا ۱۰⁸² اتم در جهان مرئی وجود دارد). چنین حد بالایی عظیمی یعنی تولید دوباره همان کلید خصوصی تقریباً غیرممکن است.
+        </p>
+        <p>
+          همچنین، بیت‌کوین از ECDSA (الگوریتم امضای دیجیتال منحنی بیضوی) برای امضای تراکنش‌ها استفاده می‌کند (و ما هم
+          همین کار را خواهیم کرد).
+        </p>
+
+        <h3>Base58</h3>
+        <p>
+          حالا بیایید به آدرس بیت‌کوین ذکرشده در بالا برگردیم: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa. حالا می‌دانیم که
+          این یک نمایش خوانا برای انسان از یک کلید عمومی است. و اگر آن را رمزگشایی کنیم، کلید عمومی این‌گونه به نظر
+          می‌رسد (به‌صورت دنباله‌ای از بایت‌ها که در سیستم هگزادسیمال نوشته شده):
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>0062E907B15CBF27D5425399EBF6F0FB50EBB88F18C29B7D93</code></pre>
+        <p>
+          بیت‌کوین از الگوریتم Base58 برای تبدیل کلیدهای عمومی به فرمت خوانا برای انسان استفاده می‌کند. این الگوریتم
+          بسیار شبیه Base64 معروف است، اما از الفبای کوتاه‌تری استفاده می‌کند: برخی حروف برای جلوگیری از حمله‌هایی که
+          از شباهت حروف استفاده می‌کنند از الفبا حذف شده‌اند. بنابراین، این نمادها وجود ندارند: 0 (صفر)، O (اُ بزرگ)،
+          I (آی بزرگ)، l (ال کوچک)، چون شبیه هم به نظر می‌رسند. همچنین، نمادهای + و / وجود ندارند.
+        </p>
+        <p>بیایید فرایند گرفتن یک آدرس از کلید عمومی را به‌صورت شماتیک نشان دهیم:</p>
+        <img src="https://jeiwan.net/images/address-generation-scheme.png" alt="نمودار تولید آدرس: هش‌کردن کلید عمومی، افزودن نسخه و چک‌سام و انکود Base58" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بنابراین، کلید عمومی رمزگشایی‌شده فوق از سه بخش تشکیل شده است:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>Version  Public key hash                           Checksum
+00       62E907B15CBF27D5425399EBF6F0FB50EBB88F18  C29B7D93</code></pre>
+        <p>
+          چون توابع هش یک‌طرفه هستند (یعنی قابل برگشت نیستند)، استخراج کلید عمومی از هش ممکن نیست. اما می‌توانیم بررسی
+          کنیم که آیا یک کلید عمومی برای به‌دست آوردن هش استفاده شده است، با اجرای آن از همان توابع هش و مقایسه هش‌ها.
+        </p>
+        <p>خوب، حالا که همه قطعات را داریم، بیایید کدی بنویسیم. برخی از مفاهیم باید وقتی در کد نوشته شوند واضح‌تر شوند.</p>
+
+        <h3>پیاده‌سازی آدرس‌ها</h3>
+        <p>با ساختار <code>Wallet</code> شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type Wallet struct {
+	PrivateKey ecdsa.PrivateKey
+	PublicKey  []byte
+}
+
+type Wallets struct {
+	Wallets map[string]*Wallet
+}
+
+func NewWallet() *Wallet {
+	private, public := newKeyPair()
+	wallet := Wallet{private, public}
+
+	return &amp;wallet
+}
+
+func newKeyPair() (ecdsa.PrivateKey, []byte) {
+	curve := elliptic.P256()
+	private, err := ecdsa.GenerateKey(curve, rand.Reader)
+	pubKey := append(private.PublicKey.X.Bytes(), private.PublicKey.Y.Bytes()...)
+
+	return *private, pubKey
+}</code></pre>
+        <p>
+          یک کیف پول چیزی جز یک جفت کلید نیست. همچنین به نوع <code>Wallets</code> نیاز داریم تا مجموعه‌ای از کیف پول‌ها
+          را نگه داریم، آن‌ها را در یک فایل ذخیره کنیم و از آن بارگذاری کنیم. در تابع سازنده <code>Wallet</code> یک
+          جفت کلید جدید تولید می‌شود. تابع <code>newKeyPair</code> ساده است: ECDSA بر پایه منحنی‌های بیضوی است، پس به
+          یکی نیاز داریم. در ادامه، یک کلید خصوصی با استفاده از منحنی تولید می‌شود و یک کلید عمومی از کلید خصوصی
+          تولید می‌شود. یک نکته قابل توجه: در الگوریتم‌های مبتنی بر منحنی بیضوی، کلیدهای عمومی نقاطی روی منحنی هستند.
+          بنابراین، یک کلید عمومی ترکیبی از مختصات X و Y است. در بیت‌کوین، این مختصات به هم چسبانده می‌شوند و یک کلید
+          عمومی را تشکیل می‌دهند.
+        </p>
+        <p>حالا بیایید یک آدرس تولید کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (w Wallet) GetAddress() []byte {
+	pubKeyHash := HashPubKey(w.PublicKey)
+
+	versionedPayload := append([]byte{version}, pubKeyHash...)
+	checksum := checksum(versionedPayload)
+
+	fullPayload := append(versionedPayload, checksum...)
+	address := Base58Encode(fullPayload)
+
+	return address
+}
+
+func HashPubKey(pubKey []byte) []byte {
+	publicSHA256 := sha256.Sum256(pubKey)
+
+	RIPEMD160Hasher := ripemd160.New()
+	_, err := RIPEMD160Hasher.Write(publicSHA256[:])
+	publicRIPEMD160 := RIPEMD160Hasher.Sum(nil)
+
+	return publicRIPEMD160
+}
+
+func checksum(payload []byte) []byte {
+	firstSHA := sha256.Sum256(payload)
+	secondSHA := sha256.Sum256(firstSHA[:])
+
+	return secondSHA[:addressChecksumLen]
+}</code></pre>
+        <p>این‌ها مراحل تبدیل یک کلید عمومی به یک آدرس Base58 هستند:</p>
+        <ol>
+          <li>کلید عمومی را بگیرید و آن را دو بار با الگوریتم‌های هش <code>RIPEMD160(SHA256(PubKey))</code> هش کنید.</li>
+          <li>نسخه الگوریتم تولید آدرس را به ابتدای هش اضافه کنید.</li>
+          <li>چک‌سام را با هش‌کردن نتیجه مرحله ۲ با <code>SHA256(SHA256(payload))</code> محاسبه کنید. چک‌سام چهار بایت اول هش حاصل است.</li>
+          <li>چک‌سام را به ترکیب <code>version+PubKeyHash</code> اضافه کنید.</li>
+          <li>ترکیب <code>version+PubKeyHash+checksum</code> را با Base58 انکود کنید.</li>
+        </ol>
+        <p>
+          در نتیجه، یک آدرس بیت‌کوین واقعی می‌گیرید؛ حتی می‌توانید موجودی آن را در <a href="https://blockchain.info/" target="_blank" rel="noopener">blockchain.info</a> بررسی کنید. اما به شما اطمینان می‌دهم که موجودی ۰ است، مهم نیست چند بار آدرس جدید تولید کنید و موجودی‌اش را بررسی کنید. به همین دلیل انتخاب الگوریتم مناسب رمزنگاری کلید عمومی بسیار حیاتی است: با توجه به اینکه کلیدهای خصوصی اعداد تصادفی هستند، احتمال تولید همان عدد باید تا حد ممکن پایین باشد. در حالت ایده‌آل، باید به اندازه «هرگز» پایین باشد.
+        </p>
+        <p>
+          همچنین توجه کنید که برای گرفتن آدرس نیازی به اتصال به یک گره بیت‌کوین نیست. الگوریتم تولید آدرس از ترکیبی از
+          الگوریتم‌های باز استفاده می‌کند که در بسیاری از زبان‌های برنامه‌نویسی و کتابخانه‌ها پیاده‌سازی شده‌اند.
+        </p>
+        <p>حالا باید ورودی‌ها و خروجی‌ها را تغییر دهیم تا از آدرس‌ها استفاده کنند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type TXInput struct {
+	Txid      []byte
+	Vout      int
+	Signature []byte
+	PubKey    []byte
+}
+
+func (in *TXInput) UsesKey(pubKeyHash []byte) bool {
+	lockingHash := HashPubKey(in.PubKey)
+
+	return bytes.Compare(lockingHash, pubKeyHash) == 0
+}
+
+type TXOutput struct {
+	Value      int
+	PubKeyHash []byte
+}
+
+func (out *TXOutput) Lock(address []byte) {
+	pubKeyHash := Base58Decode(address)
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	out.PubKeyHash = pubKeyHash
+}
+
+func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
+	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
+}</code></pre>
+        <p>
+          توجه کنید که دیگر از فیلدهای <code>ScriptPubKey</code> و <code>ScriptSig</code> استفاده نمی‌کنیم، چون قرار
+          نیست یک زبان اسکریپت‌نویسی پیاده‌سازی کنیم. در عوض، <code>ScriptSig</code> به دو فیلد <code>Signature</code>
+          و <code>PubKey</code> تقسیم شده و <code>ScriptPubKey</code> به <code>PubKeyHash</code> تغییر نام داده است.
+          همان منطق قفل/بازکردن خروجی‌ها و امضای ورودی‌ها را مثل بیت‌کوین پیاده‌سازی خواهیم کرد، اما این کار را در
+          متدها انجام می‌دهیم.
+        </p>
+        <p>
+          متد <code>UsesKey</code> بررسی می‌کند که یک ورودی از یک کلید مشخص برای باز کردن یک خروجی استفاده می‌کند.
+          توجه کنید که ورودی‌ها کلیدهای عمومی خام (یعنی هش‌نشده) ذخیره می‌کنند، اما تابع یک کلید هش‌شده می‌گیرد.
+          <code>IsLockedWithKey</code> بررسی می‌کند که آیا هش کلید عمومی ارائه‌شده برای قفل کردن خروجی استفاده شده
+          است. این یک تابع مکمل <code>UsesKey</code> است و هر دو در <code>FindUnspentTransactions</code> برای ساخت
+          اتصالات بین تراکنش‌ها استفاده می‌شوند.
+        </p>
+        <p>
+          <code>Lock</code> به‌سادگی یک خروجی را قفل می‌کند. وقتی به کسی سکه می‌فرستیم، فقط آدرس او را می‌دانیم، پس
+          این تابع فقط یک آرگومان می‌گیرد: آدرس. سپس آدرس رمزگشایی می‌شود و هش کلید عمومی از آن استخراج و در فیلد
+          <code>PubKeyHash</code> ذخیره می‌شود.
+        </p>
+        <p>حالا بیایید بررسی کنیم که همه‌چیز درست کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go createwallet
+Your new address: 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt
+
+$ blockchain_go createwallet
+Your new address: 15pUhCbtrGh3JUx5iHnXjfpyHyTgawvG5h
+
+$ blockchain_go createwallet
+Your new address: 1Lhqun1E9zZZhodiTqxfPQBcwr1CVDV2sy
+
+$ blockchain_go createblockchain -address 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt
+0000005420fbfdafa00c093f56e033903ba43599fa7cd9df40458e373eee724d
+
+Done!
+
+$ blockchain_go getbalance -address 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt
+Balance of '13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt': 10
+
+$ blockchain_go send -from 15pUhCbtrGh3JUx5iHnXjfpyHyTgawvG5h -to 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt -amount 5
+2017/09/12 13:08:56 ERROR: Not enough funds
+
+$ blockchain_go send -from 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt -to 15pUhCbtrGh3JUx5iHnXjfpyHyTgawvG5h -amount 6
+00000019afa909094193f64ca06e9039849709f5948fbac56cae7b1b8f0ff162
+
+Success!
+
+$ blockchain_go getbalance -address 13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt
+Balance of '13Uu7B1vDP4ViXqHFsWtbraM3EfQ3UkWXt': 4
+
+$ blockchain_go getbalance -address 15pUhCbtrGh3JUx5iHnXjfpyHyTgawvG5h
+Balance of '15pUhCbtrGh3JUx5iHnXjfpyHyTgawvG5h': 6
+
+$ blockchain_go getbalance -address 1Lhqun1E9zZZhodiTqxfPQBcwr1CVDV2sy
+Balance of '1Lhqun1E9zZZhodiTqxfPQBcwr1CVDV2sy': 0</code></pre>
+        <p>عالی! حالا بیایید امضای تراکنش‌ها را پیاده‌سازی کنیم.</p>
+
+        <h3>پیاده‌سازی امضاها</h3>
+        <p>
+          تراکنش‌ها باید امضا شوند چون این تنها راه در بیت‌کوین برای تضمین اینکه کسی نمی‌تواند سکه‌های متعلق به شخص
+          دیگر را خرج کند است. اگر یک امضا نامعتبر باشد، تراکنش هم نامعتبر در نظر گرفته می‌شود و بنابراین نمی‌توان آن
+          را به بلاک‌چین اضافه کرد.
+        </p>
+        <p>
+          ما همه قطعات لازم برای پیاده‌سازی امضای تراکنش‌ها را داریم، به جز یک چیز: داده‌ای که باید امضا شود. کدام بخش
+          از یک تراکنش واقعاً امضا می‌شود؟ یا یک تراکنش به‌صورت کامل امضا می‌شود؟ انتخاب داده‌ای که باید امضا شود
+          نسبتاً مهم است. نکته اینجاست که داده‌ای که باید امضا شود باید حاوی اطلاعاتی باشد که داده را به‌طور یکتا
+          شناسایی می‌کند. مثلاً امضای فقط مقادیر خروجی‌ها بی‌معنی است چون چنین امضایی فرستنده و گیرنده را در نظر
+          نمی‌گیرد.
+        </p>
+        <p>
+          با توجه به اینکه تراکنش‌ها خروجی‌های قبلی را باز می‌کنند، مقادیر آن‌ها را دوباره توزیع می‌کنند و خروجی‌های
+          جدیدی را قفل می‌کنند، این داده‌ها باید امضا شوند:
+        </p>
+        <ul>
+          <li>هش‌های کلید عمومی ذخیره‌شده در خروجی‌های بازشده. این «فرستنده» تراکنش را شناسایی می‌کند.</li>
+          <li>هش‌های کلید عمومی ذخیره‌شده در خروجی‌های جدید و قفل‌شده. این «گیرنده» تراکنش را شناسایی می‌کند.</li>
+          <li>مقادیر خروجی‌های جدید.</li>
+        </ul>
+        <p>
+          در بیت‌کوین، منطق قفل/بازکردن در اسکریپت‌ها ذخیره می‌شود که به ترتیب در فیلدهای <code>ScriptSig</code> و
+          <code>ScriptPubKey</code> ورودی‌ها و خروجی‌ها ذخیره می‌شوند. چون بیت‌کوین انواع مختلفی از این اسکریپت‌ها را
+          اجازه می‌دهد، کل محتوای <code>ScriptPubKey</code> را امضا می‌کند.
+        </p>
+        <p>
+          همان‌طور که می‌بینید، نیازی به امضای کلیدهای عمومی ذخیره‌شده در ورودی‌ها نیست. به همین دلیل، در بیت‌کوین این
+          خود تراکنش نیست که امضا می‌شود، بلکه نسخه تُنُک‌شده (trimmed) آن است که ورودی‌هایش <code>ScriptPubKey</code>
+          خروجی‌های ارجاع‌داده‌شده را ذخیره می‌کنند.
+        </p>
+        <p>
+          فرایند دقیق به‌دست آوردن یک نسخه تُنُک‌شده از تراکنش <a href="https://en.bitcoin.it/wiki/File:Bitcoin_OpCheckSig_InDetail.png" target="_blank" rel="noopener">اینجا</a> توصیف شده است. احتمالاً قدیمی است، اما نتوانستم منبع اطلاعات قابل اعتمادتری پیدا کنم.
+        </p>
+        <p>خوب، پیچیده به نظر می‌رسد، پس بیایید کدنویسی را شروع کنیم. با متد <code>Sign</code> شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
+	if tx.IsCoinbase() {
+		return
+	}
+
+	txCopy := tx.TrimmedCopy()
+
+	for inID, vin := range txCopy.Vin {
+		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+		txCopy.Vin[inID].Signature = nil
+		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+		txCopy.ID = txCopy.Hash()
+		txCopy.Vin[inID].PubKey = nil
+
+		r, s, err := ecdsa.Sign(rand.Reader, &amp;privKey, txCopy.ID)
+		signature := append(r.Bytes(), s.Bytes()...)
+
+		tx.Vin[inID].Signature = signature
+	}
+}</code></pre>
+        <p>
+          این متد یک کلید خصوصی و یک map از تراکنش‌های قبلی می‌گیرد. همان‌طور که در بالا ذکر شد، برای امضای یک تراکنش
+          باید به خروجی‌های ارجاع‌داده‌شده در ورودی‌های تراکنش دسترسی داشته باشیم، پس به تراکنش‌هایی نیاز داریم که این
+          خروجی‌ها را ذخیره می‌کنند.
+        </p>
+        <p>بیایید این متد را قدم‌به‌قدم بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if tx.IsCoinbase() {
+	return
+}</code></pre>
+        <p>تراکنش‌های کوین‌بیس امضا نمی‌شوند چون ورودی واقعی در آن‌ها وجود ندارد.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>txCopy := tx.TrimmedCopy()</code></pre>
+        <p>یک نسخه تُنُک‌شده امضا می‌شود، نه کل تراکنش:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (tx *Transaction) TrimmedCopy() Transaction {
+	var inputs []TXInput
+	var outputs []TXOutput
+
+	for _, vin := range tx.Vin {
+		inputs = append(inputs, TXInput{vin.Txid, vin.Vout, nil, nil})
+	}
+
+	for _, vout := range tx.Vout {
+		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
+	}
+
+	txCopy := Transaction{tx.ID, inputs, outputs}
+
+	return txCopy
+}</code></pre>
+        <p>کپی شامل همه ورودی‌ها و خروجی‌ها خواهد بود، اما <code>TXInput.Signature</code> و <code>TXInput.PubKey</code> روی nil تنظیم می‌شوند.</p>
+        <p>در ادامه، روی هر ورودی در کپی پیمایش می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>for inID, vin := range txCopy.Vin {
+	prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+	txCopy.Vin[inID].Signature = nil
+	txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash</code></pre>
+        <p>
+          در هر ورودی، <code>Signature</code> روی <code>nil</code> تنظیم می‌شود (فقط به‌عنوان بررسی مضاعف) و
+          <code>PubKey</code> روی <code>PubKeyHash</code> خروجی ارجاع‌داده‌شده تنظیم می‌شود. در این لحظه، همه
+          تراکنش‌ها به جز تراکنش فعلی «خالی» هستند، یعنی فیلدهای <code>Signature</code> و <code>PubKey</code> آن‌ها
+          روی nil تنظیم شده‌اند. بنابراین، ورودی‌ها جداگانه امضا می‌شوند، اگرچه این برای برنامه ما لازم نیست، اما
+          بیت‌کوین به تراکنش‌ها اجازه می‌دهد ورودی‌هایی داشته باشند که به آدرس‌های مختلف ارجاع می‌دهند.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>	txCopy.ID = txCopy.Hash()
+	txCopy.Vin[inID].PubKey = nil</code></pre>
+        <p>
+          متد <code>Hash</code> تراکنش را سریال‌سازی می‌کند و آن را با الگوریتم SHA-256 هش می‌کند. هش حاصل داده‌ای است
+          که می‌خواهیم امضا کنیم. پس از گرفتن هش باید فیلد <code>PubKey</code> را بازنشانی کنیم تا روی پیمایش‌های بعدی
+          تأثیر نگذارد.
+        </p>
+        <p>حالا، قطعه اصلی:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>	r, s, err := ecdsa.Sign(rand.Reader, &amp;privKey, txCopy.ID)
+	signature := append(r.Bytes(), s.Bytes()...)
+
+	tx.Vin[inID].Signature = signature</code></pre>
+        <p>
+          <code>txCopy.ID</code> را با <code>privKey</code> امضا می‌کنیم. یک امضای ECDSA یک جفت عدد است که آن‌ها را به
+          هم می‌چسبانیم و در فیلد <code>Signature</code> ورودی ذخیره می‌کنیم.
+        </p>
+        <p>حالا، تابع راستی‌آزمایی:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
+	txCopy := tx.TrimmedCopy()
+	curve := elliptic.P256()
+
+	for inID, vin := range tx.Vin {
+		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+		txCopy.Vin[inID].Signature = nil
+		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+		txCopy.ID = txCopy.Hash()
+		txCopy.Vin[inID].PubKey = nil
+
+		r := big.Int{}
+		s := big.Int{}
+		sigLen := len(vin.Signature)
+		r.SetBytes(vin.Signature[:(sigLen / 2)])
+		s.SetBytes(vin.Signature[(sigLen / 2):])
+
+		x := big.Int{}
+		y := big.Int{}
+		keyLen := len(vin.PubKey)
+		x.SetBytes(vin.PubKey[:(keyLen / 2)])
+		y.SetBytes(vin.PubKey[(keyLen / 2):])
+
+		rawPubKey := ecdsa.PublicKey{curve, &amp;x, &amp;y}
+		if ecdsa.Verify(&amp;rawPubKey, txCopy.ID, &amp;r, &amp;s) == false {
+			return false
+		}
+	}
+
+	return true
+}</code></pre>
+        <p>این متد کاملاً سرراست است. اول به همان کپی تراکنش نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>txCopy := tx.TrimmedCopy()</code></pre>
+        <p>در ادامه، به همان منحنی‌ای نیاز داریم که برای تولید جفت کلیدها استفاده شده است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>curve := elliptic.P256()</code></pre>
+        <p>در ادامه، امضای هر ورودی را بررسی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>for inID, vin := range tx.Vin {
+	prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+	txCopy.Vin[inID].Signature = nil
+	txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+	txCopy.ID = txCopy.Hash()
+	txCopy.Vin[inID].PubKey = nil</code></pre>
+        <p>
+          این قطعه با قطعه متد <code>Sign</code> یکسان است، چون در طول راستی‌آزمایی به همان داده‌ای نیاز داریم که
+          امضا شده است.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>	r := big.Int{}
+	s := big.Int{}
+	sigLen := len(vin.Signature)
+	r.SetBytes(vin.Signature[:(sigLen / 2)])
+	s.SetBytes(vin.Signature[(sigLen / 2):])
+
+	x := big.Int{}
+	y := big.Int{}
+	keyLen := len(vin.PubKey)
+	x.SetBytes(vin.PubKey[:(keyLen / 2)])
+	y.SetBytes(vin.PubKey[(keyLen / 2):])</code></pre>
+        <p>
+          در اینجا مقادیر ذخیره‌شده در <code>TXInput.Signature</code> و <code>TXInput.PubKey</code> را باز می‌کنیم، چون
+          یک امضا یک جفت عدد است و یک کلید عمومی یک جفت مختصات. آن‌ها را قبلاً برای ذخیره‌سازی به هم چسبانده‌ایم و حالا
+          باید برای استفاده در توابع <code>crypto/ecdsa</code> آن‌ها را باز کنیم.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>	rawPubKey := ecdsa.PublicKey{curve, &amp;x, &amp;y}
+	if ecdsa.Verify(&amp;rawPubKey, txCopy.ID, &amp;r, &amp;s) == false {
+		return false
+	}
+}
+
+return true</code></pre>
+        <p>
+          این همان است: یک <code>ecdsa.PublicKey</code> با استفاده از کلید عمومی استخراج‌شده از ورودی می‌سازیم و
+          <code>ecdsa.Verify</code> را اجرا می‌کنیم و امضای استخراج‌شده از ورودی را پاس می‌دهیم. اگر همه ورودی‌ها تأیید
+          شوند، true برمی‌گردانیم؛ اگر حداقل یک ورودی در راستی‌آزمایی شکست بخورد، false برمی‌گردانیم.
+        </p>
+        <p>
+          حالا به تابعی برای به‌دست آوردن تراکنش‌های قبلی نیاز داریم. چون این کار مستلزم تعامل با بلاک‌چین است، آن را
+          متدی از <code>Blockchain</code> می‌کنیم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
+	bci := bc.Iterator()
+
+	for {
+		block := bci.Next()
+
+		for _, tx := range block.Transactions {
+			if bytes.Compare(tx.ID, ID) == 0 {
+				return *tx, nil
+			}
+		}
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+
+	return Transaction{}, errors.New("Transaction is not found")
+}
+
+func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
+	prevTXs := make(map[string]Transaction)
+
+	for _, vin := range tx.Vin {
+		prevTX, err := bc.FindTransaction(vin.Txid)
+		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+	}
+
+	tx.Sign(privKey, prevTXs)
+}
+
+func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+	prevTXs := make(map[string]Transaction)
+
+	for _, vin := range tx.Vin {
+		prevTX, err := bc.FindTransaction(vin.Txid)
+		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+	}
+
+	return tx.Verify(prevTXs)
+}</code></pre>
+        <p>
+          این توابع ساده هستند: <code>FindTransaction</code> یک تراکنش را با شناسه پیدا می‌کند (این مستلزم پیمایش روی
+          همه بلاک‌های بلاک‌چین است)؛ <code>SignTransaction</code> یک تراکنش می‌گیرد، تراکنش‌هایی را که به آن‌ها ارجاع
+          می‌دهد پیدا می‌کند و آن را امضا می‌کند؛ <code>VerifyTransaction</code> همین کار را می‌کند، اما به جای امضا،
+          تراکنش را راستی‌آزمایی می‌کند.
+        </p>
+        <p>حالا باید تراکنش‌ها را واقعاً امضا و راستی‌آزمایی کنیم. امضا در <code>NewUTXOTransaction</code> اتفاق می‌افتد:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewUTXOTransaction(from, to string, amount int, bc *Blockchain) *Transaction {
+	...
+
+	tx := Transaction{nil, inputs, outputs}
+	tx.ID = tx.Hash()
+	bc.SignTransaction(&amp;tx, wallet.PrivateKey)
+
+	return &amp;tx
+}</code></pre>
+        <p>راستی‌آزمایی قبل از قرار گرفتن تراکنش در یک بلاک اتفاق می‌افتد:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) MineBlock(transactions []*Transaction) {
+	var lastHash []byte
+
+	for _, tx := range transactions {
+		if bc.VerifyTransaction(tx) != true {
+			log.Panic("ERROR: Invalid transaction")
+		}
+	}
+	...
+}</code></pre>
+        <p>و تمام شد! بیایید یک بار دیگر همه‌چیز را بررسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go createwallet
+Your new address: 1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR
+
+$ blockchain_go createwallet
+Your new address: 1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab
+
+$ blockchain_go createblockchain -address 1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR
+000000122348da06c19e5c513710340f4c307d884385da948a205655c6a9d008
+
+Done!
+
+$ blockchain_go send -from 1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR -to 1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab -amount 6
+0000000f3dbb0ab6d56c4e4b9f7479afe8d5a5dad4d2a8823345a1a16cf3347b
+
+Success!
+
+$ blockchain_go getbalance -address 1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR
+Balance of '1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR': 4
+
+$ blockchain_go getbalance -address 1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab
+Balance of '1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab': 6</code></pre>
+        <p>هیچ‌چیز خراب نشده است. فوق‌العاده!</p>
+        <p>
+          بیایید فراخوانی <code>bc.SignTransaction(&tx, wallet.PrivateKey)</code> را در <code>NewUTXOTransaction</code>
+          کامنت کنیم تا مطمئن شویم تراکنش‌های امضانشده نمی‌توانند استخراج شوند:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewUTXOTransaction(from, to string, amount int, bc *Blockchain) *Transaction {
+	...
+	tx := Transaction{nil, inputs, outputs}
+	tx.ID = tx.Hash()
+	// bc.SignTransaction(&tx, wallet.PrivateKey)
+
+	return &amp;tx
+}</code></pre>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ go install
+$ blockchain_go send -from 1AmVdDvvQ977oVCpUqz7zAPUEiXKrX5avR -to 1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab -amount 1
+2017/09/12 16:28:15 ERROR: Invalid transaction</code></pre>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          واقعاً فوق‌العاده است که این‌قدر جلو آمده‌ایم و این‌همه ویژگی کلیدی بیت‌کوین را پیاده‌سازی کرده‌ایم! تقریباً
+          همه‌چیز را خارج از شبکه پیاده‌سازی کرده‌ایم و در قسمت بعدی، تراکنش‌ها را به پایان می‌رسانیم.
+        </p>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_5" target="_blank" rel="noopener">کدهای کامل منبع</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Public-key_cryptography" target="_blank" rel="noopener">رمزنگاری کلید عمومی</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Digital_signature" target="_blank" rel="noopener">امضاهای دیجیتال</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Elliptic_curve" target="_blank" rel="noopener">منحنی بیضوی</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Elliptic_curve_cryptography" target="_blank" rel="noopener">رمزنگاری منحنی بیضوی</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm" target="_blank" rel="noopener">ECDSA</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses" target="_blank" rel="noopener">پیشینه فنی آدرس‌های بیت‌کوین نسخه ۱</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Address" target="_blank" rel="noopener">آدرس</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Base58Check_encoding" target="_blank" rel="noopener">Base58</a></li>
+          <li><a href="http://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/" target="_blank" rel="noopener">معرفی ملایم رمزنگاری منحنی بیضوی</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="part6">قسمت ۶: تراکنش‌ها ۲ (Transactions 2)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          در همان قسمت اول این سری گفتم که بلاک‌چین یک پایگاه‌داده توزیع‌شده است. آن موقع تصمیم گرفتیم بخش
+          «توزیع‌شده» را کنار بگذاریم و روی بخش «پایگاه‌داده» تمرکز کنیم. تا اینجا تقریباً همه چیزهایی را که یک
+          پایگاه‌داده بلاک‌چین می‌سازند پیاده‌سازی کرده‌ایم. در این پست، برخی مکانیسم‌هایی را که در بخش‌های قبلی
+          رد شدند پوشش می‌دهیم و در قسمت بعدی روی ماهیت توزیع‌شده بلاک‌چین کار می‌کنیم.
+        </p>
+        <p>قسمت‌های قبلی:</p>
+        <ul>
+          <li><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">نمونه اولیه</a></li>
+          <li><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-2/" target="_blank" rel="noopener">اثبات کار</a></li>
+          <li><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-3/" target="_blank" rel="noopener">ماندگاری و CLI</a></li>
+          <li><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-4/" target="_blank" rel="noopener">تراکنش‌ها ۱</a></li>
+          <li><a href="https://jeiwan.net/posts/building-blockchain-in-go-part-5/" target="_blank" rel="noopener">آدرس‌ها</a></li>
+        </ul>
+        <p>
+          این بخش تغییرات کد قابل توجهی ایجاد می‌کند، پس توضیح همه آن‌ها در اینجا بی‌معنی است. لطفاً برای دیدن همه
+          تغییرات از <a href="https://github.com/Jeiwan/blockchain_go/compare/part_5...part_6#files_bucket" target="_blank" rel="noopener">این صفحه</a> استفاده کنید.
+        </p>
+
+        <h3>پاداش</h3>
+        <p>
+          یک چیز کوچک که در مقاله قبلی رد کردیم، پاداش استخراج است. و ما از قبل همه‌چیز را برای پیاده‌سازی آن داریم.
+        </p>
+        <p>
+          پاداش فقط یک تراکنش کوین‌بیس است. وقتی یک گره ماینر استخراج یک بلاک جدید را شروع می‌کند، تراکنش‌ها را از
+          صف برمی‌دارد و یک تراکنش کوین‌بیس به آن‌ها اضافه می‌کند. تنها خروجی تراکنش کوین‌بیس شامل هش کلید عمومی
+          ماینر است.
+        </p>
+        <p>پیاده‌سازی پاداش‌ها به آسانی به‌روزرسانی دستور <code>send</code> است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) send(from, to string, amount int) {
+	...
+	bc := NewBlockchain()
+	UTXOSet := UTXOSet{bc}
+	defer bc.db.Close()
+
+	tx := NewUTXOTransaction(from, to, amount, &amp;UTXOSet)
+	cbTx := NewCoinbaseTX(from, "")
+	txs := []*Transaction{cbTx, tx}
+
+	newBlock := bc.MineBlock(txs)
+	fmt.Println("Success!")
+}</code></pre>
+        <p>در پیاده‌سازی ما، کسی که تراکنش را ایجاد می‌کند بلاک جدید را هم استخراج می‌کند و بنابراین پاداش می‌گیرد.</p>
+
+        <h3>مجموعه UTXO</h3>
+        <p>
+          در <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-3/" target="_blank" rel="noopener">قسمت ۳:
+          ماندگاری و CLI</a> روش ذخیره‌سازی بلاک‌ها در پایگاه‌داده توسط بیت‌کوین کور را بررسی کردیم. گفته شد که بلاک‌ها
+          در پایگاه‌داده <code>blocks</code> و خروجی‌های تراکنش در پایگاه‌داده <code>chainstate</code> ذخیره
+          می‌شوند. بگذارید ساختار <code>chainstate</code> را یادآوری کنم:
+        </p>
+        <ul>
+          <li><code>'c' + هش تراکنش ۳۲-بایتی → رکورد خروجی تراکنش خرج‌نشده برای آن تراکنش</code></li>
+          <li><code>'B' → هش بلاک ۳۲-بایتی: هش بلکی که پایگاه‌داده تا آن، خروجی‌های تراکنش خرج‌نشده را نشان می‌دهد</code></li>
+        </ul>
+        <p>
+          از آن مقاله به بعد، تراکنش‌ها را پیاده‌سازی کرده‌ایم، اما از <code>chainstate</code> برای ذخیره خروجی‌های
+          آن‌ها استفاده نکرده‌ایم. پس این همان کاری است که حالا می‌خواهیم انجام دهیم.
+        </p>
+        <p>
+          <code>chainstate</code> تراکنش‌ها را ذخیره نمی‌کند. در عوض، چیزی را ذخیره می‌کند که مجموعه UTXO یا
+          مجموعه خروجی‌های تراکنش خرج‌نشده نامیده می‌شود. علاوه بر این، «هش بلکی که پایگاه‌داده تا آن، خروجی‌های
+          تراکنش خرج‌نشده را نشان می‌دهد» را ذخیره می‌کند که فعلاً از آن صرف‌نظر می‌کنیم چون از ارتفاع بلاک
+          (block height) استفاده نمی‌کنیم (اما در مقاله‌های بعدی آن را پیاده‌سازی می‌کنیم).
+        </p>
+        <p>پس چرا می‌خواهیم مجموعه UTXO داشته باشیم؟</p>
+        <p>متد <code>Blockchain.FindUnspentTransactions</code> را که قبلاً پیاده‌سازی کرده‌ایم در نظر بگیرید:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) FindUnspentTransactions(pubKeyHash []byte) []Transaction {
+	...
+	bci := bc.Iterator()
+
+	for {
+		block := bci.Next()
+
+		for _, tx := range block.Transactions {
+			...
+		}
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+	...
+}</code></pre>
+        <p>
+          این تابع تراکنش‌های دارای خروجی خرج‌نشده را پیدا می‌کند. چون تراکنش‌ها در بلاک‌ها ذخیره می‌شوند، روی هر
+          بلاک در بلاک‌چین پیمایش می‌کند و هر تراکنش در آن را بررسی می‌کند. تا ۱۸ سپتامبر ۲۰۱۷، ۴۸۵٬۸۶۰ بلاک در
+          بیت‌کوین وجود دارد و کل پایگاه‌داده ۱۴۰+ گیگابایت فضای دیسک اشغال می‌کند. این یعنی برای اعتبارسنجی
+          تراکنش‌ها باید یک گره کامل اجرا کرد. علاوه بر این، اعتبارسنجی تراکنش‌ها مستلزم پیمایش روی بسیاری از
+          بلاک‌هاست.
+        </p>
+        <p>
+          راه‌حل این مشکل داشتن ایندکسی است که فقط خروجی‌های خرج‌نشده را ذخیره می‌کند و این دقیقاً کاری است که
+          مجموعه UTXO انجام می‌دهد: این یک کش است که از همه تراکنش‌های بلاک‌چین ساخته می‌شود (با پیمایش روی بلاک‌ها؛
+          بله، اما این فقط یک بار انجام می‌شود) و بعداً برای محاسبه موجودی و اعتبارسنجی تراکنش‌های جدید استفاده
+          می‌شود. مجموعه UTXO تا سپتامبر ۲۰۱۷ حدود ۲.۷ گیگابایت بود.
+        </p>
+        <p>خوب، بگذارید فکر کنیم برای پیاده‌سازی مجموعه UTXO چه چیزی باید تغییر کند. در حال حاضر، این متدها برای پیدا کردن تراکنش‌ها استفاده می‌شوند:</p>
+        <ul>
+          <li><code>Blockchain.FindUnspentTransactions</code> — تابع اصلی که تراکنش‌های دارای خروجی خرج‌نشده را پیدا می‌کند. این تابع همان جایی است که پیمایش همه بلاک‌ها اتفاق می‌افتد.</li>
+          <li><code>Blockchain.FindSpendableOutputs</code> — این تابع هنگام ایجاد یک تراکنش جدید استفاده می‌شود. تعداد کافی از خروجی‌های دارای مقدار مورد نیاز را پیدا می‌کند. از <code>Blockchain.FindUnspentTransactions</code> استفاده می‌کند.</li>
+          <li><code>Blockchain.FindUTXO</code> — خروجی‌های خرج‌نشده را برای یک هش کلید عمومی پیدا می‌کند؛ برای گرفتن موجودی استفاده می‌شود. از <code>Blockchain.FindUnspentTransactions</code> استفاده می‌کند.</li>
+          <li><code>Blockchain.FindTransaction</code> — یک تراکنش را در بلاک‌چین با شناسه آن پیدا می‌کند. روی همه بلاک‌ها پیمایش می‌کند تا آن را پیدا کند.</li>
+        </ul>
+        <p>
+          همان‌طور که می‌بینید، همه متدها روی بلاک‌های پایگاه‌داده پیمایش می‌کنند. اما فعلاً نمی‌توانیم همه آن‌ها را
+          بهبود ببخشیم، چون مجموعه UTXO همه تراکنش‌ها را ذخیره نمی‌کند، بلکه فقط آن‌هایی را ذخیره می‌کند که خروجی
+          خرج‌نشده دارند. بنابراین، نمی‌توان از آن در <code>Blockchain.FindTransaction</code> استفاده کرد.
+        </p>
+        <p>پس، این متدها را می‌خواهیم:</p>
+        <ul>
+          <li><code>Blockchain.FindUTXO</code> — همه خروجی‌های خرج‌نشده را با پیمایش روی بلاک‌ها پیدا می‌کند.</li>
+          <li><code>UTXOSet.Reindex</code> — از <code>FindUTXO</code> برای پیدا کردن خروجی‌های خرج‌نشده استفاده می‌کند و آن‌ها را در یک پایگاه‌داده ذخیره می‌کند. این جایی است که کش کردن اتفاق می‌افتد.</li>
+          <li><code>UTXOSet.FindSpendableOutputs</code> — مشابه <code>Blockchain.FindSpendableOutputs</code>، اما از مجموعه UTXO استفاده می‌کند.</li>
+          <li><code>UTXOSet.FindUTXO</code> — مشابه <code>Blockchain.FindUTXO</code>، اما از مجموعه UTXO استفاده می‌کند.</li>
+          <li><code>Blockchain.FindTransaction</code> ثابت می‌ماند.</li>
+        </ul>
+        <p>بنابراین، دو تابع پراستفاده‌ترین از این پس از کش استفاده خواهند کرد! بیایید کدنویسی را شروع کنیم.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type UTXOSet struct {
+	Blockchain *Blockchain
+}</code></pre>
+        <p>
+          از یک پایگاه‌داده واحد استفاده می‌کنیم، اما مجموعه UTXO را در یک سطل متفاوت ذخیره می‌کنیم. بنابراین
+          <code>UTXOSet</code> با <code>Blockchain</code> جفت می‌شود.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (u UTXOSet) Reindex() {
+	db := u.Blockchain.db
+	bucketName := []byte(utxoBucket)
+
+	err := db.Update(func(tx *bolt.Tx) error {
+		err := tx.DeleteBucket(bucketName)
+		_, err = tx.CreateBucket(bucketName)
+	})
+
+	UTXO := u.Blockchain.FindUTXO()
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketName)
+
+		for txID, outs := range UTXO {
+			key, err := hex.DecodeString(txID)
+			err = b.Put(key, outs.Serialize())
+		}
+	})
+}</code></pre>
+        <p>
+          این متد مجموعه UTXO را در ابتدا ایجاد می‌کند. اول، اگر سطل وجود داشته باشد آن را حذف می‌کند، سپس همه
+          خروجی‌های خرج‌نشده را از بلاک‌چین می‌گیرد و در نهایت خروجی‌ها را در سطل ذخیره می‌کند.
+        </p>
+        <p><code>Blockchain.FindUTXO</code> تقریباً با <code>Blockchain.FindUnspentTransactions</code> یکسان است، اما حالا یک map از جفت‌های <code>TransactionID → TransactionOutputs</code> برمی‌گرداند.</p>
+        <p>حالا می‌توان از مجموعه UTXO برای ارسال سکه‌ها استفاده کرد:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) {
+	unspentOutputs := make(map[string][]int)
+	accumulated := 0
+	db := u.Blockchain.db
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			txID := hex.EncodeToString(k)
+			outs := DeserializeOutputs(v)
+
+			for outIdx, out := range outs.Outputs {
+				if out.IsLockedWithKey(pubkeyHash) &amp;&amp; accumulated &lt; amount {
+					accumulated += out.Value
+					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+				}
+			}
+		}
+	})
+
+	return accumulated, unspentOutputs
+}</code></pre>
+        <p>یا برای بررسی موجودی:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TXOutput {
+	var UTXOs []TXOutput
+	db := u.Blockchain.db
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			outs := DeserializeOutputs(v)
+
+			for _, out := range outs.Outputs {
+				if out.IsLockedWithKey(pubKeyHash) {
+					UTXOs = append(UTXOs, out)
+				}
+			}
+		}
+
+		return nil
+	})
+
+	return UTXOs
+}</code></pre>
+        <p>این‌ها نسخه‌های کمی تغییر یافته متدهای متناظر <code>Blockchain</code> هستند. دیگر به آن متدهای <code>Blockchain</code> نیازی نیست.</p>
+        <p>
+          داشتن مجموعه UTXO یعنی داده‌های ما (تراکنش‌ها) حالا به دو ذخیره‌گاه تقسیم شده‌اند: تراکنش‌های واقعی در
+          بلاک‌چین ذخیره می‌شوند و خروجی‌های خرج‌نشده در مجموعه UTXO. چنین جداسازی به یک مکانیسم همگام‌سازی محکم
+          نیاز دارد، چون می‌خواهیم مجموعه UTXO همیشه به‌روز باشد و خروجی‌های جدیدترین تراکنش‌ها را ذخیره کند. اما
+          نمی‌خواهیم هر بار که یک بلاک جدید استخراج می‌شود بازایندکس کنیم، چون دقیقاً همین اسکن‌های مکرر بلاک‌چین
+          است که می‌خواهیم از آن‌ها اجتناب کنیم. بنابراین، به مکانیسمی برای به‌روزرسانی مجموعه UTXO نیاز داریم:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (u UTXOSet) Update(block *Block) {
+	db := u.Blockchain.db
+
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxoBucket))
+
+		for _, tx := range block.Transactions {
+			if tx.IsCoinbase() == false {
+				for _, vin := range tx.Vin {
+					updatedOuts := TXOutputs{}
+					outsBytes := b.Get(vin.Txid)
+					outs := DeserializeOutputs(outsBytes)
+
+					for outIdx, out := range outs.Outputs {
+						if outIdx != vin.Vout {
+							updatedOuts.Outputs = append(updatedOuts.Outputs, out)
+						}
+					}
+
+					if len(updatedOuts.Outputs) == 0 {
+						err := b.Delete(vin.Txid)
+					} else {
+						err := b.Put(vin.Txid, updatedOuts.Serialize())
+					}
+
+				}
+			}
+
+			newOutputs := TXOutputs{}
+			for _, out := range tx.Vout {
+				newOutputs.Outputs = append(newOutputs.Outputs, out)
+			}
+
+			err := b.Put(tx.ID, newOutputs.Serialize())
+		}
+	})
+}</code></pre>
+        <p>
+          متد بزرگ به نظر می‌رسد، اما چیزی که انجام می‌دهد کاملاً سرراست است. وقتی یک بلاک جدید استخراج می‌شود، باید
+          مجموعه UTXO به‌روزرسانی شود. به‌روزرسانی یعنی حذف خروجی‌های خرج‌شده و افزودن خروجی‌های خرج‌نشده از
+          تراکنش‌های تازه‌استخراج‌شده. اگر تراکنشی که خروجی‌هایش حذف شده‌اند دیگر خروجی‌ای نداشته باشد، خودش هم حذف
+          می‌شود. کاملاً ساده!
+        </p>
+        <p>حالا بیایید مجموعه UTXO را هر کجا که لازم است استفاده کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) createBlockchain(address string) {
+	...
+	bc := CreateBlockchain(address)
+	defer bc.db.Close()
+
+	UTXOSet := UTXOSet{bc}
+	UTXOSet.Reindex()
+	...
+}</code></pre>
+        <p>
+          بازایندکس کردن درست بعد از ایجاد یک بلاک‌چین جدید اتفاق می‌افتد. فعلاً این تنها جایی است که از
+          <code>Reindex</code> استفاده می‌شود، هرچند در اینجا زیادی به نظر می‌رسد، چون در ابتدای یک بلاک‌چین فقط یک
+          بلاک با یک تراکنش وجود دارد و می‌شد از <code>Update</code> استفاده کرد. اما ممکن است در آینده به مکانیسم
+          بازایندکس نیاز داشته باشیم.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (cli *CLI) send(from, to string, amount int) {
+	...
+	newBlock := bc.MineBlock(txs)
+	UTXOSet.Update(newBlock)
+}</code></pre>
+        <p>و مجموعه UTXO بعد از استخراج یک بلاک جدید به‌روزرسانی می‌شود.</p>
+        <p>بیایید بررسی کنیم که کار می‌کند</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go createblockchain -address 1JnMDSqVoHi4TEFXNw5wJ8skPsPf4LHkQ1
+00000086a725e18ed7e9e06f1051651a4fc46a315a9d298e59e57aeacbe0bf73
+
+Done!
+
+$ blockchain_go send -from 1JnMDSqVoHi4TEFXNw5wJ8skPsPf4LHkQ1 -to 12DkLzLQ4B3gnQt62EPRJGZ38n3zF4Hzt5 -amount 6
+0000001f75cb3a5033aeecbf6a8d378e15b25d026fb0a665c7721a5bb0faa21b
+
+Success!
+
+$ blockchain_go send -from 1JnMDSqVoHi4TEFXNw5wJ8skPsPf4LHkQ1 -to 12ncZhA5mFTTnTmHq1aTPYBri4jAK8TacL -amount 4
+000000cc51e665d53c78af5e65774a72fc7b864140a8224bf4e7709d8e0fa433
+
+Success!
+
+$ blockchain_go getbalance -address 1JnMDSqVoHi4TEFXNw5wJ8skPsPf4LHkQ1
+Balance of '1F4MbuqjcuJGymjcuYQMUVYB37AWKkSLif': 20
+
+$ blockchain_go getbalance -address 12DkLzLQ4B3gnQt62EPRJGZ38n3zF4Hzt5
+Balance of '1XWu6nitBWe6J6v6MXmd5rhdP7dZsExbx': 6
+
+$ blockchain_go getbalance -address 12ncZhA5mFTTnTmHq1aTPYBri4jAK8TacL
+Balance of '13UASQpCR8Nr41PojH8Bz4K6cmTCqweskL': 4</code></pre>
+        <p>عالی! آدرس <code>1JnMDSqVoHi4TEFXNw5wJ8skPsPf4LHkQ1</code> سه بار پاداش دریافت کرده است:</p>
+        <ul>
+          <li>یک بار برای استخراج بلاک پیدایش.</li>
+          <li>یک بار برای استخراج بلاک <code>0000001f75cb3a5033aeecbf6a8d378e15b25d026fb0a665c7721a5bb0faa21b</code>.</li>
+          <li>و یک بار برای استخراج بلاک <code>000000cc51e665d53c78af5e65774a72fc7b864140a8224bf4e7709d8e0fa433</code>.</li>
+        </ul>
+
+        <h3>درخت مرکل (Merkle Tree)</h3>
+        <p>یک مکانیسم بهینه‌سازی دیگر هم هست که می‌خواهم در این پست درباره آن بحث کنم.</p>
+        <p>
+          همان‌طور که در بالا گفته شد، پایگاه‌داده کامل بیت‌کوین (یعنی بلاک‌چین) بیش از ۱۴۰ گیگابایت فضای دیسک
+          اشغال می‌کند. به دلیل ماهیت غیرمتمرکز بیت‌کوین، هر گره در شبکه باید مستقل و خودکفا باشد؛ یعنی هر گره باید
+          یک نسخه کامل از بلاک‌چین ذخیره کند. با شروع استفاده بسیاری از مردم از بیت‌کوین، پیروی از این قاعده
+          دشوارتر می‌شود: بعید است همه یک گره کامل اجرا کنند. همچنین، چون گره‌ها شرکت‌کنندگان کامل شبکه هستند،
+          مسئولیت‌هایی دارند: باید تراکنش‌ها و بلاک‌ها را راستی‌آزمایی کنند. همچنین، ترافیک اینترنتی مشخصی برای
+          تعامل با سایر گره‌ها و دانلود بلاک‌های جدید لازم است.
+        </p>
+        <p>
+          در <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">مقاله اصلی بیت‌کوین</a> که توسط
+          ساتوشی ناکاموتو منتشر شد، راه‌حلی برای این مشکل وجود داشت: تأیید ساده پرداخت (Simplified Payment
+          Verification یا SPV). SPV یک گره سبک بیت‌کوین است که کل بلاک‌چین را دانلود نمی‌کند و بلاک‌ها و تراکنش‌ها را
+          راستی‌آزمایی نمی‌کند. در عوض، تراکنش‌ها را در بلاک‌ها پیدا می‌کند (برای تأیید پرداخت‌ها) و به یک گره کامل
+          متصل است تا فقط داده لازم را بازیابی کند. این مکانیسم اجازه می‌دهد گره‌های کیف پول سبک متعددی وجود داشته
+          باشند در حالی که فقط یک گره کامل اجرا می‌شود.
+        </p>
+        <p>
+          برای ممکن شدن SPV، باید راهی وجود داشته باشد که بدون دانلود کل بلاک بررسی شود آیا بلاک حاوی تراکنش مشخصی
+          است یا نه. و اینجاست که درخت مرکل وارد بازی می‌شود.
+        </p>
+        <p>
+          بیت‌کوین از درخت‌های مرکل برای به‌دست آوردن هش تراکنش‌ها استفاده می‌کند که سپس در هدرهای بلاک ذخیره می‌شود
+          و توسط سیستم اثبات کار در نظر گرفته می‌شود. تا حالا، ما فقط هش هر تراکنش در یک بلاک را به هم می‌چسباندیم و
+          SHA-256 روی آن‌ها اعمال می‌کردیم. این هم راه خوبی برای به‌دست آوردن نمایش یکتای تراکنش‌های بلاک است، اما
+          مزایای درخت‌های مرکل را ندارد.
+        </p>
+        <p>بیایید به یک درخت مرکل نگاه کنیم:</p>
+        <img src="https://jeiwan.net/images/merkle-tree-diagram.png" alt="نمودار درخت مرکل: برگ‌ها هش‌های تراکنش‌ها هستند که جفت‌جفت ترکیب و هش می‌شوند تا به ریشه برسند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>
+          برای هر بلاک یک درخت مرکل ساخته می‌شود و از برگ‌ها شروع می‌شود (ته درخت)، جایی که یک برگ یک هش تراکنش است
+          (بیت‌کوین از هش مضاعف <code>SHA256</code> استفاده می‌کند). تعداد برگ‌ها باید زوج باشد، اما هر بلاک حاوی
+          تعداد زوجی تراکنش نیست. در موردی که تعداد تراکنش‌ها فرد است، آخرین تراکنش تکرار می‌شود (در درخت مرکل، نه
+          در بلاک!).
+        </p>
+        <p>
+          با حرکت از پایین به بالا، برگ‌ها جفت‌جفت گروه‌بندی می‌شوند، هش‌های آن‌ها به هم چسبانده می‌شوند و هش جدیدی
+          از هش‌های به‌هم‌چسبیده به دست می‌آید. هش‌های جدید گره‌های جدید درخت را تشکیل می‌دهند. این فرایند تا زمانی
+          تکرار می‌شود که فقط یک گره باقی بماند که ریشه درخت نامیده می‌شود. سپس هش ریشه به‌عنوان نمایش یکتای
+          تراکنش‌ها استفاده می‌شود، در هدرهای بلاک ذخیره می‌شود و در سیستم اثبات کار استفاده می‌شود.
+        </p>
+        <p>
+          مزیت درخت‌های مرکل این است که یک گره می‌تواند عضویت یک تراکنش مشخص را بدون دانلود کل بلاک راستی‌آزمایی
+          کند. برای این کار فقط به هش تراکنش، هش ریشه درخت مرکل و یک مسیر مرکل (Merkle path) نیاز است.
+        </p>
+        <p>بالاخره، بیایید کد بنویسیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type MerkleTree struct {
+	RootNode *MerkleNode
+}
+
+type MerkleNode struct {
+	Left  *MerkleNode
+	Right *MerkleNode
+	Data  []byte
+}</code></pre>
+        <p>
+          با ساختارها شروع می‌کنیم. هر <code>MerkleNode</code> داده و پیوندهایی به شاخه‌های خود نگه می‌دارد.
+          <code>MerkleTree</code> در واقع گره ریشه‌ای است که به گره‌های بعدی متصل است، که آن‌ها هم به نوبه خود به
+          گره‌های بعدی متصل‌اند و الی آخر.
+        </p>
+        <p>بیایید اول یک گره جدید بسازیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
+	mNode := MerkleNode{}
+
+	if left == nil &amp;&amp; right == nil {
+		hash := sha256.Sum256(data)
+		mNode.Data = hash[:]
+	} else {
+		prevHashes := append(left.Data, right.Data...)
+		hash := sha256.Sum256(prevHashes)
+		mNode.Data = hash[:]
+	}
+
+	mNode.Left = left
+	mNode.Right = right
+
+	return &amp;mNode
+}</code></pre>
+        <p>
+          هر گره برخی داده‌ها را نگه می‌دارد. وقتی یک گره برگ است، داده از بیرون پاس داده می‌شود (در مورد ما یک
+          تراکنش سریال‌شده). وقتی یک گره به گره‌های دیگر متصل است، داده آن‌ها را می‌گیرد و به هم می‌چسباند و هش
+          می‌کند.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func NewMerkleTree(data [][]byte) *MerkleTree {
+	var nodes []MerkleNode
+
+	if len(data)%2 != 0 {
+		data = append(data, data[len(data)-1])
+	}
+
+	for _, datum := range data {
+		node := NewMerkleNode(nil, nil, datum)
+		nodes = append(nodes, *node)
+	}
+
+	for i := 0; i &lt; len(data)/2; i++ {
+		var newLevel []MerkleNode
+
+		for j := 0; j &lt; len(nodes); j += 2 {
+			node := NewMerkleNode(&amp;nodes[j], &amp;nodes[j+1], nil)
+			newLevel = append(newLevel, *node)
+		}
+
+		nodes = newLevel
+	}
+
+	mTree := MerkleTree{&amp;nodes[0]}
+
+	return &amp;mTree
+}</code></pre>
+        <p>
+          وقتی یک درخت جدید ساخته می‌شود، اولین چیزی که باید تضمین شود این است که تعداد برگ‌ها زوج است. پس از آن،
+          <code>data</code> (که آرایه‌ای از تراکنش‌های سریال‌شده است) به برگ‌های درخت تبدیل می‌شود و درختی از این
+          برگ‌ها رشد می‌کند.
+        </p>
+        <p>
+          حالا بیایید <code>Block.HashTransactions</code> را تغییر دهیم که در سیستم اثبات کار برای به‌دست آوردن هش
+          تراکنش‌ها استفاده می‌شود:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
+
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, tx.Serialize())
+	}
+	mTree := NewMerkleTree(transactions)
+
+	return mTree.RootNode.Data
+}</code></pre>
+        <p>
+          اول، تراکنش‌ها سریال‌سازی می‌شوند (با استفاده از <code>encoding/gob</code>) و سپس برای ساخت یک درخت مرکل
+          استفاده می‌شوند. ریشه درخت به‌عنوان شناسه یکتای تراکنش‌های بلاک عمل می‌کند.
+        </p>
+
+        <h3>P2PKH</h3>
+        <p>یک چیز دیگر هم هست که می‌خواهم با جزئیات بیشتری درباره آن بحث کنم.</p>
+        <p>
+          همان‌طور که به یاد دارید، در بیت‌کوین زبان برنامه‌نویسی اسکریپت (Script) وجود دارد که برای قفل کردن
+          خروجی‌های تراکنش استفاده می‌شود؛ و ورودی‌های تراکنش داده‌ای برای باز کردن خروجی‌ها فراهم می‌کنند. این زبان
+          ساده است و کد این زبان فقط دنباله‌ای از داده و عملگرهاست. این مثال را در نظر بگیرید:
+        </p>
+        <pre class="code"><span class="lang-tag">اسکریپت</span><code>5 2 OP_ADD 7 OP_EQUAL</code></pre>
+        <p>
+          <code>5</code>، <code>2</code> و <code>7</code> داده هستند. <code>OP_ADD</code> و <code>OP_EQUAL</code>
+          عملگرند. کد اسکریپت از چپ به راست اجرا می‌شود: هر قطعه داده در پشته (stack) قرار می‌گیرد و عملگر بعدی روی
+          عناصر بالای پشته اعمال می‌شود. پشته اسکریپت فقط یک حافظه ساده FILO (اول وارد، آخر خارج) است: اولین عنصر
+          پشته آخر از همه برداشته می‌شود و هر عنصر بعدی روی عنصر قبلی قرار می‌گیرد.
+        </p>
+        <p>بیایید اجرای اسکریپت بالا را به مراحل تقسیم کنیم:</p>
+        <ol>
+          <li>پشته: خالی. اسکریپت: <code>5 2 OP_ADD 7 OP_EQUAL</code>.</li>
+          <li>پشته: <code>5</code>. اسکریپت: <code>2 OP_ADD 7 OP_EQUAL</code>.</li>
+          <li>پشته: <code>5 2</code>. اسکریپت: <code>OP_ADD 7 OP_EQUAL</code>.</li>
+          <li>پشته: <code>7</code>. اسکریپت: <code>7 OP_EQUAL</code>.</li>
+          <li>پشته: <code>7 7</code>. اسکریپت: <code>OP_EQUAL</code>.</li>
+          <li>پشته: <code>true</code>. اسکریپت: خالی.</li>
+        </ol>
+        <p>
+          <code>OP_ADD</code> دو عنصر از پشته می‌گیرد، آن‌ها را جمع می‌کند و جمع را به پشته هل می‌دهد.
+          <code>OP_EQUAL</code> دو عنصر از پشته می‌گیرد و آن‌ها را مقایسه می‌کند: اگر برابر بودند <code>true</code>
+          را به پشته هل می‌دهد؛ در غیر این صورت <code>false</code> را. نتیجه اجرای یک اسکریپت مقدار عنصر بالای پشته
+          است: در مورد ما، <code>true</code> است، یعنی اسکریپت با موفقیت تمام شده است.
+        </p>
+        <p>حالا بیایید به اسکریپتی نگاه کنیم که در بیت‌کوین برای انجام پرداخت‌ها استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">اسکریپت</span><code>&lt;signature&gt; &lt;pubKey&gt; OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></pre>
+        <p>
+          این اسکریپت «پرداخت به هش کلید عمومی» (Pay to Public Key Hash یا P2PKH) نامیده می‌شود و پرکاربردترین
+          اسکریپت در بیت‌کوین است. به معنای واقعی کلمه به یک هش کلید عمومی پرداخت می‌کند؛ یعنی سکه‌ها را با یک کلید
+          عمومی مشخص قفل می‌کند. این قلب پرداخت‌های بیت‌کوین است: نه حسابی وجود دارد، نه انتقال وجهی بین آن‌ها؛ فقط
+          یک اسکریپت وجود دارد که بررسی می‌کند امضا و کلید عمومی ارائه‌شده درست هستند.
+        </p>
+        <p>اسکریپت در واقع در دو بخش ذخیره می‌شود:</p>
+        <ul>
+          <li>قطعه اول، <code>&lt;signature&gt; &lt;pubKey&gt;</code>، در فیلد <code>ScriptSig</code> ورودی ذخیره می‌شود.</li>
+          <li>قطعه دوم، <code>OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code>، در <code>ScriptPubKey</code> خروجی ذخیره می‌شود.</li>
+        </ul>
+        <p>بنابراین، این خروجی‌ها هستند که منطق باز کردن را تعریف می‌کنند و ورودی‌ها هستند که داده برای باز کردن خروجی‌ها فراهم می‌کنند. بیایید اسکریپت را اجرا کنیم:</p>
+        <ol>
+          <li>پشته: خالی</li>
+          <li>اسکریپت: <code>&lt;signature&gt; &lt;pubKey&gt; OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt;</code></li>
+          <li>اسکریپت: <code>&lt;pubKey&gt; OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt; &lt;pubKey&gt;</code></li>
+          <li>اسکریپت: <code>OP_DUP OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt; &lt;pubKey&gt; &lt;pubKey&gt;</code></li>
+          <li>اسکریپت: <code>OP_HASH160 &lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt; &lt;pubKey&gt; &lt;pubKeyHash&gt;</code></li>
+          <li>اسکریپت: <code>&lt;pubKeyHash&gt; OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt; &lt;pubKey&gt; &lt;pubKeyHash&gt; &lt;pubKeyHash&gt;</code></li>
+          <li>اسکریپت: <code>OP_EQUALVERIFY OP_CHECKSIG</code></li>
+          <li>پشته: <code>&lt;signature&gt; &lt;pubKey&gt;</code></li>
+          <li>اسکریپت: <code>OP_CHECKSIG</code></li>
+          <li>پشته: <code>true</code> یا <code>false</code>. اسکریپت: خالی.</li>
+        </ol>
+        <p>
+          <code>OP_DUP</code> عنصر بالای پشته را کپی می‌کند. <code>OP_HASH160</code> عنصر بالای پشته را می‌گیرد و آن
+          را با <code>RIPEMD160</code> هش می‌کند؛ نتیجه به پشته هل داده می‌شود. <code>OP_EQUALVERIFY</code> دو عنصر
+          بالای پشته را مقایسه می‌کند و اگر برابر نباشند، اسکریپت را قطع می‌کند. <code>OP_CHECKSIG</code> امضای
+          تراکنش را با هش کردن تراکنش و استفاده از <code>&lt;signature&gt;</code> و <code>&lt;pubKey&gt;</code>
+          راستی‌آزمایی می‌کند. عملگر دوم نسبتاً پیچیده است: یک کپی تُنُک‌شده از تراکنش می‌سازد، آن را هش می‌کند
+          (چون هش تراکنش است که امضا می‌شود) و بررسی می‌کند که امضا با استفاده از <code>&lt;signature&gt;</code> و
+          <code>&lt;pubKey&gt;</code> ارائه‌شده درست است.
+        </p>
+        <p>
+          داشتن چنین زبان اسکریپت‌نویسی به بیت‌کوین اجازه می‌دهد پلتفرم قرارداد هوشمند هم باشد: این زبان سایر طرح‌های
+          پرداخت را علاوه بر انتقال به یک کلید واحد ممکن می‌کند. مثلاً،
+        </p>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          و تمام شد! تقریباً همه ویژگی‌های کلیدی یک ارز رمزنگاری‌شده مبتنی بر بلاک‌چین را پیاده‌سازی کرده‌ایم. ما
+          بلاک‌چین، آدرس، استخراج و تراکنش داریم. اما یک چیز دیگر هم هست که به همه این مکانیسم‌ها جان می‌بخشد و
+          بیت‌کوین را به یک سیستم جهانی تبدیل می‌کند: اجماع (consensus). در مقاله بعدی، پیاده‌سازی بخش
+          «غیرمتمرکز» بلاک‌چین را شروع می‌کنیم. منتظر باشید!
+        </p>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_6" target="_blank" rel="noopener">کدهای کامل منبع</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_2):_Data_Storage#The_UTXO_set_.28chainstate_leveldb.29" target="_blank" rel="noopener">مجموعه UTXO</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Protocol_documentation#Merkle_Trees" target="_blank" rel="noopener">درخت مرکل</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Script" target="_blank" rel="noopener">اسکریپت</a></li>
+          <li><a href="https://github.com/sipa/bitcoin/commit/450cbb0944cd20a06ce806e6679a1f4c83c50db2" target="_blank" rel="noopener">کامیت «Ultraprune» بیت‌کوین کور</a></li>
+          <li><a href="https://statoshi.info/dashboard/db/unspent-transaction-output-set" target="_blank" rel="noopener">آمار مجموعه UTXO</a></li>
+          <li><a href="https://medium.com/@maraoz/smart-contracts-and-bitcoin-a5d61011d9b1" target="_blank" rel="noopener">قراردادهای هوشمند و بیت‌کوین</a></li>
+          <li><a href="https://medium.com/@jonaldfyookball/why-every-bitcoin-user-should-understand-spv-security-520d1d45e0b9" target="_blank" rel="noopener">چرا هر کاربر بیت‌کوین باید «امنیت SPV» را بفهمد</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 id="part7">قسمت ۷: شبکه (Network)</h2>
+
+        <h3>مقدمه</h3>
+        <p>
+          تا اینجا بلاک‌چینی ساخته‌ایم که همه ویژگی‌های کلیدی را دارد: آدرس‌های ناشناس، امن و تولیدشده به‌صورت
+          تصادفی؛ ذخیره‌سازی داده بلاک‌چین؛ سیستم اثبات کار؛ روش قابل اعتماد برای ذخیره تراکنش‌ها. هرچند این
+          ویژگی‌ها حیاتی هستند، کافی نیستند. چیزی که این ویژگی‌ها را واقعاً درخشان می‌کند و چیزی که ارزهای
+          رمزنگاری‌شده را ممکن می‌سازد، شبکه است. چه فایده‌ای دارد که چنین پیاده‌سازی بلاک‌چینی فقط روی یک
+          کامپیوتر واحد اجرا شود؟ چه فایده‌ای دارد که آن ویژگی‌های مبتنی بر رمزنگاری، وقتی فقط یک کاربر وجود دارد؟ این
+          شبکه است که همه این مکانیسم‌ها را به کار می‌اندازد و مفید می‌کند.
+        </p>
+        <p>
+          می‌توانید این ویژگی‌های بلاک‌چین را قوانینی در نظر بگیرید، شبیه قوانینی که مردم وقتی می‌خواهند با هم زندگی
+          کنند و شکوفا شوند وضع می‌کنند. نوعی ترتیبات اجتماعی. شبکه بلاک‌چین جامعه‌ای از برنامه‌هاست که از همان
+          قوانین پیروی می‌کنند و همین پیروی از قوانین است که شبکه را زنده نگه می‌دارد. به همین ترتیب، وقتی مردم
+          ایده‌های یکسانی دارند، قوی‌تر می‌شوند و می‌توانند با هم زندگی بهتری بسازند. اگر افرادی باشند که از مجموعه
+          قوانین متفاوتی پیروی کنند، آن‌ها در جامعه‌ای جدا (دولت، کمون و غیره) زندگی می‌کنند. به همین ترتیب، اگر
+          گره‌های بلاک‌چینی باشند که از قوانین متفاوتی پیروی کنند، شبکه جداگانه‌ای تشکیل می‌دهند.
+        </p>
+        <p>
+          این بسیار مهم است: بدون شبکه و بدون اکثریتی از گره‌ها که قوانین یکسانی دارند، این قوانین بی‌فایده‌اند!
+        </p>
+        <div class="callout warning">
+          <strong>سلب مسئولیت:</strong> متأسفانه، وقت کافی برای پیاده‌سازی یک نمونه اولیه P2P واقعی نداشتم. در این
+          مقاله یک سناریوی رایج‌ترین را نشان می‌دهم که شامل گره‌های از نوع مختلف است. بهبود این سناریو و تبدیل آن به
+          یک شبکه P2P می‌تواند یک چالش خوب و تمرینی عالی برای شما باشد! همچنین نمی‌توانم تضمین کنم که سناریوهای دیگر
+          غیر از سناریوی پیاده‌سازی‌شده در این مقاله کار خواهند کرد. متأسفم!
+        </div>
+        <p>
+          این بخش تغییرات کد قابل توجهی ایجاد می‌کند، پس توضیح همه آن‌ها در اینجا بی‌معنی است. لطفاً برای دیدن همه
+          تغییرات از <a href="https://github.com/Jeiwan/blockchain_go/compare/part_6...part_7#files_bucket" target="_blank" rel="noopener">این صفحه</a> استفاده کنید.
+        </p>
+
+        <h3>شبکه بلاک‌چین</h3>
+        <p>
+          شبکه بلاک‌چین غیرمتمرکز است؛ یعنی سرورهایی که کارها را انجام می‌دهند و کلاینت‌هایی که برای گرفتن یا
+          پردازش داده از سرورها استفاده می‌کنند وجود ندارد. در شبکه بلاک‌چین گره‌ها وجود دارند و هر گره یک عضو کامل
+          شبکه است. یک گره همه‌چیز است: هم کلاینت است و هم سرور. این بسیار مهم است که در نظر داشته باشید، چون خیلی
+          با برنامه‌های وب معمولی تفاوت دارد.
+        </p>
+        <p>
+          شبکه بلاک‌چین یک شبکه P2P (نظیربه‌نظیر) است؛ یعنی گره‌ها مستقیماً به یکدیگر متصل می‌شوند. توپولوژی آن
+          مسطح (flat) است، چون هیچ سلسله‌مراتبی در نقش گره‌ها وجود ندارد. این نمایش شماتیک آن است:
+        </p>
+        <img src="https://jeiwan.net/images/p2p-network.png" alt="نمودار شبکه نظیربه‌نظیر: گره‌ها به‌صورت مسطح و مستقیم به یکدیگر متصل هستند" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>(<a href="https://www.freepik.com/dooder" target="_blank" rel="noopener">وکتور کسب‌وکار ساخته‌شده توسط Dooder — Freepik.com</a>)</p>
+        <p>
+          پیاده‌سازی گره‌ها در چنین شبکه‌ای دشوارتر است، چون باید عملیات زیادی انجام دهند. هر گره باید با چندین گره
+          دیگر تعامل کند، باید وضعیت گره دیگر را درخواست کند، آن را با وضعیت خودش مقایسه کند و وقتی وضعیتش قدیمی
+          است آن را به‌روزرسانی کند.
+        </p>
+
+        <h3>نقش‌های گره‌ها</h3>
+        <p>با وجود کامل بودن، گره‌های بلاک‌چین می‌توانند نقش‌های متفاوتی در شبکه بازی کنند. این‌ها هستند:</p>
+        <ul>
+          <li><b>ماینر.</b> چنین گره‌هایی روی سخت‌افزار قدرتمند یا تخصصی (مثل ASIC) اجرا می‌شوند و تنها هدفشان استخراج بلاک‌های جدید تا حد ممکن سریع است. ماینرها فقط در بلاک‌چین‌هایی که از اثبات کار استفاده می‌کنند ممکن هستند، چون استخراج در واقع یعنی حل معماهای PoW. در بلاک‌چین‌های اثبات سهام (Proof-of-Stake)، مثلاً، استخراج وجود ندارد.</li>
+          <li><b>گره کامل (Full node).</b> این گره‌ها بلاک‌های استخراج‌شده توسط ماینرها را اعتبارسنجی می‌کنند و تراکنش‌ها را راستی‌آزمایی می‌کنند. برای این کار باید یک نسخه کامل از بلاک‌چین داشته باشند. همچنین، چنین گره‌هایی عملیات مسیریابی انجام می‌دهند، مثل کمک به گره‌های دیگر برای کشف یکدیگر.</li>
+          <li>داشتن گره‌های کامل زیاد برای شبکه بسیار حیاتی است، چون این گره‌ها هستند که تصمیم می‌گیرند: آن‌ها تصمیم می‌گیرند که یک بلاک یا تراکنش معتبر است یا نه.</li>
+          <li><b>SPV.</b> SPV مخفف Simplified Payment Verification (تأیید ساده پرداخت) است. این گره‌ها یک نسخه کامل از بلاک‌چین ذخیره نمی‌کنند، اما همچنان می‌توانند تراکنش‌ها را راستی‌آزمایی کنند (نه همه آن‌ها، بلکه زیرمجموعه‌ای را، مثلاً آن‌هایی که به یک آدرس مشخص فرستاده شده‌اند). یک گره SPV برای گرفتن داده به یک گره کامل وابسته است و می‌تواند گره‌های SPV زیادی به یک گره کامل متصل شوند. SPV برنامه‌های کیف پول را ممکن می‌کند: نیازی به دانلود کل بلاک‌چین نیست، اما همچنان می‌توان تراکنش‌های خود را راستی‌آزمایی کرد.</li>
+        </ul>
+
+        <h3>ساده‌سازی شبکه</h3>
+        <p>
+          برای پیاده‌سازی شبکه در بلاک‌چین خود، باید برخی چیزها را ساده کنیم. مشکل این است که کامپیوترهای زیادی
+          برای شبیه‌سازی شبکه‌ای با گره‌های متعدد نداریم. می‌توانستیم از ماشین‌های مجازی یا داکر برای حل این مشکل
+          استفاده کنیم، اما این می‌توانست همه‌چیز را دشوارتر کند: باید مشکلات احتمالی ماشین مجازی یا داکر را حل
+          می‌کردید، در حالی که هدف من تمرکز فقط روی پیاده‌سازی بلاک‌چین است. پس، می‌خواهیم چندین گره بلاک‌چین را
+          روی یک ماشین واحد اجرا کنیم و در عین حال آن‌ها آدرس‌های متفاوتی داشته باشند. برای رسیدن به این هدف، به جای
+          آدرس IP از پورت‌ها به‌عنوان شناسه گره استفاده می‌کنیم. مثلاً گره‌هایی با آدرس‌های <code>127.0.0.1:3000</code>،
+          <code>127.0.0.1:3001</code>، <code>127.0.0.1:3002</code> و غیره وجود خواهند داشت. پورت را شناسه گره
+          می‌نامیم و از متغیر محیطی <code>NODE_ID</code> برای تنظیم آن استفاده می‌کنیم. بنابراین، می‌توانید چندین
+          پنجره ترمینال باز کنید، <code>NODE_ID</code>های متفاوت تنظیم کنید و گره‌های متفاوتی در حال اجرا داشته باشید.
+        </p>
+        <p>
+          این رویکرد همچنین به بلاک‌چین‌ها و فایل‌های کیف پول متفاوتی نیاز دارد. آن‌ها حالا باید به شناسه گره وابسته
+          باشند و نام‌هایی مثل <code>blockchain_3000.db</code>، <code>blockchain_3001.db</code>، <code>wallet_3000.db</code>
+          و <code>wallet_3001.db</code> و غیره داشته باشند.
+        </p>
+
+        <h3>پیاده‌سازی</h3>
+        <p>
+          پس، چه اتفاقی می‌افتد وقتی مثلاً بیت‌کوین کور را دانلود می‌کنید و اولین بار آن را اجرا می‌کنید؟ باید به
+          برخی گره‌ها متصل شود تا آخرین وضعیت بلاک‌چین را دانلود کند. با توجه به اینکه کامپیوتر شما از همه یا برخی
+          گره‌های بیت‌کوین آگاه نیست، این گره چیست؟
+        </p>
+        <p>
+          هاردکد کردن آدرس یک گره در بیت‌کوین کور یک اشتباه می‌بود: ممکن بود به گره حمله شود یا خاموش شود، که می‌تواند
+          منجر به ناتوانی گره‌های جدید در پیوستن به شبکه شود. در عوض، در بیت‌کوین کور <a href="https://bitcoin.org/en/glossary/dns-seed" target="_blank" rel="noopener">بذرهای DNS (DNS seeds)</a> هاردکد شده‌اند. این‌ها گره نیستند، بلکه سرورهای DNS هستند که آدرس برخی گره‌ها را می‌دانند. وقتی یک بیت‌کوین کور تمیز را شروع می‌کنید، به یکی از بذرها متصل می‌شود و فهرستی از گره‌های کامل می‌گیرد که سپس بلاک‌چین را از آن‌ها دانلود می‌کند.
+        </p>
+        <p>در پیاده‌سازی ما، با این حال، تمرکزگرایی وجود خواهد داشت. سه گره خواهیم داشت:</p>
+        <ul>
+          <li><b>گره مرکزی.</b> این گره‌ای است که همه گره‌های دیگر به آن متصل می‌شوند و این گره‌ای است که داده را بین گره‌های دیگر می‌فرستد.</li>
+          <li><b>گره ماینر.</b> این گره تراکنش‌های جدید را در مم‌پول ذخیره می‌کند و وقتی به‌اندازه کافی تراکنش وجود داشت، بلاک جدیدی را استخراج می‌کند.</li>
+          <li><b>گره کیف پول.</b> این گره برای ارسال سکه‌ها بین کیف پول‌ها استفاده می‌شود. برخلاف گره‌های SPV، یک نسخه کامل از بلاک‌چین را ذخیره می‌کند.</li>
+        </ul>
+
+        <h3>سناریو</h3>
+        <p>هدف این مقاله پیاده‌سازی سناریوی زیر است:</p>
+        <ol>
+          <li>گره مرکزی یک بلاک‌چین ایجاد می‌کند.</li>
+          <li>گره دیگر (کیف پول) به آن متصل می‌شود و بلاک‌چین را دانلود می‌کند.</li>
+          <li>یک گره دیگر (ماینر) به گره مرکزی متصل می‌شود و بلاک‌چین را دانلود می‌کند.</li>
+          <li>گره کیف پول یک تراکنش ایجاد می‌کند.</li>
+          <li>گره ماینر تراکنش را دریافت می‌کند و آن را در استخر حافظه خود نگه می‌دارد.</li>
+          <li>وقتی تراکنش‌های کافی در استخر حافظه وجود دارد، ماینر استخراج یک بلاک جدید را شروع می‌کند.</li>
+          <li>وقتی یک بلاک جدید استخراج شد، به گره مرکزی فرستاده می‌شود.</li>
+          <li>گره کیف پول با گره مرکزی همگام‌سازی می‌شود.</li>
+          <li>کاربر گره کیف پول بررسی می‌کند که پرداختش موفق بوده است.</li>
+        </ol>
+        <p>
+          این همان چیزی است که در بیت‌کوین اتفاق می‌افتد. حتی اگر قرار نیست یک شبکه P2P واقعی بسازیم، قرار است یک
+          مورد استفاده واقعی، اصلی و مهم بیت‌کوین را پیاده‌سازی کنیم.
+        </p>
+
+        <h3>version</h3>
+        <p>
+          گره‌ها از طریق پیام‌ها با یکدیگر ارتباط برقرار می‌کنند. وقتی یک گره جدید اجرا می‌شود، چند گره از یک بذر DNS
+          می‌گیرد و پیام <code>version</code> به آن‌ها می‌فرستد که در پیاده‌سازی ما این‌گونه خواهد بود:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type version struct {
+	Version    int
+	BestHeight int
+	AddrFrom   string
+}</code></pre>
+        <p>
+          ما فقط یک نسخه از بلاک‌چین داریم، پس فیلد <code>Version</code> اطلاعات مهمی را نگه نمی‌دارد.
+          <code>BestHeight</code> طول بلاک‌چین گره را ذخیره می‌کند. <code>AddrFrom</code> آدرس فرستنده را ذخیره
+          می‌کند.
+        </p>
+        <p>
+          گره‌ای که پیام <code>version</code> دریافت می‌کند چه باید بکند؟ با پیام <code>version</code> خودش پاسخ
+          می‌دهد. این نوعی دست‌دادن (handshake) است: بدون سلام‌واحوال قبلی هیچ تعامل دیگری ممکن نیست. اما این فقط
+          ادب نیست: از <code>version</code> برای پیدا کردن بلاک‌چین بلندتر استفاده می‌شود. وقتی یک گره پیام
+          <code>version</code> دریافت می‌کند، بررسی می‌کند که آیا بلاک‌چین گره از مقدار <code>BestHeight</code>
+          بلندتر است یا نه. اگر نیست، گره بلاک‌های جاافتاده را درخواست و دانلود می‌کند.
+        </p>
+        <p>برای دریافت پیام، به یک سرور نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>var nodeAddress string
+var knownNodes = []string{"localhost:3000"}
+
+func StartServer(nodeID, minerAddress string) {
+	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
+	myMiningAddress = minerAddress
+	ln, err := net.Listen(protocol, nodeAddress)
+	defer ln.Close()
+
+	bc := NewBlockchain(nodeID)
+
+	if nodeAddress != knownNodes[0] {
+		sendVersion(knownNodes[0], bc)
+	}
+
+	for {
+		conn, err := ln.Accept()
+		go handleConnection(conn, bc)
+	}
+}</code></pre>
+        <p>
+          اول، آدرس گره مرکزی را هاردکد می‌کنیم: هر گره باید بداند در ابتدا به کجا متصل شود. آرگومان
+          <code>minerAddress</code> آدرسی را مشخص می‌کند که پاداش‌های استخراج را دریافت کند. این قطعه:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if nodeAddress != knownNodes[0] {
+	sendVersion(knownNodes[0], bc)
+}</code></pre>
+        <p>
+          یعنی اگر گره فعلی، گره مرکزی نیست، باید پیام <code>version</code> به گره مرکزی بفرستد تا بفهمد بلاک‌چین‌اش
+          قدیمی است یا نه.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func sendVersion(addr string, bc *Blockchain) {
+	bestHeight := bc.GetBestHeight()
+	payload := gobEncode(version{nodeVersion, bestHeight, nodeAddress})
+
+	request := append(commandToBytes("version"), payload...)
+
+	sendData(addr, request)
+}</code></pre>
+        <p>
+          پیام‌های ما، در سطح پایین‌تر، دنباله‌هایی از بایت‌ها هستند. ۱۲ بایت اول نام دستور را مشخص می‌کنند (در این
+          مورد «version») و بایت‌های بعدی ساختار پیام انکودشده با <code>gob</code> را شامل می‌شوند.
+          <code>commandToBytes</code> این‌گونه است:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func commandToBytes(command string) []byte {
+	var bytes [commandLength]byte
+
+	for i, c := range command {
+		bytes[i] = byte(c)
+	}
+
+	return bytes[:]
+}</code></pre>
+        <p>
+          یک بافر ۱۲-بایتی ایجاد می‌کند و آن را با نام دستور پر می‌کند و بقیه بایت‌ها را خالی می‌گذارد. یک تابع
+          برعکس هم وجود دارد:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func bytesToCommand(bytes []byte) string {
+	var command []byte
+
+	for _, b := range bytes {
+		if b != 0x0 {
+			command = append(command, b)
+		}
+	}
+
+	return fmt.Sprintf("%s", command)
+}</code></pre>
+        <p>وقتی یک گره دستوری دریافت می‌کند، <code>bytesToCommand</code> را اجرا می‌کند تا نام دستور را استخراج کند و بدنه دستور را با هندلر درست پردازش می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleConnection(conn net.Conn, bc *Blockchain) {
+	request, err := ioutil.ReadAll(conn)
+	command := bytesToCommand(request[:commandLength])
+	fmt.Printf("Received %s command\n", command)
+
+	switch command {
+	...
+	case "version":
+		handleVersion(request, bc)
+	default:
+		fmt.Println("Unknown command!")
+	}
+
+	conn.Close()
+}</code></pre>
+        <p>خوب، این هم هندلر دستور <code>version</code>:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleVersion(request []byte, bc *Blockchain) {
+	var buff bytes.Buffer
+	var payload verzion
+
+	buff.Write(request[commandLength:])
+	dec := gob.NewDecoder(&amp;buff)
+	err := dec.Decode(&amp;payload)
+
+	myBestHeight := bc.GetBestHeight()
+	foreignerBestHeight := payload.BestHeight
+
+	if myBestHeight &lt; foreignerBestHeight {
+		sendGetBlocks(payload.AddrFrom)
+	} else if myBestHeight &gt; foreignerBestHeight {
+		sendVersion(payload.AddrFrom, bc)
+	}
+
+	if !nodeIsKnown(payload.AddrFrom) {
+		knownNodes = append(knownNodes, payload.AddrFrom)
+	}
+}</code></pre>
+        <p>
+          اول، باید درخواست را رمزگشایی کنیم و payload را استخراج کنیم. این شبیه همه هندلرهاست، پس این قطعه را در
+          قطعات کد بعدی حذف می‌کنم.
+        </p>
+        <p>
+          سپس یک گره <code>BestHeight</code> خودش را با مقدار موجود در پیام مقایسه می‌کند. اگر بلاک‌چین گره بلندتر
+          باشد، با پیام <code>version</code> پاسخ می‌دهد؛ در غیر این صورت، پیام <code>getblocks</code> می‌فرستد.
+        </p>
+
+        <h3>getblocks</h3>
+        <pre class="code"><span class="lang-tag">Go</span><code>type getblocks struct {
+	AddrFrom string
+}</code></pre>
+        <p>
+          <code>getblocks</code> یعنی «به من نشان بده چه بلاک‌هایی داری» (در بیت‌کوین پیچیده‌تر است). توجه کنید که
+          نمی‌گوید «همه بلاک‌هایت را به من بده»، بلکه فهرستی از هش‌های بلاک درخواست می‌کند. این کار برای کاهش بار
+          شبکه انجام می‌شود، چون بلاک‌ها را می‌توان از گره‌های مختلف دانلود کرد و ما نمی‌خواهیم ده‌ها گیگابایت را از
+          یک گره دانلود کنیم.
+        </p>
+        <p>مدیریت این دستور به همین سادگی است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleGetBlocks(request []byte, bc *Blockchain) {
+	...
+	blocks := bc.GetBlockHashes()
+	sendInv(payload.AddrFrom, "block", blocks)
+}</code></pre>
+        <p>در پیاده‌سازی ساده‌شده ما، همه هش‌های بلاک را برمی‌گرداند.</p>
+
+        <h3>inv</h3>
+        <pre class="code"><span class="lang-tag">Go</span><code>type inv struct {
+	AddrFrom string
+	Type     string
+	Items    [][]byte
+}</code></pre>
+        <p>
+          بیت‌کوین از <code>inv</code> برای نشان دادن بلاک‌ها یا تراکنش‌هایی که گره فعلی دارد به گره‌های دیگر
+          استفاده می‌کند. باز هم، شامل بلاک‌ها و تراکنش‌های کامل نیست، فقط هش‌های آن‌هاست. فیلد <code>Type</code>
+          می‌گوید این‌ها بلاک هستند یا تراکنش.
+        </p>
+        <p>مدیریت <code>inv</code> دشوارتر است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleInv(request []byte, bc *Blockchain) {
+	...
+	fmt.Printf("Recevied inventory with %d %s\n", len(payload.Items), payload.Type)
+
+	if payload.Type == "block" {
+		blocksInTransit = payload.Items
+
+		blockHash := payload.Items[0]
+		sendGetData(payload.AddrFrom, "block", blockHash)
+
+		newInTransit := [][]byte{}
+		for _, b := range blocksInTransit {
+			if bytes.Compare(b, blockHash) != 0 {
+				newInTransit = append(newInTransit, b)
+			}
+		}
+		blocksInTransit = newInTransit
+	}
+
+	if payload.Type == "tx" {
+		txID := payload.Items[0]
+
+		if mempool[hex.EncodeToString(txID)].ID == nil {
+			sendGetData(payload.AddrFrom, "tx", txID)
+		}
+	}
+}</code></pre>
+        <p>
+          اگر هش‌های بلاک منتقل می‌شوند، می‌خواهیم آن‌ها را در متغیر <code>blocksInTransit</code> ذخیره کنیم تا
+          بلاک‌های دانلودشده را پیگیری کنیم. این به ما امکان می‌دهد بلاک‌ها را از گره‌های مختلف دانلود کنیم.
+        </p>
+        <p>
+          درست بعد از قرار دادن بلاک‌ها در حالت در حال انتقال، دستور <code>getdata</code> را به فرستنده پیام
+          <code>inv</code> می‌فرستیم و <code>blocksInTransit</code> را به‌روزرسانی می‌کنیم. در یک شبکه P2P واقعی،
+          می‌خواستیم بلاک‌ها را از گره‌های مختلف منتقل کنیم.
+        </p>
+        <p>
+          در پیاده‌سازی ما، هرگز <code>inv</code> با چندین هش نمی‌فرستیم. به همین دلیل وقتی <code>payload.Type == "tx"</code>
+          است فقط اولین هش گرفته می‌شود. سپس بررسی می‌کنیم که آیا قبلاً این هش را در مم‌پول داریم یا نه و اگر
+          نداریم، پیام <code>getdata</code> فرستاده می‌شود.
+        </p>
+
+        <h3>getdata</h3>
+        <pre class="code"><span class="lang-tag">Go</span><code>type getdata struct {
+	AddrFrom string
+	Type     string
+	ID       []byte
+}</code></pre>
+        <p><code>getdata</code> درخواستی برای یک بلاک یا تراکنش مشخص است و فقط می‌تواند یک شناسه بلاک/تراکنش داشته باشد.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleGetData(request []byte, bc *Blockchain) {
+	...
+	if payload.Type == "block" {
+		block, err := bc.GetBlock([]byte(payload.ID))
+
+		sendBlock(payload.AddrFrom, &amp;block)
+	}
+
+	if payload.Type == "tx" {
+		txID := hex.EncodeToString(payload.ID)
+		tx := mempool[txID]
+
+		sendTx(payload.AddrFrom, &amp;tx)
+	}
+}</code></pre>
+        <p>
+          هندلر سرراست است: اگر بلاک درخواست کنند، بلاک را برمی‌گردانند؛ اگر تراکنش درخواست کنند، تراکنش را
+          برمی‌گردانند. توجه کنید که بررسی نمی‌کنیم که واقعاً این بلاک یا تراکنش را داریم یا نه. این یک نقص است :)
+        </p>
+
+        <h3>block و tx</h3>
+        <pre class="code"><span class="lang-tag">Go</span><code>type block struct {
+	AddrFrom string
+	Block    []byte
+}
+
+type tx struct {
+	AddFrom     string
+	Transaction []byte
+}</code></pre>
+        <p>این پیام‌ها هستند که واقعاً داده را منتقل می‌کنند.</p>
+        <p>مدیریت پیام <code>block</code> آسان است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleBlock(request []byte, bc *Blockchain) {
+	...
+
+	blockData := payload.Block
+	block := DeserializeBlock(blockData)
+
+	fmt.Println("Recevied a new block!")
+	bc.AddBlock(block)
+
+	fmt.Printf("Added block %x\n", block.Hash)
+
+	if len(blocksInTransit) &gt; 0 {
+		blockHash := blocksInTransit[0]
+		sendGetData(payload.AddrFrom, "block", blockHash)
+
+		blocksInTransit = blocksInTransit[1:]
+	} else {
+		UTXOSet := UTXOSet{bc}
+		UTXOSet.Reindex()
+	}
+}</code></pre>
+        <p>
+          وقتی یک بلاک جدید دریافت می‌کنیم، آن را در بلاک‌چین خود قرار می‌دهیم. اگر بلاک‌های بیشتری برای دانلود
+          وجود دارد، آن‌ها را از همان گره‌ای که بلاک قبلی را دانلود کردیم درخواست می‌کنیم. وقتی بالاخره همه بلاک‌ها
+          را دانلود کردیم، مجموعه UTXO بازایندکس می‌شود.
+        </p>
+        <div class="callout warning">
+          TODO: به جای اعتماد بی‌قیدوشرط، باید هر بلاک ورودی را قبل از افزودن به بلاک‌چین اعتبارسنجی کنیم.
+        </div>
+        <div class="callout warning">
+          TODO: به جای اجرای <code>UTXOSet.Reindex()</code> باید از <code>UTXOSet.Update(block)</code> استفاده شود،
+          چون اگر بلاک‌چین بزرگ باشد، بازایندکس کردن کل مجموعه UTXO زمان زیادی می‌برد.
+        </div>
+        <p>مدیریت پیام‌های <code>tx</code> دشوارترین بخش است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func handleTx(request []byte, bc *Blockchain) {
+	...
+	txData := payload.Transaction
+	tx := DeserializeTransaction(txData)
+	mempool[hex.EncodeToString(tx.ID)] = tx
+
+	if nodeAddress == knownNodes[0] {
+		for _, node := range knownNodes {
+			if node != nodeAddress &amp;&amp; node != payload.AddFrom {
+				sendInv(node, "tx", [][]byte{tx.ID})
+			}
+		}
+	} else {
+		if len(mempool) &gt;= 2 &amp;&amp; len(myMiningAddress) &gt; 0 {
+		MineTransactions:
+			var txs []*Transaction
+
+			for id := range mempool {
+				tx := mempool[id]
+				if bc.VerifyTransaction(&amp;tx) {
+					txs = append(txs, &amp;tx)
+				}
+			}
+
+			if len(txs) == 0 {
+				fmt.Println("All transactions are invalid! Waiting for new ones...")
+				return
+			}
+
+			cbTx := NewCoinbaseTX(myMiningAddress, "")
+			txs = append(txs, cbTx)
+
+			newBlock := bc.MineBlock(txs)
+			UTXOSet := UTXOSet{bc}
+			UTXOSet.Reindex()
+
+			fmt.Println("New block is mined!")
+
+			for _, tx := range txs {
+				txID := hex.EncodeToString(tx.ID)
+				delete(mempool, txID)
+			}
+
+			for _, node := range knownNodes {
+				if node != nodeAddress {
+					sendInv(node, "block", [][]byte{newBlock.Hash})
+				}
+			}
+
+			if len(mempool) &gt; 0 {
+				goto MineTransactions
+			}
+		}
+	}
+}</code></pre>
+        <p>
+          اولین کاری که باید انجام داد قرار دادن تراکنش جدید در مم‌پول است (باز هم، تراکنش‌ها باید قبل از قرار گرفتن
+          در مم‌پول راستی‌آزمایی شوند). قطعه بعدی:
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if nodeAddress == knownNodes[0] {
+	for _, node := range knownNodes {
+		if node != nodeAddress &amp;&amp; node != payload.AddFrom {
+			sendInv(node, "tx", [][]byte{tx.ID})
+		}
+	}
+}</code></pre>
+        <p>
+          بررسی می‌کند که آیا گره فعلی گره مرکزی است یا نه. در پیاده‌سازی ما، گره مرکزی بلاک استخراج نمی‌کند. در
+          عوض، تراکنش‌های جدید را به گره‌های دیگر شبکه ارسال می‌کند.
+        </p>
+        <p>قطعه بزرگ بعدی فقط برای گره‌های ماینر است. بیایید آن را به قطعات کوچک‌تر تقسیم کنیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>if len(mempool) &gt;= 2 &amp;&amp; len(myMiningAddress) &gt; 0 {</code></pre>
+        <p>
+          <code>miningAddress</code> فقط روی گره‌های ماینر تنظیم می‌شود. وقتی ۲ تراکنش یا بیشتر در مم‌پول گره فعلی
+          (ماینر) وجود دارد، استخراج شروع می‌شود.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>for id := range mempool {
+	tx := mempool[id]
+	if bc.VerifyTransaction(&amp;tx) {
+		txs = append(txs, &amp;tx)
+	}
+}
+
+if len(txs) == 0 {
+	fmt.Println("All transactions are invalid! Waiting for new ones...")
+	return
+}</code></pre>
+        <p>
+          اول، همه تراکنش‌های مم‌پول راستی‌آزمایی می‌شوند. تراکنش‌های نامعتبر نادیده گرفته می‌شوند و اگر هیچ
+          تراکنش معتبری وجود نداشته باشد، استخراج قطع می‌شود.
+        </p>
+        <pre class="code"><span class="lang-tag">Go</span><code>cbTx := NewCoinbaseTX(myMiningAddress, "")
+txs = append(txs, cbTx)
+
+newBlock := bc.MineBlock(txs)
+UTXOSet := UTXOSet{bc}
+UTXOSet.Reindex()
+
+fmt.Println("New block is mined!")</code></pre>
+        <p>
+          تراکنش‌های معتبر در یک بلاک قرار می‌گیرند، همچنین یک تراکنش کوین‌بیس با پاداش. پس از استخراج بلاک، مجموعه
+          UTXO بازایندکس می‌شود.
+        </p>
+        <div class="callout warning">TODO: باز هم، باید از <code>UTXOSet.Update</code> به جای <code>UTXOSet.Reindex</code> استفاده شود.</div>
+        <pre class="code"><span class="lang-tag">Go</span><code>for _, tx := range txs {
+	txID := hex.EncodeToString(tx.ID)
+	delete(mempool, txID)
+}
+
+for _, node := range knownNodes {
+	if node != nodeAddress {
+		sendInv(node, "block", [][]byte{newBlock.Hash})
+	}
+}
+
+if len(mempool) &gt; 0 {
+	goto MineTransactions
+}</code></pre>
+        <p>
+          پس از استخراج یک تراکنش، از مم‌پول حذف می‌شود. همه گره‌های دیگری که گره فعلی از آن‌ها آگاه است، پیام
+          <code>inv</code> با هش بلاک جدید دریافت می‌کنند. آن‌ها می‌توانند پس از مدیریت پیام، بلاک را درخواست کنند.
+        </p>
+
+        <h3>نتیجه</h3>
+        <p>بیایید سناریویی را که قبلاً تعریف کردیم اجرا کنیم.</p>
+        <p>
+          اول، در اولین پنجره ترمینال <code>NODE_ID</code> را روی 3000 تنظیم کنید (<code>export NODE_ID=3000</code>).
+          در پاراگراف‌های بعدی از نشان‌هایی مانند <code>NODE 3000</code> یا <code>NODE 3001</code> استفاده می‌کنم تا
+          بدانید عملیات را روی کدام گره انجام دهید.
+        </p>
+        <p><b><code>NODE 3000</code></b></p>
+        <p>یک کیف پول و یک بلاک‌چین جدید ایجاد کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go createblockchain -address CENTREAL_NODE</code></pre>
+        <p>(برای وضوح و اختصار از آدرس‌های جعلی استفاده می‌کنم)</p>
+        <p>
+          پس از آن، بلاک‌چین فقط یک بلاک پیدایش خواهد داشت. باید بلاک را ذخیره کنیم و در گره‌های دیگر استفاده کنیم.
+          بلاک‌های پیدایش به‌عنوان شناسه بلاک‌چین‌ها عمل می‌کنند (در بیت‌کوین کور، بلاک پیدایش هاردکد شده است).
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ cp blockchain_3000.db blockchain_genesis.db</code></pre>
+        <p><b><code>NODE 3001</code></b></p>
+        <p>
+          در ادامه، یک پنجره ترمینال جدید باز کنید و شناسه گره را روی 3001 تنظیم کنید. این یک گره کیف پول خواهد بود.
+          با <code>blockchain_go createwallet</code> چند آدرس تولید کنید؛ این آدرس‌ها را <code>WALLET_1</code>،
+          <code>WALLET_2</code>، <code>WALLET_3</code> می‌نامیم.
+        </p>
+        <p><b><code>NODE 3000</code></b></p>
+        <p>برخی سکه‌ها به آدرس‌های کیف پول بفرستید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from CENTREAL_NODE -to WALLET_1 -amount 10 -mine
+$ blockchain_go send -from CENTREAL_NODE -to WALLET_2 -amount 10 -mine</code></pre>
+        <p>
+          پرچم <code>-mine</code> یعنی بلاک بلافاصله توسط همان گره استخراج می‌شود. ما به این پرچم نیاز داریم چون در
+          ابتدا هیچ گره ماینری در شبکه وجود ندارد.
+        </p>
+        <p>گره را شروع کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go startnode</code></pre>
+        <p>گره باید تا پایان سناریو در حال اجرا باشد.</p>
+        <p><b><code>NODE 3001</code></b></p>
+        <p>بلاک‌چین گره را با بلاک پیدایش ذخیره‌شده در بالا شروع کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ cp blockchain_genesis.db blockchain_3001.db</code></pre>
+        <p>گره را اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go startnode</code></pre>
+        <p>همه بلاک‌ها را از گره مرکزی دانلود خواهد کرد. برای بررسی اینکه همه‌چیز درست است، گره را متوقف کنید و موجودی‌ها را بررسی کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go getbalance -address WALLET_1
+Balance of 'WALLET_1': 10
+
+$ blockchain_go getbalance -address WALLET_2
+Balance of 'WALLET_2': 10</code></pre>
+        <p>
+          همچنین، می‌توانید موجودی آدرس <code>CENTRAL_NODE</code> را بررسی کنید، چون گره 3001 حالا بلاک‌چین آن را
+          دارد:
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go getbalance -address CENTRAL_NODE
+Balance of 'CENTRAL_NODE': 10</code></pre>
+        <p><b><code>NODE 3002</code></b></p>
+        <p>
+          یک پنجره ترمینال جدید باز کنید و شناسه آن را روی 3002 تنظیم کنید و یک کیف پول تولید کنید. این یک گره ماینر
+          خواهد بود. بلاک‌چین را مقداردهی کنید:
+        </p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ cp blockchain_genesis.db blockchain_3002.db</code></pre>
+        <p>و گره را شروع کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go startnode -miner MINER_WALLET</code></pre>
+        <p><b><code>NODE 3001</code></b></p>
+        <p>برخی سکه‌ها بفرستید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go send -from WALLET_1 -to WALLET_3 -amount 1
+$ blockchain_go send -from WALLET_2 -to WALLET_4 -amount 1</code></pre>
+        <p><b><code>NODE 3002</code></b></p>
+        <p>سریع! به گره ماینر بروید و ببینید در حال استخراج یک بلاک جدید است! همچنین خروجی گره مرکزی را بررسی کنید.</p>
+        <p><b><code>NODE 3001</code></b></p>
+        <p>به گره کیف پول بروید و آن را شروع کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go startnode</code></pre>
+        <p>بلاک تازه‌استخراج‌شده را دانلود خواهد کرد!</p>
+        <p>آن را متوقف کنید و موجودی‌ها را بررسی کنید:</p>
+        <pre class="code"><span class="lang-tag">خروجی</span><code>$ blockchain_go getbalance -address WALLET_1
+Balance of 'WALLET_1': 9
+
+$ blockchain_go getbalance -address WALLET_2
+Balance of 'WALLET_2': 9
+
+$ blockchain_go getbalance -address WALLET_3
+Balance of 'WALLET_3': 1
+
+$ blockchain_go getbalance -address WALLET_4
+Balance of 'WALLET_4': 1
+
+$ blockchain_go getbalance -address MINER_WALLET
+Balance of 'MINER_WALLET': 10</code></pre>
+        <p>تمام شد!</p>
+
+        <h3>نتیجه‌گیری</h3>
+        <p>
+          این قسمت پایانی سری بود. می‌توانستم پست‌های بیشتری منتشر کنم که یک نمونه اولیه واقعی از شبکه P2P را
+          پیاده‌سازی کنند، اما به‌سادگی وقت این کار را ندارم. امیدوارم این مقاله به برخی از پرسش‌های شما درباره
+          فناوری بیت‌کوین پاسخ داده باشد و پرسش‌های جدیدی ایجاد کرده باشد که پاسخ آن‌ها را خودتان می‌توانید پیدا
+          کنید. چیزهای جالب‌تری در فناوری بیت‌کوین پنهان شده‌اند! موفق باشید!
+        </p>
+        <p>
+          P.S. می‌توانید بهبود شبکه را با پیاده‌سازی پیام <code>addr</code> شروع کنید، همان‌طور که در پروتکل شبکه
+          بیت‌کوین توصیف شده است (پیوند زیر). این پیام بسیار مهمی است، چون به گره‌ها اجازه می‌دهد یکدیگر را کشف
+          کنند. من پیاده‌سازی آن را شروع کردم، اما تمام نکردم!
+        </p>
+        <p>پیوندها:</p>
+        <ul>
+          <li><a href="https://github.com/Jeiwan/blockchain_go/tree/part_7" target="_blank" rel="noopener">کدهای منبع</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Protocol_documentation" target="_blank" rel="noopener">مستندات پروتکل بیت‌کوین</a></li>
+          <li><a href="https://en.bitcoin.it/wiki/Network" target="_blank" rel="noopener">شبکه بیت‌کوین</a></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>مرور کلی سری و منابع تکمیلی</h2>
+        <p>
+          با این قسمت، سری «ساخت بلاک‌چین در Go» از ایوان کوزنتسوف کامل شد. در طول این سری، گام‌به‌گام یک ارز
+          رمزنگاری‌شده شبیه بیت‌کوین ساخته شد:
+        </p>
+        <ul>
+          <li><b>قسمت ۱ (نمونه اولیه):</b> ساختار بلاک و بلاک‌چین با هش‌کردن SHA-256 و پیوند بلاک‌ها به یکدیگر.</li>
+          <li><b>قسمت ۲ (اثبات کار):</b> مکانیسم استخراج با هدف دشواری و الگوریتم هش‌کش.</li>
+          <li><b>قسمت ۳ (ماندگاری و CLI):</b> ذخیره بلاک‌چین در BoltDB، سریال‌سازی gob و دستورهای خط فرمان.</li>
+          <li><b>قسمت ۴ (تراکنش‌ها ۱):</b> ورودی/خروجی تراکنش، تراکنش کوین‌بیس، UTXO و ارسال سکه.</li>
+          <li><b>قسمت ۵ (آدرس‌ها):</b> کیف پول، رمزنگاری منحنی بیضوی، ECDSA، Base58 و امضای دیجیتال تراکنش‌ها.</li>
+          <li><b>قسمت ۶ (تراکنش‌ها ۲):</b> پاداش استخراج، مجموعه UTXO، درخت مرکل و اسکریپت P2PKH.</li>
+          <li><b>قسمت ۷ (شبکه):</b> گره‌های مرکزی/ماینر/کیف پول، پیام‌های version, getblocks, inv, getdata, block, tx و همگام‌سازی بلاک‌چین بین گره‌ها.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>ادامه یادگیری:</strong> نویسنده سری دیگری هم دارد: «برنامه‌نویسی شبکه بیت‌کوین» (Programming
+          Bitcoin Network) در <a href="https://jeiwan.net/posts/programming-bitcoin-network/" target="_blank" rel="noopener">jeiwan.net/posts/programming-bitcoin-network/</a>
+          و سری «برنامه‌نویسی دیفای» (Uniswap) در <a href="https://jeiwan.net/posts/programming-defi-uniswapv2-1/" target="_blank" rel="noopener">jeiwan.net</a>؛
+          همچنین کتاب «برنامه‌نویسی Uniswap v3» از همین نویسنده منتشر شده است. مخزن کامل کدهای هر قسمت:
+          <a href="https://github.com/Jeiwan/blockchain_go" target="_blank" rel="noopener">github.com/Jeiwan/blockchain_go</a>.
+        </div>
+      </section>
+
+      <!-- کپی‌رایت (الزامی) -->
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> سری مقالات «Building Blockchain in Go» اثر «Ivan Kuznetsov (jeiwan.net)» است. این
+        صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. محتوای سایت اصلی تحت
+        مجوز Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International منتشر شده است. برای مشاهده اصل
+        مطالب به <a href="https://jeiwan.net/posts/building-blockchain-in-go-part-1/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>

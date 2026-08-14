@@ -280,14 +280,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "blockchain-go-jeiwan",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Go",
 "title": "ساخت بلاکچین در Go",
 "url": "https://jeiwan.net/posts/building-blockchain-in-go-part-1/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-go-jeiwan.html"
 },
 {
 "id": "",
@@ -340,14 +340,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "savjeecoin-js",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "ساخت بلاکچین با JavaScript",
 "url": "https://github.com/SavjeeTutorials/SavjeeCoin",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/savjeecoin-js.html"
 },
 {
 "id": "",
@@ -360,24 +360,24 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "blockchain-node-smashing",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "JavaScript",
 "title": "نوشتن یک بلاکچین در Node.js",
 "url": "https://www.smashingmagazine.com/2020/02/cryptocurrency-blockchain-node-js/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-node-smashing.html"
 },
 {
-"id": "",
+"id": "blockchain-kotlin",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Kotlin",
 "title": "یک ارز دیجیتال را در Kotlin پیاده‌سازی کنیم",
 "url": "https://medium.com/@vasilyf/lets-implement-a-cryptocurrency-in-kotlin-part-1-blockchain-8704069f8580",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-kotlin.html"
 },
 {
 "id": "",
@@ -420,14 +420,14 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "blockchain-ruby-book",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "Ruby",
 "title": "برنامه‌نویسی بلاکچین قدم‌به‌قدم (نسخه کتاب)",
 "url": "https://github.com/yukimotopress/programming-blockchains-step-by-step",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/blockchain-ruby-book.html"
 },
 {
 "id": "",
@@ -440,24 +440,24 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "naivecoin-ts",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "TypeScript",
 "title": "Naivecoin: آموزش ساخت یک ارز دیجیتال",
 "url": "https://lhartikk.github.io/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/naivecoin-ts.html"
 },
 {
-"id": "",
+"id": "naivecoinstake-ts",
 "category": "بلاکچین / ارز دیجیتال",
 "lang": "TypeScript",
 "title": "NaivecoinStake: آموزش ساخت ارز دیجیتال با اجماع Proof of Stake",
 "url": "https://naivecoinstake.learn.uno/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/naivecoinstake-ts.html"
 },
 {
 "id": "",

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک بلاک‌چین در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بلاک‌چین و ارز دیجیتال</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک بلاک‌چین در Node.js</span>
+      </div>
+      <h1>نوشتن یک بلاک‌چین در Node.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">💠 دسته: بلاک‌چین / ارز دیجیتال</span>
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.smashingmagazine.com/2020/02/cryptocurrency-blockchain-node-js/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «نوشتن یک بلاک‌چین در Node.js» (Writing a Blockchain in Node.js) نوشته آلفریک اوپیدی (Alfrick Opidi) از «اسمشینگ مگزین» (Smashing Magazine) است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.smashingmagazine.com/2020/02/cryptocurrency-blockchain-node-js/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <div class="callout tip">فناوری بلاک‌چین به دلیل توانایی‌اش در تقویت امنیت در محیط‌های غیرقابل‌اعتماد (trustless)، اعمال تمرکززدایی و کارآمد کردن فرایندها، توجه زیادی را به خود جلب کرده است. در این آموزش، آلفریک اوپیدی نشان می‌دهد که چگونه می‌توان یک ارز دیجیتال ساده به نام smashingCoin را با استفاده از مفاهیم کلاس‌های جاوااسکریپت و Node.js ساخت. امتحانش کنید — ساده‌تر از چیزی است که فکر می‌کنید!</div>
+        <p>ظهور بی‌سابقه ارزهای دیجیتال و فناوری بلاک‌چینِ زیربنایی آن‌ها، جهان را با طوفان خود همراه کرده است — از آغاز فروتنانه‌اش به‌عنوان یک مفهوم دانشگاهی بیش از یک دهه پیش تا پذیرش روزافزون امروزی در صنایع گوناگون.</p>
+        <p>فناوری بلاک‌چین به دلیل توانایی‌اش در تقویت امنیت در محیط‌های غیرقابل‌اعتماد، اعمال تمرکززدایی و کارآمد کردن فرایندها، توجه زیادی را به خود جلب کرده است.</p>
+        <p>به‌طور سنتی، پایتون زبان برنامه‌نویسیِ دوفاکتو برای توسعه بلاک‌چین بوده است. اما با گسترش این فناوری شگفت‌انگیز، گزینه‌های توسعه نیز افزایش یافته‌اند — و Node.js هم عقب نمانده است.</p>
+        <p>در این آموزش، قرار است درباره چگونگی ساخت یک بلاک‌چین ساده برای ارز دیجیتال در Node.js صحبت کنم. قرار نیست خیلی فانتزی باشد، بلکه فقط برای کمک به شما در درک طرز کار یک بلاک‌چین کافی است.</p>
+        <p>نام این ارز دیجیتال ساده را smashingCoin می‌گذارم.</p>
+        <p>اگر توسعه‌دهنده جاوااسکریپت هستید و می‌خواهید به حوزه رو به رشد ارزهای دیجیتال گام بگذارید، این مقاله مهارت‌های لازم برای شروع را در اختیارتان می‌گذارد. یا اگر کنجکاو هستید بدانید در دنیای ارزهای دیجیتال کارها چگونه پیش می‌رود، این آموزش ممکن است به پاسخ برخی از پرسش‌های شما کمک کند.</p>
+      </section>
+
+      <section>
+        <h2>پیش‌نیازها</h2>
+        <p>برای دنبال کردن موفقیت‌آمیز این آموزش، به موارد زیر نیاز دارید:</p>
+        <ul>
+          <li>Node.js روی سیستم‌تان نصب شده باشد. می‌توانید آن را از <a href="https://nodejs.org/en/" target="_blank" rel="noopener">اینجا</a> دانلود کنید؛</li>
+          <li>یک ویرایشگر کد، مانند Visual Studio Code، Sublime Text یا هر ویرایشگر دیگری.</li>
+        </ul>
+        <p>بیایید شروع کنیم…</p>
+      </section>
+
+      <section>
+        <h2>بلاک‌چین چیست؟</h2>
+        <p>بلاک‌چین فناوری‌ای است که به ارزهای دیجیتالی مانند بیت‌کوین و اتریوم قدرت می‌بخشد. این فناوری، یک دفتر کل عمومی توزیع‌شده و نوآورانه است که فهرستی پیوسته در حال رشد از رکوردها، موسوم به <em>بلاک‌ها</em>، را نگهداری می‌کند که با استفاده از رمزنگاری به‌طور امن به یکدیگر متصل می‌شوند.</p>
+        <p>اصطلاح بلاک‌چین نام خود را از شیوه نگهداری داده‌های تراکنش گرفته است؛ یعنی در <em>بلاک‌هایی</em> که برای ایجاد یک <em>زنجیره</em> به یکدیگر متصل می‌شوند. اندازه بلاک‌چین با افزایش تعداد تراکنش‌های انجام‌شده رشد می‌کند.</p>
+        <p>هر داده تراکنش معتبری در شبکه بلاک‌چین ثبت می‌شود؛ شبکه‌ای که با قوانین همتا‌به‌همتای تعیین‌شده توسط شرکت‌کنندگان اداره می‌شود. برای مثال، این داده می‌تواند شامل «ارزش» بلاک مانند ارزهای دیجیتال، رکوردی از تراکنش‌ها (مانند زمانی که طرفین کالا و خدمات مبادله می‌کنند) یا امتیازات مالکیت (مانند زمانی که زنجیره اطلاعات مالکیت را ثبت می‌کند) باشد.</p>
+        <p>علاوه بر داده تراکنش، هر بلاک ممکن است حاوی هش رمزنگاری‌شده خود (شناسه یکتا یا اثر انگشت دیجیتال)، مقدار nonce خود (عدد تصادفی دلخواهی که فقط یک‌بار در محاسبات رمزنگاری استفاده می‌شود)، هش بلاک قبلی و زمان‌سنجی (timestamp) تراکنش‌های معتبر اخیر باشد.</p>
+        <p>از آنجا که هر بلاک جدید باید به بلاک قبلی اشاره کند، اگر بلاکی بدون داشتن هش صحیح آخرین بلاک در زنجیره ادغام شود، می‌تواند کل بلاک‌چین را نامعتبر کند. این ویژگی تغییرناپذیری، کلید امنیت بلاک‌چین‌هاست.</p>
+        <p>علاوه بر این، پروتکل‌های اجماع (consensus) مختلفی اغلب برای حفظ اصالت بلاک‌چین به کار گرفته می‌شوند. اجماع تضمین می‌کند که همه شرکت‌کنندگان بر تراکنش‌های تأییدشده توسط شبکه توافق دارند.</p>
+        <p>برای مثال، یک پروتکل اجماع پرکاربرد، اثبات کار (proof of work) است که هدف آن شناسایی عددی است که پس از انجام مقدار معینی کار محاسباتی، راه‌حلی برای یک مسئله ریاضی پیچیده پیدا می‌کند.</p>
+        <p>ایده اصلی اثبات کار این است که هر شرکت‌کننده در شبکه بلاک‌چین باید یافتن این عدد را دشوار بداند، اما تأیید آن آسان باشد. در نتیجه، این سازوکار اسپم‌کردن و دستکاری ساختار بلاک‌چین را دلسرد می‌کند.</p>
+        <p>در مورد بیشتر ارزهای دیجیتال، افزودن یک بلاک جدید به بلاک‌چین مستلزم حل یک معادله ریاضی پیچیده است که با رشد بلاک‌چین، دشواری آن در طول زمان افزایش می‌یابد. در نتیجه، هر شخصی که ثابت کند با حل این مسئله کار انجام داده است، در فرایندی که «استخراج» (mining) نامیده می‌شود، با یک ارز دیجیتال پاداش می‌گیرد.</p>
+      </section>
+
+      <section>
+        <h2>چگونه یک بلاک بسازیم؟</h2>
+        <p>حالا که با فناوری بلاک‌چین و طرز کار آن آشنا شدیم، ببینیم چگونه می‌توانیم این مفاهیم را در ساخت یک بلاک به کار ببریم. همان‌طور که پیش‌تر اشاره شد، بلاک‌ها همان چیزهایی هستند که برای تشکیل یک بلاک‌چین به یکدیگر پیوند می‌خورند.</p>
+        <p>برای ایجاد ارز smashingCoin، از کلاس‌های جاوااسکریپت استفاده می‌کنم که در ES6 معرفی شدند.</p>
+        <p>آماده‌اید؟</p>
+        <p>بیایید دست‌به‌کار شویم…</p>
+        <p>در اینجا کد کلاس CryptoBlock آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// وارد کردن تابع هش SHA256 از کتابخانه crypto-js
+const SHA256 = require('crypto-js/sha256');
+
+// کلاس بلاک رمزنگاری‌شده — بلوک‌های سازنده بلاک‌چین
+class CryptoBlock{
+    // سازنده کلاس؛ با ایندکس، زمان‌سنجی، داده و هش بلاک قبلی مقداردهی می‌شود
+    constructor(index, timestamp, data, precedingHash=" "){
+        this.index = index;            // موقعیت بلاک در زنجیره
+        this.timestamp = timestamp;    // زمان ثبت تراکنش
+        this.data = data;              // داده‌های تراکنش (فرستنده، گیرنده، مقدار)
+        this.precedingHash = precedingHash; // هش بلاک قبلی
+        this.hash = this.computeHash();     // هش این بلاک
+    }
+    // محاسبه هش بلاک بر اساس ویژگی‌های آن
+    computeHash(){
+        return SHA256(this.index + this.precedingHash + this.timestamp + JSON.stringify(this.data)).toString();
+    }
+}</code></pre>
+        <p>همان‌طور که در کد بالا می‌بینید، کلاس CryptoBlock را ایجاد کردم و متد constructor() را به آن اضافه کردم — درست همان‌طور که در هر کلاس جاوااسکریپت دیگری انجام می‌شود. سپس برای مقداردهی اولیه ویژگی‌های آن، پارامترهای زیر را به متد سازنده اختصاص دادم:</p>
+        <ul>
+          <li><strong>index:</strong> عددی یکتا است که موقعیت هر بلاک را در کل بلاک‌چین پیگیری می‌کند.</li>
+          <li><strong>timestamp:</strong> رکوردی از زمان وقوع هر تراکنش تکمیل‌شده نگهداری می‌کند.</li>
+          <li><strong>data:</strong> داده‌هایی درباره تراکنش‌های تکمیل‌شده فراهم می‌کند؛ مانند مشخصات فرستنده، مشخصات گیرنده و مقدار تراکنش.</li>
+          <li><strong>precedingHash:</strong> به هش بلاک قبلی در بلاک‌چین اشاره می‌کند؛ چیزی که در حفظ یکپارچگی بلاک‌چین مهم است.</li>
+        </ul>
+        <p>علاوه بر این، از متد computeHash برای محاسبه هش بلاک بر اساس ویژگی‌هایش استفاده کردم، همان‌طور که در داده‌های بالا آمده است.</p>
+        <p>همان‌طور که می‌بینید، کتابخانه جاوااسکریپتی crypto-js را وارد کردم و از ماژول crypto-js/sha256 آن برای محاسبه هش هر بلاک استفاده کردم. از آنجا که این ماژول یک شیء عددی برمی‌گرداند، از متد toString() برای تبدیل آن به رشته استفاده کردم.</p>
+        <p>برای افزودن کتابخانه crypto-js به پروژه‌تان، به ترمینال بروید و دستور زیر را برای نصب آن با npm اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">shell</span><code>npm install --save crypto-js</code></pre>
+        <p>پس از اجرای دستور بالا، دایرکتوری node modules که شامل کتابخانه و سایر فایل‌های ضروری است، به پوشه پروژه شما اضافه خواهد شد.</p>
+      </section>
+
+      <section>
+        <h2>چگونه یک بلاک‌چین بسازیم؟</h2>
+        <p>همان‌طور که پیش‌تر توضیح داده شد، فناوری بلاک‌چین بر این مفهوم استوار است که همه بلاک‌ها به یکدیگر زنجیر می‌شوند. پس بیایید کلاسی به نام CryptoBlockchain بسازیم که مسئول مدیریت عملیات کل زنجیره خواهد بود. اینجاست که کار اصلی شروع می‌شود.</p>
+        <p>کلاس CryptoBlockchain عملیات بلاک‌چین را با استفاده از متدهای کمکی که کارهای مختلفی مانند ایجاد بلاک‌های جدید و افزودن آن‌ها به زنجیره را انجام می‌دهند، مدیریت خواهد کرد.</p>
+        <p>در اینجا کد کلاس CryptoBlockchain آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// کلاس بلاک‌چین — مدیریت کل زنجیره بلاک‌ها
+class CryptoBlockchain{
+    // سازنده: نمونه‌سازی بلاک‌چین با بلاک پیدایش
+    constructor(){
+        // زنجیره با آرایه‌ای از بلاک‌ها شروع می‌شود؛ بلاک اول، بلاک پیدایش است
+        this.blockchain = [this.startGenesisBlock()];
+    }
+    // ایجاد بلاک پیدایش (genesis) — اولین بلاک شبکه که به بلاک قبلی اشاره نمی‌کند
+    startGenesisBlock(){
+        return new CryptoBlock(0, "01/01/2020", "Initial Block in the Chain", "0");
+    }
+    // دریافت آخرین بلاک زنجیره
+    obtainLatestBlock(){
+        return this.blockchain[this.blockchain.length - 1];
+    }
+    // افزودن بلاک جدید؛ هش بلاک قبلی به بلاک جدید داده می‌شود تا زنجیره یکپارچه بماند
+    addNewBlock(newBlock){
+        newBlock.precedingHash = this.obtainLatestBlock().hash;
+        newBlock.hash = newBlock.computeHash();
+        this.blockchain.push(newBlock);
+    }
+}</code></pre>
+        <p>بگذارید نقش هر یک از متدهای کمکی تشکیل‌دهنده کلاس CryptoBlockchain را توضیح دهم.</p>
+
+        <h3>۱. متد سازنده (Constructor)</h3>
+        <p>این متد بلاک‌چین را نمونه‌سازی می‌کند. در داخل سازنده، ویژگی blockchain را ایجاد کردم که به آرایه‌ای از بلاک‌ها اشاره می‌کند. توجه کنید که متد startGenesisBlock() را به آن پاس دادم که بلاک اولیه زنجیره را ایجاد می‌کند.</p>
+
+        <h3>۲. ایجاد بلاک پیدایش (Genesis Block)</h3>
+        <p>در یک بلاک‌چین، بلاک پیدایش به اولین بلاکی اشاره دارد که تاکنون در شبکه ایجاد شده است. هر زمان که یک بلاک با بقیه زنجیره یکپارچه می‌شود، باید به بلاک قبلی ارجاع دهد.</p>
+        <p>برعکس، در مورد این بلاک اولیه، هیچ بلاک قبلی برای اشاره‌کردن وجود ندارد. بنابراین، بلاک پیدایش معمولاً به‌صورت سخت‌کد (hardcoded) در بلاک‌چین گنجانده می‌شود. به این ترتیب، بلاک‌های بعدی می‌توانند روی آن ساخته شوند. این بلاک معمولاً ایندکس ۰ دارد.</p>
+        <p>از متد startGenesisBlock() برای ایجاد بلاک پیدایش استفاده کردم. توجه کنید که آن را با استفاده از کلاس CryptoBlock که پیش‌تر ساختیم ایجاد کردم و پارامترهای index، timestamp، data و precedingHash را به آن پاس دادم.</p>
+
+        <h3>۳. دریافت آخرین بلاک</h3>
+        <p>دریافت آخرین بلاک در بلاک‌چین کمک می‌کند تا اطمینان حاصل شود هش بلاک فعلی به هش بلاک قبلی اشاره می‌کند — و در نتیجه یکپارچگی زنجیره حفظ می‌شود.</p>
+        <p>برای بازیابی آن از متد obtainLatestBlock() استفاده کردم.</p>
+
+        <h3>۴. افزودن بلاک‌های جدید</h3>
+        <p>برای افزودن یک بلاک جدید به زنجیره از متد addNewBlock() استفاده کردم. برای انجام این کار، هش قبلی بلاک جدید را برابر با هش آخرین بلاک در زنجیره قرار دادم — تا از دستکاری‌ناپذیری زنجیره اطمینان حاصل شود.</p>
+        <p>از آنجا که ویژگی‌های بلاک جدید با هر محاسبه جدید تغییر می‌کنند، مهم است که هش رمزنگاری‌شده آن دوباره محاسبه شود. پس از به‌روزرسانی هش، بلاک جدید به آرایه blockchain اضافه (push) می‌شود.</p>
+        <p>در واقعیت، افزودن یک بلاک جدید به بلاک‌چین به این سادگی نیست، زیرا بررسی‌های متعددی در نظر گرفته شده است. با این حال، برای این ارز دیجیتال ساده، همین میزان برای نشان دادن طرز کار واقعی یک بلاک‌چین کافی است.</p>
+      </section>
+
+      <section>
+        <h2>آزمایش بلاک‌چین</h2>
+        <p>حالا بیایید بلاک‌چین ساده خود را آزمایش کنیم و ببینیم آیا کار می‌کند.</p>
+        <p>در اینجا کد آن آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// ایجاد نمونه‌ای از بلاک‌چین
+let smashingCoin = new CryptoBlockchain();
+
+// افزودن دو بلاک با داده‌های دلخواه (فرستنده، گیرنده، مقدار)
+smashingCoin.addNewBlock(new CryptoBlock(1, "01/06/2020", {sender: "Iris Ljesnjanin", recipient: "Cosima Mielke", quantity: 50}));
+smashingCoin.addNewBlock(new CryptoBlock(2, "01/07/2020", {sender: "Vitaly Friedman", recipient: "Ricardo Gimenes", quantity: 100}) );
+
+// چاپ کل بلاک‌چین با فرمت خوانا
+console.log(JSON.stringify(smashingCoin, null, 4));</code></pre>
+        <p>همان‌طور که در کد بالا می‌بینید، یک نمونه جدید از کلاس CryptoBlockchain ایجاد کردم و آن را smashingCoin نامیدم. سپس با استفاده از برخی مقادیر دلخواه، دو بلاک به بلاک‌چین اضافه کردم. در پارامتر data از یک شیء استفاده کردم و مشخصات فرستنده، مشخصات گیرنده و مقدار تراکنش را اضافه کردم.</p>
+        <p>اگر کد را روی ترمینال اجرا کنم، خروجی زیر را می‌گیرم:</p>
+        <img src="https://res.cloudinary.com/indysigner/image/fetch/f_auto,q_80/w_1200/https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/0dabfd37-e21e-4083-a99d-5e3cc495ccab/cryptocurrency-blockchain-terminal-image-one.jpg" alt="خروجی ترمینال هنگام آزمایش بلاک‌چین smashingCoin؛ هر بلاک به هش بلاک قبلی ارجاع می‌دهد" loading="lazy" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>این همان چیزی است که smashingCoin به نظر می‌رسد! این یک شیء است که شامل ویژگی blockchain است؛ آرایه‌ای که تمام بلاک‌های زنجیره را در خود دارد. همان‌طور که در تصویر بالا می‌بینید، هر بلاک به هش بلاک قبلی ارجاع می‌دهد. برای مثال، بلاک دوم به هش بلاک اول ارجاع می‌دهد.</p>
+        <p>پس از آزمایش و دیدن اینکه بلاک‌چین ما کار می‌کند، بیایید قابلیت‌های بیشتری برای تقویت ویژگی‌های smashingCoin اضافه کنیم.</p>
+      </section>
+
+      <section>
+        <h2>چگونه یکپارچگی بلاک‌چین را بررسی کنیم؟</h2>
+        <p>همان‌طور که پیش‌تر اشاره شد، ویژگی کلیدی یک بلاک‌چین این است که پس از افزودن یک بلاک به زنجیره، نمی‌توان آن را تغییر داد بدون اینکه یکپارچگی بقیه زنجیره باطل شود.</p>
+        <p>بنابراین، برای بررسی یکپارچگی بلاک‌چین، یک متد checkChainValidity() به کلاس CryptoBlockchain اضافه می‌کنم.</p>
+        <p>هش‌ها برای تضمین اعتبار و امنیت یک بلاک‌چین حیاتی هستند، زیرا هر تغییری در محتوای یک بلاک منجر به تولید یک هش کاملاً جدید و باطل شدن بلاک‌چین می‌شود.</p>
+        <p>به این ترتیب، متد checkChainValidity() از دستورهای if استفاده می‌کند تا بررسی کند آیا هش هر بلاک دستکاری شده است یا نه. با شروع از اولین بلاک ساخته‌شده، روی کل بلاک‌چین حلقه می‌زند و اعتبار آن را بررسی می‌کند. توجه داشته باشید که از آنجا که بلاک پیدایش سخت‌کد شده بود، بررسی نمی‌شود.</p>
+        <p>همچنین، این متد بررسی می‌کند که آیا هش‌های هر دو بلاک متوالی به یکدیگر اشاره می‌کنند یا نه. اگر یکپارچگی بلاک‌چین به خطر نیفتاده باشد، true برمی‌گرداند؛ در غیر این صورت، در صورت وجود هرگونه ناهنجاری، false برمی‌گرداند.</p>
+        <p>در اینجا کد آن آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// بررسی یکپارچگی کل زنجیره؛ از بلاک دوم شروع می‌شود (بلاک پیدایش بررسی نمی‌شود)
+checkChainValidity(){
+    for(let i = 1; i &lt; this.blockchain.length; i++){
+        const currentBlock = this.blockchain[i];
+        const precedingBlock = this.blockchain[i-1];
+
+        // اگر هش ذخیره‌شده با هش محاسبه‌شده فعلی برابر نباشد، زنجیره دستکاری شده است
+        if(currentBlock.hash !== currentBlock.computeHash()){
+            return false;
+        }
+        // اگر هش قبلی بلاک فعلی به هش بلاک قبلی اشاره نکند، زنجیره معتبر نیست
+        if(currentBlock.precedingHash !== precedingBlock.hash)
+            return false;
+    }
+    return true;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>چگونه اثبات کار را اضافه کنیم؟</h2>
+        <p>همان‌طور که پیش‌تر اشاره شد، اثبات کار مفهومی است که برای افزایش دشواری استخراج یا افزودن بلاک‌های جدید به بلاک‌چین به کار می‌رود.</p>
+        <p>در مورد smashingCoin، الگوریتم ساده‌ای به کار می‌گیرم که مردم را از تولید آسان بلاک‌های جدید یا اسپم‌کردن بلاک‌چین بازمی‌دارد.</p>
+        <p>بنابراین، در کلاس CryptoBlock متد دیگری به نام proofOfWork() اضافه می‌کنم. اساساً، این الگوریتم ساده عددی را شناسایی می‌کند که به‌عنوان ویژگی difficulty پاس داده می‌شود، به‌گونه‌ای که هش هر بلاک حاوی صفرهای ابتدایی (leading zeros) متناظر با این سطح سختی باشد.</p>
+        <p>اطمینان از اینکه هش هر بلاک با تعداد صفرهای تعیین‌شده در سطح سختی آغاز می‌شود، به قدرت محاسباتی زیادی نیاز دارد. هرچه سطح سختی بالاتر باشد، استخراج بلاک‌های جدید زمان بیشتری می‌برد.</p>
+        <p>علاوه بر این، یک مقدار nonce تصادفی به هر بلاکِ هش‌شده اضافه می‌کنم، به‌گونه‌ای که وقتی هش مجدد انجام می‌شود، محدودیت‌های سطح سختی همچنان برآورده شوند.</p>
+        <p>در اینجا کد آن آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// اثبات کار: عددی (nonce) پیدا می‌کند که هش با تعداد صفرهای ابتدایی سطح سختی شروع شود
+proofOfWork(difficulty){
+    // تا زمانی که هش با صفرهای کافی شروع نشود، nonce را افزایش بده و هش را دوباره محاسبه کن
+    while(this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")){
+        this.nonce++;
+        this.hash = this.computeHash();
+    }
+}</code></pre>
+        <p>و در اینجا متد به‌روزرسانی‌شده computeHash() با گنجاندن متغیر nonce آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// محاسبه هش؛ این بار nonce نیز در ورودی هش لحاظ می‌شود
+computeHash(){
+    return SHA256(this.index + this.precedingHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+}</code></pre>
+        <p>علاوه بر این، برای پیاده‌سازی سازوکار اثبات کار در تولید بلاک‌های جدید، آن را در متد addNewBlock() نیز قرار می‌دهم:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// افزودن بلاک جدید همراه با اجرای اثبات کار
+addNewBlock(newBlock){
+    newBlock.precedingHash = this.obtainLatestBlock().hash;
+    // newBlock.hash = newBlock.computeHash();  // (پیش از این مستقیم محاسبه می‌شد)
+    newBlock.proofOfWork(this.difficulty);      // اکنون هش با اثبات کار تولید می‌شود
+    this.blockchain.push(newBlock);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>در اینجا کل کد ساخت ارز دیجیتال smashingCoin با استفاده از Node.js آمده است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// وارد کردن تابع هش SHA256 از کتابخانه crypto-js
+const SHA256 = require("crypto-js/sha256");
+
+// کلاس بلاک رمزنگاری‌شده
+class CryptoBlock {
+  constructor(index, timestamp, data, precedingHash = " ") {
+    this.index = index;
+    this.timestamp = timestamp;
+    this.data = data;
+    this.precedingHash = precedingHash;
+    this.hash = this.computeHash();
+    this.nonce = 0; // عدد تصادفی برای اثبات کار
+  }
+
+  // محاسبه هش بلاک (شامل nonce)
+  computeHash() {
+    return SHA256(
+      this.index +
+        this.precedingHash +
+        this.timestamp +
+        JSON.stringify(this.data) +
+        this.nonce
+    ).toString();
+  }
+
+  // اثبات کار: افزایش nonce تا رسیدن به تعداد صفرهای ابتدایی موردنیاز
+  proofOfWork(difficulty) {
+    while (
+      this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")
+    ) {
+      this.nonce++;
+      this.hash = this.computeHash();
+    }
+  }
+}
+
+// کلاس بلاک‌چین
+class CryptoBlockchain {
+  constructor() {
+    this.blockchain = [this.startGenesisBlock()];
+    this.difficulty = 4; // سطح سختی: هش‌ها باید با ۴ صفر شروع شوند
+  }
+  // بلاک پیدایش
+  startGenesisBlock() {
+    return new CryptoBlock(0, "01/01/2020", "Initial Block in the Chain", "0");
+  }
+
+  // آخرین بلاک زنجیره
+  obtainLatestBlock() {
+    return this.blockchain[this.blockchain.length - 1];
+  }
+  // افزودن بلاک جدید با اثبات کار
+  addNewBlock(newBlock) {
+    newBlock.precedingHash = this.obtainLatestBlock().hash;
+    // newBlock.hash = newBlock.computeHash();
+    newBlock.proofOfWork(this.difficulty);
+    this.blockchain.push(newBlock);
+  }
+
+  // بررسی یکپارچگی زنجیره
+  checkChainValidity() {
+    for (let i = 1; i < this.blockchain.length; i++) {
+      const currentBlock = this.blockchain[i];
+      const precedingBlock = this.blockchain[i - 1];
+
+      if (currentBlock.hash !== currentBlock.computeHash()) {
+        return false;
+      }
+      if (currentBlock.precedingHash !== precedingBlock.hash) return false;
+    }
+    return true;
+  }
+}
+
+// ساخت ارز دیجیتال smashingCoin و افزودن بلاک‌ها
+let smashingCoin = new CryptoBlockchain();
+
+console.log("smashingCoin mining in progress....");
+smashingCoin.addNewBlock(
+  new CryptoBlock(1, "01/06/2020", {
+    sender: "Iris Ljesnjanin",
+    recipient: "Cosima Mielke",
+    quantity: 50
+  })
+);
+
+smashingCoin.addNewBlock(
+  new CryptoBlock(2, "01/07/2020", {
+    sender: "Vitaly Friedman",
+    recipient: "Ricardo Gimenes",
+    quantity: 100
+  })
+);
+
+console.log(JSON.stringify(smashingCoin, null, 4));</code></pre>
+        <p>اگر کد را روی ترمینال اجرا کنم، خروجی زیر را می‌گیرم:</p>
+        <img src="https://res.cloudinary.com/indysigner/image/fetch/f_auto,q_80/w_1200/https://archive.smashing.media/assets/344dbf88-fdf9-42bb-adb4-46f01eedd629/e99946ab-3c1d-4bf2-aac2-e93640aad3fc/cryptocurrency-blockchain-terminal-image-two.jpg" alt="خروجی نهایی smashingCoin پس از پیاده‌سازی اثبات کار؛ هش‌ها با چهار صفر شروع می‌شوند" loading="lazy" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>همان‌طور که در تصویر بالا می‌بینید، هش‌ها اکنون با چهار صفر شروع می‌شوند که با سطح سختی تعیین‌شده در سازوکار اثبات کار مطابقت دارد.</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>همین! این‌طور می‌توانید با Node.js یک بلاک‌چین ساده برای ارز دیجیتال بسازید.</p>
+        <p>البته، ارز دیجیتال smashingCoin از کامل‌بودن بسیار فاصله دارد. در واقع، اگر بدون انجام بهبودهای بیشتر آن را منتشر کنید، بعید است نیازهای فعلی بازار برای یک ارز دیجیتال امن، قابل‌اعتماد و کاربرپسند را برآورده کند — و در نهایت تنها کسی می‌شوید که از آن استفاده می‌کند!</p>
+        <p>با این حال، امیدوارم این آموزش مهارت‌های پایه‌ای برای پا گذاشتن به دنیای هیجان‌انگیز ارزهای دیجیتال را در اختیارتان گذاشته باشد.</p>
+        <p>اگر نظر یا پرسشی دارید، لطفاً آن را در بخش دیدگاه‌ها مطرح کنید.</p>
+
+        <h3>سایر منابع</h3>
+        <ul>
+          <li>«Blockchain 101» — <a href="https://www.coindesk.com/learn/what-is-blockchain-technology/" target="_blank" rel="noopener">CoinDesk</a></li>
+          <li>«Bitcoin: A Peer-to-Peer Electronic Cash System» — ساتوشی ناکاموتو، <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">Bitcoin.org</a></li>
+        </ul>
+
+        <h3>مطالعه بیشتر</h3>
+        <ul>
+          <li><a href="https://www.smashingmagazine.com/2021/10/building-amazon-product-scraper-nodejs/" target="_blank" rel="noopener">How To Build An Amazon Product Scraper With Node.js</a></li>
+          <li><a href="https://www.smashingmagazine.com/2024/05/forensics-react-server-components/" target="_blank" rel="noopener">The Forensics Of React Server Components (RSCs)</a></li>
+          <li><a href="https://www.smashingmagazine.com/2021/01/nodejs-api-ethereum-blockchain/" target="_blank" rel="noopener">How To Build A Node.js API For Ethereum Blockchain</a></li>
+          <li><a href="https://www.smashingmagazine.com/2023/05/safest-way-hide-api-keys-react/" target="_blank" rel="noopener">The Safest Way To Hide Your API Keys When Using React</a></li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپی‌رایت:</strong> مقاله «Writing a Blockchain in Node.js» اثر آلفریک اوپیدی (Alfrick Opidi) از وب‌سایت Smashing Magazine است. این صفحه فقط ترجمه فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.smashingmagazine.com/2020/02/cryptocurrency-blockchain-node-js/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+  </footer>
+
+</body>
+</html>
