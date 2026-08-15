@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تشخیص نوری حروف (OCR) با شبکه عصبی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>تشخیص نوری حروف (OCR)</span>
+      </div>
+      <h1>تشخیص نوری حروف (OCR) با شبکه عصبی در سی‌شارپ</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">🧠 AForge.NET</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.codeproject.com/Articles/11285/Neural-Network-OCR" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Neural Network OCR» از
+          <b>اندرو کیریلوف (Andrew Kirillov)</b> در CodeProject است که با استفاده از شبکهٔ
+          عصبی انتشار بازگشتی (backpropagation)، حروف دست‌نویس و چاپی را تشخیص می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.codeproject.com/Articles/11285/Neural-Network-OCR" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: چرا شبکه عصبی برای OCR؟</h2>
+        <p>تشخیص نوری حروف (OCR) یعنی تبدیل تصویر متن به متن قابل ویرایش. روش کلاسیک
+        مقایسهٔ الگو (template matching) در برابر تغییرات فونت، اندازه و چرخش حروف شکننده است.
+        مقالهٔ کیریلوف به‌جای آن از یک <b>شبکهٔ عصبی چندلایه با یادگیری انتشار بازگشتی</b>
+        (backpropagation) استفاده می‌کند: شبکه روی نمونه‌های حروف آموزش می‌بیند و سپس حروف
+        نادیده را تشخیص می‌دهد. پیاده‌سازی در <b>C#</b> و با کتابخانهٔ متن‌باز
+        <b>AForge.NET</b> انجام شده و برای آموزش/اجرا نیازی به هیچ کتابخانهٔ خارجی ندارد.</p>
+      </section>
+
+      <section>
+        <h2>۲. معماری شبکه: ورودی، لایه پنهان و خروجی</h2>
+        <p>ایدهٔ اصلی: هر تصویر حرف به یک بردار عددی تبدیل می‌شود و شبکه باید آن بردار را به
+        یکی از حروف الفبا نگاشت کند. برای یک حرف با تصویر بزرگ‌نمایی‌شدهٔ ۱۲×۱۲ پیکسل،
+        ورودی ۱۴۴ نورون دارد. خروجی شبکه نیز به‌اندازهٔ تعداد حروف الفباست؛ هر نورون خروجی
+        نمایندهٔ یک حرف است و پیش‌بینی شبکه، نوری‌نی است که بیشترین مقدار را دارد.</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// تعریف یک شبکهٔ عصبی: ورودی ۱۴۴ نورون، لایهٔ پنهان ۵۰ نورون، خروجی برابر تعداد حروف
+NeuralNetwork network = new ActivationNetwork(
+    new SigmoidFunction(2),     // تابع فعال‌سازی سیگموئید
+    144,                        // تعداد نورون‌های ورودی (پیکسل‌های تصویر)
+    50,                         // لایهٔ پنهان
+    alphabetSize);              // لایهٔ خروجی (تعداد حروف)</code></pre>
+        <p>انتخاب تعداد نورون‌های لایهٔ پنهان یک تنظیم تجربی است: خیلی کم = ناتوانی در یادگیری
+        الگوهای پیچیده، خیلی زیاد = خطر بیش‌برازش (overfitting) و آموزش کندتر.</p>
+      </section>
+
+      <section>
+        <h2>۳. ساخت نمونه‌های آموزشی</h2>
+        <p>قلب آموزش، داده است. کیریلوف دو منبع نمونه دارد: <b>حروف دست‌نویس</b> (کاربر با ماوس
+        در یک ناحیهٔ ۴۸×۴۸ رسم می‌کند) و <b>حروف چاپی</b> که از فونت‌های ویندوز با GDI+
+        رندر می‌شوند: <b>Arial، Courier New، Tahoma، Times New Roman و Verdana</b>. هر حرف
+        با چندین اندازه و حالت (ضخیم/کج) رندر می‌شود تا شبکه تنوع را بیاموزد.</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// رندر یک حرف چاپی از فونت و تبدیل آن به بردار ورودی شبکه
+Bitmap bitmap = DrawChar(letter, font, size);
+double[] input = ImageToVector(bitmap);   // سطح خاکستری هر پیکسل، نرمال‌شده بین ۰ و ۱
+double[] output = new double[alphabetSize]; // بردار خروجی «یک-داغ»
+output[letterIndex] = 1;</code></pre>
+        <div class="callout tip">
+          <strong>نکته:</strong> برای حروف دست‌نویس، تصویر ابتدا به‌شکل گرید شبکه‌ای (۱۲×۱۲)
+          زیرنمونه‌گیری می‌شود؛ این هم ابعاد ورودی را کوچک می‌کند و هم تا حدی نسبت به جابه‌جایی
+          جزئی حساسیت‌زدایی می‌کند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. آموزش با انتشار بازگشتی</h2>
+        <p>آموزش با الگوریتم <b>backpropagation</b> انجام می‌شود: شبکه خروجی را پیش‌بینی
+        می‌کند، خطای پیش‌بینی محاسبه می‌شود و این خطا از لایهٔ خروجی به‌سوی لایه‌های قبلی
+        «پخش» می‌شود تا وزن‌ها در جهت کاهش خطا اصلاح شوند. در AForge این کار با
+        کلاس <code>BackPropagationLearning</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// ساخت یادگیرندهٔ انتشار بازگشتی روی شبکه
+BackPropagationLearning teacher = new BackPropagationLearning(network);
+teacher.LearningRate = 0.1;   // نرخ یادگیری
+teacher.Momentum = 0.9;       // مومنتوم برای فرار از نوسان‌ها
+
+// حلقهٔ آموزش: ارائهٔ همهٔ نمونه‌ها، ده‌ها بار تکرار (epoch)
+for (int epoch = 0; epoch &lt; 100; epoch++)
+{
+    for (int sample = 0; sample &lt; samples.Length; sample++)
+    {
+        teacher.Run(samples[sample].Input, samples[sample].Output);
+    }
+}</code></pre>
+        <p>نرخ یادگیری و مومنتوم پارامترهای حیاتی‌اند: نرخ یادگیری بالا، آموزش را سریع اما
+        ناپایدار می‌کند؛ مومنتوم به وزن‌ها «اینرسی» می‌دهد تا از کمینه‌های محلی گذر کنند.</p>
+      </section>
+
+      <section>
+        <h2>۵. تشخیص (recognition)</h2>
+        <p>بعد از آموزش، برای هر تصویر ورودی شبکه یک بردار خروجی می‌دهد؛ حرف پیش‌بینی‌شده
+        شاخص بزرگ‌ترین مقدار بردار است. نکتهٔ مهم مقاله: می‌توان کیفیت پیش‌بینی را با
+        اختلاف بین دو خروجی بزرگ سنجید — اگر شبکه بین دو حرف مردد باشد، بهتر است به‌جای
+        اشتباه، «ناشناخته» اعلام کند.</p>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// اجرای شبکه روی یک تصویر و یافتن حرف برنده
+network.Compute(ImageToVector(bitmap));
+
+int best = 0, second = 1;
+if (network.Output[1] > network.Output[0]) { best = 1; second = 0; }
+for (int i = 2; i &lt; network.Output.Length; i++)
+{
+    if (network.Output[i] > network.Output[best])
+    {
+        second = best;
+        best = i;
+    }
+    else if (network.Output[i] > network.Output[second])
+    {
+        second = i;
+    }
+}
+
+double diff = network.Output[best] - network.Output[second];
+char recognized = (diff &gt; Threshold) ? (char)('A' + best) : '?';</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. نتایج و محدودیت‌ها</h2>
+        <ul>
+          <li><b>حروف چاپی</b> با چند فونت به‌خوبی تشخیص داده می‌شوند، اما هرچه فونت
+          تزئینی‌تر باشد، شبکه به نمونه‌های آموزشی بیشتری نیاز دارد.</li>
+          <li><b>دست‌نویس</b> سخت‌تر است؛ تنوع دست هر شخص بزرگ است، پس نمونهٔ دست‌نویس
+          بیشتر یعنی دقت بیشتر.</li>
+          <li>شبکه به <b>هم‌اندازه‌سازی</b> ورودی حساس است؛ تصاویر باید پیش از ورود
+          استاندارد شوند.</li>
+          <li>با همان ایده می‌توان به‌جای حروف، ارقام، نمادها یا هر کلاس تصویری دیگری
+          یاد گرفت.</li>
+        </ul>
+        <div class="callout note">
+          <strong>کپیرایت:</strong> مقالهٔ «Neural Network OCR» اثر اندرو کیریلوف (Andrew
+          Kirillov) است و در CodeProject منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+          تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+          <a href="https://www.codeproject.com/Articles/11285/Neural-Network-OCR" target="_blank" rel="noopener">سایت اصلی</a>
+          مراجعه کنید.
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

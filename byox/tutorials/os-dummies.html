@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | توسعه سیستم‌عامل برای مبتدیان (لئو وایتهد)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>توسعه سیستم‌عامل برای مبتدیان</span>
+      </div>
+      <h1>توسعه سیستم‌عامل برای مبتدیان — راهنمای گام‌به‌گام لئو وایتهد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">💽 x86 + شبیه‌ساز</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@lduck11007/operating-systems-development-for-dummies-3d4d786e8ac" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ
+          <b>«Operating Systems Development for Dummies»</b> از
+          <b>لئو وایتهد (Leo Whitehead)</b> در Medium است — راهنمایی
+          مبتدی‌پسند که یک سیستم‌عامل ساده را قدم‌به‌قدم می‌سازد.
+        </div>
+        <a class="btn solid" href="https://medium.com/@lduck11007/operating-systems-development-for-dummies-3d4d786e8ac" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. رویکرد مقاله</h2>
+        <p>نویسنده — همان‌طور که از عنوان «برای مبتدیان» پیداست — فرض را بر این
+        می‌گذارد که خواننده هیچ تجربه‌ای در توسعهٔ سیستم‌عامل ندارد. مقاله با
+        ساده‌ترین زبانی که می‌شود، سیستم‌عامل را معرفی می‌کند: «برنامه‌ای که
+        هنگام بوت شدن اجرا می‌شود و منابع سخت‌افزاری را مدیریت می‌کند»، و سپس در
+        چند مرحلهٔ عملی با C و اسمبلی، یک نمونهٔ بوت‌شونده می‌سازد.</p>
+      </section>
+
+      <section>
+        <h2>۲. مراحل ساخت</h2>
+        <ul>
+          <li><b>مرحلهٔ ۱ — پیش‌نیازها:</b> نصب کامپایلر متقاطع (gcc)،
+          شبیه‌ساز (QEMU یا Bochs) و آشنایی با ابزارهای لازم؛ توضیح چرایی استفاده
+          از کامپایلر متقاطع به‌جای کامپایلر معمولی.</li>
+          <li><b>مرحلهٔ ۲ — بوت‌لودر:</b> ساخت یک بوت‌لودر ساده با اسمبلی و
+          چاپ اولین پیام روی صفحه.</li>
+          <li><b>مرحلهٔ ۳ — ورود به حالت محافظت‌شده:</b> GDT و پرش به حالت
+          ۳۲-بیتی؛ توضیح سادهٔ «چرا حالت ۱۶-بیتی کافی نیست».</li>
+          <li><b>مرحلهٔ ۴ — هستهٔ C:</b> نوشتن اولین کرنل با C، مدیریت صفحه‌نمایش
+          و یک حلقهٔ اصلی.</li>
+          <li><b>مرحلهٔ ۵ — توسعه:</b> افزودن ویژگی‌هایی مثل مدیریت وقفه و
+          صفحه‌کلید با مسیرهای پیشنهادی برای ادامه.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: ساختار بوت و هسته</h2>
+        <p>همان الگوی کلاسیک اما با توضیحاتی که برای مبتدی واقعاً قابل فهم است —
+          بوت‌لودر کنترل را به تابع <code>kernel_main</code> در C می‌سپارد:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># ساخت و اجرای سریع سیستم‌عامل نمونه
+nasm -f elf32 boot.asm -o boot.o
+gcc -m32 -c kernel.c -o kernel.o
+ld -m elf_i386 -T linker.ld boot.o kernel.o -o kernel.bin
+
+# اجرا در شبیه‌ساز
+qemu-system-i386 -kernel kernel.bin</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>// kernel.c — حلقه‌ی اصلی کرنل
+void kernel_main(void) {
+    char *video = (char *) 0xB8000;   // حافظه‌ی ویدیویی VGA
+
+    video[0] = 'H';
+    video[1] = 0x07;                  // سفید روی مشکی
+    video[2] = 'i';
+    video[3] = 0x07;
+
+    while (1) {
+        __asm__("hlt");               // تا وقفه‌ی بعدی منتظر بمان
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. چرا برای شروع خوب است؟</h2>
+        <ul>
+          <li><b>زبان ساده و گرم:</b> مفاهیم سخت سیستم‌عامل بدون اصطلاحات خشک
+          دانشگاهی توضیح داده شده.</li>
+          <li><b>گام‌های کوتاه:</b> هر مرحله نتیجهٔ قابل مشاهده دارد و سریع
+          انگیزه می‌دهد.</li>
+          <li><b>مسیر ادامه:</b> نویسنده در پایان، منابع پیشنهادی برای ادامهٔ
+          مسیر داده است.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> اگر بعد از این مقاله هنوز احساس می‌کنید
+        برخی مفاهیم (GDT، وقفه‌ها) مبهم‌اند، آموزش os-tutorial در همین مجموعه با
+        درس‌های ریزتر دقیقاً همین مسیر را قدم‌به‌قدم می‌پیماید.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Operating Systems Development for Dummies» اثر
+        لئو وایتهد (Leo Whitehead) است و در Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/@lduck11007/operating-systems-development-for-dummies-3d4d786e8ac" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

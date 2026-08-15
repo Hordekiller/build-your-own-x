@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شبکه‌های عصبی: از صفر تا قهرمان (Zero to Hero)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>شبکه‌های عصبی: از صفر تا قهرمان</span>
+      </div>
+      <h1>شبکه‌های عصبی: از صفر تا قهرمان — دورهٔ ویدیویی آندری کارپتی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎬 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Python / PyTorch</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی فارسی دورهٔ مشهور <b>«Neural Networks:
+          Zero to Hero»</b> از <b>آندری کارپتی (Andrej Karpathy)</b> است — دوره‌ای
+          ویدیویی که شبکه‌های عصبی را از صفر مطلق تا مدل‌های زبانی مدرن می‌سازد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ این دوره</h2>
+        <p>«از صفر تا قهرمان» دوره‌ای ویدیویی از <b>آندری کارپتی</b> (از بنیان‌گذاران
+        کانسپت ای‌آی) است که شبکه‌های عصبی را با «ساخت واقعی» آموزش می‌دهد: در هر
+        جلسه، یک سیستم واقعی — از یک عدد اسکالر تا یک مدل زبانی — با هم کدنویسی و
+        آموزش داده می‌شود. کل یادگیری ماشین فقط با فرض دانش پایهٔ پایتون و کمی
+        خاطرهٔ حساب دیفرانسیل از دبیرستان شروع می‌شود. دفترچه‌های Jupyter همهٔ جلسات
+        در مخزن <a href="https://github.com/karpathy/nn-zero-to-hero" target="_blank" rel="noopener">karpathy/nn-zero-to-hero</a>
+        منتشر شده‌اند.</p>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">▶ تماشای پلی‌لیست در یوتیوب</a>
+      </section>
+
+      <section>
+        <h2>۲. مسیر جلسات</h2>
+        <ul>
+          <li><b>جلسهٔ ۱ — ساخت micrograd:</b> مقدمهٔ مرحله‌به‌مرحلهٔ شبکه‌های عصبی و
+          backpropagation: ساختن یک موتور autodiff کوچک (کلاس <code>Value</code> با
+          گراف محاسباتی) و یک شبکهٔ عصبی روی آن — بدون هیچ کتابخانه‌ای.</li>
+          <li><b>جلسهٔ ۲ — ساخت makemore (بیگرم):</b> اولین مدل زبانی: یک مدل
+          کاراکتری بیگرم که با شمارش ساده، توزیع حرف بعدی را یاد می‌گیرد؛ معرفی
+          <code>torch.Tensor</code> و مفاهیم آموزش (loss، نمونه‌گیری، ارزیابی).</li>
+          <li><b>جلسهٔ ۳ — MLP:</b> پرسپترون چندلایه برای همین مسئله — اولین «شبکهٔ
+          واقعی» با backprop خودکار PyTorch.</li>
+          <li><b>جلسهٔ ۴ — فعال‌سازی‌ها و BatchNorm:</b> چرا فعال‌سازی‌ها (tanh،
+          ReLU و…) و نرمال‌سازی دسته‌ای، آموزش شبکه‌های عمیق‌تر را ممکن می‌کنند.</li>
+          <li><b>جلسهٔ ۵ — نینجای backprop:</b> بازپیاده‌سازی دستی backpropagation
+          کل یک شبکه (بدون autograd) — مسیر عالی برای شهود عمیق.</li>
+          <li><b>جلسهٔ ۶ — ساخت WaveNet:</b> مدل زبانی مدرن با الهام از معماری
+          WaveNet (گسترش‌یافته به CNN) که متن تولید می‌کند.</li>
+          <li><b>جلسات بعدی:</b> GPT از صفر — ساخت کامل یک ترنسفورمر زبانی، از
+          tokenizer تا نمونه‌گیری، روی دادهٔ شکسپیر.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. چرا این دوره ارزش دیدن دارد؟</h2>
+        <ul>
+          <li><b>«هیچ جعبه‌سیاهی»:</b> هر عدد و هر گرادیان در جریان است — همه‌چیز
+          از پایه ساخته می‌شود.</li>
+          <li><b>از ریاضی دبیرستان تا ترنسفورمر:</b> پل مستقیم بین پایه‌ها و مدل‌های
+          زبانی مدرن (GPT).</li>
+          <li><b>سبک تدریس زنده:</b> اشتباه‌کردن و رفع‌اشکال وسط کدنویسی، خودش
+          بخشی از آموزش است.</li>
+          <li><b>دادهٔ منبع باز:</b> نوت‌بوک‌ها + تمرین‌های هر جلسه + مخزن micrograd
+          (همراه با pytorch) در دسترس‌اند.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکته:</strong> این دورهٔ ویدیویی است و محتوایش اینجا میزبانی
+          نمی‌شود؛ لینک اصلی پلی‌لیست را از دکمهٔ بالا دنبال کنید. برای تمرین، پیشنهاد
+          می‌شود هر جلسه را با «پرش بینی» دنبال کنید: ویدیو را ببینید، بعد خودتان
+          بازنویسی کنید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> دورهٔ ویدیویی «Neural Networks: Zero to Hero» اثر آندری
+        کارپتی (Andrej Karpathy) است و در کانال یوتیوب او منتشر شده. این صفحه فقط معرفی
+        فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

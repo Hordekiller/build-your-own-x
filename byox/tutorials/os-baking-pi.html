@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Baking Pi — توسعه سیستم‌عامل روی Raspberry Pi</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Baking Pi — توسعه سیستم‌عامل</span>
+      </div>
+      <h1>Baking Pi — توسعه سیستم‌عامل با اسمبلی ARM روی Raspberry Pi</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: ARM Assembly</span>
+        <span class="meta-badge">🍓 Raspberry Pi</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/index.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور دورهٔ <b>«Baking Pi —
+          Operating Systems Development»</b> از <b>الکس چادویک (Alex Chadwick)</b> در
+          گروه علوم کامپیوتر دانشگاه کمبریج است که سیستم‌عامل را روی Raspberry Pi
+          با اسمبلی ARMv6 آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="http://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/index.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>Baking Pi یک دورهٔ رایگان دانشگاه کمبریج است که پایه‌های توسعهٔ
+        سیستم‌عامل را روی <b>Raspberry Pi</b> و تقریباً به‌طور کامل با
+        <b>اسمبلی ARMv6</b> آموزش می‌دهد. رویکرد دوره متفاوت است: به‌جای ساخت یک
+        سیستم‌عامل کامل، هر درس یک «کار کوچک» را کامل انجام می‌دهد — از روشن کردن
+        یک LED تا خط فرمان — و هر درس نظریهٔ لازم و تمرین عملی کامل دارد. هیچ دانش
+        قبلی از اسمبلی یا سیستم‌عامل فرض نمی‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. ابزارها و محیط</h2>
+        <p>نیازمندی‌ها: یک Raspberry Pi (با کارت SD و منبع تغذیه) و یک کامپیوتر جدا
+        برای توسعه که <b>کامپایلر متقاطع ARMv6</b> (کراس‌کامپایلر) روی آن نصب
+        باشد. نتیجهٔ کامپایل، فایل <code>kernel.img</code> است که روی کارت SD
+        جایگزین کرنل لینوکس می‌شود (یک کپی از کرنل اصلی همیشه نگه دارید!). نصب
+        کراس‌کامپایلر در لینوکس ساده است:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># نصب کراس‌کامپایلر ARM برای Raspberry Pi (نسخه‌ی قدیمی ARMv6)
+sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi
+
+# ساخت پروژه با Makefile قالب OS Template
+make        # خروجی: kernel.img، kernel.list، kernel.map</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. درس‌ها: از LED تا خط فرمان</h2>
+        <p>دوره به سه سری تقسیم می‌شود که هر درس روی درس قبل بنا می‌شود:</p>
+        <ul>
+          <li><b>سری OK LED (مبتدی):</b> OK01: روشن کردن LED برد با پیکربندی GPIO؛
+          OK02: چشمک‌زدن؛ OK03: توابع اسمبلی؛ OK04: تایمر برای چشمک‌زدن دقیق؛
+          OK05: الگوی مورس SOS.</li>
+          <li><b>سری Screen (پیشرفته):</b> Screen01: گرادیان رنگی روی صفحه؛
+          Screen02: رسم خط و اعداد تصادفی؛ Screen03: چاپ متن و آشنایی با
+          kernel command line؛ Screen04: چاپ مقادیر محاسبه‌شده.</li>
+          <li><b>سری Input (پیشرفته):</b> Input01: تئوری درایورها، لینک‌کردن و
+          صفحه‌کلید — استفاده از درایور USB آماده و چاپ حروف؛ Input02: یک خط فرمان
+          کامل که دستورهای کاربر را اجرا می‌کند.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. نمونه‌ی کد: روشن کردن LED (OK01)</h2>
+        <p>اولین سیستم‌عامل، پیامی به کنترل‌کنندهٔ GPIO می‌فرستد تا پین ۱۶
+        (LED برد) فعال شود. نکتهٔ جالب: سخت‌افزار به‌گونه‌ای طراحی شده که LED با
+        <b>خاموش کردن</b> پین روشن می‌شود! و چون پردازنده هرگز متوقف نمی‌شود، باید
+        یک حلقهٔ بی‌پایان در انتها بگذاریم:</p>
+        <pre class="code"><span class="lang-tag">arm</span><code>// main.s — روشن کردن OK/ACT LED روی Raspberry Pi (ARMv6)
+.section .init          // این بخش اول اجرا می‌شود
+.global _start
+
+_start:
+    ldr r0, =0x20200000  // آدرس پایه‌ی کنترل‌کننده‌ی GPIO
+    mov r1, #1           // تنظیم بیت‌های خروجی برای پین ۱۶
+    lsl r1, #18          // (پین ۱۶ هر ۳ بیت، یعنی بیت ۱۸)
+    str r1, [r0, #4]     // نوشتن در GPFSEL1: پین ۱۶ خروجی شود
+
+    mov r1, #1
+    lsl r1, #16
+    str r1, [r0, #40]    // GPCLR0: «خاموش» کردن پین ۱۶ ← LED روشن!
+
+loop$:
+    b loop$              // حلقه‌ی بی‌پایان</code></pre>
+        <p>کامپایل با <code>make</code> سه فایل تولید می‌کند: <code>kernel.img</code>
+        (تصویر بوت)، <code>kernel.list</code> (نمایش اسمبلی واقعی) و
+        <code>kernel.map</code> (نقشهٔ آدرس برچسب‌ها). بعد از کپی روی کارت SD و
+        روشن کردن Pi، LED سبز روشن می‌شود — اولین سیستم‌عامل شما!</p>
+      </section>
+
+      <section>
+        <h2>۵. چرا این دوره ارزش دنبال کردن دارد؟</h2>
+        <ul>
+          <li><b>سخت‌افزار واقعی:</b> روی برد واقعی اجرا می‌کنید، نه فقط شبیه‌ساز.</li>
+          <li><b>اسمبلی خالص:</b> هیچ کامپایلر C وسط کار نیست؛ رابط بین کد و
+          سخت‌افزار کاملاً شفاف است.</li>
+          <li><b>نظریه + عمل در هر درس:</b> هر مفهوم (درایور، لینک، تایمر، جدول
+          جست‌وجو) قبل از کد، توضیح داده می‌شود.</li>
+          <li><b>پاسخ کامل درس‌ها:</b> پاسخ مدل هر درس در صفحهٔ دانلود دوره هست.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این دوره نقطهٔ شروع عالی برای کسانی است که
+          می‌خواهند بعداً سراغ آموزش‌های پیشرفته‌تر ARM مثل mini-arm-os بروند —
+          در همین مجموعه ترجمه شده است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> دورهٔ «Baking Pi — Operating Systems Development» اثر
+        الکس چادویک (Alex Chadwick) و گروه علوم کامپیوتر دانشگاه کمبریج است. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/index.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

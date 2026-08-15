@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | SlowTorch — پیاده‌سازی PyTorch با پایتون خالص</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>SlowTorch — پیاده‌سازی PyTorch</span>
+      </div>
+      <h1>SlowTorch: پیاده‌سازی PyTorch از پایه با ۱۰۰٪ پایتون خالص</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 autograd + NN از صفر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/xames3/slowtorch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ
+          <b>SlowTorch</b> (نویسنده: xames3) است — یک بازپیاده‌سازی آموزشی از
+          PyTorch که فقط با پایتون خالص و بدون هیچ وابستگی خارجی نوشته شده تا
+          درونی‌های autograd و لایه‌های شبکه را شفاف نشان دهد.
+        </div>
+        <a class="btn solid" href="https://github.com/xames3/slowtorch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. هدف پروژه: «کند» ولی شفاف</h2>
+        <p>نام SlowTorch یک مزاح دوستانه است: در مقایسه با PyTorch واقعی کند است —
+        اما این «کندی» با شفافیت جبران می‌شود. این پروژه با <b>پایتون خالص</b> (بدون
+        numpy حتی در هسته، فقط stdlib) نوشته شده تا کسی که PyTorch را جعبه‌سیاه
+        می‌بیند، بتواند هر جزء آن را خط‌به‌خط بخواند و بفهمد: تنسور چیست، autograd
+        چطور کار می‌کند، و لایه‌ها و بهینه‌سازها چه می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار: تنسورها و autograd</h2>
+        <p>قلب پروژه، کلاس <code>Tensor</code> است که مثل PyTorch دو جنبه دارد: دادهٔ
+        عددی و «گراف محاسباتی» برای مشتق‌گیری خودکار. هر عملیات (جمع، ضرب و…)
+        هم مقدار و هم مشتق موضعی را ثبت می‌کند؛ با فراخوانی <code>backward()</code>
+        گرادیان‌ها از خروجی به ورودی‌ها پخش می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># تنسور: داده + قابلیت autograd (نسخه‌ی ساده‌شده)
+class Tensor:
+    def __init__(self, data, requires_grad=False):
+        self.data = data
+        self.grad = None
+        self.requires_grad = requires_grad
+        self._backward = None   # تابع مشتق موضعی
+
+    def backward(self):
+        # مرتب‌سازی توپولوژیک و پخش گرادیان‌ها به عقب
+        ...
+        self.grad = 1.0
+        for node in reversed(order):
+            node._backward()</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. لایه‌ها و توابع</h2>
+        <p>بالای تنسورها، همان اجزای آشنا تعریف شده‌اند تا بتوان یک شبکهٔ واقعی
+        ساخت: <code>Linear</code> (ضرب ماتریسی + بایاس)، فعال‌سازی‌ها
+        (<code>ReLU</code>، <code>Sigmoid</code>، <code>Tanh</code>،
+        <code>Softmax</code>)، توابع هزینه (<code>MSELoss</code>،
+        <code>CrossEntropyLoss</code>) و ماژول پایهٔ <code>Module</code> — همان الگوی
+        <code>nn.Module</code>:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># تعریف یک شبکه با الگوی PyTorch
+class TwoLayerNet(Module):
+    def __init__(self, in_dim, hidden, out_dim):
+        self.fc1 = Linear(in_dim, hidden)
+        self.fc2 = Linear(hidden, out_dim)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = relu(x)
+        x = self.fc2(x)
+        return softmax(x)</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. بهینه‌سازها و حلقهٔ آموزش</h2>
+        <p>بهینه‌سازهایی مثل <code>SGD</code> و <code>Adam</code> پیاده شده‌اند تا
+        چرخهٔ آموزش مثل PyTorch باشد: forward ← محاسبهٔ loss ← backward ← گام
+        بهینه‌ساز. مشاهدهٔ این حلقه در پایتون خالص، «جادو» را از بین می‌برد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># حلقه‌ی آموزش استاندارد — دقیقاً مثل PyTorch، ولی همه‌چیز باز است
+model = TwoLayerNet(2, 8, 1)
+optimizer = SGD(model.parameters(), lr=0.1)
+
+for epoch in range(100):
+    loss_sum = 0
+    for x, y in dataset:
+        optimizer.zero_grad()
+        pred = model(x)
+        loss = mse_loss(pred, y)
+        loss.backward()          # پخش گرادیان‌ها
+        optimizer.step()         # به‌روزرسانی وزن‌ها
+        loss_sum += loss.data
+    print(f"epoch {epoch}: loss = {loss_sum / len(dataset):.6f}")</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. چرا خواندنش ارزش دارد؟</h2>
+        <ul>
+          <li><b>بدون وابستگی:</b> فقط پایتون استاندارد — می‌توانید در چند دقیقه
+          اجرا و خط‌به‌خط اشکال‌زدایی کنید.</li>
+          <li><b>خوانایی‌محور:</b> کد برای یادگیری نوشته شده، نه برای کارایی؛ نام‌ها
+          و ساختارها آموزشی‌اند.</li>
+          <li><b>آزمون داخلی:</b> پروژه تست‌هایی دارد که رفتارش را با مثال‌های
+          سادهٔ دستی بررسی می‌کند.</li>
+          <li><b>پل به PyTorch واقعی:</b> بعد از خواندن این کد، API و مفاهیم PyTorch
+          (ماژول، پارامتر، autograd) دیگر مبهم نیستند.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این پروژه مکمل عالی دوره‌های «از صفر تا
+          قهرمان» کارپتی و «یادگیری عمیق از صفر» (رویمیل) است — هر سه یک هدف را از
+          زوایای مختلف دنبال می‌کنند.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ SlowTorch اثر xames3 است و در GitHub منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/xames3/slowtorch" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

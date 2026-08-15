@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Hack the Virtual Memory — رشته‌ها و /proc</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Hack the Virtual Memory</span>
+      </div>
+      <h1>Hack the Virtual Memory — فصل ۰: رشته‌های C و /proc (Holberton)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🖥 لینوکس + GDB</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.holbertonschool.com/hack-the-virtual-memory-c-strings-proc/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور قسمت اول از سری
+          <b>«Hack the Virtual Memory»</b> در وبلاگ دانشگاه <b>Holberton</b> است که
+          با نگاه «هکری» حافظهٔ مجازی لینوکس را با C و GDB واکاوی می‌کند.
+        </div>
+        <a class="btn solid" href="https://blog.holbertonschool.com/hack-the-virtual-memory-c-strings-proc/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایدهٔ سری</h2>
+        <p>«Hack the Virtual Memory» یک سری مقالهٔ آموزشی است که حافظهٔ مجازی را
+        «دستکاری‌شونده» نشان می‌دهد: به‌جای درس‌های تئوری خشک، ما حافظهٔ یک
+        فرایند واقعی در حال اجرا را با ابزارهای لینوکس باز می‌کنیم و تغییرش
+        می‌دهیم. فصل ۰، ساده و در عین حال شگفت‌انگیز، با <b>رشته‌های C</b> و
+        فایل‌سیستم <b>/proc</b> شروع می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. نقشه‌ی حافظهٔ یک فرایند</h2>
+        <p>هر فرایند لینوکس یک «فضای آدرس مجازی» دارد که بخش‌های استاندارد دارد:
+        <code>text</code> (کد برنامه)، <code>data</code> (متغیرهای سراسری)،
+        <code>stack</code> (پشته) و <code>heap</code> (تخصیص دینامیک). متغیرهای
+        رشتهٔ C بسته به نحوهٔ تعریف، در بخش‌های مختلف می‌نشینند:</p>
+        <ul>
+          <li><b>رشتهٔ لیترال</b> (مثل <code>"hello"</code>) در بخش <code>text</code>
+          (فقط‌خواندنی).</li>
+          <li><b>آرایهٔ سراسری</b> (مثل <code>char s[] = "…"</code> در سطح global)
+          در بخش <code>data</code>.</li>
+          <li><b>متغیر محلی</b> روی <code>stack</code>.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. پنجره‌ای به حافظه: /proc/pid/mem</h2>
+        <p>نکتهٔ کلیدی: لینوکس حافظهٔ هر فرایند را از طریق فایل
+        <code>/proc/&lt;pid&gt;/mem</code> در معرض دید می‌گذارد. با خواندن این فایل
+        (مثل یک فایل معمولی) و با کمک <code>/proc/&lt;pid&gt;/maps</code> (نقشهٔ
+        بخش‌ها)، می‌توانیم محتوای حافظهٔ یک فرایند زنده را ببینیم و حتی
+        <b>بازنویسی</b> کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// خواندن یک کاراکتر از حافظه‌ی یک فرایند زنده
+int read_byte(pid_t pid, long addr) {
+    char path[64];
+    snprintf(path, sizeof path, "/proc/%d/mem", pid);
+
+    int fd = open(path, O_RDONLY);
+    char byte;
+    pread(fd, &byte, 1, addr);   // خواندن یک بایت از آدرس داده‌شده
+    close(fd);
+    return byte;
+}</code></pre>
+        <p>اگر همان برنامه با <code>ptrace</code> یا <code>attach</code> متوقف
+        نشود، باز کردن <code>/proc/pid/mem</code> ممکن است خطای <b>EIO</b> بدهد —
+        این خودش یک درس مهم دربارهٔ مجوزها و حالت متوقف فرایند است.</p>
+      </section>
+
+      <section>
+        <h2>۴. هک واقعی: تغییر رشته در یک فرایند زنده</h2>
+        <p>مثال معروف فصل: برنامه‌ای یک رشته را روی صفحه می‌نویسد و چاپ می‌کند؛
+        ما آدرس آن رشته را در نقشهٔ حافظه پیدا می‌کنیم، سپس با نوشتن در
+        <code>/proc/pid/mem</code> محتوای آن را عوض می‌کنیم — و دفعهٔ بعدی که
+        برنامه چاپ می‌کند، رشتهٔ ما را می‌بینید:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// تغییر یک بایت از رشته‌ی فرایند زنده
+int write_byte(pid_t pid, long addr, char value) {
+    char path[64];
+    snprintf(path, sizeof path, "/proc/%d/mem", pid);
+
+    int fd = open(path, O_WRONLY);
+    pwrite(fd, &value, 1, addr);
+    close(fd);
+    return 0;
+}</code></pre>
+        <p>برای پیدا کردن آدرس دقیق، از <b>GDB</b> کمک می‌گیریم: <code>x/s</code>
+        آدرس رشته را نشان می‌دهد و <code>p/x</code> آدرس‌های متغیرها را.</p>
+      </section>
+
+      <section>
+        <h2>۵. چه چیزهایی یاد می‌گیریم؟</h2>
+        <ul>
+          <li>تفاوت واقعی بخش‌های حافظه (stack / data / text) با مشاهدهٔ مستقیم.</li>
+          <li>کاربرد عملی <code>/proc</code> و مفاهیم PID و مجوزها.</li>
+          <li>مفهوم آدرس‌های مجازی در برابر فیزیکی — چرا آدرس‌ها در maps
+          «مجازی»اند.</li>
+          <li>ابزارهایی که توسعه‌دهندگان دیباگر و ابزارهای هک حافظه استفاده
+          می‌کنند.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این سری ادامه‌های دیگری هم دارد (آدرس‌های
+        مجازی، malloc داخلی و…)؛ فصل ۰ به‌خاطر سادگی و شیرینی، بهترین دروازهٔ ورود
+        به دنیای مدیریت حافظهٔ لینوکس است.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری «Hack the Virtual Memory» اثر نویسندگان وبلاگ
+        Holberton School است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://blog.holbertonschool.com/hack-the-virtual-memory-c-strings-proc/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

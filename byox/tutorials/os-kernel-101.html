@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Kernel 101 — نوشتن اولین هسته‌ی خود (ارجون سری‌داران)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Kernel 101 — نوشتن اولین هسته</span>
+      </div>
+      <h1>Kernel 101 — نوشتن اولین هسته‌ی خود (ارجون سری‌داران)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">💽 GRUB + QEMU</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://arjunsreedharan.org/post/82710718100/kernel-101-lets-write-a-kernel" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ
+          <b>«Kernel 101 — Let's write a Kernel»</b> از <b>ارجون سری‌داران (Arjun
+          Sreedharan)</b> است — یکی از معروف‌ترین راهنماهای نوشتن یک هستهٔ x86 که
+          با GRUB بوت می‌شود و پیامی روی صفحه چاپ می‌کند.
+        </div>
+        <a class="btn solid" href="https://arjunsreedharan.org/post/82710718100/kernel-101-lets-write-a-kernel" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایدهٔ اصلی</h2>
+        <p>این آموزش دو هستهٔ اولیه را می‌سازد: یکی به زبان <b>اسمبلی</b> و دیگری
+        به زبان <b>C</b> — هر دو با ابزار GRUB بوت می‌شوند تا مجبور نباشیم خودمان
+        بوت‌لودر بنویسیم. هدف، نشان دادن «ساده‌ترین چیزی که هسته‌ی قابل بوت نامیده
+        می‌شود» است: یک فایل ELF که روی صفحه «Hello World» چاپ می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. کرنل اسمبلی: ورود GRUB و چند وقفه</h2>
+        <p>وقتی GRUB بوت می‌شود، بر اساس استاندارد <b>Multiboot</b> هسته را بارگذاری
+        می‌کند و کنترل را می‌سپارد. یک نکتهٔ ظریف: در این مرحله
+        <b>ESP تعریف‌نشده است</b> (GRUB مقدار قابل اعتمادی برای پشته نمی‌گذارد)،
+        پس اولین کار هسته، ساخت یک پشته برای خودش است:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; kernel.asm — هسته‌ی اسمبلی: تعریف پشته و چاپ پیام
+bits 32
+section .text
+
+global start
+start:
+    mov esp, stack_top  ; ساخت پشته (الزامی! ESP تعریف‌نشده است)
+    call kmain          ; پرش به کد اصلی
+    hlt                 ; توقف پردازنده
+
+section .bss
+resb 8192               ; ۸ کیلوبایت فضای پشته
+stack_top:</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. کرنل C: چاپ مستقیم روی حافظهٔ VGA</h2>
+        <p>نسخهٔ C، نکته‌ای زیبا دارد: به‌جای هیچ سیستمی، کافی است در
+        <b>حافظهٔ ویدیویی 0xB8000</b> (حالت متن VGA) بنویسد. هر کاراکتر = ۲ بایت
+        (کد کاراکتر + ویژگی رنگ). تابع <code>kmain</code> برای هر حرف، ویژگی سبز
+        روی مشکی را می‌نویسد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// kmain.c — هسته‌ی C: چاپ در حافظه‌ی ویدیویی VGA
+#define VGA_ADDRESS 0xB8000
+#define WHITE_ON_BLACK 0x0f00
+#define GREEN_ON_BLACK 0x2a00
+
+void kmain(void) {
+    const char *str = "my first kernel";
+    unsigned short *vga = (unsigned short *) VGA_ADDRESS;
+
+    for (int i = 0; str[i] != '\0'; ++i) {
+        vga[i] = GREEN_ON_BLACK | str[i];
+    }
+
+    for (;;) {        // حلقه‌ی بی‌پایان: هسته «تمام شد»
+        __asm__("hlt");
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. کامپایل و اجرا</h2>
+        <p>کرنل C به یک فایل ELF 32 بیتی لینک می‌شود (آدرس 1MB به بالا) و سپس
+        فایل‌های <code>kernel</code> و <code>grub</code> با ابزار
+        <code>grub-mkrescue</code> در یک ISO بوت‌شونده قرار می‌گیرند:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># کامپایل و لینک کرنل
+gcc -m32 -c kernel.c -o kernel.o
+ld -m elf_i386 -T link.ld kernel.o -o kernel
+
+# ساخت ISO بوت‌شونده با GRUB
+grub-mkrescue -o os.iso kernel_dir
+
+# اجرا در QEMU
+qemu-system-i386 -cdrom os.iso</code></pre>
+        <p>بعد از چند ثانیه، عبارت «my first kernel» روی صفحهٔ QEMU دیده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۵. چرا این آموزش مهم است؟</h2>
+        <ul>
+          <li><b>کوتاه‌ترین مسیر ممکن</b> به یک «کرنل واقعی» — بدون دردسر نوشتن
+          بوت‌لودر.</li>
+          <li><b>مفهوم Multiboot</b> را شفاف و با مثال یاد می‌دهد.</li>
+          <li><b>لینک‌دادن و ELF</b> برای bare-metal با فایل لینکر توضیح داده
+          شده.</li>
+          <li>پل خوبی به <b>Kernel 201</b> (همین نویسنده) است که ورودی صفحه‌کلید
+          و صفحه‌نمایش را اضافه می‌کند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Kernel 101 — Let's write a Kernel» اثر ارجون
+        سری‌داران (Arjun Sreedharan) است و در arjunsreedharan.org منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://arjunsreedharan.org/post/82710718100/kernel-101-lets-write-a-kernel" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تولید موسیقی با شبکه عصبی LSTM در Keras</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>تولید موسیقی با LSTM در Keras</span>
+      </div>
+      <h1>چگونه با یک شبکهٔ عصبی LSTM در Keras موسیقی تولید کنیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 LSTM + Music21</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://towardsdatascience.com/how-to-generate-music-using-a-lstm-neural-network-in-keras-68786834d4c5" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «How to Generate Music
+          using a LSTM Neural Network in Keras» از <b>سیگورور اسکولی (Sigurður Skúli)</b>
+          (۲۰۱۸) در Towards Data Science است که با LSTM و کتابخانهٔ Music21، موسیقی
+          تولید می‌کند.
+        </div>
+        <a class="btn solid" href="https://towardsdatascience.com/how-to-generate-music-using-a-lstm-neural-network-in-keras-68786834d4c5" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایده: موسیقی به‌عنوان یک «زبان»</h2>
+        <p>موسیقی مانند متن، توالی‌ای از نمادهاست: نوت‌ها و آکوردها. اگر نوت‌های یک
+        قطعه را به‌صورت پشت‌سرهم درآوریم، مسئله تبدیل می‌شود به: «با دیدن N نماد قبلی،
+        نماد بعدی را پیش‌بینی کن» — یعنی یک مسئلهٔ <b>مدل‌سازی توالی (sequence
+        modeling)</b>. شبکه‌های بازگشتی (RNN) و به‌ویژه <b>LSTM</b> برای همین ساخته
+        شده‌اند: حافظه‌ای درونی دارند که وابستگی‌های بلندمدت (مثل بازگشت تم اصلی بعد
+        از چند میزان) را نگه می‌دارد.</p>
+      </section>
+
+      <section>
+        <h2>۲. استخراج نوت‌ها از فایل MIDI با Music21</h2>
+        <p>اولین گام، تبدیل فایل‌های MIDI به توالی نمادهاست. کتابخانهٔ
+        <b>Music21</b> این کار را ساده می‌کند: <code>converter.parse()</code> فایل را
+        می‌خواند و <code>flat.notes</code> همهٔ نوت‌ها و آکوردها را به ترتیب برمی‌گرداند.
+        هر نوت با «نام + اکتاو» (مثل <code>D#4</code>) و هر آکورد با فهرست نوت‌هایش
+        (مثل <code>D#4.F#4.A#4</code>) نمایش داده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from music21 import converter
+
+# خواندن فایل MIDI و استخراج توالی نوت‌ها و آکوردها
+notes = []
+for element in converter.parse("song.mid").flat.notes:
+    if element.isNote:
+        notes.append(str(element.pitch))            # مثل "D#4"
+    elif element.isChord:
+        notes.append(".".join(str(n) for n in element.pitches))  # مثل "D#4.F#4.A#4"
+
+print("تعداد نمادها:", len(notes), "| نمادهای یکتا:", len(set(notes)))</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. کدگذاری نمادها و ساخت پنجره‌ها</h2>
+        <p>شبکه اعداد می‌فهمد، نه رشته. پس نمادها به اندیس عددی تبدیل می‌شوند (نگاشت
+        دیکشنری‌ای). سپس توالی به <b>پنجره‌های هم‌پوشان</b> تقسیم می‌شود: هر پنجرهٔ
+        ورودی <code>sequence_length</code> نماد دارد و خروجی همان یک نماد بعدی است.
+        خروجی به‌صورت <b>one-hot</b> کدگذاری می‌شود (بردار صفر و یک، با ۱ در جای
+        نماد درست):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>sequence_length = 100  # طول حافظه: ۱۰۰ نماد قبل
+
+network_input = []   # ورودی‌های پنجره‌ای
+network_output = []  # نماد بعدی هر پنجره
+
+for i in range(0, len(notes) - sequence_length, 1):
+    seq_in = notes[i:i + sequence_length]
+    seq_out = notes[i + sequence_length]
+    network_input.append([note_to_int[n] for n in seq_in])
+    network_output.append(note_to_int[seq_out])
+
+# تبدیل به آرایه‌ی numpy و one-hot کردن خروجی
+X = np.reshape(network_input, (len(network_input), sequence_length, 1))
+X = X / float(n_vocab)                     # نرمال‌سازی ورودی
+y = to_categorical(network_output, num_classes=n_vocab)</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. معماری LSTM</h2>
+        <p>مدل از دو لایهٔ LSTM و دو لایهٔ Dense ساخته می‌شود. لایهٔ LSTM دو نکتهٔ مهم
+        دارد: <code>return_sequences=True</code> در لایهٔ اول تا خروجی کامل توالی به
+        لایهٔ دوم برسد، و <code>return_state=True</code> در آخرین لایهٔ LSTM تا در مرحلهٔ
+        تولید، حالت حافظه حفظ شود. خروجی نهایی با softmax توزیع احتمال روی همهٔ نمادهاست:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from keras.models import Sequential
+from keras.layers import LSTM, Dense, Dropout
+
+model = Sequential()
+model.add(LSTM(512, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+model.add(Dropout(0.3))
+model.add(LSTM(512, return_state=True))   # حالت را برای تولید برمی‌گردانیم
+model.add(Dropout(0.3))
+model.add(Dense(256, activation="relu"))
+model.add(Dense(n_vocab, activation="softmax"))
+
+model.compile(loss="categorical_crossentropy", optimizer="rmsprop")
+model.fit(X, y, epochs=200, batch_size=64)</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. تولید موسیقی: نمونه‌گیری نماد به نماد</h2>
+        <p>تولید یعنی «زنجیره‌زدن پیش‌بینی‌ها»: یک توالی تصادفی از نمادها به عنوان
+        نقطهٔ شروع انتخاب می‌شود؛ در هر گام، شبکه توزیع احتمال نماد بعدی را می‌دهد؛
+        نماد بعدی با <b>نمونه‌گیری (sampling)</b> از این توزیع انتخاب می‌شود (نه
+        همیشه محتمل‌ترین!) — این تصادفی‌سازی به خروجی خلاقیت می‌دهد و از تکرار
+        بی‌پایان جلوگیری می‌کند. سپس پنجره یک نماد جلو می‌رود و همین‌طور تا رسیدن به
+        طول دلخواه:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def generate_notes(model, start, n_vocab, int_to_note):
+    pattern = start.copy()
+    output = []
+    for _ in range(500):
+        # آماده‌سازی الگوی فعلی برای شبکه
+        x = np.reshape(pattern, (1, len(pattern), 1)) / float(n_vocab)
+        prediction = model.predict(x, verbose=0)[0]
+
+        # نمونه‌گیری از توزیع احتمال (با خلاقیت تصادفی)
+        index = np.argmax(prediction)
+        output.append(int_to_note[index])
+        pattern.append(index)
+        pattern = pattern[1:]   # پنجره را یک قدم جلو می‌بریم
+    return output</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. تبدیل خروجی به فایل MIDI</h2>
+        <p>در پایان، توالی نمادها دوباره به یک شیء Music21 تبدیل و به‌عنوان فایل MIDI
+        ذخیره می‌شود تا در هر نرم‌افزار موسیقی پخش شود. برای اینکه ملودی شنیدنی
+        باشد، یک <b>ریتم ثابت</b> (مثلاً هر نوت یک ضرب) در نظر گرفته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from music21 import stream, note, chord, tempo
+
+def notes_to_midi(notes, output_file):
+    offset = 0
+    stream_notes = []
+    for pattern in notes:
+        if "." in pattern:          # آکورد
+            notes_list = [note.Note(n) for n in pattern.split(".")]
+            c = chord.Chord(notes_list)
+            c.quarterLength = 0.5
+            stream_notes.append(c)
+        else:                       # نوت ساده
+            n = note.Note(pattern)
+            n.quarterLength = 0.5
+            stream_notes.append(n)
+        offset += 0.5
+
+    midi_stream = stream.Stream(stream_notes)
+    midi_stream.write("midi", fp=output_file)</code></pre>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی و بهبودها</h2>
+        <ul>
+          <li>موسیقی = توالی نماد؛ LSTM برای توالی‌ها عالی است.</li>
+          <li>Music21 کار خواندن/نوشتن MIDI را می‌گیرد؛ تمرکز روی مدل می‌ماند.</li>
+          <li>نمونه‌گیری تصادفی (به‌جای argmax همیشگی) خلاقیت تولید می‌کند.</li>
+          <li><b>بهبودها:</b> افزودن مدت‌زمان نوت‌ها به ورودی، دو لایهٔ bidirectional،
+          آموزش روی دیتاست بزرگ‌تر از یک آهنگ.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Generate Music using a LSTM Neural
+        Network in Keras» اثر سیگورور اسکولی (Sigurður Skúli) است و در Towards Data
+        Science منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://towardsdatascience.com/how-to-generate-music-using-a-lstm-neural-network-in-keras-68786834d4c5" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک سیستم‌عامل یونیکس‌مانند (جیمز مولی)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>ساخت یک سیستم‌عامل یونیکس‌مانند</span>
+      </div>
+      <h1>ساخت یک سیستم‌عامل یونیکس‌مانند — آموزش ده‌بخشی جیمز مولی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">💽 x86، ماژولار</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.jamesmolloy.co.uk/tutorial_html/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور دورهٔ
+          <b>«Roll your own toy UNIX-clone OS»</b> از <b>جیمز مولی (James Molloy)</b>
+          است — یک سیستم‌عامل ده‌بخشی که از صفر و با C، یک هستهٔ یونیکس‌مانند
+          با multitasking و سیستم فایل می‌سازد.
+        </div>
+        <a class="btn solid" href="http://www.jamesmolloy.co.uk/tutorial_html/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>این یکی از کلاسیک‌ترین و کامل‌ترین آموزش‌های ساخت سیستم‌عامل در وب است.
+        جیمز مولی در ده بخش، یک سیستم‌عامل <b>مونولیتیک (یک‌پارچه)</b> با معماری
+        یونیکس‌مانند می‌سازد: از بوت شدن با GRUB تا اجرای چندین فرایند به‌طور
+        همزمان با زمان‌بند. هر بخش شامل مقالهٔ کامل توضیحی، کد کامل C/اسمبلی و
+        نکات دیباگ است.</p>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ ده بخش</h2>
+        <ul>
+          <li><b>۱. محیط:</b> آماده‌سازی کامپایلر، لینکر، GRUB و کراس‌کامپایل.</li>
+          <li><b>۲. پیدایش:</b> فایل‌های اسمبلی بوت، لینک‌دادن و ساختار اصلی کرنل.</li>
+          <li><b>۳. صفحه‌نمایش:</b> نوشتن در حافظهٔ VGA و درایور متن.</li>
+          <li><b>۴. GDT و IDT:</b> جدول‌های توصیفگر و مدیریت وقفه‌ها.</li>
+          <li><b>۵. IRQs و PIT:</b> کنترل‌کننده‌های وقفهٔ سخت‌افزاری و تایمر
+          سیستم — پایهٔ multitasking.</li>
+          <li><b>۶. صفحه‌بندی:</b> مدیریت حافظهٔ مجازی با صفحه‌ها.</li>
+          <li><b>۷. هیپ (Heap):</b> تخصیص‌دهندهٔ حافظهٔ دینامیک برای کرنل
+          (<code>kmalloc</code>).</li>
+          <li><b>۸. VFS و initrd:</b> سیستم فایل مجازی و بارگذاری فایل‌های
+          برنامه از یک آرشیو اولیه.</li>
+          <li><b>۹. Multitasking:</b> زمان‌بند (scheduler) و تعویض context —
+          اجرای همزمان فرایندها.</li>
+          <li><b>۱۰. حالت کاربر:</b> پرش CPU از ring 0 به ring 3 و اجرای برنامه‌ها
+          در فضای کاربری محافظت‌شده.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: تعویض زمینهٔ (Context) فرایند</h2>
+        <p>در بخش multitasking، هر فرایند یک «زمینه» شامل رجیسترها و آدرس پشته
+        دارد. تابع تعویض، وضعیت فرایند قبلی را ذخیره و فرایند جدید را بازیابی
+        می‌کند — این هستهٔ زمان‌بندیِ هر سیستم‌عامل مدرن است:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// switch_context: ذخیره‌سازی و بازیابی وضعیت فرایندها
+void switch_context(process_t *next, process_t *prev) {
+    // ذخیره‌ی رجیسترهای فرایند فعلی در prev
+    asm volatile(
+        "movl %%esp, %0\n"   // پشته
+        "movl %%ebp, %1\n"   // قاب فریم
+        : "=r"(prev->esp), "=r"(prev->ebp));
+
+    // بارگذاری رجیسترهای فرایند next
+    asm volatile(
+        "movl %0, %%esp\n"
+        "movl %1, %%ebp\n"
+        : : "r"(next->esp), "r"(next->ebp));
+
+    // ادامه‌ی اجرا از جایی که فرایند بعدی متوقف شده بود
+    asm volatile("ret");
+}</code></pre>
+        <p>این روش «همکارانه» (cooperative) ساده است؛ در ادامهٔ دوره، زمان‌بند با
+        وقفه‌های تایمر (preemptive) بازنویسی می‌شود تا هر فرایند «به‌زور» سهم CPU
+        بگیرد.</p>
+      </section>
+
+      <section>
+        <h2>۴. نقاط قوت و نکات احتیاط</h2>
+        <ul>
+          <li><b>کامل بودن:</b> از بوت‌لودر تا حالت کاربر و سیستم فایل — مسیر
+          کامل یک کرنل واقعی.</li>
+          <li><b>معماری تمیز:</b> ماژول‌های جداشده (screen، gdt، idt، paging،
+          heap، vfs) که بعداً قابل توسعه‌اند.</li>
+          <li><b>کدهای قابل اجرا:</b> هر بخش کد کامل دارد که با make ساخته و با
+          QEMU/Bochs اجرا می‌شود.</li>
+          <li><b>چالش‌های شناخته‌شده:</b> این دوره قدیمی (حدود ۲۰۰۷) است؛
+          ممکن است با کامپایلرها و نصب‌های جدید خطاهای محیطی بدهد و برخی بخش‌ها
+          (مثل صدا) ناقص‌اند. برای حل، حتماً نصب x86_64-elf-* و نسخه‌های
+          سازگار ابزارها را پیش ببرید.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این دوره برای کسی که «چند کرنل کوچک» ساخته و
+        حالا می‌خواهد درگیر مفاهیم واقعی سیستم‌عامل (زمان‌بندی، حافظهٔ مجازی، حالت
+        کاربر) شود، انتخاب ایده‌آلی است.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> دورهٔ «Roll your own toy UNIX-clone OS» اثر جیمز مولی
+        (James Molloy) است و در jamesmolloy.co.uk منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="http://www.jamesmolloy.co.uk/tutorial_html/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

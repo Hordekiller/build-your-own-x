@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Little OS Book</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>The Little OS Book</span>
+      </div>
+      <h1>The Little OS Book — کتاب کوچک ساخت سیستم‌عامل</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">💽 x86 + Bochs</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://littleosbook.github.io/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب آزاد
+          <b>«The Little OS Book»</b> (ویکی‌کتاب دانشگاهی، نگهداری‌شده در
+          littleosbook.github.io) است که با C و اسمبلی، پایهٔ یک سیستم‌عامل x86 را
+          می‌سازد و با Bochs شبیه‌سازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://littleosbook.github.io/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p>Little OS Book یک کتاب آزاد و نسبتاً کوتاه است که در قالب ویکی برای
+        پروژهٔ درسی یک دانشگاه نوشته شده و در GitHub نگهداری می‌شود. هدفش ساخت یک
+        سیستم‌عامل سادهٔ x86 از صفر با زبان C (و کمی اسمبلی در جاهای لازم) است.
+        کتاب به‌جای پوشش حجم عظیم موضوعات سیستم‌عامل، «حداقل مسیر» را می‌رود تا
+        خواننده‌ای که با اسمبلی و C آشناست، در یک جلسهٔ کاری به یک کرنل بوت‌شونده
+        برسد.</p>
+      </section>
+
+      <section>
+        <h2>۲. فهرست فصل‌ها</h2>
+        <ul>
+          <li><b>مقدمه:</b> ساختار یک سیستم‌عامل، پیش‌نیازها (Bochs، GCC، GDB،
+          make، نصبت‌های مشترک)</li>
+          <li><b>فصل ۱ — ابزارها:</b> نصب و آشنایی با ابزارها و چرایی استفاده از
+          هر کدام.</li>
+          <li><b>فصل ۲ — مبانی:</b> از بوت شدن تا ورود به حالت محافظت‌شده؛
+          بوت‌لودر GRUB، GDT، حالت ۳۲-بیتی.</li>
+          <li><b>فصل ۳ — صفحه و ورودی/خروجی:</b> کنترل مانیتور با VGA
+          (نوشتن در حافظهٔ ویدیویی)، درگاه‌های I/O (port) با <code>out</code>.</li>
+          <li><b>فصل ۴ — لینک‌کردن:</b> فایل‌های باینری، Makefile و لینک‌دادن
+          کرنل.</li>
+          <li><b>فصل ۵ — کار با GDB:</b> دیباگ کرنل زنده در Bochs؛ پیوند GDB و
+          Bochs برای مشاهدهٔ رجیسترها و حافظه.</li>
+          <li><b>فصل ۶ — فایل‌ها در سیستم‌عامل:</b> سیستم فایل VFS پایه، ساختار
+          درایو و کار با فایل‌ها.</li>
+          <li><b>فصل ۷ — صفحه‌بندی و مدیریت حافظه:</b> تقسیم حافظه به صفحه،
+          مدیریت حافظهٔ فیزیکی و مجازی، پشته‌های هسته.</li>
+          <li><b>فصل ۸ — اجرای کاربر:</b> اجرای برنامه‌های کاربردی در حالت
+          کاربری و ورود/خروج به هسته.</li>
+          <li><b>فصل ۹ — دیباگ و اشکال‌زدایی:</b> عیب‌یابی سیستم در حال اجرا.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: ورود به حالت ۳۲-بیتی</h2>
+        <p>یکی از اولین گام‌ها، تعریف GDT و پرش به حالت محافظت‌شده است — بخشی که
+        کتاب با جزئیات کامل توضیح می‌دهد. نکته‌ی معروف این مرحله این است که بعد از
+        بارگذاری GDT، باید با یک <b>far jump</b> (پرش با آدرس فیزیکی) کد را
+        از نو پیکربندی کنیم، چون آدرس‌دهی بخش‌ها عوض شده:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; ورود به حالت ۳۲-بیتی از بوت‌لودر ۱۶-بیتی
+[bits 16]
+
+switch_to_32:
+    cli                     ; قطع وقفه‌ها (هیچ ISR ۳۲-بیتی نداریم)
+    lgdt [gdt_descriptor]   ; بارگذاری جدول GDT
+    mov eax, cr0
+    or  eax, 0x1
+    mov cr0, eax            ; روشن کردن بیت PE — ورود به protected mode
+    jmp CODE_SEG:init_32    ; far jump: مقادیر بخش جدید بار می‌شوند
+
+[bits 32]
+init_32:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov ss, ax
+    mov esp, 0x90000        ; پشته‌ی جدید ۳۲-بیتی
+    call main               ; ورود به کد C کرنل!</code></pre>
+        <p>بعد از این، کتاب کرنل C را با ساختار تابع <code>main</code> بارگذاری
+        می‌کند و کار با صفحه‌نمایش (نوشتن مستقیم در حافظهٔ VGA) را شروع می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۴. نقاط قوت و احتیاط‌ها</h2>
+        <ul>
+          <li><b>کوتاه و سریع:</b> به‌جای ده‌ها فصل، یک مسیر مینیمال اما کامل دارد —
+          عالی برای شروع واقعی.</li>
+          <li><b>دیباگ با GDB:</b> فصل مخصوص دیباگ کرنل زنده، چیزی که اکثر
+          آموزش‌ها ندارند.</li>
+          <li><b>باگ‌های شناخته‌شده:</b> کتاب چند اشکال شناخته‌شدهٔ محیطی دارد که
+          در <b>مسائل GitHub مخزن</b> ثبت و رفع شده‌اند؛ هنگام گیر کردن حتماً بخش
+          Issues را چک کنید.</li>
+          <li><b>قدیمی‌تر بودن:</b> ابزارها و نسخه‌های قدیمی ممکن است در محیط‌های
+          جدید تغییر کرده باشند؛ برای شبیه‌سازی، Bochs همچنان بهترین گزینه است.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> Little OS Book و os-tutorial هر دو از
+        <code>os-dev.pdf</code> دانشگاه بیرمنگام الهام گرفته‌اند؛ این کتاب، نسخهٔ
+        عمیق‌تر و کتابمحورتر آن مسیر است.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «The Little OS Book» اثر نویسندگان ویکی‌کتاب و
+        نگهدارندگان مخزن littleosbook است و به‌صورت آزاد منتشر شده. این صفحه فقط ترجمهٔ
+        فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="https://littleosbook.github.io/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

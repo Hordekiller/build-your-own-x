@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Write your own Operating System (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Write your own Operating System</span>
+      </div>
+      <h1>Write your own Operating System — دورهٔ ویدیویی CodePulse</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎬 ویدیو (پلی‌لیست)</span>
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLHh55M_Kq4OApWScZyPl5HhgsTJS9MZ6M" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور پلی‌لیست
+          <b>«Write your own Operating System»</b> از کانال <b>CodePulse</b>
+          (دیوید کالانن) است — دوره‌ای ویدیویی و گام‌به‌گام برای ساخت یک
+          سیستم‌عامل از صفر با C و اسمبلی.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLHh55M_Kq4OApWScZyPl5HhgsTJS9MZ6M" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>CodePulse (دیوید کالانن) یکی از محبوب‌ترین دوره‌های ویدیویی توسعهٔ
+        سیستم‌عامل را ساخته است. هر ویدیو با نمایش زندهٔ کدنویسی، یک بخش از
+        سیستم‌عامل را می‌سازد و بیننده «از نزدیک» می‌بیند که هر تصمیم چگونه گرفته
+        می‌شود. برخلاف مقاله‌ها، ویدیو مزیت بزرگی دارد: اشتباه‌ها، دیباگ‌ها و
+        روند فکری نویسنده هم دیده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. مسیر دوره</h2>
+        <ul>
+          <li><b>قسمت‌های اول — بوت:</b> ساختار بوت‌لودر، اولین اسمبلی،
+          بوت در شبیه‌ساز و چاپ پیام.</li>
+          <li><b>قسمت‌های میانی — هسته:</b> ورود به حالت ۳۲-بیتی، مدیریت
+          صفحه‌نمایش، وقفه‌ها و درایور صفحه‌کلید.</li>
+          <li><b>قسمت‌های پایانی — تکمیل:</b> زمان‌بند، مدیریت حافظه و
+          جمع‌بندی سیستم‌عامل نهایی.</li>
+        </ul>
+        <p>سورس کامل پروژه در
+        <a href="https://github.com/davidcallanan/os-series" target="_blank" rel="noopener">مخزن GitHub os-series</a>
+        موجود است و می‌توانید هر قسمت را جداگانه دنبال کنید.</p>
+      </section>
+
+      <section>
+        <h2>۳. چه چیزهایی یاد می‌گیرید؟</h2>
+        <ul>
+          <li>نحوهٔ کار واقعی بوت‌لودر، GDT، IDT و وقفه‌ها با اجرای زنده.</li>
+          <li>نوشتن درایور برای صفحه‌کلید و صفحه‌نمایش.</li>
+          <li>مدیریت حافظهٔ اولیه و زمان‌بندی فرایندها.</li>
+          <li>الگوهای دیباگ و اشکال‌زدایی کرنل‌ها.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. نحوهٔ دنبال کردن</h2>
+        <p>بهترین روش، کدنویسی همزمان با ویدیو است: ویدیو را متوقف کنید، همان
+        تغییر را خودتان اعمال کنید و قبل از ادامه، خودتان اجرا کنید. کد دوره در
+        هر مرحله قابل اجرا در <b>QEMU</b> است؛ اگر در بخشی گیر کردید، تفاوت کد
+        خودتان با مخزن اصلی را ببینید.</p>
+        <div class="callout note">
+          این صفحه به‌دلیل ماهیت ویدیویی منبع، فقط شامل معرفی و لینک است و طبق
+          قواعد مجموعه، ویدیو مستقیماً در صفحه تعبیه نمی‌شود — برای تماشا به لینک
+          «منبع اصلی» مراجعه کنید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Write your own Operating System» اثر دیوید
+        کالانن (David Callanan / CodePulse) است و در یوتیوب منتشر شده. این صفحه فقط
+        معرفی و مرور آن است و تمام حقوق محتوا متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به
+        <a href="https://www.youtube.com/playlist?list=PLHh55M_Kq4OApWScZyPl5HhgsTJS9MZ6M" target="_blank" rel="noopener">لینک پلی‌لیست</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

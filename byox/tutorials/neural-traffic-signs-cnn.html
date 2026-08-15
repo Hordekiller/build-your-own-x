@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | طبقه‌بندی علائم راهنمایی و رانندگی با شبکه کانولوشنی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>طبقه‌بندی علائم راهنمایی و رانندگی</span>
+      </div>
+      <h1>طبقه‌بندی علائم راهنمایی و رانندگی با شبکه کانولوشنی — دقت ۹۹/۳۳٪</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 CNN + GTSRB</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://navoshta.com/traffic-signs-classification/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Traffic Sign
+          Classification with a Convolutional Network» از <b>الکس استارکوف
+          (Alex Staravoitau / navoshta)</b> (۲۰۱۷) است که با پایتون و TensorFlow یک
+          CNN را روی دیتاست GTSRB با دقت ۹۹/۳۳٪ آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://navoshta.com/traffic-signs-classification/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مسئله و دیتاست</h2>
+        <p>تشخیص علائم راهنمایی و رانندگی برای خودروهای خودران حیاتی است. دیتاست
+        <b>GTSRB (German Traffic Sign Recognition Benchmark)</b>: ۳۹,۲۰۹ تصویر آموزش و
+        ۱۲,۶۳۰ تصویر تست در ۴۳ کلاس، همه ۳۲×۳۲. چالش‌ها: نور متغیر، زاویهٔ دید،
+        پوشیدگی و شباهت بین کلاس‌ها (مثلاً محدودیت سرعت ۵۰ و ۸۰). هدف: رسیدن به دقت
+        بالا روی دادهٔ تست.</p>
+      </section>
+
+      <section>
+        <h2>۲. پیش‌پردازش: خاکستری، هیستوگرام محلی</h2>
+        <p>نویسنده روی یک انتخاب مهم متوقف می‌شود: آیا بهتر است تصاویر رنگی بمانند یا
+        خاکستری شوند؟ نتیجهٔ آزمایش‌ها: استفاده از <b>کانال Y از فضای رنگی YCbCr</b>
+        (که روشنایی را از رنگ جدا می‌کند) با <b>یکسان‌سازی هیستوگرام محلی</b>
+        (<code>equalize_adapthist</code> از scikit-image) بهترین عملکرد را دارد — چون
+        هیستوگرام محلی، کنتراست مناطق روشن/سایه را متعادل می‌کند و شبکه ویژگی‌های
+        مستقل از نور می‌آموزد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from skimage import color, exposure
+
+def preprocess_image(image):
+    # ۱) استخراج کانال روشنایی (Y) از YCbCr
+    y_channel = color.rgb2ycbcr(image)[:, :, 0]
+    # ۲) یکسان‌سازی هیستوگرام محلی برای مقاومت در برابر نور متغیر
+    y_channel = exposure.equalize_adapthist(y_channel, clip_limit=0.1)
+    # ۳) نرمال‌سازی به بازه‌ی [0, 1]
+    return (y_channel - np.min(y_channel)) / (np.max(y_channel) - np.min(y_channel))</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. معماری شبکه: درس‌گرفته از Sermanet & LeCun</h2>
+        <p>معماری از مقالهٔ معروف <b>Sermanet &amp; LeCun (2011)</b> الهام گرفته:
+        شبکه‌ای با چند لایهٔ کانولوشنی که <b>ویژگی‌های چندمقیاسه</b> تولید می‌کند —
+        خروجی لایه‌های مختلف کانولوشن، با هم (concat) به لایهٔ تمام‌متصل می‌روند.
+        این ترکیب، هم ویژگی‌های محلی ریز و هم ویژگی‌های سراسری را در اختیار
+        طبقه‌بند می‌گذارد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># خلاصه‌ی معماری: کانولوشن‌ها → ویژگی‌های چندمقیاسه → softmax
+conv1:  Conv2D(32) → ReLU → MaxPool2x2
+conv2:  Conv2D(64) → ReLU → MaxPool2x2
+conv3:  Conv2D(128) → ReLU → MaxPool2x2
+
+# اتصال ویژگی‌های مقیاس‌های مختلف:
+features = concat([flatten(conv1), flatten(conv2), flatten(conv3)])
+
+dense: Dense(512) → ReLU → Dropout(0.5)
+output: Dense(43) → Softmax</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. آموزش و تنظیم فوق‌پارامترها</h2>
+        <p>مدل با TensorFlow ساخته می‌شود. چند نکتهٔ کلیدی آموزش:</p>
+        <ul>
+          <li><b>افزایش داده (augmentation)</b>: برش تصادفی ۲۸×۲۸ از تصویر ۳۲×۳۲،
+          چرخش، مقیاس و برش رنگی — تا شبکه به تنوع ورودی مقاوم شود.</li>
+          <li><b>پایین‌آوردن تدریجی نرخ یادگیری</b>: از ۰/۰۱ شروع و بعد از هر عصر
+          تقسیم بر ۱۰ — همگرایی دقیق‌تر در مراحل آخر.</li>
+          <li><b>Dropout 0.5</b> در لایهٔ تمام‌متصل برای جلوگیری از بیش‌برازش.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code># کاهش پلکانی نرخ یادگیری: تقسیم بر ۱۰ در پایان هر عصر
+learning_rate = 0.01 * (0.1 ** epoch)
+
+# آموزش با batch size 128 و optimizer Adam</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. نتایج: دقت ۹۹/۳۳٪ روی تست</h2>
+        <p>شبکهٔ نهایی روی دیتاست تست GTSRB به <b>دقت ۹۹/۳۳٪</b> می‌رسد — بالاتر از
+        بسیاری از راه‌حل‌های منتشرشدهٔ هم‌دوره. نکتهٔ آموزنده: بخش بزرگی از این موفقیت
+        نه از پیچیدگی شبکه، بلکه از <b>پیش‌پردازش درست</b> (کانال Y + هیستوگرام محلی)
+        و افزایش داده می‌آید. نویسنده نشان می‌دهد پیش‌پردازش با کنتراست محلی، خطای
+        تست را به‌میزان قابل توجهی کاهش می‌دهد.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> با همین الگو — پیش‌پردازش نور-مقاوم + CNN
+          چندمقیاسه + augmentation — می‌توان روی دیتاست‌های مشابه (مثل CIFAR یا
+          علائم ایرانی) هم نتایج نزدیک‌به‌عالی گرفت.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>YCbCr + هیستوگرام محلی = پیش‌پردازش برنده برای تصاویر نور-متغیر.</li>
+          <li>اتصال ویژگی‌های چندمقیاسه (ایدهٔ Sermanet &amp; LeCun) دقت را بالا می‌برد.</li>
+          <li>افزایش داده + Dropout + کاهش پلکانی نرخ یادگیری = آموزش پایدار.</li>
+          <li>۹۹/۳۳٪ روی GTSRB — دقت در سطح بهترین‌های هم‌دوره.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Traffic Sign Classification with a
+        Convolutional Network» اثر الکس استارکوف (Alex Staravoitau) است و در وبلاگ
+        navoshta منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://navoshta.com/traffic-signs-classification/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

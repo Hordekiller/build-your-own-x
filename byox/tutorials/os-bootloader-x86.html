@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک بوت‌لودر کوچک x86</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک بوت‌لودر کوچک x86</span>
+      </div>
+      <h1>نوشتن یک بوت‌لودر کوچک x86</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Assembly (NASM)</span>
+        <span class="meta-badge">💽 BIOS + Bochs</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://joebergeron.io/posts/post_two.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Writing a Tiny x86
+          Bootloader» از <b>جو برگرون (Joe Bergeron)</b> در وبلاگ joebergeron.io است.
+          کد کامل در
+          <a href="https://github.com/jophish/tiny-bootstrap" target="_blank" rel="noopener">jophish/tiny-bootstrap</a>
+          موجود است.
+        </div>
+        <a class="btn solid" href="http://joebergeron.io/posts/post_two.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. بوت‌لودر چیست و چرا باید بنویسیمش؟</h2>
+        <p>وقتی کامپیوتر روشن می‌شود، BIOS سیستم را بالا می‌آورد و سپس به اولین سکتور
+        (۵۱۲ بایت اول) دیسک بوت‌شونده نگاه می‌کند: اگر دو بایت آخر آن <b>0xAA55</b>
+        باشد، آن سکتور را به‌عنوان <b>بوت‌لودر</b> به حافظهٔ آدرس 0x7C00 می‌برد و
+        اجرایش می‌کند. بوت‌لودر وظیفه دارد سیستم‌عامل را از دیسک بخواند، در حافظه
+        بگذارد و کنترل را به آن بسپارد. نوشتن یک بوت‌لودر، اولین قدم واقعی و
+        هیجان‌انگیز «ساخت یک سیستم‌عامل» است.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار پروژه و ابزارها</h2>
+        <p>پروژهٔ tiny-bootstrap فقط سه فایل دارد: <code>bootloader.asm</code> (کد
+        اسمبلی)، یک <code>Makefile</code> و یک فایل پیکربندی Bochs. ابزارها:
+        <b>NASM</b> برای اسمبل، <b>Bochs</b> به‌عنوان شبیه‌ساز (جایگزین QEMU) و
+        <code>dd</code> برای نوشتن تصویر روی دیسک. کامپایل بسیار ساده است:</p>
+        <pre class="code"><span class="lang-tag">make</span><code># اسمبل بوت‌لودر به فایل باینری خام
+nasm -f bin bootloader.asm -o bootloader.bin
+
+# نوشتن روی یک فایل تصویر دیسک (یا یک فلاپی واقعی/مجازی)
+dd if=bootloader.bin of=disk.img conv=notrunc
+
+# اجرا در شبیه‌ساز Bochs
+bochs -f bochsrc.txt</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. کد بوت‌لودر: چاپ پیام با سرویس‌های BIOS</h2>
+        <p>در حالت ۱۶-بیتی، ساده‌ترین راه خروجی، وقفهٔ <code>int 0x10</code> با
+        تابع <code>0x0E</code> است که یک کاراکتر را روی صفحه چاپ می‌کند. حلقهٔ زیر
+        کاراکترهای یک پیام را یکی‌یکی چاپ می‌کند. در پایان همیشه باید
+        <code>jmp $</code> بگذاریم تا CPU در حلقهٔ بی‌پایان بماند — هیچ‌چیز دیگری
+        برای اجرا وجود ندارد:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; بوت‌لودر tiny — چاپ پیام با سرویس ویدیوی BIOS
+[org 0x7c00]          ; بوت‌لودر در آدرس 0x7C00 بارگذاری می‌شود
+[bits 16]             ; حالت ۱۶-بیتی (real mode)
+
+mov si, msg           ; آدرس پیام در si
+call print            ; چاپ پیام
+jmp $                 ; حلقه‌ی بی‌پایان (پایان سیستم)
+
+print:
+    mov ah, 0x0e      ; تابع «چاپ کاراکتر» BIOS
+.loop:
+    lodsb             ; کاراکتر بعدی به al
+    test al, al       ; آیا پایان رشته است (صفر)؟
+    jz .done
+    int 0x10          ; چاپ کاراکتر
+    jmp .loop
+.done:
+    ret
+
+msg db 'Hello, World!', 0
+
+times 510 - ($ - $$) db 0   ; پر کردن تا بایت ۵۱۰
+dw 0xaa55                   ; عدد جادویی بوت‌پذیر</code></pre>
+        <p>قسمت‌های حیاتی: <code>[org 0x7c00]</code> — آدرس پایه‌ای که BIOS کد را
+        آنجا می‌گذارد (اگر نباشد، آدرس‌های نسبی خراب می‌شوند) — و دو بایت آخر
+        <code>0xaa55</code> (روی x86 little-endian است، پس با <code>dw</code> نوشته
+        می‌شود).</p>
+      </section>
+
+      <section>
+        <h2>۴. اجرا در Bochs و عیب‌یابی</h2>
+        <p>Bochs یک شبیه‌ساز x86 است که برای توسعهٔ سیستم‌عامل طراحی شده: دیباگر
+        داخلی دارد که می‌توانید با آن رجیسترها، حافظه و اجرای گام‌به‌گام را ببینید.
+        فایل <code>bochsrc.txt</code> مشخص می‌کند که Bochs از کدام تصویر دیسک بوت
+        شود. این «بازخورد سریع» (کامپایل و اجرا در چند ثانیه) مزیت بزرگ توسعهٔ
+        بوت‌لودر با شبیه‌ساز است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code># bochsrc.txt — پیکربندی Bochs
+megs: 32
+floppya: 1_44=disk.img, status=inserted
+boot: a
+display_library: sdl2</code></pre>
+        <p>بعد از اجرا، کلمهٔ «Hello, World!» روی صفحهٔ شبیه‌ساز دیده می‌شود — یعنی
+        بوت‌لودر شما کار کرده است.</p>
+      </section>
+
+      <section>
+        <h2>۵. مسیر پیش رو: از بوت‌لودر تا کرنل</h2>
+        <p>این بوت‌لودر هنوز هیچ سیستم‌عاملی را بارگذاری نمی‌کند — فقط یک پیام چاپ
+        می‌کند. قدم‌های بعدی طبیعی‌اند: خواندن سکتورهای بعدی از دیسک با
+        <code>int 0x13</code>، ورود به حالت ۳۲-بیتی (protected mode)، تنظیم GDT و
+        در نهایت پرش به یک کرنل نوشته‌شده با C.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این آموزش (همراه با نسخه‌های بازنویسی‌شدهٔ
+          دیگران) یکی از محبوب‌ترین نقطه‌های شروع توسعهٔ سیستم‌عامل در ۱۰ سال اخیر
+          است؛ ادامهٔ طبیعی آن، آموزش‌های ۳zanders و os-tutorial است که در همین
+          مجموعه ترجمه شده‌اند.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Writing a Tiny x86 Bootloader» اثر جو برگرون
+        (Joe Bergeron) است و در وبلاگ joebergeron.io منتشر شده. این صفحه فقط ترجمهٔ فارسی
+        و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="http://joebergeron.io/posts/post_two.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1630,364 +1630,364 @@ window.TUTORIALS = [
     "file": "tutorials/network-stack-ruby.html"
   },
   {
-    "id": "",
+    "id": "neural-ocr-csharp",
     "category": "شبکه عصبی",
     "lang": "C#",
     "title": "OCR با شبکه عصبی",
     "url": "https://www.codeproject.com/Articles/11285/Neural-Network-OCR",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-ocr-csharp.html"
   },
   {
-    "id": "",
+    "id": "neural-fsharp-part1",
     "category": "شبکه عصبی",
     "lang": "F#",
     "title": "ساخت شبکه‌های عصبی در F#: بخش ۱",
     "url": "https://medium.com/data-science/building-neural-networks-in-f-part-1-a2832ae972e6",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-fsharp-part1.html"
   },
   {
-    "id": "",
+    "id": "neural-fsharp-part2",
     "category": "شبکه عصبی",
     "lang": "F#",
     "title": "ساخت شبکه‌های عصبی در F#: بخش ۲",
     "url": "https://medium.com/data-science/building-neural-networks-in-f-part-2-training-evaluation-5e3a68889da6",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-fsharp-part2.html"
   },
   {
-    "id": "",
+    "id": "neural-perceptron-golang",
     "category": "شبکه عصبی",
     "lang": "Go",
     "title": "یک perceptron چندلایه با Golang بساز",
     "url": "https://made2591.github.io/posts/neuralnetwork",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-perceptron-golang.html"
   },
   {
-    "id": "",
+    "id": "neural-go-simple-ann",
     "category": "شبکه عصبی",
     "lang": "Go",
     "title": "چگونه یک شبکه عصبی مصنوعی ساده با Go بسازیم",
     "url": "https://sausheong.github.io/posts/how-to-build-a-simple-artificial-neural-network-with-go/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-go-simple-ann.html"
   },
   {
-    "id": "",
+    "id": "neural-go-from-scratch",
     "category": "شبکه عصبی",
     "lang": "Go",
     "title": "ساخت یک شبکه عصبی از صفر در Go",
     "url": "https://datadan.io/blog/neural-net-with-go",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-go-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "neural-nature-of-code",
     "category": "شبکه عصبی",
     "lang": "JavaScript / Java",
     "title": "شبکه‌های عصبی — The Nature of Code",
     "url": "https://www.youtube.com/playlist?list=PLRqwX-V7Uu6aCibgK1PTWWu9by6XFdCfh",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-nature-of-code.html"
   },
   {
-    "id": "",
+    "id": "neural-js-perceptron",
     "category": "شبکه عصبی",
     "lang": "JavaScript",
     "title": "شبکه‌های عصبی از صفر برای فارسی‌زبانان جاوااسکریپت (بخش ۱ — پرسپترون)",
     "url": "https://hackernoon.com/neural-networks-from-scratch-for-javascript-linguists-part1-the-perceptron-632a4d1fbad2",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-js-perceptron.html"
   },
   {
-    "id": "",
+    "id": "neural-python-11-lines",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "یک شبکه عصبی در ۱۱ خط پایتون",
     "url": "https://iamtrask.github.io/2015/07/12/basic-python-network/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-python-11-lines.html"
   },
   {
-    "id": "",
+    "id": "neural-deep-learning-from-scratch",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "یادگیری عمیق را از صفر بساز (بازپیاده‌سازی درونی‌های PyTorch در ۳۴ مرحله)",
     "url": "https://github.com/roiamiel1/Build-Deep-Learning-From-Scratch",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-deep-learning-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "neural-python-intro",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "یک شبکه عصبی را از صفر پیاده‌سازی کن",
     "url": "https://victorzhou.com/blog/intro-to-neural-networks/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-python-intro.html"
   },
   {
-    "id": "",
+    "id": "neural-python-ocr",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "تشخیص نوری حروف (OCR)",
     "url": "http://aosabook.org/en/500L/optical-character-recognition-ocr.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-python-ocr.html"
   },
   {
-    "id": "",
+    "id": "neural-traffic-signs-cnn",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "طبقه‌بندی علائم راهنمایی و رانندگی با شبکه کانولوشنی",
     "url": "https://navoshta.com/traffic-signs-classification/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-traffic-signs-cnn.html"
   },
   {
-    "id": "",
+    "id": "neural-lstm-music-keras",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "تولید موسیقی با شبکه عصبی LSTM در Keras",
     "url": "https://towardsdatascience.com/how-to-generate-music-using-a-lstm-neural-network-in-keras-68786834d4c5",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-lstm-music-keras.html"
   },
   {
-    "id": "",
+    "id": "neural-cnn-intro",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "مقدمه‌ای بر شبکه‌های عصبی کانولوشنی",
     "url": "https://victorzhou.com/blog/intro-to-cnns-part-1/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-cnn-intro.html"
   },
   {
-    "id": "",
+    "id": "neural-zero-to-hero",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "شبکه‌های عصبی: از صفر تا قهرمان",
     "url": "https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-zero-to-hero.html"
   },
   {
-    "id": "",
+    "id": "neural-slowtorch-python",
     "category": "شبکه عصبی",
     "lang": "Python",
     "title": "SlowTorch: پیاده‌سازی PyTorch از پایه با ۱۰۰٪ پایتون خالص",
     "url": "https://github.com/xames3/slowtorch",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/neural-slowtorch-python.html"
   },
   {
-    "id": "",
+    "id": "os-bootloader-x86",
     "category": "سیستم‌عامل",
     "lang": "Assembly",
     "title": "نوشتن یک بوت‌لودر کوچک x86",
     "url": "http://joebergeron.io/posts/post_two.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-bootloader-x86.html"
   },
   {
-    "id": "",
+    "id": "os-baking-pi",
     "category": "سیستم‌عامل",
     "lang": "Assembly",
     "title": "Baking Pi — توسعه سیستم‌عامل‌ها",
     "url": "http://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/os/index.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-baking-pi.html"
   },
   {
-    "id": "",
+    "id": "os-bitwise",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "ساخت پشته نرم‌افزاری و سخت‌افزاری برای یک کامپیوتر ساده از صفر",
     "url": "https://www.youtube.com/watch?v=ZjwvMcP3Nf0&list=PLU94OURih-CiP4WxKSMt3UcwMSDM3aTtX",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-bitwise.html"
   },
   {
-    "id": "",
+    "id": "os-from-0-to-1",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "سیستم‌عامل‌ها: از ۰ تا ۱",
     "url": "https://tuhdo.github.io/os01/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-from-0-to-1.html"
   },
   {
-    "id": "",
+    "id": "os-little-os-book",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "کتاب کوچکی درباره توسعه سیستم‌عامل",
     "url": "https://littleosbook.github.io/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-little-os-book.html"
   },
   {
-    "id": "",
+    "id": "os-unix-clone-molloy",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "یک سیستم‌عامل اسباب‌بازی شبیه UNIX بساز",
     "url": "http://jamesmolloy.co.uk/tutorial_html/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-unix-clone-molloy.html"
   },
   {
-    "id": "",
+    "id": "os-kernel-101",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "Kernel 101 — بیایید یک کرنل بنویسیم",
     "url": "https://arjunsreedharan.org/post/82710718100/kernel-101-lets-write-a-kernel",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-kernel-101.html"
   },
   {
-    "id": "",
+    "id": "os-kernel-201",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "Kernel 201 — بیایید کرنلی با پشتیبانی صفحه‌کلید و صفحه‌نمایش بنویسیم",
     "url": "https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-kernel-201.html"
   },
   {
-    "id": "",
+    "id": "os-mini-arm-os",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "یک کرنل چندوظیفه‌ای مینیمال برای ARM از صفر بساز",
     "url": "https://github.com/jserv/mini-arm-os",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-mini-arm-os.html"
   },
   {
-    "id": "",
+    "id": "os-os-tutorial",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "چگونه یک سیستم‌عامل از صفر بسازیم",
     "url": "https://github.com/cfenollosa/os-tutorial",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-os-tutorial.html"
   },
   {
-    "id": "",
+    "id": "os-malloc-tutorial",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "آموزش Malloc",
     "url": "https://danluu.com/malloc-tutorial/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-malloc-tutorial.html"
   },
   {
-    "id": "",
+    "id": "os-hack-virtual-memory",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "حافظه مجازی را هک کن",
     "url": "https://blog.holbertonschool.com/hack-the-virtual-memory-c-strings-proc/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-hack-virtual-memory.html"
   },
   {
-    "id": "",
+    "id": "os-raspberry-pi-os",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "یادگیری توسعه سیستم‌عامل با کرنل لینوکس و Raspberry Pi",
     "url": "https://github.com/s-matyukevich/raspberry-pi-os",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-raspberry-pi-os.html"
   },
   {
-    "id": "",
+    "id": "os-dummies",
     "category": "سیستم‌عامل",
     "lang": "C",
     "title": "توسعه سیستم‌عامل برای آدمک‌ها",
     "url": "https://medium.com/@lduck11007/operating-systems-development-for-dummies-3d4d786e8ac",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-dummies.html"
   },
   {
-    "id": "",
+    "id": "os-write-your-own",
     "category": "سیستم‌عامل",
     "lang": "C++",
     "title": "سیستم‌عامل خودت را بنویس",
     "url": "https://www.youtube.com/playlist?list=PLHh55M_Kq4OApWScZyPl5HhgsTJS9MZ6M",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-write-your-own.html"
   },
   {
-    "id": "",
+    "id": "os-bootloader-3zanders",
     "category": "سیستم‌عامل",
     "lang": "C++",
     "title": "نوشتن یک بوت‌لودر",
     "url": "http://3zanders.co.uk/2017/10/13/writing-a-bootloader/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-bootloader-3zanders.html"
   },
   {
-    "id": "",
+    "id": "os-rust-phil-opp",
     "category": "سیستم‌عامل",
     "lang": "Rust",
     "title": "نوشتن یک سیستم‌عامل در Rust",
     "url": "https://os.phil-opp.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-rust-phil-opp.html"
   },
   {
-    "id": "",
+    "id": "os-riscv-marz",
     "category": "سیستم‌عامل",
     "lang": "Rust",
     "title": "آموزش سیستم‌عامل Rust با RISC-V",
     "url": "https://osblog.stephenmarz.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-riscv-marz.html"
   },
   {
-    "id": "",
+    "id": "os-linux-from-scratch",
     "category": "سیستم‌عامل",
     "lang": "(هر زبانی)",
     "title": "لینوکس از صفر",
     "url": "https://linuxfromscratch.org/lfs",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/os-linux-from-scratch.html"
   },
   {
     "id": "physics-video-game-physics",

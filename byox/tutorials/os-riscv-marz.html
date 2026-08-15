@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | OS Blog — سیستم‌عامل RISC-V با راست (استیون مارز)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>OS Blog — سیستم‌عامل RISC-V</span>
+      </div>
+      <h1>OS Blog — ساخت سیستم‌عامل برای RISC-V با راست (استیون مارز)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">🎛 معماری RISC-V</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://osblog.stephenmarz.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعه مقالات
+          <b>«OS Blog»</b> از <b>استیون مارز (Stephen Marz)</b> است که یک
+          سیستم‌عامل را برای معماری <b>RISC-V</b> با زبان راست و شبیه‌ساز QEMU
+          می‌سازد — تا مبنایی برای توسعهٔ هسته‌های آینده (مثل سیستم‌های لینوکس‌گونه
+          RISC-V) باشد.
+        </div>
+        <a class="btn solid" href="https://osblog.stephenmarz.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ مجموعه</h2>
+        <p>استیون مارز (استاد دانشگاه تنسی) در این سری مقالات، یک سیستم‌عامل
+        چندوظیفه‌ای را برای معماری <b>RISC-V</b> (مهم‌ترین معماری متن‌باز
+        سخت‌افزاری امروز) با زبان <b>Rust</b> می‌سازد. انتخاب RISC-V مزیت بزرگی
+        دارد: این معماری ساده، تمیز و مدرن است و مستنداتش در دسترس همه قرار
+        گرفته — برخلاف x86 که پر از پیچیدگی‌های تاریخی است. همهٔ کارها در
+        شبیه‌ساز <b>QEMU</b> انجام می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. فصل‌های مجموعه</h2>
+        <ul>
+          <li><b>فصل ۰ — چرا RISC-V و چرا راست:</b> معرفی معماری، اهداف و
+          تنظیم محیط (کامپایلر متقاطع، QEMU).</li>
+          <li><b>فصل ۱ — اولین کد:</b> بوت، تعریف stack pointer و اولین چرخهٔ
+          بوت؛ روشن کردن <b>UART</b> برای خروجی.</li>
+          <li><b>فصل ۲ — حالت ممتاز:</b> سطح‌های اجرا (Machine/Supervisor/User) و
+          مدیریت SBI.</li>
+          <li><b>فصل ۳ — وقفه‌ها و تایمر:</b> کنترل‌کنندهٔ وقفه، <b>CLINT</b>
+          و t0/t1 تایمرها؛ پایهٔ زمان‌بندی.</li>
+          <li><b>فصل ۴ — جدول صفحات:</b> MMU و ترجمهٔ آدرس با
+          <code>satp</code>.</li>
+          <li><b>فصل ۵ — حافظهٔ هسته:</b> فریم‌آلکیتور و مدیریت حافظهٔ فیزیکی.</li>
+          <li><b>فصل ۶ — حافظهٔ فرایند:</b> جداول صفحهٔ هر فرایند و
+          آدرس‌دهی مجازی مستقل.</li>
+          <li><b>فصل ۷ — زمان‌بند:</b> جابه‌جایی context بین فرایندها با
+          ذخیره‌سازی در <code>saved_context</code>.</li>
+          <li><b>فصل ۸ — ورودی/خروجی:</b> درایور UART کامل و زیرسیستم I/O.</li>
+          <li><b>فصل ۹ — فراخوان‌های سیستم:</b> syscall و رابط هسته/کاربر.</li>
+          <li><b>فصل ۱۰ — ران‌تایم کاربر:</b> اجرای برنامه‌های کاربری در فضای
+          کاربری.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: ذخیره و بازیابی context</h2>
+        <p>هنگام تعویض فرایند، همهٔ رجیسترها باید ذخیره و بازیابی شوند. در
+        RISC-V، با یک بلوک <code>saved_context</code> و بارگذاری در
+        <code>mepc</code> (رجیستر شمارندهٔ برنامهٔ حالت ماشین) ادامهٔ اجرا از
+        همان نقطهٔ قبلی انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>// ذخیره‌ی کامل context یک فرایند روی پشته
+core::arch::global_asm!(
+    "save_context:",
+    "addi sp, sp, -264",      // جا برای همه‌ی رجیسترها
+    "sd ra,   0(sp)",
+    "sd gp,   8(sp)",
+    // ... همه‌ی رجیسترهای عمومی
+    "sd sp, 256(sp)",         // ذخیره‌ی خود پشته
+    "csrr t0, mepc",          // آدرس بازگشت
+    "sd t0, 264-8(sp)",
+    "ret");
+
+// بازیابی و بازگشت به فرایند بعدی
+"restore_context:",
+"ld ra,   0(sp)",
+// ...
+"csrw mepc, t0",             // ادامه از همان‌جا
+"addi sp, sp, 264",
+"mret"                        // بازگشت به حالت قبل
+</code></pre>
+        <p>این الگو — ذخیرهٔ «همه‌چیز روی پشته» — در معماری‌های دیگر هم مشابه
+        است و تفاوت‌های ریز (مثل <code>mepc</code> به‌جای lr در ARM) دقیقاً در
+        مقالات توضیح داده شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>۴. نقاط قوت</h2>
+        <ul>
+          <li><b>معماری آینده‌دار:</b> RISC-V به‌سرعت در حال رشد است و این مسیر،
+          آموزشِ متناسب با آینده است.</li>
+          <li><b>کامل بودن:</b> از بوت تا syscall و اجرای برنامهٔ کاربر — تقریباً
+          همهٔ سیستم‌عامل.</li>
+          <li><b>راست + سیستم‌عامل:</b> ترکیب ایمنی Rust با جزئیات bare-metal.</li>
+          <li><b>مستندات معماری:</b> هر فصل به بخش‌های مربوط مستندات RISC-V ارجاع
+          می‌دهد.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> اگر دنبال مسیری «متفاوت و مدرن» هستید — نه
+        x86 کهنه و نه حتی ARM — این مجموعه بهترین گزینه است؛ و برای دیدن همان
+        مفاهیم روی x86 با Rust، سری phil-opp در همین مجموعه را ببینید.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعه «OS Blog» اثر استیون مارز (Stephen Marz) است و
+        در osblog.stephenmarz.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://osblog.stephenmarz.com/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

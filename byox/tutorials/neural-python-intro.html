@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیاده‌سازی یک شبکه عصبی از صفر — مقدمه</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>پیاده‌سازی شبکه عصبی از صفر</span>
+      </div>
+      <h1>یک شبکه عصبی را از صفر پیاده‌سازی کن (با پایتون و فقط numpy)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 backprop + SGD</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://victorzhou.com/blog/intro-to-neural-networks/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Machine Learning for
+          Beginners: An Introduction to Neural Networks» از <b>ویکتور ژو (Victor Zhou)</b>
+          (۲۰۱۹) است که با فرض دانش صفر، یک شبکهٔ عصبی را در پایتون و فقط با numpy
+          می‌سازد.
+        </div>
+        <a class="btn solid" href="https://victorzhou.com/blog/intro-to-neural-networks/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: مسئلهٔ نمونه — تخمین قیمت خانه</h2>
+        <p>برای اینکه همه‌چیز ملموس باشد، مقاله با یک مسئلهٔ ساده شروع می‌کند: تخمین
+        قیمت خانه بر اساس <b>مساحت</b> و <b>تعداد اتاق خواب</b> (با دادهٔ ساختگی).
+        مسئله یک <b>رگرسیون</b> است: خروجی یک عدد واقعی است، نه یک کلاس. ورودی‌ها
+        دو عدد‌اند، پس شبکه دو نورون ورودی و یک نورون خروجی دارد.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># داده‌ی ساختگی: [مساحت، تعداد اتاق] → قیمت
+data = np.array([
+  [3,   1.5, 75000],   # ۷۵ هزار دلار
+  [2,   1,   65000],
+  [4,   1.5, 95000],
+  [3,   2,   85000],
+  [3.5, 1,   100000],
+  [2,   1,   55000],
+  [5,   2,   150000],
+  [2,   0.5, 60000],
+])</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. نورون: جمع وزن‌دار و فعال‌سازی</h2>
+        <p>هر نورون ورودی‌ها را با وزن‌ها ضرب و جمع می‌کند، بایاس اضافه می‌کند و نتیجه
+        را از تابع فعال‌سازی می‌گذراند. در این مقاله خروجی خطی است (بدون فعال‌سازی در
+        لایهٔ آخر) چون مسئله رگرسیون است. وزن اولیه تصادفی است — یادگیری یعنی یافتن
+        وزن‌های درست:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># محاسبه‌ی خروجی یک نورون: Σ(ورودی × وزن) + بایاس
+def output(self, inputs):
+    total = np.dot(self.weights, inputs) + self.bias
+    return total   # بدون فعال‌سازی (رگرسیون)</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. تابع هزینه: میانگین مربعات خطا (MSE)</h2>
+        <p>کیفیت پیش‌بینی با <b>MSE</b> سنجیده می‌شود: میانگین مجذور اختلاف
+        پیش‌بینی‌ها و مقادیر واقعی. هدف آموزش، کمینه‌کردن این عدد است. گرادیان MSE
+        نسبت به خروجی ساده است: <code>2×(خروجی − واقعی) / تعداد نمونه‌ها</code> — همین
+        سادگی، همگرایی آموزش را شفاف می‌کند.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># تابع هزینه‌ی میانگین مربعات خطا
+def mse_loss(predictions, targets):
+    return np.mean((predictions - targets) ** 2)</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. انتشار بازگشتی: قانون زنجیره‌ای در عمل</h2>
+        <p>برای اصلاح وزن‌ها باید بدانیم هر وزن چقدر در خطا نقش داشته است — این یعنی
+        مشتق هزینه نسبت به وزن، که با <b>قانون زنجیره‌ای</b> محاسبه می‌شود. در شبکهٔ
+        نمونه (۲→۲→۱)، برای هر نمونه، گرادیان هر وزن به‌دست می‌آید و سپس میانگین گرفته
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># گرادیان لایه‌ی خروجی (با قانون زنجیره‌ای)
+d_L_d_ypred = 2 * (y_pred - y_true) / N      # مشتق MSE نسبت به خروجی
+
+# برای نورون خروجی:
+#   دالِ خروجی = d_L_d_ypred × 1
+#   w5: d_L_d_w5 = h1 × دالِ خروجی  |  b3: d_L_d_b3 = دالِ خروجی
+
+# برای لایه‌ی پنهان (انتشار بیشتر به عقب):
+#   دالِ h1 = w5 × دالِ خروجی (و همین‌طور از مسیر w6)
+#   w1: d_L_d_w1 = x1 × دالِ h1</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. گرادیان نزولی (SGD) و حلقهٔ آموزش</h2>
+        <p>با داشتن گرادیان‌ها، وزن‌ها در جهت مخالفِ گرادیان حرکت می‌کنند: <code>w −= η × گرادیان</code>
+        که <code>η</code> نرخ یادگیری است. تکرار این کار روی همهٔ نمونه‌ها برای چندین
+        <b>عصر</b> (epoch)، هزینه را به‌تدریج پایین می‌آورد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># حلقه‌ی آموزش: ۱۰۰۰ عصر، هر عصر یک گرادیان نزولی روی کل داده
+for epoch in range(1000):
+    # forward: محاسبه‌ی پیش‌بینی‌ها
+    # backward: محاسبه‌ی گرادیان‌ها
+    # به‌روزرسانی: هر وزن و بایاس با نرخ یادگیری 0.05
+
+# بعد از آموزش، هزینه به ~2927 رسیده — یعنی میانگین خطای ~54 دلار
+# (میانگین قیمت واقعی ~84000 دلار است: خطای زیر 0.07٪!)</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. نتیجه و گام بعدی</h2>
+        <p>نتیجهٔ نهایی شگفت‌انگیز است: شبکهٔ کوچکی که با numpy خالص ساخته شده، روی
+        دادهٔ نادیده پیش‌بینی‌های دقیقی می‌دهد. مقاله در پایان پیشنهاد می‌کند که
+        گام بعدی یادگیری <b>CNNها</b> باشد — همان چیزی که در مقالهٔ «مقدمه‌ای بر
+        شبکه‌های عصبی کانولوشنی» همین نویسنده آمده.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این آموزش با «دانش صفر قبلی» طراحی شده —
+          حتی «نورون» و «لایه» از پایه تعریف می‌شوند؛ برای شروع یادگیری شبکه‌های
+          عصبی جای بهتری وجود ندارد.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Machine Learning for Beginners: An Introduction
+        to Neural Networks» اثر ویکتور ژو (Victor Zhou) است و در وبلاگ او منتشر شده. این
+        صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://victorzhou.com/blog/intro-to-neural-networks/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

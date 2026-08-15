@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Writing a Bootloader — بوت‌لودر از صفر (الکس پارکر)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Writing a Bootloader</span>
+      </div>
+      <h1>Writing a Bootloader — نوشتن بوت‌لودر از صفر (الکس پارکر)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">💽 x86 + QEMU</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://3zanders.co.uk/2017/10/13/writing-a-bootloader/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ
+          <b>«Writing a Bootloader»</b> از <b>الکس پارکر (Alex Parker)</b> در
+          3zanders.co.uk است — یک بوت‌لودر کامل دو مرحله‌ای که با اسمبلی و C
+          نوشته می‌شود و یک هستهٔ ساده را بارگذاری می‌کند.
+        </div>
+        <a class="btn solid" href="https://3zanders.co.uk/2017/10/13/writing-a-bootloader/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا این آموزش خاص است؟</h2>
+        <p>بیشتر آموزش‌ها یا با GRUB بوت می‌کنند (تا نوشتن بوت‌لودر را دور
+        بزنند) یا فقط یک بوت‌سکتور نمایشی می‌سازند. این مقاله راه میانه را
+        می‌رود: یک <b>بوت‌لودر واقعی دو مرحله‌ای</b> می‌نویسیم که در مرحلهٔ اول
+        (اسمبلی) مرحلهٔ دوم را از دیسک می‌خواند، به حالت ۳۲-بیتی می‌رود، و در
+        مرحلهٔ دوم (C) هسته را بارگذاری و اجرا می‌کند. نتیجه: درک کامل زنجیرهٔ
+        «BIOS ← بوت‌لودر ← هسته».</p>
+      </section>
+
+      <section>
+        <h2>۲. مرحلهٔ ۱: بوت‌سکتور اسمبلی</h2>
+        <p>بوت‌سکتور ۵۱۲ بایتی اول دیسک، سه کار انجام می‌دهد: پیامی چاپ می‌کند،
+        سکتورهای مرحلهٔ دوم را با سرویس <code>int 0x13</code> از دیسک می‌خواند و
+        سپس با <code>jmp</code> به آن منتقل می‌شود. خواندن دیسک در حالت ۱۶-بیتی
+        با وقفهٔ BIOS انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; خواندن یک سکتور از دیسک با سرویس BIOS (int 0x13)
+read_sector:
+    mov ah, 0x02        ; تابع: خواندن سکتور
+    mov al, 1           ; تعداد سکتورها: یک سکتور
+    mov ch, 0           ; سیلندر ۰
+    mov cl, 2           ; سکتور ۲ (اولی بوت‌لودر بود)
+    mov dh, 0           ; هد ۰
+    mov dl, 0x80        ; دیسک اول (هارد)
+    mov bx, 0x7E00      ; آدرس بارگذاری در حافظه
+    int 0x13            ; فراخوانی BIOS
+    jc read_sector      ; در صورت خطا، دوباره تلاش کن
+    ret</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. مرحلهٔ ۲: ورود به حالت ۳۲-بیتی</h2>
+        <p>مرحلهٔ دوم هم‌چنان در اسمبلی است و حالا باید GDT را بارگذاری کند،
+        بیت PE را در <code>cr0</code> روشن کند و با یک far jump به حالت
+        محافظت‌شده برود. این همان گام حساسی است که تقریباً در تمام پروژه‌های
+        سیستم‌عامل مشترک است:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; ورود به حالت محافظت‌شده
+lgdt [gdt_descriptor]
+mov eax, cr0
+or eax, 1
+mov cr0, eax
+
+jmp 0x08:protected       ; far jump: بازنویسی کامل بخش‌ها
+
+[bits 32]
+protected:
+    mov ax, 0x10
+    mov ds, ax
+    mov ss, ax
+    mov esp, 0x90000     ; پشته‌ی جدید
+    ...</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. مرحلهٔ ۲: هستهٔ C</h2>
+        <p>بعد از ورود به حالت ۳۲-بیتی، کنترل به کد C سپرده می‌شود. مقاله برای
+        سادگی، هسته را با یک فایل Makefile می‌سازد و در QEMU اجرا می‌کند تا
+        پیام نهایی را ببینیم:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># ساخت بوت‌لودر و هسته و اجرا
+make
+qemu-system-i386 -fda os.img</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. چه چیزهایی یاد می‌گیرید؟</h2>
+        <ul>
+          <li>سرویس‌های BIOS برای چاپ و خواندن دیسک.</li>
+          <li>ساختار یک بوت‌لودر دو مرحله‌ای (که در دنیای واقعی هم همین الگوست).</li>
+          <li>گذار از حالت ۱۶-بیتی به ۳۲-بیتی با GDT.</li>
+          <li>همکاری اسمبلی و C در یک پروژهٔ bare-metal.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این آموزش بهترین پل بین «بوت‌سکتور نمایشی»
+        (مثل آموزش جو برگرون) و «کرنل با GRUB» (مثل Kernel 101) است — هر سه در
+        همین مجموعه ترجمه شده‌اند.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Writing a Bootloader» اثر الکس پارکر (Alex
+        Parker) است و در 3zanders.co.uk منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است
+        و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://3zanders.co.uk/2017/10/13/writing-a-bootloader/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

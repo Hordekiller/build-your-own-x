@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Writing an OS in Rust — سیستم‌عامل با راست (phil-opp)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Writing an OS in Rust</span>
+      </div>
+      <h1>Writing an OS in Rust — ساخت سیستم‌عامل با زبان راست (فیلیپ اوپنبرمن)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">💽 x86_64 + QEMU</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://os.phil-opp.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری مقالات
+          <b>«Writing an OS in Rust»</b> از <b>فیلیپ اوپنبرمن (Philipp Oppermann /
+          phil-opp)</b> است — کامل‌ترین و به‌روزترین مرجع ساخت سیستم‌عامل با
+          زبان راست، گام‌به‌گام و با کدهای قابل اجرا.
+        </div>
+        <a class="btn solid" href="https://os.phil-opp.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ سری</h2>
+        <p>این مجموعه، پرمخاطب‌ترین و کامل‌ترین آموزش ساخت سیستم‌عامل با Rust است.
+        هر مقاله یک موضوع را با کد کامل و توضیح عمیق پوشش می‌دهد و همهٔ مقالات
+        با یک زنجیرهٔ پیشروی روی هم ساخته می‌شوند. نسخهٔ فعلی (نسخهٔ دوم) از
+        معماری مدرن استفاده می‌کند: کامپایل به صورت <b>freestanding binary</b>
+        بدون هیچ وابستگی به سیستم‌عامل، و بوت با crate مخصوص به نام
+        <code>bootloader</code>.</p>
+        <p>نکتهٔ جالب دربارهٔ نسخه‌ها: <b>نسخهٔ اول</b> (قدیمی) با GRUB و
+        Multiboot استاندارد کار می‌کرد، اما <b>نسخهٔ دوم</b> به بوت‌لودر اختصاصی
+        و استاندارد مخصوص Rust (بوت در حالت UEFI و BIOS) مهاجرت کرده و کدها با
+        ابزار <code>cargo</code> کاملاً مدیریت می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۲. فهرست مقالات</h2>
+        <ul>
+          <li><b>Freestanding Rust Binary:</b> ساخت یک باینری بدون سیستم‌عامل —
+          تعیین <code>#![no_std]</code> و target مخصوص.</li>
+          <li><b>Minimal Rust Kernel:</b> اولین هسته با تابع <code>_start</code>
+          و چاپ پیام در حافظهٔ VGA؛ راه‌اندازی با crate <code>bootloader</code>
+          و اجرا در QEMU.</li>
+          <li><b>VGA Text Mode:</b> نوشتن در حافظهٔ ویدیویی با ماژول
+          <code>vga_buffer</code> و مدیریت println.</li>
+          <li><b>Testing:</b> زیرساخت تست واحد و تست یکپارچه برای کرنل.</li>
+          <li><b>CPU Exceptions:</b> جدول IDT، وقفه‌های CPU و handlerها.</li>
+          <li><b>Double Faults:</b> مدیریت خطای دوتایی و پشتهٔ آن.</li>
+          <li><b>Hardware Interrupts:</b> وقفه‌های سخت‌افزاری، کنترل‌کنندهٔ PIC و
+          تایمر — اولین بستر multitasking.</li>
+          <li><b>Introduction to Paging:</b> صفحه‌بندی و مدیریت حافظهٔ مجازی با
+          جدول صفحات ۴ سطحی (P4..P1).</li>
+          <li><b>Heap Allocation:</b> تخصیص‌دهندهٔ هیپ درون کرنل.</li>
+          <li><b>Allocator Designs:</b> مقایسهٔ طراحی تخصیص‌دهنده‌ها (آزادشونده‌های
+          لیست-لینکی و…).</li>
+          <li><b>Async/Await:</b> الگوی async در سطح سیستم‌عامل و ساخت رانتایم
+          اجرایی.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: یک کرنل مینیمال</h2>
+        <p>هستهٔ کوچک سری، یک باینری freestanding است که با کامپایلر راست ساخته
+        می‌شود و چیزهای حذف‌شده (مثل <code>std</code>) با کرکرهٔ راست
+        (panic handler) جایگزین می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>//! کرنل مینیمال — freestanding Rust binary
+#![no_std]          // بدون کتابخانه‌ی استاندارد
+#![no_main]         // بدون main معمولی
+
+use core::panic::PanicInfo;
+
+static HELLO: &[u8] = b"Hello World!";
+
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let vga_buffer = 0xb8000 as *mut u8;
+
+    for (i, &byte) in HELLO.iter().enumerate() {
+        unsafe {
+            *vga_buffer.offset(i as isize * 2) = byte;
+            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;  // سبز
+        }
+    }
+
+    loop {}         // سیستم «تمام شد»
+}
+
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}</code></pre>
+        <p>ساخت و اجرا با ابزارهای راست انجام می‌شود؛ بوت‌لودر اختصاصی
+        (<code>bootloader</code> crate) تصویر بوت را می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>cargo build
+cargo run    # با پیکربندی QEMU داخلی، هسته را اجرا می‌کند</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. نقاط قوت</h2>
+        <ul>
+          <li><b>دقت و عمق:</b> هر مفهوم با جزئیات معماری x86_64 توضیح داده
+          شده.</li>
+          <li><b>به‌روز بودن:</b> مقالات به‌طور مداوم برای نسخه‌های جدید Rust و
+          ابزارها به‌روز می‌شوند.</li>
+          <li><b>تست درون پروژه:</b> زیرساخت تست کامل — یاد می‌گیرید کرنل‌تان را
+          هم‌چون نرم‌افزار معمولی تست کنید.</li>
+          <li><b>سطح بالا:</b> تا async/await پیش می‌رود — چیزی که در آموزش‌های
+          C دیده نمی‌شود.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> اگر با Rust آشنا هستید (یا می‌خواهید به
+        بهانهٔ سیستم‌عامل Rust یاد بگیرید)، این سری بهترین انتخاب است؛ در غیر این
+        صورت ابتدا مسیر C (مثل Little OS Book) را بروید و بعد برای دیدن تفاوت
+        ایمنی Rust، به این سری برگردید.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری «Writing an OS in Rust» اثر فیلیپ اوپنبرمن (Philipp
+        Oppermann) است و در os.phil-opp.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به
+        <a href="https://os.phil-opp.com/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

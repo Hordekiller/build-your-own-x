@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | raspberry-pi-os — سیستم‌عامل لینوکس‌گونه برای RPi3</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>raspberry-pi-os</span>
+      </div>
+      <h1>raspberry-pi-os — سیستم‌عامل لینوکس‌گونه روی Raspberry Pi 3</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly (AArch64)</span>
+        <span class="meta-badge">🍓 Raspberry Pi 3</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/s-matyukevich/raspberry-pi-os" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ
+          <b>raspberry-pi-os</b> از <b>سرگئی ماتیوکویچ (Sergey Matyukevich)</b> است
+          که یک سیستم‌عامل چندوظیفه‌ای و «لینوکس‌گونه» را در ۶ درس برای
+          Raspberry Pi 3 (معماری AArch64) می‌سازد — با مقایسهٔ هر مرحله با
+          لینوکس واقعی.
+        </div>
+        <a class="btn solid" href="https://github.com/s-matyukevich/raspberry-pi-os" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ پروژه</h2>
+        <p>این مخزن در ۶ درس، یک سیستم‌عامل نسبتاً کامل برای <b>Raspberry Pi 3</b>
+        می‌سازد که در پایان قادر است چندین فرایند کاربر را هم‌زمان اجرا کند و بین
+        آنها جابه‌جا شود — درست مثل لینوکس مینیاتوری. ویژگی متمایز این دوره:
+        بعد از هر درس، یک فصل مقایسه وجود دارد که نشان می‌دهد لینوکس واقعی همان
+        کار را چگونه انجام می‌دهد. پشتیبانی از <b>QEMU</b> هم وجود دارد که توسعه
+        بدون سخت‌افزار را ممکن می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. شش درس</h2>
+        <ul>
+          <li><b>درس ۱ — آماده‌سازی کرنل:</b> ساختار بوت، تنظیم آدرس‌ها، پشته و
+          اولین کد C؛ روشن کردن UART برای خروجی سریال.</li>
+          <li><b>درس ۲ — آماده‌سازی پردازنده:</b> مدیریت پردازنده، جدول
+          Exception Levelها و حالت‌های اجرا (EL1/EL0 در AArch64).</li>
+          <li><b>درس ۳ — وقفه‌ها:</b> IRQ و کنترل‌کنندهٔ وقفه؛ پیاده‌سازی
+          زمان‌سنج و ورودی صفحه‌کلید با وقفه.</li>
+          <li><b>درس ۴ — زمان‌بند (Scheduler):</b> تعریف فرایندها، بلوک کنترل
+          فرایند (PCB) و جابه‌جایی بین فرایندها.</li>
+          <li><b>درس ۵ — فرایندهای کاربر:</b> حالت کاربر (EL0)، فراخوان‌های
+          سیستم (syscall) و اجرای برنامه‌های کاربری.</li>
+          <li><b>درس ۶ — حافظهٔ مجازی:</b> MMU، جداول صفحه و ترجمهٔ آدرس مجازی به
+          فیزیکی.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: بوت و اولین پیام (درس ۱)</h2>
+        <p>اولین قدم، اسمبلی بوت است که پشته را تنظیم می‌کند و کنترل را به C
+        می‌سپارد — و سپس راه‌اندازی UART برای چاپ «Hello World»:</p>
+        <pre class="code"><span class="lang-tag">arm</span><code>// kernel.c (درس ۱) — راه‌اندازی UART و چاپ پیام
+#include "uart.h"
+
+void kernel_main(void) {
+    uart_init();               // راه‌اندازی پورت سریال
+    uart_send_string("Hello, world!\n");
+
+    while (1) {
+        // یک کاراکتر بخوان و برگردان (پژواک)
+        uart_send(uart_recv());
+    }
+}</code></pre>
+        <p>مشاهدهٔ خروجی: تصویر کرنل (kernel8.img) را روی کارت SD بگذارید و به
+        پورت سریال وصل شوید، یا در QEMU با <code>-kernel kernel8.img</code> اجرا
+        کنید تا متن را روی کنسول ببینید.</p>
+      </section>
+
+      <section>
+        <h2>۴. تفاوت این دوره با دیگران</h2>
+        <ul>
+          <li><b>معماری مدرن:</b> AArch64 (۶۴ بیتی) به‌جای x86 قدیمی — دیدی
+          متفاوت به وقفه‌ها و حافظه می‌دهد.</li>
+          <li><b>مقایسه با لینوکس:</b> هر مفهوم با اجرای واقعی در لینوکس مقایسه
+          می‌شود؛ پیوند آموزش و واقعیت.</li>
+          <li><b>مسیر کامل:</b> از بوت تا فرایندهای کاربر و حافظهٔ مجازی — تقریباً
+          همهٔ اجزای یک سیستم‌عامل کوچک.</li>
+          <li><b>پشتیبانی QEMU:</b> اگر برد ندارید، همه‌چیز شبیه‌سازی می‌شود.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این پروژه تکمیل‌کنندهٔ طبیعی Baking Pi است:
+        بعد از یادگیری ARM از پایه در Baking Pi، این دوره همان زبان را برای ساخت
+        یک سیستم‌عامل کامل‌تر به کار می‌گیرد.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ raspberry-pi-os اثر سرگئی ماتیوکویچ (Sergey
+        Matyukevich) است و به‌صورت متن‌باز در GitHub منتشر شده. این صفحه فقط ترجمهٔ فارسی
+        و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/s-matyukevich/raspberry-pi-os" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

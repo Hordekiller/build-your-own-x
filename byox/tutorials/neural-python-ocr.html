@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تشخیص نوری حروف (OCR) — از کتاب ۵۰۰ خط</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>تشخیص نوری حروف (OCR)</span>
+      </div>
+      <h1>تشخیص نوری حروف (OCR) — با شبکه عصبی ساده و پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 شبکه عصبی + تصویر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/optical-character-recognition-ocr.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور فصل «Optical Character
+          Recognition (OCR)» از کتاب مشهور <b>500 Lines or Less</b> (بخش از پروژهٔ
+          AOSA) نوشتهٔ <b>مارینا ساموئل (Marina Samuel)</b> است که با شبکهٔ عصبی و
+          رابط مرورگری، ارقام دست‌نویس را تشخیص می‌دهد.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/optical-character-recognition-ocr.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایده: OCR به‌عنوان یک سیستم کامل</h2>
+        <p>این فصل بر خلاف آموزش‌های صرفاً الگوریتمی، یک <b>سیستم کامل OCR</b> می‌سازد:
+        کاربر در مرورگر، با ماوس روی یک بوم (canvas) یک رقم می‌کشد، سیستم آن را به
+        سرور می‌فرستد، یک شبکهٔ عصبی پیش‌بینی می‌کند و پاسخ برمی‌گردد. هدف نویسنده
+        این است که یک سیستم واقعی — با قطعات متصل به هم: رابط کاربری، پیش‌پردازش،
+        مدل و آموزش — ببینیم.</p>
+      </section>
+
+      <section>
+        <h2>۲. جمع‌آوری داده و آموزش Crowdsourced</h2>
+        <p>برای آموزش، نویسنده از یک روش خلاقانه استفاده می‌کند: یک «بازی» کوچک در
+        مرورگر که کاربران رقم‌های دست‌نویس را می‌کشند و سیستم با کلمهٔ «تشخیص داده
+        شد» یا «اشتباه بود» بازخورد می‌دهد. کاربران با این کار نمونه‌های واقعی
+        تولید می‌کنند که برچسب‌گذاری‌شان (نظر خود کاربر دربارهٔ درستی تشخیص) همراه
+        نمونه ذخیره می‌شود. هر نمونه یک جفت <code>(تصویر، برچسب)</code> است که بعداً
+        برای آموزش شبکه به کار می‌رود.</p>
+      </section>
+
+      <section>
+        <h2>۳. پیش‌پردازش تصویر</h2>
+        <p>تصویر خامِ نقاشی‌شده برای شبکه نامناسب است: ابعاد متفاوت، موقعیت ناهماهنگ
+        و نویز. پیش‌پردازش سه کار می‌کند: <b>مرکزیت‌دادن</b> (وسط‌چین کردن رقم بر
+        اساس میانگین پیکسل‌های روشن)، <b>اندازه‌گیری مجدد</b> به یک گرید استاندارد
+        (مثلاً ۱۲۸×۱۲۸) و <b>نرمال‌سازی</b> مقادیر پیکسل‌ها به بازهٔ قابل استفاده.
+        یک API کوچک در Flask همهٔ این‌ها را در جریان درخواست انجام می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># گام‌های پیش‌پردازش روی تصویر دریافتی
+def preprocess_image(image):
+    # ۱) تبدیل به تصویر دودویی (باینری) بر اساس آستانه‌ی روشنایی
+    # ۲) پیدا کردن مرکز جرم پیکسل‌های روشن و انتقال رقم به مرکز بوم
+    # ۳) زیرنمونه‌گیری به ابعاد استاندارد ۱۲۸×۱۲۸
+    # ۴) نرمال‌سازی مقادیر پیکسل به بازه‌ی [0, 1]
+    return processed</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. شبکهٔ عصبی و یادگیری</h2>
+        <p>شبکه یک پرسپترون چندلایه است که با <b>الگوریتم یادگیری کمترین مربعات
+        (least squares)</b> آموزش می‌بیند — نه backpropagation سنگین: چون فقط یک لایه
+        وزن دارد (از ورودی به خروجی)، به‌روزرسانی‌ها با معادلهٔ جبر خطی مستقیم و
+        سریع انجام می‌شود. خروجی شبکه برای هر رقم یک مقدار است؛ رقمی که بیشترین
+        خروجی را دارد، پیش‌بینی است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># آموزش با کمترین مربعات: حل مستقیم W به‌جای تکرار گرادیان
+# W به‌گونه‌ای انتخاب می‌شود که خطای ‖X·W − Y‖ کمینه شود
+W = np.linalg.lstsq(X_train, Y_train, rcond=None)[0]
+
+# پیش‌بینی: خروجی برای همه‌ی ارقام، سپس انتخاب بیشترین
+scores = np.dot(X_test, W)
+prediction = np.argmax(scores)</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. چرخهٔ کامل: آموزش با دادهٔ انسانی</h2>
+        <p>زیبایی طراحی این است که سیستم در طول زمان بهتر می‌شود: هر کاربر، نمونهٔ
+        جدید با برچسب واقعی تولید می‌کند؛ نمونه‌ها در پایگاه داده ذخیره می‌شوند و
+        مدل به‌صورت دوره‌ای دوباره آموزش می‌بیند. این «داده‌ی واقعی از کاربران» حتی
+        از یک دیتاست آماده بهتر است چون دقیقاً همان سبک نوشتن کاربران واقعی سایت را
+        نشان می‌دهد.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این فصل نشان می‌دهد که برای مسائل سادهٔ
+          یادگیری ماشین، لازم نیست همیشه شبکه‌های عمیق و backprop به کار ببریم —
+          گاهی یک مدل خطی درست‌آموزش‌دیده با دادهٔ خوب کافی است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>OCR واقعی = پیش‌پردازش + مدل + بازخورد کاربر — نه فقط الگوریتم.</li>
+          <li>پیش‌پردازش (مرکزیت، اندازه، نرمال‌سازی) قبل از مدل، حیاتی است.</li>
+          <li>آموزش Crowdsourced دادهٔ واقعی با برچسب واقعی تولید می‌کند.</li>
+          <li>کمترین مربعات، جایگزین ساده و مؤثر backprop برای مدل‌های خطی است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل «Optical Character Recognition (OCR)» اثر مارینا
+        ساموئل (Marina Samuel) است و در کتاب «500 Lines or Less» منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="http://aosabook.org/en/500L/optical-character-recognition-ocr.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

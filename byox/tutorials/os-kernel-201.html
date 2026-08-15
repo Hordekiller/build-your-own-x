@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Kernel 201 — درایور صفحه‌کلید و صفحه‌نمایش</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Kernel 201 — درایور صفحه‌کلید</span>
+      </div>
+      <h1>Kernel 201 — نوشتن درایور صفحه‌کلید و صفحه‌نمایش (ارجون سری‌داران)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">⌨️ وقفه + درگاه I/O</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ
+          <b>«Kernel 201 — Let's write a Kernel with keyboard and screen
+          support»</b> از <b>ارجون سری‌داران</b> است — ادامهٔ Kernel 101 که
+          پشتیبانی صفحه‌کلید و صفحه‌نمایش را به هسته اضافه می‌کند.
+        </div>
+        <a class="btn solid" href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. هدف مقاله</h2>
+        <p>کرنل Kernel 101 فقط یک پیام چاپ می‌کرد. این مقاله همان کرنل را می‌گیرد و
+        دو قابلیت واقعی به آن می‌دهد: <b>چاپ روی صفحه</b> با کنترل کامل (اسکرول،
+        رنگ، مکان‌نما) و <b>خواندن صفحه‌کلید</b> با وقفه. این یعنی اولین بار است
+        که هستهٔ ما با سخت‌افزار تعامل واقعی دارد: از طریق <b>درگاه‌های I/O</b>
+        و <b>وقفه‌ها</b>.</p>
+      </section>
+
+      <section>
+        <h2>۲. درگاه‌های I/O: خواندن و نوشتن با in/out</h2>
+        <p>سخت‌افزار x86 از طریق «درگاه» (port) با CPU حرف می‌زند — آدرس‌های
+        ویژه‌ای که با دستورهای <code>in</code> و <code>out</code> قابل دسترس‌اند.
+        دو درگاه مهم: <b>0x3F8</b> (سریال) برای خروجی و <b>0x60</b> برای
+        صفحه‌کلید. مثال: چاپ یک کاراکتر در درگاه سریال:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// نوشتن در درگاه سریال COM1
+#define PORT_SERIAL 0x3F8
+
+void serial_write(char c) {
+    __asm__ volatile (
+        "outb %0, %1"        // خروجی بایت c به درگاه PORT_SERIAL
+        : : "a"(c), "Nd"(PORT_SERIAL)
+    );
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. صفحه‌نمایش: پرش به خط بعد و اسکرول</h2>
+        <p>مانیتور VGA حالت متن، خودش اسکرول نمی‌کند؛ هسته باید با محاسبهٔ آدرس
+        «خط بعدی» در حافظهٔ 0xB8000 و پاک کردن خط آخر، اسکرول را مدیریت کند. حرکت
+        مکان‌نما هم با دو درگاه مخصوص (<code>0x3D4</code>/<code>0x3D5</code>)
+        انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// حرکت مکان‌نما با فرستادن آدرس ۱۶ بیتی به کنترل‌کننده‌ی VGA
+void move_cursor(int row, int col) {
+    unsigned short pos = row * 80 + col;
+
+    outb(0x3D4, 14);            // رجیستر «بایت بالایی» را انتخاب کن
+    outb(0x3D5, (pos >> 8) & 0xFF);  // بایت بالا
+    outb(0x3D4, 15);            // رجیستر «بایت پایینی»
+    outb(0x3D5, pos & 0xFF);    // بایت پایین
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. صفحه‌کلید با وقفه</h2>
+        <p>کلیدها با <b>وقفهٔ IRQ1</b> می‌رسند. هسته باید یک <b>IDT</b> (جدول
+        توصیفگر وقفه) بسازد و هندلری تعریف کند که <b>کد کلید (scancode)</b> را از
+        درگاه 0x60 بخواند و به کاراکتر ترجمه کند. هر کلید دو کد دارد: فشار (مثل
+        <code>0x1E</code> برای A) و رهاسازی (با بیت 0x80). یک تکهٔ جدول ترجمهٔ
+        کیبورد QWERTY:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// ترجمه‌ی scancode به کاراکتر (قسمتی از جدول)
+unsigned char keyboard_map[128] = {
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8',
+    '9', '0', '-', '=', '\b',
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
+    'p', '[', ']', '\n',
+    0,                      // Ctrl
+    'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
+    '\'', '`',
+    0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',',
+    '.', '/', 0, '*',
+    0, ' ',                 // Space
+    // ...
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. اجرا</h2>
+        <p>مثل Kernel 101، با <code>grub-mkrescue</code> یک ISO می‌سازیم و در QEMU
+        اجرا می‌کنیم. حالا اگر کلیدی بزنید، کاراکتر آن روی صفحه ظاهر می‌شود — و
+        وقتی به انتهای صفحه برسید، متن به‌درستی اسکرول می‌شود:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>make          # ساخت kernel
+grub-mkrescue -o os.iso kernel_dir
+qemu-system-i386 -cdrom os.iso</code></pre>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این مقاله بهترین پل برای گذار از «هستهٔ
+        نمایشی» به «هستهٔ تعاملی» است؛ قدم بعدی طبیعی، زمان‌بندی و multitasking
+        است (مثل آموزش جیمز مولی در همین مجموعه).
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Kernel 201» اثر ارجون سری‌داران (Arjun
+        Sreedharan) است و در arjunsreedharan.org منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

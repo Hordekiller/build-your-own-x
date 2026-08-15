@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Linux From Scratch — لینوکس از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Linux From Scratch</span>
+      </div>
+      <h1>Linux From Scratch — ساخت لینوکس، «کاملاً از صفر»</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Shell + C</span>
+        <span class="meta-badge">🐧 توزیع شخصی لینوکس</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ
+          <b>Linux From Scratch (LFS)</b> اثر <b>جرارد بیکمنز (Gerard Beekmans)</b> و
+          <b>بروس دابز (Bruce Dubbs)</b> است — یک توزیع کامل و عملاً کارآمد لینوکس
+          که فقط با کامپایل کردن سورس همهٔ بسته‌ها، ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. LFS چیست؟</h2>
+        <p>Linux From Scratch یک پروژهٔ مستند و دقیق است که می‌گوید: «چگونه یک
+        سیستم لینوکس کامل را فقط از <b>سورس کد</b> بسازید.» هیچ بستهٔ باینری آماده‌ای
+        استفاده نمی‌شود؛ هر بسته (glibc، gcc، coreutils و…) با دستورهای دقیق
+        کتاب، از سورس کامپایل و نصب می‌شود. نتیجه یک توزیع لینوکسِ <b>شخصی،
+        مینیمال و کاملاً قابل فهم</b> است — شما می‌دانید هر فایل سیستم کجا بوده و
+        چرا نصب شده.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار کتاب</h2>
+        <ul>
+          <li><b>فصل‌های ۱ تا ۳ — آماده‌سازی:</b> معرفی ابزارها، بررسی دیسک،
+          پارتیشن‌بندی و ساخت فایل‌سیستم، نصب پکیج‌های میزبان (host).</li>
+          <li><b>فصل ۴ — مراحل مقدماتی:</b> ساختار دایرکتوری‌ها، محدودسازی
+          محیط و <b>حقوق کاربری</b> (هیچ‌چیز نباید با root ساخته شود!).</li>
+          <li><b>فصل ۵ — ساخت toolchain موقت:</b> کامپایل Binutils pass 1، GCC
+          pass 1 و Glibc — اولین «زنجیرهٔ ابزار» که هنوز به سیستم میزبان وابسته
+          است.</li>
+          <li><b>فصل ۶ — ابزار موقت:</b> کامل کردن مجموعهٔ ابزارها با ساخت
+          بسته‌هایی مثل Coreutils، Bash و Make (هنوز موقتی).</li>
+          <li><b>فصل ۷ — ورود به محیط LFS:</b> ساخت فایل‌سیستم مجازی و
+          <b>chroot</b> به محیط جدید؛ ساخت initramfs.</li>
+          <li><b>فصل ۸ — نصب بسته‌های نهایی:</b> <b>ساخت دوبارهٔ Binutils و
+          GCC (pass 2)</b> و همهٔ بسته‌های اصلی — این بار «واقعی» و بدون وابستگی
+          به میزبان.</li>
+          <li><b>فصل ۹ — تنظیمات سیستم:</b> فایل‌های boot، /etc، هستهٔ
+          <b>Linux kernel</b> و ساخت کامل آن.</li>
+          <li><b>فصل ۱۰ — قابل بوت کردن:</b> grub، fstab و اولین بوت لینوکس
+          شخصی‌تان.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. ایدهٔ toolchain (دو-گذره)</h2>
+        <p>مفهوم کلیدی LFS — و سخت‌ترین بخش برای فهم — ساخت «دو گذره»ی
+        کامپایلر است: چون هنوز Glibc نداریم، GCC اول (pass 1) فقط برای ساخت
+        ابزارهای موقت استفاده می‌شود و با <b>دستورات کوتاه‌کننده</b> از نگاه
+        داشتن به فایل‌های سیستم میزبان جلوگیری می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># خلاصه‌ای از ساخت GCC pass 1 (فصل ۵ LFS)
+mkdir -v build && cd build
+../configure --prefix=$LFS/tools \
+    --with-local-prefix=$LFS/tools \
+    --disable-nls --disable-shared --disable-libssp \
+    --enable-languages=c --disable-bootstrap
+
+make -j$(nproc) && make install
+
+# مهم‌ترین نکته: یک «گادز» مخصوص که کامپایلر را وادار
+# می‌کند هرگز به فایل‌های سیستم میزبان نگاه نکند
+ln -sv $LFS/tools/bin/gcc /usr/bin/gcc   # در chroot موقت
+cat > dummy-gcc.sh &lt;&lt; "EOF"
+# ...
+EOF</code></pre>
+        <p>این همان جایی است که بسیاری شکست می‌خورند: کامپایلر موقت نباید
+        <b>هدرها</b> و <b>کتابخانه‌های</b> میزبان را ببیند وگرنه باینری‌های
+        «تمیز» ساخته نمی‌شوند. کتاب، این خطاها را دقیق توضیح می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۴. ارزش آموزشی LFS</h2>
+        <ul>
+          <li><b>فهم زنجیرهٔ کامپایل:</b> binutils → gcc → glibc و چرخهٔ «مرغ و
+          تخم‌مرغ» در ساخت اولیه.</li>
+          <li><b>فهم سیستم لینوکس:</b> در پایان، معنی هر دایرکتوری و هر فایل
+          پیکربندی را می‌دانید.</li>
+          <li><b>دقت و نظم:</b> ساخت چندین بارهٔ ابزارها، صبر و دقت را تمرین
+          می‌کند.</li>
+          <li><b>قدم بعدی BLFS:</b> بعد از LFS، کتاب Beyond LFS (BLFS) نصب
+          نرم‌افزارهای بیشتر (شبکه، GUI و…) را آموزش می‌دهد.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> LFS با دیگر آموزش‌های این مجموعه فرق دارد —
+        شما هستهٔ لینوکس را نمی‌نویسید، بلکه کل سیستم‌عامل اطراف آن را با دست
+        خودتان می‌سازید؛ بهترین مکمل برای کسانی که آموزش‌های کرنل‌نویسی را گذرانده‌اند.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ Linux From Scratch اثر جرارد بیکمنز (Gerard
+        Beekmans) و بروس دابز (Bruce Dubbs) است و به‌صورت متن‌باز منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

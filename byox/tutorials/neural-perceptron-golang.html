@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت پرسپترون چندلایه با Golang</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>پرسپترون چندلایه با Golang</span>
+      </div>
+      <h1>یک پرسپترون چندلایه (MLP) با Golang بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">🧠 MLP از صفر</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://made2591.github.io/posts/neuralnetwork" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «Build a Multilayer Perceptron
+          with Golang» از <b>ماتئو پاگلیزی (Matteo Pagliuzzi / made2591)</b> است که با یک
+          فایل Go ساده یک MLP آموزش‌پذیر می‌سازد. کد کامل در
+          <a href="https://github.com/made2591/go-perceptron-go" target="_blank" rel="noopener">go-perceptron-go</a>
+          موجود است.
+        </div>
+        <a class="btn solid" href="https://made2591.github.io/posts/neuralnetwork" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایده: یادگیری تقلیدی (imitation learning)</h2>
+        <p>نویسنده با یک آزمایش ساده شروع می‌کند: شبکه را به‌جای کدگذاری دستی رفتار، با
+        «مثال» آموزش می‌دهد — همان تقلید از نمایش. معماری انتخاب‌شده
+        <b>پرسپترون چندلایه (MLP)</b> است: لایهٔ ورودی، یک یا چند لایهٔ پنهان و لایهٔ
+        خروجی که هر نورون با یک <b>تابع فعال‌سازی غیرخطی</b> کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار کد: NeuralLayer و MultiLayerNetwork</h2>
+        <p>کد در یک فایل Go (network.go) با سه قطعهٔ کلیدی سازماندهی شده: ساختار
+        <code>NeuralLayer</code> که نورون‌ها، بایاس و فعال‌سازی را نگه می‌دارد؛ ساختار
+        <code>MultiLayerNetwork</code> که لایه‌ها و ماتریس وزن‌ها را نگه می‌دارد؛ و
+        تابع اصلی که شبکه را با آرایه‌ای مثل <code>[4, 3, 3]</code> می‌سازد — یعنی ۴
+        نورون ورودی، لایهٔ پنهان ۳ نوری و خروجی ۳ نوری:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// یک لایهٔ عصبی: نورون‌ها، بایاس‌ها و تابع فعال‌سازی
+type NeuralLayer struct {
+    neurons    int
+    activation ActivationFunction
+    bias       float64
+}
+
+// شبکهٔ چندلایه: لایه‌ها + ماتریس وزن‌ها + نرخ یادگیری
+type MultiLayerNetwork struct {
+    layers      []NeuralLayer
+    weights     []*matrix.Matrix
+    lr          float64
+}
+
+// ساخت شبکه با ابعاد داده‌شده: ورودی ۴، پنهان ۳، خروجی ۳
+network, err := NewMultiLayerNetwork([]int{4, 3, 3}, 0.1)</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. انتشار پیشرو با ضرب ماتریسی</h2>
+        <p>خروجی هر لایه حاصل ضرب ماتریس وزن در خروجی لایهٔ قبل است که از تابع فعال‌سازی
+        (در این پیاده‌سازی sigmoid) می‌گذرد. مزیت نمایش ماتریسی: همهٔ محاسبات به‌صورت
+        برداری و با کتابخانهٔ <code>gonum/matrix</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// محاسبهٔ خروجی شبکه برای یک ورودی (انتشار پیشرو)
+func (nn *MultiLayerNetwork) Predict(input []float64) []float64 {
+    activation := matrix.NewDenseMatrix(len(input), 1, input)
+    for i := 0; i &lt; len(nn.layers); i++ {
+        activation = nn.weights[i].Times(activation)
+        activation = activation.Apply(nn.layers[i].activation)
+    }
+    return activation.Array()
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. آموزش: انتشار بازگشتی و اصلاح وزن‌ها</h2>
+        <p>در هر تکرار، خروجی با پاسخ درست مقایسه می‌شود و خطا از لایهٔ خروجی به عقب پخش
+        می‌شود (backpropagation). وزن‌ها به‌اندازهٔ <code>lr × گرادیان</code> اصلاح
+        می‌شوند تا خطا در تکرار بعد کمتر شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// آموزش روی یک نمونه: backprop + به‌روزرسانی وزن
+func (nn *MultiLayerNetwork) BackPropagation(input, target []float64) error {
+    // محاسبهٔ خروجی هر لایه و نگه‌داشتن میانی‌ها (برای مشتق‌ها)
+    outputs := nn.feedForward(input)
+
+    // خطای لایهٔ خروجی، سپس پخش به عقب لایه‌به‌لایه
+    // delta = error × مشتق فعال‌سازی؛ سپس وزن‌ها به‌روز می‌شوند
+    error := matrix.NewDenseMatrix(len(target), 1, target)
+    error.MinusEquals(outputs[len(outputs)-1])
+
+    for i := len(nn.layers) - 1; i &gt;= 0; i-- {
+        delta := error.Apply(nn.layers[i].activationPrime).Times(nn.lr)
+        gradient := outputs[i].Times(delta.Transpose())
+        nn.weights[i].MinusEquals(gradient)
+        error = nn.weights[i].Transpose().Times(delta)
+    }
+    return nil
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. آزمایش: یادگیری از مثال</h2>
+        <p>نویسنده شبکه را با یک مثال ساده آموزش می‌دهد و مشاهده می‌کند که خطا به‌مرور
+        کاهش می‌یابد و پیش‌بینی‌ها به پاسخ درست نزدیک می‌شوند. این آزمایش نشان می‌دهد
+        همان ساختار بدون هیچ دانش دامنه‌ای، الگو را از داده یاد می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// اجرای یک دور آموزش روی چند مثال و چاپ خطای میانگین
+for epoch := 0; epoch &lt; 5000; epoch++ {
+    for i := range trainingInputs {
+        err := network.BackPropagation(trainingInputs[i], trainingTargets[i])
+        if err != nil {
+            panic(err)
+        }
+    }
+    if epoch%1000 == 0 {
+        fmt.Printf("Epoch %d — خطای میانگین: %.6f\n", epoch, network.ComputeError(...))
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>MLP = لایهٔ ورودی + لایه‌های پنهان + لایهٔ خروجی، با فعال‌سازی غیرخطی.</li>
+          <li>نمایش ماتریسی کد را کوتاه و محاسبات را برداری می‌کند (gonum).</li>
+          <li>backpropagation با نگه‌داشتن میانی‌های هر لایه، ساده و قابل ردیابی است.</li>
+          <li>آموزش با مثال (تقلید)، جایگزین قاعده‌های دستی برای رفتارهای پیچیده است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوشتهٔ «Build a Multilayer Perceptron with Golang» اثر ماتئو
+        پاگلیزی (Matteo Pagliuzzi) است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://made2591.github.io/posts/neuralnetwork" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

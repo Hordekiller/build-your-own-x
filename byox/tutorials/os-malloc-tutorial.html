@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Malloc Tutorial — ساخت malloc به زبان ساده</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Malloc Tutorial</span>
+      </div>
+      <h1>Malloc Tutorial — ساخت malloc به زبان ساده (danluu)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🧠 مدیریت حافظه</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://danluu.com/malloc-tutorial/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ
+          <b>«Malloc Tutorial»</b> از <b>دن لو (Dan Luu)</b> است — ساخت یک
+          تخصیص‌دهندهٔ حافظهٔ ساده با C، بدون وابستگی، که می‌تواند جایگزین
+          <code>malloc</code> استاندارد شود. این آموزش بر پایهٔ راهنمای
+          «Build your own malloc» ماروان بورل (Marwan Burelle) نوشته شده.
+        </div>
+        <a class="btn solid" href="https://danluu.com/malloc-tutorial/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا malloc بسازیم؟</h2>
+        <p><code>malloc</code> از دید برنامه‌نویس یک «جعبهٔ جادویی» است. این آموزش
+        جعبه را باز می‌کند: یک تخصیص‌دهندهٔ حافظه می‌سازیم که از سیستم‌عامل
+        (با فراخوان <code>sbrk</code>) حافظهٔ خام می‌گیرد و آن را به
+        برنامهٔ کاربر با ساختار بلوک‌ها تحویل می‌دهد. این پروژه پلی است بین
+        برنامه‌نویسی معمولی و دنیای سیستم‌عامل — همان حافظه‌ای که kernelها
+        مدیریت می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار داده: بلوک‌های لینک‌شده</h2>
+        <p>قلب پیاده‌سازی، یک <b>لینک‌لیست بلوک‌ها</b> است. هر بلوک یک هدر دارد
+        که چهار فیلد را نگه می‌دارد: اندازهٔ داده، اشاره‌گر به بلوک بعدی، پرچم
+        آزاد بودن و یک «عدد جادویی» برای تشخیص خرابی حافظه:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>typedef struct block_meta {
+    size_t size;          // اندازه‌ی داده‌ی این بلوک
+    struct block_meta *next;  // بلوک بعدی در لیست
+    int free;             // 1 = آزاد، 0 = در حال استفاده
+    int magic;            // عدد جادویی (برای پیدا کردن خرابی)
+} block_meta_t;
+
+#define META_SIZE sizeof(block_meta_t)
+#define MAGIC 0x77777777
+#define ALIGN 8            // هم‌ترازی: بلوک‌ها روی مرز ۸ بایت
+
+void *global_base = NULL;  // ابتدای لیست بلوک‌ها</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. تخصیص: پیدا کردن بلوک و شکستن آن</h2>
+        <p>الگوریتم <code>malloc</code>: در لیست به دنبال یک بلوک <b>آزاد و
+        به‌اندازه‌ی کافی</b> می‌گردیم. اگر پیدا شد، آن را آزاد بودن برمی‌داریم؛
+        اگر نه، با <code>sbrk</code> یک بلوک جدید از سیستم می‌گیریم. اگر بلوک
+        آزاد خیلی بزرگ‌تر از نیاز بود، می‌توانیم آن را <b>شکافت</b> (split) کنیم
+        و باقی‌مانده را به‌عنوان بلوک آزاد نگه داریم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>void *malloc(size_t size) {
+    block_meta_t *block;
+
+    // هم‌ترازی ۸ بایتی اندازه
+    size = (size + ALIGN - 1) & ~(ALIGN - 1);
+
+    if (!global_base) {
+        // اولین بار: یک بلوک اولیه از سیستم می‌گیریم
+        block = request_space(NULL, size);
+        if (!block) return NULL;
+        global_base = block;
+    } else {
+        // جست‌وجوی یک بلوک آزادِ به‌اندازه
+        block = find_free_block(global_base, &size);
+        if (!block) {
+            block = request_space(global_base, size);
+            if (!block) return NULL;
+        } else {
+            block->free = 0;    // اشغال می‌شود
+            block->magic = MAGIC;
+        }
+    }
+    return block + 1;   // داده بعد از هدر شروع می‌شود
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. آزادسازی و ادغام</h2>
+        <p>برای <code>free</code> فقط کافی است پرچم بلوک را به «آزاد» تغییر دهیم
+        (و با فراخوان <code>munmap</code> بلوک‌های آخر را به سیستم پس بدهیم). اما
+        برای جلوگیری از پراکندگی حافظه (fragmentation)، بلوک‌های آزادِ کنار هم را
+        با <b>ادغام (coalescing)</b> یکی می‌کنیم — اگر بلوک بعدی هم آزاد بود،
+        بلوک فعلی را بزرگ‌تر اعلام می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>void free(void *ptr) {
+    if (!ptr) return;
+    block_meta_t *block = (block_meta_t *) ptr - 1;
+    block->free = 1;
+    block->magic = 0;
+
+    // ادغام با بلوک آزادِ بعدی
+    if (block->next && block->next->free) {
+        block->size += META_SIZE + block->next->size;
+        block->next = block->next->next;
+    }
+}</code></pre>
+        <p>جالب است که <code>free</code> خیلی ساده‌تر از <code>malloc</code> است —
+        چون واقعاً «حذف» نمی‌کنیم، فقط به سیستم می‌گوییم این ناحیه قابل استفادهٔ
+        مجدد است.</p>
+      </section>
+
+      <section>
+        <h2>۵. نتیجه و آزمایش</h2>
+        <p>آموزش با یک <b>برنامهٔ تست</b> تمام می‌شود که تخصیص و آزادسازی را با
+        الگوهای مختلف بررسی می‌کند. تست کامل، این موارد را چک می‌کند: کارکرد ساده،
+        تخصیص مکرر، آزادسازی، تخصیص مجدد همان آدرس، و نشت حافظهٔ احتمالی:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>gcc -o test malloc.c test.c
+valgrind --leak-check=full ./test
+# خروجی: هیچ نشت حافظه‌ای وجود ندارد</code></pre>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> این پروژه کوچک اما کامل، مفاهیمی را که در
+        «مدیریت حافظهٔ هیپ» کرنل‌ها (مثل بخش ۷ آموزش جیمز مولی) می‌بینید، پیش از
+        ورود به دنیای kernel به زبان ساده آموزش می‌دهد.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Malloc Tutorial» اثر دن لو (Dan Luu) است و در
+        danluu.com منتشر شده (بر پایهٔ راهنمای ماروان بورل). این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://danluu.com/malloc-tutorial/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

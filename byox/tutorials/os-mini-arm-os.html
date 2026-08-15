@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | mini-arm-os — سیستم‌عامل کوچک ARM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>mini-arm-os</span>
+      </div>
+      <h1>mini-arm-os — هشت درس سیستم‌عامل برای ARM با جیمز سر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">🤖 STM32 / QEMU</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/jserv/mini-arm-os" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ
+          <b>mini-arm-os</b> از <b>جیمز سر (jserv / Jim Huang)</b> است — یک سیستم‌عامل
+          آموزشی مینیمال برای ARM که در هشت درس با شبیه‌ساز QEMU ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://github.com/jserv/mini-arm-os" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ پروژه</h2>
+        <p>mini-arm-os یک مخزن آموزشی معروف است که مفاهیم پایهٔ سیستم‌عامل را روی
+        معماری <b>ARM</b> (برد شبیه‌سازی‌شدهٔ STM32 در QEMU) و بدون هیچ کتابخانهٔ
+        جانبی، درس‌به‌درس پیاده می‌کند. هر درس یک شاخهٔ (branch) کامل در GitHub
+        دارد؛ در هر شاخه، با <code>make</code> بسازید و با دستور QEMU اجرا کنید تا
+        رفتار درس را ببینید. انتخاب ARM این مزیت را دارد که خواندن و نوشتن کد،
+        ساده‌تر از x86 است.</p>
+      </section>
+
+      <section>
+        <h2>۲. هشت درس</h2>
+        <ul>
+          <li><b>01-HelloWorld:</b> ساختار اولیه، کامپایل متقاطع (cross compile)
+          برای ARM و چاپ پیام.</li>
+          <li><b>02-ContextSwitch:</b> تعویض زمینهٔ پردازش — قلب multitasking؛
+          با <code>svc</code> (Supervisor Call) وارد حالت هسته می‌شویم.</li>
+          <li><b>03-Interrupt:</b> وقفه‌های سخت‌افزاری و برخورد با NVIC
+          (کنترل‌کنندهٔ وقفهٔ ARM).</li>
+          <li><b>04-Process:</b> تعریف فرایندها، PCB (بلوک کنترل فرایند) و
+          زمان‌بندی ساده.</li>
+          <li><b>05-Timer:</b> تایمر سیستم — پایهٔ زمان‌بندی منصفانه.</li>
+          <li><b>06-Preemptive:</b> زمان‌بندی پیشگیرانه (Preemptive)؛ فرایندها
+          با وقفهٔ تایمر به‌زور جابه‌جا می‌شوند.</li>
+          <li><b>07-Threads:</b> نخ‌ها (threads) درون یک فرایند و هم‌روندی
+          (concurrency).</li>
+          <li><b>08-CMSIS:</b> استفاده از کتابخانهٔ CMSIS؛ نسخهٔ تمیزتر و واقعی‌تر
+          درس‌های قبلی.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: پرش به حالت سوپروایزر برای تعویض زمینه</h2>
+        <p>در درس ۰۲، فرایند کاربر با دستور <code>svc</code> (سرویس هسته) به حالت
+        ممتاز سوپروایزر می‌رود تا هسته بتواند زمینه‌ها را جابه‌جا کند. نکتهٔ زیبا:
+        در ARM، آدرس بازگشت وقفه در <code>lr</code> (Link Register) با یک
+        <b>افست ۴ بایتی</b> ذخیره می‌شود که باید هنگام ادامهٔ اجرا جبران شود:</p>
+        <pre class="code"><span class="lang-tag">arm</span><code>@ context_switch.S — ذخیره‌ی رجیسترها و تعویض به فرایند بعدی
+.global context_switch
+context_switch:
+    @ ذخیره‌ی وضعیت فرایند فعلی
+    stmfd sp!, {r0-r12, lr}     @ پوش‌کردن رجیسترها و آدرس بازگشت
+    mrs r0, spsr                @ وضعیت پردازنده‌ی قبل از وقفه
+    stmfd sp!, {r0}
+
+    @ بارگذاری وضعیت فرایند بعدی
+    ldmfd r0!, {r1-r12, sp, lr} @ بازیابی رجیسترها و پشته
+    msr spsr_cxsf, r0           @ بازیابی وضعیت
+
+    @ ادامه‌ی اجرا از فرایند بعدی
+    ldmfd sp!, {r0, pc}^</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. اجرا</h2>
+        <p>ساخت و اجرا بسیار ساده است — کامپایلر متقاطع ARM و QEMU برای
+        mcu-type stm32-p103 کافی است:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># مثلاً درس ۰۳ (وقفه)
+git checkout 03-Interrupt
+make
+qemu-system-arm -M stm32-p103 -kernel build/interrupt.elf \
+    -serial stdio -monitor none -nographic</code></pre>
+        <p>خروجی سریال، رفتار فرایندها/وقفه‌ها را نشان می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۵. چرا mini-arm-os؟</h2>
+        <ul>
+          <li><b>کوچک‌ترین مسیر ARM:</b> هر درس یک مفهوم؛ بدون پیچیدگی‌های بی‌مورد.</li>
+          <li><b>اجرا در QEMU:</b> هیچ سخت‌افزاری لازم نیست و بازخورد فوری می‌گیرید.</li>
+          <li><b>کد تمیز و خوانا:</b> کدها کم‌حجم و متمرکز بر مفهوم‌اند.</li>
+          <li><b>همراه با مقالات:</b> توضیحات هر درس در همان شاخه موجود است.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> برای کسی که با ARM اسمبلی آشنا شده (مثلاً
+          از دورهٔ Baking Pi) و حالا می‌خواهد مفاهیم سیستم‌عامل را با کمترین
+          حواس‌پرتی ببیند، این مجموعه یک انتخاب عالی است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ mini-arm-os اثر جیمز سر (jserv / Jim Huang) است
+        و به‌صورت متن‌باز در GitHub منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://github.com/jserv/mini-arm-os" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

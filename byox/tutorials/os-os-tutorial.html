@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | os-tutorial — از بوت تا هسته در درس‌های کوچک</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>os-tutorial</span>
+      </div>
+      <h1>os-tutorial — یادگیری سیستم‌عامل با درس‌های پنچ‌دقیقه‌ای (cfenollosa)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C + Assembly</span>
+        <span class="meta-badge">💽 x86 + QEMU</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/cfenollosa/os-tutorial" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ
+          <b>os-tutorial</b> از <b>کارلوس فنولوسا (Carlos Fenollosa)</b> است —
+          مجموعه‌ای از درس‌های کوچک و مستقل که از بوت‌لودر تا یک هستهٔ کاربردی را
+          قدم‌به‌قدم با QEMU می‌سازند.
+        </div>
+        <a class="btn solid" href="https://github.com/cfenollosa/os-tutorial" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. رویکرد: صد درس کوچک به‌جای یک پروژهٔ بزرگ</h2>
+        <p>اساس os-tutorial «انجام کامل یک کار کوچک در هر درس» است. هر درس در یک
+        پوشهٔ مستقل (<code>01-bootsector-barebones</code>، <code>02-bootsector-print</code>
+        و…) قرار دارد، می‌تواند در چند دقیقه خوانده و اجرا شود، و روی درس قبلی بنا
+        می‌شود. این طراحی باعث می‌شود خیلی سریع پیشرفت کنید و هر مرحله را واقعاً
+        بفهمید.</p>
+        <p>بیشتر محتوا بر پایهٔ <b>«Operating Systems Development»</b>
+        (os-dev.pdf دانشگاه بیرمنگام) نوشته شده — همان منبع Little OS Book — اما با
+        درس‌های کوتاه‌تر و اجرای مستقیم در QEMU.</p>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ راه درس‌ها</h2>
+        <ul>
+          <li><b>درس‌های ۱ تا ۹ — بوت‌سکتور:</b> ساخت و اسمبل یک بوت‌سکتور ساده،
+          چاپ متن با BIOS، تعریف رشته‌ها، خواندن دیسک.</li>
+          <li><b>درس‌های ۱۰ تا ۱۹ — ورود به حالت ۳۲-بیتی:</b> GDT، حالت
+          محافظت‌شده، ساختار بخش‌ها و کامپایل متقاطع C برای bare-metal.</li>
+          <li><b>درس‌های ۲۰ تا ۳۰ — هستهٔ C:</b> چاپ متن با VGA، پرش به حالت
+          محافظت‌شده، idt/gdt کامل، وقفه‌های صفحه‌کلید.</li>
+          <li><b>درس‌های بعدی — حافظه و زمان‌بندی:</b> page tables، heap،
+          task switching و…</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: اولین بوت‌سکتور (درس ۱)</h2>
+        <p>ساده‌ترین بوت‌سکتور ممکن — که بعداً در درس‌های بعدی روی آن ساخته
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; lesson01: ساده‌ترین بوت‌سکتور — بی‌پایان تکرار
+loop:
+    jmp loop
+
+times 510-($-$$) db 0   ; پر کردن تا بایت ۵۱۰
+dw 0xaa55               ; دو بایت جادویی بوت‌شدن</code></pre>
+        <pre class="code"><span class="lang-tag">bash</span><code>nasm -f bin boot_sect_simple.asm -o boot_sect_simple.bin
+qemu-system-i386 -fda boot_sect_simple.bin
+# یا ساخت یک فایل دیسک فلاپی و بوت از آن
+dd if=/dev/zero of=floppy.img bs=512 count=2880
+dd if=boot_sect_simple.bin of=floppy.img conv=notrunc</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. نقاط قوت و احتیاط</h2>
+        <ul>
+          <li><b>گام‌های ریز:</b> شکستن هر مبحث به درس‌های ۵–۱۵ دقیقه‌ای، از
+          محبوب‌ترین روش‌های شروع یادگیری است.</li>
+          <li><b>اجرای فوری:</b> هر درس مستقل اجرا می‌شود؛ هیچ شکست زنجیره‌ای وجود
+          ندارد.</li>
+          <li><b>آزمایش با QEMU:</b> بدون نیاز به هیچ سخت‌افزاری.</li>
+          <li><b>احتیاط:</b> پروژه رسماً <b>رهاشده (abandoned)</b> است؛ مسیر به
+          درس‌های پیشرفته‌تر (Task switching و بعد) ناقص‌تر می‌شود. برای تکمیل
+          مسیر، بعد از درس ۳۰ بهتر است به Little OS Book یا آموزش جیمز مولی بروید.</li>
+        </ul>
+      </section>
+
+      <div class="callout tip">
+        <strong>نکتهٔ تکمیلی:</strong> ترتیب ایده‌آل برای یک مبتدی مطلق: بوت‌لودر
+        جو برگرون ← os-tutorial (درس‌های ۱ تا ۳۰) ← Little OS Book.
+      </div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ os-tutorial اثر کارلوس فنولوسا (Carlos
+        Fenollosa) است و به‌صورت متن‌باز در GitHub منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/cfenollosa/os-tutorial" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

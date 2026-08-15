@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت شبکه عصبی از صفر در Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>ساخت شبکه عصبی از صفر در Go</span>
+      </div>
+      <h1>ساخت یک شبکه عصبی از صفر در Go</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">🧠 انتشار بازگشتی + iris</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://datadan.io/blog/neural-net-with-go" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «Neural Net With Go» از
+          <b>دنیل وایت‌ناک (Daniel Whitenack)</b> در وبلاگ DataDan است که همراه با کتاب
+          «Machine Learning With Go» منتشر شده و شبکه‌ای با انتشار بازگشتی را در Go از
+          صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="https://datadan.io/blog/neural-net-with-go" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. هدف: طبقه‌بندی گل‌های زنبق (iris)</h2>
+        <p>دیتاست معروف <b>iris</b> سه نوع گل زنبق را بر اساس چهار ویژگی (طول و عرض
+        کاسبرگ و گلبرگ) طبقه‌بندی می‌کند. نویسنده یک شبکهٔ عصبی از صفر می‌نویسد — بدون
+        هیچ کتابخانهٔ ML — تا هم این دادهٔ واقعی را حل کند و هم مکانیک درونی شبکه را
+        نشان دهد: ساختار، مقداردهی، انتشار پیشرو، انتشار بازگشتی و آموزش.</p>
+      </section>
+
+      <section>
+        <h2>۲. مدل و انواع داده</h2>
+        <p>شبکه به‌صورت struct تعریف می‌شود: وزن‌ها (ماتریس‌ها)، تعداد نورون‌های هر
+        لایه و تابع فعال‌سازی. با نمایش ماتریسی، انتشار پیشرو فقط چند ضرب ماتریسی است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// تعریف شبکه: وزن‌ها بین هر جفت لایه + فعال‌سازی
+type NeuralNet struct {
+    config  NeuralNetConfig
+    wHidden *mat.Dense   // وزن‌های لایهٔ پنهان
+    wOut    *mat.Dense   // وزن‌های لایهٔ خروجی
+    bHidden *mat.Dense   // بایاس لایهٔ پنهان
+    bOut    *mat.Dense   // بایاس لایهٔ خروجی
+}
+
+// ساختار پیکربندی: ابعاد لایه‌ها، نرخ یادگیری و تعداد عصرها
+type NeuralNetConfig struct {
+    InputNeurons  int
+    OutputNeurons int
+    HiddenNeurons int
+    NumEpochs     int
+    LearningRate  float64
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. مقداردهی تصادفی وزن‌ها</h2>
+        <p>شبکه با وزن‌های تصادفی کوچک شروع می‌کند. تابع <code>NewNetwork</code> با
+        گرفتن پیکربندی، ماتریس‌های وزن را می‌سازد و با توزیع نرمال مقداردهی می‌کند؛
+        بایاس‌ها نیز به‌صورت تصادفی (یا صفر) مقداردهی می‌شوند. تولیدکنندهٔ اعداد تصادفی
+        seed می‌خورد تا آزمایش‌ها بازتولیدپذیر باشند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// ساخت و مقداردهی تصادفی وزن‌ها و بایاس‌ها
+func NewNetwork(config NeuralNetConfig) *NeuralNet {
+    r := rand.New(rand.NewSource(time.Now().UnixNano()))
+    wHidden := mat.NewDense(config.InputNeurons, config.HiddenNeurons, nil)
+    bHidden := mat.NewDense(1, config.HiddenNeurons, nil)
+    wOut := mat.NewDense(config.HiddenNeurons, config.OutputNeurons, nil)
+    bOut := mat.NewDense(1, config.OutputNeurons, nil)
+
+    // مقداردهی تصادفی از توزیع نرمال با میانگین صفر
+    for i := 0; i &lt; config.InputNeurons; i++ {
+        for j := 0; j &lt; config.HiddenNeurons; j++ {
+            wHidden.Set(i, j, r.NormFloat64())
+        }
+    }
+    // ... همین کار برای بقیهٔ ماتریس‌ها
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. انتشار پیشرو (feed forward)</h2>
+        <p>برای هر نمونه: خروجی لایهٔ پنهان = سیگموئید(ورودی × وزن‌پنهان + بایاس‌پنهان)،
+        سپس خروجی نهایی = سیگموئید(پنهان × وزن‌خروجی + بایاس‌خروجی). تابع فعال‌سازی
+        سیگموئید و مشتق آن به‌صورت توابع جدا تعریف می‌شوند تا در backprop هم استفاده
+        شوند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// اجرای شبکه روی یک بردار ویژگی‌ها
+func (nn *NeuralNet) predict(x *mat.VecDense) mat.Matrix {
+    // محاسبهٔ خروجی لایهٔ پنهان و اعمال سیگموئید
+    hiddenInputs := mat.NewDense(1, nn.config.HiddenNeurons, nil)
+    hiddenInputs.MulVec(nn.wHidden, x)
+    hiddenInputs.AddScaled(hiddenInputs, 1, nn.bHidden.RowView(0))
+    hiddenOutputs := applySigmoid(hiddenInputs)
+
+    // محاسبهٔ خروجی نهایی و اعمال سیگموئید
+    finalInputs := mat.NewDense(1, nn.config.OutputNeurons, nil)
+    finalInputs.MulVec(nn.wOut, hiddenOutputs)
+    finalInputs.AddScaled(finalInputs, 1, nn.bOut.RowView(0))
+    return applySigmoid(finalInputs)
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. آموزش: انتشار بازگشتی</h2>
+        <p>در هر عصر و برای هر نمونه: خروجی محاسبه، خطا از پاسخ درست گرفته، دلتای لایهٔ
+        خروجی و لایهٔ پنهان با مشتق سیگموئید و قانون زنجیره‌ای محاسبه، و همهٔ وزن‌ها و
+        بایاس‌ها در جهت کاهش خطا به‌روزرسانی می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// گام انتشار بازگشتی روی یک نمونه
+// delta خروجی = (خروجی − پاسخ) ⊙ مشتق سیگموئید(خروجی)
+// delta پنهان = (ترانهادهٔ وزن خروجی × delta خروجی) ⊙ مشتق سیگموئید(پنهان)
+// به‌روزرسانی: w ← w − η × ورودیᵀ × delta
+
+// سپس به‌روزرسانی وزن‌ها روی همهٔ نمونه‌ها (گرادیان انباشته)
+for i := 0; i &lt; nn.config.NumEpochs; i++ {
+    for j := 0; j &lt; len(inputs); j++ {
+        // پیشرو ← محاسبهٔ دلتاها ← به‌روزرسانی wHidden، bHidden، wOut، bOut
+    }
+}</code></pre>
+        <p>بعد از آموزش، شبکه می‌تواند با <code>predict</code> روی نمونه‌های دیده‌نشده
+        پیش‌بینی کند — همان ارزیابی روی دادهٔ تست که کیفیت واقعی را نشان می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>با gonum و چند تابع ریاضی ساده، یک شبکهٔ کامل از صفر ساخته می‌شود.</li>
+          <li>سیگموئید و مشتقش، تنها «ریاضی» موردنیاز backprop ساده هستند.</li>
+          <li>iris یک دیتاست ایده‌آل برای بررسی پیشرفت آموزش است (قابل تجسم و کوچک).</li>
+          <li>همین کد پایه با تغییر پیکربندی، برای مسائل دیگر هم کار می‌کند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوشتهٔ «Neural Net With Go» اثر دنیل وایت‌ناک (Daniel
+        Whitenack) است و در وبلاگ DataDan منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است
+        و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://datadan.io/blog/neural-net-with-go" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

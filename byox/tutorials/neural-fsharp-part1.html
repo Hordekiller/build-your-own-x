@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت شبکه عصبی در F# — بخش ۱: پایه‌ها</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>ساخت شبکه عصبی در F# — بخش ۱</span>
+      </div>
+      <h1>ساخت شبکه‌های عصبی در F#: بخش ۱ — مفاهیم و پیاده‌سازی پایه</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: F#</span>
+        <span class="meta-badge">🧠 MathNet.Numerics</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/data-science/building-neural-networks-in-f-part-1-a2832ae972e6" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور بخش اول از مجموعهٔ دو قسمتی
+          «Building Neural Networks in F#» نوشتهٔ <b>حارس محمود (Haaris Mehmood)</b> در
+          Medium (۲۰۱۸) است که یک شبکهٔ عصبی چندلایه را با زبان F# و کتابخانهٔ
+          MathNet.Numerics از صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="https://medium.com/data-science/building-neural-networks-in-f-part-1-a2832ae972e6" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا F# برای شبکه عصبی؟</h2>
+        <p>زبان‌های تابعی برای کار با ریاضیات شبکه‌های عصبی طبیعی‌اند: تغییرناپذیری داده‌ها،
+        تیپ‌سازی قوی و نحو جمع‌وجور. نویسنده تصمیم می‌گیرد همه‌چیز را با
+        <b>MathNet.Numerics</b> بسازد — نه چارچوب سنگین ML — تا عمق مفاهیم دیده شود:
+        تابع فعال‌سازی، لایه‌ها، ماتریس وزن‌ها، هزینه و یادگیری با گرادیان نزولی. نتیجه
+        نوع‌هایی است که هر کدام معنای مشخصی دارند و کامپایلر خطاهای منطقی را زود می‌گیرد.</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// نوع‌هایی که ریاضی شبکه را معنا می‌بخشند
+type Node<'a> = { Values: Vector<'a> }
+type Layer<'a> = { Nodes: List<Node<'a>> }
+type NodesVect<'a> = { Nodes: Vector<'a> }</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. نورون و لایه: دو انتزاع پایه</h2>
+        <p>هر نورون یک بردار از مقادیر است (مقادیر چند ورودی/خروجی هم‌زمان برای بهره‌وری
+        ماتریسی). یک لایه، فهرستی از نورون‌هاست. این طراحی ساده، بعدها به ما اجازه می‌دهد
+        لایه‌ها را زنجیر کنیم: خروجی لایهٔ اول، ورودی لایهٔ دوم. برای وزن‌ها از ماتریس
+        MathNet استفاده می‌شود که توابع ضرب ماتریسی را بهینه و آماده دارد.</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// ایجاد یک لایه با n نورون؛ هر نورون یک بردار مقادیر
+let createLayer (n: int) (size: int) =
+    { Nodes = [ for _ in 1 .. n -&gt; { Values = Vector.Build.Random(size) } ] }</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. تابع فعال‌سازی: مماس هذلولی (tanh)</h2>
+        <p>تابع فعال‌سازی به شبکه غیرخطی‌بودن می‌دهد؛ بدون آن، هر عمق شبکه‌ای به یک
+        تبدیل خطی می‌شکند. نویسنده <b>tanh</b> را انتخاب می‌کند: خروجی بین ۱- و ۱+،
+        مشتق ساده و مرکز متقارن — که سرعت همگرایی را بهتر از سیگموئید می‌کند. مشتق tanh
+        یعنی <code>1 - tanh(x)²</code> در انتشار بازگشتی نقش محوری دارد:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>let tanh (x: double) = Math.Tanh(x)
+
+// مشتق tanh — در backpropagation برای انتشار خطا لازم است
+let tanhDerivative (x: double) = 1.0 - (Math.Tanh(x) * Math.Tanh(x))</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. انتشار پیشرو (forward pass)</h2>
+        <p>خروجی هر نورون از ضرب ماتریس وزن‌ها در ورودی‌ها، جمع بایاس و سپس اعمال tanh
+        به‌دست می‌آید. انتشار پیشرو یعنی اعمال لایه‌به‌لایهٔ این محاسبه تا رسیدن به خروجی
+        نهایی. با نمای ماتریسی، همهٔ نورون‌های یک لایه یک‌جا و به‌صورت برداری محاسبه
+        می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// یک گام پیشرو: خروجی لایه = tanh(ماتریس وزن‌ها × مقادیر نورون‌ها + بایاس)
+let feedForward (weights: Matrix&lt;double&gt;) (inputs: Vector&lt;double&gt;) =
+    weights * inputs
+    |&gt; Vector.map tanh</code></pre>
+        <p>این بخش همان «پیش‌بینی» شبکه است: با وزن‌های تصادفی اولیه، خروجی بی‌معنی است؛
+        وزن‌ها باید با یادگیری تنظیم شوند.</p>
+      </section>
+
+      <section>
+        <h2>۵. هزینه و خطا</h2>
+        <p>برای یادگیری باید کمیت «بدی» شبکه را اندازه گرفت: تابع هزینهٔ
+        <b>میانگین مربعات خطا (MSE)</b>. خروجی پیش‌بینی‌شده با خروجی موردانتظار مقایسه
+        می‌شود؛ مربع اختلاف میانگین گرفته می‌شود تا خطاهای بزرگ‌تر جریمهٔ بیشتری بگیرند
+        و خطای منفی/مثبت هم‌جهت نشوند:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// خطای میانگین مربعات بین خروجی شبکه و پاسخ درست
+let cost (outputs: Vector&lt;double&gt;) (expected: Vector&lt;double&gt;) =
+    let errors = outputs - expected
+    errors.PointwisePower(2.0) |&gt; Vector.Sum / float errors.Count</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. مسیر پیش رو</h2>
+        <p>بخش اول زیرساخت را می‌سازد: نوع‌های Node/Layer، فعال‌سازی tanh، انتشار پیشرو و
+        تابع هزینه. هنوز هیچ «یادگیری»ای رخ نداده — وزن‌ها تصادفی‌اند. در بخش دوم، نویسنده
+        <b>انتشار بازگشتی</b> و <b>گرادیان نزولی</b> را پیاده می‌کند و شبکه را روی یک
+        دیتاست واقعی آموزش می‌دهد و ارزیابی می‌کند.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این بخش ادامه دارد — صفحهٔ «ساخت شبکه‌های عصبی در
+          F#: بخش ۲» در همین مجموعه ترجمه شده است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building Neural Networks in F# — Part 1» اثر حارس
+        محمود (Haaris Mehmood) است و در Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://medium.com/data-science/building-neural-networks-in-f-part-1-a2832ae972e6" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

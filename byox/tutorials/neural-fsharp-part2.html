@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت شبکه عصبی در F# — بخش ۲: آموزش و ارزیابی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>ساخت شبکه عصبی در F# — بخش ۲</span>
+      </div>
+      <h1>ساخت شبکه‌های عصبی در F#: بخش ۲ — آموزش با انتشار بازگشتی و ارزیابی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: F#</span>
+        <span class="meta-badge">🧠 MathNet.Numerics</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/data-science/building-neural-networks-in-f-part-2-training-evaluation-5e3a68889da6" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور بخش دوم مجموعهٔ «Building Neural
+          Networks in F#» نوشتهٔ <b>حارس محمود (Haaris Mehmood)</b> در Medium (۲۰۱۸) است.
+          در این بخش، یادگیری با انتشار بازگشتی پیاده و شبکه روی دیتاست واقعی آموزش و
+          ارزیابی می‌شود.
+        </div>
+        <a class="btn solid" href="https://medium.com/data-science/building-neural-networks-in-f-part-2-training-evaluation-5e3a68889da6" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ادامه از بخش ۱</h2>
+        <p>در بخش ۱ زیرساخت کامل شد: تابع فعال‌سازی tanh، نوع‌های Layer و Node و انتشار
+        پیشرو. مشکل این بود که وزن‌ها تصادفی‌اند و شبکه هیچ‌چیز نمی‌داند. در این بخش
+        مکانیزم یادگیری می‌آید: <b>انتشار بازگشتی (backpropagation)</b> که خطای خروجی را
+        لایه‌به‌لایه به عقب می‌فرستد و با <b>گرادیان نزولی</b> وزن‌ها را اصلاح می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. گرادیان و قانون زنجیره‌ای</h2>
+        <p>گرادیان تابع هزینه نسبت به هر وزن، «جهت و اندازهٔ تغییر لازم» را می‌گوید. برای
+        محاسبهٔ آن در شبکه‌های عمیق از <b>قانون زنجیره‌ای</b> استفاده می‌شود: مشتق خطا نسبت
+        به خروجی نهایی، ضرب در مشتقات محلی هر لایه، از عقب به جلو. برای هر وزن، مقدار
+        جدید = مقدار قدیم − نرخ‌یادگیری × گرادیان:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// به‌روزرسانی وزن: w ← w − η × گرادیان خطا نسبت به w
+let updateWeights (lr: double) (weights: Matrix&lt;double&gt;) (grad: Matrix&lt;double&gt;) =
+    weights - (grad.Multiply(lr))</code></pre>
+        <p>نرخ یادگیری (<code>η</code>) تعادل بین سرعت و ثبات را کنترل می‌کند: بزرگ =
+        پرش از درهٔ کمینه، کوچک = همگرایی کند.</p>
+      </section>
+
+      <section>
+        <h2>۳. انتشار خطا در لایه‌های پنهان</h2>
+        <p>مشکل اصلی: خطا فقط در لایهٔ خروجی قابل محاسبهٔ مستقیم است. برای لایه‌های پنهان
+        خطا «توزیع» می‌شود: خطای لایهٔ بعدی، با ترانهادهٔ ماتریس وزن‌ها ضرب می‌شود تا سهم
+        هر نورون پنهان در خطا به‌دست آید، و سپس در مشتق tanh (یعنی <code>1 - tanh²</code>)
+        ضرب می‌شود تا خطای «مقیاس‌شده با اطمینان» ساخته شود:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// انتشار خطا به لایهٔ پنهان:
+// خطای خروجی، وزن‌شده با ترانهادهٔ ماتریس وزن، سپس ضرب در مشتق tanh
+let backpropagate (nextError: Vector&lt;double&gt;) (weights: Matrix&lt;double&gt;)
+                 (hiddenOut: Vector&lt;double&gt;) =
+    let weightedError = weights.Transpose() * nextError
+    weightedError.PointwiseMultiply(hiddenOut.Map(tanhDerivative))</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. یک چرخهٔ کامل آموزش</h2>
+        <p>حالا همهٔ اجزا را کنار هم می‌گذاریم: انتشار پیشرو ← محاسبهٔ خطا ← انتشار بازگشتی
+        ← به‌روزرسانی همهٔ وزن‌ها. تکرار این چرخه روی کل دیتاست، «عصر» (epoch) نام دارد؛
+        شبکه با هر عصر، خطای کمتری می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">fsharp</span><code>// یک گام آموزشی کامل روی یک نمونه
+let trainStep (network: Network) (input: Vector&lt;double&gt;) (expected: Vector&lt;double&gt;)
+              (lr: double) =
+    let output = feedForward network input          // ۱) پیش‌بینی
+    let error = output - expected                   // ۲) خطا
+    let grad = backpropagate error network.weights  // ۳) انتشار به عقب
+    let newWeights = updateWeights lr network.weights grad // ۴) اصلاح وزن‌ها
+    { network with weights = newWeights }</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. آموزش و ارزیابی روی دادهٔ واقعی</h2>
+        <p>نویسنده شبکه را روی یک دیتاست واقعی آموزش می‌دهد و پیشرفت را با تابع هزینه
+        دنبال می‌کند: کاهش پیوستهٔ هزینه نشانهٔ سالم بودن آموزش است. برای ارزیابی
+        منصفانه، داده به دو بخش <b>آموزش</b> و <b>تست</b> تقسیم می‌شود — شبکه فقط روی
+        بخش آموزش دیده و روی بخش تست سنجیده می‌شود تا توانایی تعمیم (نه حفظ‌کردن) سنجیده
+        شود. دقت (درصد پاسخ‌های درست) معیار اصلی گزارش است.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> اگر هزینهٔ آموزش کم اما هزینهٔ تست زیاد باشد،
+          نشانهٔ بیش‌برازش است؛ راه‌حل‌ها: نمونهٔ بیشتر، شبکهٔ کوچک‌تر یا توقف زودهنگام.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>یادگیری = انتشار بازگشتی خطا + به‌روزرسانی وزن با گرادیان نزولی.</li>
+          <li>ترانهادهٔ ماتریس وزن، پل بین خطای لایهٔ بعدی و سهم لایهٔ پنهان است.</li>
+          <li>مشتق tanh ساده است (<code>1−tanh²</code>)؛ همین سادگی backprop را عملی می‌کند.</li>
+          <li>جداسازی آموزش/تست، معیار واقعی کیفیت مدل است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building Neural Networks in F# — Part 2» اثر حارس
+        محمود (Haaris Mehmood) است و در Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://medium.com/data-science/building-neural-networks-in-f-part-2-training-evaluation-5e3a68889da6" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

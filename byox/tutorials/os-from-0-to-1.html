@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Operating Systems: From 0 to 1</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم‌عامل</a>
+        <span class="sep">←</span>
+        <span>Operating Systems: From 0 to 1</span>
+      </div>
+      <h1>Operating Systems: From 0 to 1 — دورهٔ کامل «از صفر تا یک» توخدو</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Assembly + C</span>
+        <span class="meta-badge">📖 کتاب/دورهٔ آزاد</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/tuhdo/os01" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب آزاد
+          <b>«Operating Systems: From 0 to 1»</b> اثر <b>توخدو (tuhdo)</b> است که در
+          GitHub منتشر شده — یک دورهٔ کامل و منبع‌محور که با اسمبلی x86 و C یک
+          سیستم‌عامل واقعی می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/tuhdo/os01" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p>«From 0 to 1» (مخفف OS01) یک کتاب آزاد و کامل در مورد ساخت سیستم‌عامل
+        است که مسیر «منابع → دستگاه → سیستم‌عامل» را با تمرکز بر
+        <b>فهمیدن مستندات اینتل</b> طی می‌کند. رویکرد کتاب بر خلاف اکثر آموزش‌ها
+        این است که صرفاً کپی‌کردن کد را کافی نمی‌داند؛ بخش بزرگی از کتاب به خواندن
+        درست و تفسیر <b>Intel Manuals</b> اختصاص دارد تا خواننده یاد بگیرد خودش
+        پاسخ سوال‌هایش را از مستندات پیدا کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار: سه بخش و سیزده فصل</h2>
+        <ul>
+          <li><b>بخش ۱ — مبانی:</b> محیط توسعه، خط فرمان و ابزارها؛ آموزش
+          گام‌به‌گام اسمبلی x86 (فصل ۲) و «آموزش خواندن Intel Manual» (فصل ۳).</li>
+          <li><b>بخش ۲ — از منابع تا دستگاه:</b> ساخت یک سیستم‌عامل واقعی:
+          بهینه‌سازی x86 (فصل ۴)، محدودیت‌های x86 و طراحی os (فصل ۵)، ساختار یک
+          سیستم‌عامل کامل (فصل ۶)، مدیریت حافظه (فصل ۷)، برنامه‌های کاربردی و
+          شیوهٔ اجرایشان (فصل ۸).</li>
+          <li><b>بخش ۳ — پیوست‌ها:</b> فصل‌های ۹ تا ۱۳ شامل پیوست‌های تکمیلی
+          (بوت‌لودر، دیباگ، مقایسه با لینوکس و…) که تا حدودی ناتمام‌اند و بیشتر
+          جنبهٔ ارجاع دارند.</li>
+        </ul>
+        <p>پروژهٔ عملی کتاب، سیستم‌عامل <code>os.asm</code> است که در همین مخزن
+        بازتولید می‌شود: بوت‌لودر، کرنل با <b>حالت محافظت‌شده</b>، مدیریت حافظهٔ
+        صفحه‌بندی‌شده و پرش به حالت ۶۴-بیتی.</p>
+      </section>
+
+      <section>
+        <h2>۳. نکات مهم و متمایز</h2>
+        <ul>
+          <li><b>پیوند و فایل‌های ELF:</b> کتاب عمیقاً توضیح می‌دهد که لینکر و
+          فایل‌های ELF چه می‌کنند و چرا برای bare-metal ضروری‌اند.</li>
+          <li><b>حالت ۶۴-بیتی:</b> بر خلاف بسیاری از آموزش‌ها که به حالت ۳۲-بیتی
+          بسنده می‌کنند، این دوره کرنل را به long mode می‌برد.</li>
+          <li><b>فهرست کامل ابزارها:</b> کامپایلر، اسمبلر، لینکر، شبیه‌ساز و نحوهٔ
+          آماده‌سازی محیط به‌طور کامل توضیح داده شده.</li>
+          <li><b>منبع‌محور بودن:</b> جواب هر «چرا» در مستندات اینتل نشان داده
+          می‌شود — مهارتی ماندگارتر از هر کرنل ساده.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. نمونهٔ کار عملی: پرش به حالت محافظت‌شده</h2>
+        <p>بخشی از فرآیند ساخت سیستم‌عامل در کتاب: بعد از بوت‌لودر، CPU باید با
+        تعریف <b>GDT</b> (جدول توصیفگر سراسری) از حالت ۱۶-بیتی خارج و وارد حالت
+        ۳۲-بیتی شود:</p>
+        <pre class="code"><span class="lang-tag">nasm</span><code>; بوت‌لودر os.asm — تعریف GDT و ورود به حالت ۳۲-بیتی
+gdt_start:
+
+gdt_null:              ; توصیفگر صفر (الزامی)
+    dd 0
+    dd 0
+
+gdt_code:              ; توصیفگر بخش کد (کد اجرایی)
+    dw 0xffff          ; حد
+    dw 0x0000          ; پایه (قسمت اول)
+    db 0x00            ; پایه (قسمت دوم)
+    db 0b10011010      ; ویژگی‌ها: کد، خواندنی
+    db 0b11001111      ; ویژگی‌ها + حد
+    db 0x00            ; پایه (قسمت سوم)
+
+gdt_data:              ; توصیفگر بخش داده
+    dw 0xffff
+    dw 0x0000
+    db 0x00
+    db 0b10010010
+    db 0b11001111
+    db 0x00
+
+gdt_end:
+
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
+
+; سپس: بارگذاری GDT با lgdt و پرش با far jump به کد ۳۲-بیتی</code></pre>
+        <p>این فقط یک نمونه است؛ کتاب تمام جزئیات و «دلیل» هر بیت را در متن توضیح
+        می‌دهد و پس از آن وارد مدیریت حافظه و long mode می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۵. مسیر یادگیری پیشنهادی</h2>
+        <p>این کتاب برای کسانی مناسب است که یک دورهٔ کوتاه (مثل os-tutorial) را
+        گذرانده‌اند و حالا می‌خواهند «عمیق» شوند. مسیر پیشنهادی: فصل‌های ۲ و ۳
+        (اسمبلی + خواندن Intel Manual) را کاملاً بخوانید، سپس در حین ساخت پروژهٔ
+        os.asm، هر بار که سوالی پیش آمد، به مستندات مراجعه کنید — عادتی که فصل ۳
+        آموزشش می‌دهد.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این کتاب به‌دلیل پوشش <b>long mode</b> و
+          مدیریت حافظه، مکمل عالی آموزش‌های بوت‌لودر ساده است و خوانندهٔ آماده را
+          مستقیماً به سمت پروژه‌های سطح سیستم‌عامل‌های واقعی می‌برد.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Operating Systems: From 0 to 1» اثر توخدو (tuhdo)
+        است و به‌صورت آزاد در GitHub منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب
+        به
+        <a href="https://github.com/tuhdo/os01" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

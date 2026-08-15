@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت شبکه عصبی مصنوعی ساده با Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>شبکه عصبی مصنوعی ساده با Go</span>
+      </div>
+      <h1>چگونه یک شبکه عصبی مصنوعی ساده با Go بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">🧠 ماتریس + سیگموئید + گرادیان نزولی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://sausheong.github.io/posts/how-to-build-a-simple-artificial-neural-network-with-go/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «How to build a simple
+          artificial neural network with Go» از <b>ساوشئونگ (Sau Sheong Chang)</b> (۲۰۱۸)
+          است که یک شبکهٔ عصبی دو لایه را با Go و از صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="https://sausheong.github.io/posts/how-to-build-a-simple-artificial-neural-network-with-go/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: شبکهٔ عصبی چیست؟</h2>
+        <p>شبکهٔ عصبی مصنوعی از نورون‌های مصنوعی ساخته می‌شود: هر نورون جمع وزن‌دار ورودی‌ها
+        را می‌گیرد، بایاس را اضافه می‌کند و نتیجه را از یک تابع فعال‌سازی می‌گذراند.
+        نویسنده همهٔ این‌ها را با مفاهیم پایه‌ای <b>ماتریس‌ها</b> در Go پیاده می‌کند — هیچ
+        کتابخانهٔ یادگیری ماشینی در کار نیست. خروجی، یک شبکهٔ کوچک اما کاملاً کاراست که
+        می‌تواند یک مسئلهٔ طبقه‌بندی ساده را یاد بگیرد.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// نورون مصنوعی: Σ(ورودی × وزن) + بایاس ← سپس تابع فعال‌سازی
+output := activation(bias + sum(wi * xi, for i = 1..n))</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. تابع فعال‌سازی سیگموئید</h2>
+        <p>سیگموئید مقدار واقعی را به بازهٔ (۰, ۱) فشرده می‌کند و به شبکه اجازهٔ
+        «خروجی احتمالی» می‌دهد. برای آموزش، مشتق آن هم لازم است — مشتق سیگموئید برحسب
+        خود سیگموئید ساده است: <code>σ(x)(1−σ(x))</code>:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// تابع سیگموئید و مشتق آن
+func sigmoid(x float64) float64 {
+    return 1.0 / (1.0 + math.Exp(-x))
+}
+
+func sigmoidPrime(x float64) float64 {
+    return sigmoid(x) * (1.0 - sigmoid(x))
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. ساختار شبکه: دو ماتریس وزن</h2>
+        <p>شبکهٔ نمونه دو لایه دارد: ورودی و خروجی (بدون لایهٔ پنهان). پس فقط دو ماتریس
+        لازم است: <code>w1</code> که ورودی را به خروجی می‌برد و <code>w2</code> که در نسخهٔ
+        تک‌لایه معادل همان اتصال است. برای عمومیت، مدل با آرایه‌ای از ماتریس‌های وزن
+        تعریف می‌شود تا بعدها لایهٔ بیشتری اضافه شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>type Network struct {
+    inputs        int
+    hidden        int
+    outputs       int
+    hiddenWeights *mat.Dense
+    outputWeights *mat.Dense
+    learningRate  float64
+}
+
+// ساخت شبکه: ورودی ۲، خروجی ۱
+net := Network{
+    inputs: 2, hidden: 2, outputs: 1,
+    hiddenWeights: mat.NewDense(2, 2, nil), // وزن‌ها به‌صورت تصادفی مقداردهی می‌شوند
+    outputWeights: mat.NewDense(2, 1, nil),
+    learningRate: 0.1,
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. انتشار پیشرو با gonum</h2>
+        <p>خروجی با ضرب ماتریسی <code>gonum/mat</code> محاسبه می‌شود: ورودی ضرب در
+        <code>hiddenWeights</code>، اعمال سیگموئید، دوباره ضرب در <code>outputWeights</code>
+        و سیگموئید نهایی. خروجی نهایی پیش‌بینی شبکه است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// محاسبهٔ خروجی شبکه برای یک بردار ورودی
+func (n *Network) feedforward(x *mat.VecDense) *mat.VecDense {
+    // لایهٔ پنهان = سیگموئید(ورودی × وزن‌های پنهان)
+    hidden := mat.NewVecDense(n.hidden, nil)
+    hidden.MulVec(n.hiddenWeights, x)
+    applySigmoid(hidden)
+
+    // خروجی = سیگموئید(لایهٔ پنهان × وزن‌های خروجی)
+    output := mat.NewVecDense(n.outputs, nil)
+    output.MulVec(n.outputWeights, hidden)
+    applySigmoid(output)
+    return output
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. آموزش: خطا، گرادیان نزولی و به‌روزرسانی</h2>
+        <p>هدف کمینه‌کردن تابع هزینه است. نویسنده معیار سادهٔ خطای
+        <code>Ek = (خروجی − پاسخ)² / ۲</code> را معرفی می‌کند و با قانون زنجیره‌ای،
+        گرادیان نسبت به هر وزن را می‌گیرد. وزن‌ها در جهت منفی گرادیان حرکت می‌کنند
+        (گرادیان نزولی) با گامی به اندازهٔ نرخ یادگیری:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// یک گام آموزش: محاسبهٔ خطا و اصلاح وزن‌ها
+func (n *Network) train(x *mat.VecDense, target float64) {
+    // انتشار پیشرو و نگه‌داشتن خروجی لایه‌ها
+    hiddenOut, finalOut := ... // خروجی‌های هر لایه
+
+    // خطای خروجی و ضرب در مشتق سیگموئید → دلتای خروجی
+    outputError := target - finalOut.AtVec(0)
+    outputDelta := outputError * sigmoidPrime(finalOut.AtVec(0))
+
+    // انتشار خطا به لایهٔ پنهان
+    hiddenError := ... // وزن‌شده با ترانهادهٔ outputWeights
+    hiddenDelta := hiddenError * sigmoidPrime(hiddenOut.AtVec(0))
+
+    // به‌روزرسانی وزن‌ها با نرخ یادگیری
+    ...
+}</code></pre>
+        <p>تکرار این گام روی همهٔ نمونه‌های آموزشی برای چندین <b>عصر</b> (epoch)، خطا را
+        به‌تدریج کاهش می‌دهد و شبکه رفتار ورودی→خروجی را می‌آموزد.</p>
+      </section>
+
+      <section>
+        <h2>۶. آزمایش: یادگیری تابع XOR</h2>
+        <p>نمونهٔ کلاسیک، یادگیری <b>XOR</b> است — تابعی که شبکهٔ تک‌نورونی هرگز
+        نمی‌تواند بیاموزد (غیرخطی است) اما با همین شبکهٔ کوچک و چند عصر آموزش، به‌خوبی
+        یاد گرفته می‌شود. این آزمایش ارزشمند است چون نشان می‌دهد عمق (لایهٔ پنهان)
+        واقعاً قدرت بیان مدل را بالا می‌برد.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> با تغییر شکل دیتاست ورودی (مثلاً عددهای صحیح) و
+          فعال‌سازی‌های متفاوت، همین ساختار برای دستهٔ بزرگی از مسائل سادهٔ طبقه‌بندی
+          قابل استفاده است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <ul>
+          <li>شبکهٔ عصبی = ماتریس‌های وزن + فعال‌سازی غیرخطی + گرادیان نزولی.</li>
+          <li>gonum/mat همهٔ ضرب‌های ماتریسی را تمیز و خوانا می‌کند.</li>
+          <li>مشتق سیگموئید ساده است و backprop را به چند خط کد تبدیل می‌کند.</li>
+          <li>یادگیری XOR اثبات می‌کند که لایهٔ پنهان ضروری و کافی است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوشتهٔ «How to build a simple artificial neural network
+        with Go» اثر ساوشئونگ (Sau Sheong Chang) است و در وبلاگ شخصی او منتشر شده. این صفحه
+        فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://sausheong.github.io/posts/how-to-build-a-simple-artificial-neural-network-with-go/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

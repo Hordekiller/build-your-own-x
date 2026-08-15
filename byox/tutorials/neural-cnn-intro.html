@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مقدمه‌ای بر شبکه‌های عصبی کانولوشنی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>مقدمه‌ای بر شبکه‌های عصبی کانولوشنی</span>
+      </div>
+      <h1>مقدمه‌ای بر شبکه‌های عصبی کانولوشنی (CNN) — از صفر در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 Conv + Pooling + Softmax</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://victorzhou.com/blog/intro-to-cnns-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «CNNs, Part 1: An
+          Introduction to Convolutional Neural Networks» از <b>ویکتور ژو (Victor Zhou)</b>
+          (۲۰۱۹) است که یک CNN را با فقط numpy از صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="https://victorzhou.com/blog/intro-to-cnns-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا CNN برای تصاویر؟</h2>
+        <p>برای طبقه‌بندی یک تصویر، «هلو، دنیای بینایی» یعنی مسئلهٔ MNIST: تشخیص رقم
+        دست‌نویس از تصویر ۲۸×۲۸. شبکهٔ تمام‌متصل معمولی ضعف بزرگی دارد: یک تصویر
+        ۲۸×۲۸ = ۷۸۴ پیکسل؛ با لایهٔ پنهانِ ۷۸۴ نوری، وزن‌ها به ۶۰۰ هزار می‌رسند و
+        ساختار فضایی تصویر (نزدیکی پیکسل‌ها) نادیده گرفته می‌شود. <b>CNN</b> با دو
+        ایدهٔ کلیدی این مشکل را حل می‌کند: <b>کانولوشن</b> (جابه‌جایی یک فیلتر روی
+        تصویر) و <b>هم‌ساخت بودن</b> — یک الگو هر کجای تصویر باشد، با همان فیلتر
+        پیدا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. کانولوشن: آشکارساز ویژگی</h2>
+        <p>یک فیلتر (مثلاً ۳×۳) روی ناحیه‌های کوچک تصویر سُر می‌خورد و برای هر ناحیه،
+        حاصل‌ضرب نقطه‌ای با پیکسل‌ها را می‌دهد. نتیجه یک «نقشهٔ ویژگی» است که شدت
+        حضور آن الگو را در هر نقطه نشان می‌دهد. مثلاً یک فیلتر می‌تواند لبهٔ افقی را
+        تشخیص دهد: اعدادِ ۱- در یک سطر و ۱ در سطر دیگر:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import numpy as np
+
+class Conv3x3:
+    # لایه‌ی کانولوشن با فیلترهای ۳×۳
+
+    def __init__(self, num_filters):
+        self.num_filters = num_filters
+        # فیلترها: آرایه‌ی ۳بعدی (تعداد فیلتر، ۳، ۳)؛ تقسیم بر ۹ برای واریانس کم
+        self.filters = np.random.randn(num_filters, 3, 3) / 9
+
+    def forward(self, input):
+        # خروجی: نقشه‌ی ویژگی با ابعاد (h−2, w−2, num_filters)
+        h, w = input.shape
+        output = np.zeros((h - 2, w - 2, self.num_filters))
+        for i in range(h - 2):
+            for j in range(w - 2):
+                im_region = input[i:(i + 3), j:(j + 3)]  # ناحیه‌ی ۳×۳
+                output[i, j] = np.sum(im_region * self.filters, axis=(1, 2))
+        return output</code></pre>
+        <p>در شبکهٔ نمونه، اولین لایه ۸ فیلتر دارد و تصویر ۲۸×۲۸ را به حجم
+        <code>26×26×8</code> تبدیل می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۳. لایهٔ Pooling: کوچک‌کردن هوشمندانه</h2>
+        <p>نقشه‌های ویژگی هنوز بزرگ‌اند. لایهٔ <b>Max Pooling</b> هر بلوک ۲×۲ را به یک
+        مقدار (بیشترین مقدار) کاهش می‌دهد — ابعاد نصف می‌شود، مهم‌ترین اطلاعات حفظ
+        می‌شود، و کمی مقاومت به جابه‌جایی می‌دهد. در نمونه: <code>26×26×8 ← 13×13×8</code>:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class MaxPool2:
+    # لایه‌ی بیشینه‌گیری با پنجره‌ی ۲×۲ (بدون هم‌پوشانی)
+
+    def forward(self, input):
+        h, w, num_filters = input.shape
+        output = np.zeros((h // 2, w // 2, num_filters))
+        for i in range(h // 2):
+            for j in range(w // 2):
+                im_region = input[(i * 2):(i * 2 + 2), (j * 2):(j * 2 + 2)]
+                output[i, j] = np.amax(im_region, axis=(0, 1))  # بیشینه روی h و w
+        return output</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. لایهٔ Softmax: تصمیم نهایی</h2>
+        <p>برای طبقه‌بندی ۱۰ رقم، خروجی باید ۱۰ احتمال باشد. لایهٔ
+        <b>Softmax</b> (تمام‌متصل) خروجی حجم‌ها را صاف می‌کند، با وزن‌ها و بایاس‌ها
+        ترکیب می‌کند و با تابع softmax به توزیع احتمال تبدیل می‌کند. پیش‌بینی شبکه =
+        رقمی با بیشترین احتمال:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class Softmax:
+    # لایه‌ی تمام‌متصل با فعال‌سازی softmax
+
+    def __init__(self, input_len, nodes):
+        self.weights = np.random.randn(input_len, nodes) / input_len
+        self.biases = np.zeros(nodes)
+
+    def forward(self, input):
+        input = input.flatten()
+        totals = np.dot(input, self.weights) + self.biases
+        exp = np.exp(totals)
+        return exp / np.sum(exp, axis=0)   # توزیع احتمال</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. چیدمان کامل و Forward</h2>
+        <p>سه قطعه کنار هم شبکه را می‌سازند. برای هر تصویر، مقداردهی اولیه و Forward
+        انجام و هزینهٔ <b>cross-entropy</b> و دقت محاسبه می‌شود. نرمال‌سازی تصاویر
+        از [۰,۲۵۵] به [۰/۵- ، ۰/۵+] کار را برای شبکه آسان می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>conv = Conv3x3(8)                    # 28×28×1 ← 26×26×8
+pool = MaxPool2()                    # 26×26×8 ← 13×13×8
+softmax = Softmax(13 * 13 * 8, 10)   # 13×13×8 ← 10
+
+def forward(image, label):
+    out = conv.forward((image / 255) - 0.5)   # نرمال‌سازی
+    out = pool.forward(out)
+    out = softmax.forward(out)
+
+    loss = -np.log(out[label])                # هزینه‌ی cross-entropy
+    acc = 1 if np.argmax(out) == label else 0
+    return out, loss, acc</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. گام بعدی</h2>
+        <p>در این مقاله فقط <b>Forward</b> (پیش‌بینی) پیاده شد — هیچ یادگیری‌ای رخ
+        نداد و وزن‌ها تصادفی‌اند (دقت ~۱۰٪، یعنی حدس تصادفی). آموزش CNN یعنی مشتق‌گیری
+        از خطا در لایهٔ softmax، pooling و فیلترهای کانولوشن — مضمون مقالهٔ «بخش ۲:
+        آموزش یک شبکهٔ عصبی کانولوشنی» از همین نویسنده.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> کد کامل در مخزن
+          <a href="https://github.com/vzhou842/cnn-from-scratch" target="_blank" rel="noopener">vzhou842/cnn-from-scratch</a>
+          موجود است؛ نسخهٔ Keras همان معماری را با دقت بسیار بالاتر و زمان کمتر آموزش
+          می‌دهد.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «CNNs, Part 1: An Introduction to Convolutional
+        Neural Networks» اثر ویکتور ژو (Victor Zhou) است و در وبلاگ او منتشر شده. این صفحه
+        فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://victorzhou.com/blog/intro-to-cnns-part-1/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

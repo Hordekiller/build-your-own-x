@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یادگیری عمیق را از صفر بساز — بازپیاده‌سازی درونی‌های PyTorch</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>یادگیری عمیق را از صفر بساز</span>
+      </div>
+      <h1>یادگیری عمیق را از صفر بساز — بازپیاده‌سازی درونی‌های PyTorch در ۳۵ مرحله</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 autodiff → CNN → Transformer</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/roiamiel1/Build-Deep-Learning-From-Scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مخزن آموزشی
+          <b>Build-Deep-Learning-From-Scratch</b> (نویسنده: roiamiel1) است که در ۳۵
+          مرحله، درونی‌های PyTorch را از پایه با پایتون خالص بازپیاده‌سازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/roiamiel1/Build-Deep-Learning-From-Scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. فلسفهٔ پروژه: «شما خودِ کتابخانهٔ autodiff هستید»</h2>
+        <p>این دوره با یک ایدهٔ روشن شروع می‌شود: برای فهمیدن یادگیری عمیق، هیچ‌چیز
+        بهتر از ساختن آن نیست. مسیر به‌صورت <b>۳۵ مرحلهٔ کوچک و مستقل</b> سازماندهی
+        شده که از ساده‌ترین سنگ‌بنا شروع می‌کند: یک کلاس <code>Value</code> — همان
+        هستهٔ <b>micrograd</b> کارپتی — و با هر مرحله، یک لایهٔ پیچیدگی به آن اضافه
+        می‌شود تا در نهایت یک «مینی‌پایتورچ» (MiniPyTorch) داشته باشیم.</p>
+      </section>
+
+      <section>
+        <h2>۲. مراحل ۰۱ تا ۰۵: بازپیاده‌سازی micrograd</h2>
+        <p>پنج مرحلهٔ اول دقیقاً همان سفر ویدیوی معروف کارپتی است: کلاس
+        <code>Value</code> با مقدار و مشتق (<code>grad</code>)؛ ساختن <b>گراف محاسباتی</b>
+        با نگه‌داشتن <code>_prev</code> (والدین) و <code>_backward</code> (مشتق موضعی)؛
+        عملیات جمع و ضرب و توان؛ و در نهایت <code>backward()</code> که با مرتب‌سازی
+        توپولوژیک، گرادیان‌ها را در کل گراف پخش می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># مرحله‌ی ۱ تا ۵: هسته‌ی autodiff — یک گره‌ی حساب‌دار از والدینش
+class Value:
+    def __init__(self, data, _children=(), _op=""):
+        self.data = data
+        self.grad = 0.0
+        self._prev = set(_children)   # والدین در گراف محاسباتی
+        self._backward = lambda: None # مشتق موضعی — در هر عملیات تعریف می‌شود
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data + other.data, (self, other), "+")
+        def _backward():
+            self.grad += out.grad            # + یعنی توزیع برابر گرادیان
+            other.grad += out.grad
+        out._backward = _backward
+        return out
+
+    def backward(self):
+        # پخش گرادیان‌ها با مرتب‌سازی توپولوژیک (عقب‌به‌جلو)
+        order = []
+        seen = set()
+        def visit(v):
+            if v not in seen:
+                seen.add(v)
+                for c in v._prev:
+                    visit(c)
+                order.append(v)
+        visit(self)
+        self.grad = 1.0
+        for v in reversed(order):
+            v._backward()</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. از اسکالر تا تنسور</h2>
+        <p>مراحل بعدی مقدارهای اسکالر را به <b>تنسورها</b> (آرایه‌های چندبعدی) ارتقا
+        می‌دهند تا شبکه‌های واقعی روی دادهٔ واقعی آموزش ببینند. همین‌جا قانون زنجیره‌ای
+        به‌صورت عملی دیده می‌شود: هر عملیات، مشتق موضعی‌اش را تعریف می‌کند و backward
+        آن‌ها را به هم می‌چسباند. سپس نوبت به اجزای شبکه می‌رسد:</p>
+        <ul>
+          <li><b>لایه‌های (Layers):</b> Linear، Embedding و فعال‌سازی‌ها (ReLU، tanh،
+          GELU و…).</li>
+          <li><b>بهینه‌سازها (Optimizers):</b> SGD، Adam و… — حلقهٔ آموزش کامل با
+          forward، loss و backward.</li>
+          <li><b>توابع هزینه:</b> Mean Squared Error، Cross Entropy و…</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. ادامهٔ مسیر: CNN، attention و Transformer</h2>
+        <p>بعد از شبکه‌های تمام‌متصل، معماری‌های مدرن از پایه ساخته می‌شوند:</p>
+        <ul>
+          <li><b>شبکه‌های کانولوشنی (CNN):</b> لایه‌های Conv2d، Pooling و کاربردشان در
+          بینایی ماشین.</li>
+          <li><b>مکانیزم توجه (Attention):</b> ساختار Self-Attention و Multi-Head
+          Attention — قلب مدل‌های ترنسفورمر.</li>
+          <li><b>Transformer:</b> ساخت کامل یک ترنسفورمر و سپس ViT (ویژن ترنسفورمر)
+          برای تصاویر.</li>
+          <li><b>مدل زبانی:</b> آموزش یک مدل زبانی کوچک با همهٔ اجزای ساخته‌شده.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکته:</strong> هر مرحله مستقل و اجراپذیر است (Notebook یا اسکریپت
+          پایتون)؛ پیشنهاد پروژه: هر مرحله را بخوانید، ببندید و خودتان بازنویسی کنید،
+          بعد با پاسخ مقایسه کنید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۵. چرا این مسیر آموزشی ارزشمند است؟</h2>
+        <ul>
+          <li><b>از مونولیث تا قطعات:</b> «چیز جادویی» به نام PyTorch به یک سری تصمیم
+          مهندسی قابل فهم تبدیل می‌شود.</li>
+          <li><b>بدون جعبه‌سیاه:</b> بعد از این دوره، backpropagation و autodiff دیگر
+          «سحر» نیستند — هر خط را خودتان ساخته‌اید.</li>
+          <li><b>پل بین micrograd و Transformer:</b> شکاف بزرگ بین آموزش‌های پایه و
+          مقالات مدرن را پر می‌کند.</li>
+          <li><b>تمرین عمیق:</b> ۳۵ مرحله یعنی تمرینِ پشت‌تمرین؛ بازپیاده‌سازی بهترین
+          آزمون فهمیدن است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ «Build-Deep-Learning-From-Scratch» اثر roiamiel1
+        است و در GitHub منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://github.com/roiamiel1/Build-Deep-Learning-From-Scratch" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

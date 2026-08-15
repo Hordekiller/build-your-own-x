@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شبکه‌های عصبی از صفر برای جاوااسکریپتی‌ها — پرسپترون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شبکه عصبی</a>
+        <span class="sep">←</span>
+        <span>پرسپترون — شبکه عصبی از صفر برای JS</span>
+      </div>
+      <h1>شبکه‌های عصبی از صفر برای جاوااسکریپتی‌ها (بخش ۱ — پرسپترون)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">🧠 پرسپترون + طبقه‌بندی دودویی</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://hackernoon.com/neural-networks-from-scratch-for-javascript-linguists-part1-the-perceptron-632a4d1fbad2" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Neural Networks from
+          Scratch for JavaScript Linguists (Part 1 — The Perceptron)» از
+          <b>HackerNoon</b> (۲۰۱۷) است که پرسپترون روزنبلات را برای برنامه‌نویسان
+          جاوااسکریپت توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="https://hackernoon.com/neural-networks-from-scratch-for-javascript-linguists-part1-the-perceptron-632a4d1fbad2" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. پیشینه: پرسپترون روزنبلات (۱۹۵۸)</h2>
+        <p>در ۱۹۵۸، فرانک روزنبلات پرسپترون را معرفی کرد: ساده‌ترین «شبکهٔ عصبی» —
+        یک نورون که چند ورودی می‌گیرد و یک خروجی دودویی تولید می‌کند. پرسپترون یک
+        <b>طبقه‌بند خطی</b> است: تصمیم‌گیری‌اش بر پایهٔ یک خط (در فضای ویژگی‌ها) است.
+        هر ورودی با یک وزن ضرب می‌شود، جمع وزن‌دار با یک <b>بایاس</b> (آستانه) مقایسه
+        می‌شود و خروجی ۰ یا ۱ می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// خروجی پرسپترون: اگر جمع وزن‌دار + بایاس از آستانه بگذرد، ۱ وگرنه ۰
+function perceptron(inputs, weights, bias) {
+  let sum = bias;
+  for (let i = 0; i &lt; inputs.length; i++) {
+    sum += inputs[i] * weights[i];
+  }
+  return sum &gt; 0 ? 1 : 0;   // آستانه‌ی صفر
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. یادگیری: قاعدهٔ به‌روزرسانی پرسپترون</h2>
+        <p>پرسپترون با مثال یاد می‌گیرد: اگر پیش‌بینی اشتباه بود، وزن‌ها اصلاح می‌شوند؛
+        اگر درست بود، دست‌نخورده می‌مانند. اندازهٔ اصلاح برابر «نرخ یادگیری × خطا ×
+        ورودی» است. خطا برای خروجی موردنظرِ ۱ ولی پیش‌بینی ۰ مثبت است (و برعکس) — پس
+        وزن‌ها دقیقاً در جهت درست حرکت می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// آموزش روی یک مثال: اگر پیش‌بینی غلط بود وزن‌ها را اصلاح کن
+function train(inputs, target, weights, bias, lr) {
+  const prediction = perceptron(inputs, weights, bias);
+  const error = target - prediction;      // -1، 0 یا 1
+  for (let i = 0; i &lt; weights.length; i++) {
+    weights[i] += lr * error * inputs[i]; // قاعده‌ی یادگیری پرسپترون
+  }
+  bias += lr * error;
+  return { weights, bias };
+}</code></pre>
+        <p>این قاعده از ریاضیات ساده می‌آید: تغییر وزن در جهت «منفی گرادیان خطا» — یعنی
+        همان ایدهٔ گرادیان نزولی که بعداً در شبکه‌های عمیق تر به کار می‌رود.</p>
+      </section>
+
+      <section>
+        <h2>۳. آزمایش: یادگیری عملگر AND</h2>
+        <p>برای اینکه ببینیم یادگیری واقعاً کار می‌کند، پرسپترون را روی جدول حقیقت
+        <b>AND</b> آموزش می‌دهیم: چهار نمونهٔ (۰,۰)←۰، (۰,۱)←۰، (۱,۰)←۰، (۱,۱)←۱.
+        بعد از چند دور تکرار، وزن‌ها طوری تنظیم می‌شوند که پرسپترون همهٔ حالت‌ها را
+        درست پیش‌بینی کند — مثلاً به وزن‌های نزدیک ۰/۶ و بایاسِ ۱- می‌رسد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// آموزش پرسپترون روی AND
+let weights = [Math.random(), Math.random()];
+let bias = Math.random();
+
+for (let epoch = 0; epoch &lt; 100; epoch++) {
+  for (const [x1, x2, target] of [[0,0,0],[0,1,0],[1,0,0],[1,1,1]]) {
+    ({ weights, bias } = train([x1, x2], target, weights, bias, 0.1));
+  }
+}
+console.log(perceptron([1, 1], weights, bias)); // → 1 (حدس درست)</code></pre>
+        <p>پرسپترونِ آموزش‌دیده با <b>هر چهار</b> حالت ورودی، خروجی درست می‌دهد — حتی
+        نمونه‌هایی که قبلاً ندیده. این یعنی تعمیم، نه حفظ‌کردن.</p>
+      </section>
+
+      <section>
+        <h2>۴. از پرسپترون تا لایهٔ پنهان</h2>
+        <p>محدودیت بنیادین پرسپترون تکی: فقط خطی است. تابع <b>XOR</b> (که AND و OR نیست)
+        با هیچ خطی قابل جدا کردن نیست — امای اگر دو پرسپترون را با هم ترکیب کنیم (خروجی
+        یکی به ورودی دیگری برود)، یک <b>لایهٔ پنهان</b> می‌سازیم که قدرت بیان غیرخطی
+        دارد. همین ایده در بخش‌های بعدی به شبکهٔ کامل تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// ترکیب دو پرسپترون: خروجی اولی، ورودی دومی (هسته‌ی لایه‌ی پنهان)
+const h1 = perceptron([x1, x2], wA, bA);
+const h2 = perceptron([x1, x2], wB, bB);
+const output = perceptron([h1, h2], wC, bC);</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <ul>
+          <li>پرسپترون = جمع وزن‌دار + آستانه؛ ساده‌ترین ماشین یادگیری طبقه‌بندی.</li>
+          <li>قاعدهٔ یادگیری: <code>w += lr × error × input</code> — منشأ گرادیان نزولی.</li>
+          <li>AND قابل یادگیری است (مسئلهٔ خطی)؛ XOR نیست (مسئلهٔ غیرخطی).</li>
+          <li>لایهٔ پنهان از ترکیب پرسپترون‌ها ساخته می‌شود و غیرخطی‌بودن می‌آورد.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Neural Networks from Scratch for JavaScript
+        Linguists» در HackerNoon منتشر شده است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://hackernoon.com/neural-networks-from-scratch-for-javascript-linguists-part1-the-perceptron-632a4d1fbad2" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>
