@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک فریم‌ورک فرانت‌اند از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>ساخت فریم‌ورک فرانت‌اند</span>
+      </div>
+      <h1>ساخت یک فریم‌ورک فرانت‌اند از صفر (قالب‌سازی، state و VDOM)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://mfrachet.github.io/create-frontend-framework/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب تعاملی «Create Your Own
+          Frontend Framework» از <b>ماروین فراشه (Marvin Frachet)</b> است که به‌صورت
+          وب‌سایت-کتاب در mfrachet.github.io منتشر شده و یک فریم‌ورک کامل (قالب، state و
+          Virtual DOM) را گام‌به‌گام می‌سازد.
+        </div>
+        <a class="btn solid" href="https://mfrachet.github.io/create-frontend-framework/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p>این کتاب آموزشی به‌صورت گام‌به‌گام نشان می‌دهد یک فریم‌ورک فرانت‌اند (شبیه Vue
+        یا React) چطور ساخته می‌شود. در پایان کتاب، فریم‌ورکی به نام
+        <b>«کدومینار»</b> داریم که سه قابلیت اصلی را دارد:</p>
+        <ul>
+          <li><b>قالب‌سازی (Templating)</b>: جذب HTML اعلانی به‌همراه دستورها؛</li>
+          <li><b>مدیریت state</b>: به‌روزرسانی خودکار رابط با تغییر مدل؛</li>
+          <li><b>Virtual DOM</b>: به‌روزرسانی کارآمد DOM با diff.</li>
+        </ul>
+        <p>نکتهٔ جالب: هر فصل از کتاب، توضیح مفهومی + کد کامل + تمرین تعاملی دارد و در
+        انتها می‌توانید کد نهایی را از مخزن
+        <a href="https://github.com/mfrachet/create-frontend-framework" target="_blank" rel="noopener">GitHub</a>
+        بردارید.</p>
+      </section>
+
+      <section>
+        <h2>۲. گام اول: طراحی موتور قالب (Templating)</h2>
+        <p>فریم‌ورک ما باید HTML را «کامپایل» کند. ابتدا مفهوم «کامپوننت» را تعریف می‌کنیم:
+        تابعی که props می‌گیرد و درخت مجازی برمی‌گرداند؛ سپس کار موتور قالب، تبدیل این
+        درخت به DOM است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// کامپوننت: تابعی که props می‌گیرد و درخت مجازی برمی‌گرداند
+function HelloWorld({ name }) {
+  return {
+    type: 'h1',
+    props: { class: 'title' },
+    children: ['سلام ' + name + '!'],
+  };
+}
+
+// کامپایل درخت مجازی به DOM
+function compileTree(vnode) {
+  if (typeof vnode === 'string') {
+    return document.createTextNode(vnode);
+  }
+
+  const el = document.createElement(vnode.type);
+
+  for (const key in vnode.props) {
+    // دستورهای ما (رویدادها) با پیشوند on شروع می‌شوند
+    if (key.startsWith('on')) {
+      el.addEventListener(key.slice(2).toLowerCase(), vnode.props[key]);
+    } else {
+      el.setAttribute(key, vnode.props[key]);
+    }
+  }
+
+  vnode.children.forEach((child) =&gt; el.appendChild(compileTree(child)));
+  return el;
+}
+
+const root = document.getElementById('app');
+root.appendChild(compileTree(HelloWorld({ name: 'دنیا' })));</code></pre>
+        <p>این موتور قالب می‌تواند دستورهای سادهٔ HTML (مثل حلقه و شرط) را هم پشتیبانی
+        کند: در کتاب با «دستورهای قالب» آشنا می‌شوید که به HTML خام اضافه می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۳. گام دوم: مدیریت state و رندر دوباره</h2>
+        <p>برای اینکه رابط با تغییر state به‌روز شود، به یک «حالت مرکزی» و مکانیزم
+        اشتراک نیاز داریم. کتاب رویکردی ساده و شبیه به Vue انتخاب می‌کند — یک شیء reactive:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createReactiveState(initialState, listeners = []) {
+  return new Proxy(initialState, {
+    set(target, key, value) {
+      target[key] = value;
+      // هر تغییری = خبر دادن همهٔ شنونده‌ها (رندر دوباره)
+      listeners.forEach((listener) =&gt; listener());
+      return true;
+    },
+  });
+}
+
+// نمونه: هر تغییر state باعث رندر دوبارهٔ درخت می‌شود
+const state = createReactiveState({ count: 0 }, () =&gt; renderApp());
+
+function renderApp() {
+  const vnode = Counter();
+  diff(previousVnode, vnode, root); // diff و patch (گام بعد)
+}</code></pre>
+        <p>توجه کنید: استفاده از <code>Proxy</code> باعث می‌شود <b>هر دسترسی به state
+        ردیابی</b> شود و فریم‌ورک بداند کدام کامپوننت‌ها به چه بخشی از state وابسته‌اند —
+          همان ایدهٔ reactivity در Vue 3.</p>
+      </section>
+
+      <section>
+        <h2>۴. گام سوم: Virtual DOM و diff</h2>
+        <p>بخش نهایی کتاب الگوریتم diff را پیاده می‌کند تا بین رندرها فقط تغییرات واقعی
+        اعمال شوند. کتاب سه تابع اصلی را معرفی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// ۱) ساخت درخت مجازی قبلی و جدید
+// ۲) مقایسهٔ آنها (diff) — نتیجه: لیستی از تغییرات
+// ۳) اعمال تغییرات روی DOM (patch)
+
+function diff(oldVnode, newVnode, parentDom) {
+  if (oldVnode === undefined) {
+    // نود جدید — ساخت و افزودن
+    parentDom.appendChild(compileTree(newVnode));
+  } else if (oldVnode.type === newVnode.type) {
+    // همان نوع — به‌روزرسانی صفات و بچه‌ها (بازگشتی)
+    updateProps(parentDom.childNodes[0], oldVnode, newVnode);
+    const max = Math.max(oldVnode.children.length, newVnode.children.length);
+    for (let i = 0; i &lt; max; i++) {
+      diff(oldVnode.children[i], newVnode.children[i], parentDom.childNodes[0]);
+    }
+  } else {
+    // نوع متفاوت — جایگزینی کل نود
+    parentDom.replaceChild(compileTree(newVnode), parentDom.childNodes[0]);
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی کتاب</h2>
+        <ul>
+          <li>یک فریم‌ورک از سه لایهٔ مستقل ساخته می‌شود: موتور قالب، سیستم state و
+          Virtual DOM.</li>
+          <li>reactivity با Proxy ساده‌تر و دقیق‌تر از dirty checking است؛ دلیل اصلی این
+          که فریم‌ورک‌های جدید (Vue 3، MobX) سراغ آن رفتند.</li>
+          <li>در پایان کتاب می‌توانید فریم‌ورک خودتان را گسترش دهید: اضافه‌کردن رویدادها،
+          کامپوننت‌های محلی و رندر سمت سرور.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> این کتاب کاملاً تعاملی است — مثال‌ها را مستقیم
+          داخل مرورگر ویرایش و اجرا می‌کنید. به‌عنوان پیش‌نیاز، آشنایی مقدماتی با
+          جاوااسکریپت کافی است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Create Your Own Frontend Framework» اثر ماروین
+        فراشه (Marvin Frachet) است و در mfrachet.github.io منتشر شده. این صفحه فقط ترجمهٔ
+        فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل کتاب به
+        <a href="https://mfrachet.github.io/create-frontend-framework/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

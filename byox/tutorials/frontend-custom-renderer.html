@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت رندرکننده سفارشی React — سخنرانی سوفی آلپرت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>رندرکننده سفارشی React</span>
+      </div>
+      <h1>ساخت رندرکننده سفارشی React — سخنرانی سوفی آلپرت در React Conf 2019</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">🎥 ویدیو (React Conf 2019)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://youtu.be/CGpMlWVcHok" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی ویدیوی «Building a Custom React
+          Renderer» — سخنرانی <b>سوفی آلپرت (Sophie Alpert)</b>، مدیر سابق تیم React در
+          فیسبوک — در <b>React Conf 2019</b> است. او با استفاده از بستهٔ
+          <code>react-reconciler</code> یک رندرکنندهٔ کامل (React DOM مینیاتوری) را روی
+          صحنه می‌سازد.
+        </div>
+        <a class="btn solid" href="https://youtu.be/CGpMlWVcHok" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ سخنرانی</h2>
+        <p>سوفی آلپرت در این سخنرانی نشان می‌دهد چطور با بستهٔ رسمی
+        <code>react-reconciler</code> یک رندرکنندهٔ سفارشی React بسازیم. او «مغز» React
+        (الگوریتم مقایسه و زمان‌بندی) را همان‌طور که هست نگه می‌دارد و فقط «دست‌ها» را
+        عوض می‌کند: یک <b>HostConfig</b> که می‌گوید نودها چطور ساخته، به‌روزرسانی و
+        حذف شوند. خروجی کارش <b>React DOM Mini</b> است — یک رندرکنندهٔ کامل برای DOM که
+        کامپوننت‌های واقعی React را اجرا می‌کند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> کد سخنرانی و پروژهٔ تمرینی در
+          <a href="https://github.com/zaki-yama-labs/building-a-custom-react-renderer" target="_blank" rel="noopener">مخزن zaki-yama-labs</a>
+          و نمونه‌های مشابه (مثل react-dom-mini) در گیت‌هاب موجود است — برای تمرین عملی
+          عالی است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ لینک مستقیم در
+        یوتیوب:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://youtu.be/CGpMlWVcHok" target="_blank" rel="noopener">▶ تماشای ویدیو «Building a Custom React Renderer»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. ایدهٔ اصلی: HostConfig چیست؟</h2>
+        <p>هر رندرکنندهٔ React از دو بخش تشکیل شده: <b>reconciler</b> (که تصمیم می‌گیرد
+        «چه چیزی عوض شود») و <b>renderer</b> (که تصمیم را «اعمال» می‌کند). رابط بین این
+        دو دقیقاً <code>HostConfig</code> است. در سخنرانی، سوفی با پاس دادن یک شیء از
+        توابع به <code>react-reconciler</code> یک رندرکننده می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// نقطهٔ ورود: ساخت reconciler با توابع پلتفرم خودمان
+let reconciler = ReactReconciler({
+  // «حالت جهش»: محیط ما مثل DOM است (appendChild و removeChild دارد)
+  supportsMutation: true,
+
+  // ساخت یک نود در محیط هدف
+  createInstance(type, props, rootContainerInstance, hostContext, internalInstanceHandle) {
+    const el = document.createElement(type);
+    return el;
+  },
+
+  // ساخت نود متنی
+  createTextInstance(text) {
+    return document.createTextNode(text);
+  },
+
+  // الحاق نودها
+  appendChildToContainer(container, child) {
+    container.appendChild(child);
+  },
+  appendChild(parent, child) {
+    parent.appendChild(child);
+  },
+  appendInitialChild(parent, child) {
+    parent.appendChild(child);
+  },
+
+  // حذف و جابه‌جایی
+  removeChildFromContainer(container, child) {
+    container.removeChild(child);
+  },
+  removeChild(parent, child) {
+    parent.removeChild(child);
+  },
+  insertInContainerBefore(container, child, before) {
+    container.insertBefore(child, before);
+  },
+  insertBefore(parent, child, before) {
+    parent.insertBefore(child, before);
+  },
+
+  // به‌روزرسانی: محاسبه و اعمال تغییرات props
+  prepareUpdate(instance, type, oldProps, newProps) {
+    // تفاوت‌ها را محاسبه کن؛ اگر چیزی نبود null برگردان
+    return computeDiff(oldProps, newProps);
+  },
+  commitUpdate(instance, updatePayload, type, oldProps, newProps) {
+    applyUpdatePayload(instance, updatePayload);
+  },
+
+  // توابع کمکی قراردادی
+  shouldSetTextContent() { return false; },
+  getChildHostContext() { return {}; },
+  getPublicInstance(instance) { return instance; },
+  getRootHostContext() { return {}; },
+  prepareForCommit() {},
+  resetAfterCommit() {},
+  finalizeInitialChildren() {},
+});</code></pre>
+        <p>وقتی این توابع آماده شوند، رندرکننده را با دو فراخوانی به حرکت درمی‌آوریم:
+        <code>createContainer</code> (ساخت ریشه) و <code>updateContainer</code> (شروع
+        رندر):</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const root = reconciler.createContainer(domElement, false);
+reconciler.updateContainer(&lt;App /&gt;, root, null, () =&gt; console.log('رندر کامل شد'));</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. چرا این سخنرانی مهم است؟</h2>
+        <ul>
+          <li>می‌فهمید React Native، React Three Fiber و ده‌ها رندرکنندهٔ دیگر چطور با
+          یک «مغز» مشترک کار می‌کنند.</li>
+          <li>کدهای واقعی رندرکننده‌های تولیدی (مثل react-dom) بسیار پیچیده‌اند؛ این
+          نسخهٔ مینیمال فقط لایهٔ مفهومی را نگه می‌دارد.</li>
+          <li>بعد از این ویدیو، مقالهٔ «Learn you some custom React renderers» از HackerNoon
+          را بخوانید تا کد مکتوب همان کار را هم ببینید.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیوی «Building a Custom React Renderer» اثر سوفی آلپرت
+        (Sophie Alpert) است و در React Conf 2019 ضبط و در کانال یوتیوب React Conf منتشر
+        شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق ویدیو متعلق به خالقان آن
+        است. برای مشاهدهٔ اصل ویدیو به
+        <a href="https://youtu.be/CGpMlWVcHok" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

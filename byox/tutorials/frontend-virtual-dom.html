@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه Virtual DOM خودت را بنویسی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>Virtual DOM</span>
+      </div>
+      <h1>چگونه Virtual DOM خودت را بنویسی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@deathmood/how-to-write-your-own-virtual-dom-ee74acc13060" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «How to write your own
+          Virtual DOM» از <b>لئونید کوتومیس (Leonid Kutiumis)</b> در Medium است. او یک
+          پیاده‌سازی کامل Virtual DOM — ساخت نود مجازی، رندر به DOM و الگوریتم diff — را
+          در چند ده خط توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="https://medium.com/@deathmood/how-to-write-your-own-virtual-dom-ee74acc13060" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا Virtual DOM؟</h2>
+        <p>دستکاری مستقیم DOM برای به‌روزرسانی رابط کاربری هم کند است و هم پرهزینه؛
+        ایدهٔ Virtual DOM: <b>اول درخت UI را در یک نمایش دادهٔ سبک بساز</b> (شیءهای سادهٔ
+        جاوااسکریپت، نه DOM)، <b>بعد تفاوت بین نسخهٔ قبلی و جدید را حساب کن</b> و فقط
+        همان تفاوت‌ها را روی DOM واقعی اعمال کن. این دقیقاً همان چیزی است که React و Vue
+        انجام می‌دهند.</p>
+      </section>
+
+      <section>
+        <h2>۲. گره‌های مجازی و h()</h2>
+        <p>هر گرهٔ مجازی یک شیء ساده با سه فیلد است: نوع عنصر، ویژگی‌ها (props) و بچه‌ها
+        (children). تابع <code>h()</code> (شبیه <code>React.createElement</code>) آن‌ها را
+        می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// ساختار گرهٔ مجازی
+const vnode = {
+  tag: 'div',             // نام تگ
+  props: { className: 'card' },  // صفات
+  children: [/* گره‌های مجازی یا متن */],
+};
+
+// تابع کمکی h — ساخت گره با آرگومان‌های مرتب
+function h(tag, props, ...children) {
+  return { tag, props, children: children.flat() };
+}
+
+const tree = h('div', { id: 'app' },
+  h('h1', {}, 'سلام!'),
+  h('p', {}, 'این درخت مجازی است.'),
+);</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. رندر: تبدیل درخت مجازی به DOM</h2>
+        <p>تابع <code>render</code> به‌صورت بازگشتی گره‌ها را به عنصرهای واقعی تبدیل
+        می‌کند؛ بچه‌های رشته‌ای به textNode تبدیل می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function render(vnode) {
+  if (typeof vnode === 'string') {
+    return document.createTextNode(vnode);
+  }
+
+  const el = document.createElement(vnode.tag);
+
+  // تنظیم صفات (props)
+  for (const key in vnode.props) {
+    el.setAttribute(key, vnode.props[key]);
+  }
+
+  // رندر بازگشتی بچه‌ها
+  vnode.children.forEach((child) =&gt; el.appendChild(render(child)));
+
+  return el;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. diff و patch: مقایسه و اعمال تغییرات</h2>
+        <p>قلب مقاله تابع <code>diff</code> است: درخت مجازی قبلی را با درخت جدید مقایسه
+        می‌کند و حداقل تغییرات را روی DOM واقعی اعمال می‌کند. سه حالت اصلی:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function diff(oldVnode, newVnode, parentNode) {
+  // حالت ۱: یکی از درخت‌ها متن و دیگری عنصر — جایگزین کامل
+  if (typeof oldVnode === 'string' || typeof newVnode === 'string') {
+    if (oldVnode !== newVnode) {
+      // به‌روزرسانی سادهٔ متن
+      parentNode.childNodes[0].nodeValue = newVnode;
+    }
+    return;
+  }
+
+  // حالت ۲: تگ‌ها متفاوت — ساخت کل نود جدید و جایگزینی
+  if (oldVnode.tag !== newVnode.tag) {
+    const newEl = render(newVnode);
+    parentNode.replaceChild(newEl, parentNode.childNodes[0]);
+    return;
+  }
+
+  // حالت ۳: تگ یکسان — به‌روزرسانی صفات
+  const domNode = parentNode.childNodes[0];
+  updateProps(domNode, oldVnode.props, newVnode.props);
+
+  // و سپس مقایسهٔ بچه‌ها (بازگشتی)
+  const max = Math.max(oldVnode.children.length, newVnode.children.length);
+  for (let i = 0; i &lt; max; i++) {
+    // ... diff روی هر جفت بچه با childNodes[i]
+  }
+}
+
+function updateProps(domNode, oldProps, newProps) {
+  // حذف صفات حذف‌شده
+  for (const key in oldProps) {
+    if (!(key in newProps)) domNode.removeAttribute(key);
+  }
+  // به‌روزرسانی صفات جدید
+  for (const key in newProps) {
+    if (oldProps[key] !== newProps[key]) {
+      domNode.setAttribute(key, newProps[key]);
+    }
+  }
+}</code></pre>
+        <p>نکتهٔ طراحی: مقایسه بر اساس <b>شاخص بچه‌ها</b> انجام می‌شود، نه بر اساس نوع —
+        بنابراین جابه‌جایی عناصر به این الگوریتم ساده «مشکوک» است؛ اینجاست که
+        <code>key</code>ها در React/Vue وارد می‌شوند تا diff هوشمندتر شود.</p>
+      </section>
+
+      <section>
+        <h2>۵. یک مثال کامل</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>const app = document.getElementById('app');
+
+// رندر اولیه
+const v1 = h('div', { className: 'box' },
+  h('h2', {}, 'عنوان'),
+  h('button', { onclick: () =&gt; update() }, 'کلیک کن'),
+);
+app.appendChild(render(v1));
+
+function update() {
+  // درخت مجازی جدید (مثلاً بعد از تغییر state)
+  const v2 = h('div', { className: 'box big' },
+    h('h2', {}, 'عنوان جدید'),
+    h('button', { onclick: () =&gt; update() }, 'کلیک کن'),
+  );
+  // فقط تفاوت‌ها روی DOM اعمال می‌شود
+  diff(v1, v2, app);
+}</code></pre>
+        <p>در این مثال، صفت <code>className</code> تغییر می‌کند و متن <code>h2</code>
+        عوض می‌شود؛ بقیهٔ نودها (مثل button) اصلاً دست نمی‌خورند — این همان کارایی است که
+        Virtual DOM به ارمغان می‌آورد.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>Virtual DOM فقط یک ساختار داده است؛ قدرت آن در الگوریتم diff است که «چه چیزی
+          عوض شده» را می‌فهمد.</li>
+          <li>کل پیاده‌سازی در حدود ۱۰۰ خط جاوااسکریپت خالص جا می‌گیرد.</li>
+          <li>React و Vue از همین ایده استفاده می‌کنند و به‌جای شاخص، با key مقایسهٔ
+          هوشمندتری انجام می‌دهند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to write your own Virtual DOM» اثر لئونید
+        کوتومیس (Leonid Kutiumis) است و در Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به
+        <a href="https://medium.com/@deathmood/how-to-write-your-own-virtual-dom-ee74acc13060" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

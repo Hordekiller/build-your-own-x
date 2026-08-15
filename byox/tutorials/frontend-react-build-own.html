@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | React خودت را بساز — راهنمای کامل فیبر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>React خودت را بساز</span>
+      </div>
+      <h1>React خودت را بساز — بازسازی گام‌به‌گام با معماری فیبر (pomb.us)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://pomb.us/build-your-own-react/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Build your own React» از
+          <b>رودریگو پومبو (Rodrigo Pombo)</b> در pomb.us است — یک راهنمای کامل و خودکفا
+          که React را بر اساس معماری <b>React 16.8</b> (Fiber + Hooks) از صفر بازسازی
+          می‌کند.
+        </div>
+        <a class="btn solid" href="https://pomb.us/build-your-own-react/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. نمای کلی: هشت مرحله</h2>
+        <p>مقاله در هشت گام یک React کامل می‌سازد — همان معماری واقعی React 16.8:
+        <code>createElement</code> ← <code>render</code> ← رندر همزمان (Concurrent Mode) ←
+        <b>Fiber</b> ← مراحل Render و Commit ← Reconciliation ← کامپوننت‌های تابعی ←
+        <b>Hooks</b>. در پایان، یک کد واحد دارید که همهٔ گام‌ها را در خودش دارد؛
+        <b>خلاصهٔ تمام کد در انتهای مقاله</b> است.</p>
+        <p>توجه: کد این مقاله با React 16.8 جفت می‌شود — از <code>propTypes</code> و
+        کلاس‌ها خبری نیست؛ همهٔ چیز با تابع و hook.</p>
+      </section>
+
+      <section>
+        <h2>۲. گام ۱ و ۲: createElement و render</h2>
+        <p>درخت مجازی با <code>createElement</code> ساخته می‌شود و <code>render</code> آن
+        را به DOM تبدیل می‌کند. ویژگی‌های خاص: همه‌چیز — حتی متن‌ها — نود هستند و
+        <code>render</code> نودها را <b>بازگشتی</b> می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createElement(type, props, ...children) {
+  return {
+    type,
+    props: {
+      ...props,
+      children: children.map((child) =&gt;
+        typeof child === 'object' ? child : createTextElement(child)
+      ),
+    },
+  };
+}
+
+function createTextElement(text) {
+  return { type: 'TEXT_ELEMENT', props: { nodeValue: text, children: [] } };
+}
+
+function createDom(fiber) {
+  const dom =
+    fiber.type === 'TEXT_ELEMENT'
+      ? document.createTextNode('')
+      : document.createElement(fiber.type);
+
+  updateDom(dom, {}, fiber.props);
+  return dom;
+}
+
+function render(element, container) {
+  const rootFiber = {
+    dom: container,
+    props: { children: [element] },
+    alternate: currentRoot, // برای مقایسه در رندر بعدی
+  };
+  deletions = [];
+  wipRoot = rootFiber;
+  nextUnitOfWork = rootFiber;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. گام ۳ و ۴: رندر همزمان و Fiber</p></h2>
+        <p>مشکل رندر بازگشتی: کل درخت یک‌جا و بدون توقف رندر می‌شود و ترد را می‌بندد.
+        راه‌حل: شکستن کار به واحدهای کوچک و اجرای تکه‌تکه با <code>requestIdleCallback</code>.
+        ساختار دادهٔ <b>Fiber</b> همین واحد کار را نگه می‌دارد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>let nextUnitOfWork = null;
+let wipRoot = null;      // ریشهٔ درخت در حال ساخت
+let currentRoot = null;  // درخت کامیت‌شدهٔ قبلی
+let deletions = [];      // نودهای حذف‌شده
+
+// حلقهٔ کار: هر بار مرورگر بیکار بود، یک واحد کار
+function workLoop(deadline) {
+  let shouldYield = false;
+  while (nextUnitOfWork &amp;&amp; !shouldYield) {
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    shouldYield = deadline.timeRemaining() &lt; 1;
+  }
+  // وقتی همهٔ کارها تمام شد، کل درخت را کامیت کن
+  if (!nextUnitOfWork &amp;&amp; wipRoot) {
+    commitRoot();
+  }
+  requestIdleCallback(workLoop);
+}
+requestIdleCallback(workLoop);
+
+// هر fiber: { type, props, dom, parent, child, sibling, alternate, effectTag }
+function performUnitOfWork(fiber) {
+  const isFunctionComponent = fiber.type instanceof Function;
+  if (isFunctionComponent) {
+    updateFunctionComponent(fiber); // کامپوننت‌های تابعی
+  } else {
+    updateHostComponent(fiber);     // نودهای DOM
+  }
+  // انتخاب واحد کار بعدی: بچه ← خواهر ← پدر
+  if (fiber.child) return fiber.child;
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibling) return nextFiber.sibling;
+    nextFiber = nextFiber.parent;
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. گام ۵ و ۶: مراحل Render/Commit و Reconciliation</h2>
+        <p>درخت «در حال ساخت» (wip) در مرحلهٔ <b>render</b> ساخته می‌شود و تنها وقتی کامل
+        شد، یک‌باره در مرحلهٔ <b>commit</b> به DOM اعمال می‌شود. مقایسهٔ درخت جدید با قبلی
+        (از طریق <code>alternate</code>) در <code>reconcileChildren</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function reconcileChildren(wipFiber, elements) {
+  let index = 0;
+  let oldFiber = wipFiber.alternate &amp;&amp; wipFiber.alternate.child;
+  let prevSibling = null;
+
+  while (index &lt; elements.length || oldFiber != null) {
+    const element = elements[index];
+    let newFiber = null;
+
+    const sameType = oldFiber &amp;&amp; element &amp;&amp; element.type === oldFiber.type;
+
+    if (sameType) {
+      // همان نوع: به‌روزرسانی props
+      newFiber = {
+        type: oldFiber.type,
+        props: element.props,
+        dom: oldFiber.dom,
+        parent: wipFiber,
+        alternate: oldFiber,
+        effectTag: 'UPDATE',
+      };
+    } else if (element) {
+      // عنصر جدید: ساخت نود
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        dom: null,
+        parent: wipFiber,
+        alternate: null,
+        effectTag: 'PLACEMENT',
+      };
+    } else if (oldFiber) {
+      // نود حذف‌شده
+      oldFiber.effectTag = 'DELETION';
+      deletions.push(oldFiber);
+    }
+
+    // حرکت روی خواهر و بچه‌ها ...
+    if (oldFiber) oldFiber = oldFiber.sibling;
+    if (index === 0) wipFiber.child = newFiber;
+    else prevSibling.sibling = newFiber;
+    prevSibling = newFiber;
+    index++;
+  }
+}
+
+// کامیت: اعمال effectTag ها روی DOM — یک پیمایش کامل
+function commitRoot() {
+  deletions.forEach(commitWork); // حذف‌ها اول
+  commitWork(wipRoot.child);
+  currentRoot = wipRoot;
+  wipRoot = null;
+}
+
+function commitWork(fiber) {
+  if (!fiber) return;
+  let domParentFiber = fiber.parent;
+  while (!domParentFiber.dom) {
+    domParentFiber = domParentFiber.parent; // کامپوننت‌ها dom ندارند
+  }
+  const domParent = domParentFiber.dom;
+
+  if (fiber.effectTag === 'PLACEMENT' &amp;&amp; fiber.dom != null) {
+    domParent.appendChild(fiber.dom);
+  } else if (fiber.effectTag === 'UPDATE' &amp;&amp; fiber.dom != null) {
+    updateDom(fiber.dom, fiber.alternate.props, fiber.props);
+  } else if (fiber.effectTag === 'DELETION') {
+    commitDeletion(fiber, domParent);
+  }
+
+  commitWork(fiber.child);
+  commitWork(fiber.sibling);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. گام ۷ و ۸: کامپوننت‌های تابعی و Hooks</h2>
+        <p>کامپوننت تابعی همان fiber ای است که <code>type</code> آن تابع است — به‌جای ساخت
+        DOM، تابع را با props صدا می‌زنیم تا بچه‌ها را بگیرد. Hook ها هم با یک متغیر
+        سراسری <code>wipFiber</code> و <code>hookIndex</code> کار می‌کنند — این همان چیزی
+        است که قانون «هوک‌ها را شرطی صدا نزن» را توضیح می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>let wipFiber = null;
+let hookIndex = null;
+
+function updateFunctionComponent(fiber) {
+  wipFiber = fiber;
+  hookIndex = 0;
+  wipFiber.hooks = [];
+  // اجرای تابع کامپوننت برای گرفتن بچه‌ها
+  const children = [fiber.type(fiber.props)];
+  reconcileChildren(fiber, children);
+}
+
+function useState(initial) {
+  const oldHook =
+    wipFiber.alternate &amp;&amp;
+    wipFiber.alternate.hooks &amp;&amp;
+    wipFiber.alternate.hooks[hookIndex];
+
+  const hook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: [],
+  };
+
+  // اجرای همهٔ اکشن‌های صف‌شده
+  const actions = oldHook ? oldHook.queue : [];
+  actions.forEach((action) =&gt; {
+    hook.state = typeof action === 'function' ? action(hook.state) : action;
+  });
+
+  const setState = (action) =&gt; {
+    hook.queue.push(action);
+    // برنامه‌ریزی رندر دوباره از ریشه
+    wipRoot = {
+      dom: currentRoot.dom,
+      props: currentRoot.props,
+      alternate: currentRoot,
+    };
+    nextUnitOfWork = wipRoot;
+    deletions = [];
+  };
+
+  wipFiber.hooks.push(hook);
+  hookIndex++;
+  return [hook.state, setState];
+}</code></pre>
+        <p>نکتهٔ زیبا: چون <code>useState</code> مقدار قبلی را از <code>alternate</code>
+        می‌خواند، با هر رندر، state حفظ می‌شود و فقط مقادیر تغییرکرده اعمال می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>React = درخت فیبر + حلقهٔ کار + مقایسه + commit؛ هیچ جادویی نیست.</li>
+          <li>رندر همزمان با شکستن کار به واحدهای کوچک و <code>requestIdleCallback</code>
+          ممکن می‌شود.</li>
+          <li>Hooks فقط آرایه‌ای از state هستند که با شاخص نگه داشته می‌شوند — و به همین
+          دلیل ترتیب صدا زدنشان حیاتی است.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> اگر این مسیر را دوست داشتید، مقالهٔ «Didact» از
+          همان نویسنده (گام‌به‌گام با مخزن کامل کد) و ویدیوی «Building React From Scratch»
+          از پال او شنسِی را هم ببینید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build your own React» اثر رودریگو پومبو (Rodrigo
+        Pombo) است و در pomb.us منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام
+        حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://pomb.us/build-your-own-react/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

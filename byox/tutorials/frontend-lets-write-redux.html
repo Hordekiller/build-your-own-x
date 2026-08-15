@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Redux بنویسیم! — از جما سافتور</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>Redux بنویسیم</span>
+      </div>
+      <h1>Redux بنویسیم! — ساخت Redux از صفر (وبلاگ جما سافتور)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.jamasoftware.com/blog/lets-write-redux/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Let's Write Redux!» از
+          <b>مارک سنت اونگ (Marc St. Onge)</b> در وبلاگ <b>جما سافتور (Jama Software)</b>
+          است. در این مقاله Redux با رویکرد «تست‌محور» (TDD) قدم‌به‌قدم ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.jamasoftware.com/blog/lets-write-redux/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. رویکرد مقاله: تست‌محور (TDD)</h2>
+        <p>ویژگی متمایز این آموزش این است که Redux را با روش <b>تست‌محور</b> می‌سازد: برای
+        هر تابع API اول تست می‌نویسیم (که شکست می‌خورد)، بعد آن را پیاده می‌کنیم تا تست
+        سبز شود. این روش هم منطق Redux را روشن می‌کند و هم عادت درست نوشتن کد را تقویت
+        می‌کند. ابزارها: <b>Jest</b> برای تست و <b>Babel</b> برای ماژول‌ها.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر با TDD آشنا نیستید، این مقاله یک نمونهٔ آموزشی عالی
+          است؛ چرخهٔ «قرمز ← سبز ← بازسازی» را با یک پروژهٔ واقعی تمرین می‌کنید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. طراحی API از نگاه مصرف‌کننده</h2>
+        <p>قبل از نوشتن کد، مشخص می‌کنیم مصرف‌کنندهٔ Redux چه API ای می‌بیند — همان API واقعی
+        Redux:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const store = createStore(reducer, initialState);
+
+store.getState();              // خواندن state فعلی
+store.dispatch(action);        // ارسال اکشن (الزاماً یک شیء با type)
+store.subscribe(listener);     // شنیدن تغییرات؛ خروجی: تابع لغو اشتراک</code></pre>
+        <p>سپس تست‌ها دقیقاً همین قرارداد را قفل می‌کنند. مثلاً اولین تست‌ها:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>describe('createStore', () =&gt; {
+  it('حالت اولیه را برمی‌گرداند', () =&gt; {
+    const reducer = (state = {}, action) =&gt; state;
+    const store = createStore(reducer, { count: 0 });
+    expect(store.getState()).toEqual({ count: 0 });
+  });
+
+  it('با dispatch اکشن state را به‌روز می‌کند', () =&gt; {
+    const reducer = (state = { count: 0 }, action) =&gt; {
+      if (action.type === 'ADD') return { count: state.count + action.payload };
+      return state;
+    };
+    const store = createStore(reducer);
+    store.dispatch({ type: 'ADD', payload: 5 });
+    expect(store.getState()).toEqual({ count: 5 });
+  });
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. پیاده‌سازی createStore</h2>
+        <p>برای سبز شدن تست‌ها، createStore را پیاده می‌کنیم — همان اجرای کلاسیک با closure:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>export function createStore(reducer, initialState) {
+  let state = initialState;
+  const listeners = [];
+
+  function getState() {
+    return state;
+  }
+
+  function dispatch(action) {
+    // reducer باید تابعی خالص باشد: state جدید برمی‌گرداند، نه دستکاری
+    state = reducer(state, action);
+    listeners.forEach((listener) =&gt; listener());
+    return action;
+  }
+
+  function subscribe(listener) {
+    listeners.push(listener);
+    return function unsubscribe() {
+      const index = listeners.indexOf(listener);
+      if (index &gt; -1) listeners.splice(index, 1);
+    };
+  }
+
+  return { getState, dispatch, subscribe };
+}</code></pre>
+        <p>دقت کنید: <code>dispatch</code> مقداری برنمی‌گرداند که کسی به آن وابسته باشد؛
+        همهٔ مصرف‌کننده‌ها باید state را از <code>getState</code> بخوانند و از طریق
+        <code>subscribe</code> از تغییرات باخبر شوند.</p>
+      </section>
+
+      <section>
+        <h2>۴. تست subscribe و لغو اشتراک</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>it('شنونده‌ها هنگام dispatch صدا زده می‌شوند', () =&gt; {
+  const store = createStore((s = 0, a) =&gt; (a.type === 'INC' ? s + 1 : s));
+  const spy = jest.fn();
+  store.subscribe(spy);
+  store.dispatch({ type: 'INC' });
+  expect(spy).toHaveBeenCalledTimes(1);
+});
+
+it('unsubscribe شنونده را حذف می‌کند', () =&gt; {
+  const store = createStore((s = 0, a) =&gt; (a.type === 'INC' ? s + 1 : s));
+  const spy = jest.fn();
+  const unsubscribe = store.subscribe(spy);
+  unsubscribe();
+  store.dispatch({ type: 'INC' });
+  expect(spy).not.toHaveBeenCalled();
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. ترکیب reducerها</h2>
+        <p>بخش بعدی مقاله <code>combineReducers</code> است — این‌بار هم با تست شروع می‌شود:
+        هر کلید state توسط یک reducer مستقل مدیریت می‌شود و در کنار هم یک درخت state می‌سازند.
+        نکتهٔ پیاده‌سازی: هنگام اجرا، به هر reducer فقط <b>بخش خودش</b> از state داده
+        می‌شود (نه کل state) تا هیچ reducer ای از بخش‌های دیگر خبردار نشود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>export function combineReducers(reducers) {
+  return function combinedReducer(state = {}, action) {
+    const nextState = {};
+    for (const key of Object.keys(reducers)) {
+      nextState[key] = reducers[key](state[key], action);
+    }
+    return nextState;
+  };
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی و درس‌ها</h2>
+        <ul>
+          <li>کل Redux در یک تابع <code>createStore</code> و یک تابع
+          <code>combineReducers</code> خلاصه می‌شود — بقیه ابزارها راحتی‌اند، نه ضرورت.</li>
+          <li>روش TDD به این پروژه خیلی می‌آید چون قراردادها (contract) از اول مشخص‌اند:
+          state، action و reducer.</li>
+          <li>پس از این آموزش، کد واقعی Redux را در گیت‌هاب باز کنید؛ می‌بینید
+          <code>createStore.js</code> آن فقط کمی از نسخهٔ ما کامل‌تر است (مثلاً validators
+          برای جلوگیری از استفادهٔ اشتباه).</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Let's Write Redux!» اثر مارک سنت اونگ (Marc St.
+        Onge) است و در وبلاگ جما سافتور (Jama Software) منتشر شده. این صفحه فقط ترجمهٔ فارسی
+        و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به
+        <a href="https://www.jamasoftware.com/blog/lets-write-redux/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

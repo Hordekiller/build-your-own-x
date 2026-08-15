@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه Flappy Bird را با Phaser در HTML5 بسازیم — Lessmilk</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Flappy Bird با Phaser</span>
+      </div>
+      <h1>چگونه Flappy Bird را در HTML5 با Phaser بسازیم — آموزش Lessmilk</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.lessmilk.com/tutorial/flappy-bird-phaser-1" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «How to make Flappy Bird in
+          HTML5 with Phaser» از <b>توماس پالف (Thomas Palef)</b> در وبلاگ <b>Lessmilk</b>
+          است — ساخت یک بازی کامل مشابه Flappy Bird در <b>۶۵ خط جاوااسکریپت</b> با Phaser.
+        </div>
+        <a class="btn solid" href="http://www.lessmilk.com/tutorial/flappy-bird-phaser-1" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>توماس پالف (خالق وبلاگlessmilk.com و مجموعهٔ «یک بازی یک هفته») یک نسخهٔ سادهٔ
+        Flappy Bird با <b>Phaser 2.4</b> نوشته است — فقط <b>۶۵ خط کد</b> — و قدم‌به‌قدم
+        توضیحش می‌دهد: گرانش، پرش با کلیک، لوله‌های متحرک و برخورد. نسخهٔ به‌روزشده برای
+        Phaser 3 هم در <a href="https://lessmilk.com/phaser-game-tutorial/" target="_blank" rel="noopener">lessmilk.com/phaser-game-tutorial</a>
+        وجود دارد.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این بهترین آموزش اول برای Phaser است: کل ساختار یک بازی
+          (سه صحنه: Boot/Play/GameOver) را در کمترین کد ممکن می‌بینید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار فایل‌ها</h2>
+        <pre class="code"><span class="lang-tag">text</span><code>flappy-phaser/
+├── index.html        # بارگذاری Phaser و main.js
+├── main.js           # کل بازی — ۶۵ خط
+└── assets/
+    ├── bird.png      # پرنده
+    └── pipe.png      # لوله</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. کد بازی (کامل)</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>// کل بازی در ۶۵ خط!
+var game = new Phaser.Game(400, 490, Phaser.AUTO, 'gameDiv');
+
+// صحنهٔ اصلی: خالی است چون همه‌چیز در حالت Play ساخته می‌شود
+var mainState = {
+  preload: function() {
+    game.load.image('bird', 'assets/bird.png');
+    game.load.image('pipe', 'assets/pipe.png');
+  },
+
+  create: function() {
+    // گرانش: پرنده هر لحظه به پایین می‌افتد
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    this.bird = game.add.sprite(100, 245, 'bird');
+    game.physics.arcade.enable(this.bird);
+    this.bird.body.gravity.y = 1000;
+
+    // پرش با کلیک/لمس
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spaceKey.onDown.add(this.jump, this);
+
+    // گروه لوله‌ها + تایمر ساخت
+    this.pipes = game.add.group();
+    this.timer = game.time.events.loop(1500, this.addRowOfPipes, this);
+
+    this.score = 0;
+    this.labelScore = game.add.text(20, 20, "0",
+      { font: "30px Arial", fill: "#ffffff" });
+  },
+
+  update: function() {
+    // برخورد پرنده با لوله‌ها → پایان بازی
+    game.physics.arcade.overlap(this.bird, this.pipes, this.restartGame, null, this);
+
+    if (this.bird.y &lt; 0 || this.bird.y &gt; 490) {
+      this.restartGame();
+    }
+  },
+
+  jump: function() {
+    this.bird.body.velocity.y = -350; // ضربهٔ رو به بالا
+  },
+
+  addRowOfPipes: function() {
+    // یک لولهٔ تصادفی (فاصلهٔ بین ۱ تا ۵)
+    var hole = Math.floor(Math.random() * 5) + 1;
+
+    for (var i = 0; i &lt; 10; i++) {
+      if (i != hole &amp;&amp; i != hole + 1) {
+        var pipe = game.add.sprite(400, i * 49, 'pipe');
+        game.physics.arcade.enable(pipe);
+        pipe.body.velocity.x = -200; // حرکت به چپ
+        pipe.checkWorldBounds = true;
+        pipe.outOfBoundsKill = true;
+        this.pipes.add(pipe);
+      }
+    }
+    this.score += 1;
+    this.labelScore.text = this.score;
+  },
+
+  restartGame: function() {
+    game.state.start('main'); // شروع دوباره
+  },
+};
+
+game.state.add('main', mainState);
+game.state.start('main');</code></pre>
+        <p>همین! یک بازی کامل Flappy Bird که فقط <code>index.html</code> را باز کنید اجرا
+        می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>حداقل کد ممکن برای یک بازی کامل با Phaser (فیزیک، تایمر، گروه‌ها).</li>
+          <li>مناسب مبتدیان؛ هر خط توضیح داده شده است.</li>
+          <li>پس از آن می‌توانید صدا، مدال و سختی افزاینده اضافه کنید.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «How to make Flappy Bird in HTML5 with Phaser» اثر
+        توماس پالف (Thomas Palef) است و در وبلاگ lessmilk.com منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل آموزش به
+        <a href="http://www.lessmilk.com/tutorial/flappy-bird-phaser-1" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

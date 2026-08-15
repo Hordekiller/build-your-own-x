@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یادگیری C# با ساختن یک RPG ساده — اسکات لیلی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>RPG با C#</span>
+      </div>
+      <h1>یادگیری C# با ساختن یک RPG ساده — آموزش اسکات لیلی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://scottlilly.com/learn-c-by-building-a-simple-rpg-index/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری آموزشی «Learn C# by Building a
+          Simple RPG» از <b>اسکات لیلی (Scott Lilly)</b> در وبلاگ scottlilly.com است — یک
+          دورهٔ کامل C# برای مبتدیان که یک بازی نقش‌آفرینی متنی می‌سازد.
+        </div>
+        <a class="btn solid" href="http://scottlilly.com/learn-c-by-building-a-simple-rpg-index/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>این دورهٔ رایگان C# را با یک پروژهٔ واقعی آموزش می‌دهد: یک <b>RPG متنی ساده</b>
+        بدون گرافیک — با ۹ مکان، ۳ هیولا، ۲ سلاح و ۲ کوئست. از «هیچ» شروع می‌شود: حتی
+        نصب Visual Studio هم آموزش داده می‌شود. نتیجه: درک کامل کلاس‌ها، ویژگی‌ها
+        (properties)، تابع‌ها، شرط‌ها و حلقه‌ها — بهترین‌ها برای شروع.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> کاملاً مبتدی‌پسند: اگر حتی یک خط کد هم ننوشته‌اید، این
+          دورهٔ مناسبی است؛ هر مفهوم با مثال داخل بازی توضیح داده می‌شود.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار درس‌ها</h2>
+        <ul>
+          <li>نصب ابزارها و ساخت اولین پروژه</li>
+          <li>ساختار برنامه، namespace و using</li>
+          <li>متغیرها، نوع‌های داده و تبدیل</li>
+          <li>تابع‌ها و پارامترها؛ خروجی و بازگشت</li>
+          <li>کلاس‌ها: ساخت حیوان خانگی، سلاح، هیولا و تجهیزات</li>
+          <li>ورودی کاربر و شرط‌ها (if/switch)</li>
+          <li>حلقه‌ها و ذخیره‌سازی در لیست‌ها</li>
+          <li>مدیریت نبردِ نوبتی، کوئست‌ها و جادو</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: کلاس یک شیء بازی</h2>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// کلاس پایهٔ تمام اشیای بازی
+public class WorldObject
+{
+    public int ID { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+
+    public WorldObject(int id, string name, string description)
+    {
+        ID = id;
+        Name = name;
+        Description = description;
+    }
+}
+
+// کلاسی که از پایه ارث‌بری می‌کند: سلاح
+public class Weapon : WorldObject
+{
+    public int MaximumDamage { get; set; }
+
+    public Weapon(int id, string name, string description, int maximumDamage)
+        : base(id, name, description)
+    {
+        MaximumDamage = maximumDamage;
+    }
+}</code></pre>
+        <p>به همین ترتیب کلاس‌های <code>Monster</code>، <code>Quest</code>،
+        <code>Location</code> و <code>Player</code> ساخته می‌شوند و سپس دنیای بازی —
+        مکان‌ها، موجودیت‌ها و آیتم‌ها — با آن‌ها ساخته می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>در پایان دوره یک بازی کوچک اما کامل دارید: در مکان‌ها حرکت می‌کنید، با هیولاها
+        می‌جنگید، سلاح و تجهیزات برمی‌دارید و کوئست انجام می‌دهید. بعد از این دوره،
+        نسخهٔ <b>WPF با گرافیک</b> (SOSCSRPG از همان نویسنده) بهترین گام بعدی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری «Learn C# by Building a Simple RPG» اثر اسکات لیلی
+        (Scott Lilly) است و در وبلاگ scottlilly.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        دوره به
+        <a href="http://scottlilly.com/learn-c-by-building-a-simple-rpg-index/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

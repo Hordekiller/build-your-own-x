@@ -1036,8 +1036,8 @@ window.TUTORIALS = [
     "title": "WTF است JSX (یک رندرکننده JSX بسازیم)",
     "url": "https://jasonformat.com/wtf-is-jsx/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-jsx.html"
   },
   {
     "id": "",
@@ -1046,8 +1046,8 @@ window.TUTORIALS = [
     "title": "راهنمای DIY برای ساخت React خودت",
     "url": "https://github.com/hexacta/didact",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-didact.html"
   },
   {
     "id": "",
@@ -1056,8 +1056,8 @@ window.TUTORIALS = [
     "title": "ساخت React از صفر",
     "url": "https://www.youtube.com/watch?v=_MAD4Oly9yg",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-react-from-scratch.html"
   },
   {
     "id": "",
@@ -1066,8 +1066,8 @@ window.TUTORIALS = [
     "title": "Gooact: React در ۱۶۰ خط جاوااسکریپت",
     "url": "https://medium.com/@sweetpalma/gooact-react-in-160-lines-of-javascript-44e0742ad60f",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-gooact.html"
   },
   {
     "id": "",
@@ -1076,8 +1076,8 @@ window.TUTORIALS = [
     "title": "با ساختن React DOM سبک خودت یاد بگیر بسته Reconciler ری‌اکت چطور کار می‌کند",
     "url": "https://hackernoon.com/learn-you-some-custom-react-renderers-aed7164a4199",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-custom-renderers.html"
   },
   {
     "id": "",
@@ -1086,8 +1086,8 @@ window.TUTORIALS = [
     "title": "Redux خودت را بساز",
     "url": "https://zapier.com/engineering/how-to-build-redux/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-redux.html"
   },
   {
     "id": "",
@@ -1096,8 +1096,8 @@ window.TUTORIALS = [
     "title": "Redux بنویسیم!",
     "url": "https://www.jamasoftware.com/blog/lets-write-redux/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-lets-write-redux.html"
   },
   {
     "id": "",
@@ -1106,8 +1106,8 @@ window.TUTORIALS = [
     "title": "Redux: پیاده‌سازی Store از صفر",
     "url": "https://egghead.io/lessons/react-redux-implementing-store-from-scratch",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-redux-store.html"
   },
   {
     "id": "",
@@ -1116,8 +1116,8 @@ window.TUTORIALS = [
     "title": "AngularJS ساده‌شده خودت را در ۲۰۰ خط جاوااسکریپت بساز",
     "url": "https://blog.mgechev.com/2015/03/09/build-learn-your-own-light-lightweight-angularjs/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-angular-lite.html"
   },
   {
     "id": "",
@@ -1126,8 +1126,8 @@ window.TUTORIALS = [
     "title": "AngularJS خودت را بساز",
     "url": "http://teropa.info/blog/2013/11/03/make-your-own-angular-part-1-scopes-and-digest.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-angular-scopes.html"
   },
   {
     "id": "",
@@ -1136,8 +1136,8 @@ window.TUTORIALS = [
     "title": "چگونه Virtual DOM خودت را بنویسی",
     "url": "https://medium.com/@deathmood/how-to-write-your-own-virtual-dom-ee74acc13060",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-virtual-dom.html"
   },
   {
     "id": "",
@@ -1146,8 +1146,8 @@ window.TUTORIALS = [
     "title": "ساخت یک فریم‌ورک فرانت‌اند از صفر با کامپوننت (قالب‌سازی، state، VDOM)",
     "url": "https://mfrachet.github.io/create-frontend-framework/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-framework.html"
   },
   {
     "id": "",
@@ -1156,8 +1156,8 @@ window.TUTORIALS = [
     "title": "React خودت را بساز",
     "url": "https://pomb.us/build-your-own-react/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-react-build-own.html"
   },
   {
     "id": "",
@@ -1166,8 +1166,8 @@ window.TUTORIALS = [
     "title": "ساخت رندرکننده سفارشی React",
     "url": "https://youtu.be/CGpMlWVcHok",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/frontend-custom-renderer.html"
   },
   {
     "id": "",
@@ -1176,8 +1176,8 @@ window.TUTORIALS = [
     "title": "Handmade Hero",
     "url": "https://handmadehero.org/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-handmade-hero.html"
   },
   {
     "id": "",
@@ -1186,8 +1186,8 @@ window.TUTORIALS = [
     "title": "چگونه یک بازی NES را در C برنامه‌نویسی کنیم",
     "url": "https://nesdoug.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-nes-c.html"
   },
   {
     "id": "",
@@ -1196,8 +1196,8 @@ window.TUTORIALS = [
     "title": "موتور شطرنج در C",
     "url": "https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-chess-c.html"
   },
   {
     "id": "",
@@ -1206,8 +1206,8 @@ window.TUTORIALS = [
     "title": "بیایید بسازیم: Dangerous Dave",
     "url": "https://www.youtube.com/playlist?list=PLSkJey49cOgTSj465v2KbLZ7LMn10bCF9",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-dangerous-dave.html"
   },
   {
     "id": "",
@@ -1216,8 +1216,8 @@ window.TUTORIALS = [
     "title": "برنامه‌نویسی بازی‌های ویدیویی را در C یاد بگیر",
     "url": "https://www.youtube.com/playlist?list=PLT6WFYYZE6uLMcPGS3qfpYm7T_gViYMMt",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-c-game-programming.html"
   },
   {
     "id": "",
@@ -1226,8 +1226,8 @@ window.TUTORIALS = [
     "title": "برنامه‌نویسی حل‌کننده سودوکو در C",
     "url": "https://www.youtube.com/playlist?list=PLkTXsX7igf8edTYU92nU-f5Ntzuf-RKvW",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-sudoku-c.html"
   },
   {
     "id": "",
@@ -1236,8 +1236,8 @@ window.TUTORIALS = [
     "title": "برنامه‌نویسی بازی RPG سبک Rogue/Nethack در C",
     "url": "https://www.youtube.com/playlist?list=PLkTXsX7igf8erbWGYT4iSAhpnJLJ0Nk5G",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-roguelike-c.html"
   },
   {
     "id": "",
@@ -1246,8 +1246,8 @@ window.TUTORIALS = [
     "title": "درباره تتریس و بازپیاده‌سازی",
     "url": "https://brennan.io/2015/06/12/tetris-reimplementation/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-tetris-c.html"
   },
   {
     "id": "",
@@ -1256,8 +1256,8 @@ window.TUTORIALS = [
     "title": "Breakout",
     "url": "https://learnopengl.com/In-Practice/2D-Game/Breakout",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-breakout.html"
   },
   {
     "id": "",
@@ -1266,8 +1266,8 @@ window.TUTORIALS = [
     "title": "شروع برنامه‌نویسی بازی نسخه ۲.۰",
     "url": "http://lazyfoo.net/tutorials/SDL/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-sdl-tutorials.html"
   },
   {
     "id": "",
@@ -1276,8 +1276,8 @@ window.TUTORIALS = [
     "title": "آموزش تتریس در C++ مستقل از پلتفرم، متمرکز بر منطق بازی برای مبتدیان",
     "url": "http://javilop.com/gamedev/tetris-tutorial-in-c-platform-independent-focused-in-game-logic-for-beginners/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-tetris-cpp.html"
   },
   {
     "id": "",
@@ -1286,8 +1286,8 @@ window.TUTORIALS = [
     "title": "بازسازی Cavestory در C++",
     "url": "https://www.youtube.com/watch?v=ETvApbD5xRo&list=PLNOBk_id22bw6LXhrGfhVwqQIa-M2MsLa",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-cavestory-cpp.html"
   },
   {
     "id": "",
@@ -1296,8 +1296,8 @@ window.TUTORIALS = [
     "title": "بازسازی Cave Story",
     "url": "https://www.youtube.com/playlist?list=PL006xsVEsbKjSKBmLu1clo85yLrwjY67X",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-cave-story.html"
   },
   {
     "id": "",
@@ -1306,8 +1306,8 @@ window.TUTORIALS = [
     "title": "Space Invaders از صفر",
     "url": "http://nicktasios.nl/posts/space-invaders-from-scratch-part-1.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-space-invaders.html"
   },
   {
     "id": "",
@@ -1316,8 +1316,8 @@ window.TUTORIALS = [
     "title": "یادگیری C# با ساختن یک RPG ساده",
     "url": "http://scottlilly.com/learn-c-by-building-a-simple-rpg-index/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-rpg-csharp.html"
   },
   {
     "id": "",
@@ -1326,8 +1326,8 @@ window.TUTORIALS = [
     "title": "ساخت یک بازی Roguelike در C#",
     "url": "https://roguesharp.wordpress.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-roguesharp.html"
   },
   {
     "id": "",
@@ -1336,8 +1336,8 @@ window.TUTORIALS = [
     "title": "یک RPG با C#/WPF بساز",
     "url": "https://scottlilly.com/build-a-cwpf-rpg/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-rpg-wpf.html"
   },
   {
     "id": "",
@@ -1346,8 +1346,8 @@ window.TUTORIALS = [
     "title": "بازی‌ها با Go",
     "url": "https://www.youtube.com/playlist?list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-go-games.html"
   },
   {
     "id": "",
@@ -1356,8 +1356,8 @@ window.TUTORIALS = [
     "title": "موتور بازی دو بعدی را با جاوا کدنویسی کن — دوره کامل برای مبتدیان",
     "url": "https://www.youtube.com/watch?v=025QFeZfeyM",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-java-engine.html"
   },
   {
     "id": "",
@@ -1366,8 +1366,8 @@ window.TUTORIALS = [
     "title": "توسعه بازی سه‌بعدی با LWJGL 3",
     "url": "https://lwjglgamedev.gitbooks.io/3d-game-development-with-lwjgl/content/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-lwjgl.html"
   },
   {
     "id": "",
@@ -1376,8 +1376,8 @@ window.TUTORIALS = [
     "title": "بازی breakout دو بعدی با Phaser",
     "url": "https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-phaser-breakout.html"
   },
   {
     "id": "",
@@ -1386,8 +1386,8 @@ window.TUTORIALS = [
     "title": "چگونه Flappy Bird را در HTML5 با Phaser بسازیم",
     "url": "http://www.lessmilk.com/tutorial/flappy-bird-phaser-1",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-flappy-bird.html"
   },
   {
     "id": "",
@@ -1396,8 +1396,8 @@ window.TUTORIALS = [
     "title": "توسعه بازی با React، Redux و SVG",
     "url": "https://auth0.com/blog/developing-games-with-react-redux-and-svg-part-1/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-react-svg.html"
   },
   {
     "id": "",
@@ -1406,8 +1406,8 @@ window.TUTORIALS = [
     "title": "بازی بیلیارد ۸ توپ خودت را از صفر بساز",
     "url": "https://www.youtube.com/watch?v=aXwCrtAo4Wc",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-8ball.html"
   },
   {
     "id": "",
@@ -1416,8 +1416,8 @@ window.TUTORIALS = [
     "title": "چگونه اولین Roguelike خود را بسازی",
     "url": "https://gamedevelopment.tutsplus.com/tutorials/how-to-make-your-first-roguelike--gamedev-13677",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-first-roguelike.html"
   },
   {
     "id": "",
@@ -1426,8 +1426,8 @@ window.TUTORIALS = [
     "title": "مثل یک برنامه‌نویس فکر کن: چگونه با فقط JavaScript، HTML و CSS بازی Snake بسازیم",
     "url": "https://medium.freecodecamp.org/think-like-a-programmer-how-to-build-snake-using-only-javascript-html-and-css-7b1479c3339e",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-snake-js.html"
   },
   {
     "id": "",
@@ -1436,8 +1436,8 @@ window.TUTORIALS = [
     "title": "BYTEPATH",
     "url": "https://github.com/SSYGEN/blog/issues/30",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-bytepath.html"
   },
   {
     "id": "",
@@ -1446,8 +1446,8 @@ window.TUTORIALS = [
     "title": "توسعه بازی با PyGame",
     "url": "https://pythonprogramming.net/pygame-python-3-part-1-intro/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-pygame.html"
   },
   {
     "id": "",
@@ -1456,8 +1456,8 @@ window.TUTORIALS = [
     "title": "ساخت بازی با پایتون و Pygame",
     "url": "https://inventwithpython.com/makinggames.pdf",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-python-pygame.html"
   },
   {
     "id": "",
@@ -1466,8 +1466,8 @@ window.TUTORIALS = [
     "title": "آموزش بازنویسی‌شده Roguelike",
     "url": "http://rogueliketutorials.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-roguelike-python.html"
   },
   {
     "id": "",
@@ -1476,8 +1476,8 @@ window.TUTORIALS = [
     "title": "توسعه بازی با Ruby",
     "url": "https://leanpub.com/developing-games-with-ruby/read",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-ruby-shooter.html"
   },
   {
     "id": "",
@@ -1486,8 +1486,8 @@ window.TUTORIALS = [
     "title": "مار (Snake) با Ruby",
     "url": "https://www.diatomenterprises.com/gamedev-on-ruby-why-not/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-ruby-snake.html"
   },
   {
     "id": "",
@@ -1496,8 +1496,8 @@ window.TUTORIALS = [
     "title": "ماجراجویی‌ها در Rust: یک بازی دو بعدی پایه",
     "url": "https://a5huynh.github.io/posts/2018/adventures-in-rust/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-rust-piston.html"
   },
   {
     "id": "",
@@ -1506,8 +1506,8 @@ window.TUTORIALS = [
     "title": "آموزش Roguelike در Rust + tcod",
     "url": "https://tomassedovic.github.io/roguelike-tutorial/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/game-rust-roguelike.html"
   },
   {
     "id": "git-clone-haskell",

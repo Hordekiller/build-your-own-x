@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | درباره تتریس و بازپیاده‌سازی — تتریس در C با ncurses</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>تتریس در C</span>
+      </div>
+      <h1>دربارهٔ تتریس و بازپیاده‌سازی — ساخت تتریس ترمینالی در C (برنان)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://brennan.io/2015/06/12/tetris-reimplementation/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Tetris Reimplementation»
+          از <b>برنان (Brennan)</b> در وبلاگ brennan.io است — یک بازپیاده‌سازی کامل و تمیز
+          از تتریس در C با ncurses که به‌عنوان نسخهٔ ۲ از پروژهٔ قبلی او نوشته شده.
+        </div>
+        <a class="btn solid" href="https://brennan.io/2015/06/12/tetris-reimplementation/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. داستان مقاله</h2>
+        <p>برنان سال‌ها قبل یک تتریس نوشته بود و این مقاله روایت <b>بازنویسی دوباره</b> آن
+        است: چه چیزی در نسخهٔ اول بد بود، چه درس‌هایی از توسعهٔ آن گرفت و چطور نسخهٔ دوم
+        را با معماری بهتر و کد تمیزتر نوشت. نتیجهٔ کار دو فایل است: <code>tetris.c</code>
+        (منطق کامل بازی — بدون هیچ وابستگی به رابط کاربری) و <code>main.c</code> (لایهٔ
+        نمایش با ncurses).</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> جداسازی «منطق بازی» از «رندر» دقیقاً همان معماری است که
+          بازی‌های حرفه‌ای استفاده می‌کنند — می‌توانید رابط کاربری را عوض کنید (مثلاً
+          گرافیکی) بدون دست‌زدن به منطق.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار کد</h2>
+        <p>منطق تتریس شامل: صفحهٔ بازی (board)، قطعات (tetrominoها)، چرخش، برخورد،
+        پاک‌کردن خط و سیستم امتیاز:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// tetris.c — منطق خالص بازی
+// صفحهٔ بازی: ماتریس ۲۰×۱۰
+static int board[BOARD_ROWS][BOARD_COLS];
+
+// تعریف ۷ قطعه با ماتریس‌های ۴×۴ (هر قطعه شامل چرخش‌هایش)
+typedef struct {
+  int shape[4][4];
+} Tetromino;
+
+static const Tetromino pieces[] = {
+  // I, O, T, S, Z, J, L
+};
+
+// بررسی برخورد قطعه با صفحه یا قطعات قبلی
+static int collides(const Tetromino *piece, int row, int col) {
+  for (int r = 0; r &lt; 4; r++)
+    for (int c = 0; c &lt; 4; c++)
+      if (piece-&gt;shape[r][c] &amp;&amp; (board[row + r][col + c] || out_of_bounds))
+        return 1;
+  return 0;
+}
+
+// قرار دادن قطعه روی صفحه
+static void place_piece(const Tetromino *piece, int row, int col) {
+  for (int r = 0; r &lt; 4; r++)
+    for (int c = 0; c &lt; 4; c++)
+      if (piece-&gt;shape[r][c]) board[row + r][col + c] = 1;
+}
+
+// پاک‌کردن خط‌های کامل — از پایین به بالا
+static int clear_lines(void) {
+  int cleared = 0;
+  for (int r = BOARD_ROWS - 1; r &gt;= 0; r--) {
+    if (row_full(r)) {
+      shift_rows_down(r);
+      cleared++;
+      r++; // دوباره همان سطر را بررسی کن
+    }
+  }
+  return cleared;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. رابط کاربری با ncurses</h2>
+        <p>لایهٔ نمایش (<code>main.c</code>) فقط از ncurses برای رسم صفحه، خواندن کلیدها
+        (حرکت، چرخش، فرود سریع) و نمایش امتیاز استفاده می‌کند — و در نهایت هر ۱۰۰ خط
+        پاک‌شده، یک سطح جدید اضافه می‌کند که سرعت بازی بیشتر می‌شود.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// main.c — نمایش و ورودی
+#include &lt;curses.h&gt;
+#include "tetris.h"
+
+int main(void) {
+  initscr();      // شروع ncurses
+  cbreak();       // خواندن کلید بدون Enter
+  noecho();
+  keypad(stdscr, TRUE);
+  nodelay(stdscr, TRUE); // ورودی غیرمسدودکننده
+
+  Game *game = game_new();
+  while (!game-&gt;over) {
+    int key = getch();
+    // تبدیل کلیدها به اقدام‌های بازی
+    if (key == KEY_LEFT)  game_move(game, LEFT);
+    if (key == KEY_RIGHT) game_move(game, RIGHT);
+    if (key == KEY_UP)    game_rotate(game);
+    if (key == KEY_DOWN)  game_tick(game);
+    // ...
+    draw(game);           // رسم صفحه، قطعهٔ فعلی و بعدی
+    usleep(100000 / game-&gt;level);
+  }
+
+  endwin();
+  return 0;
+}</code></pre>
+        <p>برای اجرا: <code>make</code> و سپس <code>./tetris</code> — وابستگی‌ها: یک
+        ترمینال و کتابخانهٔ ncurses.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>تتریس بهترین «اولین بازی» است: منطق ساده ولی کامل (قطعه، چرخش، برخورد،
+          پاک‌کردن خط).</li>
+          <li>معماری دوم‌لایه (منطق/نمایش) ارزش خودش را در بازنویسی نشان می‌دهد.</li>
+          <li>بازنویسی پروژهٔ قبلی، یکی از بهترین تمرین‌های یادگیری است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Tetris Reimplementation» اثر برنان (Brennan) است
+        و در وبلاگ brennan.io منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام
+        حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://brennan.io/2015/06/12/tetris-reimplementation/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

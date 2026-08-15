@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | JSX چیست؟ — ساخت یک رندرکننده JSX</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>JSX چیست؟</span>
+      </div>
+      <h1>JSX چیست؟ — ساخت یک رندرکننده JSX</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://jasonformat.com/wtf-is-jsx/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «WTF is JSX» از <b>جیسون میلر
+          (Jason Miller)</b> — نویسندهٔ فریم‌ورک <b>Preact</b> — است. او در این مقاله نشان می‌دهد
+          JSX در حقیقت فقط «قند نحوی» برای تابع‌های جاوااسکریپت است و یک رندرکنندهٔ ساده را
+          قدم‌به‌قدم می‌سازد.
+        </div>
+        <a class="btn solid" href="https://jasonformat.com/wtf-is-jsx/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: JSX یک جادو نیست</h2>
+        <p>خیلی از توسعه‌دهنده‌ها JSX را یک «زبان جدید» می‌دانند، اما حقیقت این است که JSX فقط
+        یک <b>قند نحوی (syntax sugar)</b> برای فراخوانی تابع است. وقتی می‌نویسید:</p>
+        <pre class="code"><span class="lang-tag">jsx</span><code>const el = &lt;div className="foo"&gt;سلام دنیا!&lt;/div&gt;;</code></pre>
+        <p>مترجم (Babel یا TypeScript) دقیقاً همان را به این فراخوانی ساده تبدیل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const el = createElement("div", { className: "foo" }, "سلام دنیا!");</code></pre>
+        <p>تمام کار JSX همین است: یک تابع را با آرگومان‌های مرتب صدا زدن. پس برای «ساخت
+        JSX» کافی است <code>createElement</code> خودمان را پیاده کنیم.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> دلیل موفقیت این طراحی این است که JSX به DOM گره نخورده است؛
+          همین فرمت یکسان است که به React Native، Preact، Vue و ده‌ها فریم‌ورک دیگر اجازه
+          می‌دهد از همان نحو استفاده کنند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساخت createElement خودمان</h2>
+        <p>نویسنده یک پیاده‌سازی کامل همراه با پروژهٔ تمرینی در
+        <a href="https://github.com/developit/wtf-is-jsx" target="_blank" rel="noopener">GitHub</a>
+        منتشر کرده است. ابتدا یک تولیدکنندهٔ node (ساختار درختی) می‌سازیم که DOM نودها را
+        با <code>document.createElement</code> بسازد؛ سپس props ها را روی آن ست کند و
+        بچه‌ها (children) را به‌صورت بازگشتی اضافه کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createElement(type, props, ...children) {
+  // مقدار نهایی children می‌تواند آرایه‌ای از نودها و رشته‌ها باشد
+  const el = document.createElement(type);
+
+  // کپی کردن props روی عنصر
+  for (const key in props) {
+    if (key === "className") {
+      el.setAttribute("class", props[key]);
+    } else {
+      el.setAttribute(key, props[key]);
+    }
+  }
+
+  // افزودن بچه‌ها
+  for (const child of children) {
+    if (typeof child === "string") {
+      el.appendChild(document.createTextNode(child));
+    } else {
+      el.appendChild(child);
+    }
+  }
+
+  return el;
+}</code></pre>
+        <p>حالا با این تابع، هر کد JSX کار می‌کند؛ حتی کامپوننت‌ها! چون تابع
+        <code>createElement</code> می‌تواند خودش تصمیم بگیرد که اگر نوع، یک <b>تابع</b> بود
+        چه کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createElement(type, props, ...children) {
+  // اگر type یک تابع است (کامپوننت)، آن را با props صدا بزن
+  if (typeof type === "function") {
+    return type({ ...props, children });
+  }
+  // در غیر این صورت یک عنصر DOM بساز
+  const el = document.createElement(type);
+  /* ... ادامه پیاده‌سازی قبلی ... */
+}
+
+// استفاده: کامپوننت عادی
+const Button = (props) => (
+  &lt;button className={"btn " + props.variant}&gt;{props.children}&lt;/button&gt;
+);
+// JSX خودش تشخیص می‌دهد Button یک تابع است
+const app = &lt;Button variant="primary"&gt;کلیک کن&lt;/Button&gt;;</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. به‌روزرسانی: مقایسه و patch</h2>
+        <p>تا اینجا فقط یک‌بار رندر انجام می‌شود. برای به‌روزرسانی، ساده‌ترین راه این است که
+        درخت قدیمی را حذف کنیم و درخت جدید بسازیم، اما این روش به‌صرفه نیست. راه بهتر،
+        <b>رندر دوباره و مقایسهٔ نودها (diff)</b> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function update(oldNode, newNode) {
+  if (!oldNode || oldNode.nodeName !== newNode.nodeName) {
+    // نوع نود عوض شده: جایگزین کامل
+    oldNode.replaceWith(newNode);
+    return newNode;
+  }
+  // بچه‌های جدید را بساز و بازگشتی به‌روز کن
+  while (oldNode.firstChild) oldNode.removeChild(oldNode.firstChild);
+  for (const child of newNode.childNodes) {
+    oldNode.appendChild(child);
+  }
+  return oldNode;
+}</code></pre>
+        <p>این همان ایدهٔ اصلی همهٔ فریم‌ورک‌هاست؛ React و Preact فقط الگوریتم diff را
+        هوشمندتر (مثلاً استفاده از کلید/key و مقایسهٔ فقط صفات تغییرکرده) کرده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li><b>JSX = قند نحوی</b>: هر عبارت JSX به یک فراخوانی تابع تبدیل می‌شود؛ برای
+          استفاده از آن فقط باید آن تابع را پیاده کنید.</li>
+          <li><b>کامپوننت = تابع</b>: وقتی <code>typeof type === "function"</code> باشد،
+          رندرکننده تابع را با props صدا می‌زند — همین سادگی، پایهٔ طراحی کامپوننت‌محور
+          همهٔ فریم‌ورک‌های مدرن است.</li>
+          <li><b>به‌روزرسانی = diff</b>: ساخت درخت مجازی و مقایسهٔ آن، قلب هر فریم‌ورک
+          واکنش‌گراست؛ JSX تنها بخش «توضیح‌دادن UI» است.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> جیسون میلر همان کسی است که Preact را با همین ایده
+          (یک React سبک بدون گره خوردن به مشخصات) ساخته؛ مطالعهٔ کد منبع Preact هم در ادامهٔ
+          همین مسیر عالی است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «WTF is JSX» اثر جیسون میلر (Jason Miller) است و در
+        وبلاگ jasonformat.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://jasonformat.com/wtf-is-jsx/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

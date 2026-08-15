@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازسازی Cave Story در C++ — قسمت ۱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازسازی Cave Story</span>
+      </div>
+      <h1>بازسازی Cavestory در C++ — آموزش ویدیویی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">🎥 ویدیو (یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=ETvApbD5xRo&list=PLNOBk_id22bw6LXhrGfhVwqQIa-M2MsLa" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی ویدیوی «Cavestory Part 1» — شروع
+          بازسازی کامل بازی <b>Cave Story</b> در C++ است. کل پروژهٔ بازسازی از ویدیوی
+          اول تا ساخته‌شدن یک بازی کامل پیش می‌رود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=ETvApbD5xRo&list=PLNOBk_id22bw6LXhrGfhVwqQIa-M2MsLa" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ پروژه</h2>
+        <p><b>Cave Story</b> یک بازی اکشن-پلتفرمر فوق‌محبوب است که توسط یک نفر (Daisuke
+        "Pixel" Amaya) و در ۵ سال ساخته شد و به‌عنوان پدر «indie games» شناخته می‌شود.
+        در این سری ویدیویی، بازی با C++ بازسازی می‌شود: حرکت شخصیت، فیزیک پرش و گرانش،
+        سلاح‌ها، دشمنان، موتور صحنه و اسکرول — همه از صفر.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این سری یکی از کامل‌ترین آموزش‌های «بازسازی بازی» است؛
+          چون Cave Story پیچیدگی‌های واقعی (اسکرول دوربین، انیمیشن، برخورد دقیق) را دارد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ از لینک زیر
+        مستقیم به یوتیوب بروید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/watch?v=ETvApbD5xRo&list=PLNOBk_id22bw6LXhrGfhVwqQIa-M2MsLa" target="_blank" rel="noopener">▶ تماشای ویدیوی «Cavestory Part 1»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. آنچه در ویدیوی اول یاد می‌گیرید</h2>
+        <ul>
+          <li>راه‌اندازی پروژه و مدیریت پنجره (معمولاً با SDL)</li>
+          <li>بارگذاری اسپرایت‌ها و تایل‌ها</li>
+          <li>حلقهٔ اصلی بازی و مدیریت ورودی</li>
+          <li>حرکت بازیکن و فیزیک پایه (گرانش و پرش)</li>
+        </ul>
+        <p>نمونهٔ ساختار کلاس‌ها در این سری:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// ساختار پایهٔ بازی در سری Cavestory
+class Entity {
+public:
+  Vector2 position;
+  Vector2 velocity;
+  bool grounded;
+
+  virtual void update(float dt) = 0;   // منطق هر موجود
+  virtual void render() = 0;           // رسم هر موجود
+};
+
+class Player : public Entity {
+public:
+  void update(float dt) override {
+    // ورودی → حرکت افقی
+    velocity.x = input * MOVE_SPEED;
+    // گرانش
+    velocity.y += GRAVITY * dt;
+    // پرش
+    if (jump_pressed &amp;&amp; grounded) velocity.y = -JUMP_SPEED;
+    // اعمال حرکت با برخورد
+    position += velocity * dt;
+    resolve_collisions();
+  }
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>با دنبال‌کردن این سری، یک پلتفرمر کامل با ویژگی‌های Cave Story می‌سازید:
+        سلاح با ارتقا، دشمنان هوشمند، پورتال‌ها و نبردهای باس. برای کسانی که با C++
+        راحت‌اند و به دنبال پروژهٔ چالش‌برانگیز هستند، عالی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیوی «Cavestory Part 1» اثر سازندهٔ کانال یوتیوب است و
+        بازی Cave Story متعلق به Daisuke "Pixel" Amaya است. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است. برای مشاهدهٔ اصل ویدیو به
+        <a href="https://www.youtube.com/watch?v=ETvApbD5xRo&list=PLNOBk_id22bw6LXhrGfhVwqQIa-M2MsLa" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

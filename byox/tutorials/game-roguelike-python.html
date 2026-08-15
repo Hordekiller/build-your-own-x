@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش بازنویسی‌شده Roguelike — با python-tcod</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Roguelike با پایتون</span>
+      </div>
+      <h1>آموزش بازنویسی‌شدهٔ Roguelike — ساخت بازی کامل با python-tcod</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://rogueliketutorials.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی آموزش‌های سایت
+          <b>rogueliketutorials.com</b> است — سری «بازنویسی‌شدهٔ ۲۰۱۹» که یک بازی کامل
+          roguelike را با <b>Python و کتابخانهٔ tcod</b> (که قبلاً libtcod بود) می‌سازد.
+        </div>
+        <a class="btn solid" href="http://rogueliketutorials.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این سایت خانهٔ یکی از معروف‌ترین آموزش‌های roguelike است: قبلاً نسخهٔ مبتنی بر
+        <code>libtcod</code> داشت و در سال ۲۰۱۹ بازنویسی شد تا با <b>python-tcod</b> کار
+        کند. نسخهٔ جدید معماری تمیزی دارد (تشخیص وابستگی‌ها، فایل‌های مجزا مثل
+        <code>engine.py</code>) و در قسمت‌های متوالی، یک roguelike کامل می‌سازد: از رسم
+        «@» در ترمینال تا سیستم‌های پیچیده.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> بخش اول هر دو نسخه (قدیم و جدید) «رسم یک @» است؛ بعد از
+          آن حرکت، ورودی، FOV و… — بهترین نقطهٔ شروع برای اولین roguelike پایتون.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ قسمتها</h2>
+        <ul>
+          <li>رسم کاراکتر «@» و حرکت با کلید</li>
+          <li>ترمینال و ورودی (با tcod و keydown)</li>
+          <li>تولید سیاه‌چاه با اتاق‌ها و راهروها</li>
+          <li>میدان دید (FOV) و اکتشاف</li>
+          <li>برخورد، چرخهٔ نوبت و مدیریت player</li>
+          <li>هیولاها، حمله و آسیب</li>
+          <li>کنترل بازی‌های عمیق‌تر: inventory، تجهیزات، افسون‌ها</li>
+          <li>ذخیره‌سازی، سطوح و…</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد قسمت اول</h2>
+        <pre class="code"><span class="lang-tag">python</span><code># engine.py — هستهٔ بازی (نسخهٔ جدید)
+import tcod
+
+from input_handlers import EventHandler
+
+class Engine:
+    def __init__(self, event_handler: EventHandler):
+        self.event_handler = event_handler
+
+    def handle_events(self, events) -&gt; None:
+        for event in events:
+            action = self.event_handler.dispatch(event)
+            if action is None:
+                continue
+            action.perform(self, self.player)
+            # ...
+
+def main() -&gt; None:
+    screen_width = 80
+    screen_height = 50
+
+    tileset = tcod.tileset.load_tilesheet(
+        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
+    )
+
+    with tcod.context.new_terminal(
+        columns=screen_width,
+        rows=screen_height,
+        tileset=tileset,
+        title="Roguelike من",
+    ) as context:
+
+        event_handler = EventHandler()
+        engine = Engine(event_handler)
+
+        while True:
+            root_console = tcod.console.Console(screen_width, screen_height)
+            # ... رسم صحنه روی کنسول ...
+
+            context.present(root_console)  # نمایش
+            events = tcod.event.wait()     # منتظر رویداد
+            root_console.clear()
+            engine.handle_events(events)
+
+if __name__ == "__main__":
+    main()</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>به‌روزترین و تمیزترین آموزش roguelike با پایتون (python-tcod).</li>
+          <li>بخش‌ها کامل و قابل دنبال‌کردن؛ کد هر قسمت روی گیت‌هاب.</li>
+          <li>در پایان، امکانات پیشرفته: inventory، equipment و درخت‌های مهارت.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش‌های rogueliketutorials.com (نسخهٔ بازنویسی‌شدهٔ
+        python-tcod) اثر تایلر (Tyler) و نرو است و در این سایت منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندگان اصلی است.
+        برای مشاهدهٔ اصل آموزش به
+        <a href="http://rogueliketutorials.com/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

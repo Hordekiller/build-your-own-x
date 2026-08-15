@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی Snake با جاوااسکریپت، HTML و CSS — فری‌کدکمپ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی Snake با JS</span>
+      </div>
+      <h1>مثل یک برنامه‌نویس فکر کن: ساخت بازی Snake با فقط JavaScript، HTML و CSS</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.freecodecamp.org/think-like-a-programmer-how-to-build-snake-using-only-javascript-html-and-css-7b1479c3339e" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Think like a programmer:
+          How to build Snake using only JavaScript, HTML &amp; CSS» از <b>آنوپاوا چاکراوارتی
+          (Anjana…)</b>… منتشرشده در <b>freeCodeCamp</b> — ساخت بازی Snake در یک فایل و با
+          روش «تجزیهٔ مسئله» است.
+        </div>
+        <a class="btn solid" href="https://medium.freecodecamp.org/think-like-a-programmer-how-to-build-snake-using-only-javascript-html-and-css-7b1479c3339e" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایدهٔ اصلی: فکر کردن مثل برنامه‌نویس</h2>
+        <p>هدف مقاله فقط «ساختن بازی Snake» نیست؛ بلکه <b>روش فکر کردن</b> یک برنامه‌نویس
+        است: به‌جای نوشتن کد یکجا، مسئله را به قطعات کوچک و قابل‌حل تقسیم کنید:
+        (۱) مار را چگونه نمایش دهیم؟ (۲) چگونه حرکت کند؟ (۳) چگونه غذا بخورد و رشد کند؟
+        (۴) چگونه ببازیم؟ (۵) چگونه امتیاز بشماریم؟ در انتها همهٔ قطعات در یک فایل
+        <code>snake.html</code> جمع می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۲. نمایش مار: آرایه‌ای از مختصات</h2>
+        <p>مار یک «آرایه از مختصات» روی شبکهٔ ۲۰×۲۰ است؛ سر، اولین عضو و غذا یک نقطهٔ
+        تصادفی است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// مار: آرایه‌ای از [x, y]
+let snake = [
+  [9, 9],  // سر
+  [8, 9],  // بدن
+  [7, 9],
+];
+
+let direction = [1, 0]; // حرکت به راست
+
+// شبکه: canvas 400×400 با سلول‌های ۲۰ پیکسلی
+const CELL = 20;
+const GRID = 20;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  snake.forEach(([x, y]) =&gt; {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(x * CELL, y * CELL, CELL - 1, CELL - 1);
+  });
+  // غذا
+  ctx.fillStyle = 'red';
+  ctx.fillRect(food[0] * CELL, food[1] * CELL, CELL - 1, CELL - 1);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. حرکت: unshift و pop</h2>
+        <p>حرکت مار از این قانون ظریف استفاده می‌کند: <b>یک عضو به سر اضافه کن (unshift) و
+        اگر غذا نخورد، عضو آخر را حذف کن (pop)</b> — همین باعث حرکت و رشد می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function gameStep() {
+  // سر جدید
+  const head = snake[0];
+  const newHead = [head[0] + direction[0], head[1] + direction[1]];
+
+  // برخورد با دیوار یا خودش → پایان
+  const hitWall = newHead[0] &lt; 0 || newHead[0] &gt;= GRID ||
+                  newHead[1] &lt; 0 || newHead[1] &gt;= GRID;
+  const hitSelf = snake.some(([x, y]) =&gt; x === newHead[0] &amp;&amp; y === newHead[1]);
+  if (hitWall || hitSelf) { gameOver(); return; }
+
+  snake.unshift(newHead);
+
+  // غذا خورده شد؟
+  if (newHead[0] === food[0] &amp;&amp; newHead[1] === food[1]) {
+    score++;
+    food = randomFood();      // غذا جدید
+  } else {
+    snake.pop();              // بدون رشد: دم حذف می‌شود
+  }
+  draw();
+}
+
+// حلقهٔ بازی
+setInterval(gameStep, 100);</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. ورودی کیبورد</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>document.addEventListener('keydown', (e) =&gt; {
+  // جلوگیری از برعکس رفتن مستقیم
+  const keyMap = {
+    ArrowUp:    [0, -1],
+    ArrowDown:  [0, 1],
+    ArrowLeft:  [-1, 0],
+    ArrowRight: [1, 0],
+  };
+  const d = keyMap[e.key];
+  if (d) {
+    if (d[0] !== -direction[0] || d[1] !== -direction[1]) {
+      direction = d;
+    }
+    e.preventDefault();
+  }
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <ul>
+          <li>مسئله را بشکنید: نمایش ← حرکت ← رشد ← از دست دادن ← امتیاز؛ هر قطعه به تنها
+          چند خط کد ختم می‌شود.</li>
+          <li>مار به‌عنوان آرایهٔ مختصات + unshift/pop، ساده‌ترین و درست‌ترین مدل است.</li>
+          <li>کل بازی در یک فایل تک — بازش کنید و بازی کنید.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Think like a programmer: How to build Snake»
+        اثر نویسندهٔ مهمان freeCodeCamp است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مقاله به
+        <a href="https://medium.freecodecamp.org/think-like-a-programmer-how-to-build-snake-using-only-javascript-html-and-css-7b1479c3339e" target="_blank" rel="noopener">فری‌کدکمپ</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت React از صفر — سخنرانی پال او شنسِی (React Rally 2016)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>ساخت React از صفر</span>
+      </div>
+      <h1>ساخت React از صفر — سخنرانی پال او شنسِی در React Rally 2016</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">🎥 ویدیو (۳۳:۵۶)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=_MAD4Oly9yg" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی ویدیوی «Building React From Scratch» —
+          سخنرانی <b>پال او شنسِی (Paul O'Shannessy)</b> در کنفرانس <b>React Rally 2016</b> است.
+          در این سخنرانی، React بدون هیچ وابستگی خارجی، با ابزارهای جاوااسکریپت خالص
+          بازسازی می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=_MAD4Oly9yg" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ سخنرانی</h2>
+        <p>پال او شنسِی — از مهندسان ارشد تیم React در فیسبوک — در این سخنرانی ۳۳ دقیقه‌ای
+        نشان می‌دهد که هستهٔ React را می‌توان فقط با جاوااسکریپت خالص (بدون JSX و بدون هیچ
+        کتابخانهٔ دیگری) ساخت. او با یک محیط توسعهٔ ساده که خودش ساخته، قدم‌به‌قدم اجزای
+        داخلی React را پیاده‌سازی و با ابزارهایی مانند <code>pretty</code> و پارسر
+        جاوااسکریپت، کد را مستقیم روی صفحه‌نمایش اجرا می‌کند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این سخنرانی از بهترین منابع «پشت پردهٔ React» است؛ مخصوصاً
+          برای کسانی که می‌خواهند بدانند در کد واقعی React چه خبر است — به‌جای نسخهٔ
+          ساده‌شدهٔ آموزشی.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش به‌صورت ویدیویی است و میزبانی محتوای آن در این صفحه ممکن نیست؛ لینک
+        مستقیم ویدیو در یوتیوب (در کنفرانس React Rally 2016 ضبط شده):</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/watch?v=_MAD4Oly9yg" target="_blank" rel="noopener">▶ تماشای ویدیو «Building React From Scratch»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. آنچه در این ویدیو یاد می‌گیرید</h2>
+        <ul>
+          <li><b>Element ها و Instance ها</b>: تفاوت مفهومی بین توصیف UI (عنصر) و شیء واقعی
+          نگهدارندهٔ وضعیت (نمونه/instance) و چرایی این جداسازی در معماری React.</li>
+          <li><b>مکانیزم رندر</b>: تبدیل درخت عناصر به DOM واقعی، مدیریت صفات، رویدادها و
+          نودهای متنی بدون JSX.</li>
+          <li><b>بازنشانی و به‌روزرسانی (re-render)</b>: چطور React تصمیم می‌گیرد کدام
+          بخش‌ها را دوباره بسازد و چه چیزی باید حفظ شود.</li>
+          <li><b>رویدادهای به‌هم‌پیوسته</b>: مدیریت state داخلی کامپوننت و پاسخ به تعامل
+          کاربر — هستهٔ واکنش‌گرایی React.</li>
+          <li><b>معماری diff</b>: ایدهٔ مقایسهٔ دو درخت و اعمال حداقل تغییرات لازم.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. چرا این ویدیو مهم است؟</h2>
+        <p>بیشتر آموزش‌های «React خودت را بساز» نسخهٔ ساده‌شدهٔ مفاهیم را ارائه می‌دهند؛ اما
+        او شنسِی به‌عنوان عضو تیم اصلی، تصمیم‌های طراحی واقعی React (مثل چرایی وجود Instance
+        جدا از Element) را از زبان کسی که آن‌ها را گرفته، توضیح می‌دهد. دیدن این ویدیو در
+        کنار منابع متنی مانند Didact یا «Build Your Own React» مکمل عالی است.</p>
+        <div class="callout tip">
+          <strong>تکمیل:</strong> اگر با فیبر و رندر همزمان آشنا نیستید، بعد از این ویدیو
+          یادداشت‌های آرشیتکتوری تیم React (مثل توضیحات Andrew Clark دربارهٔ Fiber) را
+          بخوانید تا تصویر کاملی از معماری امروز React داشته باشید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیوی «Building React From Scratch» اثر پال او شنسِی
+        (Paul O'Shannessy) است و در کنفرانس React Rally 2016 ضبط و در کانال یوتیوب
+        React Rally منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق ویدیو
+        متعلق به خالقان آن است. برای مشاهدهٔ اصل ویدیو به
+        <a href="https://www.youtube.com/watch?v=_MAD4Oly9yg" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

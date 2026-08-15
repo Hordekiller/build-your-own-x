@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | توسعه بازی با React، Redux و SVG — آموزش Auth0</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی با React و SVG</span>
+      </div>
+      <h1>توسعه بازی با React، Redux و SVG — «Aliens, Go Home!» از Auth0</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://auth0.com/blog/developing-games-with-react-redux-and-svg-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Developing Games with
+          React, Redux and SVG» از وبلاگ <b>Auth0</b> است — ساخت بازی ویدیویی
+          <b>«Aliens, Go Home!»</b> با React، Redux و SVG (بدون هیچ کتابخانهٔ بازی).
+        </div>
+        <a class="btn solid" href="https://auth0.com/blog/developing-games-with-react-redux-and-svg-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این آموزش نشان می‌دهد چطور یک بازی واقعی — بدون موتور بازی! — با
+        <b>React + Redux + SVG</b> ساخته می‌شود. بازی «Aliens, Go Home!» ساده است: یک
+        توپ‌انداز (cannon) در پایین صفحه که با ماوس نشانه می‌گیرید و به دیسک‌های پرنده
+        شلیک می‌کنید. پروژه با <code>create-react-app</code> بوت‌استرپ می‌شود و کد کاملش
+        در GitHub (همراه با نسخه‌های گام‌به‌گام) موجود است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر با Redux راحت هستید، این آموزش عالی است؛ معماری
+          بازی (state به‌صورت اشیاء خالص، action ها و reducerها) بسیار تمیز طراحی شده.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. معماری: بازی به سبک React</h2>
+        <ul>
+          <li><b>State مرکزی در Redux</b>: موقعیت دیسک‌ها، گلوله‌ها و cannon؛ همه‌چیز در
+          یک store.</li>
+          <li><b>Rendering با SVG</b>: هر عنصر بازی (توپ‌انداز، دیسک، گلوله) یک کامپوننت
+          SVG است.</li>
+          <li><b>به‌روزرسانی با requestAnimationFrame</b>: یک حلقه که هر فریم یک action
+          پخش می‌کند و state جابه‌جا می‌شود.</li>
+          <li><b>برخورد و فیزیک ساده</b>: با محاسبه در reducer یا helper خالص.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: کامپوننت بازی</h2>
+        <pre class="code"><span class="lang-tag">jsx</span><code>// کامپوننت توپ‌انداز: موقعیت آن از state می‌آید
+const Cannon = ({ x, y }) =&gt; (
+  &lt;g&gt;
+    &lt;polygon
+      points="0,32 0,60 20,60 20,32"
+      transform={`translate(${x}, ${y}) rotate(180)`}
+      style={{ fill: '#000' }}
+    /&gt;
+  &lt;/g&gt;
+);
+
+// حلقهٔ بازی: با هر فریم یک اکشن بازی تیکی می‌زند
+const Game = ({ shots, aliens, cannon }) =&gt; (
+  &lt;svg width="1000" height="600"&gt;
+    &lt;Cannon x={cannon.x} y={cannon.y} /&gt;
+    {shots.map((shot) =&gt; (
+      &lt;circle key={shot.id} cx={shot.x} cy={shot.y} r="4" /&gt;
+    ))}
+    {aliens.map((alien) =&gt; (
+      &lt;circle key={alien.id} cx={alien.x} cy={alien.y} r="15" /&gt;
+    ))}
+  &lt;/svg&gt;
+);
+
+// در componentDidMount، حلقهٔ فریم با requestAnimationFrame
+componentDidMount() {
+  this.loopId = requestAnimationFrame(this.tick);
+}
+tick = () =&gt; {
+  const { dispatch } = this.props;
+  dispatch(moveAliensDown());   // حرکت دیسک‌ها
+  dispatch(moveShotsUp());      // حرکت گلوله‌ها
+  dispatch(checkCollisions());  // برخورد
+  this.loopId = requestAnimationFrame(this.tick);
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>یک بازی کامل بدون کتابخانهٔ بازی — فقط React، Redux و SVG.</li>
+          <li>معماری تمیز: همهٔ منطق خالص و قابل تست (reducers).</li>
+          <li>مخزن گیت‌هاب (Aliens Go Home — Part 1) برای دنبال‌کردن گام‌به‌گام.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Developing Games with React, Redux and SVG»
+        (بازی Aliens, Go Home!) اثر تیم وبلاگ Auth0 است. این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا و کدها متعلق به خالقان اصلی است. برای مشاهدهٔ اصل مقاله
+        به
+        <a href="https://auth0.com/blog/developing-games-with-react-redux-and-svg-part-1/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

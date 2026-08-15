@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شروع برنامه‌نویسی بازی نسخه ۲.۰ — آموزش‌های SDL لزیفو</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>آموزش‌های SDL</span>
+      </div>
+      <h1>شروع برنامه‌نویسی بازی نسخه ۲.۰ — آموزش‌های SDL لزیفو (Lazy Foo)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://lazyfoo.net/tutorials/SDL/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی مجموعه‌آموزش‌های «Beginning Game
+          Programming v2.0» از سایت <b>Lazy Foo' Productions</b> است — کامل‌ترین منبع
+          یادگیری <b>SDL 2</b> برای برنامه‌نویسان C++ که از مقدمات تا مفاهیم پیشرفته
+          (رندر، صدا، ورودی و پلتفرم) را پوشش می‌دهد.
+        </div>
+        <a class="btn solid" href="http://lazyfoo.net/tutorials/SDL/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. SDL چیست و چرا لزیفو؟</h2>
+        <p><b>SDL (Simple DirectMedia Layer)</b> یک کتابخانهٔ متن‌باز C/C++ برای دسترسی
+        سطح پایین به گرافیک، صدا، ورودی و پنجره است — همان چیزی که بازی‌ها و موتورهای
+        زیادی (حتی Emulators) روی آن ساخته می‌شوند. آموزش‌های لزیفو معروف‌ترین منبع شروع
+        SDL 2 هستند: درس‌های شماره‌دار، کد کامل قابل دانلود و توضیح دقیق هر مفهوم.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این سری «از کنسول به رندر زمان‌واقعی» حرکت می‌کند: اول
+          با اولین پنجره و رندر بافت آشنا می‌شوید و به‌تدریج به سیستم‌های کامل‌تر (مثل
+          tiling، ورودی موش/کیبورد/گیم‌پد، صدا و ویدیو) می‌رسید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ درس‌ها</h2>
+        <ul>
+          <li><b>درس ۱–۵:</b> نصب، اولین پنجره، رندر کردن تصویر و event loop</li>
+          <li><b>درس ۶–۱۰:</b> بافت‌سازی، بارگذاری تصویر (PNG با libpng)، نرم‌افزار و
+          سخت‌افزار rendering</li>
+          <li><b>درس ۱۱–۱۵:</b> حرکت کلیدی و mouse، کنترل‌کننده‌ها، کلیپ‌برد</li>
+          <li><b>درس ۱۶–۲۰:</b> صوت (WAV و پخش جریان‌ها)، tiling با sprite sheet،
+          برخورد، font ها (TTF)</li>
+          <li><b>درس ۲۱–۲۵:</b> پیشرفت‌ها: تفاوت نمایشگر (vsync)، فرمت پیکسل، نمونه‌های
+          متحرک (animated sprites)</li>
+          <li><b>بیشتر:</b> گیم‌پد، ضبط صفحه، کامپوزینگ و حتی مقدمهٔ Vulkan/SDL3</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ اولین برنامه</h2>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// درس ۰۱: اولین پنجره
+#include &lt;SDL.h&gt;
+#include &lt;cstdio&gt;
+
+int main(int argc, char *argv[]) {
+  if (SDL_Init(SDL_INIT_VIDEO) &lt; 0) {
+    printf("SDL نتوانست مقداردهی شود! خطا: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  SDL_Window *window = SDL_CreateWindow(
+    "اولین پنجره",            // عنوان
+    SDL_WINDOWPOS_UNDEFINED,   // موقعیت x
+    SDL_WINDOWPOS_UNDEFINED,   // موقعیت y
+    SCREEN_WIDTH, SCREEN_HEIGHT,
+    SDL_WINDOW_SHOWN
+  );
+  if (window == NULL) { printf("پنجره ساخته نشد: %s\n", SDL_GetError()); return 1; }
+
+  SDL_Surface *screen = SDL_GetWindowSurface(window);
+  // رنگ‌آمیزی سطح پنجره
+  SDL_FillRect(screen, NULL, SDL_MapRGB(screen-&gt;format, 0xFF, 0xFF, 0xFF));
+  SDL_UpdateWindowSurface(window);
+
+  // حلقهٔ رویداد: تا بسته‌شدن پنجره
+  bool quit = false;
+  SDL_Event e;
+  while (!quit) {
+    while (SDL_PollEvent(&amp;e) != 0) {
+      if (e.type == SDL_QUIT) quit = true;
+    }
+  }
+
+  SDL_DestroyWindow(window);
+  SDL_Quit();
+  return 0;
+}</code></pre>
+        <p>روند هر درس همین است: راه‌اندازی ← حلقهٔ رویداد ← رندر ← تمیزکردن. با تکرار
+        این الگو در درس‌های بعدی، لایه‌های بیشتری (بافت، ورودی، صدا) اضافه می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>لزیفو بهترین نقطهٔ شروع SDL 2 است: درس‌ها خودکفا و کدها کامل‌اند.</li>
+          <li>هر درس یک لایهٔ جدید از توسعهٔ بازی (گرافیک، ورودی، صوت، برخورد) را آموزش
+          می‌دهد.</li>
+          <li>برای اجرای کدها، کتابخانهٔ SDL2 و کامپایلر C++ کافی است؛ مثال‌ها روی
+          Windows، Linux و Mac کار می‌کنند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش‌های «Beginning Game Programming v2.0» اثر Lazy Foo'
+        Productions است و در سایت lazyfoo.net منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        آموزش‌ها به
+        <a href="http://lazyfoo.net/tutorials/SDL/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

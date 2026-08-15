@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه اولین Roguelike خود را بسازی — آموزش Tuts+</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>اولین Roguelike</span>
+      </div>
+      <h1>چگونه اولین Roguelike خود را بسازی — آموزش Tuts+ گیم‌دِو</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://gamedevelopment.tutsplus.com/tutorials/how-to-make-your-first-roguelike--gamedev-13677" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری آموزش «How to Make Your First
+          Roguelike» از <b>فارن بریسی (Faron Bracy)</b> در Tuts+ Game Development است — یک
+          آشنایی کامل با ساخت بازی‌های roguelike با <b>C# و RogueSharp</b> (همان محتوای
+          سری roguesharp.wordpress.com با قالب مقاله‌های Tuts+).
+        </div>
+        <a class="btn solid" href="https://gamedevelopment.tutsplus.com/tutorials/how-to-make-your-first-roguelike--gamedev-13677" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این یک سری ۸ قسطی (مثلاً در نسخهٔ اصلی ۴ بخش اصلی) است که اولین بازی
+        roguelike شما را از پایه می‌سازد. نویسنده (فارن بریسی، سازندهٔ RogueSharp) از
+        نمایش یک «@» روی صفحه شروع می‌کند تا مبارزهٔ کامل با هیولاها، سیاه‌چاه تصادفی،
+        میدان دید، آیتم‌ها و … — با RogueSharp برای منطق و RLNET/MonoGame برای نمایش.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر سری وبلاگ رسمی RogueSharp را هم دیده‌اید، این مقاله‌ها
+          نسخهٔ ساختارمندتر همان آموزش‌اند — انتخاب با شماست؛ محتوا یکی است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. درس‌ها</h2>
+        <ul>
+          <li>مقدمه و اصول بازی‌های roguelike</li>
+          <li>ساخت سیاه‌چاه با تولید تصادفی اتاق‌ها</li>
+          <li>حرکت بازیکن و تشخیص ورودی</li>
+          <li>میدان دید (FOV) و محیط‌های تاریک</li>
+          <li>هوش مصنوعی دشمن و مسیریابی</li>
+          <li>مبارزه، آیتم‌ها و مدیریت امتیاز/سلامت</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد</h2>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// ساخت سیاه‌چاه با RogueSharp
+using RogueSharp;
+using RogueSharp.MapCreation;
+
+IMapCreationStrategy&lt;Map&gt; strategy =
+    new RandomRoomsMapCreationStrategy&lt;Map&gt;(80, 50, 30, 12, 6);
+Map map = Map.Create(strategy);
+
+// قرار دادن بازیکن در اولین اتاق
+foreach (Cell cell in map.GetAllCells())
+{
+    if (cell.IsWalkable) {
+        playerX = cell.X;
+        playerY = cell.Y;
+        break;
+    }
+}
+
+// حرکت بازیکن با امنیت: فقط به سلول‌های قابل عبور
+if (map.IsWalkable(newX, newY))
+{
+    playerX = newX;
+    playerY = newY;
+    map.SetIsWalkable(playerX, playerY, false); // بازیکن محل را اشغال می‌کند
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این سری (چه در قالب Tuts+ چه وبلاگ رسمی RogueSharp) کامل‌ترین منبع فارسی‌نویسی
+        برای شروع roguelike با C# است. نتیجه: یک بازی roguelike عملی با تمام مکانیک‌های
+        اصلی ژانر.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری «How to Make Your First Roguelike» اثر فارن بریسی
+        (Faron Bracy) است و در Tuts+ Game Development منتشر شده. این صفحه فقط ترجمهٔ فارسی
+        و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل آموزش به
+        <a href="https://gamedevelopment.tutsplus.com/tutorials/how-to-make-your-first-roguelike--gamedev-13677" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

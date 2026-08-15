@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی بیلیارد ۸ توپ را از صفر بساز — چن اشمیلوویچ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی بیلیارد ۸ توپ</span>
+      </div>
+      <h1>بازی بیلیارد ۸ توپ (Pool) را از صفر بساز — آموزش ویدیویی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">🎥 ویدیو (سری ۳ قسمتی)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=aXwCrtAo4Wc" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی ویدیوی «JavaScript + HTML5 GameDev
+          Tutorial: 8-Ball Pool Game Part 1» از <b>چن اشمیلوویچ (Chen Shmilovich)</b> است —
+          اولین قسمت از یک سری سه‌قسمتی که یک بازی کامل بیلیارد ۸ توپ را در مرورگر
+          می‌سازد. کد در <a href="https://github.com/henshmi/Classic-Pool-Game" target="_blank" rel="noopener">GitHub</a>
+          و دموی قابل بازی در <a href="https://henshmi.github.io/Classic-Pool-Game/" target="_blank" rel="noopener">صفحهٔ demo</a> است.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=aXwCrtAo4Wc" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ سری</h2>
+        <p>در این سری، یک بازی کامل <b>8-Ball Pool</b> (بیلیارد آمریکایی) با جاوااسکریپت
+        و Canvas ساخته می‌شود — بدون هیچ کتابخانه‌ای. از فیزیک برخورد توپ‌ها مثل ضربهٔ
+        نشانه (cue)، حرکت و اصطکاک تا قوانین بازی ۸ توپ و رابط کاربری؛ همه‌چیز قدم‌به‌قدم
+        و با توضیح فارسی‌پسند (در اصل انگلیسی) پیاده می‌شود. سری از قسمت «Part 1» شروع
+        می‌شود و در سه قسمت کامل می‌شود.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> پروژه چند فیزیک کامل دارد: برخورد توپ-توپ، برخورد
+          توپ-دیواره، اسپین (spin) و اصطکاک — یکی از بهترین آموزش‌های فیزیک دوبعدی
+          واقعی در مرورگر.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ از لینک زیر
+        مستقیم به یوتیوب بروید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/watch?v=aXwCrtAo4Wc" target="_blank" rel="noopener">▶ تماشای «8-Ball Pool Game Part 1»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. مفاهیم پیاده‌سازی</h2>
+        <p>نمونه‌ای از فیزیک توپ‌ها که در سری ساخته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// توپ: موقعیت، سرعت، شعاع و حالت
+class Ball {
+  constructor(x, y, radius, color, id) {
+    this.x = x; this.y = y;
+    this.vx = 0; this.vy = 0;
+    this.radius = radius;
+    this.color = color;
+    this.id = id;
+  }
+
+  // حرکت و اعمال اصطکاک
+  update(dt) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= FRICTION; // اصطکاک میز
+    this.vy *= FRICTION;
+    if (Math.abs(this.vx) &lt; EPSILON) this.vx = 0;
+    if (Math.abs(this.vy) &lt; EPSILON) this.vy = 0;
+    this.collideWalls();
+  }
+
+  // برخورد الاستیک دایره-دایره بین دو توپ
+  collide(other) {
+    const dx = other.x - this.x;
+    const dy = other.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist &lt; this.radius + other.radius) {
+      // بردار نرمال و تبادل سرعت در امتداد آن
+      const nx = dx / dist, ny = dy / dist;
+      const relVx = this.vx - other.vx;
+      const relVy = this.vy - other.vy;
+      const speed = relVx * nx + relVy * ny;
+      if (speed &gt; 0) {
+        this.vx -= speed * nx;
+        this.vy -= speed * ny;
+        other.vx += speed * nx;
+        other.vy += speed * ny;
+      }
+    }
+  }
+}</code></pre>
+        <p>در قسمت‌های بعد: نشانه‌گیری و ضربه با ماوس، قانون هشت (پیروزی با توپ ۸)،
+        شمارش امتیاز و رابط کاربری زیبا.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این سری ترکیبی عالی از «توسعهٔ وب» و «فیزیک بازی» است: در پایان یک بازی کامل
+        و قابل انتشار دارید که می‌توانید با دوستان آنلاین هم بازی کنید. کد کامل و دمو در
+        گیت‌هاب موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیوی «8-Ball Pool Game» اثر چن اشمیلوویچ (Chen
+        Shmilovich) است و کد آن در مخزن henshmi/Classic-Pool-Game منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل ویدیو به
+        <a href="https://www.youtube.com/watch?v=aXwCrtAo4Wc" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

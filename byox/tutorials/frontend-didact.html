@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Didact — راهنمای DIY برای ساخت React</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>Didact</span>
+      </div>
+      <h1>Didact: راهنمای DIY برای ساخت React خودت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/hexacta/didact" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعه‌مقاله‌های «Didact — Build your
+          own React» از <b>رودریگو پومبو (Rodrigo Pombo)</b> است که در وبلاگش منتشر شده و در
+          مخزن <a href="https://github.com/hexacta/didact" target="_blank" rel="noopener">hexacta/didact</a>
+          جمع‌آوری شده. این سری، React را از پایه — تا سطح Fiber — بازسازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/hexacta/didact" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: چرا Didact؟</h2>
+        <p>هدف رودریگو پومبو این است که نشان دهد React هیچ «جادویی» ندارد: با چند قطعهٔ
+        سادهٔ جاوااسکریپت می‌توان نسخه‌ای کار از آن ساخت. Didact در شش مرحله ساخته می‌شود و
+        در نهایت شامل: <code>createElement</code>، رندر، <b>رندر همزمان (Concurrent
+        Rendering)</b> با <b>Fiber</b>، مقایسه و به‌روزرسانی (Reconciliation)،
+        کامپوننت‌های تابعی و <b>Hook ها</b> است.</p>
+        <p>نکتهٔ جالب طراحی: هر مرحله یک پوشهٔ جداگانه در مخزن دارد و در هر مرحله کد قبلی
+        بازنویسی می‌شود تا مفاهیم هم‌زمان با پیاده‌سازی روشن شوند.</p>
+      </section>
+
+      <section>
+        <h2>۲. گام ۱ و ۲: createElement و رندر</h2>
+        <p>اولین قدم مثل همیشه تولید گره‌های درخت مجازی است. به‌جای ساخت مستقیم DOM، هر
+        عنصر به‌صورت یک شیء ساده بازنمایی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createElement(type, props, ...children) {
+  return {
+    type,
+    props: {
+      ...props,
+      children: children.map((child) =>
+        // متن‌ها هم نود هستند: نوعشان "TEXT_ELEMENT"
+        typeof child === "object" ? child : createTextElement(child)
+      ),
+    },
+  };
+}
+
+function createTextElement(text) {
+  return { type: "TEXT_ELEMENT", props: { nodeValue: text, children: [] } };
+}</code></pre>
+        <p>سپس تابع <code>render</code> این درخت را به DOM واقعی تبدیل می‌کند؛ به‌صورت
+        بازگشتی برای هر نود، عنصر DOM می‌سازد، props (مانند onClick و className) را روی آن
+        می‌گذارد و بچه‌ها را الحاق می‌کند. همین دو تابع کافی است تا یک برنامهٔ سادهٔ «سلام
+        دنیا» با JSX کار کند.</p>
+      </section>
+
+      <section>
+        <h2>۳. گام ۳: رندر همزمان با Fiber</h2>
+        <p>مشکل رندر بازگشتی: اگر درخت بزرگ باشد، کل فرایند رندر <b>یک‌باره و بدون توقف</b>
+        اجرا می‌شود و ترد اصلی مسدود می‌شود (فریم‌ها از دست می‌روند). راه‌حل: کار رندر را به
+        <b>واحدهای کوچک کار</b> تقسیم کنید و اجازه دهید در بین آن‌ها مرورگر فرصت اجرا پیدا
+        کند. به هر واحد کار یک <b>Fiber</b> می‌گوییم. ساختار هر fiber:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// هر fiber یک اشاره‌گر به بچه، خواهر و پدر خود دارد
+{
+  type,        // نوع نود ("div"، "TEXT_ELEMENT" یا تابع کامپوننت)
+  props,
+  parent,      // پدر در درخت
+  child,       // اولین بچه
+  sibling,     // بچهٔ بعدی (زیر هم بودن)
+  dom,         // نود DOM ساخته‌شده
+  alternate,   // fiber قبلی (برای مقایسه)
+  effectTag,   // "UPDATE" | "PLACEMENT" | "DELETION"
+}
+
+// تابع کار واحد: درخت را به‌صورت مبتنی بر حلقه طی می‌کند
+function performUnitOfWork(fiber) {
+  // ساخت نود DOM اگر نبود
+  if (!fiber.dom) fiber.dom = createDom(fiber);
+  // ساختن fiber بچه‌ها و ساختن روابط
+  const elements = fiber.props.children;
+  let index = 0;
+  let prevSibling = null;
+  while (index &lt; elements.length) {
+    const element = elements[index];
+    const newFiber = { type: element.type, props: element.props, parent: fiber };
+    if (index === 0) fiber.child = newFiber;
+    else prevSibling.sibling = newFiber;
+    prevSibling = newFiber;
+    index++;
+  }
+  // انتخاب واحد کار بعدی: بچه → خواهر → صعود به پدر
+  if (fiber.child) return fiber.child;
+  let nextFiber = fiber;
+  while (nextFiber) {
+    if (nextFiber.sibling) return nextFiber.sibling;
+    nextFiber = nextFiber.parent;
+  }
+}</code></pre>
+        <p>این کار با <code>requestIdleCallback</code> زمان‌بندی می‌شود تا مرورگر هر زمان که
+        بیکار بود قطعهٔ بعدی کار را انجام دهد.</p>
+      </section>
+
+      <section>
+        <h2>۴. گام ۴: مقایسه و به‌روزرسانی</h2>
+        <p>برای اینکه رندر بعدی فقط «تفاوت‌ها» را اعمال کند، درخت fiber قبلی نگه داشته
+        می‌شود (<code>alternate</code>) و هنگام ساخت فایبرهای جدید، نودها مقایسه می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function reconcileChildren(wipFiber, elements) {
+  let index = 0;
+  let oldFiber = wipFiber.alternate &amp;&amp; wipFiber.alternate.child;
+  let prevSibling = null;
+
+  while (index &lt; elements.length || oldFiber != null) {
+    const element = elements[index];
+    let newFiber = null;
+
+    const sameType = oldFiber &amp;&amp; element &amp;&amp; element.type === oldFiber.type;
+
+    if (sameType) {
+      // نوع یکسان: فقط props را به‌روز کن
+      newFiber = { type: oldFiber.type, props: element.props, dom: oldFiber.dom, parent: wipFiber, alternate: oldFiber, effectTag: "UPDATE" };
+    } else if (element) {
+      // عنصر جدید
+      newFiber = { type: element.type, props: element.props, dom: null, parent: wipFiber, alternate: null, effectTag: "PLACEMENT" };
+    } else if (oldFiber) {
+      // نود حذف‌شده: علامت‌گذاری برای پاک‌سازی
+      oldFiber.effectTag = "DELETION";
+      deletions.push(oldFiber);
+    }
+    /* ... حرکت روی بچه‌ها و خواهرها ... */
+  }
+}</code></pre>
+        <p>در انتها مرحلهٔ <b>commit</b> انجام می‌شود: یک بار درخت را طی می‌کنیم و بر اساس
+        <code>effectTag</code> نودها را به DOM اضافه، به‌روزرسانی یا حذف می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>۵. گام ۵ و ۶: کامپوننت‌های تابعی و Hook ها</h2>
+        <p>کامپوننت تابعی یعنی <code>type</code> خودش یک تابع است؛ باید آن را صدا بزنیم تا
+        عنصرهای بچه را بگیریم. برای Hook ها هم یک آرایهٔ جهانی به‌همراه شمارندهٔ تعریف
+        نگه داشته می‌شود؛ <code>useState</code> با استفاده از <code>alternate</code> مقدار
+        قبلی state را پیدا می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>let wipFiber = null;
+let hookIndex = null;
+
+function useState(initial) {
+  const oldHook =
+    wipFiber.alternate &amp;&amp; wipFiber.alternate.hooks &amp;&amp;
+    wipFiber.alternate.hooks[hookIndex];
+
+  const hook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: [],
+  };
+
+  const actions = oldHook ? oldHook.queue : [];
+  actions.forEach((action) => {
+    hook.state = typeof action === "function" ? action(hook.state) : action;
+  });
+
+  const setState = (action) => {
+    hook.queue.push(action);
+    // رندر دوباره را از ریشه آغاز کن
+    wipRoot = { dom: currentRoot.dom, props: currentRoot.props, alternate: currentRoot };
+    nextUnitOfWork = wipRoot;
+    deletions = [];
+  };
+
+  wipFiber.hooks.push(hook);
+  hookIndex++;
+  return [hook.state, setState];
+}</code></pre>
+        <p>با همین حدود ۴۰۰ خط کد، برنامه‌های واقعی React (با state، props و به‌روزرسانی
+        کارآمد) اجرا می‌شوند!</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>درخت مجازی یک نمایش دادهٔ ساده است؛ پیچیدگی‌ها در <b>زمان‌بندی</b> و
+          <b>مقایسه</b> است.</li>
+          <li>Fiber ساختاری حلقه‌پذیر است که رندر را قابل تکه‌تکه‌کردن می‌کند؛ پایهٔ
+          رندر همزمان و Suspense در React واقعی.</li>
+          <li>Hook ها بدون هیچ جادویی، فقط با آرایه و شاخص پیاده می‌شوند — که علت قانون
+          «همیشه در سطح بالا صدا زدن» را هم توضیح می‌دهد.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعه‌مقاله‌های «Didact» اثر رودریگو پومبو (Rodrigo Pombo)
+        است و کد آن در مخزن hexacta/didact تحت لایسنس MIT منتشر شده. این صفحه فقط ترجمهٔ
+        فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به
+        <a href="https://github.com/hexacta/didact" target="_blank" rel="noopener">مخزن اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

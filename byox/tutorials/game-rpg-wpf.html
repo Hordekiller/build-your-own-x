@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت RPG با C#/WPF — دوره SOSCSRPG اسکات لیلی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>RPG با WPF</span>
+      </div>
+      <h1>یک RPG با C#/WPF بساز — دورهٔ SOSCSRPG اسکات لیلی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://scottlilly.com/build-a-cwpf-rpg/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور دورهٔ «Build a C#/WPF RPG» از
+          <b>اسکات لیلی (Scott Lilly)</b> در وبلاگ scottlilly.com است — یک بازی واقعی و
+          گرافیکی با <b>WPF/XAML</b> که نسخهٔ پیشرفتهٔ همان RPG متنی مجموعهٔ قبلی اوست
+          (پروژهٔ SOSCSRPG).
+        </div>
+        <a class="btn solid" href="https://scottlilly.com/build-a-cwpf-rpg/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>این سری آموزشی یک بازی کامل RPG با رابط گرافیکی می‌سازد: حرکت در دنیای دوعددی،
+        نبرد نوبتی، آیتم‌ها، کوئست‌ها و اتاق‌های تجارت. تفاوت این دوره با «RPG ساده»:
+        رابط کاربری واقعی با WPF/XAML دارد و معماری بهتری (لایه‌بندی و قواعد طراحی)
+        معرفی می‌کند. برای ورود به دوره، پیش‌نیاز مبانی C# (از دورهٔ قبلی) است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> از درس «۰۳٫۱ ساخت Solution» و «۰۴٫۲ ساخت کلاس World با
+          ایجاد اشیای Location» به بعد، ساختار پروژه به‌صورت کامل توضیح داده می‌شود.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار معماری</h2>
+        <p>دوره یک معماری لایه‌ای را معرفی می‌کند که در آن، دنیای بازی کاملاً مستقل از
+        رابط کاربری است:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>SimpleRPG/                  # Solution
+├── SimpleRPG/               # پروژهٔ اصلی WPF
+│   ├── MainWindow.xaml      # رابط کاربری
+│   └── ViewModels/          # لایهٔ اتصال داده به UI
+├── SimpleRPG.Engine/        # موتور بازی (بدون وابستگی به UI)
+│   ├── World.cs             # مکان‌ها و ارتباطات
+│   ├── GameItems.cs         # آیتم‌ها
+│   ├── Quest.cs             # کوئست‌ها
+│   └── Monster.cs           # هیولاها
+└── SimpleRPG.Core/          # کتابخانهٔ مشترک (گزینه‌ها، الوار)</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: کلاس World و Location</h2>
+        <pre class="code"><span class="lang-tag">csharp</span><code>// کلاس Location — یک مکان روی نقشهٔ بازی
+public class Location
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+
+    public Location North { get; set; }
+    public Location East  { get; set; }
+    public Location South { get; set; }
+    public Location West  { get; set; }
+
+    // اشیای موجود در این مکان
+    public Item ItemAvailableHere { get; set; }
+    public Quest QuestAvailableHere { get; set; }
+    public Monster MonsterLivingHere { get; set; }
+}
+
+// World: فهرست مکان‌ها و ساخت نقشه
+public static class World
+{
+    public static readonly List&lt;Location&gt; Locations = new List&lt;Location&gt;();
+
+    // سازندهٔ استاتیک: تعریف مکان‌ها و اتصال آن‌ها
+    static World()
+    {
+        Location home = new Location { X = 0, Y = -1, Name = "خانه", ... };
+        Location farm = new Location { X = 0, Y = 0, Name = "مزرعه قدیمی", ... };
+        farm.North = home;
+        home.South = farm;
+        Locations.Add(home);
+        Locations.Add(farm);
+        // ...
+    }
+
+    public static Location LocationAt(int x, int y)
+        =&gt; Locations.FirstOrDefault(l =&gt; l.X == x &amp;&amp; l.Y == y);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>جداسازی Engine (منطق) از UI (WPF) — همان معماری حرفه‌ای.</li>
+          <li>یادگیری XAML و Data Binding در کنار طراحی بازی.</li>
+          <li>نتیجهٔ نهایی: یک بازی کامل با ذخیره/بارگذاری، نبرد و اقتصاد.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> دورهٔ «Build a C#/WPF RPG (SOSCSRPG)» اثر اسکات لیلی
+        (Scott Lilly) است و در وبلاگ scottlilly.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        دوره به
+        <a href="https://scottlilly.com/build-a-cwpf-rpg/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

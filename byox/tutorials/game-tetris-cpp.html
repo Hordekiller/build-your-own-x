@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش تتریس در C++ مستقل از پلتفرم — جاویلوپ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>تتریس در C++</span>
+      </div>
+      <h1>آموزش تتریس در C++ مستقل از پلتفرم، متمرکز بر منطق بازی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://javilop.com/gamedev/tetris-tutorial-in-c-platform-independent-focused-in-game-logic-for-beginners/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «Tetris Tutorial in C++
+          Platform Independent» از <b>جاویر لوپز (Javier López)</b> در سایت javilop.com
+          است — یک آموزش کمتر از یک ساعته که منطق کامل تتریس را مستقل از هر کتابخانهٔ
+          گرافیکی می‌سازد.
+        </div>
+        <a class="btn solid" href="http://javilop.com/gamedev/tetris-tutorial-in-c-platform-independent-focused-in-game-logic-for-beginners/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایدهٔ اصلی: جداسازی منطق از گرافیک</h2>
+        <p>کلاس <code>Board</code> (منطق) هیچ‌چیز دربارهٔ گرافیک نمی‌داند: نه SDL، نه
+        OpenGL و نه پنجره. فقط با ماتریس‌ها و توابع ساده کار می‌کند — همین یعنی کد بازی
+        روی هر پلتفرمی (دسکتاپ، موبایل، وب) با هر کتابخانه‌ای قابل استفاده است. در این
+        آموزش، منطق با SDL 1.2 نمایش داده می‌شود اما تمرکز مقاله روی خود منطق است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این رویکرد، بهترین تمرین برای درک «چرا بازی‌های حرفه‌ای
+          موتورشان را از بازی جدا می‌کنند» است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نمایش قطعه‌ها با ماتریس</h2>
+        <p>هر قطعه (tetromino) و خود صفحهٔ بازی، یک ماتریس است — ساده‌ترین و در عین حال
+        قدرتمندترین راه برای نمایش شبکه‌ای تتریس:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// صفحهٔ بازی: ماتریس
+const int BOARD_WIDTH  = 10;
+const int BOARD_HEIGHT = 20;
+int board[BOARD_WIDTH * BOARD_HEIGHT]; // ۰ = خالی، ۱ = پر
+
+// هر قطعه با ماتریس ۲×۲، ۳×۳ یا ۴×۴ تعریف می‌شود
+// مثال: قطعهٔ L
+int pieceL[4][4] = {
+  { 0, 0, 0, 0 },
+  { 1, 1, 1, 0 },
+  { 1, 0, 0, 0 },
+  { 0, 0, 0, 0 },
+};
+
+// رنگ هر خانه از ماتریس نیز خودِ شمارهٔ نوع قطعه است (۱..۷)
+// پس با ماتریس‌ها هم شکل و هم رنگ تعریف می‌شود</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. هک چرخش بدون ریاضی پیچیده</h2>
+        <p>به‌جای محاسبهٔ چرخش با ضرب ماتریس، هر قطعه <b>چهار حالت چرخش از پیش تعریف‌شده</b>
+        دارد که هنگام چرخش، فقط اندیس حالت عوض می‌شود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// چرخش: تغییر به حالت بعدی چرخش — هر قطعه ۴ حالت دارد
+void rotate(int x, int y, int rotation) {
+  switch (rotation) {
+    case 0: // حالت اصلی (همان ماتریس)
+      ...
+    case 1: // چرخش ۹۰ درجه — از پیش محاسبه‌شده
+      ...
+    // ...
+  }
+}</code></pre>
+        <p>دلیل کارایی این روش: چرخش‌های ۹۰ درجهٔ هر قطعه فقط ۴ حالت دارند و می‌توان آن‌ها
+        را از قبل روی کاغذ نوشت؛ نیازی به فرمول چرخش نیست.</p>
+      </section>
+
+      <section>
+        <h2>۴. برخورد و حلقهٔ اصلی</h2>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// بررسی برخورد: آیا قطعه در (x, y) با این چرخش جای می‌گیرد؟
+bool Board::isFreeBlock(int pX, int pY, int pType, int pRotation) {
+  // هر خانهٔ غیرصفر ماتریس قطعه را با صفحه مقایسه کن
+  for (int i1 = pX, i2 = 0; i1 &lt; pX + size(pType); i1++, i2++) {
+    for (int j1 = pY, j2 = 0; j1 &lt; pY + size(pType); j1++, j2++) {
+      if (getBlock(i2, j2, pType, pRotation) != 0 &amp;&amp; isBlock(i1, j1)) {
+        return false; // تداخل → برخورد
+      }
+    }
+  }
+  return true;
+}
+
+// حلقهٔ اصلی بازی
+while (gameRunning) {
+  // ورودی: حرکت/چرخش/فرود سریع
+  // گام زمانی: هر چند میلی‌ثانیه یک سطر پایین برو
+  if (timer.elapsed() &gt; speed) {
+    if (!movePieceDown()) { lockPiece(); clearLines(); newPiece(); }
+    timer.reset();
+  }
+  render();  // رسم منطق به‌صورت گرافیکی
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <ul>
+          <li>منطق بازی با ماتریس‌ها و توابع مستقل — قابل اجرا روی هر پلتفرم.</li>
+          <li>چرخش با حالت‌های از پیش تعریف‌شده، بدون ریاضی پیچیده.</li>
+          <li>کد کامل آموزش در کمتر از یک ساعت خوانده و نوشته می‌شود؛ بهترین شروع برای
+          C++ و توسعهٔ بازی.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «Tetris Tutorial in C++ Platform Independent» اثر
+        جاویر لوپز (Javier López) است و در وبلاگ javilop.com منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است.
+        برای مشاهدهٔ اصل مطلب به
+        <a href="http://javilop.com/gamedev/tetris-tutorial-in-c-platform-independent-focused-in-game-logic-for-beginners/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

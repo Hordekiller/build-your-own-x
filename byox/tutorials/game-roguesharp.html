@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت بازی Roguelike در C# — RogueSharp</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>RogueSharp</span>
+      </div>
+      <h1>ساخت یک بازی Roguelike در C# — آموزش RogueSharp</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://roguesharp.wordpress.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی وبلاگ <b>RogueSharp</b> — خانهٔ
+          آموزش رسمی کتابخانهٔ <b>RogueSharp</b> (برای ساخت بازی‌های Roguelike در C#) و سری
+          آموزشی «Creating a Roguelike in C#» که با RogueSharp v3 و RLNET یک بازی کامل
+          می‌سازد.
+        </div>
+        <a class="btn solid" href="https://roguesharp.wordpress.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. RogueSharp چیست؟</h2>
+        <p><b>RogueSharp</b> یک کتابخانهٔ متن‌باز C# مخصوص بازی‌های roguelike است که کارهای
+        سخت را برایتان انجام می‌دهد: <b>تولید نقشهٔ سیاه‌چاه</b>، <b>میدان دید
+        (Field of View)</b>، <b>مسیریابی (Pathfinding)</b> و <b>تشخیص خط دید
+        (Line of Sight)</b>. در آموزش، RogueSharp v3 با <b>RLNET</b> (برای رندر ترمینال)
+        ترکیب می‌شود — و نسخهٔ قدیمی‌تر v2 با MonoGame هم پوشش داده شده بود.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر می‌خواهید همهٔ منطق roguelike را خودتان بنویسید،
+          بخش‌های دیگر این سایت (همان آموزش معروف «How to Make Your First Roguelike»)
+          هم به همین محتوا مربوط است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ درس‌ها</h2>
+        <p>سری آموزشی گام‌به‌گام زیر را پوشش می‌دهد:</p>
+        <ul>
+          <li>راه‌اندازی پروژه RLNET و نمایش اولین «@»</li>
+          <li>ساخت نقشه و <b>تولید تصادفی سیاه‌چاه</b> (اتاق‌ها و راهروها)</li>
+          <li><b>میدان دید</b> با الگوریتم (FOV) و دیوارهای کشف‌شده</li>
+          <li><b>حرکت و تعامل</b>: قدم زدن، باز کردن درها</li>
+          <li><b>مسیریابی دشمن</b> به سمت بازیکن (Pathfinding)</li>
+          <li><b>مبارزه</b>: هیولاها، حمله، آسیب و مرگ</line>
+          <li>سیستم آیتم‌ها، فونت و پالت، ذخیرهٔ بازی</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: نقشه و میدان دید</h2>
+        <pre class="code"><span class="lang-tag">csharp</span><code>using RogueSharp;
+using RogueSharp.MapCreation;
+
+// ساخت نقشه با تولیدکنندهٔ تصادفی سیاه‌چاه (شبیه Rogue)
+IMapCreationStrategy&lt;Map&gt; strategy =
+    new RandomRoomsMapCreationStrategy&lt;Map&gt;(width: 80, height: 50,
+                                            maxRooms: 30, roomMaxSize: 12, roomMinSize: 6);
+Map map = Map.Create(strategy);
+
+// محاسبهٔ میدان دید از دید بازیکن
+map.ComputeFov(x: playerX, y: playerY, radius: 10, lightWalls: true);
+
+// پیمایش نقشه و رسم: فقط سلول‌های «در دید» یا «کشف‌شده» را نمایش بده
+foreach (Cell cell in map.GetAllCells())
+{
+    if (cell.IsInFov)
+        // روشن — رسم سلول
+    else if (cell.IsExplored)
+        // تاریک ولی دیده‌شده — رسم با رنگ کم‌نور
+}</code></pre>
+        <p>با همین، حس کلاسیک «تاریکی ناشناخته» بازی‌های roguelike به دست می‌آید — بدون
+        بازنویسی الگوریتم FOV.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>RogueSharp کار سنگین (FOV، pathfinding، تولید نقشه) را آماده می‌دهد؛ تمرکز
+          شما روی گیم‌پلی است.</li>
+          <li>سری آموزشی رسمی، کامل و به‌روز است و کد هر درس تکمیل‌شونده.</li>
+          <li>یک راه خوب: اول این سری، بعد بازنویسی منطق (مثل FOV) با دست، برای درک عمیق.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> وبلاگ و سری آموزشی RogueSharp اثر فین شو راپر (Faron
+        Bracy) است و بازی‌نامه و آموزش در وبلاگ roguesharp.wordpress.com منتشر شده. این
+        صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل آموزش‌ها به
+        <a href="https://roguesharp.wordpress.com/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

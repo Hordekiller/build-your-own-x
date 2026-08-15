@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | BYTEPATH — آموزش کامل ساخت بازی با Lua و LÖVE</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>BYTEPATH</span>
+      </div>
+      <h1>BYTEPATH — آموزش ساخت کامل یک بازی با Lua و LÖVE (a327ex)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Lua</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/SSYGEN/blog/issues/30" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی مجموعه‌آموزش <b>BYTEPATH</b> اثر
+          <b>a327ex</b> است که در بخش issues وبلاگ گیت‌هاب او (github.com/SSYGEN/blog)
+          منتشر شده — یک سری کامل بازی‌سازی با <b>Lua و LÖVE (Love2d)</b> که به یک بازی
+          واقعی شبیه «Bit Blaster XL + درخت مهارت Path of Exile» ختم می‌شود.
+        </div>
+        <a class="btn solid" href="https://github.com/SSYGEN/blog/issues/30" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>BYTEPATH یک سری آموزشی پانزده قسمتی است که یک بازی کامل شوتر فضایی با سیستم
+        درخت مهارت را می‌سازد — ترکیبی از <b>Bit Blaster XL</b> و <b>درخت پسیو Path of
+        Exile</b>. مخاطب: برنامه‌نویسانی با کمی تجربه (نه کاملاً مبتدی). همهٔ قسمتها در
+        issues وبلاگ a327ex (SSYGEN/blog) قابل خواندن است و هر قسمت کد کامل دارد.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> ساختار سری عالی است: هر قسمت یک سیستم مستقل (حرکت،
+          دشمنان، امتیاز، درخت مهارت، ذخیرهٔ بازی) و در مجموع معماری یک بازی کامل را
+          نشان می‌دهد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ قسمتها</h2>
+        <ul>
+          <li>#0 مقدمه و ساختار پروژه</li>
+          <li>سیستم حرکت بازیکن، شلیک و دشمنان</li>
+          <li>الگوها و subs (مواد مصرفی)</li>
+          <li>سیستم مهارت: <b>درخت مهارت</b> با node ها و پیشرفت</li>
+          <li>حالت‌های بازی، ذخیره‌سازی، مپ و افکت‌ها</li>
+          <li>و… تا یک بازی کامل و صفحه‌بندی‌شده</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد</h2>
+        <pre class="code"><span class="lang-tag">lua</span><code>-- حرکت بازیکن (سبک قوس‌دار)
+function Player:update(dt)
+    -- فیزیک با شتاب/میرایی به‌جای سرعت ثابت
+    local move_speed = self.stats.move_speed
+    if input:down('left') then self.vx = self.vx - move_speed * dt end
+    if input:down('right') then self.vx = self.vx + move_speed * dt end
+    if input:down('up') then self.vy = self.vy - move_speed * dt end
+    if input:down('down') then self.vy = self.vy + move_speed * dt end
+
+    -- میرا کردن حرکت: به‌تدریج به صفر برگرد
+    self.vx = self.vx * (1 - 0.5 * dt)
+    self.vy = self.vy * (1 - 0.5 * dt)
+
+    self.x = self.x + self.vx * dt
+    self.y = self.y + self.vy * dt
+end
+
+-- درخت مهارت: هر کاربر یک node دارد و node ها به هم وصل‌اند
+SkillTree = {}
+function SkillTree:new(skills)
+    self.skills = skills   -- جدول node ها
+    self.owners = {}       -- هر node صاحب دارد؟
+end</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این سری یکی از کامل‌ترین آموزش‌های بازی‌سازی با LÖVE است و در طول آن همهٔ
+        مهارت‌های یک توسعه‌دهندهٔ بازی (نسبت‌ها، سیستم‌ها، مدیریت state، UI) را با هم
+        تمرین می‌کنید. پیاده‌سازی درخت مهارت، به‌تنهایی یک پروژهٔ آموزشی ارزشمند است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری BYTEPATH اثر a327ex است و در وبلاگ گیت‌هاب او
+        (github.com/SSYGEN/blog) منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام
+        حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل سری به
+        <a href="https://github.com/SSYGEN/blog/issues/30" target="_blank" rel="noopener">گیت‌هاب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

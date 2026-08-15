@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Space Invaders از صفر — با OpenGL مدرن در C++</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Space Invaders</span>
+      </div>
+      <h1>Space Invaders از صفر — ساخت با OpenGL مدرن (3.3) در C++</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://nicktasios.nl/posts/space-invaders-from-scratch-part-1.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Space Invaders from
+          Scratch» از <b>نیک تازیوس (Nick Tasios)</b> در وبلاگ nicktasios.nl است — یک
+          بازسازی کامل از بازی کلاسیک فضایی با OpenGL 3.3، GLFW و GLEW.
+        </div>
+        <a class="btn solid" href="http://nicktasios.nl/posts/space-invaders-from-scratch-part-1.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>Space Invaders (۱۹۷۸) یکی از ساده‌ترین و در عین حال کامل‌ترین بازی‌ها برای
+        بازسازی است. این آموزش آن را با <b>OpenGL 3.3</b> (خط لولهٔ مدرن با شیدرهای GLSL)
+        می‌سازد — نه OpenGL قدیمی. ابزارها: <b>GLFW</b> برای پنجره و ورودی و <b>GLEW</b>
+        برای بارگذاری توابع OpenGL. نتیجه: یک بازی قابل اجرا با تکنیک‌های گرافیک
+        مدرن.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این سری برای کسانی عالی است که هم می‌خواهند بازی بسازند و
+          هم OpenGL مدرن را جدی یاد بگیرند؛ هم شیدر می‌نویسید، هم VBO/VAO راه می‌اندازید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار سری</h2>
+        <ul>
+          <li><b>قسمت ۱:</b> راه‌اندازی پنجره با GLFW، بافرها و اولین شیدر</li>
+          <li><b>قسمت ۲:</b> رسم بازی‌گر (هاورکرافت) و فیزیک حرکت</li>
+          <li><b>قسمت ۳:</b> گلوله‌ها و شلیک</li>
+          <li><b>قسمت ۴:</b> دشمنان — حرکت، بازتاب و حذف</li>
+          <li><b>بعد از آن:</b> برخورد، امتیاز، سطوح و سبک بازی کلاسیک</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: رندر با شیدر</h2>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// یک چهارضلعی ساده با VBO و شیدر
+float vertices[] = {
+  // موقعیت    // رنگ
+  -0.5f, -0.5f, 1.0f, 1.0f, 1.0f,
+   0.5f, -0.5f, 1.0f, 1.0f, 1.0f,
+   0.5f,  0.5f, 1.0f, 1.0f, 1.0f,
+  -0.5f,  0.5f, 1.0f, 1.0f, 1.0f,
+};
+unsigned int indices[] = { 0, 1, 2, 2, 3, 0 };
+
+GLuint VBO, VAO, EBO;
+glGenVertexArrays(1, &amp;VAO);
+glGenBuffers(1, &amp;VBO);
+glGenBuffers(1, &amp;EBO);
+
+glBindVertexArray(VAO);
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+// صفت‌ها: موقعیت (۳ عدد) و رنگ (۳ عدد)
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+glEnableVertexAttribArray(1);</code></pre>
+        <p>بعد از آن، همهٔ اشیای بازی (بازیکن، دشمنان، گلوله‌ها) با همین الگوی VAO/VBO و
+        یک شیدر واحد رسم می‌شوند؛ فقط موقعیت‌شان با uniform به‌روز می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این آموزش، هم معرفی کامل OpenGL مدرن است و هم یک بازی کلاسیک کارا. کد کامل
+        سری در گیت‌هاب نویسنده موجود است و در انتها می‌توانید آن را با صداها و سطوح
+        جدید گسترش دهید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Space Invaders from Scratch» اثر نیک تازیوس (Nick
+        Tasios) است و در وبلاگ nicktasios.nl منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به
+        <a href="http://nicktasios.nl/posts/space-invaders-from-scratch-part-1.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

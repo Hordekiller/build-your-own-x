@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی مار (Snake) با Ruby — آموزش Diatom Enterprises</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Snake با Ruby</span>
+      </div>
+      <h1>مار (Snake) با Ruby — چرا که نه؟ آموزش Diatom Enterprises</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.diatomenterprises.com/gamedev-on-ruby-why-not/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Gamedev on Ruby — why
+          not?» از <b>دیاتوم انترپرایسز (Diatom Enterprises)</b> است — ساخت بازی مار در
+          ترمینال با Ruby خالص، بدون هیچ کتابخانهٔ گرافیکی.
+        </div>
+        <a class="btn solid" href="https://www.diatomenterprises.com/gamedev-on-ruby-why-not/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این مقاله نشان می‌دهد بازی‌سازی با Ruby کاملاً شدنی و لذت‌بخش است؛ یک بازی مار
+        در ترمینال ساخته می‌شود و شیوهٔ تفکر ساختارمند (کلاس‌های <code>Board</code>،
+        <code>Snake</code>، <code>Food</code> و <code>Game</code>) آموزش داده می‌شود —
+        بدون نیاز به گرافیک، با کاراکترهای ترمینال.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> خواندن این مقاله همدانش با بازی‌سازی و هم با «ساختار
+          تمیز مفاهیم بازی» را نشان می‌دهد؛ کلاس‌بندی خوبی دارد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار کلاس‌ها</h2>
+        <p>مجموعهٔ کلاس‌ها و مسئولیت‌هایشان:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code># صفحهٔ بازی: شبکه و مرزها
+class Board
+  attr_accessor :grid_size, :x_limit, :y_limit
+
+  def initialize(grid_size)
+    @grid_size = grid_size
+    @x_limit = @grid_size / 2   # مختصات از -limit تا +limit
+    @y_limit = @grid_size / 2
+  end
+
+  def random_position
+    [rand(-@x_limit..@x_limit), rand(-@y_limit..@y_limit)]
+  end
+
+  def within?(x, y)
+    x.between?(-@x_limit, @x_limit) &amp;&amp; y.between?(-@y_limit, @y_limit)
+  end
+end
+
+# غذا: یک نقطهٔ تصادفی
+class Food
+  attr_accessor :x, :y
+
+  def initialize(board)
+    @board = board
+    spawn
+  end
+
+  def spawn
+    @x, @y = @board.random_position
+  end
+end
+
+# مار: دنباله‌ای از بخش‌ها (segmentها)
+class Snake
+  attr_accessor :body, :direction_head, :poisoning
+
+  def initialize(length)
+    @direction_head = [1, 0]
+    @body = Array.new(length) { |i| [0, i] }
+    @poisoning = false
+  end
+
+  def head
+    @body.first
+  end
+
+  # گام: سر جدید به جلو، دم حذف می‌شود مگر اینکه تغذیه شده باشیم
+  def move(food_eaten = false)
+    new_head = [head[0] + @direction_head[0], head[1] + @direction_head[1]]
+    @body.unshift(new_head)
+    @body.pop unless food_eaten
+  end
+end</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. حلقهٔ اصلی بازی</h2>
+        <pre class="code"><span class="lang-tag">ruby</span><code>class Game
+  def initialize
+    @board = Board.new(32)
+    @snake = Snake.new(3)
+    @food = Food.new(@board)
+  end
+
+  def run
+    loop do
+      input          # تغییر جهت با کلیدها
+      moved          # گام مار
+      break if collision   # دیوار یا خودش
+      eat            # خوردن غذا و رشد
+      render         # رسم صفحه در ترمینال
+      sleep(0.1)
+    end
+  end
+end</code></pre>
+        <p>نکتهٔ الگوریتمی جالب مقاله: طراحی مار با <code>body.unshift(new_head)</code>
+        و شرطی شدن <code>pop</code> — یعنی رشد طبیعی با خوردن غذا بدون هیچ کد اضافه‌ای.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>بازی‌سازی با Ruby به‌سادگی هر زبان دیگر ممکن است.</li>
+          <li>ساختار کلاس‌ی تمیز (Board/Snake/Food/Game) — الگوی خوبی برای هر بازی.</li>
+          <li>ترمینال پایهٔ عالی برای شروع است؛ بعداً می‌توانید UI گرافیکی اضافه کنید.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Gamedev on Ruby — why not?» از Diatom Enterprises
+        است و در وبلاگ diatomenterprises.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل
+        مطلب به
+        <a href="https://www.diatomenterprises.com/gamedev-on-ruby-why-not/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

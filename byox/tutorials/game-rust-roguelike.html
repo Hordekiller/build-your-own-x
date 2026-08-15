@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش Roguelike در Rust + tcod — توماسدوویچ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Roguelike با Rust</span>
+      </div>
+      <h1>آموزش Roguelike در Rust + tcod — پورت آموزش معروف پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://tomassedovic.github.io/roguelike-tutorial/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی «Roguelike Tutorial in Rust» از
+          <b>توماس دوویچ (Tomáš Sedovič)</b> است — پورت کامل آموزش معروف
+          «Roguelike Tutorial» (نسخهٔ libtcod پایتون) به <b>Rust</b> با کرت
+          <code>tcod</code> و توضیح هر بخش در وبلاگ tomassedovic.github.io.
+        </div>
+        <a class="btn solid" href="https://tomassedovic.github.io/roguelike-tutorial/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این سری معروف، یک roguelike کلاسیک را به سبک Roguebasin می‌سازد: شبکهٔ
+        ASCII، سیاه‌چاه‌های تصادفی، حرکت با کلید، <b>میدان دید</b>، <b>مسیریابی</b>
+        و هیولاها. نسخهٔ Rust از روی نسخهٔ پایتون/پایتون-لیبتکاد ترجمهٔ Concept شده
+        و هر قسمت، هم در وبلاگ و هم در مخزن گیت‌هاب (<code>tomassedovic/roguelike-tutorial</code>)
+        موجود است.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر قبلاً هیچ roguelike نساخته‌اید، بهتر است اول نسخهٔ
+          پایتون (rogueliketutorials.com) را ببینید؛ این نسخه فرض می‌کند مفاهیم را
+          می‌دانید و روی ترجمهٔ آن‌ها به Rust تمرکز دارد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ قسمتها</h2>
+        <ul>
+          <li>راه‌اندازی پروژه و نمایش «@»</li>
+          <li>حرکت با کلیدها و ورودی کیبورد/ماوس</li>
+          <li>تولید سیاه‌چاه (اتاق‌ها، راهروها و تونل‌ها)</li>
+          <li>میدان دید (FOV) با الگوریتم</li>
+          <li>هیولاها و هوش مصنوعی ساده (تعقیب)</li>
+          <li>ذخیره‌سازی با serde، آیتم‌ها و چرخهٔ نوبت</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد</h2>
+        <pre class="code"><span class="lang-tag">rust</span><code>use tcod::console::*;
+use tcod::colors;
+
+// ساختار اصلی بازی: بازیکن + نقشه + کنسول
+struct Game {
+    player: Player,
+    map: Map,
+}
+
+// حلقهٔ اصلی با tcod
+fn main() {
+    let mut root = Root::initializer()
+        .font("arial10x10.png", FontLayout::Tcod)
+        .font_type(FontType::Greyscale)
+        .size(SCREEN_WIDTH, SCREEN_HEIGHT)
+        .title("Roguelike در Rust")
+        .init();
+
+    let mut con = Offscreen::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+    let mut game = Game::new();
+
+    while !root.window_closed() {
+        // رسم نقشه و بازیکن روی con
+        game.render(&amp;mut con);
+
+        // کپی از con به root و نمایش
+        blit(&amp;con, (0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT), &amp;mut root, (0, 0), 1.0);
+        root.flush();
+
+        // ورودی: میدان دید را با هر حرکت به‌روز کن
+        let key = root.wait_for_keypress(true);
+        game.handle_key(key);
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>کامل‌ترین پورت Rust از آموزش roguelike‌ای که همه می‌شناسند.</li>
+          <li>مناسب کسانی که Rust می‌دانند و می‌خواهند در عمل تمرین کنند.</li>
+          <li>کد روی گیت‌هاب، به‌همراه راهنمای نصب و اجرا.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> «Roguelike Tutorial in Rust + tcod» اثر توماس دوویچ
+        (Tomáš Sedovič) است و در وبلاگ tomassedovic.github.io و مخزن گیت‌هاب منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به
+        نویسندهٔ اصلی است. برای مشاهدهٔ اصل آموزش به
+        <a href="https://tomassedovic.github.io/roguelike-tutorial/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

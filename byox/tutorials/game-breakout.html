@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی Breakout با OpenGL — از LearnOpenGL</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Breakout</span>
+      </div>
+      <h1>بازی Breakout با OpenGL — فصل بازی‌های دوبعدی LearnOpenGL</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://learnopengl.com/In-Practice/2D-Game/Breakout" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور بخش «Breakout» از کتاب آنلاین
+          <b>LearnOpenGL</b> اثر <b>یوآخیم دِ لاور (Joey de Vries)</b> است — یک بازی کامل
+          Breakout (الهام‌گرفته از بازی آتاری ۱۹۷۶) که با OpenGL ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://learnopengl.com/In-Practice/2D-Game/Breakout" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. پیش‌نیاز و جایگاه فصل</h2>
+        <p>این فصل بخش «In Practice → 2D Game» از کتاب LearnOpenGL است؛ یک پروژهٔ کاربردی که
+        همهٔ مطالب قبلی کتاب را در قالب یک بازی واقعی به کار می‌گیرد. پیش‌نیاز: آشنایی با
+        فصل‌های «Getting Started» و «Lighting» (مخصوصاً شیدرها، بافت و ریاضیات ماتریسی).</p>
+        <p>بازی Breakout (از آتاری ۱۹۷۶): یک راکت در پایین، توپی که به دیوارها و بلوک‌ها
+        برخورد می‌کند و بلوک‌ها نابود می‌شوند. آنچه این پیاده‌سازی خاص می‌کند، فناوری‌های
+        گرافیکی آن است: <b>particles</b> (ذرات)، <b>rendering text</b>، <b>power-ups</b> و
+        <b>postprocessing</b> — همه در OpenGL خالص.</p>
+      </section>
+
+      <section>
+        <h2>۲. معماری پروژه</h2>
+        <pre class="code"><span class="lang-tag">text</span><code>├── Breakout/           # پروژه
+│   ├── src/
+│   │   ├── shader.h          # کلاس شیدر (GLSL)
+│   │   ├── texture.h         # بارگذاری بافت
+│   │   ├── game.h/.cpp       # کلاس Game: حلقهٔ بازی و state
+│   │   ├── game_level.h      # ساخت سطوح از فایل‌های متنی
+│   │   ├── ball_object.h     # توپ و فیزیک برخورد
+│   │   ├── particle.h        # سیستم ذرات
+│   │   ├── post_processor.h  # پس‌پردازش
+│   │   └── text_renderer.h   # رندر متن
+│   └── shaders/              # شیدرها
+└── ...</code></pre>
+        <p>سطوح در فایل‌های متنی تعریف می‌شوند: هر ردیف یک سطر بلوک است و هر کاراکتر یک
+        رنگ بلوک را مشخص می‌کند — ساخت سطح جدید فقط نوشتن یک فایل است!</p>
+      </section>
+
+      <section>
+        <h2>۳. منطق برخورد: AABB و دایره</h2>
+        <p>قلب بازی، برخورد توپ (دایره) با بلوک‌ها و راکت (مستطیل‌های AABB) است.
+        <b>تکنیک bounce-off</b> — تشخیص اینکه توپ از کدام سمت برخورد کرده و بازتاب بر اساس
+        آن: </p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// تشخیص برخورد دایره (توپ) با مستطیل (بلوک/راکت)
+Collision CheckCollision(BallObject &amp;ball, GameObject &amp;box) {
+  // نزدیک‌ترین نقطهٔ مستطیل به مرکز دایره
+  glm::vec2 closest = glm::clamp(ball.Position, box.Position,
+                                 box.Position + box.Size);
+  // فاصلهٔ مرکز دایره تا آن نقطه
+  glm::vec2 diff = ball.Position - closest;
+  float distance = glm::length(diff);
+
+  // اگر فاصله کمتر از شعاع باشد، برخورد رخ داده
+  if (distance &lt;= ball.Radius) {
+    // تعیین جهت برخورد با مقایسهٔ diff با ابعاد
+    glm::vec2 overlap = glm::abs(diff);
+    if (overlap.x &lt; overlap.y) {
+      ball.Velocity.x = -ball.Velocity.x;  // از کنار
+    } else {
+      ball.Velocity.y = -ball.Velocity.y;  // از بالا/پایین
+    }
+    return { true, ball.Position - closest };
+  }
+  return { false, glm::vec2(0.0f) };
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جلوه‌های بصری</h2>
+        <ul>
+          <li><b>Particles</b>: دنبالهٔ ذرات پشت توپ و بلوک‌های در حال نابودی؛ هر ذره یک
+          چهارضلعی کوچک با شیدر GLSL است که می‌میرد و دوباره ساخته می‌شود.</li>
+          <li><b>Postprocessing</b>: با یک FrameBuffer، صحنه روی بافت رندر می‌شود و بعد
+          افکت shake با جابه‌جایی تصادفی نمونه‌برداری اعمال می‌شود.</li>
+          <li><b>Text rendering</b>: نمایش امتیاز و پیام‌ها با FreeType روی یک شیدر.</li>
+          <li><b>Power-ups</b>: «گلدان‌های» افتادنی با افکت‌هایی مثل راکت بزرگ، توپ
+          چسبنده، توپ‌های عبوری (پاس‌کنندهٔ بلوک‌ها) و توپ‌های متعدد.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>این آموزش، پلی از «گرافیک کامپیوتر» به «بازی‌سازی» است: تمام تکنیک‌های OpenGL
+        (بافر، شیدر، بافت، FBO) در یک بازی کامل جمع می‌شوند. کد کامل در گیت‌هاب
+        LearnOpenGL موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش Breakout اثر یوآخیم دِ لاور (Joey de Vries) است و
+        در سایت LearnOpenGL منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق
+        محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://learnopengl.com/In-Practice/2D-Game/Breakout" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

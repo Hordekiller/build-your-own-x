@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور بازی دو‌بعدی با جاوا — دوره کامل فری‌کدکمپ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>موتور بازی دو‌بعدی جاوا</span>
+      </div>
+      <h1>موتور بازی دو‌بعدی را با جاوا کدنویسی کن — دورهٔ کامل فری‌کدکمپ</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">🎥 ویدیو (یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=025QFeZfeyM" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی ویدیوی «Code a 2D Game Engine using
+          Java — Full Course for Beginners» از کانال <b>freeCodeCamp.org</b> (منتشرشدهٔ
+          ژانویهٔ ۲۰۲۲) است — ساخت یک موتور کامل دو‌بعدی و یک بازی شبیه کلون Mario با جاوا.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=025QFeZfeyM" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>این دورهٔ چندساعته (منتشرشده توسط freeCodeCamp) یک <b>موتور بازی دو‌بعدی</b> را
+        از صفر در جاوا می‌سازد و سپس با همان موتور یک <b>بازی کامل شبیه Super Mario</b>
+        (کلون) توسعه می‌دهد. در پایان، بازی شما در قالب یک <b>بستهٔ jar قابل اجرا</b>
+        بسته‌بندی می‌شود — یعنی یک بازی واقعی که می‌توانید روی هر سیستمی اجرا کنید.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این دوره برای مبتدیان طراحی شده: حتی نصب JDK و راه‌اندازی
+          محیط هم در ابتدای ویدیو آموزش داده می‌شود.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ از لینک زیر
+        مستقیم به یوتیوب بروید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/watch?v=025QFeZfeyM" target="_blank" rel="noopener">▶ تماشای دورهٔ «Code a 2D Game Engine using Java»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. محتوای دوره</h2>
+        <ul>
+          <li>ساخت <b>پنجرهٔ بازی</b> و حلقهٔ اصلی (Game Loop) با Java Swing/AWT</li>
+          <li>سیستم <b>GameObject</b>: موجودیت‌های قابل رندر با موقعیت و اندازه</li>
+          <li><b>فیزیک پایه</b>: گرانش، سرعت و برخورد با پلتفرم‌ها</li>
+          <li><b>انیمیشن اسپرایت</b>: کنترل فریم‌ها برای راه‌رفتن و پرش</li>
+          <li><b>دوربین و صحنه</b>: حرکت بین سطوح و اسکرول</li>
+          <li><b>ادیتور سطح</b>: ساخت و طراحی مراحل با ابزار ساخته‌شده در دوره</li>
+          <li>بسته‌بندی نهایی با <code>jar</code></li>
+        </ul>
+        <p>نمونهٔ ساختار کلاس‌ها:</p>
+        <pre class="code"><span class="lang-tag">java</span><code>// موجودیت پایه‌ای موتور
+public class GameObject {
+    public float x, y;          // موقعیت
+    public float width, height; // اندازه
+    public int animationIndex = 0;
+    public boolean isActive = true;
+
+    public void draw(Graphics2D g) {
+        // رسم فریم فعلی انیمیشن در موقعیت موجودیت
+    }
+}
+
+// حلقهٔ اصلی بازی: ۶۰ فریم در ثانیه
+public class GameWindow implements Runnable {
+    public void run() {
+        while (running) {
+            update();        // منطق: حرکت، فیزیک، برخورد
+            render();        // رسم همهٔ GameObject ها
+            Thread.sleep(16); // ~۶۰ فریم بر ثانیه
+        }
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>نتیجهٔ دوره یک جعبه‌ابزار (موتور) و یک بازی کامل (کلون ماریو) است؛ بهترین راه
+        برای فهمیدن اینکه «موتورهای بازی» در واقع چه چیزی‌اند و چطور منطق، رندر و فیزیک
+        در هم می‌آمیزند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ویدیوی «Code a 2D Game Engine using Java» از کانال
+        freeCodeCamp.org است (ژانویهٔ ۲۰۲۲) و تمام حقوق آن متعلق به خالقان آن است. این
+        صفحه فقط ترجمهٔ فارسی و مرور آن است. برای مشاهدهٔ اصل ویدیو به
+        <a href="https://www.youtube.com/watch?v=025QFeZfeyM" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

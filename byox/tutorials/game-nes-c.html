@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | برنامه‌نویسی بازی NES در C — وبلاگ Nesdoug</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>برنامه‌نویسی بازی NES</span>
+      </div>
+      <h1>چگونه یک بازی NES را در C برنامه‌نویسی کنیم — آموزش‌های Nesdoug</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C (کامپایلر cc65)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://nesdoug.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی وبلاگ <b>Nesdoug</b> است — یک وبلاگ
+          تخصصی برای برنامه‌نویسی بازی برای کنسول کلاسیک <b>NES</b> (فامیکام) به زبان C با
+          کامپایلر <b>cc65</b>. همهٔ آموزش‌ها گام‌به‌گام و با کد کامل هستند.
+        </div>
+        <a class="btn solid" href="https://nesdoug.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا NES؟</h2>
+        <p>کنسول NES محدودیت‌های سخت‌افزاری بسیار سخت‌گیرانه‌ای دارد: پردازندهٔ
+        <b>Ricoh 2A03</b> (یک کلون از 6502 با فرکانس ۱٫۷۹ مگاهرتز)، <b>۲ کیلوبایت RAM</b>
+        و یک چیپ گرافیکی جدا (PPU). ساختن بازی برای چنین سخت‌افزاری، درک عمیقی از
+        برنامه‌نویسی سطح پایین، مدیریت حافظه و طراحی محدودیت‌محور می‌دهد — و چالش آن
+        لذت‌بخش است!</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> برای شروع، نیازی به سخت‌افزار واقعی نیست؛ بازی‌ها را با
+          شبیه‌سازها (مثل Mesen یا FCEUX) اجرا می‌کنید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساختار آموزش‌ها</h2>
+        <p>آموزش‌های nesdoug با درس‌های شماره‌دار (۰۱ تا ۲۴ و…) پیش می‌روند؛ هر درس یک
+        موضوع مستقل دارد:</p>
+        <ul>
+          <li>راه‌اندازی پروژه با cc65 و ساخت اولین خروجی (فایل .nes)</li>
+          <li>انتظار برای <b>v-blank</b> (ناحیهٔ پنهان صفحه) و ساخت فلیپ‌فلاپ رندر</li>
+          <li>کار با <b>nametable</b>ها، صفات (attributes) و رنگ‌ها</li>
+          <li>خواندن <b>کنترلر</b> (دکمه‌های A/B/Select/Start و جهت‌ها)</li>
+          <li>اسپرایت‌ها (OAM) و صدمات برخورد اسپرایت با اسپرایت</li>
+          <li>افکت‌های صفحه‌نمایش (scroll و split screen)</li>
+          <li>کار با <b>mapper</b>ها (MMC1، MMC3) و نوارهای بزرگ‌تر</li>
+          <li>زاپر (اسلحهٔ نوری)، Power Pad و …</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. یک نمونهٔ ساده: اسپرایت و حرکت</h2>
+        <pre class="code"><span class="lang-tag">c</span><code>// ساختار سادهٔ یک اسپرایت در OAM (RAM صفت اسپرایت)
+// هر اسپرایت ۴ بایت: موقعیت y، شمارهٔ تایل، صفت‌ها، موقعیت x
+struct sprite {
+  unsigned char y;
+  unsigned char tile;
+  unsigned char attr;
+  unsigned char x;
+};
+
+// متغیر OAM سراسری — ۶۴ اسپرایت
+struct sprite sprites[64];
+
+// نمونه: حرکت اسپرایت با کنترلر
+void move_sprite(void) {
+  // خواندن ورودی: bit های کنترلر
+  if (pad &amp; PAD_LEFT)  sprites[0].x -= 1;
+  if (pad &amp; PAD_RIGHT) sprites[0].x += 1;
+  if (pad &amp; PAD_UP)    sprites[0].y -= 1;
+  if (pad &amp; PAD_DOWN)  sprites[0].y += 1;
+}</code></pre>
+        <p>برای کار با تایل‌ها، دو منطقهٔ حافظه مهم است: <b>CHR-ROM</b> (جایی که تایل‌های
+        ۸×۸ پیکسلی ذخیره‌اند) و <b>nametable</b> (که می‌گوید کدام تایل کجا نمایش داده
+        شود). گرافیک NES یعنی چیدن تایل‌های ۸×۸ در یک شبکهٔ ۳۲×۳۰.</p>
+      </section>
+
+      <section>
+        <h2>۴. ابزارها</h2>
+        <ul>
+          <li><b>cc65</b>: کامپایلر C که به زبان اسمبلی 6502 خروجی می‌دهد (با ld65 برای
+          لینک).</li>
+          <li><b>اسپریت‌ساز</b>ها و ادیتورهای تایل برای ساخت گرافیک CHR.</li>
+          <li>ابزارهایی مانند Nesst برای چیدن نقشهٔ نَم‌تیبل.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>آموزش‌های nesdoug شاید بهترین منبع رایگان برای شروع برنامه‌نویسی NES به زبان C
+        باشند. با ساخت چند بازی ساده (مثل پنگ، مار و پلتفرمر)، هم تاریخچهٔ بازی‌سازی را
+        درک می‌کنید و هم مهارت‌های سطح پایین‌تان تقویت می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> وبلاگ و آموزش‌های Nesdoug اثر داگ (Nesdoug) است و تمام
+        حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن است. برای مشاهدهٔ اصل
+        آموزش‌ها به
+        <a href="https://nesdoug.com/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

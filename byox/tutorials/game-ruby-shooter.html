@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | توسعه بازی با Ruby — کتاب آنلاین توماس وارانکاس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی با Ruby</span>
+      </div>
+      <h1>توسعه بازی با Ruby — کتاب آنلاین «Developing Games with Ruby»</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://leanpub.com/developing-games-with-ruby/read" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی کتاب «Developing Games With Ruby»
+          از <b>توماس وارانکاس (Tomas Varaneckas)</b> است — یک کتاب کامل (۲۳ فصل) که یک
+          بازی دو‌بعدی دونمای شوتر (top-down) را با Ruby می‌سازد و در Leanpub به‌صورت
+          آنلاین و رایگان قابل خواندن است.
+        </div>
+        <a class="btn solid" href="https://leanpub.com/developing-games-with-ruby/read" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p>این کتاب چند جلدی، بهترین منبع بازی‌سازی با Ruby است: یک بازی شوتر بال‌به‌بالا
+        (مانند آنچه در دههٔ ۹۰ مرسوم بود) از صفر ساخته می‌شود — با گیم‌پلی سریع، دوربین
+        خودکار، هوش مصنوعی دشمنان، مپ‌های تصادفی و سیستم‌های امتیاز. ابزار اصلی کتاب:
+        کتابخانهٔ <b>Gosu</b> (معروف‌ترین کتابخانهٔ بازی Ruby). نسخهٔ آنلاین در
+        Leanpub رایگان خواندنی است و نسخهٔ خرید کتاب، پشتیبانی از نویسنده را فراهم
+        می‌کند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> نویسنده، بنیان‌گذار انجمن «Game Hero» (بازی‌سازی با Ruby)
+          است و در همین کتاب تجربه‌های عملی از شهرسازی و مفاهیم پیشرفتهٔ گیم‌دِو را هم
+          می‌گنجاند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. فصل‌های کلیدی</h2>
+        <ul>
+          <li>راه‌اندازی Gosu و ساخت پنجره</li>
+          <li>حلقهٔ بازی، حالت‌ها و مدیریت ورودی</li>
+          <li>اسپرایت و انیمیشن با bmfont ها</li>
+          <li>دوربین و دنیای بزرگ‌تر از صفحه</li>
+          <li>هوش مصنوعی: تعقیب، شلیک و الگوها</li>
+          <li>مپ‌های تصادفی و فیزیک ساده</li>
+          <li>سیستم ذخیرهٔ رکورد و چالش‌های بعد</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد</h2>
+        <pre class="code"><span class="lang-tag">ruby</span><code># ساختار بازی با Gosu
+require 'gosu'
+
+class Game < Gosu::Window
+  def initialize(width = 800, height = 600)
+    super(width, height)
+    self.caption = 'بازی من با Ruby'
+    @player_x = 400
+    @player_y = 300
+  end
+
+  # به‌روزرسانی منطق هر فریم
+  def update
+    # حرکت با کلیدها
+    @player_x -= 5 if Gosu.button_down?(Gosu::KB_LEFT)
+    @player_x += 5 if Gosu.button_down?(Gosu::KB_RIGHT)
+    @player_y -= 5 if Gosu.button_down?(Gosu::KB_UP)
+    @player_y += 5 if Gosu.button_down?(Gosu::KB_DOWN)
+  end
+
+  # رندر هر فریم
+  def draw
+    # (رسم با Gosu::Image یا شکل‌های ساده)
+  end
+end
+
+Game.new.show</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>کامل‌ترین مرجع بازی‌سازی با Ruby؛ رایگان آنلاین.</li>
+          <li>پوشش واقع‌بینانه: نه فقط «سلام دنیا» — دوربین، AI، مپ تصادفی.</li>
+          <li>مناسب Rubyist ها و کسانی که یک زبان ساده می‌خواهند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Developing Games With Ruby» اثر توماس وارانکاس
+        (Tomas Varaneckas) است و در Leanpub منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ آنلاین
+        نسخهٔ رایگان به
+        <a href="https://leanpub.com/developing-games-with-ruby/read" target="_blank" rel="noopener">Leanpub</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

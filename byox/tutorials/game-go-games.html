@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی‌ها با Go — پلی‌لیست ویدیویی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی‌ها با Go</span>
+      </div>
+      <h1>بازی‌ها با Go — پلی‌لیست ویدیویی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Games with Go»
+          است — جمع‌آوری ویدیوهایی که بازی‌های مختلف را با زبان <b>Go</b> می‌سازند
+          (اغلب با کتابخانهٔ <b>Ebiten</b> یا raylib-go).
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ پلی‌لیست</h2>
+        <p>Go (گاه‌گولنگ) با گوروتین‌ها، جمع‌آوری زباله و کامپایل سریع، زبان بسیار
+        مناسبی برای توسعهٔ بازی است — و کتابخانه‌هایی مثل <b>Ebiten</b> (ساخت بازی
+        دوبعدی با پشتیبانی چندپلتفرم) آن را ساده‌تر هم کرده‌اند. در این پلی‌لیست، بازی‌های
+        ساده تا متوسط (پلتفرمر، دایور، پازل و…) در Go ساخته می‌شوند و مفاهیم اصلی —
+        حلقهٔ بازی، ورودی، رندر با اسپرایت — قدم‌به‌قدم پیاده می‌شوند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> Ebiten از Go استفاده می‌کند که برای وب هم خروجی می‌دهد
+          (WASM) — بازی‌های ساخته‌شده را می‌توانید در مرورگر هم اجرا کنید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را
+        از لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Games with Go»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: یک بازی ساده با Ebiten</h2>
+        <pre class="code"><span class="lang-tag">go</span><code>package main
+
+import (
+	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
+
+// هر بازی یک struct است که اینترفیس Game را پیاده می‌کند
+type Game struct {
+	// وضعیت بازی: موقعیت بازیکن، ورودی و ...
+	playerX, playerY float64
+}
+
+// به‌روزرسانی منطق: ورودی و فیزیک
+func (g *Game) Update() error {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		g.playerX -= 2
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		g.playerX += 2
+	}
+	return nil
+}
+
+// رندر: رسم صحنه روی صفحه
+func (g *Game) Draw(screen *ebiten.Image) {
+	// رسم مستطیل بازیکن روی screen (جزئیات با DrawImage)
+}
+
+// ابعاد پنجره و عنوان
+func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
+	return 640, 480
+}
+
+func main() {
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("بازی من با Go")
+	if err := ebiten.RunGame(&amp;Game{}); err != nil {
+		log.Fatal(err)
+	}
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>اگر Go را می‌دانید و می‌خواهید بازی‌سازی را شروع کنید، این پلی‌لیست نقطهٔ
+        شروع خوبی است؛ و اگر Go را نمی‌دانید، ساخت یک بازی کوچک با Ebiten یکی از
+        لذت‌بخش‌ترین راه‌های یادگیری آن است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Games with Go» اثر سازندهٔ کانال یوتیوب است و
+        تمام حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن است. برای مشاهدهٔ
+        اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PLDZujg-VgQlZUy1iCqBbe5faZLMkA3g2x" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Handmade Hero — ساخت بازی از صفر با کِیسی موراتوری</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Handmade Hero</span>
+      </div>
+      <h1>Handmade Hero — ساخت یک بازی کامل از صفر با کِیسی موراتوری</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C/C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://handmadehero.org/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پروژهٔ <b>Handmade Hero</b> اثر
+          <b>کِیسی موراتوری (Casey Muratori)</b> است. پروژه از ۱۷ نوامبر ۲۰۱۴ شروع شد و در
+          آن یک بازی کامپیوتری حرفه‌ای — بدون هیچ موتور و کتابخانه‌ای — خط‌به‌خط جلوی دوربین
+          ساخته می‌شود. سایت اصلی به hero.handmade.network منتقل شده است.
+        </div>
+        <a class="btn solid" href="https://hero.handmade.network/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. پروژه چیست؟</h2>
+        <p>Handmade Hero یک پروژهٔ آموزشی بلندمدت است: هر روز هفته، یک ساعت، موراتوری جلوی
+        دوربین می‌نشیند و یک بازی کامل را از <b>صفر مطلق</b> می‌سازد. بازی در نهایت باید
+        «با کیفیت تجاری» باشد: گرافیک، صدا، فیزیک، هوش مصنوعی، رابط کاربری و حتی ابزارهای
+        پشتیبانی — همه‌چیز از پایه و در C/C++ (با چند قطعه اسمبلی) پیاده می‌شود.</p>
+        <ul>
+          <li><b>شروع:</b> ۱۷ نوامبر ۲۰۱۴؛ بیش از ۶۰۰ قسمت تاکنون.</li>
+          <li><b>فرمت:</b> هر روز هفته یک ساعت ویدیو + کد کامل قابل اجرا.</li>
+          <li><b>رویکرد:</b> بدون موتور، بدون کتابخانه، بدون middleware — همه‌چیز را خودتان
+          می‌سازید: پنجره، ورودی، رندر، صدا.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۲. چرا مهم است؟</h2>
+        <p>بیشتر آموزش‌های بازی، با موتورهای آماده (Unity/Unreal) یا کتابخانه‌های سطح بالا
+        شروع می‌کنند. Handmade Hero راه کاملاً مخالف را می‌رود و جواب این سؤال را می‌دهد:
+        «بازی‌های دههٔ ۹۰ — مثل کریشن‌های کریس سایر — بدون هیچ‌چیز چطور ساخته شدند؟»
+        نتیجه: درک عمیق از نحوهٔ کار کامپیوتر، حافظه، و رندر.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> از قسمت‌های اول (ساخت پنجرهٔ Win32 و بافر رندر) شروع کنید؛
+          همان‌ها مفاهیم پایه را کامل می‌سازند. کد هر قسمت را می‌توانید از وبسایت دانلود
+          و اجرا کنید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. بخش‌های اصلی بازی</h2>
+        <p>در طول پروژه این زیرسیستم‌ها ساخته می‌شوند (نمونهٔ ساختار کد):</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// نمای کلی ماژول‌های بازی در طول پروژه
+win32_handmade.cpp   // لایهٔ پلتفرم: پنجره، ورودی، صوت، زمان
+handmade.h           // ساختارهای مشترک (بافر رندر، حالت بازی)
+handmade.cpp         // منطق بازی: به‌روزرسانی و رندر
+handmade_math.h      // ریاضیات برداری/ماتریسی
+handmade_audio.cpp   // سینت‌سایزر صدا و پخش
+handmade_asset.cpp   // سیستم مدیریت دارایی‌ها
+handmade_world.cpp   // دنیای بازی، برخورد و هوش مصنوعی</code></pre>
+        <p>چند مفهوم کلیدی که به‌مرور پیاده می‌شوند: بافر رندر پیکسلی با دسترسی مستقیم،
+        سیستم ورودی بدون لِگ، پارالکس و اسکرول، برخورد با شبکه‌بندی دنیا، پخش صدا با
+        سینت‌سایزر نرم‌افزاری و… همهٔ آن‌ها با کد C خالص و کنترل کامل روی حافظه.</p>
+      </section>
+
+      <section>
+        <h2>۴. دسترسی و لایسنس</h2>
+        <ul>
+          <li>همهٔ ویدیوها و کدهای هر قسمت، رایگان در وبسایت پروژه موجود است.</li>
+          <li>کدهای بازی پس از اتمام پروژه، <b>دو سال پس از انتشار</b> به مالکیت عمومی
+          (public domain) در می‌آیند — یعنی حتی می‌توانید از آن‌ها در پروژه‌های تجاری
+          استفاده کنید.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>Handmade Hero یک منبع بی‌نظیر برای کسی است که می‌خواهد بفهمد «بازی‌ها واقعاً
+        چطور کار می‌کنند». اگر حوصلهٔ ویدیوهای طولانی ندارید، بخش‌های ابتدایی و بخش‌های
+        مرتبط با رندر و ورودی را ببینید؛ همین‌ها دید عمیقی به شما می‌دهند که با هیچ
+        آموزش موتور محوری به دست نمی‌آید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ Handmade Hero اثر کِیسی موراتوری (Casey Muratori)
+        است و تمام حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن است. برای
+        مشاهدهٔ اصل پروژه به
+        <a href="https://hero.handmade.network/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

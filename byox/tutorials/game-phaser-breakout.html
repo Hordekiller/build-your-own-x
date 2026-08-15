@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازی Breakout دو‌بعدی با Phaser — آموزش رسمی MDN</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Breakout با Phaser</span>
+      </div>
+      <h1>بازی Breakout دو‌بعدی با Phaser — آموزش گام‌به‌گام MDN</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش رسمی «2D breakout game using
+          Phaser» از <b>MDN Web Docs</b> است — یک بازی کامل Breakout با فریم‌ورک بازی
+          <b>Phaser</b> که گام‌به‌گام و با نمونه‌های زندهٔ قابل ویرایش ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>این آموزش در قالب بخش «بازی‌ها» (Games) سایت MDN منتشر شده و بازی Breakout را
+        با <b>Phaser</b> می‌سازد. ویژگی خاص آن: هر مرحله یک <b>نمونهٔ زندهٔ قابل
+        ویرایش</b> دارد که می‌توانید کدش را مستقیم در مرورگر تغییر دهید و نتیجه را
+        فوراً ببینید. کد کامل در GitHub MDN موجود است. پیش‌نیاز: جاوااسکریپت نسبتاً
+        مبتدی تا متوسط.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> MDN نسخهٔ همین بازی را با <b>جاوااسکریپت خالص</b> (Canvas)
+          هم دارد؛ اگر می‌خواهید بدون فریم‌ورک ببینید چگونه کار می‌کند، اول آن نسخه را
+          بروید، بعد این آموزش Phaser را — تفاوت‌ها خیلی روشن‌کننده‌اند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ درس‌ها</h2>
+        <ul>
+          <li>راه‌اندازی Phaser و ساخت صحنهٔ بازی</li>
+          <li>رندر و جابه‌جایی تصویر (راکت، توپ)</li>
+          <li>تشخیص برخورد (collision detection)</li>
+          <li>کنترل‌ها: ماوس و کیبورد</li>
+          <li>انیمیشن: حرکت توپ، تویین‌ها (tweens)</li>
+          <li>وضعیت برد و باخت (win/lose states)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد: صحنهٔ بازی</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>// ساخت صحنه‌های بازی: Boot → Preload → Create → Update
+class GameScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'GameScene' });
+  }
+
+  preload() {
+    // بارگذاری تصاویر
+    this.load.image('ball', 'images/ball.png');
+    this.load.image('paddle', 'images/paddle.png');
+    this.load.image('brick', 'images/brick.png');
+  }
+
+  create() {
+    // توپ با فیزیک
+    this.ball = this.physics.add.image(400, 300, 'ball');
+    this.ball.setBounce(1);         // بازتاب کامل
+    this.ball.setVelocity(160, 160); // سرعت اولیه
+
+    // راکت: ثابت در پایین، حرکت با ماوس
+    this.paddle = this.physics.add.image(400, 550, 'paddle');
+    this.paddle.setImmovable(true);
+
+    // برخورد توپ با راکت
+    this.physics.add.collider(this.ball, this.paddle);
+
+    // آجرها: شبکه
+    for (let row = 0; row &lt; 3; row++) {
+      for (let col = 0; col &lt; 8; col++) {
+        const brick = this.physics.add.image(70 + col * 90, 60 + row * 40, 'brick');
+        brick.setImmovable(true);
+        this.physics.add.collider(this.ball, brick, this.hitBrick, null, this);
+      }
+    }
+
+    this.input.on('pointermove', (p) =&gt; {
+      this.paddle.x = Phaser.Math.Clamp(p.x, 50, 750);
+    });
+  }
+
+  hitBrick(ball, brick) {
+    brick.destroy(); // آجر نابود شد
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این آموزش کوتاه، تمیز و تعاملی است و بهترین معرفی Phaser + مفاهیم پایهٔ بازی
+        (فیزیک، برخورد، حالت‌ها) به شمار می‌رود. بعد از آن می‌توانید همین ساختار را با
+        مراحل بیشتر و امتیازدهی گسترش دهید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «2D breakout game using Phaser» اثر تیم
+        توسعه‌دهندگان MDN Web Docs است و تحت مجوز باز منتشر شده. این صفحه فقط ترجمهٔ
+        فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به خالقان اصلی است. برای
+        مشاهدهٔ اصل آموزش به
+        <a href="https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_breakout_game_Phaser" target="_blank" rel="noopener">MDN Web Docs</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

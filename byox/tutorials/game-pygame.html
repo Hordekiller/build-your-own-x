@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | توسعه بازی با PyGame — آموزش PythonProgramming</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>PyGame</span>
+      </div>
+      <h1>توسعه بازی با PyGame — دورهٔ PythonProgramming.net</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://pythonprogramming.net/pygame-python-3-part-1-intro/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی درس مقدمه‌ای «PyGame tutorial:
+          Introduction» از سایت <b>PythonProgramming.net</b> (هَریسون کینزلی) است — اولین
+          درس از سری کامل بازی‌سازی با <b>Python 3 و PyGame</b> که با بازی «A bit Racey»
+          ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://pythonprogramming.net/pygame-python-3-part-1-intro/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ دوره</h2>
+        <p>این سری ویدیویی، بازی «A bit Racey» را می‌سازد: یک ماشین مسابقه‌ای که با کلید
+       ها حرکت می‌کند و باید موانع در حال آمدن را دور بزند. درس اول راه‌اندازی کامل
+        را نشان می‌دهد: نصب PyGame، ساخت پنجره، حلقهٔ بازی و کنترل فریم‌ریت با
+        <code>Clock</code>.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این یک آموزش ویدیویی-متنتی است؛ درس‌ها هم ویدیو دارند هم
+          متن — برای دنبال‌کردن گام‌به‌گام عالی است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. کد مقدماتی</h2>
+        <pre class="code"><span class="lang-tag">python</span><code>import pygame
+
+# راه‌اندازی همهٔ ماژول‌های pygame
+pygame.init()
+
+# ساخت پنجره: عرض ۸۰۰، ارتفاع ۶۰۰
+win = pygame.display.set_mode((800, 600))
+
+# عنوان پنجره
+pygame.display.set_caption("A bit Racey")
+
+# ساعت: کنترل فریم‌ریت
+clock = pygame.time.Clock()
+
+# مقداردهی اولیهٔ ماشین بازی
+x, y = 400, 500      # موقعیت ماشین
+width, height = 40, 60
+vel = 5              # سرعت حرکت
+
+run = True
+while run:
+    clock.tick(60)   # حداکثر ۶۰ فریم در ثانیه
+
+    # مدیریت رویدادها: بستن پنجره
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    # ورودی: حرکت با کلیدهای جهت‌نما
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and x &gt; 0:
+        x -= vel
+    if keys[pygame.K_RIGHT] and x &lt; 800 - width:
+        x += vel
+
+    # رندر: پاک کردن صفحه و رسم ماشین
+    win.fill((0, 0, 0))
+    pygame.draw.rect(win, (255, 0, 0), (x, y, width, height))
+
+    pygame.display.update()
+
+pygame.quit()</code></pre>
+        <p>با همین حدود ۳۰ خط، اولین بازی قابل اجرای شما آماده است؛ درس‌های بعدی موانع،
+        برخورد، امتیاز و صفحهٔ شروع/پایان را اضافه می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۳. جمع‌بندی</h2>
+        <p>سری PyGame هَریسون (PythonProgramming.net) یک استاندارد طلایی برای شروع
+        بازی‌سازی با پایتون است: مقدمات را سریع و عملی پوشش می‌دهد و ویدیوها همراه
+        متن، یادگیری را راحت می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> درس «PyGame tutorial: Introduction» از سایت
+        PythonProgramming.net (هَریسون کینزلی) است. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل درس به
+        <a href="https://pythonprogramming.net/pygame-python-3-part-1-intro/" target="_blank" rel="noopener">PythonProgramming.net</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | توسعه بازی سه‌بعدی با LWJGL 3 — کتاب آنلاین</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>توسعه بازی با LWJGL 3</span>
+      </div>
+      <h1>توسعه بازی سه‌بعدی با LWJGL 3 — کتاب آنلاین lwjglgamedev</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://lwjglgamedev.gitbooks.io/3d-game-development-with-lwjgl/content/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی کتاب آنلاین «3D Game Development with
+          LWJGL 3» اثر <b>آنتونیو هرناندز بخرانو (Antonio Hernández Bejarano)</b> است — یک
+          کتاب کامل و رایگان برای ساخت بازی‌های سه‌بعدی با <b>Lightweight Java Game
+          Library 3</b>.
+        </div>
+        <a class="btn solid" href="https://lwjglgamedev.gitbooks.io/3d-game-development-with-lwjgl/content/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p><b>LWJGL 3</b> کتابخانه‌ای است که دسترسی سطح پایین به OpenGL، OpenAL (صدا) و
+        OpenCL را در جاوا فراهم می‌کند — بدون هیچ موتور بازی‌ای. این کتاب با رویکرد
+        گام‌به‌گام از فصل «First steps» شروع می‌کند: ساخت پنجره با GLFW، سپس شیدرهای
+        OpenGL، رندر اجسام، دوربین، نورپردازی و در نهایت یک صحنهٔ سه‌بعدی قابل حرکت.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر با OpenGL آشنا نیستید، فصل‌های ابتدایی کتاب (شیدر،
+          VBO/VAO، ماتریس‌های ترانسفورم) خودشان یک درس کامل گرافیک هستند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ فصل‌ها</h2>
+        <ul>
+          <li>اولین قدم‌ها: راه‌اندازی GLFW و پنجره</li>
+          <li>شیدرها و خط لولهٔ مدرن OpenGL (GLSL)</li>
+          <li>رندر مثلث و مکعب، دوربین، بافت‌ها</li>
+          <li>ماتریس‌ها و ترانسفورم‌ها (ترجمه/چرخش/مقیاس)</li>
+          <li>نورپردازی و مصالح (materials)</li>
+          <li>مدل‌های سه‌بعدی، آب، آسمان، ذرات</li>
+          <li>صدا با OpenAL (در کتاب قدیمی‌تر)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. نمونهٔ کد</h2>
+        <pre class="code"><span class="lang-tag">java</span><code>// راه‌اندازی پنجره با GLFW
+public class GameEngine implements Runnable {
+    private final Window window;
+
+    public static void main(String[] args) {
+        new GameEngine().run();
+    }
+
+    @Override
+    public void run() {
+        init();              // پنجره، OpenGL state
+        while (!window.shouldClose()) {
+            gameLoop();      // ورودی ← به‌روزرسانی ← رندر
+        }
+        cleanup();           // آزادسازی GLFW
+    }
+
+    private void init() {
+        window = new Window("3D Game with LWJGL", 800, 600);
+        window.init();
+        // ... ایجاد شیدر، بافرها و صحنه
+    }
+}</code></pre>
+        <p>تمام کتاب روی همان الگوی «Window + Scene + Renderer» بنا می‌شود؛ هر فصل یک
+        قابلیت گرافیکی به صحنه اضافه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این کتاب بهترین منبع رایگان برای شروع گرافیک سه‌بعدی و بازی‌سازی با جاواست؛
+        کد نمونهٔ هر فصل در گیت‌هاب نویسنده موجود است و کتاب به‌روزرسانی می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «3D Game Development with LWJGL 3» اثر آنتونیو
+        هرناندز بخرانو (Antonio Hernández Bejarano) است و در lwjglgamedev.gitbooks.io
+        منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق
+        به نویسندهٔ اصلی است. برای مشاهدهٔ اصل کتاب به
+        <a href="https://lwjglgamedev.gitbooks.io/3d-game-development-with-lwjgl/content/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Redux خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>Redux</span>
+      </div>
+      <h1>Redux خودت را بساز — آموزش زاپیر (Zapier)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://zapier.com/engineering/how-to-build-redux/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «How to Build Redux» از وبلاگ
+          مهندسی <b>زاپیر (Zapier)</b> است. در این مقاله Redux — کتابخانهٔ مدیریت state
+          تیم ری‌اکت — از صفر بازسازی می‌شود تا منطق سادهٔ پشت آن کاملاً روشن شود.
+        </div>
+        <a class="btn solid" href="https://zapier.com/engineering/how-to-build-redux/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا Redux را از صفر بسازیم؟</h2>
+        <p>Redux در هستهٔ خود فقط <b>سه مفهوم</b> دارد: یک شیء واحد برای state، تابع خالص
+        (reducer) که state را تغییر می‌دهد و تابع <code>dispatch</code> که اکشن‌ها را به
+        reducer می‌رساند. تمام API آن (getState، subscribe، combineReducers، createStore و…)
+        فقط همین سه ایده را سرو می‌کنند. با ساختن خودمان می‌فهمیم که نه جادو دارد، نه پیچیدگی
+        خاصی.</p>
+      </section>
+
+      <section>
+        <h2>۲. اولین پیاده‌سازی: فروشگاه دستی</h2>
+        <p>مقاله با یک «فروشگاه» (store) دست‌ساز شروع می‌کند: یک شیء state و تابعی که آن را
+        عوض می‌کند. سپس می‌خواهیم همهٔ تغییرات state فقط از یک مسیر عبور کند — این همان
+        <b>dispatch</b> است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// ابتدا بدون Redux: state پراکنده و بی‌قاعده
+let state = { count: 0 };
+function increment() { state = { ...state, count: state.count + 1 }; }
+
+// حالا با اکشن: هر تغییر state یک شیء توصیفی دارد
+function dispatch(action) {
+  state = reducer(state, action);
+}
+
+// و reducer یک تابع خالص است: (state قبلی + اکشن) → state جدید
+function reducer(state = { count: 0 }, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return { ...state, count: state.count + 1 };
+    case 'DECREMENT':
+      return { ...state, count: state.count - 1 };
+    default:
+      return state;
+  }
+}
+
+dispatch({ type: 'INCREMENT' }); // state.count: 1
+dispatch({ type: 'DECREMENT' }); // state.count: 0</code></pre>
+        <p>به این نکات دقت کنید: reducer هیچ‌وقت state را دستکاری نمی‌کند (شیء جدید
+        برمی‌گرداند) و برای یک ورودی یکسان، همیشه خروجی یکسان می‌دهد — همین «خلوص» است که
+        تست‌پذیری و قابلیت بازپخش (time-travel) را ممکن می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۳. ساختن createStore</h2>
+        <p>حالا همین ایده را بسته‌بندی می‌کنیم: یک تابع <code>createStore</code> که
+        state را درون یک closure نگه می‌دارد و API استاندارد Redux را برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createStore(reducer, initialState) {
+  let state = initialState;
+  const listeners = [];
+
+  return {
+    // خواندن state فعلی
+    getState() {
+      return state;
+    },
+
+    // ارسال اکشن: reducer اجرا، state عوض و شنونده‌ها خبردار می‌شوند
+    dispatch(action) {
+      state = reducer(state, action);
+      listeners.forEach((listener) =&gt; listener());
+      return action;
+    },
+
+    // ثبت شنوندهٔ تغییرات؛ تابع حذف‌اشتراک برمی‌گرداند
+    subscribe(listener) {
+      listeners.push(listener);
+      return () =&gt; {
+        const index = listeners.indexOf(listener);
+        if (index &gt; -1) listeners.splice(index, 1);
+      };
+    },
+  };
+}
+
+// استفاده
+const store = createStore(reducer);
+store.subscribe(() =&gt; console.log('count:', store.getState().count));
+store.dispatch({ type: 'INCREMENT' });</code></pre>
+        <p>این دقیقاً همان چیزی است که Redux هست — کل کتابخانه در همین حد خلاصه می‌شود؛
+        بقیه ابزارها (bindActionCreators، applyMiddleware و…) فقط آسایش توسعه‌دهنده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>۴. ترکیب reducerها</h2>
+        <p>در برنامهٔ واقعی state بزرگ است؛ به‌جای یک reducer غول‌پیکر، چند reducer کوچک
+        داریم که هر کدام فقط بخش خودشان را مدیریت می‌کنند و <code>combineReducers</code>
+        آن‌ها را کنار هم می‌گذارد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function combineReducers(reducers) {
+  return (state = {}, action) =&gt; {
+    const nextState = {};
+    for (const key in reducers) {
+      // هر reducer فقط کلید مربوط به خودش را به‌روز می‌کند
+      nextState[key] = reducers[key](state[key], action);
+    }
+    return nextState;
+  };
+}
+
+const appReducer = combineReducers({
+  count: counterReducer,
+  user: userReducer,
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. پیوند با React</h2>
+        <p>بخش پایانی مقاله نشان می‌دهد چطور این store را به یک کامپوننت React وصل کنیم:
+        با <code>store.subscribe</code> رندر را به‌روزرسانی می‌کنیم و با
+        <code>store.dispatch</code> اکشن می‌فرستیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class Counter extends React.Component {
+  componentDidMount() {
+    // هر تغییر state → رندر دوباره
+    this.unsubscribe = store.subscribe(() =&gt; this.forceUpdate());
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  render() {
+    return (
+      &lt;div&gt;
+        &lt;span&gt;{store.getState().count}&lt;/span&gt;
+        &lt;button onClick={() =&gt; store.dispatch({ type: 'INCREMENT' })}&gt;+&lt;/button&gt;
+      &lt;/div&gt;
+    );
+  }
+}</code></pre>
+        <p>پکیج react-redux دقیقاً همین اتصال را (با بهینه‌سازی انتخاب‌های selector) برای
+        شما انجام می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>Redux = state واحد + reducer خالص + dispatch؛ کل چارچوب در چند ده خط
+          جاوااسکریپت ساده است.</li>
+          <li>خلوص reducer مهم‌ترین ویژگی است: باعث پیش‌بینی‌پذیری، تست‌پذیری و قابلیت
+          بازپخش (با ابزارهایی مثل Redux DevTools) می‌شود.</li>
+          <li>بعد از این آموزش، کد منبع Redux (فقط چند فایل کوچک) را بخوانید؛ متوجه می‌شوید
+          چقدر به همین نسخهٔ ساده شبیه است.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Build Redux» اثر تیم مهندسی زاپیر (Zapier
+        Engineering) است و در وبلاگ zapier.com منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://zapier.com/engineering/how-to-build-redux/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

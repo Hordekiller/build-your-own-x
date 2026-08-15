@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Gooact: React در ۱۶۰ خط جاوااسکریپت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>Gooact</span>
+      </div>
+      <h1>Gooact: ساخت React در ۱۶۰ خط جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@sweetpalma/gooact-react-in-160-lines-of-javascript-44e0742ad60f" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Gooact: React in 160 lines of
+          JavaScript» از <b>میکووای پالکیویچ (Mikołaj Palkiewicz)</b> در Medium است. او
+          «هستهٔ React» را — کلاس کامپوننت، render، و به‌روزرسانی — در ۱۶۰ خط می‌نویسد تا
+          نشان دهد فناوری‌های پیشرفته جادو نیستند.
+        </div>
+        <a class="btn solid" href="https://medium.com/@sweetpalma/gooact-react-in-160-lines-of-javascript-44e0742ad60f" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: هدف و محدودیت‌ها</h2>
+        <p>هدف این مقاله پیاده‌سازی یک «React مینیمال» است که بتواند برنامه‌های واقعی ساده را
+        اجرا کند؛ شامل <code>React.createElement</code>، کلاس <code>React.Component</code> با
+        <code>setState</code> و مکانیزم <b>diffing</b> برای به‌روزرسانی کارآمد. نویسنده
+        صراحتاً از پیاده‌سازی برخی قابلیت‌ها (مانند کامپوننت‌های تابعی، portals و بهینه‌سازی
+       ‌های پیشرفته) صرف‌نظر می‌کند تا کد کوچک بماند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> مزیت این آموزش، کوتاهی آن است؛ می‌توانید کل کد را یک‌باره
+          بخوانید و بعد سراغ نسخهٔ کامل‌تر (مانند Didact با Fiber و Hook) بروید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. createElement: ساخت گره‌های درخت مجازی</h2>
+        <p>مانند همهٔ نسخه‌ها، اولین قطعه، تولیدکنندهٔ گره است. نکتهٔ ویژهٔ پیاده‌سازی Gooact:
+        نودها مستقیم با نام کلاس‌های CSS مسیر می‌شوند و رویدادها با پیشوند <code>on</code>
+        تشخیص داده می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const TEXT_ELEMENT = "TEXT ELEMENT";
+
+function createElement(type, config, ...args) {
+  const props = Object.assign({}, config);
+  // بچه‌ها: نودهای متنی به TEXT_ELEMENT تبدیل می‌شوند
+  const hasChildren = args.length &gt; 0;
+  const rawChildren = hasChildren ? [].concat(...args) : [];
+  props.children = rawChildren
+    .filter(c =&gt; c != null &amp;&amp; c !== false)
+    .map(c =&gt; (c instanceof Object ? c : createTextElement(c)));
+  return { type, props };
+}
+
+function createTextElement(value) {
+  return createElement(TEXT_ELEMENT, { nodeValue: value });
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. render: تبدیل درخت مجازی به DOM</h2>
+        <p>تابع <code>render</code> به‌صورت بازگشتی نودهای DOM می‌سازد و صفات را روی آن‌ها
+        می‌نشاند؛ رویدادها (با پیشوند <code>on</code>) با <code>addEventListener</code>
+        متصل می‌شوند و بقیهٔ کلیدها صفت می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function render(element, parentDom) {
+  const dom =
+    element.type === TEXT_ELEMENT
+      ? document.createTextNode("")
+      : document.createElement(element.type);
+
+  const isListener = (name) =&gt; name.startsWith("on");
+  const isAttribute = (name) =&gt; !isListener(name) &amp;&amp; name !== "children";
+
+  // اتصال رویدادها
+  Object.keys(element.props || {})
+    .filter(isListener)
+    .forEach((name) =&gt; {
+      const eventType = name.toLowerCase().substring(2);
+      dom.addEventListener(eventType, element.props[name]);
+    });
+
+  // تنظیم صفات
+  Object.keys(element.props || {})
+    .filter(isAttribute)
+    .forEach((name) = =&gt; {
+      dom[name] = element.props[name];
+    });
+
+  // رندر بچه‌ها به‌صورت بازگشتی
+  const childElements = element.props.children || [];
+  childElements.forEach((childElement) =&gt; render(childElement, dom));
+
+  parentDom.appendChild(dom);
+  return dom;
+}</code></pre>
+        <p>توجه کنید چگونه فقط با یک قاعدهٔ نام‌گذاری (پیشوند <code>on</code>) هم رویدادها و
+        هم صفات از هم جدا می‌شوند — همین سادگی، خوانایی کد را بالا می‌برد.</p>
+      </section>
+
+      <section>
+        <h2>۴. کلاس Component و setState</h2>
+        <p>قلب React، کلاس <code>Component</code> است: هر نمونه، props و state و یک
+        <code>__internalInstance</code> دارد که به نود DOM خودش اشاره می‌کند. هنگام
+        <code>setState</code> فقط خود نود و فرزندانش دوباره رندر می‌شوند (نه کل صفحه):</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class Component {
+  constructor(props) {
+    this.props = props || {};
+    this.state = null;
+  }
+
+  setState(nextState) {
+    // ادغام state جدید با قبلی
+    this.state = Object.assign({}, this.state, nextState);
+    // رندر دوبارهٔ فقط همین کامپوننت
+    updateInstance(this.__internalInstance);
+  }
+}
+
+function updateInstance(internalInstance) {
+  const parentDom = internalInstance.dom.parentNode;
+  const element = internalInstance.element;
+  const newElement = getElement(internalInstance);
+  const newInstance = instantiate(newElement);
+  // مقایسهٔ درخت‌ها و اعمال diff بین DOM قبلی و جدید
+  diff(parentDom, internalInstance.dom, newInstance.dom, internalInstance.dom);
+  internalInstance.dom = newInstance.dom;
+}
+
+function instantiate(element) {
+  const { type, props } = element;
+  // کامپوننت‌ها: نمونه می‌سازیم و با متد render مقدار می‌دهیم
+  const isDomElement = typeof type === "string";
+  if (isDomElement) {
+    const isTextElement = type === TEXT_ELEMENT;
+    const dom = isTextElement ? document.createTextNode("") : document.createElement(type);
+    updateDomProperties(dom, [], props);
+    const childElements = props.children || [];
+    const childInstances = childElements.map(instantiate);
+    const childDoms = childInstances.map((ci) =&gt; ci.dom);
+    childDoms.forEach((childDom) =&gt; dom.appendChild(childDom));
+    return { dom, element, childInstances };
+  } else {
+    // کلاس کامپوننت: نمونه ساخته و رندر می‌شود
+    const instance = new type(props);
+    const childElement = instance.render();
+    const childInstance = instantiate(childElement);
+    const dom = childInstance.dom;
+    // اتصال نمونهٔ داخلی برای به‌روزرسانی‌های بعدی
+    Object.assign(instance, { __internalInstance: { dom, element, childInstance } });
+    return { dom, element, childInstance, instance };
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. diffing: به‌روزرسانی هوشمند نودها</h2>
+        <p>تابع <code>diff</code> چهار حالت را پوشش می‌دهد: جابه‌جایی نود (با
+        <code>insertBefore</code>)، حذف، جایگزینی با نود جدید و «همان نود» — در این حالت
+        فقط صفات و بچه‌ها مقایسه و در صورت تغییر اعمال می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function diff(parentDom, instance, newInstance, referenceDom) {
+  const oldDom = instance.dom;
+  const newDom = newInstance.dom;
+
+  if (instance.element.type === newInstance.element.type) {
+    // همان نوع: فقط props را به‌روز کن
+    updateDomProperties(oldDom, instance.element.props, newInstance.element.props);
+    const oldChildInstances = instance.childInstances;
+    const newChildElements = newInstance.element.props.children || [];
+    // بچه‌های جدید را بر اساس تعداد قبلی diff کن
+    const newChildInstances = [];
+    const count = Math.max(oldChildInstances.length, newChildElements.length);
+    for (let i = 0; i &lt; count; i++) {
+      const newChildElement = newChildElements[i];
+      const oldChildInstance = oldChildInstances[i];
+      if (oldChildInstance &amp;&amp; newChildElement) {
+        // هر دو موجود: diff بازگشتی
+        newChildInstances.push(diff(parentDom, oldChildInstance, instantiate(newChildElement), oldChildInstance.dom));
+      } else if (oldChildInstance) {
+        // قبلی بود و الان نیست: حذف
+        parentDom.removeChild(oldChildInstance.dom);
+      } else {
+        // جدید است: اضافه کن
+        parentDom.appendChild(instantiate(newChildElement).dom);
+      }
+    }
+    instance.childInstances = newChildInstances;
+    return instance;
+  }
+  // نوع عوض شده: جایگزین کامل
+  parentDom.replaceChild(newDom, oldDom);
+  return newInstance;
+}</code></pre>
+        <p>توجه: چون بچه‌ها با «شاخص» مقایسه می‌شوند، این نسخه از کلیدها (key) پشتیبانی
+        نمی‌کند — یکی از بهینه‌سازی‌هایی که React واقعی با key اضافه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>هستهٔ React (element ← render ← setState ← diff) بدون هیچ سرباری در ۱۶۰ خط
+          جاوااسکریپت خالص پیاده‌شدنی است.</li>
+          <li>جداسازی «نود DOM» از «نمونهٔ داخلی» همان چیزی است که به‌روزرسانی بخشی از درخت
+          را بدون رندر کامل صفحه ممکن می‌کند.</li>
+          <li>diff بر اساس «نوع نود» و «شاخص بچه» کار می‌کند؛ key ها راهی برای بهترکردن همین
+          مقایسه در React واقعی‌اند.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Gooact: React in 160 lines of JavaScript» اثر
+        میکووای پالکیویچ (Mikołaj Palkiewicz) است و در Medium منتشر شده. این صفحه فقط
+        ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای
+        مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/@sweetpalma/gooact-react-in-160-lines-of-javascript-44e0742ad60f" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

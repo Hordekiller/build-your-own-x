@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | برنامه‌نویسی حل‌کننده سودوکو در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>حل‌کننده سودوکو</span>
+      </div>
+      <h1>برنامه‌نویسی حل‌کننده سودوکو در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLkTXsX7igf8edTYU92nU-f5Ntzuf-RKvW" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Programming a
+          Sudoku Solver in C» است — یک حل‌کنندهٔ کامل سودوکو که با الگوریتم برگشت‌به‌عقب
+          (backtracking) در C پیاده می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLkTXsX7igf8edTYU92nU-f5Ntzuf-RKvW" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>سودوکو یک «بازی فکری» کلاسیک است و ساختن حل‌کنندهٔ آن یک تمرین عالی برای
+        یادگیری <b>بازگشت (recursion)</b> و <b>الگوریتم backtracking</b> در C است. در این
+        پلی‌لیست، برنامه‌ای ساخته می‌شود که هر جدول سودوکو را از ورودی می‌خواند و آن را
+        حل می‌کند — با توضیح خط‌به‌خط منطق.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> backtracking همان تکنیک پایه‌ای است که در حل پازل‌ها،
+          مسیریابی (مثل ربات ماز) و حتی موتورهای شطرنج استفاده می‌شود — یادگیری آن با
+          سودوکو بسیار ملموس است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را از
+        لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PLkTXsX7igf8edTYU92nU-f5Ntzuf-RKvW" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Programming a Sudoku Solver in C»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. الگوریتم اصلی</h2>
+        <p>قلب برنامه تابع بازگشتی حل است — همان‌طور که در سری پیاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// جدول سودوکو ۹×۹ — خانهٔ خالی با ۰ نمایش داده می‌شود
+int board[9][9];
+
+// بررسی اینکه آیا گذاشتن num در (row, col) مجاز است
+int is_safe(int row, int col, int num) {
+  // بررسی سطر و ستون
+  for (int i = 0; i &lt; 9; i++) {
+    if (board[row][i] == num || board[i][col] == num) return 0;
+  }
+  // بررسی خانهٔ ۳×۳
+  int box_r = (row / 3) * 3, box_c = (col / 3) * 3;
+  for (int i = 0; i &lt; 3; i++)
+    for (int j = 0; j &lt; 3; j++)
+      if (board[box_r + i][box_c + j] == num) return 0;
+  return 1;
+}
+
+// حل بازگشتی با backtracking
+int solve(void) {
+  for (int row = 0; row &lt; 9; row++) {
+    for (int col = 0; col &lt; 9; col++) {
+      if (board[row][col] == 0) {         // خانهٔ خالی پیدا شد
+        for (int num = 1; num &lt;= 9; num++) {
+          if (is_safe(row, col, num)) {
+            board[row][col] = num;        // فرض کن
+            if (solve()) return 1;        // ادامه بده — حل شد؟
+            board[row][col] = 0;          // نشد → برگرد (backtrack)
+          }
+        }
+        return 0;                         // هیچ عددی کار نکرد
+      }
+    }
+  }
+  return 1; // همهٔ خانه‌ها پر شدند — حل شد
+}</code></pre>
+        <p>این الگوریتم ساده برای تقریباً همهٔ سودوکوهای معمول فوراً جواب می‌دهد. در
+        ویدیوها همچنین خواندن ورودی از فایل، نمایش جدول و بهینه‌سازی‌های ساده (مثل شروع
+        از خانهٔ با کمترین گزینه) پوشش داده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این پروژه کوتاه و متمرکز است و در یک نشست تمام می‌شود؛ نتیجه: درک عمیق
+        backtracking و تمرین خوب C. برای ادامه، همان الگوریتم را می‌توانید برای بازی
+        «ماز» یا «حل مکعب» به کار ببرید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Programming a Sudoku Solver in C» اثر سازندهٔ
+        کانال یوتیوب است و تمام حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است. برای مشاهدهٔ اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PLkTXsX7igf8edTYU92nU-f5Ntzuf-RKvW" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

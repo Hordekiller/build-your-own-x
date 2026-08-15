@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | AngularJS ساده‌شدهٔ خودت را در ۲۰۰ خط بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>AngularJS ساده‌شده</span>
+      </div>
+      <h1>AngularJS ساده‌شدهٔ خودت را در ۲۰۰ خط جاوااسکریپت بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.mgechev.com/2015/03/09/build-learn-your-own-light-lightweight-angularjs/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Build Your Own Simplified
+          AngularJS in 200 Lines of JavaScript» از <b>مینکو گچف (Minko Gechev)</b> است.
+          او با بازسازی سه سرویس اصلی AngularJS — کامپایلر، تزریق وابستگی و digest cycle —
+          نشان می‌دهد این فریم‌ورک «جادویی» نیست.
+        </div>
+        <a class="btn solid" href="https://blog.mgechev.com/2015/03/09/build-learn-your-own-light-lightweight-angularjs/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. سه ستون AngularJS</h2>
+        <p>مقاله سه بخش اصلی را شناسایی و یکی‌یکی بازسازی می‌کند:</p>
+        <ul>
+          <li><b>DOMCompiler ($compile)</b>: دستورها (directiveها) را از HTML پیدا می‌کند و
+          آن‌ها را اجرا می‌کند؛</li>
+          <li><b>Provider ($provide + $injector)</b>: سرویس‌ها را تعریف و تزریق می‌کند؛</li>
+          <li><b>Scope</b>: مدلی با سلسله‌مراتب که binding دوسویه را ممکن می‌کند.</li>
+        </ul>
+        <p>این‌ها دقیقاً همان چیزی‌اند که AngularJS را AngularJS می‌کند؛ بقیه (routing،
+        filters، form controls) فقط دور این سه محور جمع شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>۲. DOMCompiler: پیدا کردن و اجرای دستورها</h2>
+        <p>وقتی AngularJS بارگذاری می‌شود، شروع به «کامپایل» DOM می‌کند: همهٔ عناصر را
+        پیمایش می‌کند، دستورها را از روی نام صفت پیدا می‌کند و آن‌ها را با scope فعلی
+        اجرا می‌کند. پیاده‌سازی سادهٔ ما:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const DOMCompiler = {
+  bootstrap() {
+    // پیمایش بازگشتی تمام نودهای DOM
+    this.compile(document.children[0], Provider.get('$rootScope'));
+  },
+
+  compile(el, scope) {
+    const dirs = this._getElDirectives(el);
+    // اجرای هر دستور با scope
+    dirs.forEach((d) =&gt; {
+      d.scope = scope;
+      d.fn(scope, el, d.attrs, d);
+    });
+    // صفت ng-repeat و امثال آن: نادیده‌گرفتن عنصر تکرارشونده
+    if (dirs.some((d) =&gt; d.name === 'ng-repeat')) return;
+    // پیمایش بچه‌ها
+    Array.prototype.slice.call(el.children).forEach((child) =&gt; {
+      this.compile(child, scope);
+    });
+  },
+
+  _getElDirectives(el) {
+    const attrs = el.attributes;
+    const result = [];
+    for (let i = 0; i &lt; attrs.length; i++) {
+      const attr = attrs[i];
+      if (Directive.get(attr.nodeName)) {
+        result.push({
+          name: attr.nodeName,
+          value: attr.nodeValue,
+          fn: Directive.get(attr.nodeName),
+        });
+      }
+    }
+    return result;
+  },
+};</code></pre>
+        <p>دستورها در یک رجیستری (Directive) ذخیره می‌شوند: تابع‌هایی که
+        <code>(scope, element, attrs)</code> می‌گیرند و معمولاً فقط عملیات «یک‌بار» انجام
+        می‌دهند — مثل ثبت یک watch یا ساخت DOM جدید.</p>
+      </section>
+
+      <section>
+        <h2>۳. Provider و تزریق وابستگی</h2>
+        <p>تزریق وابستگی در AngularJS ساده است: سرویس‌ها با نام ثبت می‌شوند و وقتی تابعی
+        اعلام می‌کند «فلان سرویس را می‌خواهم»، injector آن را پیدا و تحویل می‌دهد. نام
+        آرگومان‌های تابع همان «توضیح نیاز» است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const Provider = {
+  _providers: {},
+  _cache: {},
+
+  provide(name, fn) {
+    this._providers[name] = fn;
+  },
+
+  // تزریق: نام آرگومان‌های تابع را از روی تعریف تابع می‌خوانیم
+  get(name) {
+    if (this._cache[name]) return this._cache[name];
+    const provider = this._providers[name];
+    if (!provider) throw new Error('سرویس ناشناخته: ' + name);
+
+    // گرفتن نام پارامترها با تبدیل تابع به رشته و تحلیل متن آن
+    const args = this._getParams(provider);
+    // ساخت خودکار سرویس‌های وابسته (بازگشتی)
+    const deps = args.map((arg) =&gt; this.get(arg));
+    const instance = provider.apply(null, deps);
+    this._cache[name] = instance; // فقط یک نمونه از هر سرویس
+    return instance;
+  },
+
+  _getParams(fn) {
+    // تحلیل رشتهٔ تعریف تابع برای استخراج نام پارامترها
+    const fnStr = fn.toString();
+    const params = fnStr.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m);
+    if (!params || !params[1]) return [];
+    return params[1].split(',').map((p) =&gt; p.trim().replace(/[^_$a-zA-Z0-9]/g, ''));
+  },
+};</code></pre>
+        <p>همان ترفندی که خود AngularJS (و Angular 2+ با DI کامپایل‌شده) استفاده می‌کرد:
+        «نام پارامترها» در توسعهٔ تولیدی مشکل‌ساز بود (minification) و به همین دلیل Angular
+        بعداً سراغ تزریق صریح (کامنت یا آرایهٔ نام) رفت.</p>
+      </section>
+
+      <section>
+        <h2>۴. Scope و binding دوسویه</h2>
+        <p>هر scope درخت است: با <code>$new()</code> scope فرزند می‌سازیم (که ویژگی‌های پدر
+        را می‌بیند اما تغییراتش را به پدر برنمی‌گرداند) و با <code>$digest</code> حلقهٔ
+        بررسی تغییرات اجرا می‌شود. دستور <code>ng-bind</code> مقدار scope را به متن عنصر
+        وصل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class Scope {
+  constructor() {
+    this.$$watchers = [];
+  }
+
+  $watch(fn, listener) {
+    const watcher = { fn, last: undefined, listener };
+    this.$$watchers.push(watcher);
+  }
+
+  // حلقهٔ digest: تا وقتی تغییری هست بررسی را تکرار کن (حداکثر ۱۰ بار)
+  $digest() {
+    let dirty = true;
+    let count = 0;
+    while (dirty &amp;&amp; count &lt; 10) {
+      dirty = this._digestOnce();
+      count++;
+    }
+  }
+
+  _digestOnce() {
+    let dirty = false;
+    this.$$watchers.forEach((watcher) =&gt; {
+      const newValue = watcher.fn(this);
+      if (newValue !== watcher.last) {
+        watcher.last = newValue;
+        watcher.listener(newValue, watcher.last, this);
+        dirty = true;
+      }
+    });
+    return dirty;
+  }
+
+  $new() {
+    // سلسله‌مراتب scope: برای فرزندها
+    const child = new Scope();
+    child.$parent = this;
+    return child;
+  }
+}
+
+// دستور ng-bind: اتصال عبارت scope به متن عنصر
+Directive.set('ng-bind', (scope, el, attrs) =&gt; {
+  scope.$watch(() =&gt; {
+    // ارزیابی عبارت (مثل "name") در scope فعلی
+    return eval('scope.' + attrs['ng-bind']);
+  }, (value) =&gt; {
+    el.innerHTML = value;
+  });
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. گرد هم آوردن همه: یک برنامهٔ کامل</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>// ثبت سرویس‌ها
+Provider.provide('$scope', () =&gt; new Scope());
+Provider.provide('$rootScope', () =&gt; new Scope());
+
+// دستور ng-model برای ورودی‌ها (binding دوسویه)
+Directive.set('ng-model', (scope, el) =&gt; {
+  el.addEventListener('input', () =&gt; {
+    scope.model = el.value;
+    scope.$digest(); // با هر تایپ، digest اجرا می‌شود
+  });
+});
+
+// بوت استرپ: از ریشهٔ سند شروع کن
+DOMCompiler.bootstrap();</code></pre>
+        <p>حالا هر HTML با <code>ng-bind="model"</code> و <code>ng-model</code> روی یک
+        ورودی، رفتار دوسویهٔ AngularJS دارد — همه‌اش در حدود ۲۰۰ خط!</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> چرا AngularJS اینقدر کند بود؟ چون هر تغییر، یک
+          digest کامل کل درخت scope را اجرا می‌کرد (dirty checking). فریم‌ورک‌های جدیدتر
+          مثل Angular و Vue به‌جای آن با «زون‌ها» یا «مشاهدهٔ getter/setter» تغییرات را
+          مستقیم ردیابی می‌کنند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <ul>
+          <li>دستورها = توابعی که با scope اجرا می‌شوند؛ <code>ng-repeat</code>،
+          <code>ng-bind</code> و… همه در یک رجیستری ساده‌اند.</li>
+          <li>تزریق وابستگی = خواندن نام آرگومان‌ها از متن تابع.</li>
+          <li>Scope = درختی از watcherها با حلقهٔ digest؛ منبع قدرت و ضعف AngularJS.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Build Your Own Simplified AngularJS in 200 Lines
+        of JavaScript» اثر مینکو گچف (Minko Gechev) است و در وبلاگ mgechev.com منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://blog.mgechev.com/2015/03/09/build-learn-your-own-light-lightweight-angularjs/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

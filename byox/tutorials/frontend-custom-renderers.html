@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | با ساختن React DOM سبک خودت، بسته Reconciler را یاد بگیر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>رندرکننده‌های سفارشی React</span>
+      </div>
+      <h1>با ساختن React DOM سبک خودت، یاد بگیر بستهٔ Reconciler ری‌اکت چطور کار می‌کند</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://hackernoon.com/learn-you-some-custom-react-renderers-aed7164a4199" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Learn you some custom React
+          renderers» از <b>آتول آر (Atul R)</b> در HackerNoon است. او با ساخت یک
+          <b>React DOM مینیاتوری</b> با استفاده از بستهٔ رسمی <code>react-reconciler</code>
+          توضیح می‌دهد رندرکننده‌های React (React DOM، React Native و…) دقیقاً چطور کار
+          می‌کنند.
+        </div>
+        <a class="btn solid" href="https://hackernoon.com/learn-you-some-custom-react-renderers-aed7164a4199" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. معماری رندرکننده‌های React</h2>
+        <p>React از دو لایهٔ کاملاً جدا تشکیل شده: <b>reconciler</b> (مغز: مقایسهٔ درخت
+        مجازی و تشخیص تغییرات — همان الگوریتم diff و ساخت Fiberها) و <b>renderer</b> (دست‌ها:
+        اعمال آن تغییرات در محیط هدف؛ DOM، native، canvas و…). در واقع</p>
+        <pre class="code"><span class="lang-tag">js</span><code>// بستهٔ react-reconciler یک کارخانه است:
+// با دادن host config مخصوص پلتفرم، یک رندرکننده می‌سازد
+const Reconciler = require('react-reconciler');
+const reconciler = Reconciler(HostConfig);</code></pre>
+        <p><b>HostConfig</b> پل ارتباطی است: مجموع‌ای از توابع که قرارداد «چطور با محیط هدف
+        حرف بزنم» را مشخص می‌کنند — مثل <code>createInstance</code>، <code>appendChild</code>
+        و <code>commitUpdate</code>. همین یک رابط است که React DOM را برای مرورگر، React
+        Native را برای موبایل و React ART را برای SVG فعال می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساختار اولیهٔ رندرکننده</h2>
+        <p>مقاله پروژه‌ای با <code>create-react-app</code> راه می‌اندازد، سپس در
+        <code>src/renderer/index.js</code> رندرکنندهٔ سفارشی می‌سازد و در <code>index.js</code>
+        به‌جای <code>react-dom</code> از آن استفاده می‌کند. ابتدا فقط یک بدنهٔ خالی:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const CustomRenderer = {
+  render(element, renderDom, callback) {
+    // element: عنصر ریشه (کامپوننت App)
+    // renderDom: عنصر DOM میزبان
+    // callback: پس از پایان رندر صدا زده می‌شود
+    console.log('render called', element, renderDom, callback);
+  },
+};
+
+export default CustomRenderer;</code></pre>
+        <p>حالا <code>react-reconciler</code> را نصب و یک نمونهٔ reconciler با HostConfig
+        می‌سازیم. ابتدا <code>createContainer</code> برای ساخت فایبر ریشه، سپس
+        <code>updateContainer</code> برای آغاز مقایسه و رندر:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const Reconciler = require('react-reconciler');
+const HostConfig = {
+  /* توابع پلتفرم اینجا تعریف می‌شوند */
+};
+
+const reconcilerInstance = Reconciler(HostConfig);
+
+const CustomRenderer = {
+  render(element, renderDom, callback) {
+    const isAsync = false; // حالت رندر همگام
+    const container = reconcilerInstance.createContainer(renderDom, isAsync);
+    const parentComponent = null; // فایبر ریشه پدر ندارد
+    reconcilerInstance.updateContainer(element, container, parentComponent, callback);
+  },
+};
+
+export default CustomRenderer;</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. پیاده‌سازی HostConfig</h2>
+        <p>قلب آموزش، پیاده‌سازی توابع HostConfig برای DOM است. نسخهٔ کامل این مقاله در
+        سه بخش همین کار را انجام می‌دهد؛ خلاصهٔ توابع اصلی:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const HostConfig = {
+  createInstance(type, props, rootContainerInstance, hostContext, internalInstanceHandle) {
+    // ساخت عنصر DOM بر اساس نوع
+    const el = document.createElement(type);
+    return el;
+  },
+
+  createTextInstance(text, rootContainerInstance, hostContext, internalInstanceHandle) {
+    return document.createTextNode(text);
+  },
+
+  appendChildToContainer(container, child) {
+    container.appendChild(child);
+  },
+
+  appendChild(parent, child) {
+    parent.appendChild(child);
+  },
+
+  appendInitialChild(parent, child) {
+    parent.appendChild(child);
+  },
+
+  removeChildFromContainer(container, child) {
+    container.removeChild(child);
+  },
+
+  removeChild(parent, child) {
+    parent.removeChild(child);
+  },
+
+  insertInContainerBefore(container, child, before) {
+    container.insertBefore(child, before);
+  },
+
+  insertBefore(parent, child, before) {
+    parent.insertBefore(child, before);
+  },
+
+  prepareUpdate(instance, type, oldProps, newProps, rootContainerInstance, currentHostContext) {
+    // تفاوت props را محاسبه و برمی‌گرداند
+    const changedProps = {};
+    for (const key in Object.assign({}, oldProps, newProps)) {
+      if (oldProps[key] !== newProps[key]) changedProps[key] = newProps[key];
+    }
+    return Object.keys(changedProps).length &gt; 0 ? changedProps : null;
+  },
+
+  commitUpdate(instance, updatePayload, type, oldProps, newProps, finishedWork) {
+    // اعمال تغییرات روی نود واقعی
+    for (const key in updatePayload) {
+      if (key === 'children') continue;
+      instance[key] = updatePayload[key];
+    }
+  },
+
+  commitTextUpdate(textInstance, oldText, newText) {
+    textInstance.nodeValue = newText;
+  },
+
+  shouldSetTextContent(type, props) {
+    return false;
+  },
+
+  getChildHostContext() { return {}; },
+  getPublicInstance(instance) { return instance; },
+  getRootHostContext() { return {}; },
+  prepareForCommit() {},
+  resetAfterCommit() {},
+  finalizeInitialChildren() {},
+};
+</code></pre>
+        <p>روند ساخت در این مقاله گام‌به‌گام است: اول رندر اولیه کار می‌کند، بعد
+        به‌روزرسانی props (که نیازمند <code>prepareUpdate</code> + <code>commitUpdate</code>
+        است) و در انتها مدیریت حذف و جابه‌جایی نودها اضافه می‌شود. در هر مرحله یک ارور مشخص
+        از reconciler دریافت می‌کنید و همان راهنمای شماست.</p>
+      </section>
+
+      <section>
+        <h2>۴. نتیجه: همین است!</h2>
+        <p>بعد از تکمیل HostConfig، برنامهٔ React ما با رندرکنندهٔ سفارشی خودمان اجرا
+        می‌شود: کامپوننت‌ها state خودشان را مدیریت می‌کنند، reconciler تغییرات را محاسبه
+        می‌کند و توابع ما آن‌ها را روی DOM اعمال می‌کنند.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> حالا می‌فهمید چرا React Native بدون تغییر مغز
+          React کار می‌کند: همان reconciler با یک HostConfig دیگر (پل native). و چرا
+          رندرکننده‌هایی مثل React Three Fiber برای WebGL وجود دارند: فقط یک HostConfig
+          جدید لازم است.
+        </div>
+        <p>مسیر پیشنهادی برای ادامه:</p>
+        <ul>
+          <li>ویدیوی <b>Sophie Alpert — Building a Custom React Renderer</b> (React Conf
+          2019) که همین مفاهیم را با مثال عملی گسترده‌تر نشان می‌دهد.</li>
+          <li>کد منبع <code>react-dom</code> و <code>react-art</code> در مخزن اصلی React
+          به‌عنوان نمونه‌های مرجع HostConfig.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Learn you some custom React renderers» اثر آتول آر
+        (Atul R) است و در HackerNoon منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و
+        تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://hackernoon.com/learn-you-some-custom-react-renderers-aed7164a4199" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

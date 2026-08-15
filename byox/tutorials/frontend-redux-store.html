@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Redux: پیاده‌سازی Store از صفر — درس Egghead دن آبراموف</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">فریم‌ورک / کتابخانه فرانت‌اند</a>
+        <span class="sep">←</span>
+        <span>پیاده‌سازی Store ریداکس</span>
+      </div>
+      <h1>Redux: پیاده‌سازی Store از صفر — درس ویدیویی دن آبراموف</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">🎥 ویدیو (Egghead.io)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://egghead.io/lessons/react-redux-implementing-store-from-scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی درس ویدیویی «Implementing Store from
+          Scratch» از سری <b>«Getting Started with Redux»</b> — تدریس <b>دن آبراموف
+          (Dan Abramov)</b>، خالق Redux — در <b>Egghead.io</b> است.
+        </div>
+        <a class="btn solid" href="https://egghead.io/lessons/react-redux-implementing-store-from-scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ درس</h2>
+        <p>در این درس از سری «آشنایی با Redux»، دن آبراموف (نویسندهٔ خود Redux) نشان می‌دهد
+        که <code>createStore</code> چطور کار می‌کند: یک پیاده‌سازی کوچک و کامل از store را
+        با دست می‌نویسد و مفاهیم <code>getState</code>، <code>dispatch</code> و
+        <code>subscribe</code> را عملاً توضیح می‌دهد. پیام اصلی درس: <b>Redux هیچ جادویی
+        ندارد؛ خودتان می‌توانید بنویسیدش.</b></p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این درس بخشی از سری کامل «Getting Started with Redux» در
+          Egghead است که رایگان پخش می‌شود و برای شروع کار با Redux به شدت توصیه می‌شود.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیو را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ از لینک زیر
+        مستقیم به درس دسترسی دارید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://egghead.io/lessons/react-redux-implementing-store-from-scratch" target="_blank" rel="noopener">▶ مشاهدهٔ درس «Implementing Store from Scratch»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. هستهٔ درس: پیاده‌سازی createStore</h2>
+        <p>محتوا و کد این درس همان رویکرد کلاسیک است که در ادامه خلاصه شده — با اجرای
+        دستی همان چهار روش اصلی:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const createStore = (reducer) =&gt; {
+  let state;
+  let listeners = [];
+
+  // فقط reducer می‌تواند state را عوض کند
+  const getState = () =&gt; state;
+
+  const dispatch = (action) =&gt; {
+    state = reducer(state, action);
+    listeners.forEach((listener) =&gt; listener());
+  };
+
+  const subscribe = (listener) =&gt; {
+    listeners.push(listener);
+    return () =&gt; {
+      listeners = listeners.filter((l) =&gt; l !== listener);
+    };
+  };
+
+  // مقداردهی اولیه: reducer را با state نامشخص صدا می‌زنیم
+  dispatch({});
+
+  return { getState, dispatch, subscribe };
+};</code></pre>
+        <p>نکتهٔ مهم: فراخوانی <code>dispatch({})</code> در انتها — چون action خالی است و
+        reducer معمولاً با <code>default</code> همان state را برمی‌گرداند، اما state به
+        مقدار پیش‌فرض reducer (مثلاً آرایهٔ خالی) مقداردهی می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. استفادهٔ عملی</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>// یک reducer ساده برای شمارنده
+const counter = (state = 0, action) =&gt; {
+  switch (action.type) {
+    case 'INCREMENT': return state + 1;
+    case 'DECREMENT': return state - 1;
+    default: return state;
+  }
+};
+
+const store = createStore(counter);
+
+store.subscribe(() =&gt; {
+  console.log('state فعلی:', store.getState());
+});
+
+store.dispatch({ type: 'INCREMENT' }); // 1
+store.dispatch({ type: 'INCREMENT' }); // 2
+store.dispatch({ type: 'DECREMENT' }); // 1</code></pre>
+        <p>نکتهٔ طراحی که در درس تأکید می‌شود: <b>action باید صراحتاً «چه اتفاقی افتاد» را
+        بگوید، نه «چطور state عوض شود»</b> — یعنی فقط <code>{ type: 'INCREMENT' }</code>
+        می‌فرستیم و این reducer است که می‌داند یعنی چه. این جدایی، همان فلسفهٔ Redux است.</p>
+      </section>
+
+      <section>
+        <h2>۵. چرا این درس مهم است؟</h2>
+        <ul>
+          <li>از زبان خالق کتابخانه؛ همهٔ تصمیم‌ها با دلیل واقعی توضیح داده می‌شوند.</li>
+          <li>پیاده‌سازی دستی نشان می‌دهد store فقط یک closure ساده است.</li>
+          <li>سری کامل «Getting Started with Redux» بعد از این درس، اجزای دیگر (combineReducers،
+          connect، middleware) را با همان روش دستی توضیح می‌دهد.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> درس ویدیویی «Implementing Store from Scratch» اثر دن
+        آبراموف (Dan Abramov) است و در Egghead.io منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل درس به
+        <a href="https://egghead.io/lessons/react-redux-implementing-store-from-scratch" target="_blank" rel="noopener">Egghead.io</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

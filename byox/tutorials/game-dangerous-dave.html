@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید بسازیم: Dangerous Dave — بازسازی بازی کلاسیک در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>Dangerous Dave</span>
+      </div>
+      <h1>بیایید بسازیم: Dangerous Dave — بازسازی بازی کلاسیک جان رومرو در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLSkJey49cOgTSj465v2KbLZ7LMn10bCF9" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Let's Build:
+          Dangerous Dave» است — یک بازسازی کامل از بازی کلاسیک <b>Dangerous Dave</b>
+          (ساختهٔ جان رومرو، ۱۹۸۸) که به زبان C ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLSkJey49cOgTSj465v2KbLZ7LMn10bCF9" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p><b>Dangerous Dave</b> یک بازی پلتفرمر کلاسیک DOS است که جان رومرو (خالق Doom و
+        Wolfenstein) در سال ۱۹۸۸ ساخت — و به‌عنوان اولین بازی «گیم‌ساز» ساده و سرگرم‌کننده
+        شناخته می‌شود. در این پلی‌لیست، همان بازی با گرافیک و جزئیات تقریباً یکسان، به
+        زبان C بازسازی می‌شود: اسپرایت‌های ۱۶×۱۶، حرکت، گرانش، جمع‌آوری آیتم، دشمنان،
+        پریدن و ساخت چند سطح.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> این سری برای شروع عالی است: حجم کد هر قسمت کم است،
+          ساختار ساده است و در انتها یک بازی کامل و قابل اجرا دارید.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را از
+        لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PLSkJey49cOgTSj465v2KbLZ7LMn10bCF9" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Let's Build: Dangerous Dave»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. مفاهیم کلیدی</h2>
+        <p>نمونه‌ای از ساختار بازی‌های پلتفرمر دوبعدی که در سری پیاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// ساختار سطح: شبکه‌ای از تایل‌ها
+#define TILE_EMPTY 0
+#define TILE_BLOCK 1
+#define TILE_LADDER 2
+
+typedef struct {
+  int tile[ROWS][COLS];  // نقشهٔ سطح
+  Player player;         // بازیکن
+  Monster monsters[MAX_MONSTERS];
+  Item items[MAX_ITEMS];
+} Level;
+
+// حلقهٔ اصلی بازی: ورودی → به‌روزرسانی فیزیک → رندر
+void game_loop(void) {
+  while (running) {
+    handle_input();
+    // فیزیک بازیکن: گرانش، حرکت افقی، برخورد با تایل‌ها
+    update_player(&amp;level.player, &amp;level);
+    // دشمنان و آیتم‌ها
+    update_monsters(&amp;level);
+    render(&amp;level);  // رسم اسپرایت‌ها روی بافر
+    swap_buffers();  // نمایش
+    delay_frame();
+  }
+}</code></pre>
+        <p>مفاهیم آموزشی این سری: حلقهٔ بازی، حرکت مبتنی بر تایل، برخورد ساده، فیزیک
+        گرانش و پرش، هوش مصنوعی سادهٔ دشمن و مدیریت چند سطح با فایل.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>این پلی‌لیست یکی از لذت‌بخش‌ترین راه‌ها برای ساخت اولین بازی کامل شماست — بازی
+        معروف، کد ساده و قابل توسعه. بعد از آن می‌توانید سراغ بازی‌های پیچیده‌تر با همان
+        ساختار بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Let's Build: Dangerous Dave» اثر سازندهٔ کانال
+        یوتیوب است و بازی اصلی Dangerous Dave متعلق به جان رومرو است. این صفحه فقط ترجمهٔ
+        فارسی و مرور آن است. برای مشاهدهٔ اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PLSkJey49cOgTSj465v2KbLZ7LMn10bCF9" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

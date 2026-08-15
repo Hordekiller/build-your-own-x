@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور شطرنج در C — پلی‌لیست ویدیویی VICE</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>موتور شطرنج در C</span>
+      </div>
+      <h1>موتور شطرنج در C — پلی‌لیست VICE</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Chess Engine in C»
+          از کانال یوتیوب <b>VICE</b> است — یک موتور شطرنج کامل (VICE Chess Engine) که
+          گام‌به‌گام و با توضیح کامل در C ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>در این پلی‌لیست، یک موتور شطرنج حرفه‌ای به نام <b>VICE</b> از صفر ساخته می‌شود.
+        VICE موتور واقعی‌ای است که قوی بازی می‌کند (حدود ریتینگ ۲۴۰۰+) و در این سری، تمام
+        اجزای آن — تولید حرکت، جست‌وجوی minimax/alpha-beta، ارزیابی موقعیت، جدول انتقال
+        (transposition table)، کتاب افتتاحیه و رابط کاربری — به زبان C پیاده و توضیح داده
+        می‌شوند.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر با شطرنج یا هوش مصنوعی بازی آشنا نیستید نگران نباشید؛
+          سری از صفر شروع می‌شود و هر الگوریتم را با جزئیات توضیح می‌دهد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را
+        از لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Chess Engine in C»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. مفاهیم کلیدی پیاده‌سازی</h2>
+        <p>نمونه‌ای از ساختار داده‌های موتور شطرنج در C — نمایش صفحه با بیت‌بورد یا
+        آرایه‌های ساده و ساختار حرکت:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// نمایندهٔ یک حرکت شطرنج
+typedef struct {
+  int from;      // خانهٔ مبدا
+  int to;        // خانهٔ مقصد
+  int piece;     // مهرهٔ حرکت‌کننده
+  int promoted;  // مهرهٔ ترفیع (برای پیاده‌های اوج)
+  int capture;   // آیا حرکت، ضبط است؟
+} move_t;
+
+// ارزیابی موقعیت: جمع امتیاز مهره‌ها + عوامل پوزیسیونی
+int evaluate(board_t *board) {
+  int score = 0;
+  // امتیاز پایهٔ مهره‌ها (پیاده ۱۰۰، اسب ۳۲۰، فیل ۳۳۰، رخ ۵۰۰، وزیر ۹۰۰، شاه ∞)
+  score += material_score(board);
+  score += piece_square_tables(board); // جدول‌های موقعیتی
+  score += mobility(board);            // تعداد حرکات ممکن
+  return score;
+}
+
+// جست‌وجوی minimax با برش آلفا-بتا
+int alpha_beta(board_t *board, int depth, int alpha, int beta, int side) {
+  if (depth == 0) return evaluate(board);
+  // تولید همهٔ حرکات، مرتب‌سازی و پیمایش
+  // برش: اگر alpha >= beta ، باقی را بررسی نکن
+}</code></pre>
+        <p>بخش‌های دیگر سری: <b>جدول انتقال</b> (برای جلوگیری از محاسبهٔ دوبارهٔ موقعیت‌های
+        تکراری)، <b>Zobrist hashing</b> (امضای موقعیت)، کتاب افتتاحیه و <b>UCI</b> (رابط
+        استاندارد ارتباط موتور با رابط‌های کاربری مثل Arena).</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>اگر می‌خواهید یک «هوش مصنوعی واقعی» — با جست‌وجو و ارزیابی — را از صفر ببینید و
+        همزمان مهارت C خود را بالا ببرید، این پلی‌لیست یکی از بهترین گزینه‌هاست. کد کامل
+        VICE هم در گیت‌هاب موجود است تا بعد از ویدیوها با آن تمرین کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Chess Engine in C» و موتور VICE اثر سازندهٔ
+        کانال VICE است و تمام حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن
+        است. برای مشاهدهٔ اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PLZ1QII7yudbc-Ky058TEaOstZHVbT-2hg" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

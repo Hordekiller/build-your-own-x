@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازسازی Cave Story — پلی‌لیست کامل</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازسازی Cave Story</span>
+      </div>
+      <h1>بازسازی Cave Story — پلی‌لیست ویدیویی کامل</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PL006xsVEsbKjSKBmLu1clo85yLrwjY67X" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Cave Story
+          Remake/Reconstruction» است — یک بازسازی کامل از بازی <b>Cave Story</b> در C++ که
+          همهٔ بخش‌های بازی (و نه فقط نمونهٔ اولیه) را پوشش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PL006xsVEsbKjSKBmLu1clo85yLrwjY67X" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ پلی‌لیست</h2>
+        <p>این پلی‌لیست یک پروژهٔ بلندمدت بازسازی است: Cave Story به‌طور کامل — از
+        راه‌اندازی موتور تا مراحل، دشمنان، سلاح‌ها و باس‌فایت‌ها — در C++ ساخته می‌شود.
+        برخلاف ویدیوی تک‌جلسه‌ای، این سری به عمق مکانیک‌های بازی می‌رود: سیستم سلاح با
+        سه سطح ارتقا، موتور گفتگو (dialogue)، پورتال‌ها، ذخیرهٔ بازی و حتی صداها.</p>
+        <div class="callout tip">
+          <strong>نکته:</strong> اگر ویدیوی «Cavestory Part 1» را دیده‌اید و می‌خواهید
+          پروژه را تا انتها ببینید، این پلی‌لیست تکمیل‌کنندهٔ آن است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را از
+        لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PL006xsVEsbKjSKBmLu1clo85yLrwjY67X" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Cave Story»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. اجزای بازی که ساخته می‌شوند</h2>
+        <p>نمونه‌ای از منطق سیستم‌هایی که در طول سری پیاده می‌شوند — ارتقای سلاح با
+        جمع‌آوری کریستال:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// سیستم سلاح سه‌سطحی (شبیه Cave Story)
+class Weapon {
+public:
+  int level;        // ۱، ۲ یا ۳
+  int exp;          // تجربه برای ارتقا
+
+  void addExp(int amount) {
+    exp += amount;
+    if (exp &gt;= REQUIREMENTS[level] &amp;&amp; level &lt; 3) {
+      exp -= REQUIREMENTS[level];
+      level++;      // ارتقا
+    }
+  }
+
+  void takeDamage() {
+    // وقتی آسیب می‌بینید، تجربه کم می‌شود و سطح ممکن است بیفتد
+    exp -= PENALTY;
+    if (exp &lt; 0 &amp;&amp; level &gt; 1) { level--; exp = REQUIREMENTS[level]; }
+  }
+};</code></pre>
+        <p>بخش‌های دیگر سری: ساخت نقشه با ادیتور، مدیریت تریگرها، درهای مخفی،
+        دشمنان با رفتار متفاوت (پرنده‌ها، شناگرها، توپ‌اندازها)، مکانیک آسیب و سلامت،
+        گفتگو با NPC ها و گیم‌پلی کامل نبرد باس.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>اگر می‌خواهید ببینید یک بازی واقعی و کامل — با همهٔ سیستم‌هایش — چطور
+        ساخته می‌شود، این پلی‌لیست یکی از بهترین منابع است. شروع آن نیازمند سطح متوسط
+        C++ است و در انتها یک بازسازی قابل بازی از Cave Story خواهید داشت.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Cave Story» اثر سازندهٔ کانال یوتیوب است و
+        بازی Cave Story متعلق به Daisuke "Pixel" Amaya است. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است. برای مشاهدهٔ اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PL006xsVEsbKjSKBmLu1clo85yLrwjY67X" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

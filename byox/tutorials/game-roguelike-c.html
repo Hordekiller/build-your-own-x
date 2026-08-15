@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | برنامه‌نویسی بازی RPG سبک Rogue/Nethack در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>RPG سبک Rogue در C</span>
+      </div>
+      <h1>برنامه‌نویسی بازی RPG سبک Rogue/Nethack در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">🎥 ویدیو (پلی‌لیست یوتیوب)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLkTXsX7igf8erbWGYT4iSAhpnJLJ0Nk5G" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی پلی‌لیست ویدیویی «Programming an
+          RPG in C — Rogue/Nethack Style» است — یک بازی نقش‌آفرینی متن‌محور (roguelike)
+          که در ترمینال و با الهام از Rogue و Nethack در C ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLkTXsX7igf8erbWGYT4iSAhpnJLJ0Nk5G" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ آموزش</h2>
+        <p>بازی‌های roguelike — با کاراکترهای ASCII، سیاه‌چاه‌های تولیدشدهٔ تصادفی و
+        مرگ همیشگی — یکی از بهترین ژانرها برای یادگیری برنامه‌نویسی بازی هستند؛ چون همهٔ
+        منطق در ترمینال اجرا می‌شود و نیازی به گرافیک نیست. در این پلی‌لیست، یک بازی کامل
+        به سبک Rogue/Nethack ساخته می‌شود: تولید نقشهٔ تصادفی، شخصیت و آمار، مبارزهٔ
+        نوبتی، آیتم‌ها و بالا رفتن از طبقه‌های سیاه‌چاه.</p>
+      </section>
+
+      <section>
+        <h2>۲. ویدیوها را تماشا کنید</h2>
+        <p>این آموزش ویدیویی است و محتوای آن در این صفحه میزبانی نمی‌شود؛ کل پلی‌لیست را از
+        لینک زیر در یوتیوب ببینید:</p>
+        <div style="text-align:center;margin:18px 0">
+          <a class="btn solid" style="font-size:1.05rem" href="https://www.youtube.com/playlist?list=PLkTXsX7igf8erbWGYT4iSAhpnJLJ0Nk5G" target="_blank" rel="noopener">▶ مشاهدهٔ پلی‌لیست «Programming an RPG in C»</a>
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. مفاهیم کلیدی</h2>
+        <p>ساختار بازی‌های roguelike — نمایش دنیا به‌صورت شبکهٔ کاراکتری و حلقهٔ نوبتی:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// نقشهٔ سیاه‌چاه: شبکه‌ای از کاراکترها
+#define WALL '#'
+#define FLOOR '.'
+#define PLAYER '@'
+#define MONSTER 'M'
+#define ITEM '$'
+
+char map[MAP_H][MAP_W];
+
+// تولید تصادفی نقشه با «اتاق‌ها و راهروها»
+void generate_map(void) {
+  // اتاق‌های تصادفی بچین و با راهرو به هم وصل کن
+  for (int i = 0; i &lt; NUM_ROOMS; i++) {
+    make_room(x, y, w, h);
+    connect_rooms(prev_x, prev_y, x, y);
+  }
+}
+
+// حلقهٔ اصلی: نوبت بازیکن → نوبت دشمنان
+void game_loop(void) {
+  while (player_alive) {
+    render_map();          // نمایش ترمینال
+    int key = get_input(); // خواندن یک کلید (حرکت/اکشن)
+    move_player(key);
+    // مبارزهٔ نوبتی: هر دشمن یک نوبت
+    for (int i = 0; i &lt; num_monsters; i++) {
+      move_monster(&amp;monsters[i]);  // دنبال کردن بازیکن
+      check_fight(&amp;monsters[i]);   // حمله در برخورد
+    }
+    check_items();  // برداشتن آیتم‌ها
+    check_descent(); // پایین رفتن به طبقهٔ بعد
+  }
+}</code></pre>
+        <p>این سری از کتابخانهٔ <b>ncurses</b> برای ترمینال استفاده می‌کند تا صفحه‌نمایش
+        تمام‌صفحه و خواندن کلید بدون Enter را ممکن کند.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>ساخت یک roguelike همهٔ مهارت‌های اساسی بازی‌سازی را پوشش می‌دهد: حلقهٔ بازی،
+        مدیریت state، تولید تصادفی و طراحی سیستم‌ها — بدون سردرگمی گرافیک. ویدیوهای این
+        سری با کد کامل، بهترین همراه برای شروع هستند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پلی‌لیست «Programming an RPG in C» اثر سازندهٔ کانال
+        یوتیوب است و تمام حقوق آن متعلق به اوست. این صفحه فقط ترجمهٔ فارسی و مرور آن است.
+        برای مشاهدهٔ اصل ویدیوها به
+        <a href="https://www.youtube.com/playlist?list=PLkTXsX7igf8erbWGYT4iSAhpnJLJ0Nk5G" target="_blank" rel="noopener">یوتیوب</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

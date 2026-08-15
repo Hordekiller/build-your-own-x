@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت بازی با پایتون و Pygame — کتاب آل اسویگارت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">بازی</a>
+        <span class="sep">←</span>
+        <span>بازی با پایتون و Pygame</span>
+      </div>
+      <h1>ساخت بازی با پایتون و Pygame — کتاب رایگان آل اسویگارت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://inventwithpython.com/makinggames.pdf" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه معرفی و مرور فارسی کتاب «Making Games with Python
+          &amp; Pygame» از <b>آل اسویگارت (Al Sweigart)</b> است — یک کتاب رایگان و کامل
+          (فایل PDF) که با ساخت ۱۰ بازی گرافیکی، پایتون و Pygame را آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://inventwithpython.com/makinggames.pdf" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. دربارهٔ کتاب</h2>
+        <p>آل اسویگارت — نویسندهٔ کتاب‌های معروف «Invent Your Own Computer Games with
+        Python» و «Automate the Boring Stuff» — این کتاب را برای کسانی نوشته که پایتون را
+        یاد گرفته‌اند و می‌خواهند وارد بازی‌سازی شوند. کتاب کاملاً رایگان است (فایل PDF از
+        inventwithpython.com قابل دانلود) و سطح آن «متوسط» است: پیش‌نیاز آن، مبانی
+        پایتون (از کتاب قبلی او) است.</p>
+      </section>
+
+      <section>
+        <h2>۲. بازی‌های کتاب</h2>
+        <p>کتاب با کد کامل و توضیح خط‌به‌خط این بازی‌ها را می‌سازد:</p>
+        <ul>
+          <li><b>Flippy</b> (پازل رِوِرسی/اتلو)</li>
+          <li><b>Ink Spill</b> (بازی پنج دقیقه‌ای)</li>
+          <li><b>Gemgem</b> (بازی تطبیق جواهرات)</li>
+          <li><b>Slide Puzzle</b> و <b>Simon</b></li>
+          <li><b>Star Pusher</b> (سوکووبان)</li>
+          <li><b>Four in a Row</b>، <b>Memory Puzzle</b> و <b>Pong</b></li>
+          <li>و…</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۳. سبک آموزش</h2>
+        <p>نمونهٔ ساختار کد کتاب — حلقهٔ بازی با رویدادها و رندر:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># الگوی رایج بازی‌های کتاب
+import pygame, sys
+from pygame.locals import *
+
+pygame.init()
+FPS = 60
+fpsClock = pygame.time.Clock()
+DISPLAYSURF = pygame.display.set_mode((400, 300))
+pygame.display.set_caption('بازی نمونه')
+
+WHITE = (255, 255, 255)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # رسم صحنه
+    DISPLAYSURF.fill(WHITE)
+    # ... رسم اشیای بازی ...
+
+    pygame.display.update()
+    fpsClock.tick(FPS)</code></pre>
+        <p>ویژگی کتاب: هر بازی کامل است و می‌توانید مستقیم آن را اجرا کنید؛ تمرین‌های
+        هر فصل هم خلاقیت را تقویت می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <ul>
+          <li>رایگان، قابل دانلود و کاملاً عملی — ده بازی کامل با کد کامل.</li>
+          <li>مناسب بعد از اتمام مبانی پایتون؛ پل خوبی به بازی‌سازی واقعی.</li>
+          <li>کد بازی‌ها روی هر پلتفرمی (ویندوز، لینوکس، مک) اجرا می‌شود.</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Making Games with Python &amp; Pygame» اثر آل
+        اسویگارت (Al Sweigart) است و به‌صورت رایگان در inventwithpython.com منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا و کدها متعلق به
+        نویسندهٔ اصلی است. برای دانلود کتاب به
+        <a href="https://inventwithpython.com/makinggames.pdf" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>
