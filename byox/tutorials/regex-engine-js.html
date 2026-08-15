@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیاده‌سازی یک موتور عبارت باقاعده</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>پیاده‌سازی یک موتور عبارت باقاعده</span>
+      </div>
+      <h1>پیاده‌سازی یک موتور عبارت باقاعده</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Implementing a Regular Expression Engine»
+          از <b>دنیس کیشیف</b> (فوریه ۲۰۱۹) است. کد کامل در مخزن <code>deniskyashif/regexjs</code>.
+        </div>
+        <a class="btn solid" href="https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>درک و استفاده درست از عبارت‌های باقاعده مهارتی ارزشمند در پردازش متن است. به دلیل نحو اعلامی و در عین حال اصطلاحی‌شان، عبارت‌های باقاعده گاهی می‌تواند منبع سردرگمی (حتی اضطراب!) میان توسعه‌دهندگان نرم‌افزار باشد. در این مقاله یک موتور regex ساده و کارآمد پیاده می‌کنیم. نحو عبارت‌های باقاعده‌مان را تعریف می‌کنیم، می‌آموزیم چگونه آن‌ها را تحلیل کنیم و تشخیص‌گرمان را بسازیم. اول مختصری مبانی نظری را پوشش می‌دهیم.</p>
+      </section>
+
+      <section>
+        <h2>اتوماتای متناهی</h2>
+        <p>به زبان غیررسمی، <strong>اتوماتای متناهی</strong> (یا ماشین حالت متناهی) ماشینی انتزاعی است که حالت‌ها و انتقال‌هایی بین این حالت‌ها دارد. همیشه در یکی از حالت‌هایش است و وقتی ورودی می‌خواند از حالتی به حالت دیگر می‌رود. یک <strong>حالت شروع</strong> و یک یا چند <strong>حالت پایان (پذیرش)</strong> دارد.</p>
+        <h3>اتوماتای متناهی قطعی (DFA)</h3>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/dfa.png" alt="اتوماتای متناهی قطعی با چهار حالت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در شکل ۱.۱ اتوماتایی با چهار حالت داریم؛ <em>q</em><sub>۰</sub> <strong>حالت شروع</strong> و <em>q</em><sub>۳</sub> <strong>حالت پایان (پذیرش)</strong> نامیده می‌شود. همه رشته‌هایی را تشخیص می‌دهد که با <strong>«ab»</strong> شروع می‌شوند و به دنبال آن تعداد دلخواه <strong>«b»</strong> می‌آید و با <strong>«a»</strong> تمام می‌شود. اگر رشته <strong>«abba»</strong> را از ماشین شکل ۱.۱ عبور دهیم از این حالت‌ها رد می‌شویم:</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>گام   حالت       ورودی   حالت جدید
+0     q0         a       q1
+1     q1         b       q2
+2     q2         b       q2
+3     q2         a       q3</code></pre>
+        <p>برای رشته‌های <strong>«aba»</strong>، <strong>«abbba»</strong> یا <strong>«abbbbba»</strong>، اتوماتا در حالت پذیرش <em>q</em><sub>۳</sub> تمام می‌کند. اگر در هر نقطه از پردازش، ماشین برای یک نماد ورودی معین حالتی برای دنبال کردن نداشته باشد، اجرا متوقف می‌شود و رشته تشخیص داده نمی‌شود. پس <strong>«ab»</strong> را تشخیص نمی‌دهد (چون در حالت غیرپذیرش <em>q</em><sub>۲</sub> تمام می‌کند) و <strong>«abca»</strong> را هم نه (چون از <em>q</em><sub>۲</sub> انتقالی روی نماد «c» نیست). در مثال شکل ۱.۱، در هر حالت برای هر نماد ورودی معتبر، دقیقاً در یک حالت می‌توانیم تمام کنیم؛ می‌گوییم ماشین <strong>قطعی</strong> است (DFA).</p>
+        <h3>اتوماتای متناهی نادترمینیستی (NFA)</h3>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/nfa.png" alt="اتوماتای متناهی نادترمینیستی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>می‌توانیم ببینیم که از <em>q</em><sub>۱</sub> روی ورودی «b» به دو حالت می‌توانیم برویم — <em>q</em><sub>۱</sub> و <em>q</em><sub>۲</sub>. در این حالت می‌گوییم ماشین <strong>نادترمینیستی</strong> است (NFA). به‌راحتی دیده می‌شود این ماشین معادل ماشین شکل ۱.۱ است؛ یعنی همان مجموعه رشته‌ها را تشخیص می‌دهند. هر NFA را می‌توان به DFA متناظر تبدیل کرد.</p>
+        <h3>ε-NFA</h3>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/enfa.png" alt="اتوماتای متناهی نادترمینیستی با انتقال اپسیلون" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>ε-NFA را دقیقاً مثل NFA نمایش می‌دهیم اما با یک استثنا: شامل انتقال‌هایی روی <strong>رشته خالی</strong> — ε — است. یعنی از یک حالت می‌توانیم بدون خواندن هیچ نماد ورودی به حالت دیگری برویم. در شکل ۱.۳ می‌بینیم که انتقال ε از <em>q</em><sub>۲</sub> به <em>q</em><sub>۱</sub> داریم. این ε-NFA معادل NFA شکل ۱.۲ است.</p>
+      </section>
+
+      <section>
+        <h2>کامپایل عبارت‌های باقاعده به اتوماتای متناهی</h2>
+        <p>مجموعه رشته‌های تشخیص‌داده‌شده توسط اتوماتای متناهی <em>A</em> <strong>زبان <em>A</em></strong> نامیده می‌شود و با <em>L(A)</em> نشان داده می‌شود. اگر زبانی با یک <strong>اتوماتای متناهی</strong> قابل تشخیص باشد، یک <strong>عبارت باقاعده</strong> متناظر هم هست که همان زبان را توصیف می‌کند و برعکس (قضیه کلین). به عبارت دیگر، عبارت‌های باقاعده را می‌توان <strong>جایگزین دوستانه</strong> اتوماتای متناهی برای توصیف الگوها در متن در نظر گرفت.</p>
+        <h3>ساخت تامپسون</h3>
+        <p>جبرهای گوناگون با عبارت‌های ابتدایی شروع می‌شوند، معمولاً ثابت‌ها و/یا متغیرها. سپس به ما اجازه می‌دهند با اعمال مجموعه‌ای از عملیات روی این عبارت‌های ابتدایی، عبارت‌های پیچیده‌تر بسازیم. معمولاً روشی برای گروه‌بندی عملگرها با عملوندهایشان مثل پرانتز هم لازم است. عبارت‌های باقاعده از این نظر فرقی ندارند: با ثابت‌ها، متغیرها و عملگرها به‌عنوان بلوک‌های ساختمان، زبان‌های رسمی (مجموعه‌های رشته) را نشان می‌دهند.</p>
+        <p>ما پیاده‌سازی <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank" rel="noopener">کن تامپسون</a> ارائه‌شده در مقاله او <em>Regular Expression Search Algorithm</em> (۱۹۶۸) را توصیف می‌کنیم.</p>
+        <p>برای کامپایل یک عبارت باقاعده <em>R</em> به NFA ابتدا باید <em>R</em> را به زیرعبارت‌های تشکیل‌دهنده‌اش تحلیل کنیم. قوانین ساخت NFA را می‌توان به دو بخش تقسیم کرد:</p>
+        <ol>
+          <li><strong>قوانین پایه</strong> برای مدیریت زیرعبارت‌های بدون عملگر.</li>
+          <li><strong>قوانین استقرایی</strong> برای ساخت NFAهای بزرگ‌تر از NFAهای کوچک‌تر با اعمال عملگرها.</li>
+        </ol>
+        <h4>پایه</h4>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/e-nfa-impl.png" alt="اتوماتای متناهی برای عبارت خالی اپسیلون" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اتوماتایی که رشته خالی ε را تشخیص می‌دهد؛ <em>i</em> حالت شروع و <em>f</em> حالت پذیرش است.</p>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/symbol-nfa.png" alt="اتوماتای متناهی برای نماد a" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>برای نماد <strong>«a»</strong> اتوماتایی می‌سازیم. هر نماد الفبای ورودی را به‌عنوان عبارت باقاعده به خودی خود در نظر می‌گیریم. زبان این اتوماتا فقط از کلمه <strong>«a»</strong> تشکیل شده.</p>
+        <h4>استقرا</h4>
+        <p>فرض کنید دو عبارت باقاعده <em>S</em> و <em>T</em> و NFAهایشان <em>N(S)</em> و <em>N(T)</em> را داریم:</p>
+        <p><strong>الف) اجتماع:</strong> <em>R = S | T</em></p>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/union.png" alt="اجتماع دو NFA" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>یک حالت شروع <em>i</em> معرفی می‌کنیم و انتقال‌های ε از آن به حالت‌های شروع <em>N(S)</em> و <em>N(T)</em> اضافه می‌کنیم. بعد انتقال‌هایی از حالت‌های پایان <em>N(S)</em> و <em>N(T)</em> به حالت تازه‌ساخته <em>f</em> اضافه می‌کنیم و آن‌ها را غیرپذیرش علامت می‌زنیم. NFA حاصل رشته‌هایی را تشخیص می‌دهد که یا به <em>L(S)</em> تعلق دارند یا به <em>L(T)</em>.</p>
+        <p><strong>ب) الحاق:</strong> <em>R = S · T</em></p>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/concat.png" alt="الحاق دو NFA" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>حالت پذیرش <em>N(S)</em> را غیرپذیرش علامت می‌زنیم و انتقالی از آن به حالت شروع <em>N(T)</em> اضافه می‌کنیم. این NFAای می‌دهد که همه الحاق‌های رشته <em>vw</em> را تشخیص می‌دهد که <em>v</em> به <em>L(S)</em> تعلق دارد و <em>w</em> به <em>L(T)</em>.</p>
+        <p><strong>ج) بستن (ستاره کلین):</strong> <em>R = S*</em></p>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/closure.png" alt="NFA برای بستن یک عبارت باقاعده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><em>i</em> را به‌عنوان شروع و <em>f</em> را به‌عنوان حالت پذیرش معرفی می‌کنیم. انتقال‌های ε اضافه می‌کنیم: از <em>i</em> به <em>f</em>، از <em>i</em> به حالت شروع <em>N(S)</em>؛ سپس حالت پذیرش <em>N(S)</em> را به <em>f</em> وصل می‌کنیم و در نهایت انتقالی از حالت پایان <em>N(S)</em> به حالت شروعش اضافه می‌کنیم. حالت پایان <em>N(S)</em> را میانی علامت می‌زنیم.</p>
+        <p>عملگر <em>بستن (*)</em> بالاترین اولویت را دارد، بعد الحاق (·). <em>اجتماع (|)</em> کم‌اولویت‌ترین است. پیاده‌سازی‌های مدرن regex عملگرهای بیشتری مثل <em>+</em> (یک یا بیشتر) و <em>?</em> (صفر یا یک) دارند؛ پیاده‌سازی آن‌ها مشابه موارد بالاست و برای اختصار از آن‌ها می‌گذریم.</p>
+        <h4>مثال</h4>
+        <p>بیایید یک مثال بزنیم. می‌خواهیم NFA برای <strong>(a|b)*c</strong> بسازیم. زبان این عبارت شامل همه رشته‌هایی است که صفر یا بیشتر «a» یا «b» دارند و با «c» تمام می‌شوند. مثل عبارت‌های حسابی، از براکت‌ها برای مشخص کردن صریح اولویت عملگر استفاده می‌کنیم. عبارت را به زیرعبارت‌های اتمی می‌شکنیم و از پایین به بالا می‌سازیم. بر اساس ترتیب اولویت:</p>
+        <ol>
+          <li>ساخت <em>N(a)</em>: NFA برای «a»</li>
+          <li>ساخت <em>N(b)</em>: NFA برای «b»</li>
+          <li>اعمال <em>اجتماع</em> روی <em>N(a)</em> و <em>N(b)</em> ← <em>N(a|b)</em></li>
+          <li>اعمال <em>بستن</em> روی <em>N(a|b)</em> ← <em>N((a|b)*)</em></li>
+          <li>اعمال <em>الحاق</em> روی <em>N((a|b)*)</em> و <em>N(c)</em> ← <em>N((a|b)*c)</em></li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>تحلیل یک عبارت باقاعده</h2>
+        <p>اول باید رشته را با افزودن یک عملگر الحاق صریح پیش‌پردازش کنیم. طبق مقاله، از نقطه (.) استفاده می‌کنیم. پس برای مثال عبارت باقاعده <em>abc</em> به <em>a · b · c</em> تبدیل می‌شود و <em>(a|b)c</em> به <em>(a|b) · c</em>.</p>
+        <p>راه‌های مختلفی برای تحلیل عبارت باقاعده هست. راه اصلی ما در مقاله تامپسون را دنبال می‌کنیم: تبدیل عبارت از نماد <strong>میانوندی</strong> به <strong>پسوندی</strong>. این‌طور می‌توانیم عملگرها را به‌سادگی به ترتیب اولویت تعریف‌شده اعمال کنیم. (پیاده‌سازی این پیش‌پردازش در کمتر از ۴۰ خط جاوااسکریپت در مخزن regexjs دیده می‌شود؛ الگوریتم Shunting-yard توضیح خوبی دارد.)</p>
+      </section>
+
+      <section>
+        <h2>ساخت NFA</h2>
+        <p>یک <strong>حالت NFA</strong> را به‌عنوان شیئی با ویژگی‌های زیر نمایش می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function createState(isEnd) {
+    return {
+        isEnd,
+        transition: {},
+        epsilonTransitions: []
+    };
+}</code></pre>
+        <p>دو نوع <strong>انتقال</strong> داریم — با نماد و با اپسیلون (رشته خالی). یک حالت در NFA تامپسون یا انتقال نمادی به حداکثر یک حالت دارد یا انتقال‌های اپسیلون به حداکثر دو حالت؛ اما نمی‌تواند همزمان انتقال نمادی و اپسیلونی داشته باشد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function addEpsilonTransition(from, to) {
+    from.epsilonTransitions.push(to);
+}
+
+function addTransition(from, to, symbol) {
+    from.transition[symbol] = to;
+}</code></pre>
+        <p>از <strong>پایه</strong>مان، دو نوع NFA داریم که به‌عنوان بلوک‌های ساختمان به کار می‌روند: ε-NFA و نماد-NFA. این‌گونه پیاده‌شان می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function fromEpsilon() {
+    const start = createState(false);
+    const end = createState(true);
+    addEpsilonTransition(start, end);
+
+    return { start, end };
+}
+
+function fromSymbol(symbol) {
+    const start = createState(false);
+    const end = createState(true);
+    addTransition(start, end, symbol);
+
+    return { start, end };
+}</code></pre>
+        <p>NFA به‌سادگی شیئی است که ارجاع‌هایی به حالت‌های شروع و پایانش نگه می‌دارد. با دنبال کردن <strong>قوانین استقرایی</strong> (توصیف‌شده در بالا)، با اعمال سه عملیات روی NFAهای کوچک‌تر، NFAهای بزرگ‌تر می‌سازیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function concat(first, second) {
+    addEpsilonTransition(first.end, second.start);
+    first.end.isEnd = false;
+
+    return { start: first.start, end: second.end };
+}
+
+function union(first, second) {
+    const start = createState(false);
+    addEpsilonTransition(start, first.start);
+    addEpsilonTransition(start, second.start);
+
+    const end = createState(true);
+    addEpsilonTransition(first.end, end);
+    first.end.isEnd = false;
+    addEpsilonTransition(second.end, end);
+    second.end.isEnd = false;
+
+    return { start, end };
+}
+
+function closure(nfa) {
+    const start = createState(false);
+    const end = createState(true);
+
+    addEpsilonTransition(start, end);
+    addEpsilonTransition(start, nfa.start);
+
+    addEpsilonTransition(nfa.end, end);
+    addEpsilonTransition(nfa.end, nfa.start);
+    nfa.end.isEnd = false;
+
+    return { start, end };
+}</code></pre>
+        <p>حالا وقت آن است که همه را کنار هم بگذاریم. <strong>عبارت پسوندی را یک‌نماد‌یک‌نماد اسکن می‌کنیم</strong> و context را در یک پشته ذخیره می‌کنیم. <strong>پشته شامل NFAهاست.</strong></p>
+        <ul>
+          <li>وقتی یک کاراکتر را اسکن می‌کنیم — یک NFA کاراکتری می‌سازیم و به پشته می‌فشاریم.</li>
+          <li>وقتی یک عملگر را اسکن می‌کنیم، از پشته بیرون می‌کشیم، این عملیات را روی NFA(ها) اعمال می‌کنیم و NFA حاصل را به پشته برمی‌فشاریم.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">js</span><code>function toNFA(postfixExp) {
+	if(postfixExp === '') {
+	    return fromEpsilon();
+	}
+
+	const stack = [];
+
+	for (const token of postfixExp) {
+		if(token === '*') {
+   		    stack.push(closure(stack.pop()));
+   		} else if (token === '|') {
+   		    const right = stack.pop();
+   		    const left = stack.pop();
+   		    stack.push(union(left, right));
+   		} else if (token === '.') {
+   		    const right = stack.pop();
+   		    const left = stack.pop();
+   		    stack.push(concat(left, right));
+   		} else {
+   		    stack.push(fromSymbol(token));
+   		}
+   	}
+
+	return stack.pop();
+}</code></pre>
+        <h4>مثال</h4>
+        <p>بیایید الگوریتم را روی <strong>(a|b)*c</strong> شبیه‌سازی کنیم:</p>
+        <ol>
+          <li>عملگر الحاق صریح (.) را درج کن: <strong>(a|b)*c</strong> ← <strong>(a|b)*.c</strong></li>
+          <li>به نماد پسوندی تبدیل کن: <strong>(a|b)*.c</strong> ← <strong>ab|*c.</strong></li>
+          <li>یک NFA بساز:
+            <pre class="code"><span class="lang-tag">جدول</span><code>گام   اسکن        عملیات                       پشته
+0     a b|*c.     fromSymbol(a); push;          { N(a) }
+1     a b|*c.     fromSymbol(b); push;          { N(a), N(b) }
+2     ab |*c.     pop; pop; union(N(a), N(b));  { N(a|b) }
+                 push;
+4     ab| *c.     pop; closure(N(a|b)); push;   { N((a|b)*) }
+5     ab|* c.     fromSymbol(c); push;          { N((a|b)*), N(c) }
+6     ab|*c .     pop; pop;                     { N((a|b)*c) }
+                 concat(N((a|b)*), N(c)); push;</code></pre>
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>الگوریتم‌های جست‌وجوی NFA</h2>
+        <h3>بازگشت بازگشتی</h3>
+        <p>ساده‌ترین راه بررسی اینکه آیا رشته‌ای توسط اتوماتا تشخیص داده می‌شود، محاسبه همه مسیرهای ممکن از میان NFA تا وقتی به حالت پذیرش برسیم یا همه امکانات تمام شود است. به یک جست‌وجوی عمق‌اول بازگشتی با عقب‌گرد برمی‌گردد.</p>
+        <img src="https://deniskyashif.com/images/posts/2019-02-20-regex/nfa-search.png" alt="NFA برای عبارت (aba)|(abb)" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>اتوماتای شکل ۵.۱ رشته <strong>«aba»</strong> یا <strong>«abb»</strong> را تشخیص می‌دهد. اگر بخواهیم <strong>«abb»</strong> را پردازش کنیم، شبیه‌سازی بازگشتی، ورودی را <strong>یک حالت در هر زمان</strong> پردازش می‌کند؛ پس اول بعد از خواندن «ab» به <em>q</em><sub>۳</sub> می‌رسیم. نماد بعدی «b» است اما از <em>q</em><sub>۳</sub> انتقالی روی «b» نیست؛ بنابراین به <em>q</em><sub>۰</sub> برمی‌گردیم و مسیر دیگر را می‌گیریم که به حالت پذیرش می‌انجامد.</p>
+        <p>برای اتوماتای شکل ۵.۱ مجبور شدیم هر دو مسیر ممکن را طی کنیم. در یک سناریوی پیچیده‌تر ممکن است پیامدهای کارایی قابل‌توجهی باشد. با NFAای که <em>n</em> حالت دارد، از هر حالتش می‌تواند به حداکثر <em>n</em> حالت ممکن انتقال یابد؛ یعنی ممکن است حداکثر 2<sup><em>n</em></sup> مسیر باشد، پس در بدترین حالت الگوریتم باید همه این مسیرها را تا یافتن مطابقت (یا نیافتن آن) طی کند. بدیهی است که O(2<sup><em>n</em></sup>) مقیاس‌پذیر نیست: برای رشته ۱۰ کاراکتری برای بررسی مطابقت احتمالاً باید ۱۰۲۴ عملیات انجام دهیم. قطعاً باید بهتر از این کار کنیم.</p>
+        <h3>بودن در چند حالت هم‌زمان</h3>
+        <p>می‌توانیم NFA را طوری نمایش دهیم که هم‌زمان در چند حالت باشد، همان‌طور که در مقاله تامپسون توصیف شده. این رویکرد پیچیده‌تر است اما عملکرد به‌طور قابل‌توجهی بهتری تولید می‌کند.</p>
+        <p>وقتی نمادی از رشته ورودی را می‌خوانیم، به‌جای انتقال یک‌حالت‌یک‌حالت، به همه حالت‌های ممکن قابل‌دسترس از مجموعه حالت‌های فعلی انتقال می‌یابیم. به عبارت دیگر، حالت فعلی NFA در واقع مجموعه‌ای از حالت‌ها می‌شود. در هر نوبت بعد از خواندن یک نماد، برای هر حالت در مجموعه فعلی، حالت‌هایی را پیدا می‌کنیم که با آن نماد قابل انتقال‌اند و آن‌ها را به‌عنوان <strong>حالت‌های بعدی</strong> علامت می‌زنیم. با این رویکرد شبیه‌سازی ما برای «abb» این‌طور است:</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>گام   حالت فعلی          اسکن   حالت بعدی
+1     { q1, q5 }         a bb   { q2, q6 }
+2     { q2, q6 }         a b b  { q3, q7 }
+3     { q3, q7 }         ab b   { q9 }</code></pre>
+        <p>بررسی می‌کنیم آیا هر حالتی در مجموعه حالتی که به آن‌ها می‌رسیم حالت پذیرش است؛ اگر بود، رشته توسط NFA تشخیص داده شده. در مورد بالا، مجموعه نهایی فقط <em>q</em><sub>۹</sub> را دارد که حالت پذیرش است.</p>
+        <h4>برخورد با انتقال‌های ε</h4>
+        <p>همان‌طور که اشاره شد، ساخت تامپسون دو نوع حالت دارد: آن‌هایی با انتقال‌های ε و آن‌هایی با انتقال روی نماد. پس هر بار که در حالتی با انتقال(های) ε به پایان می‌رسیم، به‌سادگی تا وقتی به حالتی برسیم که انتقالی روی نماد دارد، به دنبال حالت(های) بعدی می‌رویم و آن را در مجموعه حالت‌های بعدی درج می‌کنیم. روی <em>q</em><sub>۷</sub> «b» را می‌خوانیم و به <em>q</em><sub>۸</sub> می‌رویم که حالت انتقال ε است. انتقال ε را دنبال می‌کنیم و به <em>q</em><sub>۹</sub> می‌رسیم که انتقال ε ندارد، پس آن را به فهرست حالت‌های بعدی اضافه می‌کنیم. این یک رویه بازگشتی است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function addNextState(state, nextStates, visited) {
+    if (state.epsilonTransitions.length) {
+        for (const st of state.epsilonTransitions) {
+            if (!visited.find(vs => vs === st)) {
+                visited.push(st);
+                addNextStates(st, nextStates, visited);
+            }
+        }
+    } else {
+        nextStates.push(state);
+    }
+}</code></pre>
+        <p>باید حالت‌های انتقال ε را هم به‌عنوان بازدیدشده علامت بزنیم تا از حلقه بی‌نهایت جلوگیری شود. ته بازگشت وقتی است که به حالتی بدون انتقال ε برسیم. کد رویه جست‌وجو:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function search(nfa, word) {
+    let currentStates = [];
+    addNextState(nfa.start, currentStates, []);
+
+    for (const symbol of word) {
+        const nextStates = [];
+
+        for (const state of currentStates) {
+            const nextState = state.transition[symbol];
+            if (nextState) {
+                addNextState(nextState, nextStates, []);
+            }
+        }
+        currentStates = nextStates;
+    }
+
+    return currentStates.find(s => s.isEnd) ? true : false;
+}</code></pre>
+        <p>مجموعه اولیه حالت‌های فعلی یا خود حالت شروع است یا مجموعه حالت‌های قابل‌دسترس با انتقال‌های ε از حالت شروع. با رشته‌ای به طول <em>n</em>، در هر تکرار این الگوریتم دو فهرست حالت با طول تقریبی <em>n</em> نگه می‌دارد. این به ما پیچیدگی زمانی O(<em>n</em><sup>2</sup>) می‌دهد که به‌طور قابل‌توجهی از رویکرد بازگشت بازگشتی بهتر است. می‌توانیم آن را با تبدیل NFA به NFA بدون ε و حتی بیشتر با تبدیل به DFA بهینه کنیم. DFAها پیچیدگی تشخیص O(<em>n</em>) را تضمین می‌کنند اما ممکن است به دلیل <em>مسئله انفجار حالت</em> به 2<sup><em>n</em></sup> حالت ختم شویم.</p>
+      </section>
+
+      <section>
+        <h2>همه را کنار هم می‌گذاریم</h2>
+        <pre class="code"><span class="lang-tag">js</span><code>function createMatcher(exp) {
+    const postfixExp = toPostfix(insertExplicitConcatOperator(exp));
+    const nfa = toNFA(postfixExp);
+
+    return word => search(nfa, word);
+}
+
+const match = createMatcher('a*b');
+match(''); // false
+match('b'); // true
+match('ab'); // true</code></pre>
+      </section>
+
+      <section>
+        <h2>خلاصه</h2>
+        <p>با یادگیری درباره اتوماتای متناهی و نحوه کارشان شروع کردیم. آن‌ها را به قطعی و نادترمینیستی طبقه‌بندی کردیم و مفهوم ε-NFAها را معرفی کردیم — نوع خاصی از اتوماتای نادترمینیستی. دیدیم NFAها و DFAها قدرت بیان یکسان دارند و چگونه می‌توان از آن‌ها برای تشخیص رشته استفاده کرد.</p>
+        <p>بلوک‌های ساختمان عبارت‌های باقاعده را تعریف کردیم و آموختیم چگونه با اعمال عملگرها (الحاق، اجتماع و بستن) می‌توان عبارت‌های پیچیده‌تر را از ساده‌ترها ساخت. سپس یاد گرفتیم چگونه یک عبارت باقاعده را به NFA معادلش کامپایل کنیم و الگوریتمی را پیاده کردیم که رشته‌ای را از میان NFA پردازش می‌کند تا تعیین کند مطابقت دارد یا نه.</p>
+        <p>مرجع کامل کد این مقاله روی GitHub موجود است. اگر به رویکرد متفاوتی علاقه‌اید، مقاله «Parsing Regex with Recursive Descent» نویسنده رویکرد متفاوتی ارائه می‌دهد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Implementing a Regular Expression Engine» اثر دنیس کیشیف (Denis Kyashif)، © ۲۰۱۹. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

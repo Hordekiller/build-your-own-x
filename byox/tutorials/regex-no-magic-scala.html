@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بدون جادو: عبارت باقاعده</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>بدون جادو: عبارت باقاعده</span>
+      </div>
+      <h1>بدون جادو: عبارت باقاعده</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Scala</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://rcoh.svbtle.com/no-magic-regular-expressions" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «No Magic: Regular Expressions» (بخش ۱ از ۳)
+          از <b>راسل کوهن</b> (مه ۲۰۱۴) است — ساخت یک موتور عبارت باقاعده در کمتر از ۲۰۰ خط کد.
+          کد کامل در مخزن گیت‌هاب راسل کوهن موجود است.
+        </div>
+        <a class="btn solid" href="https://rcoh.svbtle.com/no-magic-regular-expressions" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>تا همین اواخر، عبارت‌های باقاعده برای من جادویی به نظر می‌رسیدند. هیچ‌وقت نمی‌فهمیدم چگونه می‌شود تعیین کرد که آیا یک رشته با یک عبارت باقاعده معین مطابقت دارد یا نه. حالا می‌دانم! این است روش پیاده‌سازی یک موتور عبارت باقاعده ابتدایی در کمتر از ۲۰۰ خط کد.</p>
+      </section>
+
+      <section>
+        <h2>مشخصات</h2>
+        <p>پیاده‌سازی عبارت‌های باقاعده کامل نسبتاً طاقت‌فرساست و بدتر از آن، چیز زیادی به شما یاد نمی‌دهد. نسخه‌ای که پیاده می‌کنیم همین‌قدر هست که بدون ملالت یاد بگیرید. زبان عبارت باقاعده ما این‌ها را پشتیبانی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>.    با هر کاراکتری مطابقت بده
+|    با «abc» یا «cde» مطابقت بده
++    با یک یا چند مورد از الگوی قبلی
+*    با صفر یا چند مورد از الگوی قبلی
+( )  برای گروه‌بندی</code></pre>
+        <p>اگرچه این مجموعه کوچکی از گزینه‌هاست، باز هم می‌توانیم regexهای بامزه‌ای بسازیم؛ مثلاً <code>m(t|n| )|b</code> برای مطابقت زیرنویس‌های «جنگ ستارگان» بدون مطابقت «پیشتازان فضا»، یا <code>(..)*</code> مجموعه همه رشته‌های با طول زوج.</p>
+      </section>
+
+      <section>
+        <h2>برنامه حمله</h2>
+        <p>عبارت‌های باقاعده را در ۳ فاز ارزیابی می‌کنیم:</p>
+        <ol>
+          <li>عبارت باقاعده را به یک درخت نحو تجزیه کن</li>
+          <li>درخت نحو را به یک ماشین حالت تبدیل کن</li>
+          <li>ماشین حالت را روی رشته‌مان ارزیابی کن</li>
+        </ol>
+        <p>برای ارزیابی عبارت‌های باقاعده از یک ماشین حالت به نام NFA استفاده می‌کنیم (بعداً بیشتر درباره‌اش). در سطح بالا، NFA نماینده regex ماست. با مصرف ورودی‌ها از حالتی به حالت دیگر در NFA می‌رویم. اگر به جایی برسیم که نتوانیم یک انتقال مجاز را دنبال کنیم، عبارت باقاعده با رشته مطابقت ندارد.</p>
+        <p>این رویکرد ابتدا توسط <strong>کن تامپسون</strong>، یکی از نویسندگان اصلی یونیکس، نشان داده شد. در مقاله ۱۹۶۸ خودش (CACM) پیاده‌سازی یک ویرایشگر متن را شرح می‌دهد و یک ارزیاب عبارت باقاعده هم در آن گنجانده است. تنها تفاوت این است که مقاله او با کد ماشین ۷۰۹۴ نوشته شده. اوضاع قبلاً خیلی جدی‌تر بود.</p>
+        <p>این الگوریتم ساده‌سازی شیوه ارزیابی عبارت‌های باقاعده توسط موتورهای غیر-بک‌ترکینگ مثل RE2 است که در زمان اثبات‌پذیر خطی اجرا می‌شوند. تفاوت قابل‌توجهی با موتورهای regex موجود در پایتون و جاوا دارد که از backtracking استفاده می‌کنند: با ورودی‌های خاص روی رشته‌های کوچک عملاً تا ابد اجرا می‌شوند. موتور ما در <code>O(طول ورودی × طول عبارت)</code> اجرا می‌شود.</p>
+        <p>رویکرد من تقریباً استراتژی‌ای را دنبال می‌کند که راس کاکس در پست عالی وبلاگش ترسیم کرده.</p>
+      </section>
+
+      <section>
+        <h2>نمایش یک عبارت باقاعده</h2>
+        <p>بیایید یک قدم به عقب برگردیم و درباره اینکه چگونه یک عبارت باقاعده را نمایش دهیم فکر کنیم. قبل از اینکه امیدوار باشیم یک عبارت باقاعده را ارزیابی کنیم، باید آن را به ساختار داده‌ای تبدیل کنیم که کامپیوتر بتواند روی آن کار کند. در حالی که رشته‌ها ساختار خطی دارند، عبارت‌های باقاعده سلسله‌مراتب طبیعی دارند.</p>
+        <p>رشته <code>abc|(c|(de))</code> را در نظر بگیرید. اگر آن را به‌صورت رشته نگه دارید، باید در هنگام ارزیابی عبارت بین مجموعه‌های مختلف پرانتز به‌جلو‌وعقب پرش کنید و backtracking کنید. یک راه‌حل تبدیل آن به یک درخت است که کامپیوتر به‌آسانی می‌تواند آن را پیمایش کند. مثلاً <code>b+a</code> به شکل یک درخت می‌شود.</p>
+        <p>برای نمایش درخت، می‌خواهیم سلسله‌مراتبی از کلاس‌ها بسازیم. مثلاً کلاس <code>Or</code> ما باید دو زیردرخت داشته باشد تا دو طرفش را نشان دهد. طبق مشخصات، ۴ مؤلفه مختلف regex را باید تشخیص دهیم: <code>+</code>، <code>*</code>، <code>|</code> و کاراکترهای تحت‌اللفظی مثل <code>.</code>، <code>a</code> و <code>b</code>. علاوه بر این، باید بتوانیم نشان دهیم که یک عبارت از دیگری پیروی می‌کند. کلاس‌های ما این‌ها هستند:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>abstract class RegexExpr
+
+// ., a, b
+case class Literal(c: Char) extends RegexExpr
+
+// a|b
+case class Or(expr1: RegexExpr, expr2: RegexExpr) extends RegexExpr
+
+// ab -> Concat(a,b); abc -> Concat(a, Concat(b, c))
+case class Concat(first: RegexExpr, second: RegexExpr) extends RegexExpr
+
+// a*
+case class Repeat(expr: RegexExpr) extends RegexExpr
+
+// a+
+case class Plus(expr: RegexExpr) extends RegexExpr</code></pre>
+      </section>
+
+      <section>
+        <h2>تحلیل یک عبارت باقاعده</h2>
+        <p>برای رسیدن از رشته به نمایش درختی، از فرآیند تبدیل‌ای به نام «تحلیل» (parsing) استفاده می‌کنیم. قرار نیست درباره ساخت تحلیل‌گرها با جزئیات زیاد صحبت کنم. بلکه به‌اندازه‌ای می‌دهم که اگر خواستید تحلیل‌گر خودتان را بنویسید راهنمایتان کند. اینجا مرور می‌کنم چگونه عبارت‌های باقاعده را با کتابخانه ترکیب‌کننده‌های تحلیل‌گر (parser combinator) اسکالا تحلیل کردم.</p>
+        <p>کتابخانه تحلیل اسکالا به ما اجازه می‌دهد با فقط نوشتن مجموعه قواعدی که زبان‌مان را توصیف می‌کنند، یک تحلیل‌گر بنویسیم. متأسفانه از نمادهای زیادی استفاده می‌کند، اما امیدوارم بتوانید از پشت آن نویز، اصل ماجرا را ببینید.</p>
+        <p>هنگام پیاده‌سازی یک تحلیل‌گر باید ترتیب عمل‌ها را در نظر بگیریم. همان‌طور که «اولویت عملگرها» به حساب (محاسبات) اعمال می‌شود، مجموعه متفاوتی از قواعد هم برای عبارت‌های باقاعده اعمال می‌شود. می‌توانیم این را به‌صورت رسمی‌تر با ایده «اِتصال» عملگر به کاراکترهای کنارش بیان کنیم. عملگرهای مختلف با قدرت‌های مختلفی «اتصال» می‌گیرند — به‌عنوان قیاس، در عبارت‌هایی مثل <code>5+6*4</code>، <code>*</code> محکم‌تر از <code>+</code> اتصال می‌گیرد. در عبارت‌های باقاعده، <code>*</code> محکم‌تر از <code>|</code> اتصال می‌گیرد. اگر این را به‌صورت درخت نمایش دهیم، ضعیف‌ترین عملگرها در بالا قرار می‌گیرند.</p>
+        <p>نتیجه می‌گیریم که باید اول ضعیف‌ترین عملگرها را تحلیل کنیم و بعد عملگرهای قوی‌تر را. هنگام تحلیل، می‌توانید تصورش کنید: عملگری را بیرون بکشید، به درخت اضافه کنید، و بعد روی دو بخش باقی‌مانده رشته بازگشت کنید.</p>
+        <p>در عبارت‌های باقاعده ترتیب قدرت اتصال این است:</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>کاراکتر تحت‌اللفظی و پرانتز      (قوی‌ترین)
++ و *
+الحاق — «a» بعد از «b» است
+|                                    (ضعیف‌ترین)</code></pre>
+        <p>چون ۴ سطح قدرت اتصال داریم، به ۴ نوع عبارت متفاوت نیاز داریم. آن‌ها را (تا حدی خودسرانه) نام‌گذاری کردیم: <code>lit</code>، <code>lowExpr</code> (+ و *)، <code>midExpr</code> (الحاق) و <code>highExpr</code> (|). بریم سراغ کد. اول یک تحلیل‌گر برای ابتدایی‌ترین سطح، یک کاراکتر منفرد:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>object RegexParser extends RegexParsers {
+    def charLit: Parser[RegexExpr] = ("""\w""".r | ".") ^^ {
+        char => Literal(char.head)
+    }</code></pre>
+        <p>یک لحظه برای توضیح این نحو صبر کنیم. این یک تحلیل‌گر تعریف می‌کند که یک RegexExpr می‌سازد. سمت راست می‌گوید: «چیزی را پیدا کن که با <code>\w</code> (هر کاراکتر واژه‌ای) یا یک نقطه مطابقت داشته باشد. اگر پیدا کردی، آن را به Literal تبدیل کن.</p>
+        <p>پرانتزها باید در پایین‌ترین سطح تحلیل‌گر تعریف شوند چون قوی‌ترین اتصال را دارند. اما باید بتوانید هر چیزی را داخل پرانتز بگذارید. می‌توانیم این را با کد زیر انجام دهیم:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def parenExpr: Parser[RegexExpr] = "(" ~> highExpr <~ ")"
+    def lit: Parser[RegexExpr] = charLit | parenExpr</code></pre>
+        <p>اینجا <code>*</code> و <code>+</code> را تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def repeat: Parser[RegexExpr] = lit <~ "*"
+        ^^ { case l => Repeat(l) }
+    def plus: Parser[RegexExpr] = lit <~ "+"
+        ^^ { case p => Plus(p) }
+    def lowExpr: Parser[RegexExpr] = repeat | plus | lit</code></pre>
+        <p>بعد، الحاق را تعریف می‌کنیم، سطح بعدی:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def concat: Parser[RegexExpr] = rep(lowExpr)
+        ^^ { case list => listToConcat(list)}
+    def midExpr: Parser[RegexExpr] = concat | lowExpr</code></pre>
+        <p>در نهایت، <code>or</code> را تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def or: Parser[RegexExpr] = midExpr ~ "|" ~ midExpr
+        ^^ { case l ~ "|" ~ r => Or(l, r)}</code></pre>
+        <p>و در آخر، <code>highExpr</code> را تعریف می‌کنیم. highExpr یک <code>or</code> است، ضعیف‌ترین عملگر اتصال، یا اگر <code>or</code> نبود، یک <code>midExpr</code>:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def highExpr: Parser[RegexExpr] = or | midExpr</code></pre>
+        <p>و در نهایت، کمی کد کمکی برای تمامش کردن:</p>
+        <pre class="code"><span class="lang-tag">scala</span><code>    def listToConcat(list: List[RegexExpr]): RegexExpr = list match {
+        case head :: Nil => head
+        case head :: rest => Concat(head, listToConcat(rest))
+    }
+
+    def apply(input: String): Option[RegexExpr] = {
+        parseAll(highExpr, input) match {
+            case Success(result, _) => Some(result)
+            case failure : NoSuccess => None
+        }
+    }
+}</code></pre>
+        <p>تمام شد! با این کد اسکالا می‌توانید برای هر عبارت باقاعده‌ای که با مشخصات مطابقت دارد درخت‌های تحلیل تولید کنید. ساختارهای داده حاصل درخت‌اند.</p>
+        <p>حالا که می‌توانیم عبارت‌های باقاعده‌مان را به درخت‌های نحو تبدیل کنیم، در میانه راه ارزیابی آن‌ها هستیم. مراحل بعدی در بخش ۲ و ۳ مقاله شرح داده شده‌اند: تبدیل درخت نحو به یک NFA و سپس ارزیابی آن NFA روی رشته‌های داده‌شده — با همین رویکرد الگوریتم‌های <strong>RE2</strong> و ساخت تامپسون که اینجا ارجاع شد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقاله «No Magic: Regular Expressions» اثر راسل کوهن (Russell Cohen) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب (و بخش‌های ۲ و ۳) به
+        <a href="https://rcoh.svbtle.com/no-magic-regular-expressions" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

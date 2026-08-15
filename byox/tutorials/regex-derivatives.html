@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | عبارت باقاعده با مشتقات در جاوااسکریپت تابعی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>عبارت باقاعده با مشتقات</span>
+      </div>
+      <h1>چگونه عبارت باقاعده را با مشتقات (derivatives) در جاوااسکریپت تابعی پیاده‌سازی کنیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://dpk.io/dregs/toydregs" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to Implement Regular Expressions in functional
+          JavaScript using Derivatives» از <b>دافنه پرستون-کندال</b> (dpk.io، ۲۰۱۷) است.
+        </div>
+        <a class="btn solid" href="http://dpk.io/dregs/toydregs" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>اگر مثل بیشتر برنامه‌نویسان امروزی باشید، احتمالاً در عمرتان چند عبارت باقاعده نوشته‌اید: ترکیب‌های کوتاه (یا شاید طولانی)، تقریباً نامفهوم از حروف و نمادها که به شما اجازه می‌دهند بررسی کنید رشته‌ای شبیه انتظار شماست یا نه.</p>
+        <p>اما آیا تاکنون به این فکر کرده‌اید که چطور می‌توان برنامه‌ای نوشت که عبارت‌های باقاعده را <em>مطابقت</em> دهد؟ عبارت‌های باقاعده موفق‌ترین شکل برنامه‌نویسی اعلامی‌اند، اما در زیر پوست، کامپیوترها همچنان موجوداتی امری‌اند. باید راهی برای مطابقت آن‌ها در کد امری وجود داشته باشد!</p>
+        <p>این مقاله نظریه پشت یکی از راه‌های پیاده‌سازی عبارت باقاعده را نشان می‌دهد و سپس با ساخت یک موتور عبارت باقاعده اسباب‌بازی در جاوااسکریپت به سبک کم‌وبیش تابعی خالص قدم می‌زند. از جاوااسکریپت استفاده می‌کنیم چون زبان میانجی خوبی است که نحوش برای بیشتر برنامه‌نویسان آشناست.</p>
+        <div class="callout note">نکته‌ای درباره نمایش رشته در جاوااسکریپت: رشته‌های جاوااسکریپت آرایه‌ای از UTF-16 code unit هستند. این واحدها ظاهراً کار می‌کنند تا با یک ایموجی یا کاراکتر چینی روبه‌رو شوید؛ آن‌گاه ناگهان کد شما فقط با بخشی از یک کاراکتر سر و کار دارد. پیاده‌سازی ما تلاش می‌کند در هر جا ممکن از codepoint و اندیس‌گذاری codepoint استفاده کند.</div>
+        <p>در پایان تمرین‌هایی برای کار کردن خودتان و فهرستی از خواندنی‌های بیشتر هست. این مقاله فرض می‌کند با استفاده از عبارت باقاعده در کد آشنا هستید، نه عمیقاً با تاریخچه یا نظریه آن.</p>
+      </section>
+
+      <section>
+        <h2>زمینه نظری</h2>
+        <p>عبارت‌های باقاعده، که گرامرهای باقاعده هم نامیده می‌شوند، حدود سال ۱۹۵۱ توسط ریاضی‌دان استیون کلین به‌عنوان راهی برای توصیف رسمی مجموعه‌ای از رشته‌ها درون یک «زبان باقاعده» اختراع شدند. بعداً نوآم چامسکی متوجه شد هر زبان باقاعده، زبان مستقل از متن هم هست و بدین ترتیب گرامرهای باقاعده را در پایین سلسله‌مراتب چامسکی قرار داد. در معنای دقیق، عبارت‌های باقاعده ایده‌ای ریاضی‌اند: زبان‌های باقاعده مجموعه زبان‌هایی هستند که با حداکثر یک اتوماتای متناهی تحلیل می‌شوند؛ به زبان ساده‌تر، یک رشته را همیشه می‌توان با یک پیمایش بر کاراکترهایش و با حافظه‌ای بیش از خود رشته، در برابر یک زبان باقاعده آزمود.</p>
+        <p>عبارت‌های باقاعده‌ای که برنامه‌نویسان امروز می‌شناسند و دوست دارند اولین بار در یونیکس در ۱۹۶۹ ظاهر شدند. بزرگ‌ترین گسترش قابلیت‌های عبارت باقاعده وقتی بود که لری وال زبان Perl را اختراع کرد. Perl دسته بزرگی از امکانات جدید به regexها افزود و در عین حال سعی کرد سازگاری نحوی با عبارت‌های باقاعده توسعه‌یافته استاندارد یونیکس را نشکند. در نتیجه نحو گیج‌کننده‌تر شد و با افزودن backreferenceها و تأکیدهای صفر-عرض دلخواه و گروه‌های بازگشتی، عبارت‌های باقاعده Perl در واقع از آنچه تعریف ریاضی سخت‌گیرانه گرامر باقاعده رسماً اجازه می‌دهد فراتر رفتند. عبارت‌های باقاعده پیچیده‌تر شدند و به‌طور گسترده برای تحلیل زبان‌هایی به کار رفتند که باقاعده نبودند و هرگز نمی‌توانستند باشند. و با عبور از مطابقت فقط زبان‌های باقاعده، موتورهای عبارت باقاعده به دلیل سبک‌های پیاده‌سازی ناکارآمدی که برای پشتیبانی این امکانات جدید مجبور به پذیرش بودند، به تله‌های کارایی مرگبار (ReDoS) تبدیل شدند.</p>
+        <p>این مشکلات واکنشی جزئی و تلاشی برای بهبود ایجاد کردند. لری وال خودش اعلام کرد Perl 6 عبارت‌های باقاعده را کاملاً دگرگون خواهد کرد. در همین حال سازندگان یونیکس سیستم‌عامل جدیدی به نام Plan 9 می‌ساختند و تصمیم گرفتند رویکرد متفاوتی برای رفع ایده شکسته مردم درباره مطابقت regex در پیش بگیرند: عمداً نحو را تقریباً تا regexهای نسخه اول یونیکس عقب بردند. با این regex می‌توان هر زبان باقاعده‌ای را مطابقت داد — دقیقاً به همان قدرت POSIX ERE و حتی Perl (به‌جز backreferenceها و lookaroundها). بعداً یکی از توسعه‌دهندگان Plan 9 پروژه re2 را ساخت، پیاده‌سازیِ بیشتر regexهای Perl اما بدون امکاناتی که آنها را غیرباقاعده می‌کرد، یعنی می‌توانستند دوباره بدون بدترین حالت زمان نمایی مطابقت شوند.</p>
+      </section>
+
+      <section>
+        <h2>اصطلاحات</h2>
+        <p>برای اطمینان از اینکه همه در یک صفحه‌ایم، اصطلاحاتی که برای بخش‌های مختلف نحو regex استفاده می‌کنم این‌هاست:</p>
+        <ul>
+          <li><code>ab</code> — الحاق دو regex <code>a</code> و <code>b</code></li>
+          <li><code>a|b</code> — جایگزینی دو جایگزین <code>a</code> و <code>b</code></li>
+          <li><code>a*</code> — تکرار (دقیقاً: تکرار حداقل صفر بار)</li>
+          <li><code>a?</code> — اختیاری بودن <code>a</code></li>
+        </ul>
+        <p>سیستم عبارت باقاعده اسباب‌بازی ما فقط گروه‌بندی، جایگزینی و تکرار صفر-یا-بیشتر را پیاده می‌کند، کنار جست‌وجوی رشته پایه برای کاراکتر تحت‌اللفظی و کاراکتر جانشین. باور کنید یا نه، به‌جز تأکیدهای صفر-عرض، با فقط همین امکانات می‌توان هر عبارت باقاعده POSIX (یا حتی هر PCRE بدون backreference) را بعد از اعمال تبدیل مناسب مطابقت داد.</p>
+        <pre class="code"><span class="lang-tag">تبدیل‌ها</span><code>نحو Perl/POSIX          معادل
+[abc]  (کلاس کاراکتری)  جایگزینی هر کاراکتر کلاس (مثل (a|b|c))
+a?     (اختیاری)        جایگزینی a با رشته خالی (یعنی (a|))
+a+     (یک یا بیشتر)    aa*
+a{m,}  (حداقل m بار)     m بار a تحت‌اللفظی، به دنبال a*
+a{m,n} (بین m و n بار)   m بار a تحت‌اللفظی، به دنبال (n−m) بار a?
+a{,n}  (حداکثر n بار)    n بار a? تحت‌اللفظی</code></pre>
+        <p>توجه کنید این‌ها لزوماً کارآمدترین راه پیاده‌سازی نیستند؛ اما در سطح نظری، امکانات اولیه نحو کافی‌اند. ما همچنین تأکیدهای صفر-عرض را پیاده نمی‌کنیم چون فرآیندی را پیچیده می‌کنند که در غیر این صورت می‌تواند فرض کند هر توکن مطابقت‌شونده در عبارت باقاعده با پیشروی یک کاراکتری در رشته ورودی متناظر است.</p>
+        <p>ما همچنین یک تحلیل‌گر برای نحو عبارت باقاعده POSIX نمی‌سازیم؛ به‌جایش یک نماد جاوااسکریپتی دوستانه برای regexها طراحی می‌کنیم. دو چیز دیگر هم به‌عنوان تمرین می‌مانند: پیدا کردن اینکه آیا regex خاصی با زیررشته‌ای از رشته ورودی مطابقت دارد (مطابقت‌گر ما فقط می‌تواند بگوید آیا یک رشته <em>کامل</em> با یک regex <em>کامل</em> مطابقت دارد) و استخراج زیرمطابقت.</p>
+      </section>
+
+      <section>
+        <h2>شروع از پایین</h2>
+        <p>در نافرمانی از خرد متعارف طراحی نرم‌افزار که طراحی بالا-به-پایین را ترجیح می‌دهد، پیاده‌سازی را از پایین شروع می‌کنیم و به‌تدریج لایه‌های انتزاع بیشتری می‌سازیم، تا موتور regex ما از هیچ ساخته شود و در هر مرحله رفتار مفید و کارا داشته باشیم. پایین‌ترین لایه سیستم ما ساختاری است که regex ورودی به آن تبدیل می‌شود.</p>
+        <h3>نظریه</h3>
+        <p>موتور عبارت باقاعده ما با محاسبه تکراری <em>مشتق</em> عبارت باقاعده نسبت به رشته ورودی کار می‌کند. مشتق یک عبارت باقاعده نسخه اصلاح‌شده‌ای از آن است بعد از اینکه یک کاراکتر منفرد را مطابقت داده. مثال:</p>
+        <pre class="code"><span class="lang-tag">مثال</span><code>گام   ورودی (باقی‌مانده)   regex (مشتق)
+0     abd                 a(b|c)d
+      ... مشتق a(b|c)d نسبت به کاراکتر a ...
+1     bd                  (b|c)d
+      ... مشتق (b|c)d نسبت به کاراکتر b ...
+2     d                   d
+      ... مشتق d نسبت به کاراکتر d ...
+3     (خالی)              (خالی)
+
+چون هم رشته ورودی و هم regex مشتق خالی‌اند، regex مطابقت دارد!</code></pre>
+        <p>گرفتن مشتق regex نسبت به کاراکتری که مطابقت آن regex را شروع نمی‌کند، یک regex تهی ویژه تولید می‌کند که با هیچ‌چیز مطابقت ندارد. توجه کنید چگونه یک‌به‌یک روی رشته ورودی حرکت می‌کنیم و هر کاراکتر در رشته ورودی با یک کاراکتر در عبارت باقاعده متناظر است. بنابراین الگوهایی را که می‌خواهیم مطابقت دهیم به‌صورت فهرستی از کاراکترها نمایش می‌دهیم — به‌طور خاص، به‌صورت یک فهرست تک‌پیوندی که برخی گره‌هایش اشاره‌گرهای بیرونی اضافه برای نمایش جایگزینی دارند. یک ورودی فهرست ویژه برای regex رشته خالی هست که (از نظر نظری) تضمین می‌شود با هر چیزی مطابقت کند و معرف مطابقت کامل است.</p>
+        <p>وقتی یکی از جایگزینی‌های یک گروه بلندتر از بقیه باشد عالی کار می‌کند؛ و حتی وقتی هر دو جایگزینی با موفقیت نسبت به یک کاراکتر خاص مشتق می‌شوند — فقط از فرآیند مشتق‌گیری یک جایگزینی دیگر برمی‌گردانیم.</p>
+        <h3>عمل</h3>
+        <p>به‌جای اینکه جایگزینی‌ها فقط به‌صورت گره‌های دیگر با چند اشاره‌گر خروجی در نظریه وجود داشته باشند، در عمل یک گره جایگزینی ویژه در درختمان خواهیم داشت که با مشتق‌گیری در برابر چند امکان مطابقت سر و کار دارد. برای شروع یک ابرکلاس گره می‌سازیم که دو نوع دیگر گره‌مان — کاراکترها و جایگزینی‌ها — از آن ارث می‌برند. یک متد <code>derive</code> می‌گذاریم که بیشتر زیرکلاس‌ها آن را بازنویسی می‌کنند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RegexpNode {
+    derive (char) {
+        return NeverMatches;
+    }
+}</code></pre>
+        <p>همچنین شیء <code>NeverMatches</code> (که نمایانگر مطابقت ناموفق است) و <code>EmptyString</code> (که نمایانگر مطابقت موفق است) را به‌عنوان نمونه‌های منفرد مستقیم از کلاس <code>RegexpNode</code> تعریف می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>const EmptyString = new RegexpNode();
+const NeverMatches = new RegexpNode();</code></pre>
+        <p>سپس باید دو نوع گره‌ای را تعریف کنیم که واقعاً مطابقت می‌دهند. کلاس <code>CharacterNode</code> پایه‌ای‌تر است و جوهر ساختار «فهرست پیوندی»-مانند را دارد که هنگام مطابقت پیمایش می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class CharacterNode extends RegexpNode {
+    constructor (char, next) {
+        super(); // جاوااسکریپت ما را مجبور می‌کند روی همه زیرکلاس‌ها این را صدا بزنیم
+        this.char = char;
+        this.next = next;
+    }
+
+    derive (char) {
+        if (char === this.char) {
+            return this.next;
+        } else {
+            return NeverMatches;
+        }
+    }
+}</code></pre>
+        <p>امیدوارم واضح باشد: اساساً مشتق یک گره کاراکتری اگر کاراکتری که در برابر آن مشتق می‌گیریم مطابقت داشته باشد، گره بعدی فهرست است؛ وگرنه regex تهی (<code>NeverMatches</code>).</p>
+        <p>کلاس جایگزینی کمی پیچیده‌تر است:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class AlternationNode extends RegexpNode {
+    constructor (alternatives) {
+        super();
+        let _alternatives = alternatives.filter((alt) => alt !== NeverMatches);</code></pre>
+        <p>اولین کاری که در سازنده انجام می‌دهیم فیلتر کردن همه جایگزین‌هایی است که regex تهی‌اند. شاید عجیب به نظر برسد که کسی <code>NeverMatches</code> را به‌عنوان جایگزین بدهد، اما به یاد داشته باشید از نظریه که گاهی اوقات یک <code>AlternationNode</code> را به‌عنوان مشتق یک <code>AlternationNode</code> دیگر تولید می‌کنیم. مدیریت این حالت اینجا به ما اجازه می‌دهد پیاده‌سازی <code>derive</code> پایین را ساده کنیم و تضمین کند <em>هرگز</em> گره جایگزینی نامعتبر تولید نمی‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>        if (_alternatives.length === 0) {
+            return NeverMatches;
+        } else if (_alternatives.length === 1) {
+            return _alternatives[0];</code></pre>
+        <p>بعد از فیلتر کردن فهرست جایگزین‌های ارسال‌شده به سازنده، حالا باید بررسی صحت انجام دهیم. اگر در پایان هیچ جایگزین معتبری نمانده بود، باید جایگزینی مشتق کرده باشیم که هرگز مطابقت نمی‌کند (مثلاً وقتی رشته <code>a</code> را در برابر regex <code>b|c</code> مطابقت می‌دهیم). اگر فقط یکی مانده بود، می‌توانیم ساختار <code>AlternationNode</code> را کلاً دور بزنیم (مثل بالا وقتی <code>bbd</code> را با <code>(bb|c)d</code> مطابقت دادیم و <code>bd</code> گرفتیم).</p>
+        <pre class="code"><span class="lang-tag">js</span><code>        } else {
+            this.alternatives = _alternatives;
+        }
+        return this;
+    }</code></pre>
+        <p>برای مدیریت این حالت‌ها از قابلیت زیبای ES6 استفاده می‌کنیم که در آن می‌توانید هنگام ساخت یک کلاس، شیئی از نوع متفاوت برگردانید. در نهایت اگر هنوز بیش از دو جایگزین معتبر بود، نمونه معمولی از کلاس می‌سازیم. توجه کنید برخلاف گره‌های کاراکتری، اینجا <code>next</code> نیست؛ گره‌های کاراکتری خودشان اشاره‌گر به هرچه بعد از گروه حاوی جایگزینی می‌آید را دارند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>    derive (char) {
+        return new AlternationNode(this.alternatives.map((alt) => alt.derive(char)));
+    }
+}</code></pre>
+        <p>در نهایت، به لطف بررسی صحت سازنده بالا، می‌توانیم مشتق جایگزینی را به سادگی جایگزینیِ مشتق‌های همه جایگزین‌ها تعریف کنیم.</p>
+        <p>هنوز تکرار نداریم، اما حالا می‌توانیم regexهای واقعی را مطابقت دهیم. در واقع نامی برای نوع زبانی که همین حالا پیاده کرده‌ایم وجود دارد: زبان بدون ستاره (star-free)، یعنی regex بدون شمارنده <code>*</code> که تضمین می‌کند مطابقت خاتمه می‌یابد. نحوه ساخت و آزمون regex <code>a(b|c)d</code>:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>let commonTail = new CharacterNode('d', EmptyString),
+    alternation = new AlternationNode([
+        new CharacterNode('b', commonTail),
+        new CharacterNode('c', commonTail)
+    ]),
+    head = new CharacterNode('a', alternation);
+
+head.derive('a'); //=> AlternationNode وسطی
+head.derive('a').derive('b'); //=> CharacterNode 'd'
+head.derive('a').derive('e'); //=> NeverMatches
+head.derive('a').derive('b').derive('d'); //=> EmptyString; مطابقت کامل</code></pre>
+        <p>حتی اگر فوراً ببینید چگونه کار می‌کند، امیدوارم قبول کنید که کمی طاقت‌فرسا است که regex را این‌طور بسازید و کاراکتربه‌کاراکتر مطابقت دهید! بعداً به یک API سطح بالاتر می‌رویم. قبل از آن، به دو نوع گره دیگر نگاهی سریع می‌اندازیم: <code>AnyCharacterNode</code> و <code>RepetitionNode</code>.</p>
+        <p><code>AnyCharacterNode</code>، معادل <code>.</code> در نحو کلاسیک، مثل <code>CharacterNode</code> است اما ساده‌تر، چون کاراکتر خاصی را مطابقت نمی‌دهد بلکه هر کاراکتری را: فقط حالت مطابقت را یک قدم جلو می‌برد.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class AnyCharacterNode extends RegexpNode {
+    constructor (next) {
+        super();
+        this.next = next;
+    }
+
+    derive (char) { return this.next; }
+}</code></pre>
+        <p>در نهایت، سریع به نظریه برمی‌گردیم تا بفهمیم <code>RepetitionNode</code> را چطور پیاده کنیم. فرض کنید regex <code>(abc)*d</code> داریم و می‌خواهیم مشتق نسبت به کاراکتر «a» را پیدا کنیم. مشتق حاصل باید با رشته‌های به شکل‌های «bc» و همچنین «bcabcabcabc …» مطابقت کند، پس پاسخ <code>bc(abc)*d</code> است. تکرار دو اشاره‌گر ورودی دارد: یکی از گره شروع و یکی از پایان خود تکرار به شروع. در هر دو نقطه ممکن است به گره «a» برویم یا به گره «d» — یا از تکرار رد شویم یا از آن خارج شویم. مثل هر فهرست پیوندی چرخه‌ای، برای ساخت این نوع گره باید از اثر جانبی استفاده کنیم. <code>RepetitionNode</code> همیشه دو اشاره‌گر خروجی خواهد داشت: یکی به «سر» تکرار (در مثال بالا <code>a</code>) و یکی به گره بعد از تکرار مثل همیشه. همان <code>RepetitionNode</code> هم در شروع و هم در پایان تکرار ظاهر می‌شود تا هم رد شدن از روی تکرار و هم خروج از حلقه را مدیریت کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RepetitionNode extends RegexpNode {
+    constructor (next) {
+        super();
+        // head بعداً با اصلاح درست تنظیم می‌شود
+        this.head = NeverMatches;
+        this.next = next;
+    }
+
+    derive (char) {
+        return new AlternationNode([
+            this.head.derive(char),
+            this.next.derive(char),
+        ]);
+    }
+}</code></pre>
+        <p>قبل از رفتن به API دوستانه‌تر بیایید با یک regex «کامپایل‌شده» دست‌ساز آزمایشش کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>let tail = new CharacterNode('d', EmptyString),
+    repetition = new RepetitionNode(tail),
+    repetitionBody = new CharacterNode('a', new CharacterNode('b', new CharacterNode('c', repetition)));
+
+// این همان بخش اثرجانبی‌دار است که چرخه را برقرار می‌کند
+repetition.head = repetitionBody;
+
+repetition.derive('a'); //=> CharacterNode b
+repetition.derive('d'); //=> EmptyString; مطابقت کامل
+let repeatedOnce = repetition.derive('a').derive('b').derive('c'); //=> همان RepetitionNode دوباره
+repeatedOnce.derive('a') //=> برگشت به b
+repeatedOnce.derive('d') //=> دوباره EmptyString</code></pre>
+        <p>کار می‌کند! حالا برویم سراغ ساخت رابط تابعی سطح بالاتر و دلپذیرتر.</p>
+      </section>
+
+      <section>
+        <h2>یک کامپایلر عبارت باقاعده (بدون تحلیل‌گر)</h2>
+        <p>راه خوب نوشتن عبارت باقاعده در نحو جاوااسکریپت چیست؟ بگذارید از قالب فکری که ما را در نحو یونیکسی رشته‌ها به دام می‌اندازد خارج شویم و راهی برای ساخت regex با استفاده از مقادیر جاوااسکریپت و فراخوانی تابع طراحی کنیم. فکر می‌کنم این خیلی خوب است:</p>
+        <pre class="code"><span class="lang-tag">قرارداد</span><code>"abc"          (رشته تحت‌اللفظی)           کاراکترهای رشته را مطابقت می‌دهد
+[a, b, c, ...] (آرایه معمولی)               الحاق regexهای آرایه
+Or([a, b, ...]) (تابع Or)                   جایگزینی regexهای آرایه
+ZeroOrMore(re) (تابع ZeroOrMore)            اجازه تکرار regex داده‌شده را می‌دهد
+Any            (متغیر Any)                  هر کاراکتر منفرد را مطابقت می‌دهد</code></pre>
+        <p>برای راحتی و تمیزی، از مقدمه <code>new</code> برای گره‌های <code>Or</code> و <code>ZeroOrMore</code> صرف‌نظر می‌کنم. اول انواع داده، توابع و اشیایی را می‌سازیم که برای کارکردن به آن‌ها نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class _Or {
+    constructor (alternatives) {
+        this.alternatives = alternatives;
+    }
+}
+function Or(alternatives) {
+    if (!(alternatives instanceof Array)) {
+        throw new TypeError("جایگزین‌های ارسال‌شده به Or باید Array باشند");
+    } else {
+        return new _Or(alternatives);
+    }
+}
+
+class _ZeroOrMore {
+    constructor (repeatable) {
+        this.repeatable = repeatable;
+    }
+}
+function ZeroOrMore(repeatable) {
+    return new _ZeroOrMore(repeatable);
+}
+
+const Any = Symbol('Any');</code></pre>
+        <p>خب، چگونه نحو زیباترمان را به گره‌هایی که بالا ساختیم تبدیل کنیم؟ به یاد بیاورید ساختار عبارت باقاعده کامپایل‌شده ما شبیه فهرست پیوندی است با جایگزینی‌ها. کارآمدترین راه ساختن فهرست پیوندی از راست به چپ است، پس باید روی ورودی‌مان به ترتیب معکوس پیمایش کنیم. با یک کامپایلر عمومی <code>compile</code> فرض می‌کنیم که هنوز ننوشته‌ایم. کامپایلری می‌نویسیم که رشته‌های تحت‌اللفظی را به زنجیره‌های گره کاراکتری تبدیل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compileString(str, tail=EmptyString) {
+    // این تنها راه معکوس کردن codepointهای یک رشته در جاوااسکریپت است
+    let reversedStr = Array.from(str).reverse();
+    for (let char of reversedStr) {
+        tail = new CharacterNode(char, tail);
+    }
+    return tail;
+}</code></pre>
+        <p>در هر تکرار، گره کاراکتری جدیدی برای کاراکتر فعلی می‌سازیم که گره کاراکتری تکرار قبلی (یعنی کاراکتر بعدی رشته، چون معکوس می‌رویم) را به‌عنوان اشاره‌گر <code>next</code> دارد.</p>
+        <p>کامپایلر آرایه‌ها بسیار مشابه است، به‌جز اینکه برای هر زیرعبارت به‌صورت بازگشتی به <code>compile</code> ارجاع می‌دهیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compileArray(arr, tail=EmptyString) {
+    for (let expr of arr.reverse()) {
+        tail = compile(expr, tail);
+    }
+    return tail;
+}</code></pre>
+        <p>کامپایل کردن عبارت <code>Or</code> کمی متفاوت است: در پایان فقط یک گره جایگزینی منفرد می‌سازیم که هرکدام از اعضایش همان tail مشترک را دارند به‌جای اینکه تکراری جایگزین شود. این بار لازم نیست به عقب برویم و به‌سادگی از <code>.map</code> برای ساختن همه جایگزین‌های ارسال‌شده به <code>AlternationNode</code> استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compileOr(or, tail=EmptyString) {
+    return new AlternationNode(or.alternatives.map((alternative) => compile(alternative, tail)));
+}</code></pre>
+        <p>به دلیل ماهیت اثرجانبی‌دارِ ساخت <code>RepetitionNode</code> که پیش‌تر گفته شد، کامپایلر <code>ZeroOrMore</code> باید کمی جابه‌جایی انجام دهد: به توابع کامپایل دیگر می‌گوید با یک <code>RepetitionNode</code> به‌عنوان tail کامپایل کنند که هنوز واقعاً معتبر نیست. سپس با افزودن اشاره‌گر head، پس از کامپایل شدن محتویات، گره را معتبر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compileZeroOrMore(zeroOrMore, tail=EmptyString) {
+    let repetition = new RepetitionNode(tail),
+        contents = compile(zeroOrMore.repeatable, repetition);
+    repetition.head = contents;
+    return repetition;
+}</code></pre>
+        <p>که فقط کامپایلِ کاملاً پیش‌پاافتاده <code>Any</code> نسبت به tail خاصی را باقی می‌گذارد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compileAny(tail=EmptyString) {
+    return new AnyCharacterNode(tail);
+}</code></pre>
+        <p>سرانجام، آن تابع <code>compile</code> را پیاده می‌کنیم که این‌همه در آن بازگشت می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function compile(expr, tail=EmptyString) {
+    if ((typeof expr) === 'string') {
+        return compileString(expr, tail);
+    } else if (expr instanceof Array) {
+        return compileArray(expr, tail);
+    } else if (expr instanceof _Or) {
+        return compileOr(expr, tail);
+    } else if (expr instanceof _ZeroOrMore) {
+        return compileZeroOrMore(expr, tail);
+    } else if (expr === Any) {
+        return compileAny(tail);
+    } else {
+        throw new TypeError("تلاش برای کامپایل چیزی که داده regex معتبر نیست");
+    }
+}</code></pre>
+        <p>بعد یک کلاس پوششی <code>RE</code> برای انواع گره کامپایل‌شده‌مان می‌سازیم که کامپایلر را اجرا می‌کند. (آن را <code>Regexp</code> نمی‌نامیم چون کلاس عبارت باقاعده داخلی جاوااسکریپت <code>RegExp</code> نام دارد و داشتن دو نام کلاس که فقط در بزرگی/کوچکی حروف متمایزند ایده بدی است.) این کلاس را مثلاً به‌صورت <code>new RE(["hello ", Or(["world", "dpk"])])</code> نمونه‌سازی می‌کنید. همچنین تابع ساده‌ای می‌سازیم که روی کاراکترهای رشته پیمایش می‌کند و اگر regex و رشته هم‌زمان تمام شده بودند true گزارش می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RE {
+    constructor (regexp) {
+        this.start = compile(regexp);
+    }
+
+    match (str) {
+        let state = this.start,
+            chars = Array.from(str);
+        if ((chars.length === 0) && (state === EmptyString)) { return true; }
+        for (let i = 0; i &lt; chars.length; i++) {
+            let char = chars[i];
+            state = state.derive(char);
+            if (state === EmptyString) {
+                // به پایان regex رسیدیم ...
+                if (i === (chars.length - 1)) {
+                    // اگر این پایان رشته هم هست، مطابقت است
+                    return true;
+                } else {
+                    // در غیر این صورت چیز اضافه‌ای در رشته هست که در regex نیست
+                    return false;
+                }
+            } else if (state === NeverMatches) {
+                return false;
+            }
+        }
+        // کاراکترها قبل از رسیدن به پایان regex تمام شده‌اند؛ پس مطابقت نیست
+        return false;
+    }
+}</code></pre>
+        <p>بیایید امتحانش کنیم!</p>
+        <pre class="code"><span class="lang-tag">js</span><code>new RE(["a", Or(["a", "b"]), "d"]).match("abd"); //=> true
+new RE(["a", Or(["a", "b"]), "d"]).match("aed"); //=> false
+new RE([ZeroOrMore("abc"), "d"]).match("d"); //=> true</code></pre>
+        <p>به نظر کار می‌کند! اما…</p>
+        <pre class="code"><span class="lang-tag">js</span><code>new RE([ZeroOrMore("abc")]).match("abc"); //=> false؟
+new RE([ZeroOrMore("abc")]).match("abcabc"); //=> false ... چی؟
+new RE([ZeroOrMore("abc")]).start.derive('a').derive('b').derive('c'); //=> آهان، معلوم است که برگشته‌ایم به گره تکرار</code></pre>
+        <p>یک اشکال در تابع <code>match</code> ما هست! چون تکرار همیشه در پایان به خودش برمی‌گردد، regexی که با تکرار تمام می‌شود هرگز <code>EmptyString</code> خالص را به‌عنوان مقدار نهایی برنخواهد گرداند. می‌توانستیم داخل تابع <code>match</code> بررسی کنیم و وقتی state یک <code>RepetitionNode</code> است حالت ویژه بسازیم. اما به‌هرحال تابع <code>match</code> را بسیار دست‌وپاگیر می‌یافتم، با همه آن ifهای تودرتو … علاوه بر این، در آینده ممکن است نوع گره‌های بیشتری بخواهیم که مشکل مشابه <code>RepetitionNode</code> داشته باشند.</p>
+        <p>به‌جایش به لایه گره‌ها برمی‌گردیم و یک متد جدید روی هرکدام پیاده می‌کنیم که به آن‌ها بگوید چه وقت مطابقت کرده‌ایم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RegexpNode {
+    derive (char) {
+        return NeverMatches;
+    }
+    matchEnd() { return false; }
+    canMatchMore() { return !this.matchEnd(); }
+}
+
+class _EmptyString extends RegexpNode {
+    matchEnd() { return true; }
+}
+const EmptyString = new _EmptyString();</code></pre>
+        <p>تابع <code>matchEnd</code> به ما می‌گوید آیا می‌توانیم <em>اینجا</em> بایستیم؛ تابع <code>canMatchMore</code> به ما می‌گوید آیا باید اینجا بایستیم. در عمل، هیچ تابعی که از <code>matchEnd</code> false برمی‌گرداند هرگز نمی‌تواند از <code>canMatchMore</code> false برگرداند، اما برعکس ممکن است همان‌طور که پایین می‌بینیم.</p>
+        <p>برای نوع گره‌های پایه <code>CharacterNode</code> و <code>AnyCharacterNode</code> فقط رفتار <code>RegexpNode</code> را به ارث می‌بریم، چون آن‌ها همیشه می‌توانند بیشتر مطابقت دهند. اما <code>AlternationNode</code> ظریف‌تر است. تا وقتی حداقل یک جایگزین در <code>matchEnd</code> باشد، خودش هم در <code>matchEnd</code> احتمالی است. اما هم‌چنین تا وقتی حداقل یک جایگزین <code>canMatchMore</code> باشد، خودش هم می‌تواند <code>canMatchMore</code> کند.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class AlternationNode extends RegexpNode {
+    // ...
+    matchEnd() { return this.alternatives.some((alt) => alt.matchEnd()); }
+    canMatchMore() { return this.alternatives.some((alt) => alt.canMatchMore()); }
+}</code></pre>
+        <p>منطق مشابهی برای <code>RepetitionNode</code> صدق می‌کند، اما در عمل <em>سر</em> تکرار همیشه تضمین‌شده در <code>matchEnd</code> نیست؛ <em>next</em> آن ممکن است باشد. پس فقط به متد <code>matchEnd</code> اشاره‌گر next گره تکرار فراخوانی می‌کنیم و از <code>canMatchMore</code> true برمی‌گردانیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RepetitionNode extends RegexpNode {
+    // ...
+    matchEnd() { return this.next.matchEnd(); }
+    canMatchMore() { return true; }
+}</code></pre>
+        <p>خب، حالا آماده‌ایم تابع سطح بالاتر <code>match</code> را با امکانات گره جدید درست کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>class RE {
+    // ...
+    match (str) {
+        let state = this.start,
+            chars = Array.from(str);
+        if ((chars.length === 0) && state.matchEnd()) { return true; }
+        for (let i = 0; i &lt; chars.length; i++) {
+            let char = chars[i];
+            state = state.derive(char);
+            if (state.matchEnd() && (i === (chars.length - 1))) {
+                // پایان regex و پایان رشته؛ مطابقت موفق
+                return true;
+            } else if (state.matchEnd() && !state.canMatchMore()) {
+                // پایان regex اما نه پایان رشته؛ مطابقت نمی‌کند
+                return false;
+            }
+        }
+        // پایان رشته اما نه پایان regex؛ مطابقت نمی‌کند
+        return false;
+    }
+}</code></pre>
+        <p>کار می‌کند؟</p>
+        <pre class="code"><span class="lang-tag">js</span><code>new RE(ZeroOrMore('abc')).match('abcabc'); //=> true
+new RE([ZeroOrMore("abc"), "d"]).match("d"); //=> true
+new RE(["a", Or(["a", "b"]), "d"]).match("abd"); //=> true
+new RE(["a", Or(["a", "b"]), "d"]).match("aed"); //=> false
+
+// چون با اشیای معمولی JS کار می‌کنیم حتی می‌توانیم کلاس‌های کاراکتری سرسری تعریف کنیم ...
+let Digit = Or(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']),
+    usPhoneNumber = new RE([Or([['(', Digit, Digit, Digit, ') '], '']), Digit, Digit, Digit, '-', Digit, Digit, Digit, Digit]);
+
+usPhoneNumber.match('(415) 555-1212'); //=> true
+usPhoneNumber.match('555-1212'); //=> true
+usPhoneNumber.match('squirrel'); //=> false</code></pre>
+        <p>بله، کار می‌کند!</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>در این مقاله دیدید چگونه یک موتور عبارت باقاعده کوچک به سبک کاملاً تابعی با جاوااسکریپت پیاده کنید. پیاده‌سازی کامل فقط کمی کمتر از ۱۵۰ خط کد است (بدون احتساب فضای خالی و کامنت‌ها)؛ اگر خطوط آکولاد را هم حذف کنید فقط ۱۱۱ خط.</p>
+        <p>تأکید می‌کنم این فقط یک راه پیاده‌سازی regex است. بیشتر پیاده‌سازی‌هایی که تاکنون استفاده کرده‌اید واقعاً این‌طور کار نمی‌کنند — به‌جایش پیاده‌سازی‌هایی استفاده می‌کنند که هر جایگزین را در یک نقطه مطابقت معین امتحان می‌کنند و اگر اشتباه از آب درآمد عقب‌گرد می‌کنند. همان‌طور که می‌توانید تصور کنید، این می‌تواند برای برخی عبارت‌های باقاعده آن‌ها را بسیار کند کند.</p>
+        <p>با تمرین‌های امتیازبندی‌شده (مثل بهینه‌سازی، مطابقت بخشی از رشته، حالت بی‌حساس به بزرگی/کوچکی حروف، کلاس‌های کاراکتری و بازه‌ها، تأکیدهای صفر-عرض، استخراج زیرمطابقت، و تحلیل‌گر دست‌ساز برای نحو POSIX یا Plan 9) می‌توانید روی این پایه بسازید. در پایان مقایسه‌ای هم بین رویکردها آمده: پیاده‌سازی‌های مبتنی بر مشتق در زمان O(n) کامپایل می‌شوند اما در بدترین حالت در O(mn) مطابقت می‌دهند؛ پیاده‌سازی‌های مبتنی بر DFA به زمان O(2ⁿ) برای کامپایل نیاز دارند اما همیشه در O(m) مطابقت می‌دهند — هر دو خیلی بهتر از پیاده‌سازی‌های بازگشتی مثل Perl، PCRE، Python و Ruby هستند که تمایل به O(n) کامپایل و O(2^m) مطابقت در بدترین حالت دارند.</p>
+        <p>من اولین بار با تشکر از پست وبلاگ مت مایت با پیاده‌سازی regex با مشتقات آشنا شدم. برای مطالعه بیشتر: مقاله راس کاکس درباره پیاده‌سازی‌های مبتنی بر NFA و DFA، مقاله اصلی برزوزوفسکی درباره مشتقات regex، و مقاله Owens–Reppy–Turon که این ایده را دوباره زنده کرد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to Implement Regular Expressions in functional JavaScript using Derivatives» اثر دافنه پرستون-کندال (Daphne Preston-Kendal)، © ۲۰۱۷. کد مقاله تحت Creative Commons Zero در دامنه عمومی قرار دارد. این صفحه فقط ترجمه فارسی است؛ برای مشاهده اصل مطلب به
+        <a href="http://dpk.io/dregs/toydregs" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

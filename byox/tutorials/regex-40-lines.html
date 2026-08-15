@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک موتور Regex در کمتر از ۴۰ خط کد بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>یک موتور Regex در کمتر از ۴۰ خط کد بساز</span>
+      </div>
+      <h1>یک موتور Regex در کمتر از ۴۰ خط کد بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://nickdrane.com/build-your-own-regex/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Build a Regex Engine in Less than 40 Lines of Code»
+          از <b>نیک درین</b> (نوامبر ۲۰۱۷) است. کد مقاله، تبدیل کد ۳۰ خطی راب پایک به جاوااسکریپت است.
+        </div>
+        <a class="btn solid" href="https://nickdrane.com/build-your-own-regex/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>چند روز پیش به مقاله‌ای برخوردم که در آن راب پایک یک موتور عبارت باقاعده ابتدایی در C پیاده می‌کند. کد او را به جاوااسکریپت تبدیل کردم و مشخصات آزمون اضافه کردم تا کسی بتواند خودش را در ساخت موتور regex راهنمایی کند. مشخصات و راه‌حل در این مخزن گیت‌هاب موجود است. این پست وبلاگ راهنمای راه‌حل من است.</p>
+      </section>
+
+      <section>
+        <h2>مسئله</h2>
+        <p>موتور regex ما از نحو زیر پشتیبانی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">نحو</span><code>نحو      معنی                          مثال     مطابقت با
+a        کاراکتر تحت‌اللفظی مشخص        q        q
+*        صفر یا بیشتر از کاراکتر قبلی   a*       "", a, aa, aaa
+?        صفر یا یک از کاراکتر قبلی      a?       "", a
+.        هر کاراکتر                     .        a, b, c, d, e ...
+^        شروع رشته                      ^c       c, ca, caa, cbb ...
+$        پایان رشته                     a$       ba, baaa, qwerta ...</code></pre>
+        <p>هدف ارائه نحو مستحکمی است که با حداقل کد، بخش بزرگی از موارد استفاده regex را پوشش دهد.</p>
+      </section>
+
+      <section>
+        <h2>مطابقت یک کاراکتر</h2>
+        <p>اولین گام نوشتن تابعی است که یک الگوی تک‌کاراکتری و یک متن تک‌کاراکتری می‌گیرد و بولی برمی‌گرداند که نشان می‌دهد مطابقت دارند یا نه. الگوی <code>.</code> جانشین در نظر گرفته می‌شود و با هر کاراکتری مطابقت می‌خورد.</p>
+        <p>چند مثال:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>matchOne('a', 'a') -> true
+matchOne('.', 'z') -> true
+matchOne('', 'h') -> true
+matchOne('a', 'b') -> false
+matchOne('p', '') -> false</code></pre>
+        <pre class="code"><span class="lang-tag">js</span><code>function matchOne(pattern, text) {
+  if (!pattern) return true; // هر متنی با الگوی خالی مطابقت دارد
+  if (!text) return false; // اگر الگو تعریف شده اما متن خالی باشد، مطابقت ممکن نیست
+  if (pattern === ".") return true; // هر متن ورودی با جانشین مطابقت دارد
+  return pattern === text;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>مطابقت رشته‌های هم‌طول</h2>
+        <p>حالا پشتیبانی از الگوها و متن‌های بلندتر را اضافه می‌کنیم. فعلاً فقط جفت الگو/متن هم‌طول را در نظر بگیرید. می‌دانم راه‌حل خودش را به بازگشت می‌سپارد، پس اینجا از بازگشت استفاده می‌کنیم. می‌خواهیم به‌طور مکرر <code>matchOne</code> را روی جفت‌های متوالی کاراکتر از ترکیب الگو/متن صدا بزنیم.</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
+  if (pattern === "") return true;
+  // حالت پایه - اگر الگو خالی باشد، هر متن ورودی مطابقت است
+  else
+    return (
+      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+    );
+}</code></pre>
+        <p>کد بالا کاراکتربه‌کاراکتر روی جفت الگو/متن پیش می‌رود. اول <code>pattern[0]</code> را با <code>text[0]</code> مقایسه می‌کند، بعد <code>pattern[1]</code> را با <code>text[1]</code> و تا <code>i === pattern.length - 1</code> ادامه می‌دهد. اگر در هر نقطه مطابقت ندادند، می‌دانیم الگو نمی‌تواند با متن مطابقت کند.</p>
+        <p>مثالی بزنیم. فرض کنید <code>match('a.c', 'abc')</code> را صدا می‌زنیم که به <code>matchOne('a', 'a') && match('.c', 'bc')</code> تبدیل می‌شود. با ادامه ارزیابی این توابع به <code>matchOne('a', 'a') && matchOne('.', 'b') && matchOne('c', 'c') && match("", "")</code> می‌رسیم که برابر <code>true && true && true && true</code> است. پس مطابقت داریم!</p>
+      </section>
+
+      <section>
+        <h2>کاراکتر $</h2>
+        <p>پشتیبانی از کاراکتر ویژه الگو <code>$</code> را اضافه می‌کنیم که به ما اجازه می‌دهد پایان رشته را مطابقت دهیم. راه‌حل فقط به افزودن یک حالت پایه به تابع match نیاز دارد:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
+  if (pattern === "") return true;
+  if (pattern === "$" && text === "") return true;
+  else
+    return (
+      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+    );
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>کاراکتر ^</h2>
+        <p>پشتیبانی از کاراکتر ویژه الگو <code>^</code> را اضافه می‌کنیم که به ما اجازه می‌دهد شروع رشته را مطابقت دهیم. یک تابع جدید به نام <code>search</code> معرفی می‌کنم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function search(pattern, text) {
+  if (pattern[0] === "^") {
+    return match(pattern.slice(1), text);
+  }
+}</code></pre>
+        <p>این تابع نقطه ورود جدید کد ما خواهد بود. تا اینجا فقط الگوهایی را مطابقت می‌دادیم که از آغاز متن شروع می‌شدند. حالا با الزام کاربر به پیشوند <code>^</code> آن را واضح‌تر می‌کنیم. اما الگوهایی که در هر جای متن ظاهر می‌شوند چطور؟</p>
+      </section>
+
+      <section>
+        <h2>مطابقت‌هایی که از هرجا شروع می‌شوند</h2>
+        <p>در حال حاضر موارد زیر true برمی‌گردانند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>search("^abc", "abc")
+search("^abcd", "abcd")</code></pre>
+        <p>اما <code>search("bc", "abcd")</code> مقدار <code>undefined</code> برمی‌گرداند. می‌خواهیم true برگرداند.</p>
+        <p>اگر کاربر مشخص نکند الگو با آغاز متن مطابقت دارد، می‌خواهیم الگو را در هر نقطه شروع ممکن داخل متن جست‌وجو کنیم. اگر الگو با <code>^</code> شروع نشود، به این رفتار پیش‌فرض می‌رویم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function search(pattern, text) {
+  if (pattern[0] === "^") {
+    return match(pattern.slice(1), text);
+  } else {
+    // این کد match(pattern, text.slice(index)) را روی هر اندیس متن اجرا می‌کند.
+    // یعنی الگو را روی هر نقطه شروع متن می‌آزماییم.
+    return text.split("").some((_, index) => {
+      return match(pattern, text.slice(index));
+    });
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>کاراکتر ?</h2>
+        <p>می‌خواهیم صفر تا یک از کاراکتر قبل از <code>?</code> را مطابقت دهیم.</p>
+        <p>چند مثال:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>search("ab?c", "ac") -> true
+search("ab?c", "abc") -> true
+search("a?b?c?", "abc") -> true
+search("a?b?c?", "") -> true</code></pre>
+        <p>اولین گام اصلاح <code>match</code> برای تشخیص حضور کاراکتر <code>?</code> و واگذاری کار به تابع <code>matchQuestion</code> است که به‌زودی تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
+  if (pattern === "") {
+    return true;
+  } else if (pattern === "$" && text === "") {
+    return true;
+    // توجه کنید به pattern[1] نگاه می‌کنیم نه pattern[0].
+    // pattern[0] کاراکتری است که باید صفر یا یک بار مطابقت کند.
+  } else if (pattern[1] === "?") {
+    return matchQuestion(pattern, text);
+  } else {
+    return (
+      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+    );
+  }
+}</code></pre>
+        <p><code>matchQuestion</code> باید دو حالت را مدیریت کند:</p>
+        <ol>
+          <li>جایی که کاراکتر قبل از <code>?</code> مطابقت نمی‌کند اما متن با بقیه الگو (همه‌چیز بعد از <code>?</code>) مطابقت دارد.</li>
+          <li>جایی که کاراکتر قبل از <code>?</code> مطابقت می‌کند و بقیه متن (منهای یک کاراکتر مطابقت‌شده) با بقیه الگو مطابقت دارد.</li>
+        </ol>
+        <p>اگر هرکدام از این حالت‌ها truthy بود، <code>matchQuestion</code> می‌تواند true برگرداند.</p>
+        <p>حالت اول را در نظر بگیریم. چگونه بررسی کنیم متن با همه‌چیزِ الگو جز نحو <code>_?</code> مطابقت دارد؟ به عبارت دیگر، چگونه بررسی کنیم کاراکتر قبل از <code>?</code> صفر بار ظاهر شده؟ دو کاراکتر از الگو جدا می‌کنیم (اولی کاراکتر قبل از <code>?</code> و دومی خود <code>?</code>) و تابع match را صدا می‌زنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function matchQuestion(pattern, text) {
+  return match(pattern.slice(2), text);
+}</code></pre>
+        <p>حالت دوم کمی چالش‌برانگیزتر است، اما مثل قبل از توابعی که قبلاً نوشته‌ایم دوباره استفاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function matchQuestion(pattern, text) {
+  if (matchOne(pattern[0], text[0]) && match(pattern.slice(2), text.slice(1))) {
+    return true;
+  } else {
+    return match(pattern.slice(2), text);
+  }
+}</code></pre>
+        <p>اگر <code>text[0]</code> با <code>pattern[0]</code> مطابقت کند و بقیه متن (منهای بخشی که matchOne مطابقت داده) با بقیه الگو مطابقت داشته باشد، موفقیم. می‌توانیم کد را این‌گونه بازنویسی کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function matchQuestion(pattern, text) {
+  return (
+    (matchOne(pattern[0], text[0]) && match(pattern.slice(2), text.slice(1))) ||
+    match(pattern.slice(2), text)
+  );
+}</code></pre>
+        <p>نکته‌ای که از این رویکرد دوم دوست دارم این است که OR بولی صریحاً روشن می‌کند دو حالت وجود دارد که هرکدام می‌تواند درست باشد.</p>
+      </section>
+
+      <section>
+        <h2>کاراکتر *</h2>
+        <p>می‌خواهیم کاراکتر قبل از <code>*</code> را صفر یا بیشتر بار مطابقت دهیم.</p>
+        <p>همه این‌ها باید true برگردانند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>search("a*", "")
+search("a*", "aaaaaaa")
+search("a*b", "aaaaaaab")</code></pre>
+        <p>مثل کاری که برای پشتیبانی از <code>?</code> کردیم، کار را در تابع <code>match</code> به تابع <code>matchStar</code> واگذار می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
+  if (pattern === "") {
+    return true;
+  } else if (pattern === "$" && text === "") {
+    return true;
+  } else if (pattern[1] === "?") {
+    return matchQuestion(pattern, text);
+  } else if (pattern[1] === "*") {
+    return matchStar(pattern, text);
+  } else {
+    return (
+      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+    );
+  }
+}</code></pre>
+        <p><code>matchStar</code> مثل <code>matchQuestion</code> باید دو حالت را مدیریت کند:</p>
+        <ol>
+          <li>جایی که کاراکتر قبل از <code>*</code> مطابقت نمی‌کند اما متن با بقیه الگو (همه‌چیز بعد از <code>*</code>) مطابقت دارد.</li>
+          <li>جایی که کاراکتر قبل از <code>*</code> یک یا بیشتر بار مطابقت می‌کند و بقیه متن با بقیه الگو مطابقت دارد.</li>
+        </ol>
+        <p>چون دو حالت هست که هر دو به مطابقت می‌انجامند، می‌دانیم <code>matchStar</code> را می‌توان با OR بولی پیاده کرد. علاوه بر این، حالت ۱ برای <code>matchStar</code> دقیقاً همان حالت ۱ برای <code>matchQuestion</code> است و می‌توان آن را یکسان پیاده کرد: <code>match(pattern.slice(2), text)</code>. یعنی فقط باید عبارتی بسازیم که حالت ۲ را برآورده کند:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function matchStar(pattern, text) {
+  return (
+    (matchOne(pattern[0], text[0]) && match(pattern, text.slice(1))) ||
+    match(pattern.slice(2), text)
+  );
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>بازآرایی</h2>
+        <p>حالا می‌توانیم برگردیم و <code>search</code> را با یک ترفند که از کلاس پیتر نورویگ یاد گرفتم هوشمندانه ساده کنیم:</p>
+        <pre class="code"><span class="lang-tag">js</span><code>function search(pattern, text) {
+  if (pattern[0] === "^") {
+    return match(pattern.slice(1), text);
+  } else {
+    return match(".*" + pattern, text);
+  }
+}</code></pre>
+        <p>از خود کاراکتر <code>*</code> برای اجازه دادن به الگو استفاده می‌کنیم تا در هر جای رشته ظاهر شود. <code>.*</code> پیش‌نشان‌دهنده می‌گوید هر تعداد از هر کاراکتر می‌تواند قبل از الگوی مورد نظر ما بیاید.</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>شگفت‌انگیز است که کد چنین برنامه تعمیم‌یافته و پیچیده‌ای چقدر ساده و الگانت است. سورس کامل در این مخزن گیت‌هاب موجود است. (نویسنده همچنین مقاله دنباله‌ای درباره آزمودن fuzz این موتور دارد.)</p>
+        <div class="callout tip">پانوشت: یک اشکال کوچک در کد عمداً نادیده گرفته شده: حالت رشته خالی در <code>search</code> پوشش داده نشده. وقتی <code>text === ''</code> باشد، <code>text.split("")</code> آرایه خالی برمی‌گرداند و <code>match</code> به‌درستی صدا زده نمی‌شود.</div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Build a Regex Engine in Less than 40 Lines of Code» اثر نیک درین (Nick Drane) است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://nickdrane.com/build-your-own-regex/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

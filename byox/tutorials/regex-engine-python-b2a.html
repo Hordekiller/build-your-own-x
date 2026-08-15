@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتورهای عبارت باقاعده خودت را بساز: Backtracking، NFA، DFA</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>موتورهای عبارت باقاعده خودت را بساز: Backtracking، NFA، DFA</span>
+      </div>
+      <h1>موتورهای عبارت باقاعده خودت را بساز: Backtracking، NFA، DFA</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://build-your-own.org/b2a/r0_intro" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی پروژه «R: Regular Expression Engines» از کتاب در حال نگارش
+          <em>Miscellaneous build-your-own-X projects</em> نوشته <b>جیمز اسمیت</b> (build-your-own.org) است؛ شامل
+          فصل‌های R1 (تحلیل) و R2 (موتور Backtracking).
+        </div>
+        <a class="btn solid" href="https://build-your-own.org/b2a/r0_intro" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>پروژه R: موتورهای عبارت باقاعده</h2>
+        <p>عبارت‌های باقاعده جادو نیستند. می‌توانید با ساختن یک یا دو موتور regex خودتان آن‌ها را بفهمید.</p>
+        <p>آن‌قدرها هم سخت نیست: می‌توانیم regex را با حدود ۱۰۰ خط پایتون تحلیل کنیم و آن را با حدود ۵۰ خط backtracking اجرا کنیم. و برای خوانندگان میانی، یک NFA با حدود ۱۰۰ خط پایتون کدنویسی می‌شود.</p>
+        <ul>
+          <li><strong>R1. تحلیل عبارت‌های باقاعده</strong> (مبتدی)</li>
+          <li><strong>R2. Regex با Backtracking</strong> (مبتدی)</li>
+          <li><strong>R3. پیمایش گراف و Regex</strong> (متوسط)</li>
+          <li><strong>R4. اتوماتای متناهی قطعی</strong> (پیشرفته)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>R1. تحلیل عبارت‌های باقاعده (مبتدی)</h2>
+        <h3>مقدمه</h3>
+        <p><strong>چه چیزی یاد می‌گیرید:</strong></p>
+        <ul>
+          <li>Regex جادو نیست.</li>
+          <li>درخت‌ها و داده ساختاریافته.</li>
+          <li>بازگشت و تکنیک‌های تحلیل.</li>
+        </ul>
+        <p><strong>ویژگی‌های regex که پیاده می‌کنید:</strong></p>
+        <ul>
+          <li><code>ab</code> — الحاق: ابتدا زیرعبارت <code>a</code> را مطابقت بده، بعد <code>b</code> را.</li>
+          <li><code>a|b</code> — جایگزینی: یا <code>a</code> یا <code>b</code> را مطابقت بده.</li>
+          <li><code>a*</code>، <code>a+</code>، <code>a{n}</code>، <code>a{x,y}</code> — تکرار: صفر یا چند بار، حداقل یک بار، <em>n</em> بار، و <em>x</em> تا <em>y</em> بار.</li>
+          <li><code>(a)</code> — زیرعبارت: یک زیرعبارت را نقل‌قول کن. عبارت‌ها می‌توانند تودرتو باشند.</li>
+          <li><code>x</code>، <code>.</code> — مطابقت یک کاراکتر: یک کاراکتر تحت‌اللفظی یا یک کاراکتر دلخواه.</li>
+        </ul>
+        <h3>تحلیل مسئله</h3>
+        <p>یک regex یک تکه رشته است. این رشته معرف ساختاری است. اغلب ما روی رشته کار نمی‌کنیم بلکه روی ساختاری که نشان می‌دهد. فرآیند تبدیل رشته به ساختار «تحلیل» (parsing) نامیده می‌شود.</p>
+        <p>ساختار یک regex بازگشتی است. بازگشت به معنای سلسله‌مراتب و زیرساختارهایی است که شبیه خود ساختارند. شاید برایتان آشکار نباشد regex چگونه بازگشتی است؛ با چیزی شروع کنیم که با آن آشنا هستید.</p>
+        <p>فرمول <code>(1+2)+3</code> بازگشتی است؛ + دوم دارای دو زیرفرمول است: <code>1+2</code> و <code>3</code>. <code>1+2+3</code> معادل <code>(1+2)+3</code> است، فقط پرانتزها ضمنی‌اند. <code>1+2×3</code> به‌صورت ضمنی <code>1+(2×3)</code> است؛ × اولویت بالاتر از + دارد.</p>
+        <p>حالا برگردیم به regex. <code>abc</code> به‌صورت ضمنی <code>((a)b)c</code> است؛ فقط عملگر الحاق نامرئی را مثل × در نظر بگیرید: <code>((a)×b)×c</code>. به همین ترتیب، <code>a|bc</code> برابر <code>a|(bc)</code> است، مثل <code>a+(b×c)</code>.</p>
+        <p>الحاق و جایگزینی عملگرهای «میانوندی» (infix) هستند؛ زیرعبارت‌هایشان چپ و راست عملگرند. عملگر تکرار، عملگر «پسوندی» (postfix) است، مثل فاکتوریل (<code>n!</code>).</p>
+        <p>سه عملگر، سه اولویت. عملگر پسوندی بالاترین است، بعد الحاق، بعد جایگزینی.</p>
+        <p>برای تحلیل regex با بازگشت، عملگر با بالاترین اولویت باید در پایین‌ترین سلسله‌مراتب (عمیق‌ترین) تحلیل شود. پایین‌ترین سطح یک regex یا یک کاراکتر منفرد است یا یک زیرعبارت نقل‌قول‌شده. در یک سطح بالاتر، عملگر تکرار افزوده می‌شود (ممکن است هیچ‌کدام نباشد). سپس الحاق، سپس جایگزینی.</p>
+        <h3>شروع کدنویسی</h3>
+        <p>اول، شکل ساختارهای تحلیل‌شده‌مان را تعیین می‌کنیم. آن‌ها درخت‌اند، بدیهی است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>assert re_parse('') is None
+assert re_parse('.') == 'dot'
+assert re_parse('a') == 'a'
+assert re_parse('ab') == ('cat', 'a', 'b')
+assert re_parse('a|b') == ('split', 'a', 'b')
+assert re_parse('a+') == ('repeat', 'a', 1, float('inf'))
+assert re_parse('a{3,6}') == ('repeat', 'a', 3, 6)
+assert re_parse('a|bc') == ('split', 'a', ('cat', 'b', 'c'))</code></pre>
+        <p>بالاترین سطح تحلیل، عملگر جایگزینی است.</p>
+        <p>آرگومان‌ها:</p>
+        <ul>
+          <li><code>r</code>: رشته regex.</li>
+          <li><code>idx</code>: موقعیت تحلیل فعلی.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code># a|b|c...
+def parse_split(r, idx):
+    idx, prev = parse_concat(r, idx)
+    while idx &lt; len(r):
+        if r[idx] == ')':
+            # به parse_node بیرونی برگرد
+            break
+        assert r[idx] == '|', 'BUG'
+        idx, node = parse_concat(r, idx + 1)
+        prev = ('split', prev, node)
+    return idx, prev</code></pre>
+        <p>در یک نگاه، <code>parse_split</code> زیرعبارت‌ها را از <code>parse_concat</code> می‌گیرد و گره «split» می‌سازد.</p>
+        <p><code>parse_concat</code> یک سطح پایین‌تر است. بسیار شبیه <code>parse_split</code> است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># abc...
+def parse_concat(r, idx):
+    prev = None
+    while idx &lt; len(r):
+        if r[idx] in '|)':
+            # به parse_split یا parse_node بیرونی برگرد
+            break
+        idx, node = parse_node(r, idx)
+        if prev is None:
+            prev = node
+        else:
+            prev = ('cat', prev, node)
+    # وقتی prev هنوز None است، رشته خالی را نشان می‌دهد
+    return idx, prev</code></pre>
+        <p>هر دو <code>parse_split</code> و <code>parse_concat</code> در «)» می‌ایستند. «)» معمولاً به این معناست که تحلیل داخل یک زیرعبارت نقل‌قول‌شده بیرونی است و به پایان زیرعبارت رسیده و باید به تحلیل‌گر بیرونی برگردد. به همین ترتیب، <code>parse_concat</code> در «|» می‌ایستد تا به <code>parse_split</code> بیرونی برگردد.</p>
+        <p>پایین‌رفتن به <code>parse_node</code>. یا یک کاراکتر منفرد یا یک زیرعبارت نقل‌قول‌شده را تحلیل می‌کند و سپس ممکن است عملگر تکرار اضافه کند.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># یک عنصر منفرد را تحلیل کن
+def parse_node(r, idx):
+    ch = r[idx]
+    idx += 1
+    assert ch not in '|)'
+    if ch == '(':
+        idx, node = parse_split(r, idx)
+        if idx &lt; len(r) and r[idx] == ')':
+            idx += 1
+        else:
+            raise Exception('unbalanced parenthesis')
+    elif ch == '.':
+        node = 'dot'
+    elif ch in '*+{':
+        raise Exception('nothing to repeat')
+    else:
+        node = ch
+
+    idx, node = parse_postfix(r, idx, node)
+    return idx, node</code></pre>
+        <p>توجه کنید فراخوانی <code>parse_split</code> به بالاترین سلسله‌مراتب بازگشت می‌کند.</p>
+        <p><code>parse_postfix</code> خیلی طولانی‌تر است، اما فقط کد ترتیبی خسته‌کننده است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># a*, a+, a{x}, a{x,}, a{x,y}
+def parse_postfix(r, idx, node):
+    if idx == len(r) or r[idx] not in '*+{':
+        return idx, node
+
+    ch = r[idx]
+    idx += 1
+    if ch == '*':
+        rmin, rmax = 0, float('inf')
+    elif ch == '+':
+        rmin, rmax = 1, float('inf')
+    else:
+        # اولین عدد داخل {}
+        idx, i = parse_int(r, idx)
+        if i is None:
+            raise Exception('expect int')
+        rmin = rmax = i
+        # عدد دوم اختیاری
+        if idx &lt; len(r) and r[idx] == ',':
+            idx, j = parse_int(r, idx + 1)
+            rmax = j if (j is not None) else float('inf')
+        # آکولاد را ببند
+        if idx &lt; len(r) and r[idx] == '}':
+            idx += 1
+        else:
+            raise Exception('unbalanced brace')
+
+    # بررسی‌های سلامت
+    if rmax &lt; rmin:
+        raise Exception('min repeat greater than max repeat')
+    if rmin &gt; RE_REPEAT_LIMIT:
+        raise Exception('the repetition number is too large')
+
+    node = ('repeat', node, rmin, rmax)
+    return idx, node</code></pre>
+        <pre class="code"><span class="lang-tag">python</span><code>def parse_int(r, idx):
+    save = idx
+    while idx &lt; len(r) and r[idx].isdigit():
+        idx += 1
+    return idx, int(r[save:idx]) if save != idx else None</code></pre>
+        <p>رابط واقعی:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def re_parse(r):
+    idx, node = parse_split(r, 0)
+    if idx != len(r):
+        # تحلیل در یک ")" نامناسب متوقف شده
+        raise Exception('unexpected ")"')
+    return node</code></pre>
+        <h3>نتیجه‌گیری</h3>
+        <p>یاد گرفتیم چگونه regex را با بازگشت تحلیل کنیم. این دانش برای تحلیل چیزهای دیگر هم مفید است. هرچند تحلیل اغلب صفحات قابل‌توجهی را در کتاب‌های ساخت کامپایلر اشغال می‌کند، بسیاری از زبان‌های دنیای واقعی را فقط با بازگشت می‌توان تحلیل کرد، و اغلب ساده‌ترین راه برای تحلیل چیزی، کد بازگشتی دست‌ساز است. فصل بعد به شما می‌آموزد چگونه regex تحلیل‌شده را با «backtracking» اجرا کنید، که آن هم از بازگشت استفاده می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>R2. موتور Regex با Backtracking (مبتدی)</h2>
+        <h3>مقدمه</h3>
+        <p><strong>چه چیزی یاد می‌گیرید:</strong></p>
+        <ul>
+          <li>تجزیه یک مسئله به زیرمسئله‌ها.</li>
+          <li>جست‌وجو و backtracking.</li>
+        </ul>
+        <p>در فصل قبل یاد گرفتیم regexها را به ساختارهای درختی تحلیل کنیم. از ساختار درختی می‌توانیم ساخت یک موتور regex را شروع کنیم. روش استفاده‌شده در این فصل «backtracking» نامیده می‌شود. Backtracking کارآمدترین روش پیاده‌سازی regex نیست؛ روش‌های دیگر در فصل‌های بعد معرفی می‌شوند.</p>
+        <h3>تحلیل مسئله</h3>
+        <p>اغلب اولین گام حل مسئله، تجزیه آن به تکه‌های کوچک‌تر یا زیرمسئله‌هاست. ماهیت ساختار درختی این را حتی آشکارتر می‌کند.</p>
+        <ul>
+          <li><strong>الحاق، <code>ab</code>:</strong> زیرعبارت <code>a</code> را اجرا کن، بعد <code>b</code> را از موقعیت نتیجه <code>a</code>.</li>
+          <li><strong>جایگزینی، <code>a|b</code>:</strong> نتایج <code>a</code> و <code>b</code> را ترکیب کن.</li>
+        </ul>
+        <p>برای الحاق‌ها، اولی می‌تواند هر تعداد نامزد مطابقت تولید کند. و دومی به نتایج اولی وابسته است: اگر دومی از موقعیت خاصی از نتایج اولی نتواند مطابقتی بیابد، جست‌وجو اگر موقعیت دیگری باشد، از آنجا دوباره شروع می‌شود. این همان معنای «backtracking» است. برای تکرارها هم اوضاع مثل الحاق است.</p>
+        <p>به طور خلاصه:</p>
+        <ol>
+          <li>یک زیرعبارت از موقعیت معین رشته، فهرستی از نامزدها تولید می‌کند.</li>
+          <li>عملگر الحاق: برای هر نتیجه از زیرعبارت اول، اجرا کن و نتایج را به زیرعبارت دوم بده.</li>
+          <li>عملگر تکرار مثل عملگر الحاق است.</li>
+          <li>نتایج زیرعبارت‌های جایگزینی را اجتماع بگیر.</li>
+        </ol>
+        <h3>شروع کدنویسی</h3>
+        <p>کد کوتاه است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># روش backtracking تقریباً نیروی کور است.
+# می‌توان برای حذف idxهای تکراری هم کش اضافه کرد.
+def match_backtrack(node, text, idx):
+    if node is None:
+        yield idx   # رشته خالی
+    elif node == 'dot':
+        if idx &lt; len(text):
+            yield idx + 1
+    elif isinstance(node, str):
+        assert len(node) == 1   # تک‌کاراکتری
+        if idx &lt; len(text) and text[idx] == node:
+            yield idx + 1
+    elif node[0] == 'cat':
+        # yield from معادل است با:
+        # for idx1 in match_backtrack_concat(node, text, idx):
+        #     yield idx1
+        yield from match_backtrack_concat(node, text, idx)
+    elif node[0] == 'split':
+        yield from match_backtrack(node[1], text, idx)
+        yield from match_backtrack(node[2], text, idx)
+    elif node[0] == 'repeat':
+        yield from match_backtrack_repeat(node, text, idx)
+    else:
+        assert not 'reachable'</code></pre>
+        <p>برای کسانی که با پایتون آشنا نیستند: دستور <code>yield</code> اجرای خودش را به حالت تعلیق درمی‌آورد و مقداری به فراخواننده برمی‌گرداند و فراخواننده معمولاً روی نتایج حلقه می‌زند. <code>yield from</code> میان‌بر حلقه و عبور همه‌چیز است.</p>
+        <p>هر بار که مطابقت یافت می‌شود، نتیجه از طریق <code>yield</code> به فراخواننده منتقل می‌شود. فراخواننده می‌تواند با آن کاری کند و نتیجه بعدی را (با ادامه پیمایش) بخواهد.</p>
+        <p>انتقال رفت‌وبرگشتی کنترل، نوشتن کد backtracking را در پایتون بی‌دردسر می‌کند. اما اگر اولین بارتان است که سعی می‌کنید backtracking را بفهمید، توصیه می‌شود این کار را بدون دستور <code>yield</code> انجام دهید و حالت‌های backtracking را صریح مدیریت کنید — تمرینی برای کسانی که از پایتون استفاده نمی‌کنند.</p>
+        <p>کد الحاق:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def match_backtrack_concat(node, text, idx):
+    met = set()
+    for idx1 in match_backtrack(node[1], text, idx):
+        if idx1 in met:
+            continue    # تکراری
+        met.add(idx1)
+        yield from match_backtrack(node[2], text, idx1)</code></pre>
+        <p>توجه کنید یک hash set اضافه کردم تا نتایج تکراری زیرعبارت اول را رد کنم.</p>
+        <p>کد تکرار طولانی‌تر است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def match_backtrack_repeat(node, text, idx):
+    _, node, rmin, rmax = node
+    rmax = min(rmax, RE_REPEAT_LIMIT)
+    # خروجی بافر شده و بعداً معکوس می‌شود
+    output = []
+    if rmin == 0:
+        # لازم نیست چیزی مطابقت کند
+        output.append(idx)
+    # موقعیت‌های گام قبلی
+    start = {idx}
+    # همه تعداد تکرارهای ممکن را امتحان کن
+    for i in range(1, rmax + 1):
+        found = set()
+        for idx1 in start:
+            for idx2 in match_backtrack(node, text, idx1):
+                found.add(idx2)
+                if i &gt;= rmin:
+                    output.append(idx2)
+        # TODO: اگر تنها مطابقت طول صفر بود، خارج شو
+        if not found:
+            break
+        start = found
+    # تکرار حریص است؛ اول مطابقت با بیشترین تکرار را خروجی بده.
+    yield from reversed(output)</code></pre>
+        <p>تکرار با اجرای دوباره‌و‌دوباره زیرعبارت تا وقتی دیگر نتواند مطابقت بیابد مدیریت می‌شود. هر گام با نتایج گام قبلی شروع می‌شود و موقعیت شروع‌ها هم حذف تکراری می‌شوند.</p>
+        <p>نکته دیگر: تکرار regex «حریص» است؛ باید مطابقت با حداکثر تکرار را پیدا کنیم و اول خروجی بدهیم.</p>
+        <p>تابع آزمایش اینکه آیا رشته با regex کاملاً مطابقت دارد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def re_full_match_bt(node, text):
+    for idx in match_backtrack(node, text, 0):
+        # idx اندازه پیشوند مطابقت‌شده است
+        if idx == len(text):
+            # توجه: جنبه حریص بودن regexها به نظر
+            # بی‌ربط می‌رسد اگر فقط متن کامل مطابقت‌شده را بپذیریم.
+            return True
+    return False</code></pre>
+        <p>پیداکردن موارد آزمون به‌عنوان تمرین برای خواننده است.</p>
+        <h3>نتیجه‌گیری</h3>
+        <p>یاد گرفتیم چگونه regex را با backtracking مطابقت دهیم. از آنجا می‌توانیم امکانات regex بیشتری اضافه کنیم.</p>
+        <p>با این حال، رویکرد backtracking نسبتاً نیروی کور است و می‌تواند جست‌وجوهای تکراری انجام دهد. می‌توانیم برای کاهش این، کش اضافه کنیم؛ اما نگرانش نباشید، در فصل بعد روش جدیدی را کاوش می‌کنید: اتوماتای متناهی نادترمینیستی (NFA).</p>
+      </section>
+
+      <div class="callout tip">این پروژه بخشی از کتاب در حال نگارش <em>Miscellaneous build-your-own-X projects</em> از جیمز اسمیت است. فصل‌های R3 (پیمایش گراف و Regex با NFA) و R4 (DFA) ادامه‌های این آموزش‌اند.</div>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل‌های «R1: Parsing Regular Expressions» و «R2: Backtracking Regex Engine» اثر جیمز اسمیت (James Smith) از build-your-own.org است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://build-your-own.org/b2a/r0_intro" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

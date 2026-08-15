@@ -2480,94 +2480,94 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "regex-matcher-princeton",
 "category": "موتور عبارت باقاعده",
 "lang": "C",
 "title": "یک مطابقت‌دهنده عبارت باقاعده",
 "url": "https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-matcher-princeton.html"
 },
 {
-"id": "",
+"id": "regexp-simple-fast",
 "category": "موتور عبارت باقاعده",
 "lang": "C",
 "title": "مطابقت عبارت باقاعده می‌تواند ساده و سریع باشد",
 "url": "https://swtch.com/~rsc/regexp/regexp1.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regexp-simple-fast.html"
 },
 {
-"id": "",
+"id": "regex-engine-go",
 "category": "موتور عبارت باقاعده",
 "lang": "Go",
 "title": "چگونه یک موتور regex از صفر بسازیم",
 "url": "https://rhaeguard.github.io/posts/regex",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-engine-go.html"
 },
 {
-"id": "",
+"id": "regex-40-lines",
 "category": "موتور عبارت باقاعده",
 "lang": "JavaScript",
 "title": "یک موتور Regex در کمتر از ۴۰ خط کد بساز",
 "url": "https://nickdrane.com/build-your-own-regex/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-40-lines.html"
 },
 {
-"id": "",
+"id": "regex-derivatives",
 "category": "موتور عبارت باقاعده",
 "lang": "JavaScript",
 "title": "چگونه عبارت باقاعده را با مشتقات (derivatives) در جاوااسکریپت تابعی پیاده‌سازی کنیم",
 "url": "http://dpk.io/dregs/toydregs",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-derivatives.html"
 },
 {
-"id": "",
+"id": "regex-engine-js",
 "category": "موتور عبارت باقاعده",
 "lang": "JavaScript",
 "title": "پیاده‌سازی یک موتور عبارت باقاعده",
 "url": "https://deniskyashif.com/2019/02/17/implementing-a-regular-expression-engine/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-engine-js.html"
 },
 {
-"id": "",
+"id": "regex-how-they-work",
 "category": "موتور عبارت باقاعده",
 "lang": "Perl",
 "title": "Regexها چگونه کار می‌کنند",
 "url": "https://perl.plover.com/Regex/article.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-how-they-work.html"
 },
 {
-"id": "",
+"id": "regex-engine-python-b2a",
 "category": "موتور عبارت باقاعده",
 "lang": "Python",
 "title": "موتورهای عبارت باقاعده خودت را بساز: Backtracking، NFA، DFA",
 "url": "https://build-your-own.org/b2a/r0_intro",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-engine-python-b2a.html"
 },
 {
-"id": "",
+"id": "regex-no-magic-scala",
 "category": "موتور عبارت باقاعده",
 "lang": "Scala",
 "title": "بدون جادو: عبارت باقاعده",
 "url": "https://rcoh.svbtle.com/no-magic-regular-expressions",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/regex-no-magic-scala.html"
 },
 {
 "id": "",

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه یک موتور regex از صفر بسازیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور عبارت باقاعده</a>
+        <span class="sep">←</span>
+        <span>چگونه یک موتور regex از صفر بسازیم</span>
+      </div>
+      <h1>چگونه یک موتور regex از صفر بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://rhaeguard.github.io/posts/regex" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How to build a regex engine from scratch» از
+          <b>rhaeguard</b> (اکتبر ۲۰۲۳) است. مخزن گیت‌هاب پروژه: <code>rhaeguard/rgx</code>.
+        </div>
+        <a class="btn solid" href="https://rhaeguard.github.io/posts/regex" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>در این مقاله یک موتور عبارت باقاعده ساده می‌سازیم که بتواند از الگوی
+        <code>[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z0-9]+.[a-zA-Z]{2,}</code>
+        (که در آن <code>.</code> به‌جای «هر کاراکتر»، تحت‌اللفظی است) برای بررسی اعتبار آدرس‌های ایمیل استفاده کند. از زبان گولنگ استفاده می‌کنیم. مقاله به ۳ بخش تقسیم شده است:</p>
+        <ul>
+          <li>تحلیل (Parsing)</li>
+          <li>ساخت ماشین حالت (Building the state machine)</li>
+          <li>مطابقت (Matching)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>تحلیل (Parsing)</h2>
+        <p>به خودی خود، یک رشته regex فقط یک رشته است. باید آن را به چیزی تبدیل کنیم که ساختار داشته باشد؛ مثلاً:</p>
+        <pre class="code"><span class="lang-tag">توکن‌ها</span><code>// رشته regex اصلی
+"[a-zA-Z0-9_]+@[a-zA-Z0-9]+.[a-zA-Z]{2,}"
+// توکن‌های regex
+Repeat(1, بی‌نهایت):
+   Range(a, b,...z, A, B,...,Z, 0,...,9, _)
+Literal(@)
+Repeat(1, بی‌نهایت):
+   Range(a, b,...z, A, B,...,Z, 0,...,9)
+Literal(.)
+Repeat(2, بی‌نهایت):
+   Range(a, b,...z, A, B,...,Z)</code></pre>
+        <p>ایده اصلی هنگام تحلیل یک رشته regex ساده است: به دنبال کاراکترهایی می‌گردیم که معانی ویژه دارند مثل <code>* + ? () [] {}</code> و سعی می‌کنیم با کمک آن‌ها توکن بسازیم. ابتدا چند نوع و ثابت تعریف می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>type tokenType uint8 // <1>
+const ( // <2>
+   group         tokenType = iota
+   bracket       tokenType = iota
+   or            tokenType = iota
+   repeat        tokenType = iota
+   literal       tokenType = iota
+   groupUncaptured tokenType = iota
+)
+type token struct { // <3>
+   tokenType tokenType
+   // محتوای مورد نیاز برای هر توکن متفاوت خواهد بود
+   // پس باید با نوع انعطاف‌پذیر باشیم
+   value     interface{}
+}
+type parseContext struct { // <4>
+   // اندیس کاراکتری که در حال پردازش آن
+   // در رشته regex هستیم
+   pos    int
+   tokens []token
+}</code></pre>
+        <ol>
+          <li>فقط یک نام مستعار نوع برای کاراکتر است.</li>
+          <li>ثابت‌های مشخص‌کننده نوع توکنی که با آن کار می‌کنیم؛ مثل enum.</li>
+          <li>ساختار اصلی توکن؛ یک <em>نوع</em> و یک <em>مقدار</em> دارد که بسته به نوع، می‌تواند هر چیزی باشد.</li>
+          <li><code>parseContext</code> به ما کمک می‌کند موقعیت‌هایمان را پیگیری کنیم و توکن‌های تحلیل‌شده تاکنون را نگه دارد.</li>
+        </ol>
+        <p>حالا الگوریتم تحلیل ما:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func parse(regex string) *parseContext {
+   ctx := &parseContext{
+      pos:    0,
+      tokens: []token{},
+   }
+   for ctx.pos &lt; len(regex) {
+      process(regex, ctx)
+      ctx.pos++
+   }
+   return ctx
+}</code></pre>
+        <ul>
+          <li>روی هر کاراکتر حلقه می‌زنیم و آن را پردازش می‌کنیم تا به پایان رشته regex برسیم.</li>
+        </ul>
+        <p>حالا نگاهی به متد <code>process</code> بیندازیم. کمی درگیرتر است؛ قدم‌به‌قدم بررسی‌اش می‌کنیم.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func process(regex string, ctx *parseContext) {
+    ch := regex[ctx.pos]
+    if ch == '(' { // <1>
+        groupCtx := &parseContext{
+            pos:    ctx.pos,
+            tokens: []token{},
+        }
+        parseGroup(regex, groupCtx)
+        ctx.tokens = append(ctx.tokens, token{
+            tokenType: group,
+            value:     groupCtx.tokens,
+        })
+    } else if ch == '[' { // <2>
+        parseBracket(regex, ctx)
+    } else if ch == '|' { // <3>
+        parseOr(regex, ctx)
+    } else if ch == '*' || ch == '?' || ch == '+' { // <4>
+        parseRepeat(regex, ctx)
+    } else if ch == '{' { // <5>
+        parseRepeatSpecified(regex, ctx)
+    } else { // <6>
+        // لیترال
+        t := token{
+            tokenType: literal,
+            value:     ch,
+        }
+        ctx.tokens = append(ctx.tokens, t)
+    }
+}</code></pre>
+        <p>همان‌طور که گفتیم، سعی می‌کنیم کاراکترهایی را که می‌شناسیم مطابقت دهیم و از آن‌ها برای تحلیل توکن‌ها استفاده کنیم.</p>
+        <ol>
+          <li>اگر کاراکتر فعلی <code>(</code> باشد، با گروه سر و کار داریم و سعی می‌کنیم چند کاراکتر بعد را به‌عنوان گروه تحلیل کنیم.</li>
+          <li>اگر <code>[</code> باشد، عبارت براکتی است.</li>
+          <li>اگر <code>|</code> باشد، عبارت جایگزینی (Or) است.</li>
+          <li>کاراکترهای <code>*</code> (ستاره کلین)، <code>+</code> و <code>?</code> همگی تکرار را نشان می‌دهند. <code>?</code> یعنی اختیاری؛ از نظر تکرار یعنی کاراکتر حداکثر یک‌بار تکرار می‌شود.</li>
+          <li>آکولاد هم تکرار را مشخص می‌کند: <code>a* == a{0,}</code>، <code>a+ == a{1,}</code>، <code>a? == a{0,1}</code>.</li>
+          <li>اگر هیچ‌کدام نبود، آن را لیترال در نظر می‌گیریم. توجه داشته باشید این یک پیاده‌سازی ساده‌شده است؛ موارد زیادی برای در نظر گرفتن وجود دارد. این الگوریتم ساده‌شده همچنین کاراکترهای escape را در نظر نمی‌گیرد (یعنی <code>\a</code> به‌عنوان الحاق دو لیترال <code>\</code> و <code>a</code> تلقی می‌شود).</li>
+        </ol>
+        <p>حالا هر تابع تعریف‌شده را بررسی می‌کنیم. با تحلیل عبارت‌های گروهی <strong>(1)</strong> شروع می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func parseGroup(regex string, ctx *parseContext) {
+   ctx.pos += 1 // از پرانتز باز رد شو
+   for regex[ctx.pos] != ')' {
+      process(regex, ctx)
+      ctx.pos += 1
+   }
+}</code></pre>
+        <ul>
+          <li>هر کاراکتر را مثل متد <code>parse</code> پردازش می‌کنیم تا به پرانتز بسته برسیم. مدیریت خطا را پوشش نمی‌دهیم؛ اگر اندیس از مرز خارج شود به‌هرحال panic می‌کند.</li>
+        </ul>
+        <p>آن کد اضافه اطراف <code>parseGroup</code> در تابع <code>process</code> چه می‌کند؟ یک context مخصوص هر گروه می‌سازیم تا بتوانیم همه توکن‌های داخل یک گروه خاص را کنار هم بسته‌بندی کنیم بی‌آنکه با context سطح بالا درگیر شویم. بعد از پایان تحلیل گروه، همه توکن‌های تحلیل‌شده را در یک توکن جدید از نوع <code>group</code> می‌بندیم و به فهرست توکن سراسری اضافه می‌کنیم.</p>
+        <p>حالا ببینیم چگونه عبارت‌های براکتی <strong>(2)</strong> را تحلیل کنیم. این کل تابع است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func parseBracket(regex string, ctx *parseContext) {
+    ctx.pos++ // از براکت باز رد شو
+    var literals []string
+    for regex[ctx.pos] != ']' { // <1>
+        ch := regex[ctx.pos]
+        if ch == '-' { // <2>
+            next := regex[ctx.pos+1] // <3-1>
+            prev := literals[len(literals)-1][0] // <3-1>
+            literals[len(literals)-1] = fmt.Sprintf("%c%c", prev, next) // <3-2>
+            ctx.pos++  // برای مصرف کاراکتر next
+        } else { // <4>
+            literals = append(literals, fmt.Sprintf("%c", ch))
+        }
+        ctx.pos++ // <5>
+    }
+    literalsSet := map[uint8]bool{}
+    for _, l := range literals { // <6>
+        for i := l[0]; i &lt;= l[len(l)-1]; i++ { // <7>
+            literalsSet[i] = true
+        }
+    }
+    ctx.tokens = append(ctx.tokens, token{ // <8>
+        tokenType: bracket,
+        value:     literalsSet,
+    })
+}</code></pre>
+        <ol>
+          <li>مثل گروه، تا براکت بسته (<code>]</code>) پیش می‌رویم.</li>
+          <li>بررسی می‌کنیم آیا <code>-</code> است، چون نشان‌دهنده بازه است (مثل <code>a-zK-Z2-8</code>).</li>
+          <li>وقتی نشان بازه بود: کاراکتر بعدی و کاراکتر قبلی (آخرین عضو فهرست لیترال‌ها) را می‌گیریم و به‌صورت دو کاراکتر کنار هم ذخیره می‌کنیم.</li>
+          <li>اگر نبود، لیترال منفرد است و به فهرست اضافه می‌شود.</li>
+          <li>به کاراکتر بعدی می‌رویم.</li>
+          <li>فهرست <code>literals</code> هم لیترال دارد و هم بازه، و ممکن است تکراری باشند (مثل <code>[a-me-s]</code>). روی مقادیر ذخیره‌شده رد می‌شویم و هر لیترال را به <code>literalsSet</code> اضافه می‌کنیم؛ مجموعه‌ها ذاتاً تکراری ندارند. در گولنگ از map استفاده می‌کنیم چون مجموعه بومی ندارد.</li>
+          <li>همه کاراکترهای بین اول و آخر مقدار ذخیره‌شده را اضافه می‌کنیم. در لیترال‌های منفرد فقط خود لیترال اضافه می‌شود؛ در بازه‌ها همه از اول تا آخر (شامل).</li>
+          <li>در نهایت توکن براکت را به فهرست توکن‌ها اضافه می‌کنیم.</li>
+        </ol>
+        <p>در نوبت بعدی <code>parseOr</code> است که جایگزینی‌ها <strong>(3)</strong> را تحلیل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func parseOr(regex string, ctx *parseContext) {
+    // <1:start>
+    rhsContext := &parseContext{
+        pos:    ctx.pos,
+        tokens: []token{},
+    }
+    rhsContext.pos += 1 // از | رد شو
+    for rhsContext.pos &lt; len(regex) &amp;&amp; regex[rhsContext.pos] != ')' {
+        process(regex, rhsContext)
+        rhsContext.pos += 1
+    }
+    // <1:end>
+    // دو طرف عبارت OR
+    left := token{
+        tokenType: groupUncaptured,
+        value:     ctx.tokens, // <2>
+    }
+    right := token{ // <3>
+        tokenType: groupUncaptured,
+        value:     rhsContext.tokens,
+    }
+    ctx.pos = rhsContext.pos // <4>
+    ctx.tokens = []token{{ // <5>
+        tokenType: or,
+        value:     []token{left, right},
+    }}
+}</code></pre>
+        <ol>
+          <li>عملیات جایگزینی نحو <code>&lt;left&gt;|&lt;right&gt;</code> دارد. تا وقتی به <code>|</code> برسیم، همه چیز سمت چپ آن را تحلیل کرده‌ایم. حالا وقت تحلیل سمت راست است؛ کدی تقریباً همانند تحلیل گروه‌ها. context خالی مخصوص سمت راست می‌سازیم و همه توکن‌ها را در آن جمع می‌کنیم، تا پایان رشته regex یا برخورد با پرانتز بسته.</li>
+          <li>سمت چپ شامل همه توکن‌های موجود در context اصلی است.</li>
+          <li>برای سمت راست، همه توکن‌های جمع‌شده در <code>rhsContext</code> را می‌گیریم. برای هر دو از نوع <code>groupUncaptured</code> استفاده می‌کنیم — نوعی که برای نشان دادن یک دسته توکن ساخته شده.</li>
+          <li>موقعیت context اصلی را به‌روز می‌کنیم.</li>
+          <li>توکن جایگزینی را می‌سازیم و به context اصلی اضافه می‌کنیم. نکته مهم: توکن‌های قدیمی را در context اصلی نگه نمی‌داریم چون از قبل داخل توکن جایگزینی‌اند.</li>
+        </ol>
+        <p>حالا تکرارها <strong>(4)</strong>:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>const repeatInfinity = -1
+func parseRepeat(regex string, ctx *parseContext) {
+    ch := regex[ctx.pos]
+    var min, max int
+    if ch == '*' {
+        min = 0
+        max = repeatInfinity
+    } else if ch == '?' {
+        min = 0
+        max = 1
+    } else {
+        // ch == '+'
+        min = 1
+        max = repeatInfinity
+    }
+    // باید آخرین توکن را با داده شمارنده بپیچیم
+    // تا بدانیم min و max روی چه چیزی اعمال می‌شوند
+    lastToken := ctx.tokens[len(ctx.tokens)-1]
+    ctx.tokens[len(ctx.tokens)-1] = token{
+        tokenType: repeat,
+        value: repeatPayload{
+            min:   min,
+            max:   max,
+            token: lastToken,
+        },
+    }
+}</code></pre>
+        <ul>
+          <li>ایده پایه این است که هر نماد اینجا حداقل و حداکثر تعداد تکرار مشخصی دارد. <code>repeatInfinity</code> مقدار <code>-1</code> است اما آن را بی‌نهایت در نظر می‌گیریم.</li>
+          <li>بعد از تعیین مرزها، آخرین توکن تحلیل‌شده را می‌گیریم (چون نمادهای تکرار همیشه سمت راست توکن هستند)، آن را در یک توکن <code>repeat</code> با مرزهای مناسب می‌پیچیم و در همان موقعیت فهرست توکن ذخیره می‌کنیم.</li>
+        </ul>
+        <p>عبارت تکرار دیگر کد کمی طولانی‌تر دارد اما ایده همان است <strong>(5)</strong>:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func parseRepeatSpecified(regex string, ctx *parseContext) {
+    // +1 چون آکولاد باز { را رد می‌کنیم
+    start := ctx.pos + 1
+    // تا رسیدن به انتهای آکولادها پیش برو
+    for regex[ctx.pos] != '}' {
+        ctx.pos++
+    }
+    boundariesStr := regex[start:ctx.pos] // <1>
+    pieces := strings.Split(boundariesStr, ",") // <2>
+    var min, max int
+    if len(pieces) == 1 { // <3>
+        if value, err := strconv.Atoi(pieces[0]); err != nil {
+            panic(err.Error())
+        } else {
+            min = value
+            max = value
+        }
+    } else if len(pieces) == 2 { // <4>
+        if value, err := strconv.Atoi(pieces[0]); err != nil {
+            panic(err.Error())
+        } else {
+            min = value
+        }
+        if pieces[1] == "" {
+            max = repeatInfinity
+        } else if value, err := strconv.Atoi(pieces[1]); err != nil {
+            panic(err.Error())
+        } else {
+            max = value
+        }
+    } else {
+        panic(fmt.Sprintf("برای شمارنده باید 1 یا 2 مقدار مشخص شود: '%s'", boundariesStr))
+    }
+    // <5>
+    lastToken := ctx.tokens[len(ctx.tokens)-1]
+    ctx.tokens[len(ctx.tokens)-1] = token{
+        tokenType: repeat,
+        value: repeatPayload{
+            min:   min,
+            max:   max,
+            token: lastToken,
+        },
+    }
+}</code></pre>
+        <ol>
+          <li>رشته مرزها را می‌گیریم؛ همه‌چیز بین <code>{}</code>.</li>
+          <li>آن را با جداکننده کاما تکه‌تکه می‌کنیم.</li>
+          <li>اگر فقط یک عضو بود (مثل <code>{1}</code>)، تعداد تکرار دقیق است و min و max یکی‌اند.</li>
+          <li>اگر دو عضو بود، اولی min و دومی max است (مثل <code>{3,7}</code>). اگر عضو دوم نبود (<code>{3,}</code>)، حداقل سه تکرار لازم است و سقف ندارد؛ یعنی <code>repeatInfinity</code>.</li>
+          <li>حالا که مرزها را داریم، آخرین توکن تحلیل‌شده را برمی‌داریم، در توکن <code>repeat</code> با مرزهای مناسب می‌پیچیم و ذخیره می‌کنیم.</li>
+        </ol>
+        <p>با این کار مراحل تحلیل یک رشته regex تمام می‌شود. در بخش بعد می‌آموزیم چگونه از آن توکن‌ها یک ماشین حالت بسازیم.</p>
+      </section>
+
+      <section>
+        <h2>ساخت ماشین حالت</h2>
+        <p>در این بخش می‌آموزیم چگونه از توکن‌های تحلیل‌شده یک ماشین حالت بسازیم؛ اما اول ببینیم ماشین حالت چیست.</p>
+        <h3>ماشین حالت متناهی چیست؟</h3>
+        <p>ماشین حالت متناهی (FSM) یا اتوماتای متناهی (FA) ماشینی انتزاعی است که از مجموعه‌ای متناهی از حالت‌ها، یک حالت اولیه، حالت‌های پایانی و انتقال‌هایی بین این حالت‌ها تشکیل شده. FA دو نوع دارد: اتوماتای متناهی قطعی (DFA) و اتوماتای متناهی نادترمینیستی (NFA).</p>
+        <img src="https://rhaeguard.github.io/dfa_example.jpeg" alt="مثال اتوماتای قطعی که فقط کلمات abd و ace را می‌پذیرد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>بررسی پذیرش این‌گونه انجام می‌شود:</p>
+        <ol>
+          <li>همیشه از حالت شروع هستیم.</li>
+          <li>اولین کاراکتر رشته ورودی را می‌گیریم و می‌بینیم آیا انتقال متناظری هست: اگر بود به آن حالت می‌رویم و با کاراکتر بعدی ادامه می‌دهیم؛ اگر نبود، رشته پذیرفته نمی‌شود.</li>
+          <li>تا پایان رشته تکرار می‌کنیم و بررسی می‌کنیم آیا در حالت پایانی هستیم.</li>
+          <li>بودن در حالت پایانی یعنی رشته پذیرفته شده.</li>
+        </ol>
+        <p>در DFA، با یک حالت و ورودی یکسان، همیشه به همان حالت هدف می‌روی. قطعی است.</p>
+        <img src="https://rhaeguard.github.io/nfa_example.jpeg" alt="مثال NFA با انتقال اپسیلون؛ با ورودی یکسان می‌توان به حالت‌های مختلف رفت" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در NFA، با یک حالت و ورودی یکسان می‌توانی به حالت‌های مختلف بروی؛ نادترمینیستی است. <code>epsilon</code> یعنی ورودی خالی. این NFA هم فقط رشته‌های <code>abd</code> و <code>ace</code> را می‌پذیرد؛ اما با مقدار epsilon می‌توانی وارد چند حالت شوی.</p>
+        <p>در بخش‌های بعد فهرست توکن‌های تحلیل‌شده را می‌گیریم و از آن‌ها یک epsilon-NFA می‌سازیم. وقتی NFA آماده شد، باید از هر حالت رد شویم و سعی کنیم یک‌به‌یک کاراکتر از رشته ورودی مصرف کنیم و ببینیم به حالت پایانی می‌رسیم یا نه.</p>
+        <h3>از عبارت باقاعده تا epsilon-NFA</h3>
+        <p>قدم قبلی فهرستی از توکن‌ها به ما می‌دهد. این‌ها را به یک epsilon-NFA تبدیل می‌کنیم. برای این کار از الگوریتمی به نام «ساخت تامپسون» استفاده می‌کنیم که الگوریتمی برای ساخت و ترکیب چند NFA در یک NFA است.</p>
+        <p>برای نمایش حالت NFA از این ساختار ساده استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>type state struct {
+    start       bool
+    terminal    bool
+    transitions map[uint8][]*state
+}</code></pre>
+        <ol>
+          <li><code>start</code> نشان می‌دهد آیا این حالت نقطه ورود است.</li>
+          <li><code>terminal</code> نشان می‌دهد آیا حالت نهایی است. رسیدن به این حالت یعنی ورودی با regex مطابقت دارد.</li>
+          <li><code>transitions</code> نقشه‌ای است که در آن یک کاراکتر به فهرستی از حالت‌های مختلف نگاشت می‌شود.</li>
+        </ol>
+        <img src="https://rhaeguard.github.io/toNFA_explained.jpeg" alt="نمای سطح بالا از ساخت NFA از عبارت باقاعده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <ul>
+          <li>حالت شروع (صورتی) و حالت پایانی (آبی) داریم.</li>
+          <li>برای هر توکن یک NFA جدا می‌سازیم و این NFAها با انتقال‌های اپسیلون در هم الحاق می‌شوند. آخرین حالت NFA قبلی به اولین حالت NFA بعدی وصل می‌شود.</li>
+          <li>یک انتقال اپسیلون از حالت شروع به اولین حالت (s1) NFAهای الحاق‌شده هست و یکی هم از آخرین حالت NFAهای الحاق‌شده به حالت پایانی.</li>
+        </ul>
+        <p>همان چیز در کد:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>const epsilonChar uint8 = 0 // کاراکتر خالی
+func toNfa(ctx *parseContext) *state {
+    startState, endState := tokenToNfa(&ctx.tokens[0]) // <1>
+    for i := 1; i &lt; len(ctx.tokens); i++ { // <2>
+        startNext, endNext := tokenToNfa(&ctx.tokens[i]) // <3>
+        endState.transitions[epsilonChar] = append(
+            endState.transitions[epsilonChar],
+            startNext,
+        ) // <4>
+        endState = endNext // <5>
+    }
+    start := &state{ // <6>
+        transitions: map[uint8][]*state{
+            epsilonChar: {startState},
+        },
+        start: true,
+    }
+    end := &state{ // <7>
+        transitions: map[uint8][]*state{},
+        terminal:    true,
+    }
+    endState.transitions[epsilonChar] = append(
+        endState.transitions[epsilonChar],
+        end,
+    ) // <8>
+    return start // <9>
+}</code></pre>
+        <ol>
+          <li>اولین توکن را می‌گیریم و به NFA تبدیل می‌کنیم. <code>tokenToNfa</code> یک NFA از توکن می‌سازد و حالت شروع و پایان آن را برمی‌گرداند.</li>
+          <li>روی بقیه توکن‌ها رد می‌شویم.</li>
+          <li>برای هر توکن <code>tokenToNfa</code> را صدا می‌زنیم و حالت شروع و پایان را نگه می‌داریم.</li>
+          <li>حالت پایان فراخوانی قبلی را به حالت شروع NFA جدید وصل می‌کنیم.</li>
+          <li>حالت پایان را ذخیره می‌کنیم چون در تکرار بعدی به کار می‌آید.</li>
+          <li>حالت شروع را می‌سازیم؛ با انتقال اپسیلون به حالت شروع اولین NFA.</li>
+          <li>حالت پایانی را می‌سازیم.</li>
+          <li>حالت پایان آخرین NFA حالا انتقال اپسیلون به حالت پایانی دارد.</li>
+          <li>در نهایت حالت شروع را برمی‌گردانیم چون نقطه ورود است.</li>
+        </ol>
+        <p>حالا که طرح کلی ساخت NFA را داریم، ببینیم هر توکن چگونه به NFA تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// برمی‌گرداند (start, end)
+func tokenToNfa(t *token) (*state, *state) {
+    start := &state{
+        transitions: map[uint8][]*state{},
+    }
+    end := &state{
+        transitions: map[uint8][]*state{},
+    }
+    switch t.tokenType {
+    case literal:
+    case or:
+    case bracket:
+    case group, groupUncaptured:
+    case repeat:
+    default:
+        panic("نوع توکن ناشناخته")
+    }
+    return start, end
+}</code></pre>
+        <ul>
+          <li>کد بالا اسکلت <code>tokenToNfa</code> است؛ هر نوع توکن و نحوه مدیریتش را در ادامه می‌بینیم.</li>
+          <li>به‌طور کلی حالت‌های خالی <code>start</code> و <code>end</code> می‌سازیم، منطقی در switch انجام می‌شود و آن‌ها را برمی‌گردانیم.</li>
+        </ul>
+        <h4>لیترال‌ها</h4>
+        <p>با لیترال‌ها شروع می‌کنیم چون ساده‌ترین‌اند. برای رفتن از <code>start</code> به <code>end</code> به انتقال <code>ch</code> نیاز داریم؛ <code>ch</code> یک کاراکتر منفرد است.</p>
+        <pre class="code"><span class="lang-tag">go</span><code>case literal:
+    ch := t.value.(uint8)
+    start.transitions[ch] = []*state{end}</code></pre>
+        <p><code>t.value</code> به مقداری اشاره می‌کند که هنگام تحلیل در ساختار <code>token</code> ذخیره کردیم.</p>
+        <h4>جایگزینی (or)</h4>
+        <p>Or یعنی انتخاب بین دو مسیر متفاوت. به یاد بیاورید در فاز تحلیل، مقدار توکن or دارای دو طرف <em>چپ</em> و <em>راست</em> بود؛ هرکدام NFA متفاوتی را نشان می‌دهند. برای ساخت NFA جایگزینی نیاز داریم:</p>
+        <ul>
+          <li>انتقال اپسیلون از حالت شروع به شروع هر دو NFA چپ و راست</li>
+          <li>انتقال اپسیلون از پایان هر دو NFA به حالت پایان</li>
+        </ul>
+        <img src="https://rhaeguard.github.io/tokenToNfa_or.jpeg" alt="تبدیل توکن or به NFA با دو مسیر اپسیلونی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">go</span><code>case or:
+    values := t.value.([]token)
+    left := values[0]
+    right := values[1]
+    s1, e1 := tokenToNfa(&left) // <1>
+    s2, e2 := tokenToNfa(&right) // <1>
+    start.transitions[epsilonChar] = []*state{s1, s2} // <2>
+    e1.transitions[epsilonChar] = []*state{end} // <3>
+    e2.transitions[epsilonChar] = []*state{end} // <3></code></pre>
+        <ol>
+          <li>هر دو NFA چپ و راست ساخته می‌شوند.</li>
+          <li>حالت شروع با انتقال اپسیلون به شروع هر دو NFA وصل می‌شود.</li>
+          <li>حالت پایان هر NFA با انتقال اپسیلون به حالت پایان NFA جایگزینی وصل می‌شود.</li>
+        </ol>
+        <h4>عبارت براکتی</h4>
+        <p>عبارت‌های براکتی را می‌توان جایگزینی بزرگ در نظر گرفت؛ مثلاً <code>[a-c0-2x]</code> یعنی <code>a|b|c|0|1|2|x</code>. تفاوت کوچک این است که با لیترال‌ها سر و کار داریم نه NFAهای دلخواه، پس به‌سادگی برای هر لیترال یک انتقال از حالت شروع به حالت پایان می‌سازیم.</p>
+        <img src="https://rhaeguard.github.io/tokenToNfa_bracket.jpeg" alt="تبدیل براکت به NFA؛ نمونه [a-c]" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <pre class="code"><span class="lang-tag">go</span><code>case bracket:
+    literals := t.value.(map[uint8]bool)
+    for l := range literals { // <1>
+        start.transitions[l] = []*state{end} // <2>
+    }</code></pre>
+        <ol>
+          <li>از هر لیترال براکت رد می‌شویم.</li>
+          <li>انتقالی از <code>start</code> به <code>end</code> اضافه می‌کنیم.</li>
+        </ol>
+        <h4>گروه‌ها</h4>
+        <p>برای تبدیل گروه به NFA، همه NFAهای منفرد ساخته‌شده از توکن‌های داخل گروه را الحاق می‌کنیم. این کار را قبلاً در تابع <code>toNFA</code> دیده‌ایم؛ کد همان است:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// در موتور ما تفاوتی بین
+// group و groupUncaptured نیست
+case group, groupUncaptured:
+    tokens := t.value.([]token)
+    start, end = tokenToNfa(&tokens[0])
+    for i := 1; i &lt; len(tokens); i++ {
+        ts, te := tokenToNfa(&tokens[i])
+        end.transitions[epsilonChar] = append(
+            end.transitions[epsilonChar],
+            ts,
+        )
+        end = te
+    }</code></pre>
+        <h4>تکرار</h4>
+        <p>از میان همه نمونه‌های پوشش‌داده‌شده، فهم تکرار شاید سخت‌ترین باشد؛ قدم‌به‌قدم می‌رویم و سعی می‌کنیم راه‌حل عمومی‌ای پیدا کنیم که همه حالت‌های تکرار را پوشش دهد. در همه مثال‌های پیش‌رو، <code>A</code> هر NFA دلخواه است.</p>
+        <p>با ستاره (بستن کلین)، بعلاوه و علامت سوال (اختیاری) شروع می‌کنیم. در هر سه مثال حداقل و حداکثر رخدادهای متناظر هم مشخص شده.</p>
+        <img src="https://rhaeguard.github.io/tokenToNfa_repeat_1.jpeg" alt="تبدیل تکرارهای *، + و ? به NFA" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <ul>
+          <li>هر مثال انتقال اپسیلون از حالت شروع به شروع <code>A</code> و از پایان <code>A</code> به حالت پایان دارد؛ یعنی تکرار دقیقاً یک‌بار NFA <code>A</code>.</li>
+          <li><code>*</code> یعنی <code>A</code> را می‌توان نادیده گرفت یا هر تعداد بار تکرار کرد: برای نادیده‌گرفتن، انتقال اپسیلون مستقیم از حالت شروع به حالت پایان اضافه شده (عبور کامل از <code>A</code>)؛ برای تکرار بی‌نهایت، انتقال اپسیلون از حالت پایان به شروع <code>A</code>.</li>
+          <li><code>+</code> یعنی حداقل یک‌بار تکرار و بدون سقف: برای برآوردن حداقل یک، انتقال اپسیلون را از مثال <code>*</code> حذف می‌کنیم؛ حالا راهی برای دور زدن <code>A</code> نیست.</li>
+          <li><code>?</code> یعنی یا نادیده‌گرفتن یا دقیقاً یک‌بار: خیلی شبیه <code>*</code> است و فقط انتقال اپسیلون از حالت پایان به شروع <code>A</code> حذف شده.</li>
+        </ul>
+        <p>نکات:</p>
+        <ol>
+          <li>اگر حداقل صفر است، انتقال اپسیلون از حالت شروع به حالت پایان اضافه کن.</li>
+          <li>اگر حداکثر بی‌نهایت است، انتقال اپسیلون از حالت پایان به شروع <code>A</code> اضافه کن.</li>
+        </ol>
+        <p>حالا حالت تعداد تکرار دقیق:</p>
+        <img src="https://rhaeguard.github.io/tokenToNfa_repeat_2.jpeg" alt="تکرار دقیق: الحاق m بار NFA" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>به‌سادگی همان NFA <code>A</code> را <em>m</em> بار الحاق می‌کنیم.</p>
+        <p>اگر حداقل مشخص باشد اما سقف بی‌نهایت:</p>
+        <img src="https://rhaeguard.github.io/tokenToNfa_repeat_3.jpeg" alt="حداقل m و سقف بی‌نهایت با حلقه اپسیلونی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>باز هم NFA <code>A</code> را <em>m</em> بار الحاق می‌کنیم چون حداقل تعداد تکرار است؛ اما انتقال اپسیلون از حالت پایان به شروع آخرین نمونه <code>A</code> هم اضافه می‌کنیم.</p>
+        <p>حالت پایانی: هم حداقل و هم حداکثر مشخص و حداکثر بی‌نهایت نیست:</p>
+        <img src="https://rhaeguard.github.io/tokenToNfa_repeat_4.jpeg" alt="حداقل m و حداکثر n با خروج‌های اختیاری اپسیلونی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p><code>A</code> باید <em>m</em> بار تکرار شود، پس آن را <em>m</em> بار الحاق می‌کنیم. <em>(n-m)</em> تکرار باقی‌مانده کاملاً اختیاری است؛ پس از رسیدن به حداقل، باید بتوانیم به حالت پایان برویم. برای پایان زودهنگام، از حالت شروع هر نمونه <code>A</code> یک انتقال اپسیلون به حالت پایان اضافه می‌کنیم.</p>
+        <p>حالا ببینیم چگونه کدنویسی شده:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>case repeat:
+    p := t.value.(repeatPayload)
+    if p.min == 0 { // <1>
+        start.transitions[epsilonChar] = []*state{end}
+    }
+    var copyCount int // <2>
+    if p.max == repeatInfinity {
+        if p.min == 0 {
+            copyCount = 1
+        } else {
+            copyCount = p.min
+        }
+    } else {
+        copyCount = p.max
+    }
+    from, to := tokenToNfa(&p.token) // <3>
+    start.transitions[epsilonChar] = append( // <4>
+        start.transitions[epsilonChar],
+        from,
+    )
+
+    for i := 2; i &lt;= copyCount; i++ { // <5>
+        s, e := tokenToNfa(&p.token)
+        // پایان قبلی را به شروع این یکی وصل کن
+        to.transitions[epsilonChar] = append( // <6>
+            to.transitions[epsilonChar],
+            s,
+        )
+
+        // حالت‌های ورود و خروج NFA قبلی را دنبال کن
+        from = s // <7>
+        to = e   // <7>
+        // بعد از حداقل تکرارهای لازم
+        // بقیه باید اختیاری باشند؛ پس به شروع
+        // هر NFA انتقال اپسیلون اضافه کن
+        // تا در صورت نیاز نادیده گرفته شوند
+        if i &gt; p.min { // <8>
+            s.transitions[epsilonChar] = append(
+                s.transitions[epsilonChar],
+                end,
+            )
+        }
+    }
+    to.transitions[epsilonChar] = append( // <9>
+        to.transitions[epsilonChar],
+        end,
+    )
+
+    if p.max == repeatInfinity { // <10>
+        end.transitions[epsilonChar] = append(
+            end.transitions[epsilonChar],
+            from,
+        )
+    }</code></pre>
+        <ol>
+          <li>اگر حداقل صفر است، انتقال اپسیلون از حالت شروع به حالت پایان لازم است.</li>
+          <li><code>copyCount</code> حداکثر تعداد دفعاتی است که باید از <code>p.token</code> NFA بسازیم: اگر سقف بی‌نهایت و حداقل صفر باشد، ۱ است چون حداقل یک نسخه لازم است؛ اگر سقف بی‌نهایت و حداقل غیرصفر باشد، مقدار min (حداقل p.min بار لازم است)؛ اگر سقف بی‌نهایت نباشد، مقدار max.</li>
+          <li>مثل گروه، باید چند NFA الحاق کنیم؛ پس با ساخت اولین نسخه شروع می‌کنیم.</li>
+          <li>حالت شروع به شروع این NFA جدید وصل می‌شود.</li>
+          <li>بقیه تکرارها را پیمایش می‌کنیم.</li>
+          <li>گام واقعی الحاق؛ جایی که پایان NFA قبلی به شروع NFA فعلی وصل می‌شود.</li>
+          <li>شروع و پایان NFA فعلی را ذخیره می‌کنیم.</li>
+          <li>بعد از ساخت حداقل تعداد NFAهای لازم، بقیه باید اختیاری باشند؛ پس از شروع هر NFA اختیاری، انتقال اپسیلون به حالت پایان اضافه می‌کنیم.</li>
+          <li>پایان آخرین NFA را به حالت پایان وصل کن.</li>
+          <li>اگر سقف بی‌نهایت است، انتقال اپسیلون از حالت پایان به شروع آخرین NFA اضافه کن.</li>
+        </ol>
+        <h4>مثال</h4>
+        <p>با توجه به همه تکنیک‌های بحث‌شده، این چیزی است که برای regex <code>19[5-9][0-9]</code> تولید می‌شود:</p>
+        <img src="https://rhaeguard.github.io/example_nfa_complete.jpeg" alt="NFA کامل برای الگوی 19[5-9][0-9]" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+      </section>
+
+      <section>
+        <h2>مطابقت</h2>
+        <p>قطعه پایانی موتور regex ما منطق مطابقت است. ایده پایه: هر کاراکتر رشته آزمون را به ترتیب به حالت فعلی NFA می‌دهیم تا به پایان رشته برسیم. اگر کل رشته تمام شد و در حالت پایانی بودیم، یعنی رشته با regex مطابقت دارد.</p>
+        <p>در حین پیمایش رشته از یک نشانگر/مکان‌نما به موقعیت خاصی در رشته استفاده می‌کنیم. علاوه بر هر اندیس از رشته، نشانگر ما می‌تواند به آغاز رشته (پیش از مطابقت) و پایان رشته (بعد از مصرف همه کاراکترها) هم اشاره کند.</p>
+        <img src="https://rhaeguard.github.io/string_with_positions.jpeg" alt="موقعیت‌های نشانگر در رشته ورودی" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
+        <p>در کد این ثابت‌ها و متد کمکی را داریم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>const (
+    startOfText uint8 = 1
+    endOfText   uint8 = 2
+)
+func getChar(input string, pos int) uint8 {
+    if pos &gt;= len(input) {
+        return endOfText
+    }
+    if pos &lt; 0 {
+        return startOfText
+    }
+    return input[pos]
+}</code></pre>
+        <p>و کد مطابقت:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func (s *state) check(input string, pos int) bool { // <1>
+    ch := getChar(input, pos) // <2>
+    if ch == endOfText &amp;&amp; s.terminal { // <3>
+        return true
+    }
+    if states := s.transitions[ch]; len(states) &gt; 0 { // <4>
+        nextState := states[0]
+        if nextState.check(input, pos+1) { // <5>
+            return true
+        }
+    }
+    for _, state := range s.transitions[epsilonChar] { // <6>
+        if state.check(input, pos) { // <7>
+            return true
+        }
+        if ch == startOfText &amp;&amp; state.check(input, pos+1) { // <8>
+            return true
+        }
+    }
+    return false // <9>
+}</code></pre>
+        <ol>
+          <li><code>(s *state)</code> فقط راهی برای افزودن تابع به ساختار <code>state</code> در گولنگ است؛ ربطی به الگوریتم ندارد.</li>
+          <li>کاراکتر فعلی مورد بررسی را می‌گیریم؛ یا کاراکتر معتبر از رشته است، یا <code>startOfText</code> یا <code>endOfText</code>.</li>
+          <li>اگر در پایان رشته و در حالت پایانی باشیم، یعنی مطابقت دارد؛ true برمی‌گردانیم.</li>
+          <li>برای کاراکتر فعلی بررسی می‌کنیم آیا انتقالی مشخص شده.</li>
+          <li>اگر انتقال وجود داشت، حالت بعدی را می‌گیریم، نشانگر را یک‌قدم جلو می‌بریم و بررسی می‌کنیم. اگر موفق بود true برمی‌گردانیم.</li>
+          <li>اگر انتقال کاراکتری نبود، انتقال‌های خالی/اپسیلون را بررسی می‌کنیم.</li>
+          <li>برای همه این انتقال‌ها حالت بعدی را با همان ورودی و موقعیت می‌آزماییم؛ چون انتقال خالی است نیازی به افزایش موقعیت نیست.</li>
+          <li>احتمال دارد در شروع متن گیر کنیم و هیچ‌وقت پیشرفت نکنیم؛ این شرط جلوی آن را می‌گیرد.</li>
+          <li>اگر هیچ‌چیز مطابقت نکرد، شکست است و false برمی‌گردانیم.</li>
+        </ol>
+        <h3>آزمودن</h3>
+        <p>در نهایت کدمان را روی چند ورودی آزموده‌ایم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func TestNfa(t *testing.T) {
+    var data = []struct {
+        email    string
+        validity bool
+    }{
+        {email: "valid_email@example.com", validity: true},
+        {email: "john.doe@email.com", validity: true},
+        {email: "user_name@email.org", validity: true},
+        {email: "support@email.io", validity: true},
+        {email: "contact@123.com", validity: true},
+        {email: "sales@email.biz", validity: true},
+        {email: "test_email@email.test", validity: true},
+        {email: "random.email@email.xyz", validity: true},
+        {email: "user@domain12345.com", validity: true},
+        {email: "user@12345domain.com", validity: true},
+        // نسبت به regex ما نامعتبر
+        {email: "alice.smith123@email.co.uk", validity: false},
+        {email: "invalid.email@", validity: false},
+        {email: ".invalid@email.com", validity: false},
+        {email: "email@invalid..com", validity: false},
+        {email: "user@-invalid.com", validity: false},
+        {email: "user@invalid-.com", validity: false},
+        {email: "user@in valid.com", validity: false},
+        {email: "user@.com", validity: false},
+        {email: "user@.co", validity: false},
+        {email: "user@domain.c", validity: false},
+        {email: "user@domain.1a", validity: false},
+        {email: "user@domain.c0m", validity: false},
+        {email: "user@domain..com", validity: false},
+        {email: "user@.email.com", validity: false},
+        {email: "user@emai.l.com", validity: false},
+        {email: "user@e_mail.com", validity: false},
+        {email: "user@e+mail.com", validity: false},
+        {email: "user@e^mail.com", validity: false},
+        {email: "user@e*mail.com", validity: false},
+        {email: "user@e.mail.com", validity: false},
+        {email: "user@e_mail.net", validity: false},
+        {email: "user@sub.domain.com", validity: false},
+        {email: "user@sub-domain.com", validity: false},
+        {email: "user@sub.domain12345.com", validity: false},
+        {email: "user@sub.domain-12345.com", validity: false},
+        {email: "user@-sub.domain.com", validity: false},
+        {email: "user@sub-.domain.com", validity: false},
+        {email: "user@domain-.com", validity: false},
+        {email: "user@sub.domain.c0m", validity: false},
+        {email: "user@sub.domain.c", validity: false},
+        {email: "user@sub.domain.1a", validity: false},
+        {email: "user@sub.domain.c0m", validity: false},
+        {email: "user@sub.domain..com", validity: false},
+        {email: "user@sub.domain.c0m", validity: false},
+        {email: "user@sub.domain..com", validity: false},
+        {email: "user@sub.domain.c0m", validity: false},
+    }
+    ctx := parse(`[a-zA-Z][a-zA-Z0-9_.]+@[a-zA-Z0-9]+.[a-zA-Z]{2,}`)
+    nfa := toNfa(ctx)
+    for _, instance := range data {
+        t.Run(fmt.Sprintf("Test: '%s'", instance.email), func(t *testing.T) {
+            result := nfa.check(instance.email, -1)
+            if result != instance.validity {
+                t.Logf("Expected: %t, got: %t\n", instance.validity, result)
+                t.Fail()
+            }
+        })
+    }
+}</code></pre>
+        <p>همه آزمون‌ها پاس می‌شوند. البته جای بهبود زیاد است؛ کد موجود در مخزن گیت‌هاب دقیقاً همین ایده‌ها را با جزئیات بیشتر دارد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to build a regex engine from scratch» اثر rhaeguard است (مخزن <code>rhaeguard/rgx</code>). این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://rhaeguard.github.io/posts/regex" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
