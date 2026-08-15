@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تشخیص برخورد فاز گسترده</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور فیزیک</a>
+        <span class="sep">←</span>
+        <span>تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی</span>
+      </div>
+      <h1>تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Broad Phase Collision Detection Using Spatial
+          Partitioning» از <b>Andrew Petersen</b> (سایت Build New Games، ۲۰۱۲) است — کاهش هزینه تشخیص برخورد
+          با تقسیم فضایی (شبکه سلولی) در جاوااسکریپت.
+        </div>
+        <a class="btn solid" href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مسأله: هزینه O(n²) برخوردها</h2>
+        <p>ساده‌ترین راه تشخیص برخورد، مقایسه هر جسم با همه جسم‌های دیگر است: <code>n × (n-1) / 2</code> جفت.
+        با ۱۰ جسم فقط ۴۵ جفت است، اما با ۱۰۰ جسم ۴۹۵۰ و با ۱۰۰۰ جسم نزدیک ۵۰۰ هزار آزمایش — و هزینه هر آزمایش
+        (بسته به شکل) می‌تواند سنگین باشد. این رشد درجه دوم به‌سرعت موتور را از پا در می‌آورد.</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// روش ساده‌لوحانه: همه با همه
+for (var i = 0; i &lt; bodies.length; i++) {
+    for (var j = i + 1; j &lt; bodies.length; j++) {
+        if (collide(bodies[i], bodies[j])) {
+            handleCollision(bodies[i], bodies[j]);
+        }
+    }
+}</code></pre>
+        <p>راه‌حل: بیشتر جفت‌ها در دنیا اصلاً به هم نزدیک نیستند. نمی‌شود اول کم‌هزینه مشخص کنیم کدام جفت‌ها
+        «احتمالاً» برخورد دارند و فقط همان‌ها را دقیق تست کنیم؟</p>
+      </section>
+
+      <section>
+        <h2>۲. دو فاز: گسترده و محدود</h2>
+        <p>تشخیص برخورد به دو مرحله تقسیم می‌شود:</p>
+        <ul>
+          <li><b>فاز گسترده (Broad Phase):</b> با هزینه کم، فهرست جفت‌های «نامزد» را پیدا می‌کند — جفت‌هایی که
+          جعبه مرزی‌شان همپوشانی دارد. بعضی از آن‌ها در واقع برخورد ندارند، ولی تعدادشان از کل جفت‌ها بسیار
+          کمتر است.</li>
+          <li><b>فاز محدود (Narrow Phase):</b> برای هر جفت نامزد، برخورد دقیق (مثلاً با SAT یا برخورد دایره‌ها)
+          انجام می‌شود؛ همین‌جا منیفولد تماس ساخته می‌شود.</li>
+        </ul>
+        <p>فرمول اصلی فاز محدود به شکل برخورد بستگی دارد — مثلاً دایره‌ها با مقایسه فاصله مرکزها با مجموع
+        شعاع‌ها:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function circleCollision(a, b) {
+    var dx = b.x - a.x;
+    var dy = b.y - a.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    return dist &lt; (a.radius + b.radius);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. تقسیم فضایی با شبکه سلولی</h2>
+        <p>یک راه مؤثر برای فاز گسترده، <b>شبکه (Grid)</b> است: دنیا را به سلول‌های هم‌اندازه تقسیم کنید و هر
+        جسم را در سلول(های)ی که پوشش می‌دهد ثبت کنید. فقط جفت‌هایی می‌توانند برخورد داشته باشند که در یک
+        سلول مشترک باشند. کارایی این‌جا به‌جای O(n²) تقریباً خطی می‌شود.</p>
+        <p>اندازه سلول را معمولاً هم‌تراز بزرگ‌ترین جسم انتخاب می‌کنند تا هر جسم در حداکثر چند سلول (مثلاً ۴)
+        قرار بگیرد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// کلید سلول: "cellX,cellY"
+function cellKey(x, y) {
+    var cx = Math.floor(x / CELL_SIZE);
+    var cy = Math.floor(y / CELL_SIZE);
+    return cx + "," + cy;
+}
+
+// هر جسم را در سلول‌های پوشش‌داده‌شده ثبت کن (مثال: مستطیل)
+function insertBody(grid, body) {
+    var minX = cellKey(body.x, body.y);
+    var maxX = cellKey(body.x + body.w, body.y + body.h);
+    // ... و سپس برای همه سلول‌های بین آن‌ها
+    if (!grid[key]) grid[key] = [];
+    grid[key].push(body);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. پیدا کردن برخوردها با شبکه</h2>
+        <p>بعد از ساخت شبکه، به‌جای حلقه دوتایی روی همه اجسام، روی سلول‌ها می‌چرخیم و جفت‌های داخل هر سلول را
+        تست می‌کنیم. هر جفت نامزد دقیقاً یک‌بار تست شود (مثلاً با ردیابی در Set):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var pairs = new Set();
+
+for (var key in grid) {
+    var cell = grid[key];
+    for (var i = 0; i &lt; cell.length; i++) {
+        for (var j = i + 1; j &lt; cell.length; j++) {
+            pairs.add(makePairKey(cell[i], cell[j]));
+        }
+    }
+}
+
+// حالا فقط جفت‌های نامزد: فاز محدود
+pairs.forEach(function (pairKey) {
+    if (narrowPhaseCollision(pairA, pairB)) {
+        resolveCollision(pairA, pairB);
+    }
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. به‌روزرسانی در حرکت</h2>
+        <p>چون اجسام در هر فریم جابه‌جا می‌شوند، شبکه باید به‌روز شود. ساده‌ترین روش: بازسازی شبکه در هر
+        فریم (با تعداد متوسط جسم کاملاً قابل قبول است) یا به‌روزرسانی فقط اجسام متحرک — جسمی که سلول عوض
+        کرده از سلول قبلی حذف و در سلول جدید افزوده می‌شود.</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// به‌روزرسانی یک جسم متحرک
+function moveBody(body, dx, dy) {
+    removeFromGrid(grid, body);        // حذف از سلول قبلی
+    body.x += dx;
+    body.y += dy;
+    insertBody(grid, body);            // درج در سلول جدید
+}</code></pre>
+        <p>همچنین می‌توان فاز گسترده را با جعبه مرزی (AABB) ترکیب کرد: اگر جعبه‌های مرزی دو جسم همپوشانی
+        نداشتند، نیازی به تست دقیق نیست. نتیجه نهایی: تشخیص برخورد برای هزاران جسم در زمان واقعی.</p>
+        <div class="callout tip">
+          نکته: برای اجسام با اندازه‌های خیلی متفاوت، شبکه «سلسله‌مراتبی» یا درخت چهارتایی (Quadtree) کارایی
+          بهتری می‌دهد؛ مقاله مرجع روی شبکه ساده تمرکز دارد.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Broad Phase Collision Detection Using Spatial Partitioning» اثر
+        اندرو پترسن (Andrew Petersen) و متعلق به سایت Build New Games است. این صفحه فقط ترجمه فارسی آن است و
+        تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

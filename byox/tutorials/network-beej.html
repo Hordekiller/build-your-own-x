@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | راهنمای Beej برای برنامه‌نویسی شبکه</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پشته شبکه</a>
+        <span class="sep">←</span>
+        <span>راهنمای Beej برای برنامه‌نویسی شبکه</span>
+      </div>
+      <h1>راهنمای Beej برای برنامه‌نویسی شبکه</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://beej.us/guide/bgnet/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Beej's Guide to Network Programming» از <b>Brian
+          "Beej" Jorgensen Hall</b> است — شناخته‌شده‌ترین راهنمای برنامه‌نویسی سوکت: از ساختارها و
+          <code>getaddrinfo</code> تا سرور و کلاینت کامل TCP/UDP، <code>select</code> و DNS، به‌همراه
+          مثال‌های آماده کامپایل.
+        </div>
+        <a class="btn solid" href="http://beej.us/guide/bgnet/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه</h2>
+        <p>راهنمای Beej، کلاسیک برنامه‌نویسی سوکت است: برای همه کسانی که آشنایی مقدماتی با C دارند، مسیر
+        شبکه‌سازی با Internet Sockets را از صفر هموار می‌کند. سوکت‌ها (که از دانشگاه برکلی شروع شدند) به تقریباً
+        همه پلتفرم‌ها — Unix، لینوکس و حتی ویندوز — منتقل شده‌اند. این راهنما در قالب‌های HTML تک‌صفحه و چندصفحه،
+        PDF و ZIP دانلود در دسترس است و نسخه‌های ترجمه‌شده (چینی، فرانسوی، ایتالیایی، کرهای و...) هم دارد.</p>
+      </section>
+
+      <section>
+        <h2>۲. دو نوع سوکت</h2>
+        <p>برنامه‌نویسی سوکت با دو پرسش شروع می‌شود:</p>
+        <ul>
+          <li><b>سوکت استریم (SOCK_STREAM / TCP):</b> اتصال‌محور، مرتب و بدون خطا؛ دو طرف با <code>connect</code>
+          و <code>accept</code> اتصال می‌سازند. مثل مکالمه تلفنی.</li>
+          <li><b>سوکت دیتاگرام (SOCK_DGRAM / UDP):</b> بدون اتصال و بدون تضمین؛ پیام‌ها با <code>sendto</code>/
+          <code>recvfrom</code> ارسال می‌شوند. مثل نامه پستی.</li>
+        </ul>
+        <p>همچنین باید ساختارهای آدرس را شناخت: <code>struct sockaddr_in</code> (IPv4)، <code>sockaddr_in6</code>
+        (IPv6) و <code>addrinfo</code> که با <code>getaddrinfo()</code> از نام میزبان/نوع سوکت پر می‌شود — روش
+        مدرن و سازگار با IPv6.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>struct addrinfo hints;
+struct addrinfo *res;
+
+memset(&amp;hints, 0, sizeof hints);
+hints.ai_family = AF_UNSPEC;      // IPv4 یا IPv6
+hints.ai_socktype = SOCK_STREAM;  // TCP
+
+getaddrinfo("www.example.com", "80", &amp;hints, &amp;res);</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. API اصلی</h2>
+        <p>جریان کامل برنامه‌نویسی سوکت با این توابع ساخته می‌شود:</p>
+        <ul>
+          <li><code>socket()</code> — ساخت سوکت (اخذ توصیف‌کننده).</li>
+          <li><code>bind()</code> — اتصال سوکت به یک پورت/آدرس (اجباری برای شنود).</li>
+          <li><code>listen()</code> — آماده شنیدن اتصال‌های ورودی.</li>
+          <li><code>accept()</code> — پذیرش اتصال جدید (سوکت جدید مخصوص آن کلاینت می‌سازد).</li>
+          <li><code>connect()</code> — برقراری اتصال به سرور (در سمت کلاینت).</li>
+          <li><code>send() / recv()</code> — ارسال و دریافت داده روی اتصال.</li>
+          <li><code>sendto() / recvfrom()</code> — نسخه دیتاگرامِ بدون اتصال.</li>
+          <li><code>close() / shutdown()</code> — بستن سوکت.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. مثال کامل: سرور TCP</h2>
+        <p>سرور کلاسیک: <code>getaddrinfo</code> → <code>socket</code> → <code>setsockopt</code> برای
+        اجازه استفاده مجدد از پورت → <code>bind</code> → <code>listen</code> → حلقه <code>accept</code>:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;stdio.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;netdb.h&gt;
+
+int main(void) {
+    struct addrinfo hints, *p;
+    int listener, new_fd;
+    struct sockaddr_storage their_addr;
+    socklen_t addr_size;
+
+    memset(&amp;hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE; // آدرس خودمان
+
+    getaddrinfo(NULL, "3490", &amp;hints, &amp;p);
+    listener = socket(p-&gt;ai_family, p-&gt;ai_socktype, p-&gt;ai_protocol);
+    bind(listener, p-&gt;ai_addr, p-&gt;ai_addrlen);
+    listen(listener, 10);
+
+    addr_size = sizeof their_addr;
+    new_fd = accept(listener, (struct sockaddr *)&amp;their_addr, &amp;addr_size);
+
+    send(new_fd, "سلام، دنیا!", 12, 0);
+    close(new_fd);
+    close(listener);
+    return 0;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. مثال کامل: کلاینت</h2>
+        <p>کلاینت ساده‌تر است: <code>getaddrinfo</code> با نام سرور، سپس <code>socket</code> و
+        <code>connect</code> و در پایان <code>send/recv</code>:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int main(int argc, char *argv[]) {
+    int sockfd;
+    struct addrinfo hints, *p;
+    char buf[64];
+
+    memset(&amp;hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    getaddrinfo(argv[1], "3490", &amp;hints, &amp;p);
+    sockfd = socket(p-&gt;ai_family, p-&gt;ai_socktype, p-&gt;ai_protocol);
+    connect(sockfd, p-&gt;ai_addr, p-&gt;ai_addrlen);
+
+    recv(sockfd, buf, sizeof buf - 1, 0);
+    printf("دریافت شد: %s\n", buf);
+    close(sockfd);
+    return 0;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. مباحث پیشرفته</h2>
+        <p>کتاب بعد از مثال‌های پایه به این موضوع‌ها می‌پردازد: برنامه‌نویسی چندکلاینت با
+        <code>select()</code> و <code>poll()</code>، سوکت‌های مسدودکننده/غیرمسدودکننده، مرجع کامل توابع و
+        ساختارها، <code>errno</code> و گزارش خطا (<code>perror</code>/<code>gai_strerror</code>)، و پیوست‌های
+        مفید مانند تفاوت IPv4/IPv6 و نکات ویندوز (Winsock). کل راهنما پر از مثال‌های قابل کامپیل است که
+        یک‌به‌یک بنیاد شبکه‌سازی سوکت را کامل می‌کنند.</p>
+        <div class="callout tip">
+          نکته: اگر می‌خواهید «زیرِ سوکت‌ها» را ببینید، مقاله بعدی این دسته — پشته TCP/IP از صفر — همان سطح
+          را در لایه‌های اترنت و ARP ادامه می‌دهد.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> «راهنمای بیج برای برنامه‌نویسی شبکه» اثر برایان هال (Beej Jorgensen Hall)
+        است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده
+        اصل مطلب (HTML/PDF/ZIP) به
+        <a href="http://beej.us/guide/bgnet/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

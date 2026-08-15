@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک موتور فیزیک دو بعدی ساده بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور فیزیک</a>
+        <span class="sep">←</span>
+        <span>یک موتور فیزیک دو بعدی ساده برای بازی‌های جاوااسکریپت بساز</span>
+      </div>
+      <h1>یک موتور فیزیک دو بعدی ساده برای بازی‌های جاوااسکریپت بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://developer.ibm.com/tutorials/wa-build2dphysicsengine/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «Build a basic 2D physics engine for JavaScript games»
+          از <b>Adam Ranfelt</b> (IBM developerWorks، نوامبر ۲۰۱۲) است — ساخت گام‌به‌گام یک موتور فیزیک
+          دوبعدی در جاوااسکریپت با جداسازی MVC، حلقه گیم با requestAnimationFrame و مقایسه با Box2D.
+        </div>
+        <a class="btn solid" href="https://developer.ibm.com/tutorials/wa-build2dphysicsengine/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. درباره آموزش</h2>
+        <p>این آموزش IBM (منتشرشده در ۱۹ نوامبر ۲۰۱۲) به‌صورت عملی نشان می‌دهد که یک موتور فیزیک دوبعدی ساده
+        برای بازی‌های مرورگری چگونه ساخته می‌شود. هدف آموزش ساخت از صفر و بدون کتابخانه فیزیک آماده است:
+        <b>تشخیص برخورد</b>، <b>پاسخ برخورد</b> و مفاهیم پایه توسعه بازی. پیشنهاد خود آموزش این است که
+        پیاده‌سازی را با موتورهای موجود (مثل Box2D و نسخه جاوااسکریپت آن box2d-js) مقایسه کنید تا تفاوت
+        پیاده‌سازی ساده و حرفه‌ای را ببینید.</p>
+        <p>پیش‌نیازها: آشنایی با جاوااسکریپت و رندر با canvas. مفاهیم مقدماتی سینماتیک (مکان، سرعت، شتاب)
+        هم در متن همراه آموزش مرور می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. معماری MVC</h2>
+        <p>نکته شاخص آموزش، جداسازی <b>مدل از دید</b> است (الگوی MVC):</p>
+        <ul>
+          <li><b>مدل (فیزیک):</b> دنیای فیزیکی با اجسام، برخوردها و قوانین حرکت — مستقل از رندر.</li>
+          <li><b>دید (Canvas):</b> رسم اجسام روی بوم — فقط از وضعیت مدل می‌خواند.</li>
+          <li><b>کنترلر/حلقه بازی:</b> پل زدن بین مدل و دید در هر فریم با <code>requestAnimationFrame</code>.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// حلقه بازی: هر فریم، مدل را گام بده و بعد رسم کن
+function gameLoop() {
+    physics.step(dt);   // فیزیک: مدل
+    renderer.draw();    // رسم: دید
+    requestAnimationFrame(gameLoop);
+}</code></pre>
+        <p>این جداسازی باعث می‌شود موتور فیزیک همان‌طور که هست قابل استفاده مجدد و تست باشد.</p>
+      </section>
+
+      <section>
+        <h2>۳. مدل فیزیکی پایه</h2>
+        <p>مدل از اجسام ساده (مثل توپ/دایره و مستطیل) ساخته می‌شود؛ هر جسم مکان، سرعت و جرم دارد و در هر گام
+        با قوانین حرکت به‌روز می‌شود. قوانین پایه همان انتگرال‌گیری اویلر است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// به‌روزرسانی سینماتیک یک جسم
+function integrate(body, dt) {
+    body.velocityY += GRAVITY * dt;      // شتاب گرانش
+    body.x += body.velocityX * dt;       // جابه‌جایی
+    body.y += body.velocityY * dt;
+}</code></pre>
+        <p>گرانش به‌عنوان شتاب ثابت اعمال می‌شود و اجسام با سرعت تابع زمان به سمت پایین شتاب می‌گیرند.</p>
+      </section>
+
+      <section>
+        <h2>۴. برخوردها</h2>
+        <p>سپس تشخیص برخورد اضافه می‌شود: ابتدا برخورد با مرزهای صحنه (زمین/دیوار) و سپس برخورد جسم با جسم.
+        برای هر برخورد یک <b>پاسخ</b> لازم است تا اجسام در هم فرو نروند — مثلاً معکوس‌کردن سرعت با ضریب
+        بازگشت، یا اتصال مستقیم مکان به مرز:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// برخورد با زمین: برگشت به بالا با اتلاف انرژی
+function collideWithGround(body) {
+    if (body.y + body.radius &gt; floorY) {
+        body.y = floorY - body.radius;
+        body.velocityY *= -RESTITUTION;
+    }
+}</code></pre>
+        <p>برای برخورد جسم-جسم، فاصله مرکزها با مجموع شعاع‌ها مقایسه می‌شود و سرعت‌ها مطابق قانون بقای تکانه
+        تغییر می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۵. مقایسه با Box2D و ادامه راه</h2>
+        <p>در بخش منابع، آموزش به <b>Box2D</b> و پورت جاوااسکریپت آن (<b>box2d-js</b>) ارجاع می‌دهد و پیشنهاد
+        می‌کند خروجی موتور ساده خودتان را از نظر ثبات، دقت و پایداری با یک موتور حرفه‌ای مقایسه کنید — تفاوتی
+        که مفاهیمی مثل حل‌کننده تکراری، منیفولدها و اصلاح موقعیت را ملموس می‌کند. منابع تکمیلی آموزش شامل
+        آموزش رسمی Canvas و مطالب سینماتیک است.</p>
+        <div class="callout tip">
+          نکته: این آموزش یک نقطه شروع عالی است؛ برای عمیق‌تر شدن، مقالات حل ایمپالس و فاز گسترده را در همین
+          مجموعه دنبال کنید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این آموزش اثر آدام رانفلت (Adam Ranfelt) و متعلق به IBM developerWorks
+        است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای
+        مشاهده اصل مطلب به
+        <a href="https://developer.ibm.com/tutorials/wa-build2dphysicsengine/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

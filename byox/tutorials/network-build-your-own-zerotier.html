@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | VPN/سوییچ مجازی خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پشته شبکه</a>
+        <span class="sep">←</span>
+        <span>VPN/سوییچ مجازی خودت را بساز</span>
+      </div>
+      <h1>Zerotier خودت را بساز — سوییچ مجازی لایه ۲ با کمتر از ۳۰۰ خط</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C / Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی README پروژهٔ «Build your own Zerotier» از <b>peiyuanix</b>
+          است — پیاده‌سازی یک VPN لایه ۲ (سوییچ مجازی) با کمتر از ۳۰۰ خط کد: سرور VSwitch (Python) +
+          کلاینت VPort (C).
+        </div>
+        <a class="btn solid" href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. این پروژه چیست؟</h2>
+        <p>این پروژه یک <b>VPN لایه ۲</b> شبیه به ZeroTier (یا به‌عبارتی یک سوییچ مجازی) پیاده‌سازی می‌کند.
+        رفتار یک سوییچ شبکه فیزیکی را شبیه‌سازی می‌کند: سرویس تبادل فریم اترنت برای دستگاه‌هایی که به پورت‌های
+        سوییچ وصل‌اند. تفاوت این‌جاست که پورت‌های این سوییچ مجازی می‌توانند از طریق اینترنت به دستگاه‌هایی
+        در سراسر دنیا متصل شوند و برای سیستمعامل، همه آن‌ها مثل یک شبکه محلی واحد دیده می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۲. دانش پس‌زمینه</h2>
+        <p><b>سوییچ شبکه چیست؟</b> سخت‌افزاری است که دستگاه‌های شبکه را به هم متصل می‌کند و داده را با سوئیچینگ
+        بسته به مقصد می‌فرستد. یک سوییچ، «پل چندپورته» است که با آدرس‌های MAC در لایه ۲ (نوک OSI) ارسال می‌کند.
+        در هنگام ارسال، سوییچ از «جدول ارسال» برای یافتن پورت متناظر با آدرس مقصد استفاده می‌کند. در سوییچ،
+        این جدول «جدول آدرس MAC» نام دارد: نگه‌دارنده آدرس‌های MAC شناخته‌شده و پورت‌هایشان. وقتی فریم می‌رسد،
+        مقصد را در جدول جست‌وجو می‌کند و فقط به همان پورت می‌فرستد؛ اگر مقصد در جدول نبود، به‌جز پورت مبدا به
+        همه پورت‌ها پخش می‌کند تا دستگاه هدف پاسخ دهد و جدول به‌روز شود.</p>
+        <p>در این پروژه، برنامه‌ای به نام <b>VSwitch</b> نقش سوییچ مجازی را بازی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۳. دستگاه شبکه مجازی TAP</h2>
+        <p>دستگاه TAP یک رابط شبکه مجازی است که مانند رابط فیزیکی توسط سیستمعامل دیده و استفاده می‌شود؛
+        پیاده‌سازی‌اش در هسته است. وقتی بسته‌ای از TAP ارسال می‌شود، به‌جای سخت‌افزار، به برنامه کاربر رسانده
+        می‌شود؛ برنامه می‌تواند آن را پردازش و به دستگاه‌های دیگر بفرستد. در این پروژه، TAP رابط بین کامپیوتر
+        کلاینت و سوییچ مجازی است.</p>
+      </section>
+
+      <section>
+        <h2>۴. معماری سیستم</h2>
+        <ul>
+          <li><b>سرور (VSwitch)</b> — رفتار سوییچ فیزیکی را شبیه‌سازی می‌کند:</li>
+          <li style="list-style:none;margin-right:1.2rem">سرویس تبادل فریم اترنت برای کامپیوترهایی که با VPort متصل‌اند؛ جدول MAC (آدرس → پورت) نگه می‌دارد و ارسال را بر این اساس انجام می‌دهد.</li>
+          <li><b>کلاینت (VPort)</b> — رفتار پورت فیزیکی را شبیه‌سازی می‌کند: یک سر به هسته (کامپیوتر) از طریق TAP وصل است و سر دیگر به VSwitch با سوکت UDP.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">text</span><code>            +----------------------------------------------+
+            |                   VSwitch                    |
+            |   جدول MAC:  11:11:11:11:11 ↔ VPort-1        |
+            |               aa:aa:aa:aa:aa ↔ VPort-a        |
+            +--------+---------------------------+---------+
+                     |                           |
+              UDP (فریم اترنت)            UDP (فریم اترنت)
+                     |                           |
+            +--------v---------+        +--------v---------+
+            | VPort | TAP       |        | VPort | TAP       |
+            +--------------------+      +--------------------+
+                     |                           |
+            کامپیوتر A (هسته لینوکس)     کامپیوتر B (هسته لینوکس)</code></pre>
+        <p>مسیر بسته: هسته کامپیوتر ← [TAP] ← فریم اترنت ← [UDP] ← VSwitch — و برعکس.</p>
+      </section>
+
+      <section>
+        <h2>۵. ساختار کد</h2>
+        <ul>
+          <li><code>vswitch.py</code> — کد VSwitch (سرور): مدیریت جدول MAC و ارسال فریم‌ها.</li>
+          <li><code>vport.c</code> — کد VPort (کلاینت): رله فریم بین TAP و UDP.</li>
+          <li><code>tap_utils.c / tap_utils.h</code> — ابزارهای ساخت و پیکربندی TAP.</li>
+          <li><code>setup.sh</code> و <code>Makefile</code> — وابستگی‌ها و ساخت.</li>
+        </ul>
+        <p>ساخت پروژه فقط اجرای <code>make</code> است.</p>
+      </section>
+
+      <section>
+        <h2>۶. راه‌اندازی</h2>
+        <p>پیش‌نیازها: یک سرور با IP عمومی برای VSwitch، و حداقل دو کلاینت. فرض کنید IP سرور
+        <code>SERVER_IP</code> و پورت آن <code>SERVER_PORT</code> است:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># مرحله ۱: روی سرور با IP عمومی، VSwitch را اجرا کن
+python3 vswitch.py ${SERVER_PORT}
+
+# مرحله ۲: روی کلاینت ۱، VPort را اجرا و TAP را پیکربندی کن
+sudo ./vport ${SERVER_IP} ${SERVER_PORT}
+sudo ip addr add 10.1.1.101/24 dev tapyuan
+sudo ip link set tapyuan up
+
+# مرحله ۳: همین‌طور روی کلاینت ۲ (با آدرس دیگر)
+sudo ./vport ${SERVER_IP} ${SERVER_PORT}
+sudo ip addr add 10.1.1.102/24 dev tapyuan
+sudo ip link set tapyuan up</code></pre>
+        <pre class="code"><span class="lang-tag">bash</span><code># مرحله ۴: تست با ping — از کلاینت ۱ به کلاینت ۲
+ping 10.1.1.102</code></pre>
+        <p>اگر ping جواب داد، کامپیوترها حین شبکه مجازی، طوری داده رد و بدل می‌کنند که انگار یک LAN فیزیکی
+        هستند.</p>
+        <div class="callout tip">
+          نکته: مجوز sudo و ماژول TUN/TAP هسته لازم است. برای سرور عمومی می‌توانید یک ماشین مجازی ابری ارزان
+          بگیرید و همان‌جا تست کنید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژه «Build your own Zerotier» اثر peiyuanix است (مجوز MIT). این صفحه فقط
+        ترجمه فارسی README آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">ریپوی گیت‌هاب</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

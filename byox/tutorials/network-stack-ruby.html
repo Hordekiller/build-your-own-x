@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه یک پشته شبکه در Ruby بسازیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پشته شبکه</a>
+        <span class="sep">←</span>
+        <span>چگونه یک پشته شبکه در Ruby بسازیم</span>
+      </div>
+      <h1>چگونه یک پشته شبکه در Ruby بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/geckoboard-under-the-hood/how-to-build-a-network-stack-in-ruby-f73aeb1b661b" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «How to build a network stack in Ruby» از
+          <b>Daniel Upton</b> (وبلاگ Geckoboard Under the Hood، ۲۰۱۷) است — تجربه ساخت یک پشته شبکه کوچک در
+          Ruby با سوکت‌های خام: خواندن سربرگ‌های اترنت/IP/UDP بیت‌به‌بیت و پاسخ به بسته‌های UDP به‌صورت دستی.
+        </div>
+        <a class="btn solid" href="https://medium.com/geckoboard-under-the-hood/how-to-build-a-network-stack-in-ruby-f73aeb1b661b" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا یک پشته شبکه بنویسیم؟</h2>
+        <p>وقتی کد Ruby شما با سوکت معمولی کار می‌کند، هسته سیستمعامل همه پروتکل‌ها را برایتان مدیریت می‌کند:
+        تجزیه فریم اترنت، IP، TCP/UDP، checksum و... این مقاله برعکس عمل می‌کند: با <b>سوکت‌های خام (Raw
+        Sockets)</b>، بسته‌ها همان‌طور که از شبکه می‌رسند به برنامه می‌دهند. نویسنده این‌گونه نشان می‌دهد که
+        پشت یک <code>Socket#recv</code> ساده چه ماشین‌کاری‌ای اتفاق می‌افتد — و چه حس خوبی دارد که خودتان
+        پروتکلی را در Ruby از صفر بسازید.</p>
+      </section>
+
+      <section>
+        <h2>۲. ساخت سوکت خام</h2>
+        <p>سوکت خام با <code>Socket.open</code> و پروتکل UDP ساخته می‌شود تا بسته‌های UDP خام — بدون پردازش
+        هسته — به ما برسند:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>require 'socket'
+
+# سوکت خام برای پروتکل UDP: هسته دیگر برایمان چیزی را تجزیه نمی‌کند
+socket = Socket.open(:INET, :RAW, Socket::IPPROTO_UDP)</code></pre>
+        <p>حالا هر بایت دریافتی، خودِ بسته شبکه است و باید همه چیزش را خودمان بخوانیم.</p>
+      </section>
+
+      <section>
+        <h2>۳. خواندن بیت‌به‌بیت سربرگ‌ها</h2>
+        <p>بسته از فریم اترنت شروع می‌شود: ۶ بایت MAC مقصد، ۶ بایت MAC مبدا و ۲ بایت نوع پروتکل. بعد سربرگ IP
+        (با نسخه، طول هدر، پروتکل، آدرس‌های مبدا و مقصد) و در نهایت سربرگ UDP (پورت مبدا، پورت مقصد، طول و
+        checksum). همه این‌ها با <code>unpack</code> قابل استخراج‌اند:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>PORT = 1234
+
+# فریم اترنت
+dest_mac  = packet[0, 6].unpack('H*').first
+src_mac   = packet[6, 6].unpack('H*').first
+ethertype = packet[12, 2].unpack('n').first
+
+# بسته IP (بعد از فریم اترنت)
+ip = packet[14, packet.length - 14]
+ip_version    = ip[0].ord >> 4
+ip_header_len = (ip[0].ord & 0x0F) * 4
+protocol = ip[9].ord
+
+# UDP (بعد از سربرگ IP)
+udp = ip[ip_header_len, ip.length - ip_header_len]
+src_port  = udp[0, 2].unpack('n').first
+dest_port = udp[2, 2].unpack('n').first</code></pre>
+        <p>نکته ظریف و جالب مقاله: «گرفتن ۱۰۰٪ بسته‌ها» مثل kernel نیست — نویسنده با محدودیت‌هایی مثل تکه‌تکه
+        شدن بسته‌ها و ترتیب بایت‌ها (endianness) دست‌وپنجه نرم می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۴. پاسخ دادن به بسته‌ها</h2>
+        <p>بعد از خواندن، نوبت ساخت پاسخ است — باز هم با دست: ساخت سربرگ‌های UDP/IP/اترنت با
+        <code>pack</code>، محاسبه دستی checksum و ارسال مستقیم با سوکت خام. اگر IP مقصد، IP خود دستگاه نبود
+        یا پورت درست نبود، بسته نادیده گرفته می‌شود؛ وقتی بررسی‌ها رد شد، پاسخی به فرستنده برگردانده می‌شود
+        و با <code>ping</code> یا <code>nc -u</code> تست می‌شود.</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>loop do
+  packet, _addr = socket.recvfrom(65535)
+
+  # فقط بسته‌های UDP که پورت ما را هدف گرفته‌اند
+  next unless valid_packet?(packet)
+
+  # ساخت و ارسال پاسخ با دست
+  response = build_response(packet)
+  socket.send(response, 0)
+end</code></pre>
+        <div class="callout tip">
+          نکته: این تمرین به هیچ وجه برای شبکه‌سازی واقعی تولیدی نیست؛ اما برای درک عمیق پروتکل‌ها — و
+          همین‌طور قدردانی از کاری که هسته برایتان می‌کند — بی‌نظیر است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>نویسنده در پایان نتیجه می‌گیرد که بزرگ‌ترین دستاوردش، نه یک پشته کامل بلکه <b>درک بصری از پروتکل‌ها</b>
+        بود: وقتی «إترنت ↔ IP ↔ UDP» را خودتان باز و بسته کرده باشید، دیگر هیچ لایه‌ای جعبه سیاه نیست. مقاله کامل
+        با کدهای بیشتر در Medium در دسترس است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How to build a network stack in Ruby» اثر دنیل آپتون (Daniel Upton)
+        و متعلق به وبلاگ Geckoboard Under the Hood است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و
+        کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://medium.com/geckoboard-under-the-hood/how-to-build-a-network-stack-in-ruby-f73aeb1b661b" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

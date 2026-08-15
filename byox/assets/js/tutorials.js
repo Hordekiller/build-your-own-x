@@ -1590,44 +1590,44 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "network-beej",
 "category": "پشته شبکه",
 "lang": "C",
 "title": "راهنمای Beej برای برنامه‌نویسی شبکه",
 "url": "http://beej.us/guide/bgnet/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/network-beej.html"
 },
 {
-"id": "",
+"id": "network-lets-code-tcp-ip",
 "category": "پشته شبکه",
 "lang": "C",
 "title": "پشته TCP/IP را کدنویسی کنیم",
 "url": "http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/network-lets-code-tcp-ip.html"
 },
 {
-"id": "",
+"id": "network-build-your-own-zerotier",
 "category": "پشته شبکه",
 "lang": "C / Python",
 "title": "VPN/سوییچ مجازی خودت را بساز",
 "url": "https://github.com/peiyuanix/build-your-own-zerotier",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/network-build-your-own-zerotier.html"
 },
 {
-"id": "",
+"id": "network-stack-ruby",
 "category": "پشته شبکه",
 "lang": "Ruby",
 "title": "چگونه یک پشته شبکه در Ruby بسازیم",
 "url": "https://medium.com/geckoboard-under-the-hood/how-to-build-a-network-stack-in-ruby-f73aeb1b661b",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/network-stack-ruby.html"
 },
 {
 "id": "",
@@ -1990,74 +1990,74 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "physics-video-game-physics",
 "category": "موتور فیزیک",
 "lang": "C",
 "title": "آموزش فیزیک بازی‌های ویدیویی",
 "url": "https://www.toptal.com/game/video-game-physics-part-i-an-introduction-to-rigid-body-dynamics",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-video-game-physics.html"
 },
 {
-"id": "",
+"id": "physics-allen-chou",
 "category": "موتور فیزیک",
 "lang": "C++",
 "title": "سری فیزیک بازی اثر Allen Chou",
 "url": "http://allenchou.net/game-physics-series/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-allen-chou.html"
 },
 {
-"id": "",
+"id": "physics-custom-physics-engine",
 "category": "موتور فیزیک",
 "lang": "C++",
 "title": "چگونه یک موتور فیزیک سفارشی بسازیم",
 "url": "https://gamedevelopment.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-custom-physics-engine.html"
 },
 {
-"id": "",
+"id": "physics-3d-tutorial",
 "category": "موتور فیزیک",
 "lang": "C++",
 "title": "آموزش موتور فیزیک سه‌بعدی",
 "url": "https://www.youtube.com/playlist?list=PLEETnX-uPtBXm1KEr_2zQ6K_0hoGH6JJ0",
 "video": true,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-3d-tutorial.html"
 },
 {
-"id": "",
+"id": "physics-how-physics-engines-work",
 "category": "موتور فیزیک",
 "lang": "JavaScript",
 "title": "موتورهای فیزیک چگونه کار می‌کنند",
 "url": "http://buildnewgames.com/gamephysics/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-how-physics-engines-work.html"
 },
 {
-"id": "",
+"id": "physics-broad-phase",
 "category": "موتور فیزیک",
 "lang": "JavaScript",
 "title": "تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی",
 "url": "http://buildnewgames.com/broad-phase-collision-detection/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-broad-phase.html"
 },
 {
-"id": "",
+"id": "physics-2d-javascript",
 "category": "موتور فیزیک",
 "lang": "JavaScript",
 "title": "یک موتور فیزیک دو بعدی ساده برای بازی‌های جاوااسکریپت بساز",
 "url": "https://developer.ibm.com/tutorials/wa-build2dphysicsengine/?mhsrc=ibmsearch_a&mhq=2dphysic",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/physics-2d-javascript.html"
 },
 {
 "id": "",

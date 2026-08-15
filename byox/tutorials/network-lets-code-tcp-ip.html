@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پشته TCP/IP را کدنویسی کنیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پشته شبکه</a>
+        <span class="sep">←</span>
+        <span>پشته TCP/IP را کدنویسی کنیم</span>
+      </div>
+      <h1>پشته TCP/IP را کدنویسی کنیم — قسمت ۱: اترنت و ARP</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Let's code a TCP/IP stack» از <b>Sami Niiranen</b> است —
+          ساخت پشته شبکه از صفر در C: در قسمت اول، دستگاه مجازی TUN/TAP، تجزیه فریم اترنت و پروتکل ARP
+          پیاده‌سازی می‌شود.
+        </div>
+        <a class="btn solid" href="http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا پشته TCP/IP خودمان را بنویسیم؟</h2>
+        <p>هر روز از TCP/IP استفاده می‌کنیم، اما پروتکل‌های آن معمولاً در دل هسته سیستم‌عامل دفن شده‌اند.
+        این سری آموزشی آن‌ها را از گور بیرون می‌آورد: یک پشته شبکه واقعی از صفر در C که مستقیماً با دستگاه
+        شبکه مجازی <b>TUN/TAP</b> هسته لینوکس کار می‌کند. شروع با لایه ۲ (فریم اترنت) و پروتکل ARP، سپس در
+        قسمت‌های بعدی IP و ICMP و TCP/UDP.</p>
+      </section>
+
+      <section>
+        <h2>۲. دستگاه TUN/TAP</h2>
+        <p><b>TAP</b> یک دستگاه شبکه مجازی هسته است که به اپلیکیشن‌ها اجازه می‌دهد فریم‌های اترنت (لایه ۲)
+        خام را بدون نیاز به سخت‌افزار شبکه خواندن و نوشتن کنند — دقیقاً همان چیزی که برای یک پشته کاربردی
+        لازم است. تنظیم دستگاه:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;linux/if_tun.h&gt;
+#include &lt;linux/if.h&gt;
+
+int tun_alloc(char *dev) {
+    int fd = open("/dev/net/tun", O_RDWR);
+    struct ifreq ifr;
+
+    memset(&amp;ifr, 0, sizeof(ifr));
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI; // TAP: فریم اترنت، بدون هدر PI
+
+    if (*dev) {
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ); // نام دستگاه مثل tap0
+    }
+    if (ioctl(fd, TUNSETIFF, (void *)&amp;ifr) &lt; 0) {
+        perror("TUNSETIFF");
+        exit(1);
+    }
+    return fd;
+}</code></pre>
+        <p>در انتهای مقاله، دستگاه با <code>ip addr add</code> و <code>ip link set up</code> آدرس می‌گیرد تا
+        هسته بسته‌ها را به پشته ما برساند.</p>
+      </section>
+
+      <section>
+        <h2>۳. ساختار فریم اترنت</h2>
+        <p>فریم اترنت از سربرگ لایه ۲ + محتوا شروع می‌شود. با ساختارهای «بسته‌بندی‌شده» (packed) نمایش داده
+        می‌شود تا کامپایلر padding اضافه نکند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>struct eth_hdr {
+    unsigned char dmac[6];   // آدرس مک مقصد
+    unsigned char smac[6];   // آدرس مک مبدا
+    uint16_t ethertype;      // نوع پروتکل بار (آخرین ۲ بایت: IP یا ARP...)
+    unsigned char payload[]; // داده
+} __attribute__((packed));
+
+struct arp_hdr {
+    uint16_t htype;              // نوع سخت‌افزار (۱ = اترنت)
+    uint16_t ptype;              // نوع پروتکل (0x0800 = IPv4)
+    unsigned char hlen;          // طول آدرس سخت‌افزار (۶)
+    unsigned char plen;          // طول آدرس پروتکل (۴)
+    uint16_t opcode;             // 1 = درخواست ARP، 2 = پاسخ ARP
+    unsigned char sender_mac[6]; // مک فرستنده
+    uint32_t sender_ip;          // IP فرستنده
+    unsigned char target_mac[6]; // مک هدف
+    uint32_t target_ip;          // IP هدف
+} __attribute__((packed));</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. بازکردن فریم‌ها</h2>
+        <p>حلقه اصلی پشته: خواندن فریم از توصیف‌کننده TAP و بازکردن سربرگ‌ها با پرش از روی بایت‌ها (شماره
+        بایت ۰-۱۱ سربرگ اترنت است، ۱۲ به بعد بار):</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int tunfd = tun_alloc("tap0");
+
+for (;;) {
+    unsigned char buf[4096];
+    ssize_t len = read(tunfd, buf, sizeof(buf));
+    if (len &lt; 0) { perror("read"); break; }
+
+    struct eth_hdr *eth = (struct eth_hdr *)buf;
+
+    if (ntohs(eth-&gt;ethertype) == ETH_P_ARP) {
+        // از روی بار فریم (بعد از سربرگ اترنت) سربرگ ARP را بخوان
+        struct arp_hdr *arp = (struct arp_hdr *)(buf + sizeof(struct eth_hdr));
+        process_arp(arp);
+    }
+    /* قسمت‌های بعدی:ethertype == IPv4 و... */
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. پاسخ به ARP</h2>
+        <p>وقتی درخواست «چه کسی این IP را دارد؟» می‌رسد، پشته باید پاسخ ساخت و فرستاد. چون IP مقصد قابل
+        پرس‌وجو است، پاسخ به‌صورت کلاسیک ساخته می‌شود: مبدا/مقصد مک و IP با هم عوض می‌شوند، آدرس مک خود
+        پشته در <code>sender_mac</code> می‌رود و opcode به ۲ (پاسخ) تغییر می‌کند. همین پاسخ مستقیم با
+        <code>write()</code> به TAP نوشته می‌شود تا هسته آن را به شبکه برساند. نگهداری «جدول ARP» برای
+        ترجمه IP→MAC هم بخشی از همین مقاله است.</p>
+        <div class="callout tip">
+          نکته: آزمایش همه‌چیز با یک ماشین مجازی راحت انجام می‌شود؛ مقاله با نگاشت آدرس‌ها و پیوسته‌های
+          تکراری، اشکال‌زدایی را عملی می‌کند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. ادامه سری و منابع</h2>
+        <p>قسمت‌های بعدی این سری، پروتکل IP (شامل محاسبه Checksum)، ICMP و در نهایت TCP/UDP را اضافه
+        می‌کنند. مقاله برای مطالعه بیشتر به جسم سبک‌وزن lwIP (استفاده‌شده در بسیاری از سیستم‌های تعبیه‌شده)،
+        کتاب کلاسیک «TCP/IP Illustrated» و مطالب دانشگاهی درباره ساختار پشته‌ها ارجاع می‌دهد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالات «Let's code a TCP/IP stack» اثر سامی نیرانن (Sami Niiranen) است.
+        این صفحه فقط ترجمه فارسی قسمت اول آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای
+        مشاهده اصل مطلب به
+        <a href="http://www.saminiir.com/lets-code-tcp-ip-stack-1-ethernet-arp/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

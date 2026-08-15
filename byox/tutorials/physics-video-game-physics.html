@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | آموزش فیزیک بازی‌های ویدیویی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور فیزیک</a>
+        <span class="sep">←</span>
+        <span>آموزش فیزیک بازی‌های ویدیویی</span>
+      </div>
+      <h1>آموزش فیزیک بازی‌های ویدیویی — قسمت اول: مقدمه‌ای بر دینامیک جسم صلب</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.toptal.com/game/video-game-physics-part-i-an-introduction-to-rigid-body-dynamics" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Video Game Physics Tutorial — An Introduction to Rigid Body Dynamics»
+          از وبلاگ مهندسی <b>Toptal</b> است — مقدمه‌ای کامل بر فیزیک بازی‌ها: سینماتیک، بردارها، قوانین نیوتن،
+          تکانه و پاسخ برخورد با ایمپالس.
+        </div>
+        <a class="btn solid" href="https://www.toptal.com/game/video-game-physics-part-i-an-introduction-to-rigid-body-dynamics" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا موتورهای فیزیک؟</h2>
+        <p>در بازی‌های ویدیویی مدرن، فیزیک چیزی است که به دنیای بازی «جان» می‌دهد: سقوط اجسام، برخوردها، پرش‌ها،
+        اشیا شناور و واکنش‌های طبیعی. به‌جای انیمیشن‌های از پیش ضبط‌شده، موتور فیزیک رفتار اجسام را در هر لحظه
+        با استفاده از قوانین مکانیک نیوتنی محاسبه می‌کند. این مقاله اولین قسمت یک مجموعه آموزشی است که با
+        مفاهیم پایه شروع می‌کند: <b>دینامیک جسم صلب</b> (Rigid Body Dynamics) — مطالعه حرکت اجسام سفت‌وسخت که
+        تحت تأثیر نیروها جا نمی‌شوند.</p>
+        <p>پیش‌نیاز خواندن این مقاله، آشنایی مقدماتی با حساب دیفرانسیل و انتگرال و البته یک زبان برنامه‌نویسی
+        (مثلاً C یا C++) است. مثال‌های کد مقاله در C نوشته شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>۲. سینماتیک و دینامیک</h2>
+        <p>مکانیک یا به دو شاخه تقسیم می‌شود:</p>
+        <ul>
+          <li><b>سینماتیک (Kinematics):</b> توصیف حرکت بدون توجه به علت آن — جابه‌جایی، سرعت و شتاب چگونه در
+          طول زمان تغییر می‌کنند.</li>
+          <li><b>دینامیک (Dynamics):</b> بررسی رابطه بین حرکت و نیروها — چرا جسم این‌طور حرکت می‌کند؟</li>
+        </ul>
+        <p>مفاهیم اصلی سینماتیک سه‌تاست:</p>
+        <ul>
+          <li><b>جابه‌جایی (<code>Δx</code>)</b>: تغییر مکان جسم.</li>
+          <li><b>سرعت (<code>v</code>)</b>: نرخ تغییر جابه‌جایی نسبت به زمان؛ مشتق مکان.</li>
+          <li><b>شتاب (<code>a</code>)</b>: نرخ تغییر سرعت؛ مشتق دوم مکان.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">c</span><code>// مفاهیم پایه سینماتیک
+// سرعت: مشتق مکان نسبت به زمان
+v = dx / dt;
+
+// شتاب: مشتق سرعت نسبت به زمان
+a = dv / dt;
+
+// در شتاب ثابت a، مکان بر حسب زمان:
+x(t) = x0 + v0 * t + 0.5f * a * t * t;</code></pre>
+        <p>در بازی‌ها معمولاً با <b>گام زمانی ثابت</b> کار می‌کنیم و انتگرال‌گیری عددی (مثلاً روش اویلر) را
+        جایگزین انتگرال تحلیلی می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// انتگرال‌گیری اویلر با گام زمانی ثابت dt
+velocity += acceleration * dt;
+position += velocity * dt;</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. ریاضیات لازم: بردارها</h2>
+        <p>تقریباً همه‌چیز در موتور فیزیک با <b>بردارها</b> بیان می‌شود: مکان، سرعت، شتاب، نیرو و ایمپالس همگی
+        بردارند. در بازی دوبعدی از بردار دو مؤلفه‌ای و در بازی سه‌بعدی از بردار سه مؤلفه‌ای استفاده می‌شود.</p>
+        <ul>
+          <li><b>ضرب داخلی (Dot Product):</b> نتیجه یک عدد است و برای تشخیص «هم‌جهت بودن» دو بردار و محاسبه
+          پیش‌بینی (projection) به کار می‌رود.</li>
+          <li><b>ضرب خارجی (Cross Product):</b> نتیجه یک بردار است و در محاسبه گشتاور و عمودها استفاده می‌شود.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">c</span><code>typedef struct { float x, y; } vec2;
+
+// ضرب داخلی موجودی دو بردار (در ۲بعد)
+float dot(vec2 a, vec2 b) {
+    return a.x * b.x + a.y * b.y;
+}
+
+// طول بردار
+float len(vec2 v) {
+    return sqrtf(dot(v, v));
+}
+
+// نرمال‌سازی: بردی یکه با همان جهت (طول ۱)
+vec2 normalize(vec2 v) {
+    float l = len(v);
+    return (vec2){ v.x / l, v.y / l };
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. قوانین حرکت نیوتن</h2>
+        <p>هسته دینامیک جسم صلب، سه قانون نیوتن است:</p>
+        <ul>
+          <li><b>قانون اول:</b> جسم در حال سکون ساکن می‌ماند و جسم در حال حرکت به حرکت یکنواخت ادامه می‌دهد،
+          مگر اینکه نیروی خارجی اثر کند. (در بازی‌ها معمولاً اصطکاک و مقاومت هوا را به‌طور صریح مدل می‌کنیم.)</li>
+          <li><b>قانون دوم:</b> شتاب جسم با نیروی خالص وارد بر آن نسبت مستقیم و با جرم آن نسبت عکس دارد:
+          <code>F = m·a</code>.</li>
+          <li><b>قانون سوم:</b> هر عمل، عکس‌العملی هم‌اندازه و در جهت مخالف دارد. در برخورد، هر دو جسم هم‌زمان
+          نیروهای مساوی و مخالف دریافت می‌کنند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">c</span><code>// گرانش به‌عنوان یک شتاب ثابت (در ۲بعد، محور y رو به پایین)
+vec2 gravity = { 0.0f, 9.81f };
+
+// قانون دوم نیوتن: نیروی خالص = جرم × شتاب
+vec2 net_force = ...;
+vec2 acceleration = (vec2){ net_force.x / mass, net_force.y / mass };</code></pre>
+        <p>جرمِ بیشتر یعنی واکنش کمتر به نیروی یکسان — همان چیزی که در بازی با «سنگینی» اجسام تجربه می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>۵. تکانه و ایمپالس</h2>
+        <p><b>تکانه خطی</b> (Momentum) برابری است با حاصل‌ضرب جرم در سرعت: <code>p = m·v</code>. قانون بقای تکانه
+        می‌گوید در یک سیستم بسته (بدون نیروی خارجی)، مجموع تکانه‌ها ثابت می‌ماند. برخوردها را به‌جای نیرو،
+        معمولاً با <b>ایمپالس</b> (Impulse) مدل می‌کنیم: تغییر ناگهانی تکانه در یک بازه زمانی بسیار کوتاه.</p>
+        <p>روش استاندارد پاسخ برخورد در موتورهای فیزیک، <b>حل ایمپالس</b> است: در لحظه برخورد، به هر جسم یک
+        تغییر سرعت لحظه‌ای می‌دهیم به‌طوری که قوانین بقا و رفتار الاستیک/پلاستیک برآورده شود.</p>
+      </section>
+
+      <section>
+        <h2>۶. پاسخ برخورد با ایمپالس</h2>
+        <p>برای دو جسم کروی (یا هر دو جسم چرخان‌نشده) که با سرعت‌های <code>vA</code> و <code>vB</code> و جرم‌های
+        <code>mA</code> و <code>mB</code> با هم برخورد می‌کنند، ایمپالس <code>j</code> از این فرمول به‌دست می‌آید:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// n: بردار نرمال برخورد (از A به B، یکه)
+// e: ضریب بازگشت (0 = کاملاً پلاستیک، 1 = کاملاً الاستیک)
+// vrel: سرعت نسبی دو جسم در جهت نرمال
+
+float vrel = dot(vB - vA, n);
+float j = -(1.0f + e) * vrel;
+j /= (1.0f / mA) + (1.0f / mB);
+
+// اعمال ایمپالس روی هر دو جسم (قانون سوم نیوتن)
+vA -= (j / mA) * n;
+vB += (j / mB) * n;</code></pre>
+        <p>این همان فرمول کلاسیکی است که در مقاله با جزئیات بیشتر — از جمله حالت‌های خاص (جرم بی‌نهایت برای
+        زمین، برخورد بدون اصطکاک و...) — بررسی می‌شود. دقت کنید پس‌از حل ایمپالس باید اجسام را «از هم بیرون»
+        (positional correction) هم کرد تا در فریم‌های بعدی به هم نچسبند.</p>
+      </section>
+
+      <section>
+        <h2>۷. ضریب بازگشت (Restitution)</h2>
+        <p><b>ضریب بازگشت</b> مقدار انرژی جنبشی را که بعد از برخورد باقی می‌ماند مشخص می‌کند:</p>
+        <ul>
+          <li><code>e = 1</code>: برخورد کاملاً الاستیک — کل انرژی حفظ می‌شود (مثل دو توپ بیلیارد ایده‌آل).</li>
+          <li><code>e = 0</code>: برخورد کاملاً پلاستیک — اجسام به هم می‌چسبند و انرژی از دست می‌رود (مثل خمیر).</li>
+        </ul>
+        <p>در عمل مقدارهای واقعی بین ۰ و ۱ هستند و مقادیر بزرگ معمولاً در بازی‌ها با ضریب <code>epsilon</code>
+        تنظیم می‌شوند تا رفتار طبیعی‌تر دیده شود. این‌ها پایه‌های اصلی موتورهای فیزیک هستند؛ در قسمت‌های بعدی
+        مجموعه، چرخش (دینامیک چرخشی)، اصطکاک و برخورد چندشیء بررسی می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Video Game Physics Tutorial — An Introduction to Rigid Body Dynamics»
+        اثر تیم مهندسی Toptal است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به
+        نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.toptal.com/game/video-game-physics-part-i-an-introduction-to-rigid-body-dynamics" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

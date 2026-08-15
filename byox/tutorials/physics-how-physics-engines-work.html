@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتورهای فیزیک چگونه کار می‌کنند</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور فیزیک</a>
+        <span class="sep">←</span>
+        <span>موتورهای فیزیک چگونه کار می‌کنند</span>
+      </div>
+      <h1>موتورهای فیزیک چگونه کار می‌کنند</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://buildnewgames.com/gamephysics/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «How Physics Engines Work» از <b>Burak Kanber</b>
+          (سایت Build New Games، ۲۰۱۲) است — یک مقدمه کاربردی و سرراست با جاوااسکریپت: گرانش، انتگرال‌گیری،
+          برخورد با زمین و پرش توپ در چند ده خط کد.
+        </div>
+        <a class="btn solid" href="http://buildnewgames.com/gamephysics/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. فیزیک در بازی چگونه کار می‌کند؟</h2>
+        <p>روش‌های متعددی برای «فیزیک» در بازی وجود دارد، از ساده‌ترین تا پیچیده‌ترین. یکی از ساده‌ترین و
+        مؤثرترین روش‌ها این است: به‌جای اینکه در هر فریم، جا‌به‌جایی جسم را مستقیم تعیین کنید، به جسم یک
+        <b>شتاب</b> (مثلاً گرانش) بدهید و بگذارید سرعت و مکان آن هر فریم از روی شتاب محاسبه شود. دنیای فیزیکی
+        این‌گونه «خودش» رفتار طبیعی پیدا می‌کند.</p>
+        <p>پس به‌جای این کد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// رویکرد غیرفیزیکی: ما مکان را مستقیم تعیین می‌کنیم
+ball.y += 10; // توپ با سرعت ثابت سقوط می‌کند!</code></pre>
+        <p>این کد را می‌نویسیم:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// رویکرد فیزیکی: فقط نیروها را اعمال می‌کنیم
+ball.velocityY += GRAVITY * dt;   // سرعت با شتاب تغییر می‌کند
+ball.y += ball.velocityY * dt;    // مکان با سرعت تغییر می‌کند</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. گرانش و «حلقه فیزیک»</h2>
+        <p>موتور فیزیک اغلب همراه با حلقه رندر از <code>requestAnimationFrame</code> کار می‌کند. در هر فریم:
+        سرعت را با گرانش به‌روز کنیم، مکان را با سرعت به‌روز کنیم و سپس برخوردها را بررسی کنیم. این روش
+        «انتگرال‌گیری اویلر» نام دارد و به‌رغم سادگی برای بیشتر بازی‌ها کافی است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function update(dt) {
+    // گرانش به سمت پایین
+    ball.velocityY += GRAVITY * dt;
+
+    // جابه‌جایی
+    ball.y += ball.velocityY * dt;
+    ball.x += ball.velocityX * dt;
+
+    // برخورد با زمین
+    if (ball.y + ball.radius > floorY) {
+        ball.y = floorY - ball.radius;
+        ball.velocityY = -ball.velocityY * RESTITUTION;
+    }
+}</code></pre>
+        <p><code>RESTITUTION</code> ضریب بازگشت است: مقدار ۰٫۷ یعنی توپ در هر برخورد ۳۰ درصد انرژی خود را
+        از دست می‌دهد — درست مثل توپ واقعی.</p>
+      </section>
+
+      <section>
+        <h2>۳. رندر و چرخه فریم</h2>
+        <p>حلقه اصلی با <code>requestAnimationFrame</code> ساخته می‌شود و بین به‌روزرسانی فیزیک و رسم، تفکیک
+        می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function loop(now) {
+    var dt = (now - lastTime) / 1000; // اختلاف زمان به ثانیه
+    lastTime = now;
+
+    update(dt); // منطق فیزیک
+    draw();     // رسم روی canvas
+
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);</code></pre>
+        <div class="callout tip">
+          نکته: در بازی‌های جدی‌تر از گام زمانی ثابت (fixed timestep) استفاده می‌شود تا رفتار فیزیک روی
+          فریم‌ریت‌های مختلف یکسان بماند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. اصطکاک و مقاومت</h2>
+        <p>یک ترفند ساده و قدرتمند: ضرب سرعت در یک عدد کمی کمتر از ۱ در هر فریم، هم «مقاومت هوا» می‌سازد و هم
+        از مرزهای عددی جلوگیری می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// مقاومت: هر فریم کمی از سرعت کم می‌شود
+ball.velocityX *= 0.98;
+ball.velocityY *= 0.98;</code></pre>
+        <p>همین الگو با ضریب‌های متفاوت روی محورها، «اصطکاک زمین در برابر اصطکاک هوا» را شبیه‌سازی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>مقاله با همین اصول ساده — شتاب، انتگرال‌گیری عددی و برخورد با سطح — یک دنیای کوچک با توپ‌های
+        جهنده می‌سازد و نشان می‌دهد شروع کار با موتور فیزیک بسیار آسان‌تر از آن است که فکر می‌کنید. بعد از
+        این پایه، سراغ مباحث واقعی‌تر بروید: برخورد بین اجسام، چرخش، و حل‌کننده ایمپالس (اینجا در همین
+        مجموعه مقاله‌های دیگر Build New Games مثل مقاله «فاز گسترده تشخیص برخورد» وجود دارد).</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «How Physics Engines Work» اثر بوراک کانبر (Burak Kanber) و متعلق به
+        سایت Build New Games است. این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده
+        اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://buildnewgames.com/gamephysics/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

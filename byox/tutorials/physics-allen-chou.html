@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سری فیزیک بازی اثر Allen Chou</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور فیزیک</a>
+        <span class="sep">←</span>
+        <span>سری فیزیک بازی اثر Allen Chou</span>
+      </div>
+      <h1>سری فیزیک بازی اثر Allen Chou</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://allenchou.net/game-physics-series/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه و معرفی فارسی «Game Physics Series» از وبلاگ <b>Allen Chou</b> —
+          برنامه‌نویس ارشد موتورهای بازی — است؛ مجموعه‌ای از مقالات عمیق درباره ریاضیات بازی، دینامیک جسم صلب،
+          تشخیص برخورد و حل‌کننده قیود.
+        </div>
+        <a class="btn solid" href="http://allenchou.net/game-physics-series/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. معرفی سری</h2>
+        <p>سری فیزیک بازی آلن چو، مجموعه‌ای از نوشته‌های فنی است که از دیدگاه یک برنامه‌نویس موتور بازی در
+        صنعت (با سابقه کار روی عناوین بزرگ) به فیزیک بازی‌ها نگاه می‌کند. سری به سه گروه اصلی تقسیم می‌شود:</p>
+        <ul>
+          <li><b>ریاضیات بازی (Game Math):</b> پایه‌های جبر خطی که هر موتور فیزیکی روی آن‌ها سوار است.</li>
+          <li><b>فیزیک بازی (Game Physics):</b> دینامیک، برخورد و شبیه‌سازی.</li>
+          <li><b>برنامه‌نویسی (Programming):</b> جنبه‌های مهندسی پیاده‌سازی موتور.</li>
+        </ul>
+        <p>نکته قابل توجه این سری، توازن بین «ریاضی دقیق» و «روش‌های عملی صنعت» است: هر مفهوم اول به‌صورت
+        شهودی توضیح داده می‌شود و سپس با ریاضیات کامل و مثال‌های پیاده‌سازی دنبال می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۲. ریاضیات بازی</h2>
+        <p>بخش ریاضیات بازی، پیش‌نیاز درک فیزیک است:</p>
+        <ul>
+          <li><b>بردارها</b> در دو و سه بعد: جمع، ضرب، ضرب داخلی و خارجی، و کاربردشان در محاسبه نرمال و زاویه.</li>
+          <li><b>ماتریس‌ها</b>: تبدیل‌های خطی، چرخش، مقیاس و ترجمه؛ و چرا ماتریس‌ها برای ترکیب تبدیل‌ها مفیدند.</li>
+          <li><b>کواترنیون‌ها (Quaternions)</b>: جایگزین بهتری برای ماتریس چرخش — بدون قفل شدن زوایای اویلر و با
+          درون‌یابی نرم‌تر.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// نمونه: چرخاندن یک بردار با کواترنیون (چهارچوب کلی)
+// q: کواترنیون چرخش (w, x, y, z)
+// v: بردار ورودی
+
+Vector3 Rotate(Quaternion q, Vector3 v) {
+    Quaternion vq(0, v.x, v.y, v.z);
+    Quaternion r = q * vq * Conjugate(q);
+    return Vector3(r.x, r.y, r.z);
+}</code></pre>
+        <p>این بخشها در مقالهها با شهود هندسی و مثالهای تعاملی همراهاند؛ مثلاً این‌که ضرب داخلی چه «رابطهای»
+        بین دو بردار را اندازه میگیرد و چرا برای تشخیص برخورد به نرمال سطح نیاز داریم.</p>
+      </section>
+
+      <section>
+        <h2>۳. دینامیک جسم صلب</h2>
+        <p>بخش فیزیک با دینامیک شروع می‌شود:</p>
+        <ul>
+          <li><b>سینماتیک و دینامیک خطی</b>: مکان، سرعت، شتاب و انتگرال‌گیری عددی.</li>
+          <li><b>دینامیک چرخشی</b>: سرعت زاویه‌ای، گشتاور و تنسور لختی (inertia tensor).</li>
+          <li><b>قالب حرکت (Equations of Motion)</b> و گام شبیه‌سازی با زمان ثابت (fixed timestep).</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// انتگرال‌گیری نیمه-ضمنی (semi-implicit / symplectic Euler)
+void Step(RigidBody& body, float dt, const Vector3& gravity) {
+    // ۱) سرعت را با شتاب به‌روز کن
+    body.linearVelocity += gravity * dt;
+    body.angularVelocity += body.invInertia * (body.torque - ...) * dt;
+
+    // ۲) مکان و چرخش را با سرعت جدید به‌روز کن
+    body.position += body.linearVelocity * dt;
+    body.orientation = Normalize(body.orientation * QuaternionFromAxisAngle(body.angularVelocity * dt));
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. تشخیص برخورد</h2>
+        <p>یکی از ارزشمندترین بخش‌های سری، مقالات تشخیص برخورد است که هم جنبه نظری و هم پیاده‌سازی دارند:</p>
+        <ul>
+          <li><b>آزمون‌های شکل‌های ساده</b>: کره-کره، AABB، کره-صفحه و ترکیب‌های پایه.</li>
+          <li><b>الگوریتم‌های عمومی محدب</b>: جداسازی محور (SAT) و الگوریتم‌های GJK/EPA بر پایه تفاضل مینکوفسکی.</li>
+          <li><b>تشخیص برخورد پیوسته (CCD)</b>: جلوگیری از نفوذ اجسام سریع در گام‌های بزرگ (tunneling).</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">cpp</span><code>// تابع پشتیبان (support function) — بلوک سازنده الگوریتم GJK
+// در جهت d، دورترین نقطه شکل محدب را برمی‌گرداند
+Vector3 Support(const ConvexShape& shape, const Vector3& d) {
+    float maxDot = -FLT_MAX;
+    Vector3 best = Vector3::Zero;
+    for (const Vector3& v : shape.vertices) {
+        float d_ = Dot(v, d);
+        if (d_ > maxDot) { maxDot = d_; best = v; }
+    }
+    return best;
+}</code></pre>
+        <p>این الگوریتم‌ها هسته موتورهای حرفه‌ای مثل Bullet و PhysX هستند؛ درک آن‌ها با خواندن مستقیم سری
+        بسیار آسان‌تر از خواندن کد موتورهای آماده است.</p>
+      </section>
+
+      <section>
+        <h2>۵. حل‌کننده برخورد و قیود</h2>
+        <p>بعد از یافتن نقاط برخورد، نوبت <b>پاسخ برخورد</b> است: تولید نقطه تماس با نرمال، نفوذ و بافت تماس
+        (contact manifold)، سپس حل ایمپالس برای هر نقطه به‌همراه اصطکاک. در نهایت سری وارد <b>قیود عمومی</b>
+        (constraints) می‌شود — همان مکانیزمی که با آن لولا، فنر و مفاصل ساخته می‌شود و قلب هر موتور فیزیک
+        مدرن است.</p>
+        <div class="callout tip">
+          نکته: سری به‌صورت فزاینده ساخته شده؛ اگر تازه‌کارید، اول بخش ریاضیات بازی را کامل بخوانید، سپس
+          مقالات دینامیک و بعد سراغ تشخیص برخورد و حل‌کننده‌ها بروید.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالات سری فیزیک بازی اثر آلن چو (Allen Chou) است. این صفحه فقط ترجمه و
+        معرفی فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطالب به
+        <a href="http://allenchou.net/game-physics-series/" target="_blank" rel="noopener">وبلاگ اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
