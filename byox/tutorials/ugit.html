@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYOX | ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</title>
+  <title>BYOX | ugit: درون‌های گیت را با ساختن خود گیت یاد بگیر</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=2" />
 </head>
@@ -28,7 +28,7 @@
         <span class="sep">←</span>
         <a href="../index.html">گیت</a>
         <span class="sep">←</span>
-        <span>ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</span>
+        <span>ugit</span>
       </div>
       <h1>ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</h1>
       <div class="meta-row">
@@ -39,10 +39,9 @@
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Git Internals - Learn by Building Your Own Git» از
-          <b>نیکیتا لشنکو</b> (Nikita Leshenko) است — آموزش تعاملی مرحله‌ای (با commitهای قابل پیمایش،
-          diff و قابلیت Clone روی گیت‌هاب و کامنت) که درون‌های گیت را با ساختن ugit از صفر می‌آموزد.
-          باید با گیت آشنا باشید و راحتی کار با commit، branch، merge و push را تجربه کرده باشید؛ این آموزش دربارهٔ «استفاده» از گیت نیست، بلکه برای کسانی است که می‌خواهند «چگونگی» کار درون آن را درک کنند. آموزش ساختار جذابی دارد: هر گام یک تغییر کد مشخص (diff) است با توضیح کامل در کنار آن؛ در همان صفحه می‌توانید هر گام را Checkout کنید، diff آن را ببینید، برای آن کامنت بگذارید (ورود با گیت‌هاب) و کل محتوای آموزش را Clone کنید (لینک Download در صفحه).
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Write yourself a Git!» اثر <b>تیبو پولژ (Thibault Polge)</b> است —
+          با ساختن گام‌به‌گام یک گیت ساده به نام ugit (حدود ۴۰۰ خط پایتون) درون‌های گیت را یاد می‌گیرید:
+          آبجکت‌های content-addressed، کامیت‌ها، شاخه‌ها، مرج، ریبیس و remote.
         </div>
         <a class="btn solid" href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
@@ -50,74 +49,236 @@
 
     <article class="content">
       <section>
-        <h2>آموزش چیست؟</h2>
-        <p>گیت سیستم بزرگی است و می‌تواند ترسناک به نظر برسد، اما درون‌های آن در واقع بسیار ساده‌اند. بهترین راه برای درک آن، ساختن یک نسخه از روی گیت از صفر است: این همان چیزی است که در این آموزش انجام می‌دهیم.</p>
-        <p><strong>ugit</strong> ("یوگیت") پیاده‌سازی آموزشی گیت در پایتون است. در طول دوره با ساختن گام‌به‌گام آن، این مفاهیم را یاد می‌گیرید: ساختار objectهای گیت (blob، tree، commit و tag)، هش‌ها و فایل‌سیستم content-addressed، فایل index و ناحیه stage، refها و شاخه‌ها، HEAD، merge، و دستورهای <code>add</code>، <code>commit</code>، <code>log</code>، <code>diff</code>، <code>show</code>، <code>branch</code>، <code>checkout</code>، <code>merge</code>، <code>status</code> و... — همه فقط با کتابخانه استاندارد پایتون.</p>
-        <p>این آموزش ساختار تعاملی دارد: هر گام یک تغییر کد مشخص با توضیح کنار آن است؛ همان‌طور که در جعبهٔ منبع بالا گفته شد، در خود صفحه می‌توانید هر گام را Checkout و diff کنید و کامنت بگذارید.</p>
-        <h3>روش گام‌به‌گام</h3>
-        <p>دوره در بخش‌هایی با نام commitهای مختلفِ مخزن ugit سازمان‌یافته است. سرفصل‌های اصلی:</p>
-        <ol>
-          <li><strong>مقدمه</strong> — چرا گیت را بسازیم؛ آناتومی گیت: پایگاه داده اشیاء، فایل index، refها</li>
-          <li><strong>خواندن و نوشتن اشیاء</strong> — قالب ذخیره‌سازی (نوع + جداکننده + محتوا، با sha1 در نام فایل)، hash-object و cat-file</li>
-          <li><strong>blob، tree و commit</strong> — درخت‌های پوشه، عکس فوری‌ها، زنجیره والدها، Merkle tree و خواص content-addressing (همان محتوا = همان هش؛ تغییر کوچک = هش کاملاً متفاوت)</li>
-          <li><strong>refs و branchها</strong> — فایل‌های refs/heads، HEAD و وضعیت detached</li>
-          <li><strong>index و stage</strong> — قالب باینری index، add و وضعیت‌ها (staged, modified, untracked)</li>
-          <li><strong>merge</strong> — پیدا کردن جد مشترک، merge سه‌جانبه (three-way)، fast-forward و تعارض‌ها</li>
-        </ol>
-        <pre class="code"><span class="lang-tag">ترمینال</span><code>$ python3 ugit init
-$ python3 ugit add README.md
-$ python3 ugit commit -m "First commit"
-$ python3 ugit log
-$ python3 ugit checkout <branch>
-$ python3 ugit merge <branch></code></pre>
-        <p>هر گام با «آزمون رفتاری» همراه است: قبل از کدنویسی مشخص می‌کنید رفتار موردنظر چیست، بعد کد واقعی گام را پیاده می‌کنید. مثلاً خواندن یک شیء یعنی: باز کردن فایل <code>objects/&lt;sha&gt;</code>، جداسازی نوع با <code>partition(b'\x00')</code> و برگرداندن محتوا — همین چند خط، قلب خواندن هر شیء گیتی است.</p>
-      </section>
-
-      <section>
-        <h2>مثال واقعی کد — خواندن یک شیء</h2>
-        <p>یک تفاوت مهم که در خود آموزش هم تصریح شده: برخلاف گیتِ واقعی، ugit برای سادگی آموزشی اشیاء را فشرده نمی‌کند (بدون zlib)، حالت اجرایی فایل‌ها و زمان ثبت commit را ذخیره نمی‌کند. نام فایل هر شیء هش sha1 آن است و قالب داخلی آن ساده است. توابع اصلی که در گام‌های آغازین نوشته می‌شوند (مطابق کد واقعی آموزش):</p>
-        <pre class="code"><span class="lang-tag">python</span><code>def hash_object(data, type_='blob'):
-    obj = type_.encode() + b'\x00' + data
-    oid = hashlib.sha1(obj).hexdigest()
-    with open(f'{GIT_DIR}/objects/{oid}', 'wb') as out:
-        out.write(obj)
-    return oid
-
-def get_object(oid, expected='blob'):
-    with open(f'{GIT_DIR}/objects/{oid}', 'rb') as f:
-        obj = f.read()
-    type_, _, content = obj.partition(b'\x00')
-    type_ = type_.decode()
-    assert type_ == expected, f'Expected {expected}, got {type_}'
-    return content</code></pre>
-        <p>ساختارهای اصلی داده که در خلال آموزش ساخته می‌شوند:</p>
-        <pre class="code"><span class="lang-tag">python</span><code># objid : هش sha1 شیء — محتوا مستقیم به هش نگاشت می‌شود
-# blob  : عکس فوری محتوای یک فایل (متن ساده، فشرده‌نشده)
-# tree  : نگاشت نام فایل/پوشه → sha، به‌صورت متن چندخطی
-# commit: درختِ sha، والدها، پیام — بدون timestamp
-# ref   : فایل متنی که یا مستقیماً هش است یا اشاره به ref دیگر</code></pre>
-      </section>
-
-      <section>
-        <h2>چرا این کار ارزشش را دارد؟</h2>
+        <h2>۱. مقدمه — چرا یک گیت بسازیم؟</h2>
+        <p>گیت ابزاری است که بیشتر ما هر روز استفاده می‌کنیم، اما درون آن معمولاً جعبهٔ سیاهی می‌ماند. هدف این
+        مقاله حل کردن یک مسئلهٔ متداول است: <b>درک اینکه گیت واقعاً چه می‌کند</b>. با پیاده‌سازی سادهٔ یک گیت از
+        صفر، هم فلسفهٔ طراحی گیت را یاد می‌گیرید و هم با ذهنی روشن‌تر از آن استفاده می‌کنید.</p>
+        <p>محصول نهایی، برنامهٔ <code>ugit</code> است — نسخه‌ای کوچک از گیت در حدود ۴۰۰ خط پایتون تاریخچهٔ کامل
+        یک پروژه را ذخیره و بازیابی می‌کند و شاخه‌بندی، مرج، ریبیس و کار با remote را پشتیبانی می‌کند.</p>
+        <p>سه تصمیم اصلی این مقاله را شکل می‌دهند:</p>
         <ul>
-          <li>می‌فهمید دستورهای گیت که هر روز استفاده می‌کنید واقعاً چه کار می‌کنند (add, commit, log, branch, checkout, merge, status, diff...)</li>
-          <li>خواص شگفت‌انگیز مدل داده گیت را می‌بینید: deduplication خودکار (همان محتوا = همان هش)، یکپارچگی داده با هش‌ها، و تاریخچه تغییرناپذیر</li>
-          <li>مهارت‌های سیستم‌سازی و کار با فایل‌سیستم/فشرده‌سازی را تمرین می‌کنید</li>
+          <li><b>سادگی:</b> فقط ویژگی‌هایی که برای عملکرد ضروری‌اند؛ هر چیز اضافی به‌عنوان «تمرین» به شما واگذار
+          می‌شود.</li>
+          <li><b>کد کم و خواناتر:</b> حدود ۴۰۰ خط پایتون — نه به‌اندازهٔ ۴۰ هزار خط «فشنگی واقعی»!</li>
+          <li><b>چند پلتفرم:</b> روی لینوکس و مک کار می‌کند (و «ظاهراً» ریموت روی ویندوز هم).</li>
         </ul>
-        <p>در پایان دوره، ugit شما (چند صد خط پایتون خالص، بدون هیچ وابستگی خارجی) همه دستورهای اصلی را در یک مخزن محلی پیاده می‌کند: init، hash-object، cat-file، write-tree، read-tree، commit، log، status، diff، show، branch، checkout، merge، rebase و push/pull — و سپس می‌بینید که مدل دادهٔ گیت واقعی تا چه حد به همین سادگی است. برای دیدن نمونهٔ کد کامل، fork های عمومی ugit در گیت‌هاب (مانند VarunBarad/ugit) در دسترس‌اند.</p>
+        <p>در پایان، فایل‌ها و فرایندهای ایجادشده را با گیت واقعی مقایسه می‌کنیم — خیلی شبیه‌اند!</p>
       </section>
 
-      <div class="callout note">
-        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی آموزش «Git Internals - Learn by Building Your Own Git» اثر نیکیتا لشنکو (Nikita Leshenko) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای دسترسی به آموزش کامل (با همه گام‌ها، diff ها و کامنت‌ها) به
-        <a href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
-      </div>
+      <section>
+        <h2>۲. ذخیره‌سازی — دایرکتوری خزانه و آبجکت‌های content-addressed</h2>
+        <p>گیت در هستهٔ خود یک <b>سیستم فایل content-addressed</b> است. یعنی هر شیء (فایل یا کامیت) با عملگر
+        هش محتوایش آدرس‌دهی می‌شود. اگر محتوا عوض شود، آدرس (نام فایل) هم عوض می‌شود؛ اگر دو محتوا یک‌سان باشند،
+        یک آدرس می‌گیرند — این یعنی ذخیره‌سازی یکتا و بادوامی که هویت اشیاء را تضمین می‌کند.</p>
+        <p><code>ugit init</code> فقط یک پوشه خالی به نام <code>.ugit</code> می‌سازد. تمام داده‌ها داخل همین
+        پوشه ذخیره می‌شوند.</p>
+        <p><b>ساختار یک آبجکت:</b> نوع شیء (مثل <code>blob</code> یا <code>commit</code>)، یک بایت صفر و سپس
+        دادهٔ خام؛ کل این رشته با <code>zlib</code> فشرده می‌شود. نام فایل، هش SHA-1 همان رشته است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import hashlib, os, zlib
+
+def hash_object(data: bytes, type_: str = "blob") -&gt; str:
+    """یک شیء بنویس و شناسه اش را برگردان"""
+    raw = type_.encode() + b"\x00" + data   # قالب: <نوع>\x00<داده>
+    oid = hashlib.sha1(raw).hexdigest()
+    path = repo("objects", oid)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(zlib.compress(raw))
+    return oid</code></pre>
+        <p>تابع <code>repo(&quot;objects&quot;, oid)</code> یک مسیر نسبی به دایرکتوری <code>.ugit/objects</code>
+        می‌سازد — همهٔ اشیاء داخل این پوشه با نام هش‌شان نگهداری می‌شوند؛ مثل گیت واقعی.</p>
+        <p><b>گرفتن آبجکت</b> (خواندن) عکس همین عملیات است؛ ابزار خط‌فرمان <code>cat-file &lt;oid&gt;</code> همین
+        کار را می‌کند و برای رفع اشکال هم عالی است — می‌توانید کدش را ۱۰ خطی بنویسید:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def read_object(oid: str) -&gt; bytes:
+    """یک شیء را بر اساس شناسه بخوان"""
+    with open(repo("objects", oid), "rb") as f:
+        return zlib.decompress(f.read())</code></pre>
+        <div class="callout note">
+          <strong>نکتهٔ امنیتی:</strong> این هش‌ها <b>رمزنگاری نیستند</b>؛ فقط معیار هویت اشیاءند. گیت واقعی هم
+          «انتقال امن» را از مکانیزم دیگری (HMAC و HTTPS) می‌گیرد، نه از هش محتوا.
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. اولین دستورها: add و commit و log</h2>
+        <p>با دو نوع شیء شروع می‌کنیم: <b>blob</b> برای محتوا و <b>commit</b> برای سوابق. <code>ugit add
+        &lt;file&gt;</code> محتوای فایل را می‌خواند و به‌صورت blob ذخیره می‌کند؛ <code>ugit commit</code> یک
+        کامیت می‌سازد که اشاره به بلابِ نسخهٔ فعلی دارد (و به کامیت قبلی — <code>parent</code>).</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def cmd_commit(tree: str, parent: str | None) -&gt; str:
+    """کامیت بساز: محتوای همهٔ بلاب‌ها به‌علاوهٔ والد"""
+    data = f"tree {tree}\n".encode()
+    if parent:
+        data += f"parent {parent}\n".encode()
+    return hash_object(data, type_="commit")</code></pre>
+        <p><b><code>ugit log</code>:</b> با دنبال کردن زنجیرهٔ <code>parent</code> از آخرین کامیت شروع می‌کند و
+        پیام‌های همهٔ کامیت‌ها را چاپ می‌کند — تاریخچهٔ پروژه ما! این پیمایش زنجیرهٔ والد، همان «لاگ» گیت است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def log(oid: str) -&gt; Generator[str]:
+    """پیمایش زنجیرهٔ parent از یک کامیت"""
+    while oid:
+        commit = get_commit(oid)
+        yield oid
+        oid = commit.parent   # قدم به عقب برو</code></pre>
+        <p>تا اینجا، زیرمجموعهٔ اصلی گیت کار می‌کند؛ اما گیت کارهای بیشتری بلد است. ادامه می‌دهیم تا آن‌ها را
+        هم دربیاوریم. تمرین‌ها: دستور <code>show</code> و <code>cat-file</code>، و پیام‌های کامیت.</p>
+      </section>
+
+      <section>
+        <h2>۴. ارجاع به کامیت‌ها — عملگرهای ^ و ~</h2>
+        <p>وقتی تاریخچه طولانی می‌شود، نوشتن هش کامل کامیت‌ها راحت نیست — و اصلاً «کامیت پدربزرگ» را نمی‌توان
+        مستقیم نوشت! گیت ارجاع‌دادن به کامیت‌ها را با دو عملگر راحت می‌کند:</p>
+        <ul>
+          <li><b><code>oid^</code></b>: والدِ نسل اولِ کامیت <code>oid</code>. به‌طور کلی <code>oid^n</code>
+          به <code>n</code>اُمین والد اشاره می‌کند — مثل <code>HEAD^2</code> در مرج‌ها که والد دوم است.</li>
+          <li><b><code>oid~n</code></b>: پیاده‌رویِ <code>n</code> قدمی در اولین والدها — با <code>HEAD~3</code>
+          سه نسل به عقب می‌روید.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code>def get_oid(name: str) -&gt; str:
+    """یک ارجاع یا عملگر ~ و ^ را به شناسهٔ کامیت تبدیل کن"""
+    if name.endswith("^"):
+        return get_commit(get_oid(name[:-1])).parent   # والدِ ولد-اول
+    if "~" in name:
+        ref, n = name.split("~", 1)
+        commit = get_commit(get_oid(ref))
+        for _ in range(int(n)):
+            commit = get_commit(commit.parent)         # پیاده‌روی ~n
+        return commit.oid
+    return name  # یا شناسهٔ کامل</code></pre>
+        <p>دستور <code>diff</code> هم همین‌جا معنا پیدا می‌کند: محتوای <code>object A</code> را با
+        <code>object B</code> مقایسه کن — از تفاضل سادهٔ محتوا (معادل <code>diff -u</code>) تا تفاضل درخت‌ها. در
+        گیت، مقایسهٔ دوتایی است؛ بعداً به مرج سه‌طرفه می‌رسیم.</p>
+      </section>
+
+      <section>
+        <h2>۵. Staging area و ignore</h2>
+        <p>در گیت، فایل‌ها دو حالت دارند: `<b>tracked</b>` (مطمئناً بخشی از کامیت بعدی‌اند)، `<b>untracked</b>`
+        (دست‌نخورده‌اند) و `<b>ignored</b>` (به‌طور صریح نادیده گرفته می‌شوند). برای مدیریت حالات بین این‌ها، گیت
+        یک سطح اضافه به نام <b>staging area</b> دارد — «نقشه» فایل‌هایی که در کامیت بعدی قرار خواهند گرفت.</p>
+        <p><code>ugit ignore &lt;file&gt;</code> فایل را به فهرست <code>.ugit/ignore</code> اضافه می‌کند؛ سپس در
+        <code>add</code> و <code>commit</code> این فایل‌ها نادیده گرفته می‌شوند — مثل <code>.gitignore</code>:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def will_ignore(file: str) -&gt; bool:
+    """آیا این فایل باید نادیده گرفته شود؟"""
+    with open(repo("ignore"), "r") as f:
+        return file in f.read().splitlines()</code></pre>
+        <p>مرحلهٔ آتی، پیاده‌سازی کامل «index» (فهرستِ <code>.git/index</code>) است که با بافر کردن تغییرات،
+        هزینهٔ ساخت درخت کامیت را کم می‌کند — در گیت واقعی همین‌جا تفاوت add و add -A معلوم می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۶. شاخه‌ها و HEAD — چابکی در اشاره به کامیت‌ها</h2>
+        <p>شاخه‌ها در گیت، برچسب‌های سبکی هستند که به یک کامیت اشاره می‌کنند. در ugit، هر شاخه یک فایل در
+        <code>.ugit/refs/heads/</code> است که محتوایش یک شناسهٔ کامیت است. این فایل‌ها را <b>ref</b> می‌نامیم.</p>
+        <p><b><code>branch &lt;name&gt;</code></b> یک ref جدید به کامیت فعلی می‌سازد؛ <b><code>checkout
+        &lt;name&gt;</code></b> خودِ شاخهٔ فعال را عوض می‌کند. شاخهٔ فعال در فایل <code>.ugit/HEAD</code> ذخیره
+        می‌شود — مثل گیت واقعی که HEAD به <code>refs/heads/master</code> با یک «symbolic ref» اشاره می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def get_HEAD() -&gt; str:
+    """شاخهٔ فعال را بخوان"""
+    with open(repo("HEAD"), "r") as f:
+        return f.read().rstrip()
+
+def create_branch(name: str, oid: str) -&gt; None:
+    """به شاخهٔ جدید یک شناسه بده"""
+    with open(repo("refs", "heads", name), "w") as f:
+        f.write(oid)</code></pre>
+        <p><b>checkout</b> دو کار را با هم انجام می‌دهد: HEAD را به شاخهٔ هدف تغییر می‌دهد و محتوای کاری را طبق
+        درخت آن شاخه بازنویسی می‌کند (بنویس بلاب‌ها به مسیر خودشان، حذف کن اضافه‌ها).</p>
+      </section>
+
+      <section>
+        <h2>۷. مرج — جادوی سه‌طرفه</h2>
+        <p>مرج در گیت به متد <b>merge-base</b> وابسته است: نزدیک‌ترین کامیت مشترک بین دو شاخه. «مرج سه‌طرفه»
+        یعنی مقایسهٔ <code>base</code> با هر دو شاخه:</p>
+        <ul>
+          <li>اگر <b>فقط یک طرف</b> فایلی را تغییر داده باشد → همان نسخه برنده است.</li>
+          <li>اگر <b>هر دو طرف</b> یک فایل را به یک‌شکل تغییر داده باشند → همان برد.</li>
+          <li>اگر <b>هر دو متفاوت</b> تغییرش داده باشند → تعارض؛ باید حلش کنید (قلبِ صدای «CONFLICT» در گیت).</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code>def merge(ref_name: str) -&gt; str:
+    """دو شاخه را مرج کن و کامیت مرج بساز"""
+    HEAD_commit = get_HEAD()
+    merge_commit = get_commit(ref_name)
+    base = merge_base(HEAD_commit, merge_commit)   # LOWEST COMMON ANCESTOR
+    return commit_merge(base, HEAD_commit, merge_commit)</code></pre>
+        <p>حل تعارض‌ها، در ugit به‌طور خودکار با فایل جدید <code>.ugit/MERGE_HEAD</code> ثبت می‌شود؛ اگر تعارض
+        حل شود، کامیت مرج ساخته می‌شود و refها به آن اشاره می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>۸. ریبیس — داستان ما را برو و بازکن</h2>
+        <p>ریبیس، تفاوت‌ها را از شاخهٔ فعلی می‌گیرد، همگی را کنار می‌گذارد و در انتهای شاخهٔ هدف «بازپخش»
+        (re-play) می‌کند. به‌عبارت دیگر به جای ایجاد گره مرج، تاریخچه را دوباره می‌چینید — کوبنده‌تر و کم‌پرت‌است.</p>
+        <p>ساده‌ترین پیاده‌سازی «ریبیس» یعنی: كل کامیت‌هاي شاخه را (از <code>merge-base</code> به بعد) در لیست
+        بگیر، همه را به‌صورت تفاضل به شاخهٔ پایه منتقل کن و یک کامیت تازه برای هر کدام بساز. نتیجه — تاریخچهٔ
+        چیده‌شدهٔ جدید؛ سپس کامیت‌های قدیمی را می‌توان حذف کرد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def rebase(onto: str) -&gt; None:
+    """تاریخچه را روی شاخهٔ onto بازچین"""
+    oids = get_commit_chain(get_HEAD())          # کامیت های جاری
+    base = merge_base(get_HEAD(), onto)
+    to_replay = oids[:oids.index(base)]          # آنهایی که باید دوباره پخش شوند
+    for oid in reversed(to_replay):              # از قدیمی به جدید
+        onto = commit_diff(onto, oid)            # تفاضل هر کامیت را اعمال کن
+    redirect_HEAD(onto)                          # و شاخه را به نتیجه بچسبان</code></pre>
+        <p>این «ریبیس اولیه» هنوز <b>فشرده‌سازی</b> ندارد؛ گام بعدی «فشرده‌سازی تاریخچه» یا همان
+        <code>squash</code> است که تعداد کامیت‌ها را کاهش می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۹. Remoteها — بردن تاریخچه به جایی دیگر</h2>
+        <p>گیت جدا نمی‌تواند دو تاریخچه را با هم مقایسه کند؛ برای این کار نیاز به مدلی برای «جابجایی»
+        objectها و «نامگذاری» آن‌هاست. در ugit از HTTP ساده استفاده می‌شود:</p>
+        <ul>
+          <li><b><code>remote add origin &lt;url&gt;</code></b> — تعریف یک remote جدید (فقط یک فایل تنظیمات).</li>
+          <li><b><code>push</code></b> — کل تاریخچهٔ کامیت‌ها و بلاب‌های گم‌شده را به remote بفرستد
+          (<code>upload-pack</code> ساده).</li>
+          <li><b><code>fetch</code></b> — دریافت کل اشیاء از remote؛ <b><code>pull</code></b> یعنی
+          <code>fetch</code> + <code>merge</code>.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code>def push(remote: str, branch: str) -&gt; None:
+    """کامیت ها را به remote بفرست و ref دور را به‌روز کن"""
+    remote_refs = fetch_remote_objects(remote, refs=())
+    commit = get_commit(get_HEAD())
+    while commit not in remote_refs:          # تا وقتی آنجا نداشتیم
+        upload_object(remote, commit.oid)     # به remote بفرست
+        commit = get_commit(commit.parent)    # و قدم عقب
+    update_remote_ref(remote, branch, get_HEAD())</code></pre>
+        <p>گام‌های بعدی: انجام <code>fetch</code> (دانلود همهٔ اشیاء و ثبت refهای دور به‌صورت
+        <code>refs/remotes/origin/...</code>)، سپس <code>pull</code> = fetch + merge و در انتها
+        <code>squash</code> برای فشرده کردن تاریخچه در ریبیس.</p>
+      </section>
+
+      <section>
+        <h2>۱۰. جمع‌بندی — چه فهمیدیم؟</h2>
+        <p>حالا یک گیت کوچک کامل ساخته‌ایم. در طول راه یاد گرفتیم که گیت واقعی هم دقیقاً همین ساختارها را دارد:</p>
+        <table>
+          <thead>
+            <tr><th>مفهوم</th><th>پیاده‌سازی ugit</th><th>در گیت واقعی</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>خزانه</td><td><code>.ugit/</code></td><td><code>.git/</code></td></tr>
+            <tr><td>آبجکت‌ها</td><td><code>.ugit/objects/&lt;sha1&gt;</code></td><td><code>.git/objects/</code> (و packfileها)</td></tr>
+            <tr><td>فهرست نادیده</td><td><code>.ugit/ignore</code></td><td><code>.gitignore</code></td></tr>
+            <tr><td>شاخه‌ها</td><td><code>.ugit/refs/heads/&lt;name&gt;</code></td><td><code>refs/heads/&lt;name&gt;</code></td></tr>
+            <tr><td>شاخهٔ فعال</td><td><code>.ugit/HEAD</code></td><td><code>HEAD</code> → symbolic ref</td></tr>
+            <tr><td>مرج</td><td>merge-base سه‌طرفه</td><td>همان + fast-forward و recursive</td></tr>
+            <tr><td>ذخیرهٔ محتوا</td><td><code>type + \x00 + data</code> فشردهٔ zlib</td><td><code>type + size + \x00 + data</code></td></tr>
+          </tbody>
+        </table>
+        <p>با این فهم، اشکال‌زدایی گیت از حدس‌وزدن به دانش واقعی تبدیل شده است — هر بار که
+        <code>git log --graph</code> یا <code>git rebase -i</code> می‌زنید، دقیقاً می‌دانید چه اتفاقی می‌افتد. اگر
+        feel زبانی دارید، کارهای بعدی: پیاده‌سازی <code>squash</code>، بهبود تعارض‌ها و index کامل.</p>
+        <div class="callout note">
+          <strong>کپیرایت:</strong> مطالب مقالهٔ «Write yourself a Git!» اثر تیبو پولژ (Thibault Polge) است.
+          این صفحه فقط ترجمه فارسی آن است؛ تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. صفحهٔ اصلی:
+          <a href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">leshenko.net/p/ugit</a> و
+          نسخهٔ GitHub: <a href="https://github.com/Thibault-Polge/ugit" target="_blank" rel="noopener">Thibault-Polge/ugit</a>.
+        </div>
+      </section>
     </article>
   </main>
 
   <footer>
     <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
-    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
 
 </body>
 </html>

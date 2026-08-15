@@ -1,12 +1,4 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  BYOX — ترجمه فارسی «Build Your Own Web Server From Scratch In Node.JS»
-  از James Smith — build-your-own.org
-  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
-  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
-  ============================================================
--->
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -38,79 +30,161 @@
         <span class="sep">←</span>
         <span>وب سرور خودت را از صفر در جاوااسکریپت بساز</span>
       </div>
-      <h1>وب سرور خودت را از صفر در جاوااسکریپت بساز</h1>
+      <h1>وب سرور خودت را از صفر در Node.js بساز (Build Your Own Web Server)</h1>
       <div class="meta-row">
         <span class="meta-badge">⚙ زبان: Node.js</span>
-        <span class="meta-badge">📁 دسته: وب سرور</span>
         <span class="meta-badge">✅ ترجمه شده</span>
         <span class="meta-badge"><a href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقدمه و فهرست کتاب «Build Your Own Web Server From Scratch In Node.JS»
-          از «جیمز اسمیت (James Smith)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کتاب آنلاین «Build Your Own Web Server From Scratch In
+          Node.JS» از <b>جیمز اسمیت (James Smith)</b> است — آموزش کامل برنامه‌نویسی شبکه، پروتکل HTTP و
+          WebSocket با کدنویسی یک وب سرور از صفر در Node.js، در دو بخش و ۱۳ فصل.
         </div>
         <a class="btn solid" href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
     </header>
 
     <article class="content">
-
       <section>
-        <h2>مقدمه</h2>
-        <p>بیشتر مردم هر روز از HTTP استفاده می‌کنند، اما کمتر کسی از جزئیات درونیِ آن سر درمی‌آورد. این کتابِ «خودت بساز»، عمیق به موضوع می‌زند و اصول را از صفر آموزش می‌دهد تا درک واضح‌تری از ابزارها و فناوری‌هایی که به آن‌ها تکیه می‌کنیم به دست آوریم.</p>
+        <h2>۱. مقدمه — این کتاب چیست؟</h2>
+        <p>بیشتر مردم هر روز از HTTP استفاده می‌کنند، اما تعداد کمی از کارکرد درونی آن سر در می‌آورند. این کتاب
+        از سری «Build Your Own X» عمیق می‌رود و اصول را از صفر آموزش می‌دهد تا درک روشن‌تری از ابزارها و فناوری‌هایی
+        که به آن‌ها تکیه داریم به دست آوریم:</p>
         <ul>
-          <li>برنامه‌نویسی شبکه (Network Programming)</li>
-          <li>پروتکل‌ها و ارتباطات</li>
-          <li>HTTP به تفصیل</li>
+          <li>برنامه‌نویسی شبکه.</li>
+          <li>پروتکل‌ها و ارتباطات.</li>
+          <li>HTTP با جزئیات کامل.</li>
         </ul>
-        <p>با کدنویسیِ یک وب سرور، مهارت‌های برنامه‌نویسی شبکه، پروتکل HTTP و WebSocket را یاد می‌گیرید.</p>
+        <p>کتاب در دو بخش است: <b>بخش اول</b> یک سرور HTTP پایه می‌سازد (۷ فصل) و <b>بخش دوم</b> برنامه‌ها و
+        توسعه‌ها را پوشش می‌دهد (۶ فصل: محتوای پویا، فایل‌ها، Range Request، کش، فشرده‌سازی و WebSocket).</p>
       </section>
 
       <section>
-        <h2>فهرست مطالب</h2>
+        <h2>۲. مرور HTTP و یک سرور TCP ساده</h2>
+        <p>کتاب با مرور پروتکل HTTP شروع می‌کند: درخواست و پاسخ، متدها، کدهای وضعیت و سربرگ‌ها — سپس به
+        برنامه‌نویسی شبکه می‌پردازد. اولین پروژه، یک سرور TCP خام است که فقط اتصال می‌گیرد و داده را به‌صورت خام
+        می‌فرستد و می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>const net = require('net');
 
-        <h3>بخش اول: ساخت یک سرور HTTP پایه</h3>
+// یک سرور TCP ساده: به هر اتصال سلام می‌کند
+const server = net.createServer((socket) =&gt; {
+    console.log('کلاینت وصل شد');
+
+    socket.on('data', (data) =&gt; {
+        console.log('دریافت:', data.toString());
+        socket.write('سلام از سرور!\r\n');
+    });
+
+    socket.on('close', () =&gt; console.log('اتصال بسته شد'));
+});
+
+server.listen(8000, () =&gt; console.log('سرور روی پورت 8000'));</code></pre>
+        <p>فصل بعدی <b>Promise و رویدادها</b> است: مدل رویدادمحور Node (Event Loop)، فراخوانی‌ها (callbacks)،
+        وعده‌ها و async/await — چون سرورهای شبکه ذاتاً ناهمگام‌اند. سپس با همین ابزار یک <b>پروتکل شبکه ساده</b>
+        روی TCP تعریف می‌شود تا ببینیم پروتکل‌ها چگونه «قالب پیام» و «ماشین حالت» دارند.</p>
+      </section>
+
+      <section>
+        <h2>۳. معناشناسی و نحو HTTP</h2>
+        <p>قبل از نوشتن سرور HTTP، باید HTTP را درست بشناسیم. این فصل نحو و معناشناسی HTTP را به‌طور کامل باز
+        می‌کند:</p>
+        <ul>
+          <li><b>ساختار درخواست</b>: خط درخواست (<code>METHOD path HTTP/version</code>)، سربرگ‌ها
+          (<code>Header: value</code>) و بدنه (اختیاری، با <code>Content-Length</code>).</li>
+          <li><b>ساختار پاسخ</b>: خط وضعیت (<code>HTTP/version status reason</code>)، سربرگ‌ها و بدنه.</li>
+          <li><b>متدها</b>: GET، POST، HEAD و...؛ <b>کدهای وضعیت</b>: 200، 404، 301 و...؛ <b>سربرگ‌های
+          کلیدی</b>: <code>Host</code>، <code>Content-Type</code>، <code>Content-Length</code> و... .</li>
+          <li><b>نگهداری اتصال</b>: <code>Connection: keep-alive</code> و مرز دقیق پیام‌ها — جایی که بیشتر
+          سرورهای تازه‌کار می‌شکنند، چون نمی‌دانند یک درخواست کجا تمام می‌شود.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. کدنویسی یک سرور HTTP پایه</h2>
+        <p>حالا نوبت پیاده‌سازی است: روی سرور TCP قبلی، پارسر درخواست، سازنده پاسخ و مسیریابی ساده می‌نشینند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>const net = require('net');
+
+const server = net.createServer((socket) =&gt; {
+    let buf = '';
+
+    socket.on('data', (data) =&gt; {
+        buf += data.toString();
+
+        // یک درخواست کامل وقتی تمام می‌شود که \r\n\r\n ببینیم
+        const headerEnd = buf.indexOf('\r\n\r\n');
+        if (headerEnd === -1) return; // هنوز کامل نیست؛ صبر کن
+
+        const requestLine = buf.slice(0, buf.indexOf('\r\n'));
+        const [method, path, version] = requestLine.split(' ');
+
+        console.log(`${method} ${path}`);
+
+        const body = 'Hello, World!';
+        const response =
+            'HTTP/1.1 200 OK\r\n' +
+            `Content-Length: ${body.length}\r\n` +
+            'Content-Type: text/plain\r\n' +
+            '\r\n' +
+            body;
+
+        socket.write(response);
+        socket.end();
+    });
+});
+
+server.listen(8000, () =&gt; console.log('سرور HTTP روی پورت 8000'));</code></pre>
+        <p>مطابق سنت «ساخت از صفر»، این پیاده‌سازی <code>http</code> خودِ Node را کنار می‌گذارد و از
+        <code>net</code> پایه استفاده می‌کند تا همه لایه‌ها دست‌ساز باشد — سپس همان منطق با کتابخانه استاندارد
+        مقایسه می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۵. بخش دوم: توسعه‌ها</h2>
+        <p>بخش دوم، سرور پایه را به یک سرور واقعی نزدیک می‌کند، فصل به فصل:</p>
         <ol>
-          <li>مقدمه</li>
-          <li>مرور HTTP</li>
-          <li>کدنویسی یک سرور TCP</li>
-          <li>پرامیس‌ها (Promises) و رویدادها</li>
-          <li>یک پروتکل شبکهٔ ساده</li>
-          <li>معنا و نحو (Semantics and Syntax) HTTP</li>
-          <li>کدنویسی یک سرور HTTP پایه</li>
+          <li><b>محتوای پویا و جریان (Streaming)</b>: تولید پاسخ‌ها در لحظه به‌جای رشته‌های از پیش ساخته؛
+          معرفی <b>Stream API</b> در Node (شبیه خط لوله: <code>readable.pipe(writable)</code>).</li>
+          <li><b>ورودی/خروجی فایل و مدیریت منابع</b>: سرو فایل‌ها از دیسک، MIME Typeها و مدیریت صحیح خطا و
+          اتصال‌های قطع‌شده.</li>
+          <li><b>درخواست‌های Range</b>: پشتیبانی از سربرگ <code>Range</code> و پاسخ <code>206 Partial
+          Content</code> — همان چیزی که ویدیوهای پخش‌شونده به آن وابسته‌اند.</li>
+          <li><b>کش HTTP</b>: سربرگ‌های <code>Cache-Control</code>، <code>ETag</code> و
+          <code>Last-Modified</code> برای جلوگیری از ارسال دوباره محتوای بدون تغییر.</li>
+          <li><b>فشرده‌سازی</b>: پشتیبانی از <code>Accept-Encoding</code> و پاسخ gzip با Stream API —
+          فشرده‌سازی «در حال جریان» بدون نگه‌داشتن کل فایل در حافظه.</li>
+          <li><b>WebSocket و همزمانی</b>: ارتقای دست‌ساز اتصال از HTTP به WebSocket (دست دادن با
+          <code>Upgrade</code>، قاب‌بندی فریم‌ها با ماسک و) و مدیریت همزمانی اتصال‌های باز.</li>
         </ol>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// سرو فایل از دیسک با جریان: حافظه را اشغال نمی‌کند
+const fs = require('fs');
+const path = require('path');
 
-        <h3>بخش دوم: برنامه‌ها و افزونه‌ها</h3>
-        <ol start="8">
-          <li>محتوای پویا و استریمینگ</li>
-          <li>فایل IO و مدیریت منابع</li>
-          <li>درخواست‌های برد (Range Requests)</li>
-          <li>کش‌کردن HTTP</li>
-          <li>فشرده‌سازی و Stream API</li>
-          <li>WebSocket و همروندی</li>
-        </ol>
-      </section>
+function serveFile(socket, filePath) {
+    const full = path.join(__dirname, 'public', filePath);
+    const stat = fs.statSync(full);
 
-      <section>
-        <h2>نسخه‌های PDF/EPUB و چاپی</h2>
-        <p>کتاب کامل برای خرید در دسترس است — نسخهٔ آنلاین رایگان بخش‌های اصلی را پوشش می‌دهد. در فهرست «Recommended Reading» نویسنده این منابع مکمل را پیشنهاد کرده است:</p>
-        <ul>
-          <li><strong>High Performance Browser Networking</strong> نوشتهٔ Ilya Grigorik — تمرکز بر ساخت برنامه‌های شبکهٔ سریع؛ کتابی عملی دربارهٔ شبکه برای انواع توسعه‌دهنده‌ها.</li>
-          <li><strong>Eloquent JavaScript</strong> نوشتهٔ Marijn Haverbeke — اگر برنامه‌نویس JS نیستید اما می‌خواهید این پروژه را دنبال کنید و یک سرور HTTP بنویسید، JS یکی از ساده‌ترین زبان‌ها برای شروع است.</li>
-        </ul>
-      </section>
+    socket.write('HTTP/1.1 200 OK\r\n');
+    socket.write(`Content-Length: ${stat.size}\r\n`);
+    socket.write('Content-Type: text/html; charset=utf-8\r\n');
+    socket.write('\r\n');
 
-      <section>
-        <h2>چرا از صفر بسازیم؟</h2>
-        <p>پروژه‌های «Build Your Own X» این‌جا در build-your-own.org شامل Redis، پایگاه داده، کامپایلر و وب سرور هستند. این رویکرد به شما اجازه می‌دهد همان‌طور که چرخ را دوباره اختراع می‌کنید، عمیقاً بفهمید چرخ واقعاً چگونه کار می‌کند — چیزی که هیچ آموزش سطح بالایی نمی‌تواند جایگزینش کند.</p>
-        <p>پس از این مقدمه، با فصل «HTTP Overview» شروع کنید، سپس یک سرور TCP با Node.js بسازید (ماژول <code class="inline">net</code>)، یک پروتکل ساده طراحی کنید و در نهایت سرور HTTP خودتان را با مفاهیم نحو و معنا (syntax و semantics) HTTP کامل کنید؛ در بخش دوم هم محتوای پویا، فایل IO، Range Requests، کش، فشرده‌سازی و نهایتاً WebSocket را اضافه می‌کنید.</p>
+    // فایل را قطعه‌قطعه به سمت کلاینت جریان بده
+    const stream = fs.createReadStream(full);
+    stream.pipe(socket);
+}</code></pre>
+        <div class="callout tip">
+          نکته: متن کامل کتاب (شامل ۱۳ فصل با تمرین و نسخه کامل کد) قابل خرید است؛ نسخه وبِ فصل‌های بخش اول
+          رایگان و در دسترس است. اگر جاوااسکریپت بلد نیستید، «Eloquent JavaScript» منبع پیشنهادی خود کتاب است.
+        </div>
       </section>
 
       <div class="callout note">
-        <strong>کپیرایت:</strong> کتاب «Build Your Own Web Server From Scratch In Node.JS» اثر «جیمز اسمیت (James Smith)» است که در build-your-own.org منتشر شده.
-        این صفحه فقط ترجمه فارسی مقدمه و فهرست آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <strong>کپیرایت:</strong> کتاب «Build Your Own Web Server From Scratch In Node.JS» اثر جیمز اسمیت
+        (James Smith) و متعلق به build-your-own.org است. این صفحه فقط ترجمه فارسی معرفی و خلاصه فصول آن است و
+        تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
         <a href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
       </div>
     </article>

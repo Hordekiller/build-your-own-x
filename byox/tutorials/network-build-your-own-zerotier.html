@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYOX | VPN/سوییچ مجازی خودت را بساز</title>
+  <title>BYOX | ZeroTier خودت را بساز — سوییچ لایه‌ی ۲ در کمتر از ۳۰۰ خط</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=2" />
 </head>
@@ -28,20 +28,21 @@
         <span class="sep">←</span>
         <a href="../index.html">پشته شبکه</a>
         <span class="sep">←</span>
-        <span>VPN/سوییچ مجازی خودت را بساز</span>
+        <span>ZeroTier خودت را بساز</span>
       </div>
-      <h1>Zerotier خودت را بساز — سوییچ مجازی لایه ۲ با کمتر از ۳۰۰ خط</h1>
+      <h1>ZeroTier خودت را بساز — سوییچ لایهٔ ۲ در کمتر از ۳۰۰ خط کد</h1>
       <div class="meta-row">
-        <span class="meta-badge">⚙ زبان: C / Python</span>
+        <span class="meta-badge">⚙ زبان: C + Python</span>
         <span class="meta-badge">✅ ترجمه شده</span>
         <span class="meta-badge"><a href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی README پروژهٔ «Build your own Zerotier» از <b>peiyuanix</b>
-          است — پیاده‌سازی یک VPN لایه ۲ (سوییچ مجازی) با کمتر از ۳۰۰ خط کد: سرور VSwitch (Python) +
-          کلاینت VPort (C).
+          <b>منبع اصلی:</b> ترجمهٔ فارسی «Build your own ZeroTier» از
+          <b>پی‌یوان (peiyuanix)</b> — پیاده‌سازی مفاهیم VPN مدرن ZeroTier بدون اعداد و رمزنگاری پیچیده:
+          سوییچ لایهٔ ۲ همه‌جا-حاضر (Everywhere Layer-2 Switch) با دو مؤلفهٔ VSwitch و VPort،
+          در کمتر از ۳۰۰ خط کد با یک TAP در C و یک حلقهٔ پخش در Python.
         </div>
         <a class="btn solid" href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
@@ -49,103 +50,163 @@
 
     <article class="content">
       <section>
-        <h2>۱. این پروژه چیست؟</h2>
-        <p>این پروژه یک <b>VPN لایه ۲</b> شبیه به ZeroTier (یا به‌عبارتی یک سوییچ مجازی) پیاده‌سازی می‌کند.
-        رفتار یک سوییچ شبکه فیزیکی را شبیه‌سازی می‌کند: سرویس تبادل فریم اترنت برای دستگاه‌هایی که به پورت‌های
-        سوییچ وصل‌اند. تفاوت این‌جاست که پورت‌های این سوییچ مجازی می‌توانند از طریق اینترنت به دستگاه‌هایی
-        در سراسر دنیا متصل شوند و برای سیستمعامل، همه آن‌ها مثل یک شبکه محلی واحد دیده می‌شوند.</p>
-      </section>
-
-      <section>
-        <h2>۲. دانش پس‌زمینه</h2>
-        <p><b>سوییچ شبکه چیست؟</b> سخت‌افزاری است که دستگاه‌های شبکه را به هم متصل می‌کند و داده را با سوئیچینگ
-        بسته به مقصد می‌فرستد. یک سوییچ، «پل چندپورته» است که با آدرس‌های MAC در لایه ۲ (نوک OSI) ارسال می‌کند.
-        در هنگام ارسال، سوییچ از «جدول ارسال» برای یافتن پورت متناظر با آدرس مقصد استفاده می‌کند. در سوییچ،
-        این جدول «جدول آدرس MAC» نام دارد: نگه‌دارنده آدرس‌های MAC شناخته‌شده و پورت‌هایشان. وقتی فریم می‌رسد،
-        مقصد را در جدول جست‌وجو می‌کند و فقط به همان پورت می‌فرستد؛ اگر مقصد در جدول نبود، به‌جز پورت مبدا به
-        همه پورت‌ها پخش می‌کند تا دستگاه هدف پاسخ دهد و جدول به‌روز شود.</p>
-        <p>در این پروژه، برنامه‌ای به نام <b>VSwitch</b> نقش سوییچ مجازی را بازی می‌کند.</p>
-      </section>
-
-      <section>
-        <h2>۳. دستگاه شبکه مجازی TAP</h2>
-        <p>دستگاه TAP یک رابط شبکه مجازی است که مانند رابط فیزیکی توسط سیستمعامل دیده و استفاده می‌شود؛
-        پیاده‌سازی‌اش در هسته است. وقتی بسته‌ای از TAP ارسال می‌شود، به‌جای سخت‌افزار، به برنامه کاربر رسانده
-        می‌شود؛ برنامه می‌تواند آن را پردازش و به دستگاه‌های دیگر بفرستد. در این پروژه، TAP رابط بین کامپیوتر
-        کلاینت و سوییچ مجازی است.</p>
-      </section>
-
-      <section>
-        <h2>۴. معماری سیستم</h2>
+        <h2>۱. ZeroTier چیست و چرا باید خودت بسازی؟</h2>
+        <p><a href="https://www.zerotier.com/" target="_blank" rel="noopener">ZeroTier</a> یک پروژهٔ
+        متن‌باز است که مانند یک شبکهٔ محلی، کارت شبکهٔ مجازی (Virtual Network Interface) با اتصال‌های
+        همتا-به-همتا (P2P) ایجاد می‌کند؛ در نتیجه ماشین‌های شما می‌توانند مثل اینکه کابل اترنت به‌هم متصل‌اند،
+        به IPهای یکدیگر ping، SSH و REACH بزنند — از هر کجای دنیا.</p>
+        <p>تولید این قابلیت پیچیده به نظر می‌رسد؛ اما برای ساختن یک نسخهٔ ساده‌شدهٔ عملیاتی، فقط به
+        دو مؤلفهٔ زیر نیاز دارم؛ با هم کاری می‌کنند که «درستی آن با یک پینگ ثابت می‌شود»:</p>
         <ul>
-          <li><b>سرور (VSwitch)</b> — رفتار سوییچ فیزیکی را شبیه‌سازی می‌کند:</li>
-          <li style="list-style:none;margin-right:1.2rem">سرویس تبادل فریم اترنت برای کامپیوترهایی که با VPort متصل‌اند؛ جدول MAC (آدرس → پورت) نگه می‌دارد و ارسال را بر این اساس انجام می‌دهد.</li>
-          <li><b>کلاینت (VPort)</b> — رفتار پورت فیزیکی را شبیه‌سازی می‌کند: یک سر به هسته (کامپیوتر) از طریق TAP وصل است و سر دیگر به VSwitch با سوکت UDP.</li>
+          <li><b>VSwitch</b> — منطقهٔ مرکزی تصمیم‌گیری (ثبت MAC، نگاشت به «پرت»، پخش). به زبان Python.</li>
+          <li><b>VPort</b> — پرتِ دستگاه‌های همسایه (واسط TAP + فرستندهٔ UDP). به زبان C.</li>
         </ul>
-        <pre class="code"><span class="lang-tag">text</span><code>            +----------------------------------------------+
-            |                   VSwitch                    |
-            |   جدول MAC:  11:11:11:11:11 ↔ VPort-1        |
-            |               aa:aa:aa:aa:aa ↔ VPort-a        |
-            +--------+---------------------------+---------+
-                     |                           |
-              UDP (فریم اترنت)            UDP (فریم اترنت)
-                     |                           |
-            +--------v---------+        +--------v---------+
-            | VPort | TAP       |        | VPort | TAP       |
-            +--------------------+      +--------------------+
-                     |                           |
-            کامپیوتر A (هسته لینوکس)     کامپیوتر B (هسته لینوکس)</code></pre>
-        <p>مسیر بسته: هسته کامپیوتر ← [TAP] ← فریم اترنت ← [UDP] ← VSwitch — و برعکس.</p>
+        <p>معماری: هستهٔ VSwitch روی میزبان مرکزی اجرا می‌شود؛ هر «کاربر نهایی» یک VPort اجرا می‌کند که با
+        TAP، به هستهٔ لینوکس وصل است و فریم‌های اترنت را با UDP به VSwitch می‌رساند. نتیجهٔ کل فقط
+        <b>کمتر از ۳۰۰ خط کد</b> است!</p>
       </section>
 
       <section>
-        <h2>۵. ساختار کد</h2>
-        <ul>
-          <li><code>vswitch.py</code> — کد VSwitch (سرور): مدیریت جدول MAC و ارسال فریم‌ها.</li>
-          <li><code>vport.c</code> — کد VPort (کلاینت): رله فریم بین TAP و UDP.</li>
-          <li><code>tap_utils.c / tap_utils.h</code> — ابزارهای ساخت و پیکربندی TAP.</li>
-          <li><code>setup.sh</code> و <code>Makefile</code> — وابستگی‌ها و ساخت.</li>
-        </ul>
-        <p>ساخت پروژه فقط اجرای <code>make</code> است.</p>
+        <h2>۲. VPort — کارت شبکهٔ مجازی به زبان C (فایل vport.c)</h2>
+        <p>VPort دو کار ایستگاه دارد: (۱) فریم‌های L2 را از طریق یک گروه <b>TAP</b> از لینوکس بگیرد، و
+        (۲) فریم‌ها را از طریق <b>UDP</b> به VSwitch برساند (و برعکس). با ساختار زیر:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#define TAP_DEV "/dev/net/tun"
+#define UDP_PORT 9999
+
+struct vport {
+    int tap_fd;      /* fd دستگاه TAP (توسط tun_alloc) */
+    int udp_fd;      /* fd سوکت UDP متصل به VSwitch */
+    struct sockaddr_in vswitch_addr;
+    char mac[6];     /* MAC ساختگی این پرت */</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>/* --- tun_alloc: ساخت واسط TAP -- */
+int tun_alloc(char *dev) {
+    struct ifreq ifr;
+    int fd, err;
+
+    if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
+        return -1;
+
+    memset(&amp;ifr, 0, sizeof(ifr));
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;   /* TAP و بدون بسته-اطلاعات */
+    if (*dev) strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+
+    err = ioctl(fd, TUNSETIFF, (void *)&amp;ifr);
+    if (err < 0) { close(fd); return err; }
+    strcpy(dev, ifr.ifr_name);
+    return fd;
+}</code></pre>
+        <p>حلقهٔ اصلی VPort: یک read از TAP یا یک recvfrom از UDP؛ چون هر دو side اثر blocking دارند،
+        از <code>select()</code> استفاده می‌کنیم تا همزمان به هر دو گوش دهیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>for (;;) {
+    fd_set rfds; FD_ZERO(&amp;rfds);
+    FD_SET(vp-&gt;tap_fd, &amp;rfds); FD_SET(vp-&gt;udp_fd, &amp;rfds);
+    select(max_fd + 1, &amp;rfds, NULL, NULL, NULL);
+
+    if (FD_ISSET(vp-&gt;tap_fd, &amp;rfds)) {
+        /* فریم از لینوکس آمده: برو سمت VSwitch */
+        n = read(vp-&gt;tap_fd, frame, sizeof frame);
+        sendto(vp-&gt;udp_fd, frame, n, 0,
+               (struct sockaddr *)&amp;vp-&gt;vswitch_addr, sizeof vp-&gt;vswitch_addr);
+    }
+
+    if (FD_ISSET(vp-&gt;udp_fd, &amp;rfds)) {
+        /* فریم از VSwitch آمده: به TAP تزریق کن */
+        n = recvfrom(vp-&gt;udp_fd, frame, sizeof frame, 0, NULL, NULL);
+        write(vp-&gt;tap_fd, frame, n);
+    }
+}</code></pre>
       </section>
 
       <section>
-        <h2>۶. راه‌اندازی</h2>
-        <p>پیش‌نیازها: یک سرور با IP عمومی برای VSwitch، و حداقل دو کلاینت. فرض کنید IP سرور
-        <code>SERVER_IP</code> و پورت آن <code>SERVER_PORT</code> است:</p>
-        <pre class="code"><span class="lang-tag">bash</span><code># مرحله ۱: روی سرور با IP عمومی، VSwitch را اجرا کن
-python3 vswitch.py ${SERVER_PORT}
+        <h2>۳. VSwitch — منطق تصمیم‌گیری به زبان Python (فایل vswitch.py)</h2>
+        <p>سویچ باید خودش یک «پرت» باشد: با هر VPort که به او متصل می‌شود. برای سادگی، نقشهٔ پورت و MAC
+        در حافظه است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>"""vswitch.py — یک سوییچ L2 بی‌حال."""
+import socket
 
-# مرحله ۲: روی کلاینت ۱، VPort را اجرا و TAP را پیکربندی کن
-sudo ./vport ${SERVER_IP} ${SERVER_PORT}
-sudo ip addr add 10.1.1.101/24 dev tapyuan
-sudo ip link set tapyuan up
+UDP_PORT = 9999
+MAC_TABLE = {}          # mac → آدرس (ip, port) پرت
+PORT_MAP  = {}          # (ip, port) → macهای دیده‌شده با آن پرت
 
-# مرحله ۳: همین‌طور روی کلاینت ۲ (با آدرس دیگر)
-sudo ./vport ${SERVER_IP} ${SERVER_PORT}
-sudo ip addr add 10.1.1.102/24 dev tapyuan
-sudo ip link set tapyuan up</code></pre>
-        <pre class="code"><span class="lang-tag">bash</span><code># مرحله ۴: تست با ping — از کلاینت ۱ به کلاینت ۲
-ping 10.1.1.102</code></pre>
-        <p>اگر ping جواب داد، کامپیوترها حین شبکه مجازی، طوری داده رد و بدل می‌کنند که انگار یک LAN فیزیکی
-        هستند.</p>
-        <div class="callout tip">
-          نکته: مجوز sudo و ماژول TUN/TAP هسته لازم است. برای سرور عمومی می‌توانید یک ماشین مجازی ابری ارزان
-          بگیرید و همان‌جا تست کنید.
-        </div>
+def main():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("", UDP_PORT))
+    print(f"VSwitch listening on UDP {UDP_PORT}")
+
+    while True:
+        frame, addr = s.recvfrom(65535)
+        print(f"\nGot {len(frame)} bytes from {addr}")
+
+        src_mac = frame[6:12].hex(":")
+        dst_mac = frame[0:6].hex(":")
+
+        # ۱. یادگیری: مبدا را به پورت‌ش نقشه کن
+        MAC_TABLE[src_mac] = addr
+        print(f"  Learn: {src_mac} → {addr}")
+
+        if dst_mac == "ff:ff:ff:ff:ff:ff":
+            # ۲. پخش: به همهٔ پرت‌ها جز فرستنده
+            for a in set(MAC_TABLE.values()):
+                if a != addr:
+                    s.sendto(frame, a)
+        elif dst_mac in MAC_TABLE:
+            # ۳. ارسال تک‌به-تک: فقط پرتِ مقصد
+            s.sendto(frame, MAC_TABLE[dst_mac])
+        else:
+            # ۴. ناشناخته: مثل پخش، بعداً یاد می‌گیریم
+            for a in set(MAC_TABLE.values()):
+                if a != addr:
+                    s.sendto(frame, a)
+
+if __name__ == "__main__":
+    main()</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. استقرار و آزمایش: با یک پینگ اثباتش کن</h2>
+        <p>نکته: <code>vport.c</code> برای ساخت TAP به دسترسی روت نیاز دارد؛ ولی وقتی TAP ساخته شد و آدرس
+        IP به آن دادیم، تابع‌های <code>read/write</code> با مجوز عادی کار می‌کنند.</p>
+        <pre class="code"><span class="lang-tag">bash</span><code># ۱. VSwitch را روی ماشین مرکزی اجرا کن
+python3 vswitch.py
+
+# ۲. VPort را روی هر ماشین بساز و اجرا کن
+make
+sudo ./vport  # آدرس VSwitch را در کد تنظیم کن
+
+# ۳. برای واسط TAP ساخته‌شده (مثلاً l2vpn0) آدرس IP تنظیم کن
+sudo ip addr add 192.168.0.1/24 dev l2vpn0
+sudo ip link set l2vpn0 up
+
+# ۴. از طرف دیگر همین‌ها را تکرار کن و پینگ بزن
+ping 192.168.0.2</code></pre>
+        <p>اگر خروجی VSwitch در حین پینگ، «Learn»های pong (پاسخ ARP و ICMP) را نشان دهد، یعنی ساختار
+        کامل کار می‌کند: دو ماشین واقعی مثل اینکه کابل اترنت به هم وصل دارند، بدون هیچ زیرساخت وسط،
+        از طریق UDP با هم حرف می‌زنند.</p>
+      </section>
+
+      <section>
+        <h2>۵. بعدش چه؟</h2>
+        <p>نسخهٔ اصلی ZeroTier، فریم اترنت را در یک <b>پروتکل تونل خودش</b> بسته‌بندی می‌کند، نه UDP خام؛
+        و (مهم‌ترینش) <b>رمزنگاری از سر تا سر</b> را با کلیدهای عمومی (curve25519) و رمز AES انجام می‌دهد.
+        در نسخهٔ ما هرکس می‌تواند فریم‌ها را بخواند یا تغییر دهد! ایده‌های تکامل: شمارندهٔ ترتیب و auth token
+        برای جلوگیری از replay، جدول MAC با انقضای زمانی (Timeout) و حذف قدیمی‌ها، هم‌زمانی با thread یا
+        async برای مقیاس‌پذیری، و پشتیبانی IPv4/IPv6/Ethernet باهم.</p>
+        <p>مخزن کامل: <a href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">peiyuanix/build-your-own-zerotier</a></p>
       </section>
 
       <div class="callout note">
-        <strong>کپیرایت:</strong> پروژه «Build your own Zerotier» اثر peiyuanix است (مجوز MIT). این صفحه فقط
-        ترجمه فارسی README آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
-        <a href="https://github.com/peiyuanix/build-your-own-zerotier" target="_blank" rel="noopener">ریپوی گیت‌هاب</a> مراجعه کنید.
+        <strong>کپیرایت:</strong> پروژهٔ «build-your-own-zerotier» اثر پی‌یوان (peiyuanix) است و با
+        مجوز MIT منتشر شده است. این صفحه فقط معرفی و ترجمهٔ فارسی آن است؛ تمام حقوق کدها متعلق به نویسندهٔ
+        اصلی است.
       </div>
     </article>
   </main>
 
   <footer>
     <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
-    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
 
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYOX | بیایید یک شل بسازیم — کارگاه شل در C</title>
+  <title>BYOX | بیایید یک شل بسازیم — کارگاه «شل در C» (kamalmarhubi)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=2" />
 </head>
@@ -28,9 +28,9 @@
         <span class="sep">←</span>
         <a href="../index.html">شل</a>
         <span class="sep">←</span>
-        <span>کارگاه شل — Let's build a shell!</span>
+        <span>یک شل بسازیم!</span>
       </div>
-      <h1>بیایید یک شل بسازیم — کارگاه «شل در C» (kamalmarhubi)</h1>
+      <h1>بیایید یک شل بسازیم! — کارگاه «شل در C» (Let's Build a Shell)</h1>
       <div class="meta-row">
         <span class="meta-badge">⚙ زبان: C</span>
         <span class="meta-badge">✅ ترجمه شده</span>
@@ -39,10 +39,9 @@
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کارگاه «Let's build a shell!» از
-          <b>کمال مرهوبی</b> (Kamal Marhubi) است — مخزن <code>kamalmarhubi/shell-workshop</code>
-          شامل آموزش تمرینی گام‌به‌گام (با کد اسکلت و تمرین‌های شماره‌دار) برای ساخت شل در C، با تمرکز
-          روی اجرای فرایندها و کنترل ورودی/خروجی با pipe ها.
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Let's build a shell!» از <b>کمال مرهوبی (Kamal Marhubi)</b>
+          است — مطالب کارگاه Strange Loop 2014: ساخت گام‌به‌گام یک شل C با fork، exec، wait، builtinها و
+          پایپ‌ها با ۸ تمرین عملی، به‌همراه کد اسکلت و توابع کمکی.
         </div>
         <a class="btn solid" href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
@@ -50,81 +49,249 @@
 
     <article class="content">
       <section>
-        <h2>معرفی کارگاه</h2>
-        <p>بیشتر ما هر روز از یک شل استفاده می‌کنیم، اما آن را بدیهی می‌دانیم و نمی‌دانیم (و اهمیت نمی‌دهیم) که چطور کار می‌کند. این کارگاه با ساخت یک شل شخصی، کمی به درون آن سر می‌کشد. تمرکز بر <strong>نحوهٔ راه‌اندازی فرایندها</strong> و <strong>کنترل ورودی/خروجی آن‌ها با pipe</strong> است؛ چیزهایی مثل گسترش متغیرهای محیطی و مدیریت سیگنال را عمداً کنار می‌گذارد و در پایان پیشنهادهایی برای ادامه می‌دهد.</p>
-        <p><strong>قانون ۰:</strong> «هیچ علاقه‌ای به درگیر شدن با جزئیات به‌هم‌ریخته نداریم»: مدیریت حافظه، تجزیه و توکن‌سازی و مدیریت خطای «حرفه‌ای» — برای همین یک تابع آمادهٔ <code>parse_command</code> در اسکلت پروژه هست. توصیهٔ مهم: حتماً از یک سیستم کنترل نسخه استفاده کنید و مرتب commit بگیرید.</p>
+        <h2>۱. مقدمه — این کارگاه روی چه چیزی تمرکز دارد؟</h2>
+        <p>بیشتر ما دست‌کم گاهی از شل استفاده می‌کنیم؛ بعضی‌ها بیشتر وقت‌شان را در آن می‌گذرانند. اغلب آن را
+        بدیهی می‌گیریم و نمی‌دانیم (و اهمیت نمی‌دهیم) که کارش را چطور انجام می‌دهد. در این کارگاه، با ساختن شل
+        خودمان کمی در این‌باره کنکاش می‌کنیم!</p>
+        <p>شل‌ها کارکردهای بسیار مختلفی دارند. این کارگاه روی اینکه <b>فرایندها چگونه راه‌اندازی می‌شوند</b> و
+        <b>چطور ورودی/خروجی آن‌ها با پایپ کنترل می‌شود</b> متمرکز است. چیزهایی مثل توسعه متغیرهای محیطی و
+        پردازش سیگنال را کنار می‌گذاریم، اما در پایان چند جهت دیگر برای ادامه می‌دهیم.</p>
+        <p><b>قانون ۰:</b> به‌طور خاص، هیچ علاقه‌ای به سروکله زدن با مشتی جزئیات کثیف نداریم، شامل (ولی نه
+        محدود به):</p>
+        <ul>
+          <li>مدیریت حافظه</li>
+          <li>پارس/توکن‌سازی و سایر پردازش‌های متنی</li>
+          <li>مدیریت خطای «مناسب»</li>
+        </ul>
+        <p>برای همین تابع <code>parse_command</code> و سایر توابع کمکی از قبل برایتان آماده است؛ روی
+        فایده‌مندترین بخش‌ها تمرکز کنید.</p>
       </section>
 
       <section>
-        <h2>تمرین‌ها — قدم به قدم</h2>
-        <h3>۱. نام شل و خواندن ورودی</h3>
-        <p>مهم‌ترین کار اول، انتخاب نام برای شل و اعلان (prompt) آن است؛ نویسنده هنگام ساخت کارگاه <code>heeee&gt;</code> را انتخاب کرده بود! اولین تمرین: حلقهٔ اصلی شل را بنویسید که مدام خطی از کاربر بگیرد و تا حالا فقط آن را چاپ کند (شلی که شبیه cat شخصی‌سازی‌شده است):</p>
+        <h2>۲. شروع: نام شل و خواندن ورودی</h2>
+        <p>مهم‌ترین کار برای شروع، انتخاب <b>نام شل</b> و <b>پرامپت</b> آن است! نویسنده در حین آماده‌سازی کارگاه
+        با <code>heeee&gt;</code> پیش رفت؛ یک تعامل نمونه:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>heeee&gt; ls
+shell   shell.c</code></pre>
+        <p><b>تمرین ۱:</b> تابع main شل را طوری تنظیم کنید که به‌طور مداوم از کاربر یک خط بگیرد و فعلاً فقط آن
+        خط را دوباره چاپ کند — شل ما یک «cat کمی شخصی‌تر» است! این قطعه برای خواندن خط در C به متغیر
+        <code>line</code> است:</p>
         <pre class="code"><span class="lang-tag">c</span><code>char *line = NULL;
 int capacity = 0;
 getline(&amp;line, &amp;capacity, stdin);</code></pre>
-        <h3>۲. سیستم‌کال‌ها</h3>
-        <p>برای اجرای دستور به کمک هسته نیاز داریم: برنامه با هسته از طریق <strong>سیستم‌کال‌ها</strong> حرف می‌زند؛ مثل باز کردن فایل (<code>open</code>)، خواندن/نوشتن (<code>read</code>/<code>write</code>)، ارسال داده از شبکه (<code>sendto</code>/<code>recvfrom</code>) و <strong>شروع برنامه</strong> (<code>execve</code>). تقریباً هر تعامل برنامه با «دنیای واقعی» یک سیستم‌کال است. برای ما، اجرای برنامه یعنی سیستم‌کال <code>execve</code> با wrapper ای به‌نام <code>execvp</code>.</p>
-        <h3>۳. اجرای برنامه</h3>
-        <p>هنگام اجرا، برنامه یک آرایهٔ آرگومان به‌نام <code>argv</code> می‌گیرد که طبق قرارداد اولی‌اش نام برنامه است؛ برای <code>ls -l /tmp</code> آرایه برابر <code>{"ls", "-l", "/tmp"}</code> است. تمرین ۲: بعد از خواندن خط، دستور را با آرگومان‌هایش اجرا کنید. چیزی غیرمنتظره پیش آمد؟</p>
-        <h3>۴. fork — چرا شل‌تان «دود شد»؟</h3>
-        <p>در تمرین قبل، بعد از پایان برنامه، به اعلان شل‌تان برنگشتید و مستقیم به شل معمولی پرت شدید! چون <code>exec</code> فرایند فعلی را <em>تبدیل</em> به دستور می‌کند — یعنی شل با <code>ls</code> جایگزین شد. راه‌حل، سیستم‌کال <code>fork</code> است: فرایندی جدید می‌سازد که کلونِ فرایند فعلی است (حتی در همان نقطهٔ اجرای برنامه). بعد در فرزندِ تازه‌ساخته <code>exec</code> را صدا می‌زنیم و شل زنده می‌ماند. مقدار بازگشتی <code>fork</code> می‌گوید کجا هستیم: <code>0</code> یعنی فرزند، و شناسهٔ فرایند یعنی والد.</p>
+      </section>
+
+      <section>
+        <h2>۳. فراخوانی سیستم (System Calls)</h2>
+        <p>حالا که می‌توانیم دستور کاربر را بخوانیم، باید آن را اجرا کنیم. برای این کار به کمک هسته نیاز داریم —
+        هسته مسئول بیشتر چیزهای مرتبط با فرایندهاست (به‌علاوه خیلی چیزهای دیگر).</p>
+        <p>راه صحبت برنامه‌های ما با هسته، <b>فراخوانی‌های سیستم</b> است؛ عملیاتی که به هسته می‌گوییم به‌جای ما
+        انجام دهد. مثال‌ها:</p>
+        <ul>
+          <li>باز کردن فایل‌ها (<code>open</code>)</li>
+          <li>خواندن و نوشتن در آن‌ها (<code>read</code>، <code>write</code>)</li>
+          <li>فرستادن و گرفتن داده از شبکه (<code>sendto</code>، <code>recvfrom</code>)</li>
+          <li>شروع برنامه‌ها (<code>execve</code>)</li>
+        </ul>
+        <p>در واقع تقریباً هر چیزی که شامل تعامل برنامه‌های ما با «دنیای واقعی» باشد، شامل فراخوانی سیستم است.
+        الان به اجرای یک برنامه علاقه‌مندیم؛ برای این کار از فراخوانی <code>execve</code> استفاده می‌کنیم — و از
+        تابع پوششی به نام <code>execvp</code>.</p>
+      </section>
+
+      <section>
+        <h2>۴. اجرای یک برنامه و argv</h2>
+        <p>قبل از اجرای برنامه، باید بفهمیم آرگومان‌های برنامه چگونه پاس داده می‌شوند. وقتی برنامه‌ای اجرا
+        می‌شود، آرایه‌ای از آرگومان‌ها می‌گیرد که به‌طور سنتی <code>argv</code> نام دارد. طبق قرارداد، اولینِ
+        آن‌ها نام برنامه است. پس وقتی چیزی مثل <code>ls -l /tmp</code> اجرا می‌کنیم، <code>argv</code>ی که
+        <code>ls</code> می‌گیرد عبارت است از <code>{ "ls", "-l", "/tmp" }</code>.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>/* آرگومان‌ها: { "ls", "-l", "/tmp" } */
+char *argv[] = { "ls", "-l", "/tmp", NULL };
+execvp("ls", argv);   /* اگر موفق شود دیگر برنمی‌گردد */</code></pre>
+        <p><b>تمرین ۲.</b> شل را طوری تغییر دهید که بعد از خواندن خط از stdin، دستور را با آرگومان‌هایش اجرا
+        کند. چیزی غیرمنتظره اتفاق افتاد؟</p>
+        <p>بله — وقتی برنامه تمام شد، به پرامپت برنگشتید؛ مستقیم به شل اصلی‌تان افتادید! چون فراخوانی
+        <code>exec</code> فرایند جاری را به فرمان مشخص‌شده <b>تبدیل</b> می‌کند. فرایند شل ما توسط
+        <code>ls</code> یا هر چه اجرا کرده‌ایم <i>جایگزین</i> شد. وقتی آن برنامه تمام شد، فرایند خارج می‌شود —
+        دیگر شلی نیست!</p>
+      </section>
+
+      <section>
+        <h2>۵. fork: ایجاد فرایند جدید</h2>
+        <p>برای جلوگیری از این اتفاق، می‌خواهیم فرمان به‌صورت یک فرایند جدید اجرا شود. فرایندها را با فراخوانی
+        سیستم <code>fork</code> می‌سازیم. این فراخوانی فرایند جدیدی می‌سازد که <b>کپی</b> فرایند موجود است —
+        دقیقاً تا همان نقطه‌ای که برنامه در حال اجراست. بعد در همان فرایند تازه (فرزند)، <code>exec</code> را
+        صدا می‌زنیم و شل ما برای تعامل‌های بعدی باقی می‌ماند.</p>
+        <p>مقدار برگشتی <code>fork</code> می‌گوید در فرزند هستیم یا والد: در فرزند <b>۰</b> و در والد شناسه
+        فرایند جدید برمی‌گردد.</p>
         <pre class="code"><span class="lang-tag">c</span><code>pid_t pid = fork();
 if (pid == 0) {
-    /* فرزند: اجرای برنامه */
-    execvp(args[0], args);
-} else {
-    /* والد: کاری ندارد، فقط منتظر می‌ماند */
+    /* ما فرزندیم: خود را به برنامه تبدیل کن */
+    execvp(argv[0], argv);
+    /* فقط اگر exec شکست بخورد به این‌جا می‌رسیم */
+    perror("exec");
+    exit(1);
 }</code></pre>
-        <h3>۵. انتظار برای فرزند</h3>
-        <p>تمرین ۴: قبل از برگشتن به اعلان، با <code>wait(NULL)</code> منتظر فرزند شوید. حالا شل‌تان دارد واقعی رفتار می‌کند! (نویسنده عاشق <code>cowsay</code> است.)</p>
+        <p><b>تمرین ۳.</b> شل را طوری تغییر دهید که <code>fork</code> و سپس <code>exec</code> را در فرزند صدا
+        بزند. تبریک! شل شما حالا تقریباً مفید است. ولی هنوز یک اذیت‌کنندگی هست: وقتی فرمان اجرا می‌کنید،
+        پرامپتتان احتمالاً قبل از خروجی فرمان چاپ می‌شود.</p>
       </section>
 
       <section>
-        <h2>چرا cd باید builtin باشد؟</h2>
-        <p>توالی <code>pwd</code> ← <code>cd ..</code> ← <code>pwd</code> احتمالاً شما را شگفت‌زده کرد. هر فرایند حافظهٔ خودش و فراداده‌ای دارد که هسته نگه می‌دارد و فقط با سیستم‌کال می‌تواند تغییرش دهد: شناسهٔ کاربر (<code>setuid</code>)، گروه (<code>setgid</code>)، اولویت (<code>setpriority</code>) و <strong>دایرکتوری کاری</strong> (<code>chdir</code>). اگر <code>/bin/cd</code> را با fork/exec اجرا کنیم: والد دایرکتوری‌اش را عوض نمی‌کند، فقط فرزند که می‌میرد! یک فرایند فقط می‌تواند وضعیت <em>خودش</em> را تغییر دهد. پس خودِ شل باید <code>chdir</code> را صدا بزند: یعنی <code>cd</code> باید builtin باشد.</p>
-        <pre class="code"><span class="lang-tag">c</span><code>/* تمرین ۶: افزودن builtin به نام cd */
-if (strcmp(cmd-&gt;argv[0], "cd") == 0) {
-    chdir(cmd-&gt;argv[1]);
-}</code></pre>
-        <p>بقیهٔ builtin ها را با <code>man builtin</code> ببینید؛ بعضی‌ها (مثل <code>echo</code>) می‌توانند برنامهٔ بیرونی هم باشند ولی برای کارایی (سربار ساخت فرایند) builtin شده‌اند.</p>
+        <h2>۶. wait: انتظار برای فرزندان</h2>
+        <p>اگر به کدتان نگاه کنید، می‌بینید والد مستقیم برمی‌گردد سراغ پرامپت. برای منتظر ماندن تا فرایند فرزند،
+        فراخوانی سیستم خوب‌نامی به نام <code>wait</code> وجود دارد. برای اهداف ما کافی است با آرگومان
+        <code>NULL</code> صدا بزنیم: <code>wait(NULL);</code></p>
+        <p><b>تمرین ۴.</b> شل را طوری کنید که قبل از برگشتن به پرامپت روی فرایند فرزند <code>wait</code> کند.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>pid_t pid = fork();
+if (pid == 0) {
+    execvp(argv[0], argv);
+    perror("exec");
+    exit(1);
+}
+wait(NULL);   /* والد منتظر بماند تا فرزند تمام شود */</code></pre>
+        <p>حالا شل دارد مثل یک شل واقعی رفتار می‌کند! چند تا از دستورهای محبوبتان را امتحان کنید. (نویسنده طرفدار
+        <code>cowsay</code> است، اما هیچ کس جلویتان را نمی‌گیرد که <code>ls</code> یا <code>cat</code> بزنید!)</p>
       </section>
 
       <section>
-        <h2>پایپ‌لاین‌ها</h2>
-        <p><code>ls | wc</code> در شل ما خطا می‌دهد چون شل هنوز معنی <code>|</code> را نمی‌داند. در یونیکس، فایل‌ها با <strong>فایل‌دسکریپتور</strong> مدیریت می‌شوند (در لینوکس: <code>ls -l /proc/&lt;pid&gt;/fd</code>): اعداد صحیح مثبت که ۰=stdin، ۱=stdout، ۲=stderr و از ۳ به بالا فایل‌های دیگر.</p>
-        <p>سیستم‌کال <code>pipe</code> دو فایل‌دسکریپتور جدید با خاصیت ویژه می‌سازد: هرچه به <code>5</code> بنویسید از <code>4</code> خوانده می‌شود. برای <code>ls | wc</code> باید stdout لِس به ۵ و stdin دابلیوسی به ۴ برود؛ ابزار این کار سیستم‌کال <code>dup2</code> است (<code>dup2(5, 1)</code> و <code>dup2(4, 0)</code>).</p>
-        <p>خلاصهٔ مراحل: (۱) ساخت pipe با <code>pipe</code>؛ (۲) دو بار <code>fork</code> (یکی برای ls و یکی برای wc)؛ (۳) در فرزندِ ls: <code>dup2(pipe_fds[1], 1)</code> و اجرا؛ (۴) در فرزندِ wc: <code>dup2(pipe_fds[0], 0)</code> و اجرا؛ (۵) بستن هر دو سر pipe در فرایند والد:</p>
-        <pre class="code"><span class="lang-tag">c</span><code>int pipe_fds[2];
-pipe(pipe_fds);            /* فرض: [4, 5] برمی‌گرداند */
-
-/* تمرین ۷: */
-void fork_and_exec_with_io(cmd* cmd, int stdout_fd, int stdin_fd);
-
-/* تمرین ۸: پیاده‌سازی pipe دو عنصری با تابع بالا */
-fork_and_exec_with_io(cmd1, pipe_fds[1], STDIN_FILENO);  /* ls → 5 */
-fork_and_exec_with_io(cmd2, STDOUT_FILENO, pipe_fds[0]); /* 4 ← wc */
-close(pipe_fds[0]);
-close(pipe_fds[1]);</code></pre>
-      </section>
-
-      <section>
-        <h2>ادامه‌های پیشنهادی</h2>
+        <h2>۷. Builtinها — چرا cd کار نمی‌کند؟</h2>
+        <p>چه اتفاقی می‌افتد اگر بخواهیم <code>cd</code> را اجرا کنیم؟ برنامه‌ای در <code>/bin/cd</code> هست که
+        قرار است دایرکتوری ما را عوض کند؛ این توالی را امتحان کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>heeee&gt; pwd
+/Users/kalmar/projects/conferences/2014/strangeloop/shell-workshop
+heeee&gt; cd ..
+heeee&gt; pwd
+[یه چیزی ... غیرمنتظره؟]
+heeee&gt; echo HEEEELLLPPPP!!!!!
+HEEEELLLPPPP!!!!!</code></pre>
+        <p>این توالی آخر احتمالاً کمی تعجب‌تان داد. برای فهمیدن اینکه چرا نتوانستیم دایرکتوری را عوض کنیم، باید
+        کمی درباره کارکرد فرایندها بدانیم. هر فرایند دارد:</p>
         <ul>
-          <li><strong>پایپ‌لاین‌های طولانی‌تر</strong> — <code>parse_line</code> هر تعداد دستور پایپ‌شده برمی‌گرداند؛ ادامه با شماست</li>
-          <li><strong>ریدایرکت ورودی/خروجی به فایل</strong> (<code>grep shel &gt; /tmp/shel_words</code>) — به‌جای <code>pipe</code> از <code>open</code> استفاده کنید</li>
-          <li><strong>ریدایرکت سایر فایل‌دسکریپتورها</strong> — مثل <code>2&gt;/tmp/errors</code> برای stderr</li>
-          <li><strong>ریدایرکت به فایل‌دسکریپتور دیگر</strong> — مثل <code>2&gt;&amp;1</code></li>
-          <li><strong>گسترش متغیر محیطی</strong> (<code>echo $HOME</code>) با تابع <code>getenv</code></li>
-          <li><strong>تنظیم متغیر محیطی برای فرزندان</strong> — <code>TZ=Pacific/Samoa date</code> با <code>setenv</code>؛ و builtin <code>export</code> (چون فرزند نمی‌تواند محیط والد را عوض کند!)</li>
-          <li><strong>مدیریت سیگنال</strong> — فشردن <code>^C</code> سیگنال <code>SIGINT</code> می‌فرستد؛ می‌توانید handler ثبت کنید تا شل کشته نشود</li>
-          <li><strong>گلابینگ</strong> — <code>wc -c *</code> قبل از عبور آرگومان‌ها به فرزند انجام می‌شود؛ با تابع <code>glob</code> از <code>&lt;glob.h&gt;</code></li>
-          <li><strong>پس‌زمینه</strong> — دستوری که با <code>&amp;</code> تمام می‌شود بدون <code>wait</code> روی فرزند اجرا می‌شود</li>
+          <li><b>حافظه خودش</b> (همه متغیرهای سراسری و محلی، stack و heap)</li>
+          <li><b>فراداده اضافی</b> که هسته مدیریتش می‌کند و فرایند نمی‌تواند مستقیم تغییرش دهد؛ فقط با فراخوانی
+          سیستم می‌تواند تغییرش بدهد:
+            <ul>
+              <li>شناسه کاربر (<code>setuid</code>)</li>
+              <li>شناسه گروه (<code>setgid</code>)</li>
+              <li>اولویت (<code>setpriority</code>)</li>
+              <li>دایرکتوری کاری (<code>chdir</code>)</li>
+            </ul>
+          </li>
         </ul>
+        <p>پس تصور کنید <code>fork</code> و <code>exec</code> فرایند <code>/bin/cd</code> را می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>1) والد: pid 1000، دایرکتوری کاری /tmp
+---- fork ----
+2) والد: pid 1000، دایرکتوری کاری /tmp
+   فرزند: pid 2000، دایرکتوری کاری /tmp
+---- exec `/bin/cd /home/awesome` در فرزند ----
+3) والد: pid 1000، دایرکتوری کاری /tmp
+   فرزند: pid 2000، دایرکتوری کاری /tmp/awesome
+---- فرزند خارج می‌شود ----
+4) والد: pid 1000، دایرکتوری کاری /tmp</code></pre>
+        <p>یک فرایند فقط می‌تواند با فراخوانی سیستم، <b>وضعیت خودش</b> را تغییر دهد؛ پس فرایند والدِ شل هنوز
+        همان دایرکتوری کاری اولیه‌اش (<code>/tmp</code>) را دارد.</p>
+        <p>برای تغییر دایرکتوری شل، خودِ شل باید فراخوانی <code>chdir</code> را صدا بزند. پس شل باید دستور
+        <code>cd</code> را به‌صورت خاصی مدیریت کند: اگر فرمان <code>cd</code> بود، به‌جای fork/exec معمول،
+        <code>chdir</code> را صدا بزن. یعنی مدیریت <code>cd</code> در خود شل <b>ساخته شده</b> — یک
+        <b>builtin</b>!</p>
+        <pre class="code"><span class="lang-tag">c</span><code>if (strcmp(cmd-&gt;name, "cd") == 0) {
+    /* builtin: خود شل دایرکتوری را عوض می‌کند */
+    if (chdir(cmd-&gt;args[1]) != 0) {
+        perror("chdir");
+    }
+} else {
+    /* فرمان معمولی: fork + exec + wait */
+    ... 
+}</code></pre>
+        <p><b>تمرین ۶.</b> یک builtin به نام <code>cd</code> به شل‌تان اضافه کنید.</p>
+        <p><code>cd</code> تنها builtin شل معمولی شما نیست. با <code>man builtin</code> ببینید چه چیزهای دیگری
+        هست. توجه کنید همه آن‌ها لازم نیست builtin باشند؛ مثلاً <code>echo</code> به‌خوبی به‌عنوان فرمان خارجی
+        کار می‌کند، اما بسیاری از شل‌ها آن را builtin دارند. بعضی‌ها برای کارایی builtin شده‌اند، چون ساختن یک
+        فرایند جدید سربار کارایی دارد.</p>
+      </section>
+
+      <section>
+        <h2>۸. پایپ‌ها — توصیفگرهای فایل و dup2</h2>
+        <p>قدم بعدی پیاده‌سازی پایپ‌هاست. سعی کنید <code>ls | wc</code> را در شل‌تان اجرا کنید:</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>heeee&gt; ls | wc
+ls: cannot access |: No such file or directory
+ls: cannot access wc: No such file or directory</code></pre>
+        <p>فعلاً نمی‌داند <code>|</code> معنای خاصی دارد و سعی می‌کند فایل‌های <code>|</code> و <code>wc</code>
+        را فهرست کند. قبل از رفع آن، باید پایپ‌ها را بهتر بشناسیم.</p>
+        <p>فایل‌ها در سیستم‌های یونیکسی با <b>توصیفگرهای فایل</b> مدیریت می‌شوند. اگر لینوکس استفاده می‌کنید،
+        همه توصیفگرهای فایل یک فرایند را با <code>ls -l /proc/&lt;pid&gt;/fd</code> می‌بینید. توصیفگرهای فایل
+        اعداد صحیح مثبت‌اند (۰ = stdin، ۱ = stdout، ۲ = stderr و ۳ به بالا = فایل‌های دیگری که فرایند باز کرده).</p>
+        <p>فراخوانی <code>pipe</code> دو توصیفگر فایل جدید با یک خاصیت ویژه می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int pipe_fds[2];
+pipe(pipe_fds);  // مثلاً [4, 5] در pipe_fds می‌گذارد</code></pre>
+        <p>اگر <code>pipe</code> مقدار <code>[4, 5]</code> را برگرداند، هر داده‌ای که روی <code>5</code> نوشته
+        شود از <code>4</code> خوانده می‌شود. پس باید stdout مربوط به <code>ls</code> را <code>5</code> کنیم و
+        stdin مربوط به <code>wc</code> را <code>4</code>. راه تغییر اینکه یک توصیفگر فایل به کجا اشاره کند،
+        فراخوانی <code>dup2</code> است: در این مثال برای <code>ls</code> به <code>dup2(5, 1)</code> و برای
+        <code>wc</code> به <code>dup2(4, 0)</code> نیاز داریم.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>/* خلاصه ساخت پایپ ls | wc:
+   1. پایپ بساز (فرض کن fdهای 4 و 5 می‌سازد)
+   2. دو بار fork کن (یکی برای ls، یکی برای wc)
+   3. در فرزند ۱: dup2(pipe_fds[1], 1) سپس exec(ls)
+   4. در فرزند ۲: dup2(pipe_fds[0], 0) سپس exec(wc)
+   5. در والد هر دو سر پایپ را ببند */</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>/* فرزند ۱ (ls): خروجی استاندارد = سر نوشتنی پایپ */
+dup2(pipe_fds[1], STDOUT_FILENO);
+close(pipe_fds[0]);          /* سر دیگر را ببند */
+execvp("ls", args_ls);
+
+/* فرزند ۲ (wc): ورودی استاندارد = سر خواندنی پایپ */
+dup2(pipe_fds[0], STDIN_FILENO);
+close(pipe_fds[1]);
+execvp("wc", args_wc);</code></pre>
+        <p><b>تمرین ۷:</b> تابعی به شکل <code>fork_and_exec_with_io(cmd* cmd, int stdout_fd, int stdin_fd)</code>
+        بنویسید که فرمان مشخصی را fork و exec کند و stdin و stdoutش را در صورت نیاز تغییر دهد.</p>
+        <p><b>تمرین ۸:</b> با <code>fork_and_exec_with_io</code> پایپ‌های دو عنصری را پیاده کنید.</p>
+      </section>
+
+      <section>
+        <h2>۹. بعدش کجا برویم؟</h2>
+        <p>برای ادامه، دو دسته مسیر هست — پیشرفت‌های طبیعی و اکتشاف حوزه‌های دیگر شل:</p>
+        <h3>پیشرفت‌های طبیعی</h3>
+        <ol>
+          <li><b>پایپ‌های طولانی‌تر:</b> تابع <code>parse_line</code> می‌تواند هر تعداد فرمان پایپ‌شده برگرداند —
+          با خودتان است که به راه بیندازید!</li>
+          <li><b>بازنویسی I/O به/از فایل‌ها:</b> <code>grep shel /usr/share/dict/words &gt; /tmp/shel_words</code>.
+          باید کد پارس را برای گرفتن این بازنویسی‌ها توسعه دهید؛ خودِ بازنویسی خیلی به پایپ شبیه است — فقط به‌جای
+          <code>pipe</code> از <code>open</code> برای گرفتن توصیفگر فایل استفاده می‌کنید.</li>
+          <li><b>بازنویسی توصیفگرهای دیگر:</b> <code>some-command 2&gt;/tmp/errors</code> یعنی stderr (fd 2) را
+          به <code>/tmp/errors</code> بازنویسی کن — تعمیم مورد قبلی.</li>
+          <li><b>بازنویسی به توصیفگرهای دیگر:</b> <code>some-command 2&gt;&amp;1</code> یعنی خروجی stderr به همان
+          جایی می‌رود که stdout می‌رود — توسعه بیشتر بازنویسی.</li>
+        </ol>
+        <h3>مسیرهای دیگر</h3>
+        <ol>
+          <li><b>توسعه متغیرهای محیطی:</b> <code>echo $HOME</code> را در شل خودتان و شل معمولی مقایسه کنید؛
+          <code>getenv</code> متغیر را از محیط می‌یابد. می‌توانید موقع یا بعد از پارس اعمالش کنید.</li>
+          <li><b>تنظیم متغیرهای محیطی روی فرایندهای فرزند:</b> <code>TZ=Pacific/Samoa date</code> — پیشوند
+          <code>VAR=value</code> یعنی <code>VAR</code> فقط در محیط فرزند ست شود (<code>setenv</code>). پارسر را
+          توسعه دهید.</li>
+          <li><b>builtin دیگر: <code>export</code></b> — چون فرزند نمی‌تواند محیط والد را تغییر دهد،
+          <code>export</code> باید builtin باشد.</li>
+          <li><b>پردازش سیگنال:</b> <code>^C</code> سیگنال <code>SIGINT</code> می‌فرستد؛ به‌طور پیش‌فرض فرایند
+          را نابود می‌کند. با ثبت یک هندلر سیگنال می‌توانید جلویش را بگیرید یا نادیده‌اش کنید.</li>
+          <li><b>Globbing:</b> <code>wc -c *</code> — گسترش <code>*</code> را خود شل قبل از پاس دادن آرگومان به
+          فرزند انجام می‌دهد؛ تابع <code>glob</code> در <code>&lt;glob.h&gt;</code> به‌کارتان می‌آید.</li>
+          <li><b>اجرای پس‌زمینه:</b> فرمانی که با <code>&amp;</code> تمام شود در پس‌زمینه اجرا می‌شود؛ شل
+          <code>wait</code> نمی‌کند.</li>
+          <li><b>کنترل کار:</b> (TODO در مطالب کارگاه) — موضوعی که کارگاه tokenrove در مرحله ۳ پوشش می‌دهد.</li>
+        </ol>
+        <p>کد کامل شل نمونه (ساخته‌شده در کارگاه) در فایل‌های <code>shell.c</code> و <code>utils.c</code> همان
+        مخزن در دسترس است. ابزارهای مشابه: کتاب glibc «Implementing a Job Control Shell» و مقاله‌های سیگنال/کنترل
+        کار.</p>
       </section>
 
       <div class="callout note">
-        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی کارگاه «Let's build a shell!» اثر کامال مرهوبی است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. اسکلت کد و تمرین‌های کامل در
-        <a href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">github.com/kamalmarhubi/shell-workshop</a> در دسترس است.
+        <strong>کپیرایت:</strong> مطالب کارگاه «Let's build a shell!» اثر کمال مرهوبی (Kamal Marhubi) است
+        (مجوز Apache-2.0 / CC). این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی
+        است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">ریپوی گیت‌هاب</a>
+        مراجعه کنید.
       </div>
     </article>
   </main>

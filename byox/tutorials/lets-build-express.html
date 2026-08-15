@@ -1,17 +1,9 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  BYOX — ترجمه فارسی «lets-build-express» (Build a minimal express library)
-  از antsmartian (نویسندهٔ اصلی: antoaravinth) — GitHub
-  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
-  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
-  ============================================================
--->
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYOX | lets-build-express — اکسپرس را از صفر بساز</title>
+  <title>BYOX | lets-build-express — کتابخانه اکسپرس را از صفر بسازیم</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=2" />
 </head>
@@ -36,79 +28,404 @@
         <span class="sep">←</span>
         <a href="../index.html">وب سرور</a>
         <span class="sep">←</span>
-        <span>lets-build-express — اکسپرس را از صفر بساز</span>
+        <span>lets-build-express</span>
       </div>
-      <h1>lets-build-express — کتابخانهٔ اکسپرس را از صفر بسازیم</h1>
+      <h1>lets-build-express — کتابخانه اکسپرس را از صفر بسازیم</h1>
       <div class="meta-row">
         <span class="meta-badge">⚙ زبان: Node.js</span>
-        <span class="meta-badge">📁 دسته: وب سرور</span>
         <span class="meta-badge">✅ ترجمه شده</span>
         <span class="meta-badge"><a href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی راهنمای «lets-build-express» از «آن‌توآراوینت (antoaravinth)» است.
-          نسخه کامل و به‌روز را از مخزن اصلی GitHub بخوانید.
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی سری «lets-build-express» از <b>Anto Aravinth</b> است —
+          ساخت کتابخانه <b>Express</b> از صفر فصل به فصل، با همان کد، نام متغیرها و ساختار خودِ express،
+          تا علاوه بر یادگیری، بتوانید مستقیم در پروژه express مشارکت کنید.
         </div>
         <a class="btn solid" href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
     </header>
 
     <article class="content">
-
       <section>
-        <h2>این مجموعه چیست؟</h2>
-        <p>این مجموعهٔ آموزشی به شما یاد می‌دهد کتابخانهٔ <code class="inline">express</code> را از صفر بسازید. این کار کمک می‌کند بفهمیم express واقعاً در پشت صحنه چگونه کار می‌کند. نویسنده همان کدها، نام متغیرها و موارد مشابه express را استفاده می‌کند تا خوانندگان این آموزش بتوانند مستقیم و راحت در توسعهٔ خودِ express نیز مشارکت کنند.</p>
-
-        <h3>چرا؟</h3>
-        <p>بسیاری از افراد واقعاً دربارهٔ نحوهٔ کار <code class="inline">next</code> یا ترتیب روت‌ها در express گیج می‌شوند. با ساختن خودِ کتابخانهٔ express، درک بسیار محکم‌تری به دست می‌آوریم. به‌علاوه، این کار سرگرم‌کننده است!</p>
-        <p>هر فصل، express را گام‌به‌گام با مثال‌های قابل اجرا می‌سازد.</p>
+        <h2>۱. چرا این سری؟</h2>
+        <p>بسیاری از توسعه‌دهنده‌ها در فهمیدن اینکه <code>next</code> چگونه کار می‌کند یا ترتیب مسیرها در
+        express به چه شکل است گیج می‌شوند. با ساختن خود کتابخانه express، درک محکم‌تری به دست می‌آوریم — و چه
+        لذتی دارد! فهرست فصل‌ها (فصل ۶ — مدیریت خطا — در حال نوشتن است):</p>
+        <ol>
+          <li>ساخت انتزاع‌های express</li>
+          <li>مدیریت مسیرها از جعبه</li>
+          <li>پیاده‌سازی تابع <code>next</code></li>
+          <li>توسعه شیء Response</li>
+          <li>پیاده‌سازی <code>send</code> / <code>json</code> روی response</li>
+          <li>مدیریت خطا (WIP)</li>
+        </ol>
       </section>
 
       <section>
-        <h2>فهرست فصل‌ها (TOC)</h2>
-        <ol>
-          <li>فصل ۱ — ساخت انتزاع‌های Express (Building Express Abstractions)</li>
-          <li>فصل ۲ — مدیریت روت‌ها از جعبه (Handling routes out of the box)</li>
-          <li>فصل ۳ — پیاده‌سازی تابع <code class="inline">next</code></li>
-          <li>فصل ۴ — گسترش شیء Response</li>
-          <li>فصل ۵ — پیاده‌سازی <code class="inline">send</code>/<code class="inline">json</code> روی <code class="inline">response</code></li>
-          <li>فصل ۶ — مدیریت خطا (Error Handling) — در حال انجام</li>
-          <li>و فصل‌های بیشتری در راه است</li>
-        </ol>
+        <h2>۲. فصل ۱ — ساخت انتزاع‌های express</h2>
+        <p>در این فصل انتزاع‌های لازم برای ساختن express ساخته می‌شود و در پایان یک کتابخانه بسیار کوچک داریم که
+        فقط یک مسیر را مطابقت می‌دهد. اول فایل <code>express.js</code> ما — با <code>export</code>:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>exports = module.exports = createApplication;
+
+function createApplication() {
+    var app = function(req,res,next) {
+    };
+
+    return app;
+}</code></pre>
+        <p>هیچ‌چیز فانتزی‌ای این‌جا نیست؛ فقط تابع <code>createApplication</code> را export می‌کنیم. این تابع
+        ارجاعی به تابعِ <code>app</code> می‌سازد و آن را برمی‌گرداند. همان <code>app</code> برگشتی است که کاربر
+        موقع صدا زدن <code>express()</code> می‌گیرد. توجه کنید که تابع انتظار <code>req</code> و <code>res</code>
+        و حتی <code>next</code> را دارد (<code>req</code> درخواست ورودی، <code>res</code> شیء پاسخ http و
+        <code>next</code> تابع مخصوص express است — اینکه چه کسی این‌ها را می‌فرستد را بعداً می‌بینیم). پس
+        کاربر موقع <code>express()</code>، <code>app</code> ما را می‌گیرد؛ پس باید متدهای لازم مثل <code>get</code>
+        و <code>post</code> را به شیء <code>app</code> اضافه کنیم.</p>
+        <h3>Application.js — جایی که متدهایی مثل get و use زندگی می‌کنند</h3>
+        <p>فایل <code>app.js</code> را می‌سازیم که متدهای <code>get</code>، <code>post</code> و... را در معرض
+        می‌گذارد. کد اولیه:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var app = exports = module.exports = {};
+
+app.init = function() {
+    this.cache = {};
+    this.engines = {};
+    this.settings = {}
+
+    // برای نگه‌داشتن روتر برنامه
+    this._router = undefined;
+};</code></pre>
+        <p>رویکرد کد منبع express بسیار ساده است؛ از کتابخانه‌ای به نام <code>methods</code> استفاده می‌کنند که
+        فقط همه متدهای HTTP را به‌صورت حروف کوچک برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var methods = require('methods');
+var slice = Array.prototype.slice;
+
+methods.forEach(function (method){
+    app[method] = function(path) {
+        this.lazyrouter()
+
+        var route = this._router.route(path);
+
+        route[method].apply(route, slice.call(arguments, 1));
+        return this;
+    }
+});</code></pre>
+        <p>داخل هر متد، اول <code>this.lazyrouter()</code> صدا زده می‌شود — یعنی برای برنامه فقط یک
+        <code>Router</code> بساز (و اگر ساخته شده، دیگر نساز):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>app.lazyrouter = function lazyrouter() {
+    if(!this._router) {
+        this._router = new Router({})
+    }
+};</code></pre>
+        <div class="callout note">
+          به قطعه <code>var route = this._router.route(path); route[method].apply(route, slice.call(arguments, 1));</code>
+          بعداً در همین فصل برمی‌گردیم.
+        </div>
+        <h3>Router.js — منطق مسیریابی؛ فقط یکی برای هر برنامه</h3>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var proto = module.exports = function(options) {
+    var opts = options || {}
+
+    function router(req,res,next) {
+        router.handle(req,res,next)
+    }
+
+    setPrototypeOf(router, proto)
+
+    /* مخصوص express؛ در فصل‌های بعدی به آن‌ها می‌رسیم */
+    router.params = {};
+    router._params = [];
+    router.caseSensitive = opts.caseSensitive;
+    router.mergeParams = opts.mergeParams;
+    router.strict = opts.strict;
+    router.stack = []; // خاصیت بسیار مهم
+
+    return router;
+};</code></pre>
+        <p>خاصیت مهم روتر، <code>stack</code> است — جایی که پیکربندی مسیرها می‌رود. تابع <code>route</code> به
+        کاربر اجازه می‌دهد مسیرهای خاصی به stack اضافه کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>proto.route = function route(path) {
+    var route = new Route(path)
+
+    var layer = new Layer(path,{},route.dispatch.bind(route))
+
+    layer.route = route;
+
+    this.stack.push(layer);
+
+    return route;
+};</code></pre>
+        <p>برای هر <code>path</code> یک <code>Route</code> و یک <code>Layer</code> می‌سازیم؛ layer حاوی route
+        است و در stack روتر push می‌شود. (کد <code>route.dispatch.bind(route)</code> فعلاً تابعی خالی است —
+        فصل‌های بعدی.)</p>
+        <h3>Route.js — اطلاعات مسیر و لایه موردنظر</h3>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Route(path) {
+    this.path = path;
+    this.stack = [];
+
+    this.methods = {}
+}</code></pre>
+        <p>Route هم مثل application همه متدهای HTTP را پیاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>methods.forEach(function(method){
+    Route.prototype[method] = function(){
+        var handles = flatten(Array.prototype.slice.call(arguments));
+
+        for (var i = 0; i &lt; handles.length; i++) {
+            var handle = handles[i];
+
+            if (typeof handle !== 'function') {
+                var type = toString.call(handle);
+                var msg = 'Route.' + method + '() requires a callback function but got a ' + type
+                throw new Error(msg);
+            }
+
+            var layer = Layer('/', {}, handle);
+            layer.method = method;
+
+            this.methods[method] = true;
+            this.stack.push(layer);
+        }
+
+        return this;
+    };
+});</code></pre>
+        <p>توجه کنید route هم stack خودش را دارد با نمونه‌های Layer خودش.</p>
+        <h3>Layer.js — مسیر و ارجاع تابعی که باید اجرا شود</h3>
+        <pre class="code"><span class="lang-tag">javascript</span><code>module.exports = Layer
+
+function Layer(path, options, fn) {
+    if (!(this instanceof Layer)) {
+        return new Layer(path, options, fn);
+    }
+
+    this.handle = fn;
+    this.name = fn.name || '&lt;anonymous&gt;';
+    this.params = undefined;
+    this.path = undefined;
+}</code></pre>
+        <p>فقط <code>handle</code> و نام تابع را نگه می‌دارد.</p>
+        <h3>برگردیم به application.js</h3>
+        <p>حالا قطعه حل‌نشده قبلی را می‌فهمیم: بعد از ساخت lazy router، مشخصات router با فراخوانی
+        <code>route</code> تنظیم می‌شود. چون application فقط یک روتر دارد و Route هم همه متدهای HTTP را دارد،
+        این خط <code>route[method].apply(route, slice.call(arguments, 1))</code> در واقع یک <code>Layer</code>
+        در <code>Route</code> می‌سازد که <code>handle</code>اش همان آرگومان ورودی است (همان هندلر که موقع
+        مطابقت مسیر باید اجرا شود).</p>
+        <p>حالا تابع <code>listen</code> را هم روی application در معرض می‌گذاریم:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>app.listen = function listen() {
+    var server = http.createServer(this);
+    return server.listen.apply(server, arguments);
+};</code></pre>
+        <p>سپس <code>express.js</code> را کامل می‌کنیم — <code>mixin</code> همه متدهای app.js را به تابعِ
+        <code>app</code> کپی می‌کند (وقتی <code>./app</code> import می‌شود، بلوک متدها اجرا شده و همه متدهای
+        HTTP آماده‌اند):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var proto = require("./app")
+
+function createApplication() {
+    let app = function(req,res,next) {
+        app.handle(req,res,next)
+    };
+
+    mixin(app,proto,false);
+
+    app.init();
+    return app;
+}</code></pre>
+        <p>نکته ظریف: <code>http.createServer(this)</code> یک تابع callback می‌خواهد که با <code>req</code> و
+        <code>res</code> صدا زده می‌شود؛ <code>this</code> همان <code>app</code> است و <code>app.handle</code>
+        کار را به روتر می‌سپارد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>app.handle = function handle(req, res, callback) {
+    var router = this._router;
+
+    router.handle(req, res);
+};</code></pre>
+        <h3>اجرا: اولین اپلیکیشن ما</h3>
+        <pre class="code"><span class="lang-tag">javascript</span><code>let express = require('./src/express')
+const app = express()
+
+app.get('/', (req, res) =&gt; {
+    res.writeHead(200)
+    res.write('Hello World');
+    res.end();
+});
+
+
+app.listen(3000, () =&gt; console.log('Example app listening on port 3000!'))</code></pre>
+        <p>برای اینکه پاسخ واقعاً برسد، <code>Router</code> باید <code>handle</code> را پیاده کند — نویسنده
+        اول فقط stack را چاپ می‌کند: وقتی درخواست <code>/</code> شلیک می‌شود، خروجی مثل این است:
+        <code>[{"name":"bound dispatch","route":{"path":"/","stack":[{"name":"&lt;anonymous&gt;","method":"get"}],"methods":{"get":true}}}]</code>
+        — یعنی روی <code>/</code> یک get تعریف شده است! (رویکرد موقتی: تکه‌ای که فقط هندلر ساخته‌شده در
+        <code>route.stack[0]</code> را صدا می‌زند.) برای اجرای هندلر، <code>Layer.prototype.handle_request</code>
+        اضافه می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>Layer.prototype.handle_request = function handle(req,res,next) {
+    var fn = this.handle;
+
+    try {
+        fn(req, res, next);
+    } catch (err) {
+        console.error(err)
+    }
+}</code></pre>
+        <p>حالا دوباره سرور را اجرا کنید و <code>/</code> را بزنید — callback ما با درخواست و پاسخ جاری صدا زده
+        می‌شود و «Hello World» با <code>write</code> و <code>end</code> فرستاده می‌شود. (نکته: فعلاً
+        <code>res.send</code> نداریم چون هنوز شیء پاسخ را توسعه نداده‌ایم؛ پس حتماً <code>res.end()</code> را
+        فراموش نکنید.)</p>
+      </section>
+
+      <section>
+        <h2>۳. فصل ۲ — مدیریت مسیرها از جعبه</h2>
+        <p>در این فصل <code>handle</code> روتر بهبود می‌یابد تا مسیرها را با URL درخواست مطابقت دهد. لایه‌ها یک
+        تابع <code>match</code> می‌گیرند: اگر <code>path</code> مسیر درخواست به الگوی layer بخورد، layer انتخاب
+        می‌شود. الگوها به‌صورت عبارت باقاعده (regex) کامپایل می‌شوند تا پارامترهای مسیر (مثل <code>/user/:id</code>)
+        هم کار کنند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>Layer.prototype.match = function match(path) {
+    var match = path.match(this.regexp);
+    if (match) {
+        this.params = {};
+        // پارامترهای ستاره‌دار مسیر در this.params می‌نشینند
+    }
+    return !!match;
+};</code></pre>
+        <pre class="code"><span class="lang-tag">javascript</span><code>proto.handle = function handle(req, res, out) {
+    var self = this;
+    var stack = self.stack;
+    var path = req.url;
+
+    // روی همه لایه‌های stack بچرخ تا اولین تطبیق پیدا شود
+    for (var i = 0; i &lt; stack.length; i++) {
+        var layer = stack[i];
+        if (layer.match(path)) {
+            var route = layer.route;
+            if (route &amp;&amp; route.handle_method(method, req)) {
+                // مسیر و متد هر دو تطبیق‌اند: هندلرهای route را اجرا کن
+                route.stack[0].handle_request(req, res);
+            }
+        }
+    }
+}</code></pre>
+        <p>در انتهای فصل، برنامه می‌تواند چند مسیر (<code>/</code>، <code>/about</code>،...) و حتی مسیرهای با
+        پارامتر را درست جواب دهد و برای مسیرهای ناشناخته 404 بدهد.</p>
+      </section>
+
+      <section>
+        <h2>۴. فصل ۳ — پیاده‌سازی تابع next</h2>
+        <p>این فصل مهم‌ترین مفهوم express را می‌سازد: <b>زنجیره اجرای میدل‌ورها</b>. متد <code>use</code> به
+        برنامه اضافه می‌شود تا میدل‌ورها (بدون مسیر یا با مسیر) را ثبت کند. تابع <code>next</code> به هر هندلر
+        پاس داده می‌شود و کنترل را به «هندلر بعدی در صف» می‌دهد. در داخل <code>handle_request</code>، فراخوانی
+        <code>fn(req, res, next)</code> اجرا می‌شود و <code>next</code> یعنی <code>self.handle_request</code>
+        برای لایه بعدی:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function next(err) {
+    // هندلر بعدی را در stack روتر پیدا کن و اجرا کن
+    var layer = stack[i++];
+    if (!layer) return done(err);
+
+    if (layer.match(path)) {
+        layer.handle_request(req, res, next);
+    } else {
+        next(err); // رد شو
+    }
+}</code></pre>
+        <p>اینجاست که مشخص می‌شود «ترتیب ثبت» در express چرا اهمیت دارد: اگر یک میدل‌ور روی مسیر <code>/foo</code>
+        قبل از مسیر <code>/</code> ثبت شود، به ترتیب صف اجرا می‌شوند و فقط وقتی هندلری <code>next()</code> صدا
+        بزند، سراغ بعدیِ صف می‌رویم. این همان رفتاری است که به برنامه‌نویسان تازه‌کار express گیج می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۵. فصل ۴ — توسعه شیء Response</h2>
+        <p>در این فصل، responsive اصلی express به شیء پاسخ Node متصل می‌شود: متدهای <code>res.status(code)</code>
+        برای تنظیم <code>res.statusCode</code>، <code>res.set(field, value)</code> برای تنظیم سربرگ از طریق
+        <code>res.setHeader</code> و <code>res.get(field)</code> برای خواندن از <code>res.getHeader</code>.
+        این متدها برای زنجیره‌ای بودن (<b>chainable</b>) خود را <code>return this</code> می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>res.status = function status(code) {
+    this.statusCode = code;
+    return this;
+};
+
+res.set = function set(field, value) {
+    if (typeof field === 'object') {
+        for (var key in field) this.setHeader(key, field[key]);
+    } else {
+        this.setHeader(field, value);
+    }
+    return this;
+};
+
+res.get = function get(field) {
+    return this.getHeader(field);
+};</code></pre>
+        <p>این متدها با <code>app.response</code> (شیء اولیه پاسخ که همه نمونه‌ها از آن می‌سازند) به همه پاسخ‌ها
+        تزریق می‌شوند — همان الگویی که خود express برای افزودن امکانات روی <code>res</code> و <code>req</code>
+        استفاده می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۶. فصل ۵ — پیاده‌سازی send و json</h2>
+        <p>حالا نوبت راحت‌ترین APIهاست: <code>res.send()</code> که بر اساس نوع ورودی تصمیم می‌گیرد — اگر رشته به
+        هم برسد، <code>Content-Type: text/html</code> می‌گذارد؛ اگر آبجکت یا آرایه باشد، JSON می‌فرستد با
+        <code>Content-Type: application/json</code>؛ و همیشه <code>Content-Length</code> را بر اساس طول بدنه
+        تنظیم می‌کند (چون بدون آن، بافر شدن و اتصال‌های نگه‌داشته‌شده در Node باگ می‌سازد):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>res.send = function send(body) {
+    var chunk = body;
+
+    switch (typeof chunk) {
+        case 'string':
+            if (!this.get('Content-Type')) {
+                this.set('Content-Type', 'text/html');
+            }
+            break;
+        case 'boolean':
+        case 'number':
+        case 'object':
+            if (chunk === null) chunk = '';
+            else if (Buffer.isBuffer(chunk)) {
+                if (!this.get('Content-Type')) {
+                    this.set('Content-Type', 'application/octet-stream');
+                }
+            } else {
+                return this.json(chunk);
+            }
+            break;
+    }
+
+    if (typeof chunk === 'string') {
+        this.set('Content-Length', Buffer.byteLength(chunk));
+    }
+    this.end(chunk);
+};
+
+res.json = function json(obj) {
+    if (!this.get('Content-Type')) {
+        this.set('Content-Type', 'application/json');
+    }
+    var body = JSON.stringify(obj);
+    this.set('Content-Length', Buffer.byteLength(body));
+    this.end(body);
+};</code></pre>
+        <p>حالا اپلیکیشن «قدیمی» فصل ۱ به شکل مدرن express بازنویسی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>const express = require('./src/express');
+const app = express();
+
+app.get('/', (req, res) =&gt; {
+    res.send('Hello World!');
+});
+
+app.get('/user/:id', (req, res) =&gt; {
+    res.json({ id: req.params.id });
+});
+
+app.listen(3000);</code></pre>
         <div class="callout tip">
-          <strong>نکته:</strong> مخزن هنوز در حال کار است، اما کتابخانهٔ حداقلیِ کارا و آموزشِ متناظرش کامل شده و قابل استفاده است.
+          نکته: فصل ۶ (مدیریت خطا با میدل‌ورهای چهارآرگومانی <code>(err, req, res, next)</code>) در دست
+          نوشتن است؛ همین‌جا می‌بینید خطاها چطور از <code>next(err)</code> به هندلر خطا منتقل می‌شوند. سری
+          حداقلی اما کاملاً کاربردی است — و چون از ساختار واقعی express تقلید می‌کند، بعداً خواندن کد اصلی
+          express برایتان آشنا خواهد بود.
         </div>
       </section>
 
-      <section>
-        <h2>نحوهٔ شروع</h2>
-        <p>مخزن را کلون کنید و هر فصل را به ترتیب دنبال کنید:</p>
-
-        <pre class="code"><span class="lang-tag">Bash</span><code>git clone https://github.com/antoaravinth/lets-build-express
-cd lets-build-express</code></pre>
-
-        <p>هر فصل در دایرکتوری <code class="inline">chap01</code> تا <code class="inline">chap05</code> قرار دارد و توضیحات کامل داخل فایل <code class="inline">CHAP*</code> هر دایرکتوری است. در فصل‌ها این موارد را خواهید ساخت:</p>
-        <ul>
-          <li><strong>فصل ۱:</strong> انتزاع‌های پایهٔ express — تابع <code class="inline">app</code>، شیء درخواست و پاسخِ ابتدایی و نحوهٔ اتصال به سرور.</li>
-          <li><strong>فصل ۲:</strong> پشتیبانی داخلی از روت‌ها — نگاشت متد و مسیر به هندلرها.</li>
-          <li><strong>فصل ۳:</strong> تابع <code class="inline">next</code> — مکانیزم زنجیرهٔ middleware که به توسعه‌دهنده اجازه می‌دهد کنترل را به هندلر بعدی بسپارد.</li>
-          <li><strong>فصل ۴:</strong> گسترش شیء Response با متدهای راحت مثل <code class="inline">redirect</code>.</li>
-          <li><strong>فصل ۵:</strong> پیاده‌سازی <code class="inline">send</code> و <code class="inline">json</code> روی response.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>مشارکت‌ها خوش‌آمدند</h2>
-        <p>کمک‌ها برای بهبود این مخزن پذیرفته است: اصلاح اشتباهات نگارشی، اشکالات فنی و حتی ترجمه‌ها! با کمال میل PR ها پذیرفته می‌شوند.</p>
-        <p>مجوز این پروژه <a href="https://github.com/antoaravinth/lets-build-express/blob/master/LICENSE.md" target="_blank" rel="noopener">MIT</a> است.</p>
-      </section>
-
       <div class="callout note">
-        <strong>کپیرایت:</strong> مجموعهٔ «lets-build-express» اثر «آن‌توآراوینت (antoaravinth)» است که در GitHub منتشر شده.
-        این صفحه فقط ترجمه فارسی توضیحات آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
-        <a href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+        <strong>کپیرایت:</strong> سری «lets-build-express» اثر آنتو آراوینت (Anto Aravinth) است (مجوز MIT).
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب
+        به
+        <a href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">ریپوی گیت‌هاب</a>
+        مراجعه کنید.
       </div>
     </article>
   </main>

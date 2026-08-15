@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BYOX | تشخیص برخورد فاز گسترده</title>
+  <title>BYOX | تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=2" />
 </head>
@@ -28,9 +28,9 @@
         <span class="sep">←</span>
         <a href="../index.html">موتور فیزیک</a>
         <span class="sep">←</span>
-        <span>تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی</span>
+        <span>فاز گستردهٔ برخورد</span>
       </div>
-      <h1>تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی</h1>
+      <h1>تشخیص برخورد فاز گسترده با استفاده از تقسیم فضایی (Broad Phase Collision Detection)</h1>
       <div class="meta-row">
         <span class="meta-badge">⚙ زبان: JavaScript</span>
         <span class="meta-badge">✅ ترجمه شده</span>
@@ -39,9 +39,9 @@
 
       <div class="sourcebox">
         <div class="txt">
-          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Broad Phase Collision Detection Using Spatial
-          Partitioning» از <b>Andrew Petersen</b> (سایت Build New Games، ۲۰۱۲) است — کاهش هزینه تشخیص برخورد
-          با تقسیم فضایی (شبکه سلولی) در جاوااسکریپت.
+          <b>منبع اصلی:</b> ترجمهٔ فارسی مقالهٔ «Broad Phase Collision Detection Using Spatial Partitioning»
+          اثر <b>اندرو پترسن (Andrew Petersen)</b> از Build New Games — دو رویکرد فاز گستردهٔ تشخیص برخورد در
+          جاوااسکریپت: نیروی وحشیانه (brute force) و گرید فضایی (spatial grid)، با کد کامل و سه دموی JSFiddle.
         </div>
         <a class="btn solid" href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
@@ -49,121 +49,238 @@
 
     <article class="content">
       <section>
-        <h2>۱. مسأله: هزینه O(n²) برخوردها</h2>
-        <p>ساده‌ترین راه تشخیص برخورد، مقایسه هر جسم با همه جسم‌های دیگر است: <code>n × (n-1) / 2</code> جفت.
-        با ۱۰ جسم فقط ۴۵ جفت است، اما با ۱۰۰ جسم ۴۹۵۰ و با ۱۰۰۰ جسم نزدیک ۵۰۰ هزار آزمایش — و هزینه هر آزمایش
-        (بسته به شکل) می‌تواند سنگین باشد. این رشد درجه دوم به‌سرعت موتور را از پا در می‌آورد.</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>// روش ساده‌لوحانه: همه با همه
-for (var i = 0; i &lt; bodies.length; i++) {
-    for (var j = i + 1; j &lt; bodies.length; j++) {
-        if (collide(bodies[i], bodies[j])) {
-            handleCollision(bodies[i], bodies[j]);
-        }
-    }
-}</code></pre>
-        <p>راه‌حل: بیشتر جفت‌ها در دنیا اصلاً به هم نزدیک نیستند. نمی‌شود اول کم‌هزینه مشخص کنیم کدام جفت‌ها
-        «احتمالاً» برخورد دارند و فقط همان‌ها را دقیق تست کنیم؟</p>
-      </section>
-
-      <section>
-        <h2>۲. دو فاز: گسترده و محدود</h2>
-        <p>تشخیص برخورد به دو مرحله تقسیم می‌شود:</p>
+        <h2>۱. مقدمه — فاز گسترده چیست؟</h2>
+        <p>تشخیص برخورد یکی از زمینه‌های دائماً در حال تحقیق و بهینه‌سازی در توسعهٔ بازی است — مایهٔ خوشحالی یا
+        سردرد بی‌نهایت. ساختن‌ش از صفر بهترین راه است برای اینکه مطمئن شوید بازی‌تان هیچ‌وقت تمام نمی‌شود! اما
+        دانستن اینکه موتورها <i>داخلاً</i> چطور کارتان را آسان می‌کنند، به‌عنوان توسعه‌دهنده بسیار ارزشمند است.
+        این مقاله روی دو رویکرد <b>فاز گسترده</b> تمرکز دارد:</p>
         <ul>
-          <li><b>فاز گسترده (Broad Phase):</b> با هزینه کم، فهرست جفت‌های «نامزد» را پیدا می‌کند — جفت‌هایی که
-          جعبه مرزی‌شان همپوشانی دارد. بعضی از آن‌ها در واقع برخورد ندارند، ولی تعدادشان از کل جفت‌ها بسیار
-          کمتر است.</li>
-          <li><b>فاز محدود (Narrow Phase):</b> برای هر جفت نامزد، برخورد دقیق (مثلاً با SAT یا برخورد دایره‌ها)
-          انجام می‌شود؛ همین‌جا منیفولد تماس ساخته می‌شود.</li>
+          <li><b>نیروی وحشیانه (brute force):</b> ساده ولی به‌شدت ناکارا با تعداد بالای موجودیت‌ها</li>
+          <li><b>گرید فضایی (spatial grid):</b> نوعی تقسیم فضایی؛ نسبتاً ساده و کارا با تعداد زیاد موجودیت</li>
         </ul>
-        <p>فرمول اصلی فاز محدود به شکل برخورد بستگی دارد — مثلاً دایره‌ها با مقایسه فاصله مرکزها با مجموع
-        شعاع‌ها:</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>function circleCollision(a, b) {
-    var dx = b.x - a.x;
-    var dy = b.y - a.y;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    return dist &lt; (a.radius + b.radius);
-}</code></pre>
+        <p>تشخیص برخورد معمولاً در دو فاز انجام می‌شود:</p>
+        <ol>
+          <li><b>فاز گسترده (broad phase):</b> عملیات کم‌هزینه که سریع جواب می‌دهد «کدام اشیا <i>احتمال
+          قوی</i> دارند برخورد کنند؟» — روش‌ها: Sweep and Prune و تقسیم فضایی.</li>
+          <li><b>فاز باریک (narrow phase):</b> مرحلهٔ ریز و گران: «چه بخشی از شیء A با شیء B برخورد کرده؟» —
+          روش‌ها: قضیهٔ جداسازی محورها (SAT)، برخورد پیکسل‌به‌پیکسل و تست‌های swept.</li>
+        </ol>
+        <p>نکتهٔ تمایز مهم: <b>تشخیص</b> برخورد (که این مقاله فقط روی آن است) با <b>پاسخ</b> برخورد (مثلاً
+        پریدن دو توپ از هم) دو فاز جدا هستند.</p>
       </section>
 
       <section>
-        <h2>۳. تقسیم فضایی با شبکه سلولی</h2>
-        <p>یک راه مؤثر برای فاز گسترده، <b>شبکه (Grid)</b> است: دنیا را به سلول‌های هم‌اندازه تقسیم کنید و هر
-        جسم را در سلول(های)ی که پوشش می‌دهد ثبت کنید. فقط جفت‌هایی می‌توانند برخورد داشته باشند که در یک
-        سلول مشترک باشند. کارایی این‌جا به‌جای O(n²) تقریباً خطی می‌شود.</p>
-        <p>اندازه سلول را معمولاً هم‌تراز بزرگ‌ترین جسم انتخاب می‌کنند تا هر جسم در حداکثر چند سلول (مثلاً ۴)
-        قرار بگیرد:</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>// کلید سلول: "cellX,cellY"
-function cellKey(x, y) {
-    var cx = Math.floor(x / CELL_SIZE);
-    var cy = Math.floor(y / CELL_SIZE);
-    return cx + "," + cy;
-}
-
-// هر جسم را در سلول‌های پوشش‌داده‌شده ثبت کن (مثال: مستطیل)
-function insertBody(grid, body) {
-    var minX = cellKey(body.x, body.y);
-    var maxX = cellKey(body.x + body.w, body.y + body.h);
-    // ... و سپس برای همه سلول‌های بین آن‌ها
-    if (!grid[key]) grid[key] = [];
-    grid[key].push(body);
-}</code></pre>
+        <h2>۲. دنیای ما و ساختار دموها</h2>
+        <p>همهٔ مثال‌ها روی یک موتور پایهٔ کوچک به نام <code>ro</code> ساخته شده‌اند (کد در
+        <a href="https://github.com/kirbysayshi/broad-phase-bng" target="_blank" rel="noopener">گیت‌هاب</a>):
+        <code>ro.World</code> (مدیریت موجودیت‌ها و گام‌برداری)، <code>ro.Entity</code> (یک «چیز» با موقعیت،
+        اندازه، شتاب)، <code>ro.Screen</code> (رسم)، <code>ro.math</code>، <code>ro.ov3</code> (عملیات برداری)
+        و <code>ro.coltech</code> (مخزن تکنیک‌های تشخیص برخورد). دموها در JSFiddle میزبان می‌شوند.</p>
+        <p>همهٔ دموها مربع‌اند — اتفاقی نیست! اکثر موتورها از <b>AABB</b> (جعبهٔ هم‌محور با محورها) به‌عنوان
+        تقریبِ موقعیت و حجمِ موجودیت استفاده می‌کنند. در این مقاله AABB با دو نقطه تعریف می‌شود:
+        <code>min</code> و <code>max</code>:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// یک AABB در (10,20) با عرض و ارتفاع 10
+var myAABB = {
+    min: [ 10, 20 ],
+    max: [ 20, 30 ]
+};</code></pre>
+        <p>چون AABBها با مختصات مطلق کار می‌کنند، هر بار که موقعیت موجودیت عوض شود باید به‌روز شوند. «هم‌محور با
+        محورها» یعنی اضلاع جعبه موازی محورهای اصلی مختصات‌اند (X مثبت به راست، Y مثبت به پایین در دموها).</p>
       </section>
 
       <section>
-        <h2>۴. پیدا کردن برخوردها با شبکه</h2>
-        <p>بعد از ساخت شبکه، به‌جای حلقه دوتایی روی همه اجسام، روی سلول‌ها می‌چرخیم و جفت‌های داخل هر سلول را
-        تست می‌کنیم. هر جفت نامزد دقیقاً یک‌بار تست شود (مثلاً با ردیابی در Set):</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>var pairs = new Set();
+        <h2>۳. رویکرد اول: نیروی وحشیانه (Brute Force)</h2>
+        <p>ساده‌ترین شکل: هر شیء با <i>هر شیء دیگر</i> تست شود — بدون تکرار تست‌ها. با تعداد کم اشیا این سریع‌ترین
+        و ساده‌ترین روش است، اما پیچیدگی‌اش با هر شیء <b>به‌صورت درجهٔ دوم</b> رشد می‌کند: با ۱۰۰ موجودیت
+        تقریباً ۵۰۰۰ تست لازم است و این به‌سرعت گلوگاه بازی می‌شود.</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>BruteForceTech.prototype.queryForCollisionPairs = function(){
+    var i, j, e1, e2, pairs = [], entityLen = this.entities.length;
+    this.collisionTests = 0;
 
-for (var key in grid) {
-    var cell = grid[key];
-    for (var i = 0; i &lt; cell.length; i++) {
-        for (var j = i + 1; j &lt; cell.length; j++) {
-            pairs.add(makePairKey(cell[i], cell[j]));
+    for( i = 0; i &lt; entityLen; i++ ){
+        e1 = this.entities[i];
+
+        // حلقهٔ داخلی از i+1 شروع می‌شود: هر جفت فقط یک بار تست می‌شود!
+        for( j = i+1; j &lt; entityLen; j++ ){
+            e2 = this.entities[j];
+            this.collisionTests += 1;
+
+            if( this.aabb2DIntersection(e1, e2) === true ){
+                pairs.push( [e1, e2] );
+            }
         }
     }
-}
+    return pairs;
+};
 
-// حالا فقط جفت‌های نامزد: فاز محدود
-pairs.forEach(function (pairKey) {
-    if (narrowPhaseCollision(pairA, pairB)) {
-        resolveCollision(pairA, pairB);
+BruteForceTech.prototype.aabb2DIntersection = function( objA, objB ){
+    var a = objA.getAABB(), b = objB.getAABB();
+
+    // اگر از یکی از چهار سمت، فاصله باشد: برخورد نیست
+    if(
+        a.min[0] &gt; b.max[0] || a.min[1] &gt; b.max[1]
+        || a.max[0] &lt; b.min[0] || a.max[1] &lt; b.min[1]
+    ){
+        return false;
+    } else {
+        return true;
     }
-});</code></pre>
+};</code></pre>
+        <p>این تست AABB فقط <i>boolean</i> برمی‌گرداند — «چطور» هم‌پوشی می‌کنند وظیفهٔ فاز باریک است. یک
+        بهینه‌سازی آشکار برای دمو: فقط یک مربع حرکت می‌کند؛ می‌توانیم فهرست اشیای متحرک بسازیم و فقط آن‌ها را با
+        اشیای ساکن مقایسه کنیم — بسته به مکانیک بازی‌تان ممکن است مناسب باشد یا نه.</p>
       </section>
 
       <section>
-        <h2>۵. به‌روزرسانی در حرکت</h2>
-        <p>چون اجسام در هر فریم جابه‌جا می‌شوند، شبکه باید به‌روز شود. ساده‌ترین روش: بازسازی شبکه در هر
-        فریم (با تعداد متوسط جسم کاملاً قابل قبول است) یا به‌روزرسانی فقط اجسام متحرک — جسمی که سلول عوض
-        کرده از سلول قبلی حذف و در سلول جدید افزوده می‌شود.</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>// به‌روزرسانی یک جسم متحرک
-function moveBody(body, dx, dy) {
-    removeFromGrid(grid, body);        // حذف از سلول قبلی
-    body.x += dx;
-    body.y += dy;
-    insertBody(grid, body);            // درج در سلول جدید
+        <h2>۴. رویکرد دوم: گرید فضایی (Bins / Spatial Grid)</h2>
+        <p><b>تقسیم فضایی</b> یعنی تقسیم فضای پیوسته به چند ناحیهٔ گسسته بر اساس چند قانون ساده. تکنیک‌های رایج:
+        کوادتری، درخت BSP، درخت R و <b>Bins / گرید فضایی</b> که موضوع این بخش است.</p>
+        <p>قوانین گرید ما:</p>
+        <ul>
+          <li>یک سلول، مربعی با مرزهای گسسته است («یک تکهٔ دقیق» از فضا)</li>
+          <li>اگر AABB موجودیت با سلولی هم‌پوشی کند، موجودیت در آن سلول درج می‌شود</li>
+          <li>یک موجودیت می‌تواند در چند سلول درج شود</li>
+          <li>گرید بعد از هر به‌روزرسانی دنیا دور ریخته و از نو ساخته می‌شود</li>
+          <li>جستجوی جفت‌های برخورد، با پیمایش همهٔ سلول‌های اشغال‌شده انجام می‌شود</li>
+          <li>باید جفت‌های قبلاً تست‌شده را پیگیری کنیم</li>
+        </ul>
+        <h3>نمایش گرید</h3>
+        <p>گرید فضایی نگاشت یک‌به‌یک بین مختصات دنیا و ساختار حافظه (آرایه یا لیست پیوندی) دارد — این نگاشت مستقیم
+        تجسم و اشکال‌زدایی را آسان می‌کند. گرید ما یک آرایهٔ سه‌بعدی است: بعد اول ستون‌ها، بعد دوم سلول‌ها و
+        بعد سوم موجودیت‌ها:</p>
+        <img src="http://buildnewgames.com/assets/article/broad-phase-collision-detection/images/spatial-grid-array-mapping.png" alt="نگاشت فضا به آرایه در گرید فضایی" class="fig" loading="lazy" />
+        <p>نگاشت یک موقعیت دنیا به ایندکس آرایه، با دو فرمول ساده:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// Math.floor( (موقعیت - کمینهٔ گرید) / اندازهٔ سلول )
+var col  = Math.floor( (46  - grid.min.x) / grid.pxCellSize );
+var cell = Math.floor( (237 - grid.min.y) / grid.pxCellSize );
+
+grid[col][cell] = ...   // سلولی که موجودیت باید در آن بنشیند</code></pre>
+        <p><code>grid.pxCellSize</code> تعداد پیکسل هر سلول است (سلول‌ها مربع‌اند پس یک عدد کافی است).
+        <code>grid.min.x/y</code> (غیر صفر) اجازه می‌دهد موجودیت‌های با مختصات منفی هم ایندکس معتبر بگیرند.</p>
+        <h3>انتخاب اندازهٔ مناسب سلول</h3>
+        <p>اندازهٔ سلول نقش بزرگ در کارایی گرید دارد؛ هر دو حالت بد ممکن است گرید را بدتر از brute force کنند:</p>
+        <table>
+          <thead>
+            <tr><th>حالت</th><th>مشکل</th><th>تصویر</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>سلول خیلی کوچک، موجودیت‌های بزرگ</td>
+              <td>هر موجودیت با سلول‌های زیادی هم‌پوشی می‌کند؛ گرید سلول‌محور است نه موجودیت‌محور → کار بیشتر از brute force</td>
+              <td><img src="http://buildnewgames.com/assets/article/broad-phase-collision-detection/images/spatial-grid-cs-too-small.png" alt="گرید با سلول‌های خیلی کوچک" loading="lazy" /></td>
+            </tr>
+            <tr>
+              <td>سلول خیلی بزرگ، موجودیت‌های کوچک</td>
+              <td>فقط یک سلول بازدید می‌شود ولی همهٔ موجودیت‌ها با هم تست می‌شوند → همان brute force</td>
+              <td><img src="http://buildnewgames.com/assets/article/broad-phase-collision-detection/images/spatial-grid-cs-too-large.png" alt="گرید با سلول‌های خیلی بزرگ" loading="lazy" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>ضعف ذاتی گرید فضایی: باید با موجودیت‌هایش هماهنگ (tune) شود. اگر موجودیت‌ها اندازه‌های خیلی متفاوت
+        داشته باشند، هیچ اندازهٔ سلولی مناسب نیست (نقطهٔ ضعف، شکل ۸ در مقاله). علاوه بر محاسبات، <b>حافظه</b> هم
+        هزینه دارد: با ریزتر شدن گرید، آرایه‌های بیشتری هر فریم ساخته و دور ریخته می‌شوند و فشار garbage collector
+        باعث توقف‌های محسوس می‌شود — با Memory Profiler کروم می‌توانید اثر اندازهٔ سلول را ببینید.</p>
+      </section>
+
+      <section>
+        <h2>۵. پر کردن گرید و جستجوی جفت‌ها</h2>
+        <p>گرید در هر گام دنیا از نو ساخته می‌شود (این از پیگیری «کدام موجودیت کدام سلول را لمس می‌کند» جلوگیری
+        می‌کند). الگوریتم ساخت:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>- ابعاد گرید را بر حسب تعداد سلول تعیین کن
+- تعداد کل سلول‌ها = عرض × ارتفاع
+- آرایه‌ای به طولِ عرض گرید بساز
+- برای هر موجودیت:
+    - ستون‌ها و ردیف‌هایی را که موجودیت لمس می‌کند پیدا کن
+    - برای هر ستون لمس‌شده: مطمئن شو آرایه‌ای برای سلول‌ها هست
+    - برای هر سلول لمس‌شده: مطمئن شو آرایه‌ای برای موجودیت‌ها هست
+    - موجودیت را در آرایهٔ موجودیت‌ها درج کن</code></pre>
+        <p>برای جستجوی جفت‌ها، هر سلول اشغال‌شده را می‌بینیم و همهٔ موجودیت‌های درونش را با هم مقایسه می‌کنیم.
+        بخش مهم: مطمئن شویم هر جفت فقط یک بار تست می‌شود — چون یک موجودیت می‌تواند در چند سلول باشد. ساده‌ترین
+        راه: به هر موجودیت هنگام ورود به دنیا یک شناسهٔ داخلی بدهیم:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>World.prototype.addEntity = function(entity){
+    entity._roId = this.uniq++;   // شناسهٔ یکتای عددی
+    entity.world = this;
+    this.entities.push( entity );
+    this.broadPhase.addEntity( entity );
+};</code></pre>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// با شناسه‌ها، یک کش از جفت‌های تست‌شده نگه می‌داریم:
+var hashA = entityA._roId + ':' + entityB._roId;
+var hashB = entityB._roId + ':' + entityA._roId;
+
+if( !checked[hashA] &amp;&amp; !checked[hashB] ){
+    checked[hashA] = checked[hashB] = true;   // این جفت تست شد
+
+    if( this.aabb2DIntersection( entityA, entityB ) ){
+        pairs.push( [entityA, entityB] );
+    }
 }</code></pre>
-        <p>همچنین می‌توان فاز گسترده را با جعبه مرزی (AABB) ترکیب کرد: اگر جعبه‌های مرزی دو جسم همپوشانی
-        نداشتند، نیازی به تست دقیق نیست. نتیجه نهایی: تشخیص برخورد برای هزاران جسم در زمان واقعی.</p>
-        <div class="callout tip">
-          نکته: برای اجسام با اندازه‌های خیلی متفاوت، شبکه «سلسله‌مراتبی» یا درخت چهارتایی (Quadtree) کارایی
-          بهتری می‌دهد؛ مقاله مرجع روی شبکه ساده تمرکز دارد.
-        </div>
+        <p>این کش باعث می‌شود گرید حتی با سلول‌های خیلی کوچک هم خوب کار کند — در آن صورت فقط «چک‌های کش» بیشتری
+        انجام می‌شود که ارزان‌تر از تست brute force است.</p>
+      </section>
+
+      <section>
+        <h2>۶. مشکلات و بسط‌های آینده</h2>
+        <p>دو موردی که کارایی گرید را خراب می‌کند: موجودیت‌هایی با اندازه‌های بسیار متفاوت، و اندازهٔ سلولی که
+        درست هماهنگ نشده. اما وقتی موجودیت‌ها اندازهٔ نسبتاً یکسان و مرزهای مشخص دارند، گرید فضایی انتخاب عالی‌ای
+        است.</p>
+        <p>افزونه‌های پیشنهادی مقاله برای پیاده‌سازی بعدی:</p>
+        <ol>
+          <li><b>API کوئری نقطه‌ای:</b> در بازی واقعی معمولاً فقط می‌خواهید بدانید «بازیکن با کدام پاورآپ
+          برخورد دارد» — نه کل جفت‌های دنیا. می‌توانید گریدهای جدا برای انواع تست داشته باشید یا APIای مثل
+          <code>isColliding(a, b)</code> روی نتیجهٔ کش‌شده.</li>
+          <li><b>نگهداری ساختار به‌جای ساخت/تخریب:</b> به‌روزرسانی پویای سلول‌ها در زمان خطی واقعاً سخت است؛
+          یک میان‌بر: هر موجودیت را فقط در یک سلول نگه دارید و موقع کوئری، سلول‌های لمس‌شده را محاسبه کنید.</li>
+          <li><b>گریدهای چندسطحی برای اندازه‌های متنوع:</b> چالش‌برانگیز ولی پیچیده — پیمایش سلسله‌مراتب گریدها.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی — آیا گرید فضایی ارزشش را دارد؟</h2>
+        <p>در بدترین حالت گرید فضایی به عملکرد brute force تنزل می‌کند، اما در بهترین حالت
+        <b>حداقل ۱۰۰ برابر سریع‌تر</b> است. مواردی که گرید فضایی مناسب نیست: وقتی نگران حافظه، فشار GC یا حجم کد
+        باشید (مثل مسابقات). رفتار گرید در حالت‌های حدی کاملاً قطعی است؛ مثلاً با سلول ۱۵ پیکسلی، ۱۰۰ موجودیتِ
+        10×10 و گرید 150×150:</p>
+        <table>
+          <thead>
+            <tr><th>سناریو</th><th>تعداد تست‌های برخورد</th><th>تعداد آرایه‌های ساخته‌شده</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>هر سلول کاملاً یک موجودیت دارد</td>
+              <td>0</td>
+              <td>گرید (1) + ستون‌ها (10) + سلول‌ها (10×10) = 111</td>
+            </tr>
+            <tr>
+              <td>همهٔ موجودیت‌ها در یک سلول</td>
+              <td>100×100 = 10000</td>
+              <td>گرید (1) + ستون (1) + سلول (1) = 3</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>توجه: در هر دو حالت، brute force به ۱۰٬۰۰۰ تست نیاز داشت. اگر با گرید فضایی، هر موجودیت در یک سلولِ
+        کاملِ خودش باشد، برخوردها حتی تشخیص داده نمی‌شوند مگر اینکه مرز سلول‌ها هم بررسی شوند!</p>
+        <p>یادداشت‌های فنی مقاله: دموها از <b>یکپارچه‌سازی Verlet</b> استفاده می‌کنند (به‌جای اویلر) — موجودیت‌ها
+        خاصیت <code>velocity</code> ندارند؛ سرعت به‌صورت ضمنی از تفاضل موقعیت فعلی و قبلی (<code>ppos</code>)
+        استخراج می‌شود و همین پاسخ برخورد را ساده می‌کند. «برخورد پیکسل‌به‌پیکسل» هم در سخت‌افزار NES و Gameduino
+        انجام می‌شود!</p>
       </section>
 
       <div class="callout note">
-        <strong>کپیرایت:</strong> مقاله «Broad Phase Collision Detection Using Spatial Partitioning» اثر
-        اندرو پترسن (Andrew Petersen) و متعلق به سایت Build New Games است. این صفحه فقط ترجمه فارسی آن است و
-        تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
-        <a href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+        <strong>کپیرایت:</strong> مطالب مقالهٔ «Broad Phase Collision Detection Using Spatial Partitioning»
+        اثر اندرو پترسن (Andrew Petersen) است که روی Build New Games منتشر شده. این صفحه ترجمهٔ فارسی و
+        خلاصهٔ آموزشی آن است و تمام حقوق محتوا و کدها متعلق به نویسنده است. برای مشاهدهٔ اصل مقاله به
+        <a href="http://buildnewgames.com/broad-phase-collision-detection/" target="_blank" rel="noopener">صفحهٔ اصلی</a>
+        و مخزن کد
+        <a href="https://github.com/kirbysayshi/broad-phase-bng" target="_blank" rel="noopener">kirbysayshi/broad-phase-bng</a>
+        مراجعه کنید.
       </div>
     </article>
   </main>
 
   <footer>
     <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
-    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
 
 </body>
 </html>
