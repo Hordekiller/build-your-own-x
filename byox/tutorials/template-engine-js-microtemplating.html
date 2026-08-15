@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | درک میکرو-قالب‌سازی جاوااسکریپت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور قالب</a>
+        <span class="sep">←</span>
+        <span>میکرو-قالب‌سازی جاوااسکریپت</span>
+      </div>
+      <h1>درک میکرو-قالب‌سازی جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/wdstack/understanding-javascript-micro-templating-f37a37b3b40e" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Understanding JavaScript Micro-Templating»
+          است که به بررسی تابع مشهور «میکرو-قالب‌سازی» (JavaScript Micro-Templating) اثر
+          <b>جان رسیگ (John Resig)</b> — خالق jQuery — می‌پردازد (پست اصلی در وبلاگ جان رسیگ،
+          ژوئیه ۲۰۰۸). نسخهٔ کامل را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/wdstack/understanding-javascript-micro-templating-f37a37b3b40e" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: تابعی که همه‌چیز را تغییر داد</h2>
+        <p>در سال ۲۰۰۸، جان رسیگ — خالق jQuery — یک تابعِ ۳۳ خطی منتشر کرد به نام
+        <b>JavaScript Micro-Templating</b> که در «استفاده از قالب در مرورگر» تحولی ایجاد کرد: یک
+        <code>tmpl(str, data)</code> که قالب را می‌گیرد، آن را <b>کامپایل</b> (ترجمه به کدِ اجرایی) می‌کند
+        و در حافظه <b>کش</b> می‌کند. در این آموزش می‌بینیم خط‌به‌خط چطور کار می‌کند.</p>
+        <p>روش استفاده:</p>
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;script type="text/html" id="item_tmpl"&gt;
+  &lt;div id="&lt;%=id%&gt;" class="&lt;%=klass%&gt;"&gt;
+    &lt;div class="item"&gt;&lt;%=name%&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/script&gt;
+
+&lt;script&gt;
+  var results = tmpl("item_tmpl", { id: 1, klass: "item", name: "جان" });
+  document.getElementById("results").innerHTML = results;
+&lt;/script&gt;</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. هستهٔ تابع</h2>
+        <pre class="code"><span class="lang-tag">javascript</span><code>// میکرو-قالب‌سازی جاوااسکریپت، اثر جان رسیگ (با مجوز MIT)
+(function(){
+  var cache = {};
+
+  this.tmpl = function tmpl(str, data){
+    // تشخیص: آیدی یک تگ است یا خودِ رشتهٔ قالب؟
+    var fn = !/\W/.test(str) ?
+      cache[str] = cache[str] ||
+        tmpl(document.getElementById(str).innerHTML) :
+      new Function("obj",
+        "var p=[],print=function(){p.push.apply(p,arguments);};" +
+        "with(obj){p.push('" +
+        str
+          .replace(/[\r\t\n]/g, " ")
+          .split("<%").join("\t")
+          .replace(/((^|%>)[^\t]*)'/g, "$1\r")
+          .replace(/\t=(.*?)%>/g, "',$1,'")
+          .split("\t").join("');")
+          .split("%>").join("p.push('")
+          .split("\r").join("\\'")
+        + "');}return p.join('');");
+    return data ? fn( data ) : fn;
+  };
+})();</code></pre>
+        <div class="callout tip">
+          <strong>ایدهٔ کلیدی:</strong> قالب «رشته» می‌ماند ولی به‌دستِ <code>new Function</code> به
+          بدنهٔ یک تابع واقعی تبدیل می‌شود. یعنی خروجی، «اجرای کد» است نه تجزیهٔ متن — سریع، ساده
+          و بسیار انعطاف‌پذیر.
+        </div>
+      </section>
+
+      <section>
+        <h2>۳. گام‌به‌گام با تابع</h2>
+        <ol>
+          <li><b>تشخیص ورودی:</b> اگر <code>str</code> فاقد نویسهٔ غیرعادی (<code>/\W/</code>) بود، آن را
+          آیدیِ یک تگ <code>&lt;script type="text/html"&gt;</code> در نظر می‌گیریم، محتوایش را می‌خوانیم
+          و در <code>cache</code> نگه می‌داریم — بارهای بعدی دیگر کدِ کامپایل‌شده از کش برمی‌گردد.
+          در غیر این صورت خودِ <code>str</code> قالب است.</li>
+          <li><b>پاک‌سازی و برچسب‌گذاری:</b> <code>[\r\t\n]</code>ها حذف می‌شوند، <code>&lt;%</code> به
+          تب <code>\t</code> تبدیل می‌شود (تا بعداً به «بستنِ رشته» بدل شود)، آپاستروف‌های داخل قالب
+          با <code>\r</code> نشانه‌گذاری می‌شوند تا هنگام ساخت رشتهٔ کد خراب نشوند.</li>
+          <li><b>تبدیل برچسب‌ها به کد:</b>
+          <code>&lt;%=expr%&gt;</code> به <code>',$1,'</code> تبدیل می‌شود — یعنی «خروجیِ این عبارت را
+          به آرایه اضافه کن»؛ <code>\t</code> به <code>');</code> (بستن push) و <code>%&gt;</code> به
+          <code>p.push('</code> (باز کردن push). نتیجهٔ نهایی رشتهٔ بدنهٔ تابع است.</li>
+          <li><b>ساخت تابع با <code>with(obj)</code>:</b> داخل تابعِ ساخته‌شده، متغیرهای قالب از
+          درونِ object داده در دسترس‌اند — <code>with(obj){ p.push('...') }</code> — و آرایهٔ
+          <code>p</code> قطعه‌ها را جمع می‌کند تا در انتها <code>p.join('')</code> خروجی نهایی شود.</li>
+          <li><b>فراخوانی:</b> اگر <code>data</code> داده شده باشد، تابع با داده اجرا و خروجی می‌شود؛
+          اگر نه، خودِ تابع (برای استفادهٔ بعدی) برگردانده می‌شود.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۴. چرا این همه راه دور؟</h2>
+        <ul>
+          <li><b>اجرای واقعی جاوااسکریپت داخل قالب:</b> هر چیزی که در قالب بنویسید — حلقه، شرط، فراخوانی
+          تابع — واقعاً اجرا می‌شود؛ مثلاً
+          <code>&lt;% for (var i=0; i&lt;items.length; i++) { %&gt;…&lt;% } %&gt;</code>.</li>
+          <li><b>کشِ خودکار:</b> قالب‌های برچسب‌دار فقط یک‌بار کامپایل می‌شوند؛ سرعتِ اجرای مکرر به
+          سطح توابع معمولی می‌رسد.</li>
+          <li><b>بدون وابستگی:</b> یک تابع خالصِ جاوااسکریپت که در هر محیطی (مرورگر، Node) کار می‌کند —
+          و همین سادگی بود که الهام‌بخش موتورهای بعدی (مثل موتور ۲۰ خطی همین مجموعه) شد.</li>
+        </ul>
+        <div class="callout note">
+          <strong>نکتهٔ امنیتی/عملی:</strong> استفاده از <code>new Function</code> یعنی اجرای کدِ
+          درونِ قالب؛ در عملِ واقعی (با ورودی کاربر) باید دقت کنید. اما به‌عنوان یک «شگفتی مهندسی»،
+          درک همین ۳۳ خط، نیم‌ساعت تأمل می‌ارزد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>میکرو-قالب‌سازی جان رسیگ نشان داد «موتور قالب» لزوماً پروژهٔ بزرگ نیست: یک رشته، یک regex،
+        یک <code>new Function</code> و یک کش — تمام. با درک این پیاده‌سازی، خواندن هر موتور قالبِ
+        جاوااسکریپت (EJS، Underscore و…) برایتان روشن می‌شود، چون همه از همین ایدهٔ «قالب → کد» تغذیه
+        می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> تابع «JavaScript Micro-Templating» اثر جان رسیگ (John Resig) است و
+        مقالهٔ «Understanding JavaScript Micro-Templating» در Medium (web dev Stack، wdstack) منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای
+        مشاهده اصل مطلب به
+        <a href="https://medium.com/wdstack/understanding-javascript-micro-templating-f37a37b3b40e" target="_blank" rel="noopener">سایت اصلی</a>
+        و پست اصلیِ
+        <a href="https://johnresig.com/blog/javascript-micro-templating/" target="_blank" rel="noopener">جان رسیگ</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

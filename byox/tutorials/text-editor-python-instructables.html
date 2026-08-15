@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک ویرایشگر متن ساده پایتون بساز! (Instructables)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ویرایشگر متن</a>
+        <span class="sep">←</span>
+        <span>یک ویرایشگر متن ساده پایتون بساز!</span>
+      </div>
+      <h1>یک ویرایشگر متن ساده پایتون بساز! (Create a Simple Python Text Editor!)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.instructables.com/id/Create-a-Simple-Python-Text-Editor/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «Create a Simple Python Text Editor!»
+          از سایت <b>Instructables</b> (منتشرشده: ژانویه ۲۰۱۶) است که در ۴ قدم، یک ویرایشگر متن
+          کاربردی با tkinter می‌سازد. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://www.instructables.com/id/Create-a-Simple-Python-Text-Editor/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه</h2>
+        <p>این آموزش در ۴ قدم، یک ویرایشگر متن ساده و در عین حال کاربردی را با پایتون می‌سازد. خبر خوب
+        این است که به هیچ نصب خارجی نیاز نیست: <b>tkinter</b> همراه پایتون می‌آید و کدِ نهایی هم
+        کوتاه است. نتیجه: برنامه‌ای که می‌تواند فایل متنی را باز کند، متن‌تان را در خودش نگه دارد و به
+        فایل ذخیره کند — یک Notepad مینیاتوریِ خودساخته که پایهٔ هر ویرایشگر بزرگ‌تری است.</p>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ راه ۴ قدم</h2>
+        <ol>
+          <li><b>قدم ۱ — مقدمات</b>: ایمپورت tkinter و ساخت پنجرهٔ اصلی برنامه (root window)؛ تعریف
+          ویدجت <code>Text</code> به‌عنوان ناحیهٔ ویرایش متن؛ تنظیم تایتل و ابعاد پنجره.</li>
+          <li><b>قدم ۲ — ساخت ویجت‌ها</b>: اضافه‌کردن نوار منو با منوی <code>File</code> (New/Open/Save)
+          و منوی <code>Edit</code> (Cut/Copy/Paste)؛ هر آیتم به یک تابع تابعِ رویداد وصل می‌شود.</li>
+          <li><b>قدم ۳ — توابع</b>: نوشتن توابع اصلی — برداشتن متن انتخاب‌شده، کپی و چسباندنِ محتوا در
+          ناحیهٔ متن، بازکردن یک فایل با <code>filedialog</code> و خواندن محتویاتش در ویجت Text، و
+          ذخیره‌کردن محتویاتِ ویجت در یک فایل.</li>
+          <li><b>قدم ۴ — اجرا</b>: صدا زدنِ <code>mainloop()</code> تا پنجره نمایش داده شود و برنامه
+          اجرا شود; + نکاتی دربارهٔ اجرا و اشکال‌زدایی.</li>
+        </ol>
+        <p>ساختار کد به این شکل است (نمونهٔ خلاصه‌شده برای درک نقشه):</p>
+        <pre class="code"><span class="lang-tag">python</span><code># قدم ۱: پنجره و ناحیهٔ متن
+from tkinter import *
+from tkinter import filedialog
+
+root = Tk()
+root.title("Simple Text Editor")
+text_area = Text(root)
+text_area.pack(expand=True, fill=BOTH)
+
+# قدم ۲: منوهای File و Edit
+menu_bar = Menu(root)
+file_menu = Menu(menu_bar, tearoff=0)
+file_menu.add_command(label="New", command=new_file)
+file_menu.add_command(label="Open", command=open_file)
+file_menu.add_command(label="Save", command=save_file)
+menu_bar.add_cascade(label="File", menu=file_menu)
+root.config(menu=menu_bar)
+
+# قدم ۳: توابع فایل
+def open_file():
+    path = filedialog.askopenfilename()
+    if path:
+        text_area.delete("1.0", END)
+        with open(path, "r") as f:
+            text_area.insert(END, f.read())
+
+def save_file():
+    path = filedialog.asksaveasfilename(defaultextension=".txt")
+    if path:
+        with open(path, "w") as f:
+            f.write(text_area.get("1.0", END))
+
+# قدم ۴: اجرا
+root.mainloop()</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. چه چیزهایی یاد می‌گیرید</h2>
+        <ul>
+          <li><b>GUI اولیه با tkinter</b>: پنجره، ویجت ناحیهٔ متن، منوها و اتصال رویدادها.</li>
+          <li><b>مدیریت فایل</b>: دیالوگ‌های باز و ذخیره با <code>filedialog</code>.</li>
+          <li><b>ساختار برنامه</b>: جداسازیِ «ساخت رابط» از «منطق عملیات» — همان الگویی که در
+          ویرایشگرهای واقعی می‌بینید.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>قدم بعدی:</strong> بعد از ساخت این ویرایشگر، می‌توانید آن را ارتقا دهید: برچسبِ
+          «تغییرنخورده/تغییرکرده» در عنوان پنجره، میان‌برهای صفحه‌کلید (Ctrl+S و…) و حتی های‌لایت
+          نحوی — مسیرِ الهام از برنامه‌های واقعی.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>در ۴ قدم کوتاه، یک ویرایشگر متن کار می‌کنیم دارید: بازکردن، ویرایش و ذخیرهٔ فایل‌های متنی
+        با کمترین وابستگی. این آموزشِ دلچسبی برای شروعِ برنامه‌نویسی رابط گرافیکی و ساخت ابزارهای
+        کاربردی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «Create a Simple Python Text Editor!» در سایت Instructables
+        منتشر شده و متعلق به نویسندهٔ آن است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://www.instructables.com/id/Create-a-Simple-Python-Text-Editor/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

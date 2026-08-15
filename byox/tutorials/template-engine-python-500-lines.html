@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک موتور قالب (از کتاب ۵۰۰ خط یا کمتر)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور قالب</a>
+        <span class="sep">←</span>
+        <span>یک موتور قالب (۵۰۰ خط)</span>
+      </div>
+      <h1>یک موتور قالب — فصل «۵۰۰ خط یا کمتر» (A Template Engine)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/a-template-engine.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی فصل «A Template Engine» از کتاب
+          <b>500 Lines or Less</b> (aosabook) اثر <b>ند بتچلدر (Ned Batchelder)</b> — نگه‌دارندهٔ
+          coverage.py. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/a-template-engine.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا موتور قالب؟</h2>
+        <p>بیشتر برنامه‌ها «منطق زیاد و متنِ ثابتِ کم» دارند و زبان‌های برنامه‌نویسی برای همین ساخته
+        شده‌اند. ولی بعضی کارها برعکس‌اند: منطق کم و حجم عظیمی متن — مشهورترین نمونه، تولید HTML در
+        برنامه‌های وب است. خیلی کم پیش می‌آید صفحه‌ای کاملاً ثابت باشد؛ معمولاً فقط نام کاربر یا فهرست
+        محصولات پویاست. راهِ «رشته‌های ثابت + جایگزینی» به سرعت به هم‌ریختگی می‌رسد: HTML تکه‌تکه در کد
+        پایتون گم می‌شود و طراحِ فرانت‌اند باید کد پایتون را ویرایش کند. راه‌حل، <b>قالب‌ها</b> هستند:
+        فایلی که بیشترش HTML ثابت است و فقط بخش‌های پویا با علامت‌گذاری خاص وارد می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;p&gt;Welcome, {{user_name}}!&lt;/p&gt;
+&lt;p&gt;Products:&lt;/p&gt;
+&lt;ul&gt;
+{% for product in product_list %}
+    &lt;li&gt;{{ product.name }}:
+        {{ product.price|format_price }}&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;</code></pre>
+        <p>زبان قالب زبان‌های معمول را «وارونه» می‌کند: متن ثابت، پیش‌فرض است و کدِ پویا با علامت
+        خاص وارد می‌شود (در برنامه‌نویسی معمول، کد پیش‌فرض است و متنِ ثابت داخل string literal).
+        اما برای اجرا به یک <b>موتور قالب</b> نیاز داریم: تابعی که قالب (ساختار و متن ثابت) و یک
+        <b>کانتکست</b> (دادهٔ پویا) را می‌گیرد و رشتهٔ نهایی HTML را تولید می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. نحوِ زبانی که می‌سازیم</h2>
+        <p>نحو بر پایهٔ Django است: <code>{{expr}}</code> برای درج داده؛ نقطه برای همهٔ دسترسی‌های داده
+        (<code>{{product.price}}</code> یعنی هم attribute، هم کلیدِ دیکشنری — و اگر مقدار callable بود
+        خودکار صدا زده می‌شود)؛ <b>فیلترها</b> با <code>|</code>
+        (<code>{{story.subject|slugify|lower}}</code>)؛ شرط <code>{% if %}</code>/
+        <code>{% endif %}</code>؛ حلقهٔ <code>{% for x in list %}</code>/<code>{% endfor %}</code>؛ و کامنت
+        <code>{# ... #}</code>.</p>
+      </section>
+
+      <section>
+        <h2>۳. تفسیر یا کامپایل؟</h2>
+        <p>دو رویکرد بزرگ وجود دارد. <b>تفسیر</b>: تجزیه‌گر ساختار دادهٔ نمایانگر قالب می‌سازد و موتورِ
+        رندر اعلامی روی آن راه می‌رود (سبک Django). <b>کامپایل</b>: تجزیه‌گر، کدِ مستقیماً اجراشدنی
+        تولید می‌کند (سبک Jinja2 و Mako). فصل، رویکرد کامپایل را انتخاب می‌کند: قالب به یک
+        <b>تابع پایتونی</b> ترجمه می‌شود. دلیلش عملی است: این موتور برای تولید گزارش‌های HTMLِ
+        coverage.py نوشته شده — قالب‌ها کم‌اند ولی بارها اجرا می‌شوند؛ هزینهٔ کامپایل یک‌بار پرداخت می‌شود
+        و هر اجرا چندین بار سریع‌تر از تفسیر است. (و راستش، «نوشتن برنامه‌ای که برنامه می‌نویسد» خیلی
+        هم سرگرم‌کننده است!)</p>
+        <p>کد پایتونی که تولید می‌شود، چیزی شبیه این است (برای خوانایی اندکی نرمال شده):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def render_function(context, do_dots):
+    c_user_name = context['user_name']
+    c_product_list = context['product_list']
+    c_format_price = context['format_price']
+
+    result = []
+    append_result = result.append
+    extend_result = result.extend
+    to_str = str
+
+    extend_result([
+        '&lt;p&gt;Welcome, ',
+        to_str(c_user_name),
+        '!&lt;/p&gt;\n&lt;p&gt;Products:&lt;/p&gt;\n&lt;ul&gt;\n'
+    ])
+    for c_product in c_product_list:
+        extend_result([
+            '\n    &lt;li&gt;',
+            to_str(do_dots(c_product, 'name')),
+            ':\n        ',
+            to_str(c_format_price(do_dots(c_product, 'price'))),
+            '&lt;/li&gt;\n'
+        ])
+    append_result('\n&lt;/ul&gt;\n')
+    return ''.join(result)</code></pre>
+        <div class="callout note">
+          <strong>میکرو-بهینه‌سازی‌های آموزنده:</strong> داده‌های کانتکست در ابتدای تابع به متغیرهای
+          محلی (با پیشوند <code>c_</code>) استخراج می‌شوند چون جست‌وجوی محلی از سراسری سریع‌تر است؛
+          <code>append</code>/<code>extend</code> از روی آرایه یک‌بار گرفته می‌شوند تا زمان‌های بعد
+          صرفِ attribute lookup نشود؛ و <code>str</code> به یک نام محلی کوتاه می‌شود. این‌ها فقط بعد از
+          آزمایش زمان‌بندی اضافه شده‌اند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. کلاس CodeBuilder</h2>
+        <p>هستهٔ موتور، کلاس <code>Templite</code> است («قالبِ لایت!»). برای ساخت کد پایتون از یک
+        کمکی به نام <code>CodeBuilder</code> استفاده می‌کند که خط اضافه می‌کند، تورفتگی را مدیریت
+        می‌کند و در پایان، از کدِ ساخته‌شده مقدار نهایی می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class CodeBuilder(object):
+    """ساخت راحتِ کد منبع"""
+
+    def __init__(self, indent=0):
+        self.code = []
+        self.indent_level = indent
+
+    def add_line(self, line):
+        """افزودن یک خط؛ تورفتگی و newline خودکار اضافه می‌شود."""
+        self.code.extend([" " * self.indent_level, line, "\n"])
+
+    INDENT_STEP = 4  # طبق PEP8!
+
+    def indent(self):
+        """افزایش تورفتگی سطرهای بعدی."""
+        self.indent_level += self.INDENT_STEP
+
+    def dedent(self):
+        """کاهش تورفتگی سطرهای بعدی."""
+        self.indent_level -= self.INDENT_STEP
+
+    def add_section(self):
+        """افزودن یک بخش: CodeBuilder تودرتو برای پر شدنِ بعدی."""
+        section = CodeBuilder(self.indent_level)
+        self.code.append(section)
+        return section
+
+    def __str__(self):
+        return "".join(str(c) for c in self.code)
+
+    def get_globals(self):
+        """اجرای کد و برگرداندن دیکشنری تعریف‌شده‌ها."""
+        assert self.indent_level == 0
+        python_source = str(self)
+        global_namespace = {}
+        exec(python_source, global_namespace)
+        return global_namespace</code></pre>
+        <p>نکتهٔ طراحی خوب: <code>CodeBuilder</code> هیچ دانشی از موتور قالب ندارد — فقط «خط کد
+        می‌سازد»؛ و <code>get_globals</code> با <code>exec</code> کد را اجرا و تعریف‌ها را برمی‌گرداند،
+        بدون این‌که بداند تابع چه نامی دارد.</p>
+      </section>
+
+      <section>
+        <h2>۵. کامپایل در سازندهٔ Templite</h2>
+        <p>کلاس <code>Templite</code> دو فاز دارد. سازنده (با آرگومان‌های *contexts — ادغام چند
+        دیکشنری) همهٔ کارِ کامپایل را انجام می‌دهد و متد <code>render</code> فقط اجرا می‌کند. نقشهٔ راه:</p>
+        <ol>
+          <li>باز کردن کد: <code>def render_function(context, do_dots):</code> و بعد از آن یک
+          <b>بخشِ prologue</b> (<code>vars_code</code>) که هنوز خالی است — بعداً که همهٔ نام‌ها را
+          شناختیم پر می‌شود؛ به‌همراه خط‌های ثابتِ result/append/extend/to_str.</li>
+          <li>یک تابع درونی <code>flush_output</code> (کلوزر روی buffer و code) که قطعه‌های خروجیِ
+          بافر شده را به‌صورت یک خطِ <code>append_result(...)</code> یا
+          <code>extend_result([...])</code> به کد اضافه می‌کند.</li>
+          <li>تجزیه با یک رگکس: <code>re.split(r"(?s)({{.*?}}|{%.*?%}|{#.*?#})", text)</code> —
+          پرچم <code>(?s)</code> یعنی نقطه با newline هم تطبیق می‌کند و <code>.*?</code> یعنی کوتاه‌ترین
+          تطبیق (lazy). خروجی لیستی از قطعه‌های literal و تگ است.</li>
+          <li>حلقه روی تگ‌ها: کامنت را نادیده بگیر؛ <code>{{expr}}</code> → خطِ
+          <code>to_str(کد_عبارت)</code>؛ <code>{% if %}</code> → خطِ <code>if ...:</code> + indent؛
+          <code>{% for x in expr %}</code> → خطِ <code>for c_x in ...:</code> + indent؛
+          <code>{% end %}</code> → dedent؛ و <code>literal</code>ها با <code>repr()</code> بافر می‌شوند.
+          پشتهٔ <code>ops_stack</code> هم خطاهای «end ناهماهنگ» را می‌گیرد.</li>
+          <li>در پایان: پر کردن prologue با خط‌های
+          <code>c_var = context['var']</code> برای همهٔ نام‌های
+          <code>all_vars - loop_vars</code>؛ سپس <code>return ''.join(result)</code>؛ و در نهایت
+          <code>self._render_function = code.get_globals()['render_function']</code>.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۶. کامپایل عبارت‌ها: فیلترها و نقطه‌ها</h2>
+        <p>متد <code>_expr_code</code> به‌صورت بازگشتی عبارت قالب را به عبارت پایتون ترجمه می‌کند:
+        فیلترها (<code>|</code>) به «فراخوانی تابعِ فیلتر روی مقدار قبلی» تبدیل می‌شوند
+        (<code>c_upper(c_name)</code>) و نام فیلترها به <code>all_vars</code> اضافه می‌شوند؛ نقطه‌ها به
+        فراخوانیِ <code>do_dots(x, 'y', 'z')</code> تبدیل می‌شوند (چون مشخص نیست در زمان کامپایل
+        attribute است یا کلید)؛ و نام ساده، با پیشوندِ <code>c_</code>.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def _expr_code(self, expr):
+    """تبدیل عبارتِ قالب به عبارتِ پایتون."""
+    if "|" in expr:
+        pipes = expr.split("|")
+        code = self._expr_code(pipes[0])
+        for func in pipes[1:]:
+            self._variable(func, self.all_vars)
+            code = "c_%s(%s)" % (func, code)
+    elif "." in expr:
+        dots = expr.split(".")
+        code = self._expr_code(dots[0])
+        args = ", ".join(repr(d) for d in dots[1:])
+        code = "do_dots(%s, %s)" % (code, args)
+    else:
+        self._variable(expr, self.all_vars)
+        code = "c_%s" % expr
+    return code</code></pre>
+      </section>
+
+      <section>
+        <h2>۷. رندر: فقط اجرا</h2>
+        <p>چون کارِ سخت در کامپایل انجام شده، <code>render</code> ساده است: کانتکستِ کل (ادغام کانتکست
+        سازنده و کانتکست این رندر) را می‌سازد و <code>render_function</code> را صدا می‌زند. معنای
+        نقطه‌ها در زمان اجرا با <code>_do_dots</code> تعیین می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def render(self, context=None):
+    render_context = dict(self.context)
+    if context:
+        render_context.update(context)
+    return self._render_function(render_context, self._do_dots)
+
+def _do_dots(self, value, *dots):
+    """ارزیابی در زمان اجرای عبارت‌های نقطه‌دار."""
+    for dot in dots:
+        try:
+            value = getattr(value, dot)
+        except AttributeError:
+            value = value[dot]
+        if callable(value):
+            value = value()
+    return value</code></pre>
+      </section>
+
+      <section>
+        <h2>۸. تست و چیزهایی که حذف شده‌اند</h2>
+        <p>با موتور، یک مجموعه‌تست کامل همراه است: خودِ موتور ۲۵۲ خط و تست‌ها ۲۷۵ خط
+        («کدِ خوب‌تست‌شده معمولاً تست‌هایش از محصولش بیشتر است»). عمداً حذف شده‌اند: ارث‌بری و includeِ
+        قالب، تگ‌های سفارشی، escaping خودکار، آرگومان برای فیلترها، <code>else/elif</code>، حلقهٔ
+        چندمتغیره و کنترل فاصلهٔ سفید. با این‌حال همین موتورِ ساده، واقعاً موتورِ تولید گزارش‌های
+        HTML در coverage.py است!</p>
+      </section>
+
+      <section>
+        <h2>۹. جمع‌بندی</h2>
+        <p>در ۲۵۲ خط، یک موتور قالبِ ساده اما توانا ساختیم. ایدهٔ اصلی، در یک جمله: <b>قالب را به یک
+        تابع پایتونی کامپایل کن، بعد تابع را اجرا کن</b>. این فصل همچنین نمونهٔ فوق‌العاده‌ای از
+        «تولید کد» (code generation) است — تکنیکی که اساس کامپایلرهای زبان‌های برنامه‌نویسی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل «A Template Engine» اثر ند بتچلدر (Ned Batchelder) است و در کتاب
+        «500 Lines or Less» (aosabook.org) منتشر شده. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://aosabook.org/en/500L/a-template-engine.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

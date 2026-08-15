@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت موتور ایندکس‌گذاری فضای برداری در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور جست‌وجو</a>
+        <span class="sep">←</span>
+        <span>ایندکس‌گذاری فضای برداری</span>
+      </div>
+      <h1>ساخت یک موتور ایندکس‌گذاری فضای برداری در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://boyter.org/2010/08/build-vector-space-search-engine-python/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Building a Vector Space Indexing Engine in
+          Python» از وبلاگ <b>بویتر (Ben Boyter)</b> (منتشرشده: ۲۳ اوت ۲۰۱۰) است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://boyter.org/2010/08/build-vector-space-search-engine-python/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: جست‌وجو به‌صورت هندسه</h2>
+        <p>در سری مقاله‌های بویتر، هدف این است که موتورهای جست‌وجوی واقعی را از صفر بسازیم و بفهمیم.
+        این قسمت به مدل <b>فضای برداری (Vector Space Model)</b> اختصاص دارد: هر سند را به‌صورت یک بردار
+        در فضای «واژه‌ها» تصور می‌کنیم، پرس‌وجوی کاربر هم یک بردار است، و «ربط» یعنی نزدیکیِ زاویه‌ایِ
+        این دو بردار — که با <b>کسینوس زاویه بین بردارها (cosine similarity)</b> سنجیده می‌شود. به زبان
+        ساده: دو سندِ شبیه، در جهت‌های نزدیک‌به‌هم از مبدأ دراز می‌کشند.</p>
+        <div class="callout tip">
+          <strong>ایدهٔ اصلی:</strong> به‌جای جست‌وجوی «کلمه در کلمه»، متن را به مختصاتِ هندسی تبدیل
+          می‌کنیم و «شباهت» را با زاویهٔ بین بردارها حساب می‌کنیم — مدلی که پایهٔ بیشتر موتورهای
+          کلاسیک است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. ساخت واژه‌نامه: تابع concordance</h2>
+        <p>اولین قدم، ساختن <b>واژه‌نامه (vocabulary)</b> است: تابعی که محتوای همهٔ فایل‌های یک پوشه را
+        می‌خواند، آن‌ها را به واژه‌ها می‌شکند و یک نگاشت «واژه → شماره» می‌سازد. این شماره در واقع
+        همان «دیمانسیون» بردار است — بعداً برای هر سند، یک بردار با همین ابعاد می‌سازیم. بویتر این
+        تابع را <code>concordance()</code> می‌نامد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import os, re
+
+def concordance(path):
+    """خواندن همهٔ فایل‌های پوشه و ساخت واژه‌نامه (واژه → شماره)"""
+    words = {}
+    for f in os.listdir(path):
+        text = open(os.path.join(path, f), 'r').read().lower()
+        for word in re.findall(r'\w+', text):
+            words.setdefault(word, len(words))   # هر واژه جدید یک دیمانسیون جدید
+    return words</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. بردارِ هر سند: شمارش واژه‌ها</h2>
+        <p>حالا برای هر فایل، یک بردار می‌سازیم که در دیمانسیون مربوط به هر واژه، تعدادِ دفعاتِ حضور
+        آن واژه در فایل را دارد. نتیجه یک «ماتریس سند×واژه» است: شدت حضور هر واژه در هر سند. بویتر کد
+        کامل این مرحله را قدم‌به‌قدم نشان می‌دهد (خواندن دوبارهٔ فایل‌ها، شمارش با شمارنده و پر کردن
+        بردارها) — دقت کنید که این بار از واژه‌نامهٔ ساخته‌شده استفاده می‌کنیم تا همهٔ بردارها «هم‌ابعاد»
+        باشند.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def build_vectors(path, concord):
+    """برای هر فایل، یک بردارِ شمارش واژه بساز"""
+    vectors = {}
+    files = os.listdir(path)
+    for f in files:
+        counts = {}
+        text = open(os.path.join(path, f), 'r').read().lower()
+        for word in re.findall(r'\w+', text):
+            counts[word] = counts.get(word, 0) + 1
+        vec = [0] * len(concord)
+        for word, count in counts.items():
+            vec[concord[word]] = count
+        vectors[f] = vec
+    return vectors</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. رتبه‌بندی با فاصلهٔ کسینوسی</h2>
+        <p>نقطهٔ اوج آموزش: تابعی که «شباهتِ کسینوسی» دو بردار را حساب می‌کند — حاصل‌ضرب نقطه‌ایِ
+        بردارها تقسیم بر حاصل‌ضرب اندازهٔ (norm) آن‌ها:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from math import sqrt, acos
+
+def dot(vec_a, vec_b):
+    return sum(a * b for a, b in zip(vec_a, vec_b))
+
+def norm(vec):
+    return sqrt(sum(x * x for x in vec))
+
+def cosine_similarity(vec_a, vec_b):
+    """شباهت کسینوسی: ۱ یعنی هم‌جهت (بسیار شبیه)، ۰ یعنی بی‌رابطه"""
+    if norm(vec_a) == 0 or norm(vec_b) == 0:
+        return 0.0
+    return dot(vec_a, vec_b) / (norm(vec_a) * norm(vec_b))
+
+def cosine_distance(vec_a, vec_b):
+    """فاصلهٔ کسینوسی = ۱ - شباهت؛ عدد کوچک‌تر یعنی ربط بیشتر"""
+    return 1.0 - cosine_similarity(vec_a, vec_b)</code></pre>
+        <p>سپس برای یک پرس‌وجو: اول بردارِ پرس‌وجو را (در همین فضا، با همین واژه‌نامه) می‌سازیم، بعد
+        فاصلهٔ کسینوسی آن را با بردارِ هر سند حساب می‌کنیم و نتایج را به‌ترتیب این فاصله مرتب می‌کنیم —
+        سندی که کمترین فاصله (بزرگ‌ترین شباهت) را دارد، رتبهٔ اول می‌گیرد.</p>
+      </section>
+
+      <section>
+        <h2>۵. الگوریتم اصلاح‌شده: IDf برای خنثی‌کردن واژه‌های بی‌ارزش</h2>
+        <p>نسخهٔ اول ساده، مشکل معروفی دارد: واژه‌های پرتکرارِ بی‌معنی («the»، «and»، «of») بردارها را
+        به هم نزدیک می‌کنند و کلمات کلیدیِ کمیاب را زیر سایه می‌برند. راه حل مقاله‌ای که بویتر
+        «الگوریتم اصلاح‌شده» می‌نامد، اعمال وزنِ <b>IDF</b> است: واژه‌ای که در همهٔ فایل‌ها هست،
+        اطلاعات کمی دارد و وزنش کم می‌شود؛ واژه‌ای که فقط در چند فایل است، «نشانه» است و وزنش زیاد
+        می‌شود. در کد اصلاح‌شده، قبل از محاسبهٔ شباهت، هر درایهٔ بردار در IDFِ وزنِ همان واژه ضرب
+        می‌شود؛ اثر عملی این است که نتایجِ معنادار به صدرِ رتبه‌بندی می‌آیند.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import math
+
+def calculate_idf(vectors, concord):
+    """وزن هر واژه: لگاریتمِ نسبتِ اسنادِ دارای واژه به کل اسناد (برعکس)"""
+    n = len(vectors)
+    idf = {}
+    for word, idx in concord.items():
+        docs_having = sum(1 for v in vectors.values() if v[idx] > 0)
+        idf[word] = math.log(n / docs_having)
+    return idf
+
+def apply_idf(vectors, idf, concord):
+    """ضرب کردن IDF در بردارها — واژه‌های رایج کمرنگ و کمیاب‌ها پررنگ می‌شوند"""
+    result = {}
+    for fname, vec in vectors.items():
+        result[fname] = [vec[i] * idf[word] for word, i in concord.items()]
+    return result</code></pre>
+        <div class="callout note">
+          <strong>چرا «فضای برداری»؟</strong> چون هر واژه یک «محور» است و هر سند یک نقطه/بردار در آن فضا.
+          سندها به‌صورت هندسه قابل مقایسه می‌شوند — و این همان چیزی است که دهه‌ها موتورهای جست‌وجوی
+          کلاسیک (مثل Lucene) روی آن ساخته شده‌اند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی و قدم بعدی</h2>
+        <p>این آموزش نشان می‌دهد موتور جست‌وجو چطور از «تطبیق کلمه» به «مقایسهٔ هندسی» می‌رسد:
+        واژه‌نامه، بردارِ سند، شباهت کسینوسی و در نهایت وزن‌دهی IDF برای کیفیت. برای فهم عمیق‌ترِ
+        امتیازدهی، آموزش «TF-IDF» همین مجموعه را بخوانید و برای نسخهٔ «جست‌وجوی آموختنی»، مقالهٔ
+        «یادگیری جست‌وجوی متنی از بازخورد» مرجع بعدی شماست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building a Vector Space Indexing Engine in Python» اثر
+        بن بویتر (Ben Boyter) است و در وبلاگ boyter.org منتشر شده. این صفحه فقط ترجمهٔ فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://boyter.org/2010/08/build-vector-space-search-engine-python/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

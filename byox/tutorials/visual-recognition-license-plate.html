@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سیستم تشخیص پلاک خودرو با یادگیری ماشین در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم تشخیص تصویر</a>
+        <span class="sep">←</span>
+        <span>تشخیص پلاک خودرو</span>
+      </div>
+      <h1>ساخت سیستم تشخیص پلاک خودرو با یادگیری ماشین در پایتون (LPR)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 scikit-image + scikit-learn</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/devcenter/developing-a-license-plate-recognition-system-with-machine-learning-in-python-787833569ccd" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Developing a License Plate
+          Recognition System with Machine Learning in Python» از <b>فمی اولادجی (Femi Oladeji)</b>
+          در وبلاگ Devcenter (Medium، ۲۰۱۷) است. کد کامل پروژه در
+          <a href="https://github.com/femioladeji/License-Plate-Recognition-Nigerian-vehicles" target="_blank" rel="noopener">GitHub</a>
+          در دسترس است.
+        </div>
+        <a class="btn solid" href="https://medium.com/devcenter/developing-a-license-plate-recognition-system-with-machine-learning-in-python-787833569ccd" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. سیستم LPR چیست؟</h2>
+        <p>سیستم‌های تشخیص پلاک خودرو (License Plate Recognition — LPR) با استفاده از مفهوم
+        «تشخیص نوری کاراکتر» (OCR) کاراکترهای روی پلاک را می‌خوانند: یک عکس از خودرو وارد می‌شود و
+        خروجی، کاراکترهای پلاک است. ساخت چنین سیستمی بدون یادگیری ماشین هم ممکن است (مثلاً با
+        template matching یا feature extraction)، اما با یادگیری ماشین، دقت از طریق بهبود فرایند
+        آموزش بیشتر می‌شود — در این آموزش، بخش <b>تشخیص کاراکتر</b> با یادگیری ماشین انجام
+        می‌شود: نگاشت تصویر یک کاراکتر به کاراکتر واقعی (تمایز بین A ها، B ها و…).</p>
+        <p>الگوریتم LPR (گاهی ALPR — Automatic LPR) سه مرحلهٔ اصلی دارد:</p>
+        <ol>
+          <li><b>تشخیص پلاک (License Plate Detection):</b> اولین و مهم‌ترین مرحله — ورودی تصویر
+          خودرو، خروجی موقعیت پلاک.</li>
+          <li><b>جداسازی کاراکترها (Character Segmentation):</b> ترسیم و بریدن تک‌تک کاراکترهای
+          روی پلاک به تصاویر مستقل.</li>
+          <li><b>تشخیص کاراکتر (Character Recognition):</b> شناسایی کاراکترهای بریده‌شده — همان
+          جایی که یادگیری ماشین وارد می‌شود.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۲. آماده‌سازی محیط</h2>
+        <p>اول یک محیط مجازی (virtualenv) برای مدیریت وابستگی‌ها ساخته می‌شود و بستهٔ
+        <code>scikit-image</code> (پردازش تصویر) نصب می‌شود که به‌نوبهٔ خود به scipy، numpy و
+        matplotlib وابسته است، و کتابخانهٔ تصویر <code>Pillow</code>.</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>$ virtualenv venv
+$ source venv/bin/activate
+$ pip install scikit-image pillow</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. مرحلهٔ اول: تشخیص موقعیت پلاک</h2>
+        <p>تصویر خوانده و به <b>خاکستری</b> تبدیل می‌شود (هر پیکسل بین ۰ تا ۲۵۵)، سپس به تصویر
+        <b>دودویی</b> (سیاه/سفید کامل) تبدیل می‌گردد. حالا برای یافتن ناحیهٔ پلاک، از مفهوم
+        <b>تحلیل مؤلفه‌های متصل (Connected Component Analysis — CCA)</b> استفاده می‌شود: CCA
+        به ما کمک می‌کند نواحی متصلِ پیش‌زمینه را گروه‌بندی و برچسب‌گذاری کنیم (دو پیکسل متصل‌اند
+        اگر مقدار یکسان داشته باشند و مجاور هم باشند).</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import numpy as np
+from skimage.measure import label, regionprops
+from skimage.morphology import closing, square
+
+car_image = mpimg.imread('car.jpg')
+gray = rgb2gray(car_image)
+
+# تبدیل به دودویی: نواحی روشنِ خودرو (پلاک سفید) جدا می‌شوند
+bw = closing(gray &gt; 0.5, square(3))
+
+label_image = label(bw)              # برچسب‌گذاری همهٔ مؤلفه‌های متصل
+for region in regionprops(label_image):   # هر ناحیه با ویژگی‌هایش
+    if region.area &lt; 50:             # حذف نویزهای ریز
+        continue
+    minr, minc, maxr, maxc = region.bbox
+    rect = patches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                             fill=False, edgecolor='red', linewidth=2)</code></pre>
+        <p>مشکل: ناحیه‌های دیگری غیر از پلاک هم برچسب می‌خورند (چراغ‌ها، برچسب‌ها و…). برای حذف
+        آن‌ها، از <b>ویژگی‌های هندسی پلاک واقعی</b> استفاده می‌کنیم — مثل این‌که مساحت پلاک حدود
+        ۱۵٪ تا ۴۰٪ کل تصویر باشد و <b>عرض از ارتفاع بیشتر باشد</b>. حتی با این فیلتر هم ممکن است
+        ناحیه‌هایی مثل چراغ جلو باقی بمانند؛ برای حذف آن‌ها، <b>پرتاب عمودی (vertical
+        projection)</b> انجام می‌شود: جمع پیکسل‌های هر ستون — فرض بر این است که ناحیهٔ پلاک
+        چون رویش کاراکتر نوشته شده، مقدار پیکسلی زیادی دارد. ناحیه‌هایی که این معیار را برآورده
+        نکنند حذف می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۴. مرحلهٔ دوم: جداسازی کاراکترها</h2>
+        <p>با همان تکنیک CCA روی خودِ پلاک، تک‌تک کاراکترها جداسازی و بریده می‌شوند. در نسخهٔ
+        سادهٔ مقاله، از چند ناحیهٔ نامزد، ایندکس پلاک واقعی دستی انتخاب می‌شود (نویسنده می‌گوید
+        نسخهٔ نهایی شامل اعتبارسنجی خودکار ناحیهٔ پلاک است). سپس هر کاراکتر به اندازهٔ
+        <b>۲۰ × ۲۰ پیکسل</b> تغییر اندازه می‌دهد — چون مرحلهٔ بعد (تشخیص با یادگیری ماشین) به
+        ورودی‌های هم‌اندازه نیاز دارد.</p>
+      </section>
+
+      <section>
+        <h2>۵. مرحلهٔ سوم: تشخیص کاراکتر با یادگیری ماشین</h2>
+        <p>این مرحله مفهوم یادگیری ماشین را وارد می‌کند. چون از قبل می‌دانیم حروف چطور به نظر
+        می‌رسند، از <b>یادگیری نظارت‌شده</b> استفاده می‌کنیم و تشخیص کاراکتر از نوع
+        <b>طبقه‌بندی (classification)</b> است. فرایند: تهیهٔ دیتاست آموزش ← انتخاب دسته‌بند ←
+        آموزش مدل ← آزمایش دقت ← استفاده از مدل برای پیش‌بینی.</p>
+        <p>دیتاست آموزش: هر حرف (به‌جز O و I که در پلاک نیجریه‌ای وجود ندارند چون شبیه ۰ و ۱
+        هستند) ۱۰ تصویر ۲۰×۲۰ دارد. نویسنده چند دسته‌بند را مقایسه کرده و <b>SVC (ماشین بردار
+        پشتیبان)</b> را انتخاب می‌کند چون بهترین عملکرد را داشت:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from sklearn import svm
+from sklearn.model_selection import cross_val_score
+import pickle
+
+X, y = load_training_data()          # همهٔ تصاویر ۲۰×۲۰ کاراکترها و برچسب‌ها
+clf = svm.SVC(kernel='linear')       # یا kernel دیگر
+scores = cross_val_score(clf, X, y, cv=4)   # اعتبارسنجی ۴-تایی
+clf.fit(X, y)
+
+with open('classifier.pkl', 'wb') as f:
+    pickle.dump(clf, f)              # ذخیرهٔ مدل برای پیش‌بینی‌های بعدی</code></pre>
+        <p>بعد از آموزش، مدل بارگذاری می‌شود و کاراکترهای بریده‌شدهٔ مرحلهٔ قبل را پیش‌بینی
+        می‌کند: <code>clf.predict(segment_1)</code> → «A» و همین‌طور برای بقیه.</p>
+      </section>
+
+      <section>
+        <h2>۶. نسخهٔ کامل و نتیجه‌گیری</h2>
+        <p>مقاله در انتها به مخزن کامل پروژه (که در خود GitHub توسعه یافته) اشاره می‌کند و در آن
+        یک GUI با wxPython وجود دارد که همهٔ مراحل ALPR (مکان‌یابی، جداسازی، تشخیص)، ذخیرهٔ پلاک
+        در پایگاه داده، تولید مدل و مقایسهٔ دسته‌بندها را پشتیبانی می‌کند.</p>
+        <ul>
+          <li>یادگیری: تفکیک مرحله‌ای مسائل بینایی (محل‌یابی ← برش ← شناسایی).</li>
+          <li>نقش پردازش تصویر سنتی (CCA، پرتاب عمودی) در کنار یادگیری ماشین.</li>
+          <li>انتخاب و ارزیابی مدل: SVC با cross-validation، و ذخیره‌سازی مدل با pickle.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> برای پلاک‌های با زاویهٔ دید ثابت، همین پایپ‌لاین سنتی کافی
+          است؛ اما در محیط‌های بدون محدودیت (زاویه و نور متغیر) راه‌حل‌های مبتنی بر یادگیری عمیق
+          (مثل مدل‌های تشخیص شیء) و OCR اختصاصی توصیه می‌شود — قدم بعدی طبیعی بعد از این آموزش.
+        </div>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <p>سیستم تشخیص پلاک = پردازش تصویر سنتی (برای مکان‌یابی و جداسازی) + یادگیری ماشین (برای
+          طبقه‌بندی کاراکترها). این آموزش تمام پازل را با کتابخانه‌های رایگان پایتون کنار هم
+          می‌چیند و یک الگوی واقعی «حل مسئلهٔ دنیای واقعی با ML» ارائه می‌دهد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Developing a License Plate Recognition System with
+        Machine Learning in Python» اثر فمی اولادجی (Femi Oladeji) است و در وبلاگ Devcenter در
+        Medium منتشر شده. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و
+        کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://medium.com/devcenter/developing-a-license-plate-recognition-system-with-machine-learning-in-python-787833569ccd" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

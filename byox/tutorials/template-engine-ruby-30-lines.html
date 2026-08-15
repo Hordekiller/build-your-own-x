@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور قالب روبی در کمتر از ۳۰ خط</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور قالب</a>
+        <span class="sep">←</span>
+        <span>موتور قالب روبی در کمتر از ۳۰ خط</span>
+      </div>
+      <h1>چگونه یک موتور قالب در کمتر از ۳۰ خط کد بنویسیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://bits.citrusbyte.com/how-to-write-a-template-library/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «How to Write a Template Engine in Less Than
+          30 Lines of Code» از وبلاگ مهندسی <b>citrusbyte (TheoremOne)</b> (نویسنده: ویل جساپ — Will
+          Jessup، مارس ۲۰۱۵) است که بر پایهٔ کتابخانهٔ قالب‌سازیِ <b>mote</b> نوشته شده.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://bits.citrusbyte.com/how-to-write-a-template-library/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: قالب‌سازی سخت نیست</h2>
+        <p>موتورهای قالب ابزارهایی‌اند که از قالب‌ها متن (رشته) تولید می‌کنند و «ارائه» را از «منطق
+        برنامه» جدا می‌کنند. تقریباً همهٔ ما با آن‌ها کار کرده‌ایم — اما چطور کار می‌کنند؟ نگاهی سریع به
+        کتابخانه‌های بزرگ نشان می‌دهد ERB چندصد خط، Erubis چند هزار خط و حتی Slim هم «لاغر» نیست.
+        این مقاله این تصور را می‌شکند: یک موتور قالب کاربردی را فقط با <b>دو قانون</b> و کمتر از ۳۰ خط
+        روبی می‌سازیم.</p>
+        <div class="callout tip">
+          <strong>منبع الهام:</strong> این مقاله بر پایهٔ کتابخانهٔ بسیار کوچک و پرسرعت
+          <a href="https://github.com/soveran/mote" target="_blank" rel="noopener">mote</a> نوشته شده که
+          در برنامه‌های بزرگ وب در محیط تولید استفاده می‌شود.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. دو قانون زبان قالب</h2>
+        <ol>
+          <li><b>خط‌هایی که با <code>%</code> شروع می‌شوند، کد روبی‌اند</b> و همان‌طور اجرا می‌شوند.</li>
+          <li><b>بین <code>{{ ... }}</code> در هر خط، کد روبی درون‌یابی می‌شود</b> (مثل <code>{{article.title}}</code>).</li>
+        </ol>
+        <p>فقط همین! واقعاً همین. قانون اول به ما «تمام روبی» را می‌دهد: حلقه‌ها، شرط‌ها، فراخوانی
+        توابع مرتبه‌بالاتر و حتی قراردادنِ قالبِ دیگر در قالب — بدون اینکه لازم باشد یک «زبان قالب»
+        جدید یاد بگیرید:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>&lt;html&gt;
+&lt;body&gt;
+% if access == 0
+   &lt;div&gt; no access :( &lt;/div&gt;
+% else
+   &lt;ul&gt;
+  % data.each do |i|
+      &lt;li&gt;{{i}}&lt;/li&gt;
+  % end
+  &lt;/ul&gt;
+% end
+% # کامنت هم کامنت معمولی روبی است
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. نقطهٔ شروع: رندر با روبی خالص</h2>
+        <p>قبل از هر چیز فکر کنیم «دست‌نویسِ» همین قالب در روبیِ خالص چه شکلی است — تابعی که رشتهٔ
+        خروجی را خط به خط می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>def render_index(access, data)
+  output = ""                     # رشتهٔ خروجی
+  output &lt;&lt; "&lt;html&gt;"
+  output &lt;&lt; "&lt;body&gt;"
+
+  if access == 0
+     output &lt;&lt; "&lt;div&gt; no access :( &lt;/div&gt;"
+  else
+     output &lt;&lt; "&lt;ul&gt;"
+     data.each do |i|
+        output &lt;&lt; "&lt;li&gt;\#{ i }&lt;/li&gt;"
+     end
+     output &lt;&lt; "&lt;/ul&gt;"
+  end
+
+  output &lt;&lt; "&lt;/body&gt;"
+  output &lt;&lt; "&lt;/html&gt;"
+  return output
+end</code></pre>
+        <p>معنی‌اش: اگر بتوانیم <code>index.template</code> را به‌صورت <b>عمومی</b> به چنین تابعی ترجمه
+        کنیم، موتور قالب ساخته‌ایم — بدون اینکه برای هر قالب، «تولیدکنندهٔ کدِ دستی» بنویسیم؛ می‌خواهیم
+        تابعی بسازیم که در هر لحظه که لازم بود، مترجمِ معادل آن قالب را <b>به‌صورت پویا تولید کند</b>.</p>
+      </section>
+
+      <section>
+        <h2>۴. گام میانی: ساخت تابع با eval</h2>
+        <p>یک گام میانی: «برنامه‌ای که برنامه می‌نویسد». رشتهٔ منبعِ <code>render_index</code> را خط‌به‌خط
+        می‌سازیم و با <code>eval</code> اجرا می‌کنیم — نتیجه، یک متد واقعی روبی:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>def define_render_index()
+  func = ""
+  func &lt;&lt; "def render_index(access, data) \n"
+  func &lt;&lt; "output = \"\" \n"
+  func &lt;&lt; "output &lt;&lt; \"&lt;html&gt;\" \n"
+  func &lt;&lt; "output &lt;&lt; \"&lt;body&gt;\" \n"
+  func &lt;&lt; "if access == 0\n"
+  func &lt;&lt; "  output &lt;&lt; \"&lt;div&gt; no access :( &lt;/div&gt;\" \n"
+  func &lt;&lt; "else\n"
+  func &lt;&lt; "  output &lt;&lt; \"&lt;ul&gt;\" \n"
+  func &lt;&lt; "  data.each do |i|\n"
+  func &lt;&lt; "    output &lt;&lt; \"&lt;li&gt; \#{ i } &lt;/li&gt;\" \n"
+  func &lt;&lt; "  end \n"
+  func &lt;&lt; "  output &lt;&lt; \"&lt;/ul&gt;\" \n"
+  func &lt;&lt; "end\n"
+  func &lt;&lt; "  output &lt;&lt; \"&lt;/body&gt;\" \n"
+  func &lt;&lt; "  output &lt;&lt; \"&lt;/html&gt;\" \n"
+  func &lt;&lt; "  return output \n"
+  func &lt;&lt; "end\n"
+  eval(func)
+end
+
+define_render_index
+render_index(1, ["foo", "bar"])
+# =&gt; "&lt;html&gt;&lt;body&gt;&lt;ul&gt;&lt;li&gt;foo&lt;/li&gt;&lt;li&gt;bar&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;"</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. تابع parse: ترجمهٔ خط‌به‌خط قالب</h2>
+        <p>حالا منطقِ <code>define_render_index</code> را عمومی می‌کنیم. به‌جای متدِ نام‌دار، یک
+        <b>Proc</b> می‌سازیم؛ نام متغیرها را به‌صورت رشته به <code>parse</code> می‌دهیم
+        (<code>parse(template, "access, data")</code>) و قالب را خط‌به‌خط ترجمه می‌کنیم. قوانین ترجمه:</p>
+        <ul>
+          <li>داخل همهٔ خطوط، کوتیشنِ دوتایی escape می‌شود؛ محتوای خط بین دو کوتیشنِ دوتایی می‌رود و
+          <code>\n</code> به انتها اضافه می‌شود.</li>
+          <li>اگر اولین نویسهٔ خط (بدون فاصلهٔ سفید) <code>%</code> بود، فقط <code>%</code> حذف می‌شود —
+          خط همان کدِ روبی می‌شود: <code>% if data.empty?</code> → <code>"if data.empty?\n"</code>.</li>
+          <li>هر خطِ دیگر با <code>output &lt;&lt;</code> شروع می‌شود: خطِ HTML به «افزودن به خروجی» بدل
+          می‌شود.</li>
+          <li><code>{{ ... }}</code> با رگکس به <code>#{ ... }</code> تبدیل می‌شود (درون‌یابیِ روبی).</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">ruby</span><code>def parse(template, vars = "")
+  lines = File.read(template).split("\n")
+
+  func = "Proc.new do |#{vars}| \n output = \"\" \n "
+
+  lines.each do |line|
+      if line =~ /^\s*(%)(.*?)$/
+         func &lt;&lt; " #{line.gsub(/^\s*%(.*?)$/, '\1') } \n"
+      else
+         func &lt;&lt; " output &lt;&lt; \" #{line.gsub(/\{\{([^\r\n\{]*)\}\}/, '#{\1}') }\" \n "
+      end
+  end
+
+  func &lt;&lt; " output; end \n "
+
+  eval(func)
+end</code></pre>
+        <p>آزمایش در IRB:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>&gt;&gt; index = parse("index.template", "access, data")
+=&gt; nil
+&gt;&gt; index.call(1, ["Foo"])
+=&gt; " &lt;html&gt;\n &lt;body&gt;\n&lt;ul&gt;\n&lt;li&gt;foo&lt;/li&gt; \n&lt;/ul&gt;\n &lt;/body&gt;\n &lt;/html&gt;\n"</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. آیا مقیاس‌پذیر است؟</h2>
+        <p>کدِ این مقاله آموزشی است، اما کتابخانهٔ <b>mote</b> — همان‌که الهام‌بخش مقاله بود — با همین
+        ایده، همراه با راهنماها (helpers) و کش، در برنامه‌های وب بزرگ در محیط تولید استفاده می‌شود و در
+        بنچمارک‌ها بسیار سریع است. پیام پایانی مقاله مهم است: <b>کوچک‌بودن به معنی ناقص‌بودن نیست؛
+        mote راه‌حلی متمرکز و کامل برای مسئله‌ای است که برایش طراحی شده.</b> پیچیدگیِ کمتر یعنی
+        برنامه‌ای که راحت‌تر درک، اشکال‌زدایی و توسعه پیدا می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <p>با ۲ قانون زبان و کمتر از ۳۰ خط کد، یک موتور قالب کاربردی ساختیم: قالب خط‌به‌خط به یک
+        <code>Proc</code> ترجمه، با <code>eval</code> ساخته و با <code>.call</code> اجرا می‌شود.
+        حالا هر موتور قالبِ روبی (ERB، Erubis، Slim و…) برایتان «رمزگشایی‌شده» است: همه در اصل دارند
+        «قالب → کد → اجرا» می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «How to Write a Template Engine in Less Than 30 Lines of
+        Code» اثر ویل جساپ (Will Jessup) است و در وبلاگ مهندسی citrusbyte/TheoremOne منتشر شده
+        (بر پایهٔ کتابخانهٔ mote اثر overan). این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://bits.citrusbyte.com/how-to-write-a-template-library/" target="_blank" rel="noopener">سایت اصلی</a>
+        و مخزن
+        <a href="https://github.com/soveran/mote" target="_blank" rel="noopener">mote</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

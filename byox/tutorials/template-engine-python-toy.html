@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور قالب اسباب‌بازی در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور قالب</a>
+        <span class="sep">←</span>
+        <span>موتور قالب اسباب‌بازی در پایتون</span>
+      </div>
+      <h1>رویکرد: ساخت یک موتور قالب اسباب‌بازی در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://alexmic.net/building-a-template-engine/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Approach: Building a toy template engine in
+          Python» اثر <b>الکس مایکل (Alex Michael)</b> (منتشرشده: ۳ آوریل ۲۰۱۳) است. کد کامل در
+          مخزن GitHub به نام microtemplates موجود است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://alexmic.net/building-a-template-engine/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه و طراحی زبان</h2>
+        <p>این آموزش یک موتور قالب سادهٔ پایتونی می‌سازد و زیرِ کاپوتش — چطور یک قالب «کامپایل» و بعد
+        «رندر» می‌شود — را نشان می‌دهد. زبان قالب دوتا تگ دارد: <b>متغیرها</b> با <code>{{ }}</code> و
+        <b>بلوک‌ها</b> با <code>{% %}</code>:</p>
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;!-- متغیرها بین دو آکولاد --&gt;
+&lt;div&gt;{{my_var}}&lt;/div&gt;
+
+&lt;!-- بلوک‌ها با {% %} و بستن با «end» --&gt;
+{% each items %}
+    &lt;div&gt;{{it}}&lt;/div&gt;
+{% end %}</code></pre>
+        <p>امکانات زبان: حلقه‌های <code>each</code>، شرط‌های <code>if/else</code> (با عملگرهای
+        <code>==</code>، <code>&lt;=</code>، <code>&gt;=</code>، <code>!=</code>، <code>is</code>،
+        <code>&gt;</code>، <code>&lt;</code>) و همچنین <b>فراخوانی توابع</b> (callables) با آرگومان
+        موقعیتی یا کلیدواژه‌ای:</p>
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;!-- حلقه روی افراد؛ «it» آیتم فعلی است --&gt;
+{% each people %}
+    &lt;div&gt;{{it.name}}&lt;/div&gt;
+{% end %}
+
+&lt;!-- «..» یعنی دسترسی به متغیرِ کانتکستِ والد --&gt;
+{% each records %}
+    &lt;div&gt;{{..name}}&lt;/div&gt;
+{% end %}
+
+&lt;!-- شرط --&gt;
+{% if num > 5 %}
+    &lt;div&gt;more than 5&lt;/div&gt;
+{% else %}
+    &lt;div&gt;less than or equal to 5&lt;/div&gt;
+{% end %}
+
+&lt;!-- فراخوانی تابع با آرگومان و کلیدواژه --&gt;
+&lt;div class='date'&gt;{% call prettify date_created %}&lt;/div&gt;
+&lt;div&gt;{% call log 'here' verbosity='debug' %}&lt;/div&gt;</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. نظریه: چرا درخت نحو (AST)؟</h2>
+        <p>مترجم‌ها محتوای برنامه را با <b>درخت نحو انتزاعی (AST)</b> نشان می‌دهند — حاصلِ تحلیلِ
+        واژگانیِ متن. درخت نسبت به متنِ خام مزیت دارد: جداکننده‌های بی‌مصرف (مثل آکولادهای قالب) در آن
+        نیست و می‌توان بدون دست‌زدن به کد، به گره‌ها ویژگی اضافه کرد. مسیر کارِ موتور ما:
+        <b>توکن‌سازی → ساختن AST → رندر (پیمایش درخت با کانتکست)</b>.</p>
+      </section>
+
+      <section>
+        <h2>۳. توکن‌سازی با رگکس</h2>
+        <p>اولین قدم، شکستن قالب به تکه‌هاست؛ هر تکه یا HTML خام است یا یک تگ. با <code>re.split</code>
+        و یک رگکسِ lazy (غیرحریص) که به هر دو نوع تگ می‌خورد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import re
+
+VAR_TOKEN_START = '{{'
+VAR_TOKEN_END = '}}'
+BLOCK_TOKEN_START = '{%'
+BLOCK_TOKEN_END = '%}'
+
+TOK_REGEX = re.compile(r"(%s.*?%s|%s.*?%s)" % (
+    VAR_TOKEN_START, VAR_TOKEN_END,
+    BLOCK_TOKEN_START, BLOCK_TOKEN_END
+))
+
+# مثال:
+&gt;&gt;&gt; TOK_REGEX.split('{% each vars %}&lt;i&gt;{{it}}&lt;/i&gt;{% endeach %}')
+['{% each vars %}', '&lt;i&gt;', '{{it}}', '&lt;/i&gt;', '{% endeach %}']</code></pre>
+        <p><code>?</code> داخل گزینه‌ها یعنی تکرارِ lazy؛ رگکس باید در اولین تطبیق بایستد تا مثلاً تگ‌های
+        متغیرِ داخلِ داخلِ بلوک‌ها درست جدا شوند. هر تکه داخل یک آبجکت <code>_Fragment</code> می‌شود که
+        نوعش را تعیین می‌کند؛ چهار نوع: <code>VAR</code>، <code>OPEN_BLOCK</code>،
+        <code>CLOSE_BLOCK</code> و <code>TEXT</code>.</p>
+      </section>
+
+      <section>
+        <h2>۴. ساختن AST</h2>
+        <p>حالا تکه‌ها گره می‌شوند. کلاس پایهٔ <code>_Node</code> متدهای <code>process_fragment()</code> و
+        <code>render()</code> را تعریف می‌کند و هوک‌های <code>enter_scope()</code>/<code>exit_scope()</code>
+        را دارد که مترجم موقع باز/بسته شدنِ scope گره‌ها صدا می‌زند. بچه‌های هر گره در
+        <code>children</code> نگه‌داری می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class _Node(object):
+    def __init__(self, fragment=None):
+        self.children = []
+        self.creates_scope = False
+        self.process_fragment(fragment)
+    def process_fragment(self, fragment): pass
+    def enter_scope(self): pass
+    def render(self, context): pass
+    def exit_scope(self): pass
+    def render_children(self, context, children=None):
+        if children is None:
+            children = self.children
+        def render_child(child):
+            child_html = child.render(context)
+            return '' if not child_html else str(child_html)
+        return ''.join(map(render_child, children))
+
+# مثال: گرهٔ متغیر
+class _Variable(_Node):
+    def process_fragment(self, fragment):
+        self.name = fragment
+    def render(self, context):
+        return resolve_in_context(self.name, context)</code></pre>
+        <p>نوع گره از روی «فرمانِ بلوک» (اولین کلمهٔ داخل <code>{% %}</code>) تعیین می‌شود؛ مثلاً
+        <code>{% each items %}</code> یک گرهٔ <code>each</code> است. گره‌هایی که scope می‌سازند
+        (حلقه‌ها/شرط‌ها) در زمان کامپایل به پشتهٔ scope اضافه و بچه‌هایشان به آن‌ها چسبانده می‌شوند؛
+        رسیدن به تگِ بستن، scope را می‌بندد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def compile(self):
+    root = _Root()
+    scope_stack = [root]
+    for fragment in self.each_fragment():
+        if not scope_stack:
+            raise TemplateError('nesting issues')
+        parent_scope = scope_stack[-1]
+        if fragment.type == CLOSE_BLOCK_FRAGMENT:
+            parent_scope.exit_scope()
+            scope_stack.pop()
+            continue
+        new_node = self.create_node(fragment)
+        if new_node:
+            parent_scope.children.append(new_node)
+            if new_node.creates_scope:
+                scope_stack.append(new_node)
+                new_node.enter_scope()
+    return root</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. رندر: تفکیک literal از نام متغیر</h2>
+        <p>در مرحلهٔ رندر باید بفهمیم یک عبارت، «مقدار ثابت» است یا «نام متغیر در کانتکست» — این کار
+        با <code>ast.literal_eval</code> انجام می‌شود که رشتهٔ پایتونی را امن ارزیابی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import ast
+
+def eval_expression(expr):
+    try:
+        return 'literal', ast.literal_eval(expr)
+    except (ValueError, SyntaxError):
+        return 'name', expr</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. حل‌کردن نام‌ها: مسیر نقطه‌دار و «..»</h2>
+        <p>قطعهٔ پایانی پازل: تابعِ حل‌کردن نام که هم نام‌های نقطه‌دار (<code>it.name</code>) را در
+        دیکشنری‌های تودرتو دنبال می‌کند و هم با پیشوند <code>..</code> به کانتکستِ والد برمی‌گردد:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def resolve(name, context):
+    if name.startswith('..'):
+        context = context.get('..', {})
+        name = name[2:]
+    try:
+        for tok in name.split('.'):
+            context = context[tok]
+        return context
+    except KeyError:
+        raise TemplateContextError(name)</code></pre>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <p>این تمرین «آکادمیک» چشیدنِ طعمِ داخلِ یک موتور قالب واقعی است: توکن‌سازی با رگکس، ساختن
+        درخت نحوی با مدیریت scope، و رندرِ پیمایشی با کانتکست. بدیهی است که این پیاده‌سازی آمادهٔ
+        تولید نیست — اما راهنمای عالی برای فهمِ پایه‌های موتورهایی مثل Jinja2 است. کد کامل:
+        <a href="https://github.com/alexmic/microtemplates" target="_blank" rel="noopener">github.com/alexmic/microtemplates</a>.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Approach: Building a toy template engine in Python» اثر
+        الکس مایکل (Alex Michael) است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا، تصاویر و
+        کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://alexmic.net/building-a-template-engine/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

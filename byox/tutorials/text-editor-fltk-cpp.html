@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | طراحی یک ویرایشگر متن ساده (FLTK)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ویرایشگر متن</a>
+        <span class="sep">←</span>
+        <span>طراحی یک ویرایشگر متن ساده (FLTK)</span>
+      </div>
+      <h1>طراحی یک ویرایشگر متن ساده (Designing a Simple Text Editor — FLTK)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.fltk.org/doc-1.1/editor.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی فصل «Designing a Simple Text Editor» از مستندات رسمی
+          کتابخانهٔ GUI چارچوب C++ به نام <b>FLTK</b> (Fast Light Toolkit) است — اولین پروژهٔ بزرگِ
+          آموزشِ FLTK. کد کامل در فایل <code>test/editor.cxx</code> خود FLTK است. نسخهٔ کامل را از
+          سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://www.fltk.org/doc-1.1/editor.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. اهداف ویرایشگر</h2>
+        <p>این فصل، طراحی یک ویرایشگر متن کامل با FLTK را گام‌به‌گام دنبال می‌کند. قبل از هر کدی،
+        اهداف را روشن می‌کنیم — همان کاری که هر مهندس باید بکند:</p>
+        <ol>
+          <li>نوار منو (menubar) و منوهایی برای همهٔ عملیات.</li>
+          <li>ویرایش یک فایل متنی، احتمالاً با چند نمای (view) هم‌زمان.</li>
+          <li>بارگذاری از فایل.</li>
+          <li>ذخیره در فایل.</li>
+          <li>توابع Cut/Copy/Delete/Paste.</li>
+          <li>توابع جست‌وجو و جایگزینی (Search and Replace).</li>
+          <li>ردیابیِ تغییرِ فایل (علامت‌گذاری وقتی فایل تغییر کرده).</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۲. پنجرهٔ اصلی: کلاس EditorWindow</h2>
+        <p>ابتدا پنجرهٔ اصلی برنامه را در کلاسی به نام <code>EditorWindow</code> تعریف می‌کنیم که همهٔ
+        کامپوننت‌های UI — دیالوگ جایگزینی، فیلدهای ورودی، دکمه‌ها و خودِ ویرایشگر — را نگه می‌دارد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>class EditorWindow : public Fl_Double_Window {
+  public:
+    EditorWindow(int w, int h, const char* t);
+    ~EditorWindow();
+
+    Fl_Window          *replace_dlg;
+    Fl_Input           *replace_find;
+    Fl_Input           *replace_with;
+    Fl_Button          *replace_all;
+    Fl_Return_Button   *replace_next;
+    Fl_Button          *replace_cancel;
+
+    Fl_Text_Editor     *editor;
+    char               search[256];
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. منوها و نوار منو</h2>
+        <p>برای هدف اول، منوها با ساختار <code>Fl_Menu_Item</code> تعریف می‌شوند — هر آیتم یک
+        برچسب، یک میان‌بر و یک callback دارد. سپس با <code>Fl_Menu_Bar</code> نوار منو ساخته و منوها به
+        آن اختصاص داده می‌شوند. مثلاً آیتم‌های Edit (Undo/Redo با <code>FL_COMMAND+'z'</code> و…)
+        و Find/Replace.</p>
+      </section>
+
+      <section>
+        <h2>۴. ویرایش متن: Fl_Text_Editor + Fl_Text_Buffer</h2>
+        <p>قلب برنامه ویدجت <code>Fl_Text_Editor</code> است — FLTK یک ویرایشگر متن کامل (بازنویسی
+        به‌اجازهٔ هستهٔ NEdit) دارد. اما یک نکتهٔ ظریف: <code>Fl_Text_Editor</code> برای کار به یک
+        <b>Fl_Text_Buffer</b> نیاز دارد. این «قدمِ اضافه» در واقع یک قابلیت بزرگ است: می‌توان
+        <b>یک بافر متن را به چند ویرایشگر</b> وصل کرد — همان‌که بعداً برای پنجرهٔ split استفاده
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>#include &lt;FL/Fl.H&gt;
+#include &lt;FL/Fl_Double_Window.H&gt;
+#include &lt;FL/Fl_Menu_Bar.H&gt;
+#include &lt;FL/Fl_Text_Editor.H&gt;
+
+Fl_Text_Editor *app_editor = NULL;
+Fl_Text_Buffer *app_text_buffer = NULL;
+
+void tut3_build_main_editor() {
+    app_window-&gt;begin();
+    app_text_buffer = new Fl_Text_Buffer();
+    app_text_buffer-&gt;add_modify_callback(text_changed_callback, NULL);
+
+    app_editor = new Fl_Text_Editor(0, app_menu_bar-&gt;h(),
+        app_window-&gt;w(), app_window-&gt;h() - app_menu_bar-&gt;h());
+    app_editor-&gt;buffer(app_text_buffer);
+    app_editor-&gt;textfont(FL_COURIER);          // فونت تک‌فاصله
+    app_window-&gt;resizable(app_editor);         // فقط ویرایشگر کشیده شود
+    app_window-&gt;end();
+}</code></pre>
+        <p>با قراردادنِ <code>app_editor</code> به‌عنوان <code>resizable()</code> پنجره، تغییر سایزِ
+        پنجره فقط ویرایشگر را (به‌صورت عمودی) بزرگ می‌کند و نوار منو ثابت می‌ماند. برای ردیابیِ
+        تغییرات، یک <b>callback تغییرِ بافر</b> اضافه می‌کنیم که با هر درج/حذفِ متن، پرچم
+        <code>text_changed</code> را بالا می‌برد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>void text_changed_callback(int, int n_inserted, int n_deleted, int,
+                           const char*, void*) {
+    if (n_inserted || n_deleted)
+        set_changed(true);
+}
+
+// و «File/New» که بافر را پاک و پرچم را خاموش می‌کند:
+void menu_new_callback(Fl_Widget*, void*) {
+    app_text_buffer-&gt;text("");
+    set_changed(false);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. دیالوگ جایگزینی و callbackها</h2>
+        <p>برای بیشتر دیالوگ‌ها می‌شود از توابع راحتی FLTK استفاده کرد، اما دیالوگِ Replace پنجرهٔ
+        اختصاصی خودش را می‌خواهد: یک <code>Fl_Input</code> برای «Find» ، یکی برای «Replace» و دکمه‌های
+        «Replace All» و «Replace Next» (که <code>Fl_Return_Button</code> است تا Enter کار کند) و
+        «Cancel». سپس callbackهای اصلی تعریف می‌شوند: <code>changed_cb()</code>، <code>copy_cb()</code>
+        (با <code>Fl_Text_Editor::kf_copy()</code>)، <code>cut_cb()</code>، <code>paste_cb()</code>،
+        <code>find_cb()</code>/<code>find2_cb()</code>، <code>replace_cb()</code>،
+        <code>replall_cb()</code>، <code>new_cb()</code>، <code>open_cb()</code>، <code>save_cb()</code>
+        و توابع کمکی <code>load_file()</code>/<code>save_file()</code>. جست‌وجو با
+        <code>search_forward()</code> بافر انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>bool find_next(const char *needle) {
+    Fl_Text_Editor *editor = app_editor;
+    int pos = editor-&gt;insert_position();
+    int found = app_text_buffer-&gt;search_forward(pos, needle, &amp;pos);
+    if (found) {
+        app_text_buffer-&gt;select(pos, pos + (int)strlen(needle));
+        editor-&gt;insert_position(pos + (int)strlen(needle));
+        editor-&gt;show_insert_position();
+        return true;
+    } else {
+        fl_alert("No further occurrences of '%s' found!", needle);
+        return false;
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. تابع main(): به هم دوختن همه‌چیز</h2>
+        <p>بعد از تمام توابع پشتیبان، فقط ماندن <code>main()</code>: ساخت بافر متنی جدید، ساخت نمای
+        (پنجره) جدید، نمایش پنجره، بارگذاری فایلِ آرگومانِ خط فرمان (اگر بود) و ورود به حلقهٔ رویداد
+        FLTK:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>int main(int argc, char **argv) {
+    textbuf = new Fl_Text_Buffer;
+    Fl_Window* window = new_view();
+    window-&gt;show(1, argv);
+    if (argc &gt; 1) load_file(argv[1], -1);
+    return Fl::run();          // حلقهٔ رویداد FLTK
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۷. های‌لایت نحوی با Style Buffer</h2>
+        <p>بخش آخر، ویژگی‌های پیشرفتهٔ <code>Fl_Text_Editor</code> را نشان می‌دهد: های‌لایت متن با
+        فونت/رنگ/سایزهای مختلف. پیاده‌سازی بر پایهٔ هستهٔ ویرایشگر <b>NEdit</b> است که از یک
+        «بافر سبک» موازی (parallel style buffer) استفاده می‌کند که فونت/رنگِ هر نویسه را نگه می‌دارد:</p>
+        <pre class="code"><span class="lang-tag">cpp</span><code>Fl_Text_Buffer *stylebuf;
+
+w-&gt;editor-&gt;highlight_data(stylebuf, styletable,
+                          sizeof(styletable) / sizeof(styletable[0]),
+                          'A', style_unfinished_cb, 0);</code></pre>
+        <p>و callbackی که تغییراتِ بافر اصلی را در بافر سبک منعکس می‌کند
+        (<code>textbuf-&gt;add_modify_callback(style_update, w-&gt;editor)</code>)؛ تابع
+        <code>style_parse()</code> کپیِ متن را اسکن و کاراکترهای سبک لازم (مثل «سبک کامنت») را تولید
+        می‌کند. اینجاست که می‌بینید یک ویرایشگر «واقعی» چطور های‌لایت می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۸. کامپایل و جمع‌بندی</h2>
+        <p>کد کامل در <code>test/editor.cxx</code> و Makefile مربوطه هست؛ با یک کامپایلر استاندارد
+        (<code>fltk-config --compile editor.cxx</code>) ساخته می‌شود. این فصل یک درس کامل «مهندسی
+        GUI» است: تعریف اهداف، جداسازی داده (Text_Buffer) از نما (Text_Editor)، callbackمحوری، دیالوگ
+        اختصاصی و بافرِ سبک موازی — و نشان می‌دهد که با ابزار درست (FLTK)، یک ویرایشگرِ کامل در یک
+        فایل منبع جا می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل «Designing a Simple Text Editor» بخشی از مستندات رسمی کتابخانهٔ
+        FLTK (GNU LGPL) است. این صفحه فقط ترجمهٔ فارسی و مرور آن است. برای مشاهده اصل مطلب به
+        <a href="http://www.fltk.org/doc-1.1/editor.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

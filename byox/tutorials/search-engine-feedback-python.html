@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یادگیری جست‌وجوی متنی از بازخورد</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور جست‌وجو</a>
+        <span class="sep">←</span>
+        <span>یادگیری جست‌وجو از بازخورد</span>
+      </div>
+      <h1>یادگیری جست‌وجوی متنی از بازخورد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/filament-ai/making-text-search-learn-from-feedback-4fe210fd87b0" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Making text search learn from feedback»
+          از <b>مارتین داوتیان (Martin Davtyan)</b> در وبلاگ Filament.ai (منتشرشده: آگوست ۲۰۱۸) است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/filament-ai/making-text-search-learn-from-feedback-4fe210fd87b0" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مشکل: بازخوردی که هدر می‌رود</h2>
+        <p>جست‌وجوی تمام‌متن کاربردهای زیادی دارد؛ از موتور جست‌وجوی سایت‌های سفارشی تا سیستم‌های مدیریت
+        دانش سازمانی. ابزارهای بسیار کاملی مثل Elasticsearch هم هست که با آن‌ها به‌سادگی نمایهٔ
+        تمام‌متن می‌سازید. اما چیزی که اغلب نادیده گرفته می‌شود این است: <b>همین که کاربران شروع به
+        استفاده می‌کنند، بازخورد می‌دهید</b> — این‌که کدام نتیجه کلیک شده و کدام رد شده. این مقاله یک
+        موتور جست‌وجوی اسباب‌بازی در پایتون می‌سازد (با nltk و scikit-learn) تا: ۱) فهم پایه‌ای از
+        جست‌وجوی متنی کلاسیک بدهد، ۲) راهی ساده برای بهره‌گیری از بازخورد کاربر در بهبود نتایج پیشنهاد
+        کند.</p>
+      </section>
+
+      <section>
+        <h2>۲. پایه: امتیازدهی با TF-IDF و شباهت کسینوسی</h2>
+        <p>مثل گوگل، وظیفهٔ ما برگرداندن مجموعه‌ای از اسناد است که به‌ترتیب «ربط به پرس‌وجو» مرتب شده‌اند.
+        برای این کار یک عدد می‌خواهیم: امتیازی که میزان ربطِ هر سند به پرس‌وجو را کمی می‌کند. هر سند را
+        به‌صورت بردارِ TF-IDF درمی‌آوریم — کمیت‌سازیِ اینکه هر واژهٔ واژه‌نامه چقدر در این سند نقش
+        دارد — و نزدیکیِ بردار سند و بردار پرس‌وجو را با <b>شباهت کسینوسی</b> حساب می‌کنیم. در مثال
+        مقاله، دو سندی که هیچ واژهٔ مشترکی با پرس‌وجو ندارند امتیاز صفر می‌گیرند و سندِ دارای واژهٔ
+        مشترک امتیاز می‌گیرد. با scikit-learn این کار فقط با کلاس <code>TfidfVectorizer</code> انجام
+        می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>from sklearn.feature_extraction.text import TfidfVectorizer
+
+docs = [
+    "Our mission is to make AI accessible to everyone",
+    "How to build a chatbot in 10 minutes",
+    "About us: we are a small team of engineers",
+    "Chatbots are fun and easy to make",
+]
+
+vectorizer = TfidfVectorizer()
+matrix = vectorizer.fit_transform(docs)
+
+# بردارِ پرس‌وجو را هم در همان فضا بساز
+query = ["who makes chatbots"]
+query_vec = vectorizer.transform(query)
+
+# شباهت کسینوسی بین پرس‌وجو و هر سند
+from sklearn.metrics.pairwise import cosine_similarity
+scores = cosine_similarity(query_vec, matrix).flatten()
+print(scores)   # رتبه‌بندی بر اساس همین امتیازها</code></pre>
+        <p>این «هک‌کردنِ» یک موتور جست‌وجوی پایه است: واژه‌نامه را از مجموعهٔ اسناد استخراج می‌کنیم و
+        وقتی کاربر پرس‌وجویی می‌دهد، سندی را برمی‌گردانیم که بردارش به بردار پرس‌وجو نزدیک‌تر است
+        (البته همین‌طور به‌سادگی می‌توانید ۱۰ نتیجهٔ برتر را برگردانید).</p>
+      </section>
+
+      <section>
+        <h2>۳. امتیاز = مجموع وزنیِ ویژگی‌ها</h2>
+        <p>نظام سادهٔ ما فقط از یک‌بیت اطلاعات برای امتیازدهی استفاده می‌کند: شباهت برداری. اگر بخواهیم
+        جست‌وجو را بهتر کنیم، می‌توانیم چیزهای دیگری هم در نظر بگیریم: اندازهٔ سند، نزدیکی واژه‌های
+        جست‌وجو در متن، جدیدبودن سند و… — به شرطی که بتوان آن‌ها را به‌صورت عدد اعشاری بیان کرد،
+        امتیاز به‌صورت <b>مجموع وزنی این ویژگی‌ها</b> محاسبه می‌شود:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>score(q, d) = w_1 * f_1(q, d) + w_2 * f_2(q, d) + ... + w_n * f_n(q, d)</code></pre>
+        <p>وزن‌های <code>w_i</code> اجازه می‌دهند اهمیت نسبی ویژگی‌ها را کنترل کنیم. مثلاً اگر فکر
+        می‌کنید سندهای بزرگ‌تر برای کاربر جذاب‌ترند، «اندازهٔ سند» را به‌عنوان یک ویژگی با وزن کوچک
+        (مقایسه با وزن شباهت TF-IDF) اضافه می‌کنید — و از بازخورد می‌فهمید نتیجه بهتر شده یا نه.</p>
+      </section>
+
+      <section>
+        <h2>۴. بهبود با بازخورد: مشکل مثال واقعی</h2>
+        <p>فرض کنید کاربران شروع به استفاده کرده‌اند و بازخوردی جمع شده: برای هر پرس‌وجو، کدام
+        (سند، ارزش)ها به‌دست آمده که <code>0.</code> یعنی نامربوط و <code>1.</code> یعنی مرتبط. حالا
+        سیستمِ فعلی برای پرس‌وجوی «چه کسی ربات‌های گفت‌وگو می‌سازد؟» یک صفحهٔ chatbot برمی‌گرداند چون
+        واژهٔ درست را دارد — اما طبق بازخورد، کاربران بیشتر انتظار دیدنِ صفحهٔ About Us را دارند. این
+        جا جایی است که اطلاعات بازخورد باید وارد امتیاز شود.</p>
+        <div class="callout tip">
+          <strong>دیدگاه یادگیری ماشین:</strong> بهینه‌سازی وزن‌های <code>w_i</code> با بازخورد، یک
+          «مسئلهٔ طبقه‌بندی» است: اسناد را در دو گروه «مرتبط (R)» و «نامرتبط (N)» بر اساس ویژگی‌هایشان
+          جدا کنیم. اگر به رتبهٔ کامل اهمیت بدهید، مسئله به «رگرسیون ترتیبی» بدل می‌شود — و در جست‌وجوی
+          وب، الگوریتم محبوب این کار <b>Ranking SVM</b> است.
+        </div>
+        <p>اما یک مشکل عملی وجود دارد: حتی ساده‌ترین روش‌های ML (مثل Naive Bayes برای طبقه‌بندی
+        مرتبط/نامرتبط) به دادهٔ زیاد نیاز دارند. اگر تازه شروع به جمع‌آوری بازخورد کرده باشید یا
+        کاربر کمی داشته باشید، این روش‌ها از کار می‌افتند. مقاله برای همین یک راه ساده‌تر پیشنهاد
+        می‌دهد که به دادهٔ کمی بسنده می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۵. راه‌حل کم‌داده: بازخورد همسایهٔ نزدیک به‌عنوان ویژگی</h2>
+        <p>اگر پرس‌وجوی کاربر قبلاً پرسیده شده باشد، بازخوردِ آن پرس‌وجو را داریم: کدام اسناد مرتبط
+        بوده‌اند. منطق ساده این است: سندهای مرتبطِ قبلی را امتیاز بالاتر، و نامرتبط‌ها را امتیاز کمتر
+        بدهیم. مقاله این را به‌صورت دو ویژگی تعریف می‌کند:</p>
+        <ul>
+          <li><b>بازخورد مثبت</b>: تعداد دفعاتی که این سند برای این پرس‌وجو «مرتبط» دیده شده.</li>
+          <li><b>بازخورد منفی</b>: تعداد دفعاتی که این سند «نامرتبط» دیده شده.</li>
+        </ul>
+        <p>چالش بعدی: اگر <b>همین پرس‌وجو هرگز پرسیده نشده باشد</b> چه؟ مثلاً «چه کسی دارد اطلاعات
+        ربات‌های گفت‌وگو را می‌سازد». راه‌حل مقاله: نزدیک‌ترین پرس‌وجوی همسایه را پیدا کنیم — پرس‌وجویی
+        که بازخورد دارد و بردارش (با TF-IDF، مثل همیشه) به بردار پرس‌وجوی فعلی نزدیک‌تر است — و دو
+        ویژگی بازخورد را در <b>شباهت ρ(q, q′)</b> بین پرس‌وجو و همسایه ضرب کنیم. نتیجه: هرچه همسایه
+        شبیه‌تر باشد، بازخوردِ آن بیشتر روی امتیاز اثر می‌گذارد؛ و اگر همسایه شبیه‌ای نباشد، ویژگی‌ها
+        تقریباً صفر می‌مانند و سیستم به TF-IDF خالص برمی‌گردد.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def positive_feedback_feature(query, query_vec, feedback, vectorizer):
+    """ویژگی بازخورد مثبت: نسبتِ بازخورد مثبتِ نزدیک‌ترین پرس‌وجوی همسایه، ضرب‌در شباهت"""
+    # نزدیک‌ترین پرس‌وجوی دارای بازخورد را پیدا کن
+    best_q, best_rho = None, 0.0
+    for fb_q in feedback:
+        rho = cosine_similarity(query_vec, vectorizer.transform([fb_q]))[0][0]
+        if rho > best_rho:
+            best_q, best_rho = fb_q, rho
+
+    feature = {}
+    judgments = feedback[best_q]          # مثلاً {(doc_idx, 1), (doc_idx, 0), ...}
+    positives = [i for i, rel in judgments if rel == 1.0]
+    for doc_idx in positives:
+        feature[doc_idx] = best_rho * (len([i for i in positives if i == doc_idx]) /
+                                       max(1, len(positives)))
+    return feature  # بردار ویژگی: استنتاج از سندهای مرتبطِ پرس‌وجوی مشابه</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. کلاس Scorer: تلفیق TF-IDF و بازخورد</h2>
+        <p>در انتها مقاله همه‌چیز را در کلاسی به نام <code>Scorer</code> جمع می‌کند که هم مجموعهٔ اسناد را
+        می‌شناسد و هم می‌تواند با بازخورد مثبت امتیازدهی را تنظیم کند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class Scorer:
+    """امتیازدهنده‌ای که «قبل نشان دادن بازخورد» و «بعد از آن» رفتار متفاوتی دارد."""
+
+    def __init__(self, docs, weights=None):
+        self.docs = docs
+        self.vectorizer = TfidfVectorizer()
+        self.matrix = self.vectorizer.fit_transform(docs)
+        # w_tfidf و w_feedback: اهمیت نسبی دو ویژگی
+        self.w = {"tfidf": 0.5, "feedback": 0.9} if weights is None else weights
+
+    def scores(self, query, feedback=None):
+        q_vec = self.vectorizer.transform([query])
+        tfidf = cosine_similarity(q_vec, self.matrix).flatten()
+        result = self.w["tfidf"] * tfidf
+        if feedback:
+            fb = self.feedback_feature(query, q_vec, feedback)   # ویژگی همسایه
+            for doc_idx, val in fb.items():
+                result[doc_idx] += self.w["feedback"] * val
+        return result</code></pre>
+        <p>آزمایش مقاله دو حالت را مقایسه می‌کند: قبل از بازخورد، پرس‌وجوی «chatbots» سند آخر را
+        بازمی‌گرداند (چون واژه‌ها در آن‌جا هستند)؛ بعد از افزودن بازخوردِ مثبت برای سند اول، همان سند
+        اول صدرنشین می‌شود — و اگر وزنِ ویژگی TF-IDF را بالا ببرید، تعادل میان «محتوا» و «بازخورد» عوض
+        می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <p>پیام مقاله در دو جمله خلاصه می‌شود: ۱) یک موتور جست‌وجوی متنی ساده بر اساس محتوای اسناد
+        بسازید (TF-IDF + شباهت کسینوسی)، ۲) یاد بگیرید امتیازدهی را با بازخوردِ کاربر — حتی با دادهٔ کم،
+        از طریق «کمیت‌سازی بازخوردِ پرس‌وجوهای مشابه» — بهبود دهید. این الگو پایهٔ سیستم‌های
+        Relevance Feedback و بسیاری از سیستم‌های «جست‌وجوی یادگیرنده» است که امروزه به شکل‌های پیشرفته
+        (Ranking SVM، Rocchio و حتی ری‌رنکرهای عصبی) وجود دارند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Making text search learn from feedback» اثر مارتین داوتیان
+        (Martin Davtyan) است و در وبلاگ Filament.ai منتشر شده. این صفحه فقط ترجمهٔ فارسی آن است و
+        تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://medium.com/filament-ai/making-text-search-learn-from-feedback-4fe210fd87b0" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

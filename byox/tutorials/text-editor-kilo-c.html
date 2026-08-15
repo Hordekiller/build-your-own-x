@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ویرایشگر متن خودت را بساز (kilo)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ویرایشگر متن</a>
+        <span class="sep">←</span>
+        <span>ویرایشگر متن خودت را بساز (kilo)</span>
+      </div>
+      <h1>ویرایشگر متن خودت را بساز (Build Your Own Text Editor — kilo)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://viewsourcecode.org/snaptoken/kilo/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مجموعه‌آموزش «Build Your Own Text Editor» از سایت
+          <b>viewsourcecode.org (snaptoken)</b> است — همان جایی که ویرایشگرِ معروف <b>kilo</b> اثر
+          آنتیرز (antirez) از پایه بازسازی می‌شود. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://viewsourcecode.org/snaptoken/kilo/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: ویرایشگر خودت، در ~۱۰۰۰ خط C</h2>
+        <p>این مجموعه‌آموزش، ویرایشگر متنِ ترمینالیِ <b>kilo</b> را از صفر می‌سازد — کدِ اصلی اثر
+        سالواتوره سانیفیلیپو (antirez)، خالق Redis. نتیجه در حدود ۱۰۰۰ خط C خالص است و از هیچ کتابخانهٔ
+        خارجی استفاده نمی‌کند؛ فقط APIهای استاندارد POSIX. مسیر آموزشی ۸ قدم دارد که هر قدم روی قدم قبل
+        ساخته می‌شود:</p>
+        <ol>
+          <li><b>Setup</b>: کامپایل با <code>cc kilo.c -o kilo -Wall -Wextra -pedantic</code> — و از این
+          به بعد، قالب را با «ویرایشگری که خودت ساخته‌ای» ویرایش می‌کنی!</li>
+          <li><b>Entering Raw Mode</b>: ساختن اولین حالتِ خام ترمینال با termios.</li>
+          <li><b>Raw Mode (And Keys)</b>: خواندن کلیدها و رسیدن به حالتِ خامِ درست.</li>
+          <li><b>Append Buffer</b>: بافرِ کارآمد برای نمایش بدون لرزش.</li>
+          <li><b>Cursor Movement</b>: جابه‌جایی مکان‌نما با کلیدهای جهت‌نما و wasd.</li>
+          <li><b>Scrolling</b>: اسکرول برای فایل‌های بزرگ‌تر از صفحه.</li>
+          <li><b>Save & Quit</b>: باز کردن و ذخیره‌کردن فایل با Ctrl-Q و Ctrl-S.</li>
+          <li><b>Search</b>: جست‌وجوی افزایشی (incremental) مثل Ctrl-Q-era editors.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>۲. حالت خام (Raw Mode): زبان ترمینال</h2>
+        <p>کلید فهمِ ویرایشگرهای ترمینالی، «حالت خام» است. به‌طور پیش‌فرض ترمینال در
+        <b>حالت متعارف (canonical mode)</b> کار می‌کند: ورودی بافر می‌شود و فقط بعد از Enter به برنامه
+        می‌رسد؛ و خروجی هم با «پردازش» روبه‌روست (مثلاً کنترل‌کاراکترها). برای ویرایشگر باید تمام این
+        رفتارها را خاموش کنیم. این کار با ساختار <code>termios</code> و توابع
+        <code>tcgetattr</code>/<code>tcsetattr</code> انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;termios.h&gt;
+
+struct termios orig_termios;
+
+void disableRawMode() {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &amp;orig_termios);
+}
+
+void enableRawMode() {
+    tcgetattr(STDIN_FILENO, &amp;orig_termios);
+    atexit(disableRawMode);   // موقع خروج، ترمینال را برگردان
+
+    struct termios raw = orig_termios;
+    raw.c_iflag &amp;= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+    raw.c_oflag &amp;= ~(OPOST);
+    raw.c_cflag |= (CS8);
+    raw.c_lflag &amp;= ~(ECHO | ICANON | IEXTEN | ISIG);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &amp;raw);
+}</code></pre>
+        <ul>
+          <li><code>ECHO</code>: خاموش کردن اکوی خودکارِ تایپ‌شده‌ها.</li>
+          <li><code>ICANON</code>: خاموش کردن حالت متعارف — هر کلید همان لحظه خوانده می‌شود.</li>
+          <li><code>ISIG</code>: خاموش کردن کلیدهای سیگنال (Ctrl-C/Ctrl-Z به‌عنوان حروف عادی).</li>
+          <li><code>IXON</code>/<code>ICRNL</code>: نبودنِ جریان کنترل و تبدیل Ctrl-M به Enter.</li>
+          <li><code>OPOST</code>: خاموش کردن پردازش خروجی (مثلاً \n → \r\n).</li>
+        </ul>
+        <p>همین فهرست کوتاهِ flagها — که در طول قدم‌های ۲ و ۳ یکی‌یکی اضافه و توضیح داده می‌شوند — درس
+        اصلی «چطور ترمینال واقعاً کار می‌کند» است.</p>
+      </section>
+
+      <section>
+        <h2>۳. خواندن کلیدها و توالی‌های escape</h2>
+        <p>در حالت خام، <code>read()</code> را برای هر ورودی صدا می‌زنیم. با <code>VMIN = 0</code> و
+        <code>VTIME = 1</code> (در فیلد <code>c_cc</code>) خواندنِ مسدودکننده با تایم‌اوتِ ۱۰۰ میلی‌ثانیه
+        می‌شود. کلیدهای جهت‌نما و Page Up/Down و Home/End در ترمینال‌های POSIX به‌صورت
+        «توالی‌های escape» می‌رسند: <code>ESC [ A</code> برای بالا، و همین‌طور بقیه. تابع
+        <code>editorReadKey</code> این توالی‌ها را می‌خواند و یک شناسهٔ واحد برمی‌گرداند؛ و
+        <code>getCursorPosition</code> با یک توالی پرس‌وجو (<code>ESC [ 6 n</code>) موقعیت مکان‌نما را
+        از ترمینال می‌گیرد.</p>
+      </section>
+
+      <section>
+        <h2>۴. بافرِ افزودن (Append Buffer): نمایشِ بدون لرزش</h2>
+        <p>برای بازنویسی هر فریم، به‌جای فرستادن هزاران <code>write()</code> کوچک، همهٔ خروجی در یک
+        بافرِ پویا جمع می‌شود و در یک <code>write</code> واحد فرستاده می‌شود — کلیدِ نمایش روان:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+struct abuf {
+    char *b;
+    int len;
+};
+
+#define ABUF_INIT {NULL, 0}
+
+void abAppend(struct abuf *ab, const char *s, int len) {
+    char *new = realloc(ab-&gt;b, ab-&gt;len + len);
+    memcpy(&amp;new[ab-&gt;len], s, len);
+    ab-&gt;b = new;
+    ab-&gt;len += len;
+}
+
+void abFree(struct abuf *ab) {
+    free(ab-&gt;b);
+}</code></pre>
+        <p>تابع <code>editorRefreshScreen</code> هر فریم: buffer را پاک می‌کند
+        (<code>\x1b[2J\x1b[H</code> یا نسخهٔ بهینهٔ <code>\x1b[H</code>)، ردیف‌ها را با
+        <code>editorDrawRows</code> می‌کشد (با شبیه‌سازیِ «~» در خطوط خالی و شمارهٔ ردیف در وسط
+        صفحه — رفرنسِ دل‌خواهِ vim!) و در پایان با <code>write(STDOUT_FILENO, ab.b, ab.len)</code> همه‌چیز
+        را یک‌جا می‌فرستد. مکان‌نما هم با توالی <code>\x1b[%d;%dH</code> جابه‌جا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۵. مکان‌نما، اسکرول و ورودی</h2>
+        <p><code>editorMoveCursor</code> موقعیت مکان‌نما را (در محدودهٔ <code>editor.rows</code> و عرضِ
+        ترمینال) با کلیدهای جهت‌نما/تکرارشونده‌ها تغییر می‌دهد؛ <code>editorScroll</code> وقتی مکان‌نما از
+        پنجره بیرون می‌رود، <code>offset</code> را جلو می‌برد تا «اسکرول» طبیعی اتفاق بیفتد. در
+        ویندوزها باید <code>ENABLE_VIRTUAL_TERMINAL_PROCESSING</code> فعال شود تا escape sequences
+        کار کنند — نمونهٔ خوبی از دشواری‌های واقعی cross-platform.</p>
+      </section>
+
+      <section>
+        <h2>۶. باز کردن، ذخیره و جست‌وجو</h2>
+        <p><code>editorOpen</code> فایل را خط‌به‌خط با <code>getline()</code> می‌خواند و به ساختار
+        <code>erow</code> (با رندر جداگانهٔ تب‌ها و... ) اضافه می‌کند؛ <code>editorSave</code> با
+        <code>open()/ftruncate()/write()</code> فایل را می‌نویسد. <code>editorFind</code> جست‌وجوی
+        افزایشی را پیاده می‌کند: با هر کلید، <code>strstr()</code> بعدی در متن جست‌وجو و نتایج با رنگ
+        های‌لایت می‌شوند — و در پایان، آموزش «های‌لایت نحوی» را هم پیشنهاد می‌دهد که با
+        <code>syntaxHighlight</code> و رنگ‌های ANSI انجام می‌شود.</p>
+        <div class="callout tip">
+          <strong>توصیهٔ آموزشی:</strong> کد هر قدم را خودتان تایپ کنید و هر چند خط، برنامه را کامپایل و
+          اجرا کنید. «ادیت کردن کدِ ویرایشگرت با خودِ ویرایشگرت» یکی از لذت‌بخش‌ترین لحظه‌های این مسیر
+          است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۷. جمع‌بندی</h2>
+        <p>kilo همهٔ آن چیزی را که برای «فهم عمیق ترمینال و ویرایشگر» لازم دارید در یک پروژهٔ کوچک
+        جمع می‌کند: termios، حالت خام، escape sequences، بافر خروجی، رندر فریم، اسکرول، I/O فایل و
+        جست‌وجو. بعد از آن، هر ویرایشگر ترمینالی (vim، nano، حتی کمتر!) برایتان شفاف است. اگر به زبان
+        دیگری علاقه‌مندید، بازسازیِ Rust همین پروژه (هکتو) را در همین مجموعه ببینید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعه‌آموزش «Build Your Own Text Editor» متعلق به
+        snaptoken/viewsourcecode.org است و کدِ kilo اثر سالواتوره سانیفیلیپو (antirez) است (مجوز BSD).
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است. برای مشاهده اصل مطلب به
+        <a href="https://viewsourcecode.org/snaptoken/kilo/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

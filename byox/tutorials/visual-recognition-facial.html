@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پایپ‌لاین تشخیص چهره با یادگیری عمیق (TensorFlow + Dlib)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">سیستم تشخیص تصویر</a>
+        <span class="sep">←</span>
+        <span>پایپ‌لاین تشخیص چهره</span>
+      </div>
+      <h1>ساخت پایپ‌لاین تشخیص چهره با یادگیری عمیق در TensorFlow</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🧠 TensorFlow + Dlib + scikit-learn</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://hackernoon.com/building-a-facial-recognition-pipeline-with-deep-learning-in-tensorflow-66e7645015b8" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Building a Facial Recognition
+          Pipeline with Deep Learning in Tensorflow» از <b>کول ماری (Cole Murray)</b> در HackerNoon
+          (۲۰۱۷) است. کد کامل در
+          <a href="https://github.com/ColeMurray/medium-facenet-tutorial" target="_blank" rel="noopener">GitHub</a>
+          موجود است.
+        </div>
+        <a class="btn solid" href="https://hackernoon.com/building-a-facial-recognition-pipeline-with-deep-learning-in-tensorflow-66e7645015b8" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: چهره را چطور «نمایندگی» کنیم؟</h2>
+        <p>تشخیص چهره یک راه‌حل بیومتریک است که ویژگی‌های منحصربه‌فرد چهره را اندازه می‌گیرد.
+        سؤال اصلی: چگونه یک چهره را به شکلی عددی و قابل مقایسه نمایندگی کنیم؟ پیشینه: در ۱۹۶۰،
+        وودرو بلدسو (Woodrow Bledsoe) مختصات ویژگی‌های برجستهٔ چهره (خط مو، چشم‌ها، بینی) را
+        علامت‌گذاری می‌کرد. سپس در ۲۰۱۵، محققان گوگل مقالهٔ <b>FaceNet</b> را منتشر کردند: یک
+        شبکهٔ عصبی پیچشی (CNN) که به‌جای استخراج دستی ویژگی، مستقیم از پیکسل‌های تصویر استفاده
+        می‌کند و به رکورد دقت ۹۹/۶۳٪ روی دیتاست LFW رسید.</p>
+        <p>نکتهٔ کلیدی FaceNet: بازنمایی چهره به‌صورت <b>embedding</b> — یک بردار ۱۲۸-بعدی.
+        چون این بردارها در یک فضای برداری مشترک قرار دارند، فاصلهٔ برداری، معیار شباهت دو چهره
+        می‌شود؛ و همین embedding ها به‌عنوان ورودی کارهای طبقه‌بندی، خوشه‌بندی یا رگرسیون
+        استفاده می‌شوند. تابع هزینهٔ FaceNet، «triplet loss» است: کمینه‌کردن فاصله از نمونه‌های
+        مثبت (هم‌هویتی) و بیشینه‌کردن فاصله از نمونه‌های منفی — یعنی چهره‌های یک شخص باید به هم
+        نزدیک‌تر باشند تا چهره‌های دو شخص متفاوت.</p>
+      </section>
+
+      <section>
+        <h2>۲. ابزارها: Docker، TensorFlow، Dlib و OpenCV</h2>
+        <p>نصب TensorFlow، OpenCV و مخصوصاً Dlib (که تشخیص و ترازبندی چهره را فراهم می‌کند)
+        دردسرساز است؛ برای همین نویسنده همه را داخل <b>Docker</b> نصب می‌کند تا محیطی سازگار و
+        مستقل از پلتفرم داشته باشد. ساختار پروژه:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>├── Dockerfile
+├── etc/20170511-185253/20170511-185253.pb     # وزن‌های از‌پیش‌آموزش‌دیدهٔ مدل
+├── data/                                      # دیتاست LFW
+└── medium_facenet_tutorial/
+    ├── align_dlib.py                          # ابزارهای ترازبندی Dlib
+    ├── preprocess.py                          # پیش‌پردازش (تشخیص+برش+تراز)
+    ├── download_and_extract_model.py
+    ├── lfw_input.py                           # بارگذاری موازی تصاویر
+    ├── train_classifier.py                    # آموزش SVM
+    └── shape_predictor_68_face_landmarks.dat  # مدل نقاط کلیدی چهره</code></pre>
+        <p>دیتاست آموزشی: <b>LFW (Labeled Faces in the Wild)</b> — ۱۷۷ مگابایت، هر شخص در یک
+        پوشه با چند تصویر (مثلاً Tyra_Banks_0001.jpg). این ساختار پوشه‌ای را می‌توانید با دیتاست
+        خودتان هم جایگزین کنید.</p>
+      </section>
+
+      <section>
+        <h2>۳. پیش‌پردازش: تشخیص، برش و ترازبندی با Dlib</h2>
+        <p>پیش‌پردازش دو مشکل را حل می‌کند: <b>جداسازی (segmentation)</b> و <b>ترازبندی
+        (alignment)</b>. اول، با <code>align_dlib.py</code> بزرگ‌ترین چهرهٔ تصویر پیدا می‌شود
+        (پس لازم نیست داده از قبل برش‌خورده باشد). دوم، چون صورت معمولاً در تصویر دقیقاً وسط نیست،
+        تصویر با استفاده از مدل نقطه‌های کلیدی (<code>shape_predictor_68_face_landmarks.dat</code>)
+        بر اساس موقعیت <b>چشم‌های داخلی و لب پایین</b> تراز می‌شود تا همهٔ ورودی‌ها استاندارد شوند
+        (نور، پوشیدگی و اختلاف پس‌زمینه هم از مشکلات رایجی‌اند که این استانداردسازی کمک می‌کند):
+        </p>
+        <pre class="code"><span class="lang-tag">bash</span><code>$ docker run -v $PWD:/medium-facenet-tutorial \
+  -e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \
+  -it colemurray/medium-facenet-tutorial \
+  python3 medium_facenet_tutorial/preprocess.py \
+  --input-dir data --output-dir output/intermediate --crop-dim 180</code></pre>
+        <p>اسکریپت هر تصویر را می‌خواند، بزرگ‌ترین چهره را پیدا می‌کند، تراز می‌کند و نتیجه را
+        می‌نویسد؛ اگر چهره‌ای پیدا نشود، نام فایل لاگ می‌شود. چون اسکریپت از موازی‌سازی پشتیبانی
+        می‌کند، با چند هسته سریع‌تر اجرا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۴. ساخت Embeddingها با TensorFlow</h2>
+        <p>شبکهٔ عصبی انتخاب‌شده <b>Inception Resnet V1</b> است (همان معماری FaceNet). وزن‌های
+        از‌پیش‌آموزش‌دیده (مدل <code>20170511-185253.pb</code>) دانلود می‌شود. سپس با TensorFlow
+        از <b>Queue API</b> استفاده می‌شود تا تصاویر پیش‌پردازش‌شده <b>به‌صورت موازی</b> (چندنخی)
+        بارگذاری شوند — روی GPU این یعنی پیش‌پردازش روی CPU و ضرب ماتریس‌ها روی GPU انجام می‌شود،
+        بدون توقف. خروجی برای هر چهره یک بردار ۱۲۸-بعدی است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># بارگذاری موازی تصاویر با queue — پیش‌پردازش روی CPU، شبکه روی GPU
+img_placeholder = tf.placeholder(tf.float32, [None, 180, 180, 3])
+embeddings = facenet.embedding_model(img_placeholder, is_training=False)
+# ... اجرا روی دسته‌های تصاویر؛ خروجی: آرایه‌ای از بردارهای ۱۲۸-بعدی</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. آموزش دسته‌بند SVM</h2>
+        <p>Embedding ها حالا به‌عنوان «ویژگی» ورودی <b>ماشین بردار پشتیبان (SVM)</b> اسکای‌لرن
+        می‌شوند تا روی هر هویت آموزش ببیند. هویت‌هایی با کمتر از ۱۰ تصویر حذف می‌شوند (پارامتری
+        قابل تنظیم از خط فرمان):</p>
+        <pre class="code"><span class="lang-tag">bash</span><code>$ docker run -v $PWD:/medium-facenet-tutorial \
+  -e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \
+  -it colemurray/medium-facenet-tutorial \
+  python3 medium_facenet_tutorial/train_classifier.py \
+  --input-dir output/intermediate \
+  --model-path etc/20170511-185253/20170511-185253.pb \
+  --classifier-path output/classifier.pkl \
+  --num-threads 16 --num-epochs 25 \
+  --min-num-images-per-class 10 --is-train
+# ~۱۶ دقیقه روی MacBook Pro</code></pre>
+        <p>برای ارزیابی، همان دستور بدون <code>--is-train</code> اجرا می‌شود تا روی تصاویر دیده‌نشده
+        پیش‌بینی کند؛ نویسنده با ۵ دوره به دقت ۸۵٪ می‌رسد.</p>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی و درس‌ها</h2>
+        <ul>
+          <li><b>خط لوله‌ٔ مدرن تشخیص چهره</b>: تشخیص + تراز با Dlib ← embedding با شبکهٔ عمیق ←
+          طبقه‌بندی با SVM. هر مرحله یک مسئلهٔ مجزا با بهترین ابزار خودش.</li>
+          <li><b>embedding به‌جای طبقه‌بندی مستقیم</b>: بردار ۱۲۸-بعدی FaceNet را می‌توان برای هر
+          کار پایین‌دستی (طبقه‌بندی، خوشه‌بندی، رگرسیون، جست‌وجوی شباهت) استفاده کرد.</li>
+          <li><b>مدیریت محیط با Docker</b>: بازتولیدپذیری در یادگیری ماشین از نیمه‌های راه شروع
+          می‌شود — وابستگی‌های سخت مثل dlib را کانتینری کنید.</li>
+          <li><b>پیش‌پردازش > مدل</b>: ترازبندی چهره پیش از ورود به مدل، تأثیری بزرگ‌تر از
+          پیچیده‌کردن شبکه دارد.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکتهٔ تکمیلی:</strong> از همان سال‌ها، این معماری (Dlib + FaceNet-style embedding
+          + SVM) به استاندارد ابزارهایی مثل face_recognition تبدیل شد؛ در کاربردهای امروزی
+          تشخیص چهرهٔ باز (زاویه و نور متغیر) با مدل‌های قوی‌تر جایگزین می‌شود، اما منطق خط
+          لوله همان است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۷. نتیجه‌گیری</h2>
+        <p>این آموزش یک پایپ‌لاین تشخیص چهرهٔ کامل و قابل اجرا می‌سازد: از دیتاست خام LFW تا
+          پیش‌بینی هویت روی تصویر جدید — با چهار ابزار متن‌باز (Dlib، TensorFlow، scikit-learn و
+          Docker) و بدون هیچ شبکه‌ای که خودمان آموزش دهیم.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building a Facial Recognition Pipeline with Deep
+        Learning in Tensorflow» اثر کول ماری (Cole Murray) است و در HackerNoon منتشر شده. این
+        صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهدهٔ اصل مطلب به
+        <a href="https://hackernoon.com/building-a-facial-recognition-pipeline-with-deep-learning-in-tensorflow-66e7645015b8" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

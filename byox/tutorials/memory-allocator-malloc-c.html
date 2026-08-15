@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Malloc جادو نیست — تخصیص‌دهندهٔ حافظهٔ خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">تخصیص‌دهنده حافظه</a>
+        <span class="sep">←</span>
+        <span>Malloc جادو نیست</span>
+      </div>
+      <h1>Malloc جادو نیست — پیاده‌سازی تخصیص‌دهندهٔ حافظهٔ خودت (Malloc is not magic)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/p/e0354e914402" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Malloc is not magic — Implementing
+          your own memory allocator» از <b>آلخاندرو نادال (Alejandro Nadal)</b> در Medium
+          (منتشرشده: ۲۰۲۵) است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://medium.com/p/e0354e914402" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا malloc را خودمان بسازیم؟</h2>
+        <p>هر روز میلیاردها بار <code>malloc</code>/<code>free</code> صدا زده می‌شود، اما چه کسی می‌داند
+        پشت پرده چه می‌گذرد؟ این مقاله تخصیص‌دهندهٔ حافظهٔ خودمان (<code>an_malloc</code> /
+        <code>an_free</code>) را از صفر می‌سازد تا «جادو» حذف شود. تخصیص‌دهندهٔ پیاده‌شده در مقاله:</p>
+        <ul>
+          <li>لیستی از مکان‌های <b>آزاد</b> داخل heap را نگه می‌دارد.</li>
+          <li>همهٔ تخصیص‌ها را ردیابی می‌کند.</li>
+          <li>در صورت تقاضا، ناحیهٔ آزادی به اندازهٔ دلخواه برمی‌گرداند؛ اگر هیچ بلوک آزادی به‌اندازهٔ
+          کافی نبود، از سیستمعامل <b>رشد heap</b> را درخواست می‌کند.</li>
+          <li>در صورت تقاضا، بلوکِ انتخاب‌شده را آزاد می‌کند — و آزادسازی بلوک‌ها می‌تواند باعث
+          <b>کوچک‌کردن heap</b> (بازگرداندن صفحه‌ها به OS) شود.</li>
+          <li><b>نخ‌امن (thread-safe)</b> است: از چند نخ هم‌زمان قابل استفاده است.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۲. ساختار داده: header و بلوک‌ها</h2>
+        <p>اول، یک <b>header</b> در ابتدای heap داریم که بخشی از لیست پیوندی نیست. نشانگرِ ابتدای آن یک
+        عدد ثابت («جملهٔ جادویی» — MAGICAL_BYTES) است که می‌گوید «ساختار مقداردهی اولیه شده»
+        (در پیاده‌سازی محکم، طولانی‌کردن این مقدار احتمال برخورد با زبالهٔ تصادفی RAM را خیلی کم
+        می‌کند). این header همچنین <b>قفل</b> را نگه می‌دارد — یک بولی که قبل از هر malloc/free قفل و بعد
+        آزاد می‌شود؛ هر نخِ دیگری منتظر می‌ماند تا قفل باز شود. بعد، آمار: تعداد بلوک‌ها و تعداد صفحه‌ها.</p>
+        <p><b>هر بلوک</b> یک header مخصوص خودش دارد: نشانگرِ بلوک بعدی و قبلی (<code>next</code>/
+        <code>prev</code>)، طولش و این‌که آزاد است یا استفاده‌شده. بعد از header، محتوای واقعی می‌آید:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int *an_malloc(ssize_t size) {
+    if (heap_start == NULL) {
+        heap_start = sbrk(0);
+        sbrk(4096);                       // برداشتن یک صفحهٔ اولیه از OS
+    }
+    char *heap_end = sbrk(0);
+    long int length = heap_end - heap_start;
+
+    // بررسیِ «جملهٔ جادویی» — اولین اجرای malloc:
+    if ((*heap_start) != MAGICAL_BYTES) {
+        *(heap_start) = MAGICAL_BYTES;
+        my_stats *malloc_header = (my_stats *)heap_start;
+        malloc_header-&gt;amount_of_blocks = 1;
+        malloc_header-&gt;amount_of_pages = 1;
+
+        area *first_block = (area *)((char *)heap_start + sizeof(my_stats));
+        first_block-&gt;marker = BLOCK_MARKER;
+        first_block-&gt;in_use = false;
+        first_block-&gt;length = length - sizeof(my_stats) - sizeof(area);
+        first_block-&gt;next = NULL;
+        first_block-&gt;prev = NULL;
+    }
+    return add_used_block(size);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. تخصیص: بهترین تطبیق و شکستن بلوک‌ها</h2>
+        <p>بعد از قفل کردن، liلیست پیوندی را برای بلوکی که «به‌اندازهٔ کافی بزرگ» باشد جست‌وجو می‌کنیم.
+        اگر هیچ‌کدام نبود، با <code>sbrk(4096)</code> صفحه‌های بیشتری از OS می‌گیریم و آخرین بلوک را
+        بزرگ می‌کنیم. برای کاهش تکه‌تکه‌شدن (fragmentation) از استراتژی <b>بهترین تطبیق
+        (best fit)</b> استفاده می‌شود: به‌جای اولین بلوکِ به‌اندازهٔ کافی، <b>کوچک‌ترین</b> بلوکی را
+        می‌گیریم که داده در آن جا شود. و چون بلوکِ انتخاب‌شده معمولاً بزرگ‌تر از نیاز است، آن را
+        <b>می‌شکنیم</b>: بلوک استفاده‌شده به اندازهٔ دقیقِ درخواست + یک بلوک آزادِ باقی‌مانده — قانونِ
+        مهم این است که «لیست همیشه باید به یک بلوک آزاد ختم شود»:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>// پیدا نشد؟ به اندازهٔ لازم از OS صفحه بگیر
+if (smallest_block == NULL) {
+    area *last_block = find_last_block();
+    while (last_block-&gt;length &lt; size) {
+        sbrk(4096);
+        last_block-&gt;length += 4096;
+        malloc_header-&gt;amount_of_pages += 1;
+    }
+    smallest_block = last_block;
+}
+
+// شکستن بلوک: به اندازهٔ کافی جای باقی‌مانده هست؟
+int must_have_size = smallest_block-&gt;length - size - sizeof(area) - 1;
+if (must_have_size &lt;= 0) {
+    sbrk(4096);                          // نه؛ یک صفحه دیگر بگیر
+    must_have_size = smallest_block-&gt;length - size - sizeof(area) - 1;
+}
+smallest_block-&gt;in_use = true;
+
+// بلوک آزادِ جدید را درست بعد از بخشِ استفاده‌شده می‌سازیم
+area *new_block = (area *)((char *)smallest_block + sizeof(area) + size);
+new_block-&gt;marker = BLOCK_MARKER;
+new_block-&gt;in_use = false;
+new_block-&gt;prev = smallest_block;
+new_block-&gt;next = smallest_block-&gt;next;
+if (new_block-&gt;next != NULL) { (new_block-&gt;next)-&gt;prev = new_block; }
+smallest_block-&gt;next = new_block;</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. آزادسازی: تأیید، ادغام و کوچک‌کردن heap</h2>
+        <p><code>free</code> (یعنی <code>an_free</code>) نکته‌ای کلیدی دارد: کاربر «شروعِ بلوک» را نمی‌گیرد
+        بلکه نشانی‌ای را می‌گیرد که <b>بعد از header بلوک</b> است. پس با کم‌کردنِ اندازهٔ header از
+        pointer، به ابتدای بلوک می‌رسیم. اول بررسی می‌کنیم marker درست است یا نه (اگر نه، pointer به
+        malloc تعلق ندارد و false برمی‌گردد). بعد بلوک را آزاد علامت می‌زنیم و — مهم‌ترین بخش — اگر
+        همسایهٔ بعدی یا قبلی هم آزاد باشد، آن‌ها را <b>ادغام (merge)</b> می‌کنیم تا یک بلوک بزرگِ
+        هم‌پیوسته بسازیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>area *block = ptr - sizeof(area);       // شروعِ واقعیِ بلوک
+if (block-&gt;marker != BLOCK_MARKER) { return false; }   // پوینتر نامعتبر
+block-&gt;in_use = false;
+memset(ptr, 0, block-&gt;length);
+
+if (block-&gt;next != NULL &amp;&amp; (block-&gt;next)-&gt;in_use == false) {
+    // بلوک بعدی آزاد است → ادغام
+    area *next_free = block-&gt;next;
+    block-&gt;next = next_free-&gt;next;
+    if (next_free-&gt;next != NULL) { next_free-&gt;next-&gt;prev = block; }
+    block-&gt;length += sizeof(area) + next_free-&gt;length;  // طول‌ها با هم جمع شوند
+    memset(next_free, 0, sizeof(area) + next_free-&gt;length);
+    malloc_header-&gt;amount_of_blocks -= 1;
+}
+// (و همان‌طور برای بلوک قبلیِ آزاد)
+
+reduce_heap_size_if_possible();   // آخرین بلوکِ بزرگِ آزاد → پس‌دادن صفحه‌ها به OS</code></pre>
+        <p>در پایان، <code>reduce_heap_size_if_possible()</code> به انتهای لیست می‌رود و اگر آن‌قدر فضای
+        آزاد پشت آخرین بلوکِ استفاده‌شده باشد (<code>sbrk</code> مقدار منفی می‌پذیرد)، صفحه‌ها را به
+        سیستمعامل برمی‌گرداند و آمار را اصلاح می‌کند؛ و اگر شکافِ کوچکی ماند، یک بلوک آزادِ کوچک در
+        همان جا «تزریق» می‌شود تا بعداً قابل استفاده باشد.</p>
+      </section>
+
+      <section>
+        <h2>۵. چه چیزهایی یاد می‌گیرید</h2>
+        <ul>
+          <li><b>جدا کردن «واقعیتِ تخصیص» از «محصولِ تخصیص»</b>: کاربر فقط pointer استفاده می‌کند؛
+          متادیتا (header) برای کاربر کاملاً نامرئی است.</li>
+          <li><b>رشد و کوچک‌کردن heap با sbrk</b> — مثبت برای بزرگ‌کردن، منفی برای برگرداندن.</li>
+          <li><b>شکستن و ادغام بلوک‌ها</b>: دو ابزار اصلی مقابله با تکه‌تکه‌شدن حافظه.</li>
+          <li><b>بهترین تطبیق</b> به‌جای «اولین تطبیق» برای استفادهٔ بهینه از فضا.</li>
+          <li><b>همزمانی با یک قفل ساده</b> و ایدهٔ <b>markerها</b> برای تشخیص بلوک‌های معتبر از
+          زبالهٔ حافظه — پایهٔ درک سیستم‌های امنیتیِ allocatorهای واقعی.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>جهان واقعی:</strong> allocatorهای تولیدی (glibc ptmalloc، jemalloc) همین مفاهیم را
+          با دهه‌ها بهینه‌سازی دارند: buckets بر اساس اندازه، thread caches، cookies و… — اما با درک
+          این پیاده‌سازی ساده، خواندن کد آن‌ها دیگر معمایی نیست.
+        </div>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <p>«Malloc جادو نیست» — فقط یک ساختار دادهٔ هوشمند روی <code>sbrk</code> است: لیست پیوندیِ
+          بلوک‌ها، markerها، شکستن/ادغام، بهترین تطبیق و یک قفل. ساختنش بهترین راه برای باورکردنِ
+          این جمله است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Malloc is not magic — Implementing your own memory
+        allocator» اثر آلخاندرو نادال (Alejandro Nadal) است و در Medium (Level Up Coding) منتشر شده.
+        این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
+        اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://medium.com/p/e0354e914402" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

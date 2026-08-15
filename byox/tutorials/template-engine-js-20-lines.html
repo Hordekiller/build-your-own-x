@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور قالب جاوااسکریپت در فقط ۲۰ خط</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور قالب</a>
+        <span class="sep">←</span>
+        <span>موتور قالب جاوااسکریپت در ۲۰ خط</span>
+      </div>
+      <h1>موتور قالب جاوااسکریپت در فقط ۲۰ خط</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://krasimirtsonev.com/blog/article/Javascript-template-engine-in-just-20-line" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «JavaScript template engine in just 20 lines»
+          اثر <b>کراسیمیر تسونف (Krasimir Tsonev)</b> (منتشرشده: ۱ دسامبر ۲۰۱۳) است که خودش الهام‌گرفته
+          از مقالهٔ میکرو-قالب‌سازی جان رسیگ (John Resig) است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://krasimirtsonev.com/blog/article/Javascript-template-engine-in-just-20-line" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. داستان‌چرا</h2>
+        <p>نویسنده در حال ساخت <b>AbsurdJS</b> — یک preprocessor جاوااسکریپتی است که ابتدا CSS و بعد
+        CSS/HTML تولید می‌کند. چون HTML تولید می‌کرد، طبیعی بود که به‌عنوان موتور قالب هم عمل کند؛ یعنی
+        نوعی «پرکردن مارک‌آپ با داده». اما موتورهای قالبِ موجود بیشتر فقط NodeJS بودند و در مرورگر به
+        درد نمی‌خوردند. او به پست وبلاگ جان رسیگ (JavaScript Micro-Templating) رسید، آن را کمی تغییر داد
+        و در ۲۰ خط جا گرفت. در این مقاله همان موتور قدم‌به‌قدم بازسازی می‌شود.</p>
+        <p>هدف ما تابعی است که یک قالب و داده می‌گیرد و خروجیِ نهایی را برمی‌گرداند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(tpl, data) {
+    // جادو اینجاست ...
+}
+var template = 'Hello, my name is <%name%>. I\'m <%age%> years old.';
+console.log(TemplateEngine(template, {
+    name: "Krasimir",
+    age: 29
+}));
+// خروجی: Hello, my name is Krasimir. I'm 29 years old.</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. رگکس و گرفتن همهٔ جای‌نگه‌دارها</h2>
+        <p>اولین قدم، یافتنِ تکه‌های پویا داخل قالب است. با رگکس شروع می‌کنیم — عبارتی که همهٔ بخش‌های
+        بین <code>&lt;%</code> و <code>%&gt;</code> را می‌گیرد، و با پرچمِ <code>g</code> (سراسری) همهٔ
+        تطبیق‌ها را، نه فقط اولی:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var re = /<%([^%>]+)?%>/g;
+var match = re.exec(tpl);
+// match شامل: "<%name%>" ، "name" ، index و input می‌شود
+
+// برای پردازشِ همهٔ تطبیق‌ها داخل حلقهٔ while
+var re = /<%([^%>]+)?%>/g, match;
+while(match = re.exec(tpl)) {
+    console.log(match);   // هم <%name%> و هم <%age%> دیده می‌شوند
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. چرا جایگزینی ساده کافی نیست؟</h2>
+        <p>ساده‌ترین راه، <code>tpl.replace(match[0], data[match[1]])</code> است — جواب می‌دهد اما فقط
+        برای دادهٔ صاف و یک‌سطحی. اگر دادهٔ ما تودرتو باشد، مثلاً
+        <code>{ profile: { age: 29 } }</code> و در قالب <code>&lt;%profile.age%&gt;</code> بنویسیم، عبارتِ
+        <code>data["profile.age"]</code> حاصل می‌شود که <code>undefined</code> است. راه درست؟ بین
+        <code>&lt;%</code> و <code>%&gt;</code> <b>کد واقعی جاوااسکریپت</b> بگذاریم که در برابر داده اجرا
+        شود؛ مثلِ <code>&lt;%this.profile.age%&gt;</code>. و برای این‌کار به <b>new Function</b> نیاز
+        داریم: ساختِ تابع از رشته:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var fn = new Function("arg", "console.log(arg + 1);");
+fn(2); // خروجی: 3  — معادلِ fn = function(arg) { console.log(arg + 1); }</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. مونتاژ بدنهٔ تابع: حلقه‌ها قالب را می‌شکنند</h2>
+        <p>حالا باید بدنهٔ تابع را «بسازیم». اگر فقط با <code>+</code> رشته‌ها را کنار هم بچسبانیم، وقتی
+        کاربر داخل قالب حلقه بنویسد خراب می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var template =
+'My skills:' +
+'<%for(var index in this.skills) {%>' +
+'<%this.skills[index]%>' +
+'<%}%>';</code></pre>
+        <p>چسباندن با <code>+</code> به <code>return 'My skills:' + for(...) { + ...}</code> می‌رسد که
+        خطای سینتکس می‌دهد. راه‌حل جان رسیگ: همهٔ قطعه‌ها را در یک آرایه بریزیم و آخر کار
+        <code>join</code> کنیم — آن‌وقت کدهای کنترلی می‌توانند «مستقیم» داخل متد بروند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var r = [];
+r.push('My skills:');
+for(var index in this.skills) {
+    r.push(this.skills[index]);
+}
+return r.join('');</code></pre>
+        <p>برای تولید این‌دست کد، از یک متغیرِ <code>cursor</code> استفاده می‌کنیم که «کجا در قالب
+        هستیم» را نشان می‌دهد و یک تابع <code>add</code> که خط به خط به <code>code</code> اضافه می‌کند.
+        جای‌نگه‌دارها «کد» هستند (نباید داخل کوتیشن بروند)، بقیهٔ متن «رشته» است (باید کوتیشن بگیرد و
+        گریزِ <code>"</code> شود):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(tpl, data) {
+    var re = /<%([^%>]+)?%>/g,
+        code = 'var r=[];\n',
+        cursor = 0, match;
+    var add = function(line, js) {
+        js ? code += 'r.push(' + line + ');\n'
+           : code += 'r.push("' + line.replace(/"/g, '\\"') + '");\n';
+    }
+    while(match = re.exec(tpl)) {
+        add(tpl.slice(cursor, match.index));
+        add(match[1], true);            // محتویات جای‌نگه‌دار کد است
+        cursor = match.index + match[0].length;
+    }
+    add(tpl.substr(cursor, tpl.length - cursor));
+    code += 'return r.join("");';
+    return new Function(code.replace(/[\r\t\n]/g, '')).apply(data);
+}</code></pre>
+        <p>خروجیِ <code>new Function</code> بدون آرگومان ساخته شده و با <code>apply(data)</code> صدا زده
+        می‌شود؛ «این» داخل بدنهٔ تابع به دادهٔ ما اشاره می‌کند — به همین دلیل <code>&lt;%this.name%&gt;</code>
+        کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۵. پشتیبانی از منطق: if/else و حلقه</h2>
+        <p>با همان مثالِ حلقه، خروجیِ فعلی خطای <code>Unexpected token for</code> می‌دهد؛ چون خطِ
+        <code>for(...) {</code> نباید <code>r.push(...)</code> شود؛ باید «همان‌طور» داخل اسکریپت آورده شود.
+        راه‌حل، یک رگکس دوم است که تشخیص می‌دهد کدِ داخل جای‌نگه‌دار با کلیدواژه‌های کنترل شروع می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g;
+
+var add = function(line, js) {
+    js ? code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n'
+       : code += 'r.push("' + line.replace(/"/g, '\\"') + '");\n';
+}</code></pre>
+        <p>حالا می‌توانید داخل قالب منطق کامل بنویسید:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var template =
+'My skills:' +
+'<%if(this.showSkills) {%>' +
+    '<%for(var index in this.skills) {%>' +
+    '<a href="#"><%this.skills[index]%></a>' +
+    '<%}%>' +
+'<%} else {%>' +
+    '<p>none</p>' +
+'<%}%>';</code></pre>
+      </section>
+
+      <section>
+        <h2>۶. نسخهٔ نهایی: حتی فقط ۱۵ خط</h2>
+        <p>با چند بهینه‌سازی کوچک (برگرداندنِ <code>add</code> برای زنجیره‌شدن و نادیده‌گرفتن خطوط
+        خالی)، نسخهٔ نهایی نه‌تنها ۲۰ خط نیست؛ فقط ۱۵ خط است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(html, options) {
+    var re = /<%([^%>]+)?%>/g, reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g,
+        code = 'var r=[];\n', cursor = 0, match;
+    var add = function(line, js) {
+        js ? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n')
+           : (code += line != '' ? 'r.push("' + line.replace(/"/g, '\\"') + '");\n' : '');
+        return add;
+    }
+    while(match = re.exec(html)) {
+        add(html.slice(cursor, match.index))(match[1], true);
+        cursor = match.index + match[0].length;
+    }
+    add(html.substr(cursor, html.length - cursor));
+    code += 'return r.join("");';
+    return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
+}</code></pre>
+        <div class="callout tip">
+          <strong>نکتهٔ آموزشی:</strong> این موتور «قالب را به کد ترجمه می‌کند» (compiling)، نه اینکه
+          قالب را در لحظه تجزیه کند؛ همان منطقی که پشت موتورهای مدرن مثل EJS هم هست — و دلش می‌خواهد
+          پاورقی‌ای به میکرو-قالب‌سازی جان رسیگ بدهید، که در آموزش بعدی همین مجموعه ترجمه شده است.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «JavaScript template engine in just 20 lines» اثر
+        کراسیمیر تسونف (Krasimir Tsonev) است. این صفحه فقط ترجمهٔ فارسی آن است و تمام حقوق محتوا،
+        تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://krasimirtsonev.com/blog/article/Javascript-template-engine-in-just-20-line" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

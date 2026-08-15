@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور مرورگر اسباب‌بازی — سری What is a browser engine؟</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">مرورگر وب</a>
+        <span class="sep">←</span>
+        <span>تونگین رندر اسباب‌بازی</span>
+      </div>
+      <h1>موتور مرورگر اسباب‌بازی (Toy Layout Engine) — سری «Let's build a browser engine!»</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری ۷ قسمتی «Let's build a browser
+          engine!"» از <b>مت بروبک (Matt Brubeck)</b> — توسعه‌دهندهٔ سابق Mozilla و Servo — است.
+          او در این سری یک موتور مرورگر «اسباب‌بازی» در زبان <b>Rust</b> می‌سازد: نه جاوااسکریپت، نه
+          تصویر، نه خیلی چیزهای دیگر — فقط HTML + CSS و رندر آن روی صفحه.
+        </div>
+        <a class="btn solid" href="https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. موتور مرورگر چیست؟</h2>
+        <p>مقالهٔ اول این سری با یک تعریف مهم شروع می‌کند: <b>موتور مرورگر (browser engine)
+        آن بخشی از مرورگر است که صفحات وب را می‌گیرد (fetch می‌کند)، ترجمه می‌کند و روی
+        صفحه نمایش می‌دهد.</b> موتور با «chrome» مرورگر فرق دارد: chrome همان «قاب» مرورگر است —
+        تب‌ها، نوار آدرس، دکمه‌ها و آن‌چه دورِ صفحهٔ وب است. فایرفاکس و سیمانکی هر دو موتور
+        Gecko را با دو chrome متفاوت دارند.</p>
+        <p>سری بروبک یک موتور کوچک می‌سازد که فقط HTML و CSS را پشتیبانی می‌کند — «اسباب‌بازی»ی
+        برای یادگیری، نه رقیب Blink/Gecko/WebKit/Servo که میلیون‌ها خط کد دارند (حتی نسخهٔ سادهٔ
+        Servo هم آن‌موقع ده‌ها هزار خط داشت). اما ساختار همان است و فهمیدنش ساده:</p>
+        <pre class="code"><span class="lang-tag">text</span><code>   HTML ──&gt; Parse ──&gt; DOM
+   CSS  ──&gt; Parse ──&gt; Style Rules        ──&gt; Style ──&gt; Layout ──&gt; Paint ──&gt; پیکسل‌ها
+                    DOM + Style Rules ──/</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. نقشهٔ ۷ قسمتی</h2>
+        <p>این سری با یک پیمایش کاملاً واقعی از مراحل رندر جلو می‌رود، هر قسمت یک مرحلهٔ
+        تازه — از سازوکار لولهٔ رندر (rendering pipeline):</p>
+        <ul>
+          <li><b>HTML و CSS:</b> دو گرامر کوچک نوشته می‌شوند که ورودی متنی را به ساختارهای
+          درختی تبدیل می‌کنند. پارسر HTML در ساختار DOM؛ پارسر CSS در مجموعه‌ای از
+          قواعدِ selectors + declarations.</li>
+          <li><b>Style و تطبیق selector:</b> قواعد CSS با DOM ترکیب می‌شوند تا هر گره
+          «سبک» خودش را بگیرد — cascade اولیه و منطق matching selector.</li>
+          <li><b>Boxes و مدل جعبه‌ای:</b> گره‌های DOM به «جعبه»های مستطیلی تبدیل می‌شوند؛ مدل
+          جعبه‌ای (margin/border/padding/content) همان‌طور که در CSS تعریف می‌شود.</li>
+          <li><b>Layout:</b> الگوریتم چیدمان بلوکی (block layout) شبیه به آنچه موتورهای واقعی
+          دارند — محاسبهٔ موقعیت و اندازهٔ هر جعبه در فضای دو بعدی.</li>
+          <li><b>Paint:</b> در پایان، جعبه‌های محاسبه‌شده «رنگ‌آمیزی» می‌شوند روی یک سطح نقاشی
+          ساده (بدون پشتیبانی از تصویر، فقط رنگ‌های پس‌زمینهٔ solid).</li>
+        </ul>
+        <p>قسمت هفتم هم «کارهای بعدی» را فهرست می‌کند: متن، تصویر، فرم‌ها و تعامل — یعنی جایی که
+        اسباب‌بازی تمام می‌شود و کار واقعی شروع.</p>
+      </section>
+
+      <section>
+        <h2>۳. نکته‌های طراحی</h2>
+        <p>بروبک چند انتخاب هوشمندانه دارد که نگاه «انسانِ موتورِ مرورگر» می‌دهد:</p>
+        <ul>
+          <li><b>جلاسازی (splitting):</b> وقتی یک selector روی یک گره اعمال می‌شود اما بخشی از
+          گره‌های فرزند تحت تأثیر استایل‌های دیگرند، پایپ‌لاین به‌جای پیچیدگی، گره را به چند
+          «جعبهٔ مجازی» می‌شکند (مثلاً برای <code>display: block</code> با فرزند اولِ
+          inline).</li>
+          <li><b>معیار CSS 2.1:</b> مدل چیدمان مبتنی بر مشخصات CSS 2.1 است، نه خیال‌پردازی —
+          حتی فرمول‌های margin collapse هم استفاده می‌شود.</li>
+          <li><b>منطق اتصال pipe‌ها:</b> دادهٔ خروجی هر مرحله، ورودی مرحلهٔ بعد است؛ با ساختارهای
+          دادهٔ ساده (struct های Rust) که تا انتها قابل debug کردن‌اند.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">rust</span><code>// چیدمان: هر جعبه یک موقعیت مستطیلی مطلق می‌گیرد
+pub fn layout(&amp;self, containing_block: Dimensions) -&gt; LayoutBox {
+    let mut layout_box = self.build_layout_tree();
+    layout_box.layout(containing_block);
+    layout_box
+}
+
+fn layout(&amp;mut self, containing_block: Dimensions) {
+    match self.box_type {
+        BlockNode(_) =&gt; self.layout_block(containing_block),
+        InlineNode(_) =&gt; self.layout_inline(containing_block),
+        AnonymousBlock =&gt; self.layout_block(containing_block),
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>۴. سناریوی عملی</h2>
+        <p>برای نشان دادن کارکرد، هر قسمت با یک مثال کوچک همراه است. بدین ترتیب متوجه
+        می‌شوید که کل «رندر» دو صفحه وب یعنی چه چیزهایی لازم دارد — صفحه‌ای بدون CSS تقریباً
+        «سیل» است و با یک <code>style</code> ساده، همه‌چیز شکل می‌گیرد. موتور ساخته‌شده یک
+        خروجی مبتنی بر متن/ساده دارد، اما برای یک ابزار بررسی الگوریتم‌های رندر واقعاً
+        کافی است.</p>
+        <div class="callout tip">
+          <strong>دربارهٔ «مرورگر» و «موتور»:</strong> این سری بهترین نقطه‌ٔ ورود به نحوهٔ کار
+          مرورگرهای امروزی است — از فهمیدن لولهٔ رندر گرفته تا نقش Bridge بین HTML و CSS.
+          ادامه‌دهنده‌های این مسیر: کتاب Web Browser Engineering و پروژه‌های مثل Servo، یا
+          آموزش‌های مختصرتر برای ساختن مرورگر با پایتون.
+        </div>
+      </section>
+
+      <section>
+        <h2>۵. چه چیزهایی یاد می‌گیرید</h2>
+        <ul>
+          <li>تفاوت موتور مرورگر با chrome، و جایگاه لولهٔ رندر در مرورگرهای واقعی.</li>
+          <li>پیاده‌سازی یک parser سادهٔ HTML و CSS بدون وابستگی.</li>
+          <li>مدل جعبه‌ای و چیدمان بلوکی بر اساس مشخصات CSS 2.1.</li>
+          <li>پایپ‌لاین رندر کامل: parse → style → layout → paint.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۶. جمع‌بندی</h2>
+        <p>این که با حدود هزار خط کد بتوان موتوری نوشت که HTML و CSS را رندر کند، شگفت‌انگیز
+        و در عین حال آموزنده است. این سری به‌خوبی نشان می‌دهد که چندان‌ها
+        «جادو» در مرورگر وجود ندارد — فقط چند لایهٔ کوچک و منظم است که هرکدام را می‌شود ساخت.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سری «Let's build a browser engine!» اثر مت بروبک (Matt
+        Brubeck) است و در وبلاگ شخصی او (limpet.net) منتشر شده. این صفحه فقط ترجمهٔ فارسی و
+        مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ
+        اصل مطلب به
+        <a href="https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

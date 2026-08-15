@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یافتن کلمات مهم در متن با TF-IDF</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور جست‌وجو</a>
+        <span class="sep">←</span>
+        <span>یافتن کلمات مهم با TF-IDF</span>
+      </div>
+      <h1>یافتن کلمات مهم در متن با TF-IDF</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://stevenloria.com/tf-idf/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ «Finding Important Words in Text Using TF-IDF»
+          اثر <b>استیون لوریا (Steven Loria)</b> در وبلاگ شخصی او (منتشرشده: ۲۰۱۵) است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://stevenloria.com/tf-idf/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا TF-IDF؟</h2>
+        <p>وقتی متنی دارید و می‌خواهید بفهمید «این متن دربارهٔ چیست»، شمارشِ سادهٔ کلمات کافی نیست:
+        واژه‌های پرتکرار مثل «the» و «and» در صدر قرار می‌گیرند ولی هیچ اطلاعاتی نمی‌دهند. <b>TF-IDF</b>
+        (فراوانی واژه در سند × عکس فراوانی سند) راهی است برای سنجشِ «مهم‌بودن» یک واژه در سند نسبت به
+        مجموعه‌ای از اسناد: واژه‌ای که در یک سند زیاد می‌آید اما در بقیهٔ اسناد کم‌یاب است، نشانهٔ
+        موضوعِ همان سند است. استیون لوریا در این آموزش پست کوتاه، این معیار را در ~۱۴ خط پایتون پیاده
+        می‌کند و روی چند مثال واقعی نشانش می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>۲. تعریف‌ها: tf و idf</h2>
+        <ul>
+          <li><b>TF (Term Frequency)</b>: تعداد دفعاتی که واژه در سند آمده. گاهی نرمال می‌شود اما در
+          این پیاده‌سازی ساده، همان تعدادِ خام است.</li>
+          <li><b>IDF (Inverse Document Frequency)</b>: معکوسِ «چند درصدِ کل اسناد این واژه را دارند».
+          لگاریتمِ معکوسِ نسبتِ اسنادِ دارای واژه به کل اسناد؛ واژه‌ای که در همهٔ اسناد هست → idf≈0،
+          واژه‌ای که کمیاب است → idf بزرگ.</li>
+          <li><b>TF-IDF</b>: حاصل‌ضرب این دو — عددی که هم تکرارِ واژه در سند و هم کمیابیِ آن در
+          مجموعهٔ اسناد را در خود دارد.</li>
+        </ul>
+        <pre class="code"><span class="lang-tag">python</span><code>from math import log
+from collections import Counter
+
+def tf(word, doc):
+    """فراوانی واژه در سند = تعدادِ دفعاتِ حضور تقسیم بر تعداد کل واژه‌ها"""
+    counts = Counter(doc.split())
+    return counts[word] / len(doc.split())
+
+def idf(word, docs):
+    """عکسِ فراوانی سند: لگاریتمِ (کل اسناد / اسنادِ دارای واژه) — ساده و بدون smoothing"""
+    n_docs_with = sum(1 for d in docs if word in d.split())
+    if n_docs_with == 0:
+        return 0.0
+    return log(len(docs) / n_docs_with)
+
+def tfidf(word, doc, docs):
+    """امتیاز نهایی: تکرار در سند × کمیابی در کل مجموعه"""
+    return tf(word, doc) * idf(word, docs)</code></pre>
+        <p>تابع <code>idf</code> در مقاله یک پارامتر اختیاری <code>default</code> دارد (عدد اولیهٔ
+        log که می‌توانید به دلخواه تنظیم کنید) تا وقتی واژه‌ای در هیچ سندی نیست، رفتار مشخصی داشته
+        باشد.</p>
+      </section>
+
+      <section>
+        <h2>۳. پیاده‌سازی کامل و مثال</h2>
+        <p>مقاله با <b>TextBlob 0.6.1</b> (کتابخانهٔ پردازش متن پایتون) یک مجموعهٔ دمو می‌سازد: چند
+        سند کوتاه که هرکدام موضوعی دارند (مثلاً یکی دربارهٔ بیت‌کوین، یکی دربارهٔ شیمی/کتابی‌خوانی و…)
+        و بعد امتیاز TF-IDFِ همهٔ واژه‌ها را حساب و مرتب می‌کند تا «کلمات مهمِ» هر سند مشخص شود.
+        کد کامل به‌صورت گام‌به‌گام:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>import math
+import numpy as np
+from textblob import TextBlob
+from collections import Counter
+
+# ۱) ساخت مجموعه‌ای از اسناد متنی (متن‌های آموزشی برای هر موضوع)
+doc1 = "The bitcoin blockchain is a distributed ledger that records every transaction..."
+doc2 = "Chemistry is the scientific study of the properties and behavior of matter..."
+doc3 = "Reading books helps you learn new things and improves your vocabulary..."
+docs = [doc1, doc2, doc3]
+
+# ۲) از طریق TextBlob به کلمات نرمال‌شده (stem/لمسی‌نشده) برسیم
+def get_tokens(doc):
+    blob = TextBlob(doc)
+    return [token.singularize().lower() for token in blob.words]
+
+tokenized = [get_tokens(d) for d in docs]
+
+# ۳) TF-IDF هر واژه برای هر سند
+def tf_idf(word, doc_index):
+    tokens = tokenized[doc_index]
+    tf = tokens.count(word) / float(len(tokens))
+    n_docs_with = sum(1 for t in tokenized if word in t)
+    idf = math.log(len(docs) / float(n_docs_with))
+    return tf * idf
+
+# ۴) کلمات مهمِ هر سند: امتیازدهی و مرتب‌سازی نزولی
+for i, tokens in enumerate(tokenized):
+    uniques = Counter(tokens)
+    ranked = sorted(uniques, key=lambda w: tf_idf(w, i), reverse=True)
+    print("مهم‌ترین کلمات سند", i + 1, ":", ranked[:5])</code></pre>
+        <div class="callout note">
+          <strong>منظور از کد بالا:</strong> نکتهٔ آموزشی، صرفاً محاسبهٔ ریاضی نیست؛ ترکیب است:
+          نرمال‌سازی واژه‌ها با TextBlob (مفردسازی و کوچک‌کردن)، شمارش، محاسبهٔ tf و idf، و در نهایت
+          «مرتب‌سازی واژه‌های هر سند بر اساس امتیاز TF-IDF» برای یافتن نماینده‌های موضوع. خروجیِ مثال
+          مقاله دقیقاً نشان می‌دهد که کلمات «بلاکچین»، «شیمی» و «کتاب» در سند خودشان بالاترین امتیاز را
+          می‌گیرند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. چرا این مهم است؟</h2>
+        <ul>
+          <li><b>استخراج موضوع/کلمات کلیدی</b>: سریع‌ترین راهِ فهمیدنِ «یک دسته متن دربارهٔ چیست»
+          بدون خواندن کامل.</li>
+          <li><b>زیربنای جست‌وجو</b>: TF-IDF قلبِ بسیاری از موتورهای جست‌وجوی کلاسیک است (در آموزش‌های
+          «فضای برداری» و «جست‌وجو با Redis» همین مجموعه هم دیده‌اید).</li>
+          <li><b>وزن‌دهی در متن‌کاوی</b>: قبل از الگوریتم‌های پیچیدهٔ ML، تبدیل سند به بردارِ TF-IDF
+          اغلب کافی و مؤثر است.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>در کمتر از بیست خط کد یاد گرفتید متنی را به «امتیاز اهمیتِ واژه‌ها» تبدیل کنید — ابزاری که
+        در جست‌وجو، خلاصه‌سازی و طبقه‌بندی متن کاربرد دارد. قدم بعدی پیشنهادی: ترکیب همین امتیازها با
+        «فضای برداری» و «بازخورد کاربر» برای ساختن موتور جست‌وجوی واقعی.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Finding Important Words in Text Using TF-IDF» اثر
+        استیون لوریا (Steven Loria) است و در وبلاگ stevenloria.com منتشر شده. این صفحه فقط ترجمهٔ
+        فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب
+        به
+        <a href="https://stevenloria.com/tf-idf/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

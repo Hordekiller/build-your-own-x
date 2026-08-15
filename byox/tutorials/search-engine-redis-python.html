@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت موتور جست‌وجو با Redis و redis-py</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">موتور جست‌وجو</a>
+        <span class="sep">←</span>
+        <span>جست‌وجو با Redis و redis-py</span>
+      </div>
+      <h1>ساخت موتور جست‌وجو با Redis و redis-py</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.dr-josiah.com/2010/07/building-search-engine-using-redis-and.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی مقالهٔ
+          «Building a search engine using Redis and redis-py» از وبلاگ <b>Dr. Josiah</b>
+          (نویسنده: جوزایا کارلسون — Josiah Carlson، منتشرشده: ۵ ژوئیه ۲۰۱۰) است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://www.dr-josiah.com/2010/07/building-search-engine-using-redis-and.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. چرا Redis؟ چرا از صفر؟</h2>
+        <p>بیشتر موتورهای جست‌وجو به «نمایهٔ معکوس» (inverted index) وابسته‌اند: جدولی که برای هر واژه،
+        فهرستِ اسنادِ حاوی آن واژه را نگه می‌دارد. پرس‌وجو، تلاقیِ (intersection) این فهرست‌هاست. اما ساخت
+        چنین نمایه‌ای به‌صورت درست نیازمند حجم قابل‌توجهی مهندسی است: ذخیره‌سازی، همزمانی، مقیاس‌پذیری…
+        مقالهٔ جوزایا کارلسون یک میان‌بُر هوشمندانه دارد: <b>Redis یک «سرور ساختار دادهٔ از راه دور»
+        (remote data structure server) است</b> — نه فقط یک کش. پس می‌توانیم ساختارهای دادهٔ نمایهٔ معکوس
+        (ون حتی امتیازهای TF-IDF) را مستقیماً داخل Redis تعریف کنیم و برنامهٔ پایتون‌مان را فقط
+        «ترجمهٔ پرس‌وجو به دستورهای Redis» بسازیم؛ همزمانی و ماندگاری هم با سرور حل می‌شود.</p>
+        <div class="callout tip">
+          <strong>نکتهٔ کلیدی:</strong> انتخاب ابزار درست، نیمی از طراحی است. به‌جای اینکه الگوریتم‌های
+          جست‌وجو را با پایگاه دادهٔ ارتباطی شبیه‌سازی کنیم، از ساختارهایی استفاده می‌کنیم که «توسط
+          طراحی» برای این کار ساخته شده‌اند: هش‌ها (Hashes) و مجموعه‌های مرتب (Sorted Sets) در Redis.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. طراحی نمایهٔ معکوس با هش‌ها و مجموعه‌های مرتب</h2>
+        <p>طرحِ مقاله سه بخش دارد که هرکدام به یک ساختار Redis نگاشت می‌شود:</p>
+        <ol>
+          <li><b>خودِ اسناد</b>: هر سند در یک هش Redis ذخیره می‌شود؛ فیلدهایی مثل عنوان، متن، آدرس و
+          شناسهٔ (id) سند. حالا «خواندن سند» فقط یک <code>HGETALL</code> است.</li>
+          <li><b>نمایهٔ معکوس — فراوانی واژه در سند (tf)</b>: برای هر واژه یک هش نگه می‌داریم که در آن،
+          کلید = شناسهٔ سند و مقدار = تعداد دفعاتی که واژه در آن سند آمده است. «افزایش» با یک
+          <code>HINCRBY</code> اتمی‌شده انجام می‌شود.</li>
+          <li><b>نقش آماری سند در واژه (idf) و امتیازها</b>: برای محاسبهٔ «چقدر این واژه برای این سند
+          خاص است» به سندفرکانس نیاز داریم: تعداد اسنادی که واژه در آن‌ها آمده. این عدد را با یک شمارندهٔ
+          ساده به‌روز نگه می‌داریم و «وزن» هر واژه برای هر سند به‌صورت نسبت tf در آن سند به idfِ واژه
+          (به‌صورت لگاریتمی) محاسبه می‌شود: <code>w(t,d) = tf(t,d) / idf(t)</code>.</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">python</span><code>import redis
+
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+def index_document(doc_id, text):
+    """نمایه‌کردن یک سند: ذخیرهٔ متن و به‌روزرسانی نمایهٔ معکوس"""
+    # ۱) خود سند را ذخیره کن
+    r.hset('doc:%s' % doc_id, 'text', text)
+
+    # ۲) هر واژه را شمارش کن و در نمایهٔ معکوس اضافه کن
+    for word in text.split():
+        r.hincrby('index:%s' % word, doc_id, 1)
+
+def search(query):
+    """جست‌وجوی ساده: همهٔ اسنادی که همهٔ واژه‌ها را دارند"""
+    words = query.split()
+    if not words:
+        return []
+    # اشتراکِ مجموعهٔ اسنادِ هر واژه — در Redis با SINTER
+    keys = ['index:%s' % w for w in words]
+    return r.sinter(keys)</code></pre>
+        <p>نسخهٔ ساده‌شدهٔ بالا ایدهٔ اصلی را نشان می‌دهد؛ مقاله همین پوسته را با جزئیات کامل
+        (توکن‌سازی، نرمال‌سازی، امتیازدهی بر اساس w(t,d) و مرتب‌سازی نتایج) پر می‌کند تا بازیابی واقعاً
+        «بهترتیب ربط» برگردد و نه فقط اشتراک خالی.</p>
+      </section>
+
+      <section>
+        <h2>۳. امتیازدهی TF-IDF روی Redis</h2>
+        <p>پس از نمونهٔ ساده، مقاله به سراغ رتبه‌بندی واقعی می‌رود. برای هر واژه و هر سند، امتیاز
+        tf/idf را محاسبه می‌کنیم؛ برای «سندِ پرس‌وجو» مجموع امتیازهای همهٔ واژه‌هایش را می‌گیریم. جا
+        می‌دهیم این‌جا هم Redis یک قدم جلوتر بیاید: امتیازهای سند-به‌سند را داخل یک <b>مجموعهٔ مرتب
+        (Sorted Set)</b> نگه می‌داریم، بعد با دستورهای <code>ZUNIONSTORE</code>/<code>ZINTERSTORE</code>
+        امتیازهای چند واژه را با هم ادغام می‌کنیم و با <code>ZREVRANGE</code> نتایج را «بهترتیب ربط»
+        برمی‌گردانیم.</p>
+        <pre class="code"><span class="lang-tag">python</span><code># محاسبهٔ idf ساده: تعداد اسنادِ دارای واژه
+doc_count = int(r.get('total_docs'))
+for word in words_of_query:
+    df = r.scard('docswith:%s' % word)   # تعداد اسنادِ دارای واژه
+    idf = math.log(doc_count / (1.0 + df))
+    # برای هر سندِ آن واژه، وزن w = tf * idf را در zset امتیازها بریز
+    for doc_id, tf in r.hgetall('index:%s' % word).items():
+        r.zadd('score:%s' % word, float(tf) * idf, doc_id)
+
+# جمع امتیازها برای همهٔ واژه‌های پرس‌وجو
+r.zunionstore('result', ['score:%s' % w for w in words_of_query])
+# ده نتیجهٔ برتر
+top = r.zrevrange('result', 0, 9, withscores=True)</code></pre>
+        <div class="callout note">
+          <strong>یادآوری ریاضی:</strong> TF (فراوانی واژه در سند) می‌گوید واژه چقدر در این سند پررنگ
+          است؛ IDF (عکسِ فراوانی سند) می‌گوید واژه چقدر «اختصاصی» است. حاصل‌ضربشان امتیازی است که
+          واژه‌های متداولِ بی‌ارزش (مثل «و»، «در») را بی‌اثر و واژه‌های نشانه‌دار را مؤثر می‌کند.
+        </div>
+      </section>
+
+      <section>
+        <h2>۴. آنچه از این آموزش یاد می‌گیرید</h2>
+        <ul>
+          <li><b>نمایهٔ معکوس</b> یعنی «از واژه به اسناد»، نه «از سند به واژه» — کلید موفقیت هر موتور
+          جست‌وجو، و این‌جا با سه نوع ساختار Redis پیاده می‌شود.</li>
+          <li><b>انتخاب ساختار دادهٔ درست</b>: هش برای دادهٔ کلید-مقدارِ سند، zset برای امتیازهای قابل
+          مرتب‌سازی، set برای اشتراک سریع — Redis دقیقاً دیکشنری‌ای است که «از راه دور» حرف می‌زند.</li>
+          <li><b>امتیازدهی</b>: جست‌وجوی خوب فقط «پیداکردن» نیست؛ «رتبه‌بندی» است. TF-IDF ساده
+          و قابل‌فهم، و به‌صورت توزیع‌شده با دستورهای Redis بدون حلقهٔ پایتونی پیاده می‌شود.</li>
+          <li><b>مقیاس‌پذیری عملی</b>: با Redis، نمایه و امتیازها در حافظه اند؛ میلی‌ها سند و میلی‌ها
+          پرس‌وجو بدون بازطراحی فانتزی پاسخ می‌دهند.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۵. جمع‌بندی</h2>
+        <p>این مقاله نشان می‌دهد ساخت یک موتور جست‌وجوی «واقعاً کاربردی» بدون نوشتن حتی یک میلی‌ثانیه
+        کدِ مدیریت حافظه، ممکن است — فقط کافی است ساختار دادهٔ مناسب را در جای مناسب استفاده کنید.
+        مسیر پیشنهادی آموزشی: اول مفاهیم جست‌وجو و TF-IDF را (مثلاً با آموزش «یافتن کلمات مهم در متن با
+        TF-IDF» همین مجموعه) بفهمید، بعد این پیاده‌سازیِ Redis را بخوانید تا ببینید چطور مفاهیم تبدیل به
+        معماری سیستم می‌شوند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building a search engine using Redis and redis-py» اثر
+        جوزایا کارلسون (Josiah Carlson) است و در وبلاگ Dr. Josiah منتشر شده. این صفحه فقط ترجمهٔ فارسی
+        آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://www.dr-josiah.com/2010/07/building-search-engine-using-redis-and.html" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

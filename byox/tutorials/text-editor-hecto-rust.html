@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Hecto: ویرایشگر متن خودت را در Rust بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">ویرایشگر متن</a>
+        <span class="sep">←</span>
+        <span>Hecto: ویرایشگر متن در Rust</span>
+      </div>
+      <h1>Hecto: ویرایشگر متن خودت را در Rust بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.flenker.blog/hecto/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعه‌پست‌های «hecto: Build Your Own Text
+          Editor in Rust» از وبلاگ <b>فلیپ فلنکر (Philipp Flenker)</b> است — بازپیاده‌سازیِ
+          ویرایشگرِ kilo اثر antirez در Rust و بازآفرینیِ آموزشِ Paige Ruten (همان مجموعهٔ snaptoken).
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.flenker.blog/hecto/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه: ساختن از صفر، یاد گرفتن Rust</h2>
+        <p>این مجموعه‌پست‌ها یک ویرایشگر متن را در Rust می‌سازد. نتیجهٔ نهایی حدود <b>۳۰۰۰ خط Rust</b>
+        در چند فایل و با چند وابستگیِ کم است و همهٔ امکانات پایهٔ یک ویرایشگر مینیمال را دارد —
+        به‌همراه <b>های‌لایت نحوی (syntax highlighting)</b> و <b>جست‌وجو</b>. تفاوت نویسنده با دیگران:
+        او از «گوشه‌ای دیگر از دنیای مهندسی» (نه توسعه‌دهندهٔ سابق C/POSIX) آمده و هدفش درک عمیق‌تر
+        Rust است — پس مسیر، «یادگیری Rust + ساخت ویرایشگر» هم‌زمان است، در گام‌های کوچک و قابل مشاهده:
+        در بیشتر قدم‌ها، چند خط کد اضافه/تغییر می‌کنید و بلافاصله نتیجه را با کامپایل و اجرا می‌بینید؛
+        بعدتر هم «تمرین‌هایی» می‌گیرید که اول خودتان حل کنید و بعد با راه‌حلِ نویسنده مقایسه کنید.</p>
+        <div class="callout tip">
+          <strong>منبع الهام:</strong> hecto بازپیاده‌سازی <b>kilo</b> اثر antirez است — همان ویرایشگرِ
+          ۱۰۰۰ خطیِ C که در آموزش snaptoken بازسازی می‌شود (و در همین مجموعه، نسخهٔ C آن را هم
+          داریم). اگر قبلاً نسخهٔ C را خوانده باشید، این سری دیدِ ارزشمندی از «ترجمهٔ همین معماری به
+          Rust» به شما می‌دهد.
+        </div>
+      </section>
+
+      <section>
+        <h2>۲. فهرست فصل‌ها</h2>
+        <ol>
+          <li><b>فصل ۱ — Setup</b>: راه‌اندازی پروژه، ابزارها و اولین اجرای «برنامهٔ خالی».</li>
+          <li><b>فصل ۲ — Entering Raw Mode</b>: حالت خام ترمینال با <code>crossterm</code> — خواندن
+          کلیدها بلافاصله، بدون Enter و بدون اکو.</li>
+          <li><b>فصل ۳ — Raw Input and Output</b>: خواندن و نمایش خام؛ مدیریت کلیدها و اندازهٔ
+          ترمینال.</li>
+          <li><b>فصل ۴ — A Text Viewer</b>: «نمایشگر متن» — باز کردن فایل و کشیدن خطوط روی صفحه با
+          اسکرول.</li>
+          <li><b>فصل ۵ — A Text Editor</b>: ویرایشگر واقعی — درج/حذف کاراکتر، مکان‌نما، ذخیره و
+          خروج.</li>
+          <li><b>فصل ۶ — Search</b>: جست‌وجو.</li>
+          <li><b>فصل ۷ — Syntax Highlighting</b>: های‌لایت نحوی.</li>
+        </ol>
+        <p>به‌همراه <b>ضمیمه‌ها</b> (راهنمای حل‌شدن در آموزش: چه کنید اگر گیر کردید، از کجا کمک
+        بگیرید) و <b>گزارش تغییرات</b> (Change Log).</p>
+      </section>
+
+      <section>
+        <h2>۳. چرا این سری خاص است؟</h2>
+        <ul>
+          <li><b>آموزشِ کار با ترمینال در Rust</b>: خواندن حالت Raw، خروجی فریم‌ها و escape
+          sequences — بدون کتابخانهٔ سنگین، فقط <code>crossterm</code>.</li>
+          <li><b>ایدهٔ رندر</b>: ساخت «فریم» در بافر و فلش یک‌جا به ترمینال؛ مفاهیمی که در هر
+          ویرایشگر ترمینالی مشترک‌اند.</li>
+          <li><b>تمرین محور</b>: از جایی به بعد، نویسنده «تکلیف» می‌دهد — خودتان مسئله را حل کنید و
+          بعد جواب را ببینید. روشی عالی برای تثبیت یادگیری.</li>
+          <li><b>عمق متعادل</b>: هر قدم با توضیح همراه است؛ نه فقط «کد را کپی کن».</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۴. جمع‌بندی</h2>
+        <p>hecto برای دو گروه ساخته شده: مهندسانی که از زاویه‌ای دیگر آمده‌اند و می‌خواهند Rust را
+        عمیق یاد بگیرند، و کسانی که Rust می‌دانند ولی می‌خواهند «داخل و خارج و ویرایشگرهای متنی» را
+        ببینند. نتیجهٔ نهایی، ویرایشگری شخصی با های‌لایت و جست‌وجوست — و فهمی کامل از آنچه هر روز در
+        vim یا nano استفاده می‌کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعه‌پست‌های «hecto» اثر فلیپ فلنکر (Philipp Flenker) است و در
+        وبلاگ flenker.blog منتشر شده (kilo اثر antirez، مجوز BSD). این صفحه فقط ترجمهٔ فارسی و مرور
+        آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.flenker.blog/hecto/" target="_blank" rel="noopener">سایت اصلی</a>
+        مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>

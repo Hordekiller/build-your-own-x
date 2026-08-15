@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | از چراغ چشمک‌زن تا پردازنده RISC-V — FemtoRV</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">پردازنده</a>
+        <span class="sep">←</span>
+        <span>از Blinky تا RISC-V</span>
+      </div>
+      <h1>از چراغ چشمک‌زن تا پردازنده RISC-V (From Blinker to RISC-V) — FemtoRV</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Verilog</span>
+        <span class="meta-badge">📚 برد: IceStick / IceBreaker / ULX3S</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «From Blinker to RISC-V» از
+          <b>برونو لوی (Bruno Levy)</b> در مخزن FemtoRV است؛ یک سفر تدریجی از یک طراحی سادهٔ
+          «چشمک‌زن» تا یک هستهٔ کامل RISC-V که در پایان فقط حدود <b>۲۰۰ خط Verilog</b> دارد.
+        </div>
+        <a class="btn solid" href="https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. ایدهٔ کلی: چرا این سفر باورکردنی نیست؟</h2>
+        <p>پردازنده‌ها در ذهن اکثر ما «جعبه‌های سیاه» هستند، اما این آموزش نشان می‌دهد که یک
+        پردازندهٔ کاربردی تا چه اندازه می‌تواند ساده باشد. شما از یک بلینکی (چشمک‌زن LED) شروع
+        می‌کنید و قدم‌به‌قدم، همان مدار را به یک <b>ریزکنترلر RV32I کامل</b> تبدیل می‌کنید که قادر است
+        کد C کامپایل‌شده را اجرا کند. بخش شگفت‌انگیز آموزش این جمله است: «پردازنده‌ای که در قدم ۱۶
+        می‌سازیم بیشتر از ۲۰۰ خط Verilog نیست — من وقتی فهمیدم ساختن یک پردازنده این‌قدر ساده است،
+        حیرت‌زده شدم.»</p>
+        <p>آموزش با این بردها کار می‌کند: <b>IceStick (Ice40HX1K)</b> — کوچک‌ترین و ارزان‌ترین —
+        و همچنین IceBreaker، ULX3S، ARTY و Tang Nano 9K. با همین کوچک‌ترین FPGA می‌توانید کل آموزش
+        را جلو ببرید و در پایان یک ریزکنترلر RV32I داشته باشید.</p>
+        <ul>
+          <li>هر قدم یک پوشه با فایل <code>stepN.v</code> دارد؛ می‌توانید با شبیه‌سازی (icarus
+          verilog) یا روی برد واقعی پیش بروید.</li>
+          <li>پیش‌نیاز خاصی جز آشنایی مقدماتی با سخت‌افزار و کمی صبر ندارید؛ Verilog را هم در حین
+          کار یاد می‌گیرید.</li>
+          <li>کل آموزش حول یک ماژول <code>SOC</code> می‌چرخد — «نام بزرگی برای یک بلینکی، اما
+          همین است که در نهایت به System-on-Chip تبدیل می‌شود».</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>۲. قدم ۱ و ۲: اولین بلینکی و بلینکی آهسته</h2>
+        <p>اولین کد، یک ماژول Verilog ساده است که شمرده شمرده LEDهای برد را روشن می‌کند. ورودی/خروجی‌های
+        ثابت کل آموزش همین‌ها هستند: ساعت (<code>CLK</code>)، دکمهٔ ریست (<code>RESET</code>)، ۵ LED
+        (<code>LEDS</code>) و دو سیم <code>RXD</code>/<code>TXD</code> که به چیپ FTDI وصل‌اند — همان
+        چیزی که بعداً تبدیل به خروجی سریال (UART) می‌شود:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>module SOC (
+    input  CLK,
+    input  RESET,
+    output [4:0] LEDS,
+    input  RXD,
+    output TXD
+);
+   reg [4:0] count = 0;
+   always @(posedge CLK) begin
+      count &lt;= count + 1;
+   end
+   assign LEDS = count;
+   assign TXD  = 1'b0; // فعلاً استفاده نمی‌شود
+endmodule</code></pre>
+        <p>در قدم ۲ یک ماژول <code>Clockworks</code> معرفی می‌شود: یک «گیربکس» که فرکانس ساعت را
+        تقسیم می‌کند (<code>.SLOW(21)</code> یعنی تقسیم بر ۲۲۱) تا تغییر LEDها با چشم قابل‌دیدن شود،
+        و همچنین مدار ریست — چون IC40 در ابتدا مشکل راه‌اندازی دارد و باید مدار ریست آن را
+        دور بزند. نکتهٔ سخت‌افزاری جالبی است که در شبیه‌سازی هرگز آن را نمی‌بینید، اما روی سخت‌افزار
+        واقعی ضروری است.</p>
+      </section>
+
+      <section>
+        <h2>۳. قدم ۳ و ۴: حافظه، شمارندهٔ برنامه و رمزگشای دستور</h2>
+        <p>قدم ۳ مفهوم کلیدی را معرفی می‌کند: <b>شمارندهٔ برنامه (PC)</b>. در این قدم به‌جای شمارندهٔ
+        ساده، الگوهای LED از یک حافظهٔ از‌پیش‌پر (<code>MEM[PC]</code>) خوانده می‌شوند — همان مکانیزم
+        «fetch» که قلب هر پردازنده است:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   reg [4:0] PC  = 0;
+   reg [4:0] leds = 0;
+   always @(posedge clk) begin
+      leds &lt;= MEM[PC];
+      PC   &lt;= (!resetn || PC==20) ? 0 : (PC+1);
+   end</code></pre>
+        <p>قدم ۴ اولین نگاه واقعی به <b>دستورهای RISC-V</b> است: حافظه را با کلمه‌های ۳۲-بیتیِ
+        دستور پر می‌کنیم و رمزگشا یاد می‌گیرد هر دستور را از روی <code>instr[6:0]</code> (opcode)
+        بشناسد. جدول رمزگشای کلاسیک RISC-V (همان جدول صفحهٔ ۱۳۰ مرجع رسمی) اینجا معرفی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   wire isALUreg  = (instr[6:0] == 7'b0110011); // rd &lt;- rs1 OP rs2
+   wire isALUimm  = (instr[6:0] == 7'b0010011); // rd &lt;- rs1 OP Iimm
+   wire isBranch  = (instr[6:0] == 7'b1100011); // if(rs1 OP rs2) PC&lt;-PC+Bimm
+   wire isJALR    = (instr[6:0] == 7'b1100111); // rd &lt;- PC+4; PC&lt;-rs1+Iimm
+   wire isJAL     = (instr[6:0] == 7'b1101111); // rd &lt;- PC+4; PC&lt;-PC+Jimm
+   wire isAUIPC   = (instr[6:0] == 7'b0010111); // rd &lt;- PC + Uimm
+   wire isLUI     = (instr[6:0] == 7'b0110111); // rd &lt;- Uimm
+   wire isLoad    = (instr[6:0] == 7'b0000011); // rd &lt;- mem[rs1+Iimm]
+   wire isStore   = (instr[6:0] == 7'b0100011); // mem[rs1+Simm] &lt;- rs2
+   wire isSYSTEM  = (instr[6:0] == 7'b1110011); // ویژه</code></pre>
+        <p>همچنین <b>۵ قالب Immediate</b> (U/I/S/B/J) با یک خط Verilog معرفی می‌شوند — با گسترش علامت
+        (sign extension) — و پنج «کاراکتر» این قالب‌ها بعداً کلید محاسبهٔ آدرس‌های پرش می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>۴. قدم ۵ تا ۷: بلوک ثبات، ماشین حالت و ALU</h2>
+        <p>قدم ۵ بلوک ثبات — آرایه‌ای از ۳۲ ثبات ۳۲-بیتی (<code>RegisterBank [0:31]</code>) — و
+        <b>ماشین حالت</b> پردازنده را اضافه می‌کند؛ همین ماشین حالتی که در کل مسیر می‌ماند:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   // The state machine — بن‌مایهٔ ماشین حالت همهٔ پردازنده‌ها
+   localparam FETCH_INSTR = 0;   // درخواست خواندن دستور
+   localparam WAIT_INSTR  = 1;   // منتظر رسیدن دستور از حافظه
+   localparam FETCH_REGS  = 2;   // خواندن rs1 و rs2 از بلوک ثبات
+   localparam EXECUTE     = 3;   // اجرا/محاسبه
+   localparam LOAD        = 4;   // درخواست خواندن داده
+   localparam WAIT_DATA   = 5;   // منتظر رسیدن داده
+   localparam STORE       = 6;   // نوشتن در حافظه
+   reg [2:0] state = FETCH_INSTR;</code></pre>
+        <p>قدم ۶ <b>واحد محاسبهٔ منطقی (ALU)</b> است: جمع/تفریق، مقایسه‌های LT/LTU، XOR/OR/AND و
+        شیفت (SLL/SRL/SRA) — حتی برای شیفت‌ها یک «بشکه‌شکن» دو-مرحله‌ای برای صرفه‌جویی در سلول‌ها. نکتهٔ
+        ظریف: دستور ADD و SUB هر دو opcode یک‌سانی دارند و تفاوتشان در بیت <code>funct7[5]</code> است؛
+        آموزش این الگوهای ظریف رمزگشایی را دقیق توضیح می‌دهد.</p>
+        <p>قدم ۷ یک هدیهٔ سخت‌افزاری است: <b>اسمبلر Verilog</b> (<code>riscv_assembly.v</code>).
+        به‌جای اینکه بردار ۳۲-بیتی دستورها را با دست بنویسید، برنامه‌ها را با اسمبلی استاندارد
+        (مثل <code>LI</code>، <code>SW</code>، <code>ADD</code>…) می‌نویسید و هنگام سنتز/شبیه‌سازی، همین
+        اسمبلر ماکروها را به کد ماشین تبدیل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   // شمارش ۰ تا ۱۵ روی LEDها و فرستادن abcdef...xyz روی UART
+   LI(s0,16);          // حد بالای حلقه
+   LI(a0,0);
+   Label(L1_);
+   SW(a0,gp,IO_BIT_TO_OFFSET(IO_LEDS_bit));  // نوشتن روی LEDها
+   CALL(LabelRef(wait_));
+   ADDI(a0,a0,1);
+   BNE(a0,s0,LabelRef(L1_));</code></pre>
+      </section>
+
+      <section>
+        <h2>۵. قدم ۸ تا ۱۱: پرش‌ها، شاخه‌ها و حافظهٔ مستقل</h2>
+        <p>قدم ۸ <b>پرش‌های بدون قید (JAL/JALR)</b> را اضافه می‌کند — و این‌جا یک تصمیم سخت‌افزاری
+        واقعی گرفته می‌شود: آدرس پرش با یک adder مشترک محاسبه می‌شود تا سلول‌های FPGA هدر نرود
+        (<code>PCplusImm</code> که برای Branch و JAL و AUIPC به‌طور مشترک استفاده می‌شود). قدم ۹
+        <b>شاخه‌های شرطی</b> است: تابع <code>takeBranch</code> که برای هر <code>funct3</code> مقایسهٔ
+        درست را انتخاب می‌کند (BEQ/BNE/BLT/BGE/BLTU/BGEU). قدم ۱۰ دو دستور <code>LUI</code> و
+        <code>AUIPC</code> را با تغییر تنها <code>writeBackEn</code> و <code>writeBackData</code>
+        اضافه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   assign writeBackData = (isJAL || isJALR) ? PCplus4 :
+                          isLUI  ? Uimm :
+                          isAUIPC? PCplusImm :
+                          isLoad ? LOAD_data :
+                                   aluOut;
+
+   wire [31:0] nextPC = ((isBranch &amp;&amp; takeBranch) || isJAL) ? PCplusImm :
+                        isJALR ? {aluPlus[31:1],1'b0} :
+                                 PCplus4;</code></pre>
+        <p>قدم ۱۱ پردازنده را تمیز تقسیم می‌کند: <b>حافظه به یک ماژول جدا</b> (<code>Memory</code>)
+        منتقل می‌شود و پردازنده فقط از طریق سیگنال‌های <code>mem_addr</code>/<code>mem_rdata</code>/
+        <code>mem_rstrb</code> با آن حرف می‌زند — دقیقاً همان شکلی که یک گذرگاه حافظه در SoCهای
+        واقعی طراحی می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>۶. قدم‌های پایانی: Load/Store، IO نگاشت‌شده و UART</h2>
+        <p>در قدم‌های بعد، دستورهای <b>Store</b> و <b>Load</b> با مدیریت دقیق ترازبندی
+        (byte/halfword/word) پیاده می‌شوند؛ مدار Load باید بسته به <code>funct3</code> و بیت‌های آدرس،
+        بایت/نیم‌کلمهٔ درست را از دادهٔ ۳۲-بیتی برگزیند و بسته به علامت‌دار بودن، گسترش علامت بدهد.
+        مرحلهٔ پایانی — <b>Memory-mapped IO</b> — قشنگ‌ترین بخش است: پردازنده به‌جای سیم‌های اضافه،
+        LEDها و UART را مثل حافظه می‌بیند؛ کافی است مقدار را در آدرس ثابتی بنویسد (صفحهٔ IO در آدرس
+        <code>0x400000</code>) و یک دیکودر آدرس، نوشتن را به LED یا فرستندهٔ سریال می‌رساند:</p>
+        <pre class="code"><span class="lang-tag">verilog</span><code>   localparam IO_LEDS_bit    = 0; // W  پنج LED
+   localparam IO_UART_DAT_bit= 1; // W  داده برای ارسال (۸ بیت)
+   localparam IO_UART_CNTL_bit=2; // R  وضعیت؛ بیتِ ۹: مشغول ارسال
+
+   always @(posedge clk) begin
+      if(isIO &amp; mem_wstrb &amp; mem_wordaddr[IO_LEDS_bit]) begin
+         LEDS &lt;= mem_wdata;          // نوشتن روی LEDها مثل یک ثبات حافظه
+      end
+   end
+
+   corescore_emitter_uart #(.clk_freq_hz(`CPU_FREQ*1000000)) UART(
+      .i_clk(clk), .i_rst(!resetn),
+      .i_data(mem_wdata[7:0]), .i_valid(uart_valid), .o_ready(uart_ready),
+      .o_uart_tx(TXD));</code></pre>
+        <p><b>و نتیجه؟</b> یک ریزکنترلر RV32I که کد کمپایل‌شده با ابزار GNU RISC-V را اجرا می‌کند —
+        در C یا اسمبلی. کل SoC (پردازنده + حافظه ۶ کیلوبایتی + UART + LED) روی IceStick با کمتر از
+        ~۱۱۸۰ سلول LUT جا می‌شود و با فرکانس ۸۰ مگاهرتز اجرا می‌شود. نسخهٔ دوم آموزش (PIPELINE.md)
+        همین پردازنده را به یک نسخهٔ Pipeline پنج‌مرحله‌ای تبدیل می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۷. چه چیزهایی یاد می‌گیرید</h2>
+        <ul>
+          <li><b>آناتومی یک CPU</b>: fetch/decode/execute، بلوک ثبات، ALU، پرش‌ها و شاخه‌ها — بدون
+          هیچ جعبهٔ سیاهی.</li>
+          <li><b>اصول FPGA</b>: ماژول‌های Verilog، گیربکس ساعت، مدار ریست، شبیه‌سازی با Icarus
+          Verilog.</li>
+          <li><b>هم‌صحبتی با سخت‌افزار</b>: Memory-mapped IO و طراحی SoC با UART.</li>
+          <li><b>ابزارهای واقعی</b>: اسمبلر داخل Verilog، کامپایل C با تارگت RV32I، تبدیل ELF به
+          firmware.hex و اجرا از SPI Flash.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>نکته:</strong> کل آموزش منبع‌باز است و فایل‌های <code>stepN.v</code> هر قدم همراه
+          کد کامل در دسترس‌اند. اگر برد خیلی ارزانی مثل IceStick (حدود ۳۰ دلار) دارید، می‌توانید
+          قدم‌به‌قدم بدون هیچ ابزار مالکیتی (ابزار متن‌باز IceStorm: Yosys + nextpnr + iceprog)
+          جلو بروید — همه‌چیز از جنس «خودت بساز» است.
+        </div>
+      </section>
+
+      <section>
+        <h2>۸. جمع‌بندی</h2>
+        <p>«از چراغ چشمک‌زن تا RISC-V» ثابت می‌کند فاصلهٔ یک مدار ۵ خطی تا یک پردازندهٔ واقعی،
+        فقط ۱۵ قدمِ کوچک است. در پایان، افسانهٔ CPU برای همیشه برایتان شکسته می‌شود: «من حیرت‌زده
+        شدم که ساختن یک پردازنده این‌قدر ساده است.»</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «From Blinker to RISC-V» و پروژهٔ FemtoRV اثر برونو لوی
+        (Bruno Levy) است و در مخزن متن‌باز learn-fpga/FemtoRV (لایسنس MIT) منتشر شده. تمام حقوق
+        محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است.
+        <a href="https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md" target="_blank" rel="noopener">سایت اصلی</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+
+</body>
+</html>
