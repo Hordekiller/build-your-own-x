@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | mal — یک Lisp بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزشها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامهنویسی</a>
+        <span class="sep">←</span>
+        <span>mal</span>
+      </div>
+      <h1>mal — یک Lisp بساز (Make a Lisp)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: چندزبانه (۷۸+ زبان)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/kanaka/mal#mal---make-a-lisp" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «mal — Make a Lisp» از جوئل مارتین (kanaka) است؛ پروژه‌ای که ساختن یک مفسر Lisp کامل را در ۹ گام و در هر زبان برنامه‌نویسی ممکن می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/kanaka/mal#mal---make-a-lisp" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا mal استاندارد طلایی «ساخت زبان» است؟</h2>
+        <p>بیشتر آموزش‌های ساخت زبان با یک پیاده‌سازی خاص گره خورده‌اند، اما پروژهٔ <b>mal</b> راهی کاملاً متفاوت را پیش گرفته است: به جای یک زبان، مسیر ساخت یک مفسر Lisp (با لهجهٔ Clojure) را در ۹ گام تعریف می‌کند و شما باید هر گام را در <b>هر زبان برنامه‌نویسی که می‌خواهید</b> پیاده کنید — از پایتون و جاوااسکریپت گرفته تا اسمبلی و Haskell.</p>
+        <p>نکتهٔ منحصربه‌فرد mal وجود یک مجموعه‌تست مشترک است: برای هر گام، فایل‌های تست و برنامه‌های نمونهٔ یکسانی وجود دارد و اگر پیاده‌سازی شما از آزمایش‌ها عبور کند، یعنی گام را درست انجام داده‌اید. به همین دلیل گام‌نهم (self-host) یعنی توانایی مفسر در اجرای خودش — چیزی که عملاً تمام زیرساخت زبان را محک می‌زند.</p>
+      </section>
+
+      <section>
+        <h2>نقشهٔ ۹ گامه</h2>
+        <p>هر گام، یک قابلیت جدید به REPL اضافه می‌کند و در عین حال معماری قبلی را ارتقا می‌دهد:</p>
+        <p><b>گام ۰ تا ۲:</b> REPL بدون ارزیابی → ارزیابی اعداد و عملیات → نمایش مشخص (print) انواع داده با بازنمایی‌های استاندارد. <b>گام ۳ تا ۵:</b> محیط (Env) با def! و let*، سپس توابع و فراخوانی تابع؛ در اینجا زبان «واقعی» می‌شود. <b>گام ۶ تا ۸:</b> ماکروهای quote و quasi-quote، atomic types، و اصلاح Builder برای varargs و خواندن/نوشتن رشته. <b>گام ۹:</b> پیاده‌سازی کلاس‌ها و روش TP (try/catch) به‌همراه ساختارهای دادهٔ عمل‌گرها — و در نهایت self-hosting.</p>
+        <p>نکتهٔ آموزشی مهم: mal از ابتدا روی <b>همهٔ انواع داده</b> (عدد، رشته، کلیدواژه، list/vector/map و… ) سرمایه‌گذاری می‌کند، نه فقط عدد و لیست؛ همین باعث می‌شود ساختار دادهٔ مرکزی (MalVal) از روز اول کامل طراحی شود.</p>
+        <div class="callout note">
+          <strong>نکته:</strong> اگر تجربهٔ اولیهٔ ساخت مفسر را ندارید، پیشنهاد می‌شود ابتدا زبان ساده‌تر (مثل Python یا JavaScript) را انتخاب کنید؛ بعداً پیاده‌سازی را به زبان سیستمی (Rust، C، Go) منتقل کنید — فرمان‌ها و تست‌ها در هر زبان یکسان است.
+        </div>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: هستهٔ گام ۰ و ۱ در پایتون</h2>
+        <p>اولین گام‌ها ساده‌ترین هستند: یک حلقهٔ خواندن–ارزیابی–چاپ که ورودی را «درختی از گره‌ها» می‌خواند:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># گام 0: خواندن و چاپ بدون ارزیابی
+while True:
+    line = input("user&gt; ")
+    if not line:
+        break
+    # گام 1: شکل با parse (درخت list)
+    ast = read_str(line)           # پارسر به‌همراه لیست ۱۸ تابعی
+    result = eval(ast, repl_env)   # ارزیابی در محیط اولیه
+    print(pr_str(result))          # چاپ بازنمایی
+
+# قلب مفسر: eval
+def EVAL(ast, env):
+    # symbol نیست؟ پس دادهٔ خام است
+    if not isinstance(ast, types.Symbol):
+        return eval_ast(ast, env)
+    # در غیر این صورت فراخوانی تابع یا عملگر
+    ...
+    return res</code></pre>
+        <p>الگوی مهم این است که <code>eval</code> و <code>env</code> در همهٔ گام‌ها حضور دارند؛ فقط عمق رفتارشان بیشتر می‌شود. در گام ۳، <code>env</code> یک کلاس با متدهای <code>set</code> و <code>get</code> می‌شود و در گام ۹ به یک زنجیرهٔ قابلٔ extension با varargs تبدیل می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>بزرگ‌ترین درس‌ها از گام‌های میانی</h2>
+        <p>در گام ۴ (let* و توابع)، باید مفهوم <b>closure</b> را پیاده کنید: تابع باید محیط تعریف‌شده خودش را با خود حمل کند. در گام ۶ (atomic types)، توابع ازپیش‌تعریف‌شده و <code>try/catch</code> می‌آید. در گام ۷ (quote)، ارزیابی را تعلیق می‌کنید — <code>quote</code> چیزی را که دریافت می‌کند بدون ارزیابی برمی‌گرداند و <code>quasiquote</code> به‌صورت شرطی ارزیابی می‌کند.</p>
+        <p>گام ۸ کار با <b>متغیرهای بومی و آرگومان‌های متغیر</b> است؛ و گام ۹ موارد کلاسیک Lisp — <code>map</code>، <code>apply</code>، <code>reduce</code> و… — را اضافه می‌کند. پس از آن می‌توانید مفسرتان را به‌صورت «زبان مال» (mal) اجرا کنید: یک ورژن از خود مفسر که با خودش نوشته شده است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>mal را به‌عنوان یک «مدار آموزشی» در نظر بگیرید: با هر گام، مفسر شما به زبان‌های حرفه‌ای نزدیک‌تر می‌شود و در پایان توانایی اجرای خودش را دارد. این پروژه رایگان، کامل و با ۷۸+ پیاده‌سازی مرجع (شامل فارسی‌های ساده و زبان‌های عجیب) بهترین نقطهٔ شروع برای «ساخت زبان برنامه‌نویسی» است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جوئل مارتین (kanaka). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/kanaka/mal#mal---make-a-lisp" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

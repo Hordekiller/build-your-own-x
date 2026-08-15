@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک زباله‌روب ساده در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>زباله‌روب ساده</span>
+      </div>
+      <h1>نوشتن یک زباله‌روب (Garbage Collector) ساده در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://maplant.com/gc.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «Writing a simple garbage collector in C» از سایت maplant.com است.
+        </div>
+        <a class="btn solid" href="http://maplant.com/gc.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>هدف آموزش</h2>
+        <p>وقتی مفسر زبان خودتان را می‌نویسید، به‌جای اتکا به <code>malloc</code>/<code>free</code> خام، می‌توانید یک جمع‌کنندهٔ زبالهٔ مخصوص خودتان بسازید. این آموزش با تکنیک <b>mark-and-sweep</b> نشان می‌دهد که چطور یک GC کوچک و کارآمد در C پیاده شود — دقیقاً همان کاری که مفسرهای واقعی می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>طراحی: بلوک‌های مدیریت‌شده</h2>
+        <p>ایدهٔ اصلی: تمام اشیای تخصیص‌داده‌شده را در یک لیست پیوندی از «بلوک‌ها» نگه می‌داریم. هر بلوک (که با <code>MAP_ENTRY</code> متادیتا دارد) شامل: اندازه، آدرس حافظهٔ واقعی، و فلگ‌هایی برای علامت‌گذاری. تخصیص از طریق <code>map_alloc</code> انجام می‌شود که بلوک را ساخته و به لیست اضافه می‌کند.</p>
+        <p>برای اینکه GC بداند چه چیزهایی «ریشه» هستند، آموزش از یک پشتهٔ global استفاده می‌کند: هر وقت متغیری را «زنده» می‌خواهید، آن را با <code>map_stack_push</code> روی این پشته می‌گذارید؛ GC از آن‌جا شروع به علامت‌گذاری می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: ساختار بلوک و حلقهٔ sweep</h2>
+        <pre class="code"><span class="lang-tag">C</span><code>typedef struct map_entry {
+  size_t      size;     // اندازهٔ بلوک
+  char*       memory;   // حافظهٔ واقعی
+  struct map_entry* next;
+  uint8_t     marked;   // فلگ علامت‌گذاری
+} map_entry_t;
+
+// پاکسازی: تمام بلوک‌های علامت‌نشده را آزاد کن
+void gc_sweep(void) {
+  map_entry_t** entry = &amp;map.entries;   // اشاره‌گر به سر لیست
+  while (*entry) {
+    map_entry_t* cur = *entry;
+    if (!cur-&gt;marked) {                 // زباله پیدا شد!
+      *entry = cur-&gt;next;
+      free(cur-&gt;memory);
+      free(cur);
+    } else {
+      cur-&gt;marked = 0;                 // برای چرخهٔ بعدی
+      entry = &amp;cur-&gt;next;
+    }
+  }
+}</code></pre>
+        <p>مهم‌ترین نکتهٔ فنی این مقاله، استفاده از <b>اشاره‌گر به اشاره‌گر</b> (<code>map_entry_t**</code>) است تا بدون نیاز به متغیر قبلی، حذف از لیست پیوندی به‌سادگی انجام شود.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی</h2>
+        <p>۱) ساختن <code>map_alloc</code> با مترادم (alignment) صحیح برای انواع C؛ ۲) پشتهٔ ریشه‌ها و <code>map_stack_push</code>؛ ۳) تابع <code>gc_mark</code> که به‌صورت بازگشتی روی اشیای مرجع (مثلاً آرایه‌ها) حرکت می‌کند؛ ۴) <code>gc_sweep</code> و پاکسازی؛ ۵) تست با برنامه‌ای که حلقه‌ای از تخصیص‌ها انجام می‌دهد.</p>
+        <p>نویسنده همچنین به محدودیت‌ها اشاره می‌کند: این GC «غیرفعال» است (فقط وقتی صدا زده شود کار می‌کند) و برای کار واقعی (مثل مفسر) باید استراتژی‌های دیگر مثل metaprogramming یا conservative scanning اضافه شوند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>حدودِ ۱۵۰ خط C که درک کامل‌تری از مدیریت حافظهٔ زبان‌ها می‌دهد. اگر قصد دارید مفسر یا موتور بازی بسازید، این آموزش نقطهٔ شروع عالی‌ای برای سیستم GC شخصی شماست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> maplant.com. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://maplant.com/gc.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

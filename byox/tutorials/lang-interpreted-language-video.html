@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک زبان مفسری (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>زبان مفسری (ویدیو)</span>
+      </div>
+      <h1>ساخت یک زبان مفسری ساده — آموزش ویدیویی با پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=dj9CBS3ikGA" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور ویدیوی «Build your own simple interpreted language» است که ساخت زبان مفسری را با پایتون نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=dj9CBS3ikGA" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ ویدیو</h2>
+        <p>این ویدیو با پایتون یک زبان مفسری ساده می‌سازد: از تعریف دستورهای اولیه (اتصالات، حلقه، شرط) تا اجرای آن روی نمونه‌ها. مناسب کسی که می‌خواهد نتیجهٔ کار را سریع ببیند.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=dj9CBS3ikGA" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>ساختار مورد انتظار</h2>
+        <p>مانند هر مفسر، سه مؤلفهٔ اصلی ساخته می‌شود: lexer (تبدیل متن به توکن)، parser (ساخت درخت/توالی)، و evaluator (اجرای دستورها). در ویدیو معمولاً این سه در یک کلاس یا فایل ساده با تمرکز روی خوانایی نوشته می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: اجرای یک دستور</h2>
+        <p>برای اینکه از قبل با جوهرهٔ کار آشنا باشید، نمونهٔ یک حلقهٔ eval ساده:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def execute(node, env):
+    if node['type'] == 'assign':          # a = 5
+        env[node['name']] = eval_expr(node['value'], env)
+    elif node['type'] == 'print':         # print expr
+        print(eval_expr(node['value'], env))
+    elif node['type'] == 'if':            # if cond: ...
+        if eval_expr(node['cond'], env):
+            for stmt in node['body']:
+                execute(stmt, env)
+    elif node['type'] == 'while':         # while cond: ...
+        while eval_expr(node['cond'], env):
+            for stmt in node['body']:
+                execute(stmt, env)</code></pre>
+      </section>
+
+      <section>
+        <h2>نکته‌ها</h2>
+        <p>۱) با یک زبان کوچک شروع کنید و قابلیت اضافه کنید؛ ۲) محیط (env) را ساده با dict نگه دارید؛ ۳) روی خطاها (خط syntactical) تمرکز کنید تا مفسرتان مفید باشد؛ ۴) بعد از دیدن ویدیو، سری «lsbasi» رسلان اسپیواک را بخوانید تا مفاهیم عمیق‌تر شوند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>سریع‌ترین راه دیدن «مفسر چکار می‌کند»: ویدیو را ببینید، همان‌جا در حالت live کدنویسی را دنبال کنید، و بعد سعی کنید خودتان زبان کوچکی بسازید. یادگیری مفسرنویسی با دیدن کد در حال شکل‌گیری، ساده‌تر از هر متن خشک است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سازندهٔ ویدیو. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/watch?v=dj9CBS3ikGA" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

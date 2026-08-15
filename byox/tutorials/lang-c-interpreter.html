@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مفسر C که خودش را تفسیر می‌کند</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>write-a-C-interpreter</span>
+      </div>
+      <h1>write-a-C-interpreter: مفسر C که خودش را Interpretation می‌کند</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/lotabout/write-a-C-interpreter" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «write-a-C-interpreter» از lotabout است؛ یک مفسر C که با C نوشته شده و می‌تواند خودش را اجرا کند (Self-host).
+        </div>
+        <a class="btn solid" href="https://github.com/lotabout/write-a-C-interpreter" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چه چیزی می‌سازیم؟</h2>
+        <p>این پروژه یکی از جاه‌طلبانه‌ترین آموزش‌هاست: یک <b>مفسر کامل زبان C</b> که در C نوشته شده و — پروژهٔ بالغ — توانایی اجرای خودش را دارد (یعنی فایل‌های سورس مفسر را می‌گیرد و خودش را تفسیر می‌کند). مسیر این کار از سه مؤلفهٔ اصلی می‌گذرد: lexer، parser و evaluator.</p>
+      </section>
+
+      <section>
+        <h2>ساختار کد</h2>
+        <p>کد به ۹ فایل کوچک تقسیم شده است که هرکدام یک مرحلهٔ یادگیری است: <code>lexer</code> (تبدیل سورس به تابع‌های token)، <code>parser</code> (ساخت AST از tokenها)، <code>eval</code> (ارزیابی AST). هر فایل با یک مثال ساده شروع می‌شود و به‌تدریج کامل می‌شود.</p>
+        <p>برخلاف بسیاری از آموزش‌ها، این پروژه از ابتدا برای زبان واقعی C طراحی شده — پس با ساختارهای واقعی مثل <code>struct</code>، <code>enum</code>، <code>pointer</code>، <code>typedef</code>، آرایه‌ها و حتی پیش‌فرض‌های استاندارد (مثل <code>int</code> ضمنی) آشنا می‌شوید.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: هستهٔ eval</h2>
+        <pre class="code"><span class="lang-tag">C</span><code>// ارزیابی یک statement
+void eval(struct AST_node *ast) {
+  if (!ast) return;
+
+  switch (ast-&gt;type) {
+    case NODE_EXPR:          // عبارت: تماس تابع، عملگر و...
+      handle_expr(ast);
+      break;
+    case NODE_ASSIGN:        // انتساب: a = b;
+      handle_assign(ast);
+      break;
+    case NODE_IF:            // if/else
+      handle_if(ast);
+      break;
+    case NODE_WHILE:         // حلقهٔ while
+      while (is_true(eval_expr(ast-&gt;cond)))
+        eval(ast-&gt;body);
+      break;
+    ...
+  }
+}</code></pre>
+        <p>مدیریت حافظه با یک جدول تابع‌ها و یک heap شماره‌دار (<code>make_label</code>) انجام می‌شود؛ همین باعث می‌شود پوینترها به‌صورت «ایه‌پی‌های میانی» ترجمه شوند و خود interpreter بتواند با حافظهٔ واقعی مفسر ارتباط برقرار نکند.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی (نقشهٔ مطالعه)</h2>
+        <p><b>۱.</b> lexer: تشخیص tokenها (شناسه‌ها، اعداد، عملگرها، کلیدواژه‌ها). <b>۲.</b> parser: گرامر C زیرمجموعه — از declaration‌ها و expression‌ها تا struct/enum. <b>۳.</b> eval: پیاده‌سازی scope (بلوک‌های تودرتو با zset/zget)، توابع (با جدول تابع‌ها و بازگشت)، pointerها (با نمایهٔ heap). <b>۴.</b> در نهایت سعی کنید مفسر خودش را اجرا کند — رفع باگ‌های این مرحله بهترین درس است.</p>
+        <p>پروژه همچنین شامل فایل‌های توضیحی (قسمت ۱ تا ۴ به زبان چینی در docs) و کامنت‌های فارسی‌نویسی‌شده در کد نیست، ولی مستندات انگلیسی کافی وجود دارد.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید بفهمید زبان C واقعاً چطور کار می‌کند — نه فقط نحوش — این پروژه عالی است: از مهم‌ترین چیزهایی که یاد می‌گیرید، رفتار pointer، ساختار scope و پیاده‌سازی تابع‌هاست؛ و دیدن اجرای مفسرتان با خودش، لحظهٔ شیرینی دارد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> lotabout. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/lotabout/write-a-C-interpreter" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Crafting Interpreters</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Crafting Interpreters</span>
+      </div>
+      <h1>Crafting Interpreters — کتاب مرجع ساخت مفسر و کامپایلر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java و C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://craftinginterpreters.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب «Crafting Interpreters» از رابرت نیستروم است — یکی از کامل‌ترین منابع رایگان دربارهٔ ساخت زبان‌های برنامه‌نویسی.
+        </div>
+        <a class="btn solid" href="https://craftinginterpreters.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی کتاب</h2>
+        <p>Crafting Interpreters نوشتهٔ رابرت نیستروم نیست؟ بله! همان کسی که مقالهٔ «زباله‌روب نوزاد» را نوشته و در Google روی زبان Dart کار کرده است. این کتاب زبان <b>Lox</b> را دو بار پیاده می‌کند: بار اول یک مفسر درختی (tree-walker) در <b>Java</b>، بار دوم یک ماشین مجازی بایت‌کد در <b>C</b>. چیزی که هیچ کتاب دیگری نمی‌دهد: مقایسهٔ مستقیم دو معماری.</p>
+      </section>
+
+      <section>
+        <h2>پارت اول: jlox — مفسر درختی در Java</h2>
+        <p>بخش اول (فصل‌های ۴ تا ۱۳) scanner، parser (با تولیدکنندهٔ AST)، evaluator، محیط، توابع (closures)، کلاس‌ها (inheritance و polymorphism) را می‌سازد. یاد می‌گیرید که چطور ارزیابی گام‌به‌گام روی درخت نحو انجام می‌شود. نمونه:</p>
+        <pre class="code"><span class="lang-tag">Java</span><code>// ارزیابی یک گره با visitor pattern
+@Override
+public Object visitBinaryExpr(Expr.Binary expr) {
+  Object left = evaluate(expr.left);
+  Object right = evaluate(expr.right);
+
+  switch (expr.operator.type) {
+    case PLUS:
+      // عدد یا رشته: + هر دو را حذف می‌کند
+      if (left instanceof Double &amp;&amp; right instanceof Double)
+        return (double) left + (double) right;
+      if (left instanceof String &amp;&amp; right instanceof String)
+        return (String) left + (String) right;
+      throw new RuntimeError(expr.operator, "مقادیر باید عدد یا رشته باشند");
+    case MINUS:
+      checkNumberOperands(expr.operator, left, right);
+      return (double) left - (double) right;
+    ...
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>پارت دوم: clox — ماشین مجازی در C</h2>
+        <p>در پارت دوم (فصل‌های ۱۴ تا ۳۰) همه‌چیز از نو و با سرعت ساخته می‌شود: بایت‌کد (فصل ۱۵)، اجرای VM با حلقهٔ dispatch (فصل ۱۶)، جدول‌های هش برای متغیرهای سراسری (فصل ۱۸)، closures با upvalue (فصل ۲۵)، جمع‌کنندهٔ زباله با mark-and-sweep (فصل ۲۶)، کلاس‌ها و ارث‌بری (فصل ۲۷-۲۸)، و governor (فصل ۳۰). این بخش، عمق واقعی اجرای بایت‌کد را نشان می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// حلقهٔ اصلی VM
+static InterpretResult run() {
+  for (;;) {
+    uint8_t instruction;
+    switch (instruction = READ_BYTE()) {
+      case OP_CONSTANT: {
+        Value constant = READ_CONSTANT();
+        push(constant);
+        break;
+      }
+      case OP_ADD: {
+        Value b = pop();
+        Value a = pop();
+        push(NUMBER_VAL(AS_NUMBER(a) + AS_NUMBER(b)));
+        break;
+      }
+      case OP_RETURN: {
+        return INTERPRET_OK;
+      }
+    }
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این کتاب بهترین است؟</h2>
+        <p>۱) ترتیب منطقی: هر فصل یک قابلیت کوچک و قابل‌کامپایل؛ ۲) توضیح «چرایی» هر تصمیم (مثلاً چرا closureها upvalue دارند)؛ ۳) داستان پردازی و شوخ‌طبعی نویسنده که خواندن را دلچسب می‌کند؛ ۴) کد کامل هر فصل (فایل‌های lox و c در GitHub). مثل یک استاد راهنما، قدم‌به‌قدم همراه شماست.</p>
+      </section>
+
+      <section>
+        <h2>پیش‌نیازها و جمع‌بندی</h2>
+        <p>نیاز به آشنایی متوسط با برنامه‌نویسی دارید (Java یا C به‌ترتیب برای هر پارت)، ولی خود کتاب همهٔ مفاهیم را توضیح می‌دهد. اگر فقط وقت یک کتاب را دارید، این را انتخاب کنید: پس از اتمام، هم مفسر دارید هم درک عمیق VM — و پروندهٔ «ساخت زبان برنامه‌نویسی» را بسته‌اید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> رابرت نیستروم (Robert Nystrom). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://craftinginterpreters.com/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

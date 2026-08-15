@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیاده‌سازی زبان برنامه‌نویسی در JS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>lisperator PLTut</span>
+      </div>
+      <h1>پیاده‌سازی یک زبان برنامه‌نویسی در جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://lisperator.net/pltut/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «How to implement a programming language in JavaScript» از وبسایت lisperator.net است.
+        </div>
+        <a class="btn solid" href="https://lisperator.net/pltut/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی آموزش</h2>
+        <p>این مجموعه یک زبان برنامه‌نویسی کوچک به نام «PL» را در جاوااسکریپت پیاده می‌کند؛ زبانی تابعی با توکن‌ها، متغیرها، توابع و آرایه‌ها. متمایز بودنش در سبک توضیح است: هر بخش با مثال‌های کد کوتاه و توضیح مختصر جلو می‌رود بدون حاشیه‌روی.</p>
+      </section>
+
+      <section>
+        <h2>بخش‌های آموزش</h2>
+        <p><b>۱) توکن‌ها:</b> ساختن lexer ساده با regex؛ <b>۲) تجزیه:</b> پارسری که گرامر را به تابع‌های recursive descent تبدیل می‌کند؛ <b>۳) ارزیابی:</b> پیمایش و اجرای AST؛ <b>۴) توابع:</b> lambda و closures؛ <b>۵) محیط و scope:</b> متغیرهای محلی و global. زبان حاصل می‌تواند مثال‌هایی مثل <code>sum(1,2,3)</code> و برنامه‌های واقعی‌تر را اجرا کند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: پارسر عبارات</h2>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// پارسر کمینه برای گویش ریاضی (با اولویت)
+function parse_atom() {
+  return function() {
+    if (is_punc("(")) {            // لیست یا گروه‌بندی
+      skip_punc("(");
+      var exp = parse_expression();
+      skip_punc(")");
+      return exp;
+    }
+    if (is_num()) return make_number(parse_num());
+    ...
+  };
+}
+
+// expr := atom (("+"|"-") atom)*
+function parse_expression() {
+  var left = parse_atom();
+  while (is_op("+") || is_op("-")) {
+    var op = parse_op();
+    var right = parse_atom();
+    left = { type: "binary", operator: op, left: left, right: right };
+  }
+  return left;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>بخش ارزیابی</h2>
+        <p>ارزیاب با یک جدول <code>env</code> و تابع‌های <code>evaluate</code>/<code>apply</code> پیاده می‌شود. این مجموعه مخصوصاً برای یادگیری «execution model» — اینکه متغیرها کجا ذخیره می‌شوند و فراخوانی تابع چطور اتفاق می‌افتد — عالی است؛ همه چیز با کد کم و تمیز JavaScript.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>کمتر از چند ساعت مطالعه، یک زبان تابعی با توابع، متغیر و آرایه دارید. برای ادامهٔ عمق، «mal» و «Crafting Interpreters» پیشنهاد می‌شوند؛ ولی به‌عنوان دسر سریع و شیرین، این آموزش عالی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> lisperator.net. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://lisperator.net/pltut/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

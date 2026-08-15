@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مفسر پایتون در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>مفسر پایتون در پایتون</span>
+      </div>
+      <h1>مفسر پایتون، نوشته‌شده در پایتون (byterun)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.aosabook.org/en/500L/a-python-interpreter-written-in-python.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور فصل «A Python Interpreter Written in Python» از کتاب 500 Lines or Less (ویرایش آمی براون و گرگ ویلسون) است.
+        </div>
+        <a class="btn solid" href="http://www.aosabook.org/en/500L/a-python-interpreter-written-in-python.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>تعریف مسئله</h2>
+        <p>آیا تا به حال فکر کرده‌اید که پایتون وقتی کد شما را اجرا می‌کند دقیقاً چه کار می‌کند؟ فصل ۵۰۰L از آلیسون کاپتور (که روی PyPy کار کرده) با ساخت <b>byterun</b> جواب می‌دهد: یک مفسر که فایل‌های <code>.pyc</code> (بایت‌کد کامپایل‌شدهٔ پایتون) را می‌خواند و اجرا می‌کند — بدون اینکه خودش تکست را تجزیه کند.</p>
+      </section>
+
+      <section>
+        <h2>چهار مؤلفهٔ اصلی</h2>
+        <p>مفسر از چهار کلاس ساخته شده: <b>VirtualMachine</b> (حلقهٔ اصلی اجرا)، <b>Frame</b> (نشان‌گر اجرا: کد، متغیرهای محلی، پشتهٔ بازگشت)، <b>Function</b> (تابع با closure)، و <b>Block</b> (مدیریت try/except و حلقه‌ها). مفهوم کلیدی: هر فریم یک <b>پشتهٔ اجرا</b> و یک <b>میزان‌نمای بعدی</b> دارد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: حلقهٔ اصلی</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>class VirtualMachine:
+    def run_code(self, code, global_names=None, local_names=None):
+        frame = self.make_frame(code, global_names, local_names)
+        self.run_frame(frame)
+
+    def run_frame(self, frame):
+        while True:
+            opname = frame.code.co_names[frame.next_instr]
+            instr = opname
+
+            # حلقهٔ اعلام اجرا: دستورها را اجرا کن
+            if instr.startswith('UNARY'):
+                self.unaryOperator(instr[5:])     # UNARY_NEGATIVE و ...
+            elif instr.startswith('BINARY'):
+                self.binaryOperator(instr[6:])    # BINARY_ADD و ...
+            elif instr.startswith('LOAD'):
+                self.load_name(instr[4:])         # LOAD_FAST و ...
+            elif instr.startswith('STORE'):
+                self.store_name(instr[5:])        # STORE_FAST و ...
+            elif instr == 'JUMP_ABSOLUTE':
+                frame.next_instr = self.parse_arg_and_increment(frame)
+            elif instr == 'PRINT_ITEM':
+                print(self.pop(), end=' ')
+            elif instr == 'RETURN_VALUE':
+                return self.pop()
+            ...
+            frame.next_instr += 1</code></pre>
+      </section>
+
+      <section>
+        <h2>مفاهیم ارزشمند</h2>
+        <p>۱) <b>پشتهٔ ماشین مجازی</b> برای ارزیابی expressions؛ ۲) <b>بایت‌کدها</b> مثل <code>LOAD_FAST</code>/<code>STORE_FAST</code> برای متغیرهای محلی و <code>LOAD_GLOBAL</code> برای سراسری؛ ۳) مدیریت <b>بازگشت و فراخوانی</b> با پشتهٔ frameها؛ ۴) <b>توابع </b> به‌عنوان مقادیر با <code>closure</code> (متغیرهای captured)؛ ۵) مدیریت <b>exception/loop</b> با Block. با همین‌ها رفتارهای پایتون (مانند scope محلی در تابع) را کاملاً منطقی می‌بینید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این فصل حدود ۳۰۰ خط پایتون دارد و با <code>dis</code> می‌توانید بایت‌کد هر تابع خودتان را ببینید. درک آن، پل بین «زبان سطح بالا» و «ماشین مجازی» است؛ بهترین مقدمهٔ خواندن «Crafting Interpreters» هم هست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آلیسون کاپتور. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://www.aosabook.org/en/500L/a-python-interpreter-written-in-python.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

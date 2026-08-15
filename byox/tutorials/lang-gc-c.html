@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اولین زباله‌روب (Garbage Collector) نوزاد</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>زباله‌روب</span>
+      </div>
+      <h1>اولین زباله‌روب (Garbage Collector) نوزاد — مدرُن Memory Management در C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://journal.stuffwithstuff.com/2013/12/08/babys-first-garbage-collector/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Baby’s First Garbage Collector» از باب نیستروم (مدیر سایت stuffwithstuff) است.
+        </div>
+        <a class="btn solid" href="http://journal.stuffwithstuff.com/2013/12/08/babys-first-garbage-collector/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا باید GC را دستی بسازیم؟</h2>
+        <p>مدیریت حافظهٔ خودکار (Garbage Collection) در زبان‌هایی مثل پایتون، جاوا و حتی جاوااسکریپت، کار روزمرهٔ برنامه‌نویسان است؛ اما وقتی مفسر خودتان را می‌نویسید، دیگر کسی نیست که اشیا را برایتان پاک کند. باب نیستروم در این مقاله، یک زباله‌روب سادهٔ <b>mark-and-sweep</b> را در C می‌سازد و نشان می‌دهد که این سیستم دقیقاً چه چیزی را «زنده» حساب می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>ایدهٔ اصلی: ریشه‌ها و گراف اشیا</h2>
+        <p>در هر زبان، اشیایی که از «ریشه‌ها» (متغیرهای در دسترس، پشتهٔ فراخوانی و …) قابل دسترسی باشند زنده‌اند؛ بقیه را می‌توان پاک کرد. در این مقاله برای سادگی فرض می‌کنیم ریشه‌ها همان «پشتهٔ VM» هستند — یک لیست متصل از آبجکت‌هایی که مفسر در حال کار با آن‌هاست.</p>
+        <p>هر آبجکت یک فلگ <code>marked</code> دارد. زباله‌روب دو مرحله دارد: <b>علامت‌گذاری</b> (از ریشه‌ها شروع می‌کند و تمام آبجکت‌های قابل دسترسی با گراف تابع‌های ارجاع را علامت می‌زند) و <b>پاکسازی</b> (از لیست تمام آبجکت‌ها عبور می‌کند و آن‌هایی که علامت نشده‌اند را <code>free</code> می‌کند).</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: ساختار آبجکت و تابع جمع‌آوری</h2>
+        <pre class="code"><span class="lang-tag">C</span><code>typedef struct sObject {
+  struct sObject* next;   // لیست پیوندی همهٔ آبجکت‌ها
+  char marked;            // فلگ علامت‌گذاری
+  union {
+    int value;
+    struct sObject* head; // برای لیست‌ها
+    ...
+  } data;
+} Object;
+
+void gc() {
+  // ۱) علامت‌گذاری: از ریشه‌ها (پشتهٔ VM)
+  for (Object* root = vm.stack; root != NULL; root = root->next)
+    mark(root);
+
+  // ۲) پاکسازی: هر آبجکتِ علامت‌نشده را آزاد کن
+  Object** obj = &amp;vm.objects;   // اشاره‌گر به لیست کل
+  while (*obj != NULL) {
+    if (!(*obj)->marked) {
+      Object* unreached = *obj;
+      *obj = unreached->next;
+      free(unreached);
+    } else {
+      (*obj)->marked = 0;      // برای دفعهٔ بعد
+      obj = &amp;(*obj)->next;
+    }
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>مشکل‌ها و راه‌حل‌های عملی</h2>
+        <p>بزرگ‌ترین مشکل: وقتی VM از آبجکت جدید استفاده می‌کند، هنوز به پشته وصل نشده — در این حالت GC نباید آن را پاک کند. راه‌حل مقاله: آبجکت «در حال ساخت» را هنگام ساخت مستقیم «روی ریشه» قرار می‌دهیم تا هرگز جمع‌آوری نشود.</p>
+        <p>مشکل دوم: در C می‌توانیم ریسک‌های دیگر (مثل ریشه‌های روی پشتهٔ C) را نادیده بگیریم چون آزمایش‌ها و مثال‌ها همه با heap کار می‌کنند. در پایان مقاله، راه‌های «real world» مثل conservative GC و exact GC و استفاده از <code>shadow stack</code> یا hand-optimization هم اشاره می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این مقاله یک ساعت مطالعه، بین تقریباً صفر تا GC واقعی فاصله می‌اندازد: با کمتر از ۱۰۰ خط C، سیستم مدیریت حافظهٔ مفسرتان را می‌سازید و درک می‌کنید که چرا زبان‌های سطح بالا اصرار به «جمع‌آوری زباله» دارند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> باب نیستروم (Bob Nystrom). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://journal.stuffwithstuff.com/2013/12/08/babys-first-garbage-collector/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

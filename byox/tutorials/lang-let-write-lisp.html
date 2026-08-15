@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیا یک Lisp بنویسیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Let's Go Write a Lisp</span>
+      </div>
+      <h1>بیا یک Lisp بنویسیم (Let's Go Write a Lisp)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://idiocy.org/articles/2012-09-16-lets-go-write-a-lisp/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ کلاسیک «Let's Go Write a Lisp» از idiocy.org است که ساخت مفسر Lisp را در جاوااسکریپت گام‌به‌گام توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="http://idiocy.org/articles/2012-09-16-lets-go-write-a-lisp/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ مقاله</h2>
+        <p>این مقالهٔ قدیمی اما طلایی، با روش «بازگشت به بالا» (bottom-up) مفسر Lisp را می‌سازد: اول نمایش داده‌ها و توابع اولیه، بعد parser و بعد closures و محیط. سبک آن شبیه مقالهٔ «Little Lisp» ماری روز کوک است اما با جزئیات بیشتر دربارهٔ محیط و closures.</p>
+      </section>
+
+      <section>
+        <h2>ساختار قدم‌به‌قدم</h2>
+        <p>۱) تعریف ساختارهای داده‌ای (Number، Lambda، Symbol و… )؛ ۲) توابع اولیه محیط global (تعریف با <code>define</code>)؛ ۳) parser با دو تابع <code>tokenize</code>/<code>parse</code>؛ ۴) <code>eval</code> اصلی که هم support number/name و هم تعریف lambda می‌کند؛ ۵) <code>apply</code> برای فراخوانی تابع و ساختن محیط محلی.</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// ساخت محیط محلی برای فراخوانی تابع
+function callLispFunction(closure, args) {
+  var localEnv = cloneEnvironment(closure.env);   // فرزند محیط تعریف
+  closure.params.forEach(function (param, i) {
+    localEnv[param] = args[i];                    // اتصال پارامترها
+  });
+  // بدنهٔ تابع در محیط محلی ارزیابی می‌شود
+  return evalLisp(closure.body, localEnv);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی که یاد می‌گیرید</h2>
+        <p>۱) <b>closure</b>: تابع باید محیط تعریف‌شدهٔ خودش را نگه دارد (Env in closure) — این چیزی است که به Lispها معنا می‌دهد؛ ۲) <b>ارزیابی ترتیبی</b> (begin) و ارزیابی شرطی (if)؛ ۳) بازگشت در تابع‌ها؛ ۴) تفاوت eval و apply. مثال‌های مقاله شامل فاکتوریل و تابع map هستند.</p>
+      </section>
+
+      <section>
+        <h2>مقایسه با آموزش‌های دیگر</h2>
+        <p>در مقایسه با «Little Lisp»، این مقاله محیط تعریف‌شدهٔ «فرزند» (nested scope) را صریح‌تر نشان می‌دهد — یعنی درک بهتری از scope زنجیره‌ای به شما می‌دهد که پایهٔ درک هر زبان دیگر است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>یک بعدازظهر سرگرم‌کننده و آموزنده: ساخت مفسر Lisp از صفر در جاوااسکریپت، با تاکید بر محیط و closures. بعداً می‌توانید با افزودن <code>quote</code>، ماکروها و GC این مفسر را به سمت «mal» ببرید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> idiocy.org. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://idiocy.org/articles/2012-09-16-lets-go-write-a-lisp/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

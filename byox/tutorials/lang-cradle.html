@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک کامپایلر بسازیم (Haskell)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Cradle (Haskell)</span>
+      </div>
+      <h1>بیایید یک کامپایلر بسازیم — نسخهٔ Haskell (Cradle)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Haskell</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/g-ford/cradle" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «Cradle» از g-ford است؛ بازنویسی مجموعهٔ کلاسیک «Let's Build a Compiler» کِرنشاو به زبان Haskell.
+        </div>
+        <a class="btn solid" href="https://github.com/g-ford/cradle" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>آشنایی با Cradle</h2>
+        <p>مجموعهٔ «بیایید یک کامپایلر بسازیم» جک کرنشاو (۱۹۸۸) یکی از معروف‌ترین منابع آموزش ساخت کامپایلر با روش تک‌مرحله‌ای است. اصلی‌ترین نسخهٔ آن در پاسکال و برای پردازندهٔ 68000 نوشته شده بود؛ پروژهٔ Cradle آن را به <b>Haskell</b> منتقل می‌کند تا هم روی معماری‌های امروزی کار کند و هم از قدرت Haskell (تایپ‌سازی قوی و توابع pure) بهره ببرد.</p>
+      </section>
+
+      <section>
+        <h2>تفاوت با نسخهٔ اصلی</h2>
+        <p>در پاسکال، نگه‌داشتن «وضعیت» (کاراکتر فعلی ورودی و…) ساده بود؛ در Haskell باید از monad استفاده کنیم. پروژهٔ Cradle از <b>State monad</b> برای مدیریت وضعیت خواندن ورودی استفاده می‌کند — در نتیجه هم معنای ترجمه حفظ شده و هم کد کاملاً pure و قابل اثبات است.</p>
+        <pre class="code"><span class="lang-tag">Haskell</span><code>-- وضعیت کامپایلر: کاراکتر فعلی + جریان جلو
+data CradleState = CradleState { input :: String, cur :: Char }
+
+type P a = State CradleState a
+
+-- دریافت کاراکتر بعدی از ورودی
+getChar' :: P Char
+getChar' = do
+  st &lt;- get
+  case input st of
+    []     -&gt; return '\0'          -- پایان ورودی
+    (c:cs) -&gt; put (st { input = cs, cur = c }) &gt;&gt; return c
+
+-- چاپ کد خروجی
+emit :: String -&gt; P ()
+emit s = liftIO $ putStrLn s</code></pre>
+      </section>
+
+      <section>
+        <h2>مسیر آموزشی: از جمع تا توابع</h2>
+        <p>مانند سری اصلی، همین‌جا مراحل کم‌کم پیچیده می‌شوند: (۱) ماشین‌حساب چهارعملی؛ (۲) اولویت عملگرها (term/expression)؛ (۳) متغیرها و انتساب؛ (۴) شرط‌های if/else؛ (۵) حلقه‌ها؛ (۶) توابع و پارامترها. هر بخش در فایل جدا (Part1.hs تا Part16.hs مانند نسخهٔ اصلی) آمده است.</p>
+      </section>
+
+      <section>
+        <h2>نمونه: تحلیل عبارت با اولویت</h2>
+        <pre class="code"><span class="lang-tag">Haskell</span><code>-- expr := term (('+'|'-') term)*
+expression :: P ()
+expression = do
+  term
+  whilePlusOrMinus
+  where
+    whilePlusOrMinus = do
+      c &lt;- peek
+      case c of
+        '+' -&gt; add
+        '-' -&gt; subtract_
+        _   -&gt; return ()
+
+add :: P ()
+add = do
+  match '+'
+  term
+  emit "pop ebx"
+  emit "add eax, ebx"</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر به Haskell و زبان‌های تابعی علاقه‌مندید، این پروژه یک فرصت عالی است: هم اصول کامپایلر را با روش کِرنشاو یاد می‌گیرید، هم تمرین عملی درمورد State monad و طراحی کد تابعی می‌شود. خروجی، اسمبلی x86 قابل اجراست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> g-ford. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/g-ford/cradle" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک کامپایلر C بنویس (OCaml)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Write a C Compiler</span>
+      </div>
+      <h1>یک کامپایلر C بنویس — سری ۱۰ قسمتی نرا سندلر در OCaml</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: OCaml</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://norasandler.com/2017/11/29/The-Compiler.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری «Write a C Compiler» از نرا سندلر است که ساخت کامپایلر C زیرمجموعه را در ۱۰ قسمت با OCaml آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://norasandler.com/2017/11/29/The-Compiler.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی سری</h2>
+        <p>نرا سندلر در ۱۰ مقالهٔ مفصل، یک کامپایلر برای زیرمجموعهٔ بزرگی از زبان C را با OCaml می‌سازد: از <code>int main() { return 1; }</code> شروع می‌کند و در پایان به ساختارهای پیشرفته (struct، نوع‌های منطق، پوینتر) می‌رسد. خروجی، اسمبلی x86-64 است که با <code>gcc</code> پیوند می‌خورد و اجرا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>مهم‌ترین بخش‌ها</h2>
+        <p>بخش ۱: lexer و parser برای ساده‌ترین برنامه؛ بخش ۲: تولید اسمبلی برای <code>return</code>؛ بخش ۳: متغیرهای محلی و انتساب (with stack allocation)؛ بخش ۴: if/else و حلقه‌ها؛ بخش ۵: توابع و آرگومان؛ بخش ۶: عملگرهای unary/binary کامل (مثل <code>~</code> و <code>!</code>)؛ بخش ۷: پوینتر (dereference) و آدرس‌گیری (<code>&amp;</code>)؛ بخش ۸: struct و union؛ بخش ۹: کلیدواژه‌های باقی‌مانده و پشتیبانی از typedef؛ بخش ۱۰: نوع‌Bременные ارشد (long، unsigned و…).</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: قانون parser برای جمع</h2>
+        <pre class="code"><span class="lang-tag">OCaml</span><code>(* پارس اکسپرژن با اولویت از چپ *)
+let rec parse_exp tokens =
+  let left, tokens = parse_exp1 tokens in
+  parse_exp_tail left tokens
+
+(* exp-tail := ("+"|"-"|"*"|"/") exp ... *)
+and parse_exp_tail left tokens =
+  match tokens with
+  | Tok_PLUS :: rest ->
+      let right, rest' = parse_exp1 rest in
+      parse_exp_tail (Exp_Binop (Add, left, right)) rest'
+  | Tok_MINUS :: rest ->
+      let right, rest' = parse_exp1 rest in
+      parse_exp_tail (Exp_Binop (Sub, left, right)) rest'
+  | _ -> left, tokens</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این سری خاص است؟</h2>
+        <p>پیاده‌سازی با OCaml یعنی: pattern matching بی‌نقص برای AST، و تایپ‌های خواناتر — به‌طوری که «کد کامپایلر» خودش به یک درس تایپ‌سازی تبدیل می‌شود. همچنین هر بخش دارای تست‌ها و راهنمای رفع اشکال است؛ و در پایان، کامپایلرتان برنامه‌های C واقعی را (با محدودیت‌های مشخص) ترجمه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>یک سری کامل، خوانا و نزدیک به واقعیت. اگر با OCaml (یا حتی با فرض یادگیری آن در مسیر) راحتید، این مسیر برای ساخت کامپایلر «واقعی» (نه اسباب‌بازی) عالی است. پیشنهاد می‌شود بعد از آن با تست C به سمت استانداردها بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نرا سندلر (Nora Sandler). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://norasandler.com/2017/11/29/The-Compiler.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

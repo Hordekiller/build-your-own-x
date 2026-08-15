@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مفسر فوق‌کوچک</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>مفسر فوق‌کوچک</span>
+      </div>
+      <h1>The Super Tiny Interpreter — مفسر فوق‌کوچک (رفیق کامپایلر فوق‌کوچک)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/keyanzhang/super-tiny-interpreter" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Super Tiny Interpreter» نوشتهٔ کیان ژانگ است — مفسری که AST کامپایلر فوق‌کوچک را مستقیم اجرا می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/keyanzhang/super-tiny-interpreter" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مکمل طبیعی کامپایلر فوق‌کوچک</h2>
+        <p>در «کامپایلر فوق‌کوچک» یاد گرفتیم که AST را به کد C تبدیل کنیم؛ اما گزینهٔ دیگر این است که به‌جای تولید کد، همان AST را بگیریم و مستقیم «ارزیابی» کنیم — این یعنی یک مفسر. این پروژه دقیقاً همین کار را انجام می‌دهد و در نتیجه، مقایسهٔ «کامپایل» در برابر «تفسیر» را ملموس می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>ساختار</h2>
+        <p>مانند نسخهٔ کامپایلر، کد در چند بخش مرتب است: tokenizer و parser (همان ورودی Lisp-like)، سپس یک evaluator که با پیمایش AST و یک جدول محیط متغیرها را نگه می‌دارد. قلب مفسر تابع <code>interpret</code> است:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>function interpret(ast, env = {}) {
+  const node = ast;
+
+  switch (node.type) {
+    case 'NumberLiteral':
+      return Number(node.value);
+
+    case 'CallExpression': {
+      // هر آرگومان را ارزیابی کن
+      const args = node.arguments.map(arg =&gt; interpret(arg, env));
+
+      // تابع را از محیط پیدا کن (مثلاً add یا subtract)
+      const func = env[node.callee];
+      if (typeof func !== 'function')
+        throw new Error(`تابع ${node.callee} تعریف نشده است`);
+
+      return func.apply(null, args);
+    }
+    default:
+      throw new Error(`گرهٔ نامشخص: ${node.type}`);
+  }
+}
+
+// محیط اولیه: توابع پایه
+const env = {
+  add: (a, b) =&gt; a + b,
+  subtract: (a, b) =&gt; a - b,
+};
+
+const ast = parse(tokenize('(add 2 (subtract 4 2))'));
+console.log(interpret(ast, env)); // 4</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا مقایسهٔ این دو مهم است؟</h2>
+        <p>بین دو پروژه تفاوت ظریفی هست: کامپایلر خروجی «کد» می‌دهد (خودش اجرا نمی‌کند)، مفسر خروجی «مقدار» می‌دهد (خودش اجرا می‌کند). مفهوم «هزینهٔ اجرا» و «هزینهٔ کامپایل» را می‌فهمید — در دنیای واقعی، JIT (اجرای درحال‌کامپایل) ترکیبی از هر دو است.</p>
+      </section>
+
+      <section>
+        <h2>نکتهٔ آموزشی</h2>
+        <p>اگر می‌خواهید محیط را گسترش دهید (متغیرها، if، lambda)، این بهترین نقطهٔ شروع است: کد کوتاه است و می‌توانید <code>interpret</code> را برای هر گرهٔ جدید توسعه‌دهید. همین الگو — جدول symbol ها و ارزیابی بازگشتی — در مفسرهای واقعی (مثل jlox) به مقیاس بزرگ اجرا می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کیان ژانگ (Keyan Zhang). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/keyanzhang/super-tiny-interpreter" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

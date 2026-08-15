@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Enkel — زبان JVM خودت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Enkel</span>
+      </div>
+      <h1>Enkel — ساخت زبان JVM خودت (سری جاکوب دوورسکی)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://jakubdziworski.github.io/enkel/2016/04/23/enkel-jvm-bytecode.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری «Enkel» از جاکوب دوورسکی است؛ ساخت زبانی که مستقیم به بایت‌کد ماشین مجازی جاوا (JVM) کامپایل می‌شود.
+        </div>
+        <a class="btn solid" href="https://jakubdziworski.github.io/enkel/2016/04/23/enkel-jvm-bytecode.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>هدف پروژه</h2>
+        <p>Enkel زبانی ساده و جاوا-مانند است که به‌جای تولید بایت‌کد عمومی، مستقیم <b>بایت‌کد JVM</b> تولید می‌کند؛ یعنی خروجی کامپایلر شما با <code>java</code> قابل اجراست! این یعنی با یادگیری JVM bytecode، کامپایلر شما به یک «جزیرهٔ امن» برای اجرا در JVM تبدیل می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>بخش‌های سری</h2>
+        <p>سری شامل چند بخش اصلی است: (۱) طراحی زبان و ساختار AST؛ (۲) lexer و parser با Apache Antlr یا دستی؛ (۳) تولید بایت‌کد با ASM (کتابخانهٔ معروف جاوا)؛ (۴) پشتیبانی از متغیرها، توابع، شرط‌ها، حلقه‌ها، کلاس‌ها و inheritance؛ (۵) مدیریت error reporting.</p>
+        <p>برای مثال، تبدیل عبارت <code>x + 3</code> به بایت‌کد با ASM این‌گونه است:</p>
+        <pre class="code"><span class="lang-tag">Java</span><code>// با استفاده از کتابخانهٔ ASM
+MethodVisitor mv = ...;   // از ClassWriter
+
+// بارگذاری مقدار متغیر x (ایندکس ۱ در local variables)
+mv.visitVarInsn(Opcodes.ILOAD, 1);
+// بارگذاری ثابت 3
+mv.visitIntInsn(Opcodes.BIPUSH, 3);
+// جمع دو عدد صحیح
+mv.visitInsn(Opcodes.IADD);
+// ذخیره نتیجه در متغیر
+mv.visitVarInsn(Opcodes.ISTORE, 1);</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این آموزش خاص است؟</h2>
+        <p>بیشتر آموزش‌ها خروجی اسمبلی تولید می‌کنند؛ کاری که در اینجا با بایت‌کد JVM انجام می‌شود، مزایای عملی دارد: (۱) نتیجهٔ نهایی <code>.class</code> بدون نیاز به لینکر اجرا می‌شود؛ (۲) با <code>javap -c</code> می‌توانید بایت‌کد تولیدی را بخوانید و مقایسه کنید؛ (۳) ساختار کلاس‌ها، متدها و exception table در JVM خودش یک درس کامل از طراحی ماشین مجازی است.</p>
+      </section>
+
+      <section>
+        <h2>نکات آموزشی</h2>
+        <p>در هنگام ساخت، با مفاهیم مهمی آشنا می‌شوید: جدول local variables؛ <code>invokevirtual</code> در برابر <code>invokespecial</code>؛ مدیریت پشتهٔ operand stack؛ و اینکه چرا آرگومان ارسال‌شده به متد اول در ایندکس ۰ است (<code>this</code>). همین‌ها پایهٔ هر زبان JVM مانند Kotlin و Scala است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر به جاوا علاقه دارید و می‌خواهید زبان‌های JVM را درک کنید، Enkel مسیر عالی‌ای است: از ساخت lexer تا فایل اجرایی <code>.class</code>. انعطاف‌پذیر، قابل اجرا و پر از مثال‌های واقعی.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جاکوب دوورسکی (Jakub Dziworski). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://jakubdziworski.github.io/enkel/2016/04/23/enkel-jvm-bytecode.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

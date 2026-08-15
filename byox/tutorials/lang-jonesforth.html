@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Jonesforth — ساخت Forth در اسمبلی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزشها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامهنویسی</a>
+        <span class="sep">←</span>
+        <span>Jonesforth</span>
+      </div>
+      <h1>Jonesforth — ساخت Forth از صفر در اسمبلی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Assembly (x86)</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/nornagon/jonesforth/blob/master/jonesforth.S" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «jonesforth» از Richard W.M. Jones است؛ پیاده‌سازی کامل زبان Forth در ۴۲۹۵ خط اسمبلی x86 که با کامنت‌های آموزشی، نحوهٔ بوت‌استرپ یک زبان را از سخت‌افزار نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://github.com/nornagon/jonesforth/blob/master/jonesforth.S" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا Jonesforth؟</h2>
+        <p>بیشتر آموزش‌ها یک مفسر را در یک زبان سطح بالا می‌نویسند. اما <b>jonesforth</b> یک فایل اسمبلی x86 است که یک زبـان کامل (Forth) را از «هیچ» — یعنی از لیبل‌ها و دستورهای پردازنده — می‌سازد. ریچارد جونز در ۴۲۹۵ خط پر از کامنت، نشان می‌دهد که هستهٔ یک زبان چطور از سخت‌افزار زاده می‌شود.</p>
+        <p>فورث با دو پشته (پشتهٔ داده و پشتهٔ بازگشت) و کلمه‌های سادهٔ ترکیبی (words) شهرت دارد؛ خود زبان هم با الهام از روش‌های دههٔ ۱۹۷۰ طراحی شده و پیاده‌سازی آن با اسمبلی کاملاً طبیعی است.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی: فرهنگ لغت و کلمه‌ها</h2>
+        <p>قلب Forth «فرهنگ لغت» (Dictionary) است: یک لیست پیوندی از ورودی‌ها که هر ورودی یک کلمه را تعریف می‌کند. هر ورودی سه بخش دارد: نام کلمه، سرچشمهٔ تعریف، و کد اجرایی آن. در jonesforth، هر ورودی با یک pattern از بایت‌های <code>0x3A</code> و <code>0x3B</code> (نشان‌های ') تعریف می‌شود تا جست‌وجو سریع انجام شود.</p>
+        <p>کلمه‌های اولیه (primitives) مستقیماً با اسمبلی نوشته می‌شوند و روی پشتهٔ داده کار می‌کنند؛ کلمه‌های مرکب (colon definitions) دنباله‌ای از آدرس کلمه‌های دیگرند. ماشین مجازی Forth با دو رجیستر، این دنباله‌ها را اجرا می‌کند: یکی نشان‌گر کلمهٔ فعلی (IP) و دیگری نشان‌گر کلمهٔ بعدی.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: هدر یک ورودی فرهنگ لغت</h2>
+        <pre class="code"><span class="lang-tag">Assembly</span><code>;; هر کلمه در Forth چنین ساختاری دارد
+;; ┌────────┬──────┬──────────────┬────────────┐
+;; │ flag   │نام(رشته)│ آدرس لینک │ کد اجرایی │
+;; └────────┴──────┴──────────────┴────────────┘
+; واجب: کد اجرایی همیشه از همین‌جا شروع می‌شود
+; و یک علامت ' (0x3A) در ابتدای آن است.
+
+.word 0x3A, 0x3A   ; دو بایت نشان‌دهندهٔ "کلمهٔ تعریف‌شده"
+.word last_word    ; آدرس کلمهٔ قبلی (لیست پیوندی)
+.byte 3            ; طول نام
+.byte "DUP"        ; نام کلمه
+; --- این‌جا کد اجرایی کلمه قرار می‌گیرد ---
+DUP:   mov (%esp), %eax     ; مقدار روی پشته
+       push %eax            ; یک کپی دیگر
+       jmp next_word        ; برو سراغ کلمهٔ بعدی</code></pre>
+        <p>توجه کنید که حتی رفتار خود مفسر هم با «کلمه» تعریف می‌شود: اولویت اجرا (DO_COLON) و نگهداری نشان‌گرها همه کلمه‌هایی هستند که در اسمبلی ساخته می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی در jonesforth</h2>
+        <p>مسیر ساخت در فایل به ترتیب این است: (۱) بوت‌استرپ هسته با اسمبلی خام؛ (۲) مدیریت پشته و THE_PILE؛ (۳) کلمه‌های اولیهٔ محاسباتی (جمع، ضرب… )؛ (۴) شکافتن و اجرای دنباله‌های کلمه‌ها (دستگاه اجرای <code>DO_COLON</code> و <code>NEXT</code>)؛ (۵) خواندن اعداد از رشته و تبدیل به مقدار؛ (۶) کلمه‌های تعریف‌شده با <code>:</code> و <code>;</code>؛ (۷) ورودی/خروجی و سیستم اعداد؛ (۸) کامپایلر Forth برای تعریف کلمه‌های جدید به‌جای اسمبلی.</p>
+        <p>بخش پایانی فایل، یک کامپایلر Forth با رفتارهای ترکیبی (<code>IF … THEN</code>، حلقه‌ها) است — یعنی زبان کامل می‌شود درحالی‌که هنوز کل اجرا روی همان رجیسترهای سادهٔ x86 انجام می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>jonesforth یک کلاس درس کامل در یک فایل است: با خواندن کامنت‌ها، از بایت‌های اسمبلی تا ماشین مجازی و کامپایلر Forth را می‌فهمید. برای کسانی که می‌خواهند «زبان‌ها از کجا می‌آیند» را عمیقاً درک کنند، این منبع بهترین شروع است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Richard W.M. Jones. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/nornagon/jonesforth/blob/master/jonesforth.S" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

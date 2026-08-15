@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | از سورس تا کد ماشین (کامپایلر خودت)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر build-your-own.org</span>
+      </div>
+      <h1>از سورس تا کد ماشین — ساخت کامپایلر با پایتون (build-your-own.org)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://build-your-own.org/compiler" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «From source code to machine code» از وبسایت build-your-own.org است که با پایتون یک کامپایلر واقعی به کد ماشین x86-64 می‌سازد.
+        </div>
+        <a class="btn solid" href="https://build-your-own.org/compiler" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چه چیزی می‌سازید؟</h2>
+        <p>این آموزش با پایتون یک کامپایلر کامل برای زیرمجموعه‌ای از زبان برنامه‌نویسی خودش می‌سازد — و خروجی آن یک <b>فایل اجرایی واقعی x86-64</b> است، نه اسمبلی! یعنی نتیجهٔ نهایی، باینری‌ای است که مستقیم روی سیستم‌عامل اجرا می‌شود. این موضوع آن را از بیشتر آموزش‌های «خروجی اسمبلی» متمایز می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>مسیر آموزشی</h2>
+        <p>کتاب در گام‌های کوچک پیش می‌رود: (۱) مبانی و برنامهٔ اولیه؛ (۲) ریاضیات صحیح و عملیات‌ها؛ (۳) متغیرها و حافظهٔ پشته؛ (۴) شرط‌ها و حلقه‌ها؛ (۵) تابع‌ها و فراخوانی؛ و در انتها (۶) مدیریت ورودی/خروجی و بایت‌های ماشین. هر فصل همهٔ فایل‌های لازم را دارد و می‌توانید آخر هر فصل، خروجی را با objdump بررسی کنید.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: تولید کد ماشین</h2>
+        <p>هر عملگر به یک یا چند دستور ماشین تبدیل می‌شود؛ برای مثال جمع دو متغیر در زبان خودتان:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># نگاه اجمالی: اتصال عملگرها به opcode های x86-64
+def gen_add(reg1, reg2):
+    # add r64, r64 : opcode 0x01 /r
+    # REX.W + 0x01 + ModRM (مثلاً rax, rbx)
+    return bytes([0x48, 0x01, modrm(reg1, reg2)])
+
+def modrm(reg_rm, reg_reg):
+    # mod=11 (رجیستر مستقیم) + رجیسترهای عمومی
+    return 0xC0 | (reg_reg &lt;&lt; 3) | reg_rm
+
+# مثال: برای "a + b" ابتدا a در rax، b در rbx
+# سپس: gen_add(0, 3) → add rax, rbx
+# خروجی: 48 01 C3</code></pre>
+        <p>با همین قالب، عملگرهای ضرب (با <code>0x48 0x0F 0xAF</code>)، شرط‌ها (با <code>cmp</code> و <code>jcc</code>) و پرش‌ها ساخته می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی</h2>
+        <p>۱) <b>مدهای آدرس‌دهی</b> و ModRM/SIB — زبان ماشین x86 را از نزدیک می‌بینید؛ ۲) <b>پشتهٔ فراخوانی</b> <code>rsp/rbp</code> برای متغیرهای محلی و پارامترها؛ ۳) <b>کنوانسیون فراخوانی</b> SystemV (رِجیسترهای پارامتر rdi/rsi/… )؛ ۴) <b>ساختار ELF</b> برای ساخت فایل اجرایی قابل اجرا. نویسنده همهٔ این‌ها را با پایتون ساده توضیح می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید بدانید «کامپیوتر واقعاً چه اجرا می‌کند»، این آموزش بهترین گزینه است: از زبان خودتان تا بایت‌های روی دیسک، همه را کنترل می‌کنید. پیش‌نیاز: آشنایی ابتدایی با پایتون؛ نتیجه: کامپایلری که باینری لینوکس تولید می‌کند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> build-your-own.org. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://build-your-own.org/compiler" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

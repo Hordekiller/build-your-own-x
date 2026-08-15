@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کامپایلر فوق‌کوچک (جاوااسکریپت)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر فوق‌کوچک</span>
+      </div>
+      <h1>The Super Tiny Compiler — کامپایلر فوق‌کوچک در جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/jamiebuilds/the-super-tiny-compiler" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «The Super Tiny Compiler» نوشتهٔ جیمز کایل (jamiebuilds) است — کامپایلری در حدود ۲۰۰ خط که کل فرآیند کامپایل را شفاف نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://github.com/jamiebuilds/the-super-tiny-compiler" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>ایدهٔ پروژه</h2>
+        <p>جیمز کایل با این پروژه می‌خواست «اسکلت» کامپایلرها را در کمترین کد ممکن نشان دهد. ورودی زبانی شبیه Lisp است: <code>(add 2 (subtract 4 2))</code> و خروجی شبیه C: <code>add(2, subtract(4, 2))</code>. همهٔ مفاهیم کلیدی کامپایلر در این ۲۰۰ خط وجود دارد.</p>
+      </section>
+
+      <section>
+        <h2>مراحل: ۴ تابع</h2>
+        <p><b>۱) tokenizer</b> — رشته را به توکن‌ها تبدیل می‌کند؛ <b>۲) parser</b> — توکن‌ها را به AST تبدیل می‌کند؛ <b>۳) transformer</b> — با کمک <code>traverser</code> (پیمایش enter/exit) AST ورودی را به AST خروجی تبدیل می‌کند؛ <b>۴) codeGenerator</b> — از AST خروجی، کد نهایی را می‌سازد.</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>function tokenizer(input) {
+  let current = 0;      // نشان‌گر موقعیت
+  let tokens = [];
+
+  while (current &lt; input.length) {
+    let char = input[current];
+
+    // پرانتزها
+    if (char === '(') {
+      tokens.push({ type: 'paren', value: '(' });
+      current++;
+      continue;
+    }
+
+    // اعداد: چند رقم پشت سر هم
+    const NUMBERS = /[0-9]/;
+    if (NUMBERS.test(char)) {
+      let value = '';
+      while (NUMBERS.test(char)) {
+        value += char;
+        char = input[++current];
+      }
+      tokens.push({ type: 'number', value });
+      continue;
+    }
+
+    // نام‌ها (add, subtract, ...)
+    const LETTERS = /[a-z]/i;
+    if (LETTERS.test(char)) {
+      let value = '';
+      while (LETTERS.test(char)) {
+        value += char;
+        char = input[++current];
+      }
+      tokens.push({ type: 'name', value });
+      continue;
+    }
+
+    // فاصله‌ها را رد کن
+    const WHITESPACE = /\s/;
+    if (WHITESPACE.test(char)) {
+      current++;
+      continue;
+    }
+
+    throw new TypeError('کاراکتر ناشناخته: ' + char);
+  }
+
+  return tokens;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا باید بخوانید؟</h2>
+        <p>اگر قبلاً هیچ کدی از کامپایلر ندیده‌اید، این پروژه یک ورود نرم است: مستندات کامنت‌دار و دقیق، هر تابع را توضیح می‌دهد و می‌توانید گام‌به‌گام با <code>node</code> اجرا کنید. همچنین نسخه‌های Go، Rust و… از همین پروژه گرفته شده‌اند؛ خواندن نسخهٔ اصلی دید کامل‌تری از معماری می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>بعد از این پروژه کجا برویم؟</h2>
+        <p>برای ادامه: نسخهٔ مرکزش را در ذهن داشته باشید — tokenizer، parser، AST، traverser، codegen. سپس به سراغ «Little Lisp» یا «Crafting Interpreters» بروید تا ارزیابی و محیط را هم به آن اضافه کنید — یا اگر قدرت کامپایل را می‌خواهید، آموزش Kaleidoscope با LLVM.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جیمز کایل (jamiebuilds). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/jamiebuilds/the-super-tiny-compiler" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

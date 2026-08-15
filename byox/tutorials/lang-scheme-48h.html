@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | خودت یک Scheme در ۴۸ ساعت بنویس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Scheme در ۴۸ ساعت</span>
+      </div>
+      <h1>Write Yourself a Scheme in 48 Hours — مفسر Scheme در Haskell</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Haskell</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب ویکی‌بوک «Write Yourself a Scheme in 48 Hours» است — یک آموزش کلاسیک برای ساخت مفسر زبان Scheme با Haskell.
+        </div>
+        <a class="btn solid" href="https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>آشنایی با کتاب</h2>
+        <p>این آموزش که از سال ۲۰۰۷ روی ویکی‌بوک در حال رشد است، با دو هدف نوشته شده: آموزش Haskell به شکل عملی و ساخت یک مفسر Scheme کامل. در طول مسیر، با مفاهیم Haskell (Function Composition، Functor/Monad، Parsec و …) و مفاهیم کامپایلر (نمایش داده، محیط، ارزیابی) آشنا می‌شوید.</p>
+      </section>
+
+      <section>
+        <h2>ساختار سفر</h2>
+        <p>کتاب در ۷ فصل پیش می‌رود: (۱) نمایش و ارزیابی ساده (اعداد، اتم‌ها)؛ (۲) پارسینگ با Parsec (تعریف <code>LispVal</code> و گرامر)؛ (۳) ارزیابی و مدیریت خطا (Either/Error)؛ (۴) افزودن نوع‌های داده (لیست‌ها، بولی، رشته) و توابع؛ (۵) متغیرها و محیط (با State monad، کلیدواژهٔ <code>define</code> و <code>set!</code>)؛ (۶) توابع به‌عنوان مقدار (lambda) و توابع با آرگومان؛ (۷) IO واقعی و توابع پایه (readFile، writeFile).</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: نوع داده و ارزیابی</h2>
+        <pre class="code"><span class="lang-tag">Haskell</span><code>-- نمایش مقادیر نطق‌پذیر
+data LispVal = Atom String
+             | List [LispVal]
+             | DottedList [LispVal] LispVal
+             | Number Integer
+             | String String
+             | Bool Bool
+
+-- قلب مفسر: ارزیابی در محیط
+eval :: Env -&gt; LispVal -&gt; IOThrowsError LispVal
+eval env val@(String _) = return val
+eval env val@(Number _) = return val
+eval env val@(Bool _)   = return val
+
+eval env (List [Atom "quote", val]) = return val
+
+eval env (List [Atom "if", cond, t, f]) = do
+  result &lt;- eval env cond
+  case result of
+    Bool False -&gt; eval env f
+    _          -&gt; eval env t
+
+eval env (List (Atom func : args)) = do
+  funcVal &lt;- eval env (Atom func)
+  argVals &lt;- mapM (eval env) args
+  apply funcVal argVals</code></pre>
+        <p>همهٔ جزئیات مهم interpret‌ر — از quote تا فراخوانی تابع — در همین چند سطر دیده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نکته‌ها و درس‌ها</h2>
+        <p>در فصول میانی، با خطاهای رایج مفسرنویسان آشنا می‌شوید (خطای show و نمایش اشتباه) و یاد می‌گیرید که چطور <code>MonadError</code> و <code>State</code> را ترکیب کنید. در فصل آخر، مفسر قابلیت خواندن پرایم‌ها و توابع پایهٔ IO را پیدا می‌کند و می‌توانید اسکریپت‌های Scheme واقعی را اجرا کنید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بهترین شروع برای ترکیب «ساخت مفسر» و «Haskell»: کوتاه، گام‌به‌گام، و با پشتیبانی جامعه. اگر بعد از این بخواهید عمیق‌تر بروید، کتاب‌هایی مثل «Write You a Haskell» مسیر را ادامه می‌دهند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندگان ویکی‌بوک. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ترکیب‌گرهای Parser در F#</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Parser Combinators</span>
+      </div>
+      <h1>درک ترکیب‌گرهای Parser — با مثال‌های F#</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: F#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://fsharpforfunandprofit.com/posts/understanding-parser-combinators/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Understanding Parser Combinators» از اسکات ولاشین در fsharpforfunandprofit.com است — از مشهورترین مقالات مفهوم ترکیب‌گرهای parser.
+        </div>
+        <a class="btn solid" href="https://fsharpforfunandprofit.com/posts/understanding-parser-combinators/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>ترکیب‌گر Parser چیست؟</h2>
+        <p>بجای اینکه برای هر زبان یک parser بنویسیم، «ترکیب‌گرها» (Combinators) تابع‌های کوچکی هستند که در هم ترکیب می‌شوند و parser می‌سازند. یک parser یک «تابع» است: ورودی (رشته) می‌گیرد و یا <b>موفق</b> برمی‌گردد (نتیجه + ماندهٔ ورودی) یا <b>شکست</b>.</p>
+        <p>اسکات ولاشین این ایده را با F# — زبانی تابعی و خوانا — توضیح می‌دهد؛ مفاهیم آن به هر زبان قابل انتقال است (و نسخه‌های Rust، Go، JavaScript هم دارند).</p>
+      </section>
+
+      <section>
+        <h2>مفهوم اصلی: توابع پایه و ترکیب</h2>
+        <p>سه ترکیب‌گر پایه: <code>preturn</code> (همیشه موفق با مقدار ثابت)، <code>pzero</code> (همیشه شکست)، <code>satisfy</code> (یک حرفی که با پیش‌شرط منطبق باشد). سپس ترکیب‌گرهای ساختاری: <code>andThen</code> (p1 سپس p2)، <code>orElse</code> (یا p1 یا p2)، <code>many</code> (صفر یا چند بار). با همین‌ها، parserهای پیچیده ساخته می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">F#</span><code>type Parser&lt;'a&gt; = string -&gt; Result&lt;'a * string, string&gt;
+
+// و سپس: p1 و بعد p2
+let andThen p1 p2 = fun input -&gt;
+    match p1 input with
+    | Error e -&gt; Error e
+    | Ok (r1, rest) -&gt;
+      match p2 rest with
+      | Error e -&gt; Error e
+      | Ok (r2, rest2) -&gt; Ok ((r1, r2), rest2)
+
+// p1 یا p2
+let orElse p1 p2 = fun input -&gt;
+    match p1 input with
+    | Ok r -&gt; Ok r
+    | Error _ -&gt; p2 input</code></pre>
+        <p>توجه کنید که با بازگشت و همین دو تابع ساده، می‌توان grammarهای کامل تعریف کرد — بدون هیچ ابزار parser generator تا وقتی که بخواهید.</p>
+      </section>
+
+      <section>
+        <h2>استفادهٔ عملی: ساخت یک ماشین‌حساب</h2>
+        <p>در ادامهٔ مقاله، با این ترکیب‌گرها یک ماشین‌حساب کوچک (اعداد، جمع، ضرب با اولویت) ساخته می‌شود. همچنین بحث می‌شود که چطور با «monad» (در F# با <code>forwardPipe</code> و record) می‌توان خطاها و وضعیت را تمیزتر مدیریت کرد؛ و چرا ترکیب‌گرها به‌طور طبیعی به‌صورت «بازگشتی به چپ» (left recursion) مشکل دارند — مشکلی که parserهای LALR حل می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: اعداد و عملگرها</h2>
+        <pre class="code"><span class="lang-tag">F#</span><code>let digitChar = satisfy (fun ch -&gt; System.Char.IsDigit ch)
+let digits = many1 digitChar   // یک یا چند رقم
+
+// تبدیل رشتهٔ رقم‌ها به int
+let toInt (str:string) : int = System.Int32.Parse(str)
+
+let number = digits |&gt;&gt; toInt   // parser عدد
+
+// expr := number (("+"|"-") number)*
+let expr =
+    let op = char '-' |&gt;&gt; (fun _ -&gt; (-)) &lt;|&gt; char '+' |&gt;&gt; (fun _ -&gt; (+))
+    number .&gt;&gt;. many (op .&gt;&gt;. number)</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید بدانید parserها از چه چیزی ساخته شده‌اند — بدون نیاز به بستهٔ سنگین — این مقاله را بخوانید. بعداً همین ایده را در پروژه‌های واقعی (مثلاً ساخت DSL یا مفسر کوچک) به‌کار ببرید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> اسکات ولاشین (Scott Wlaschin). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://fsharpforfunandprofit.com/posts/understanding-parser-combinators/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

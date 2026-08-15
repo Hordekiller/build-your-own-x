@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | چگونه یک کامپایلر بسازیم (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر (ویدیو)</span>
+      </div>
+      <h1>چگونه یک کامپایلر بسازیم — آموزش ویدیویی گام‌به‌گام</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=eF9qWbuQLuw" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور ویدیوی آموزشی «How to Build a Compiler» است که ساخت یک کامپایلر را از صفر و به‌صورت تصویری آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=eF9qWbuQLuw" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ ویدیو</h2>
+        <p>این ویدیوی بلند و آموزشی، روند کامل ساخت یک کامپایلر را نشان می‌دهد: از تعریف زبان ورودی ساده تا تولید کد اجرایی. دیدن ویدیو برای شروع، دیدن خروجی کامپایلر روی کد خود شما و مرور اشتباه‌های رایج، تجربه‌ای بسیار ارزشمند است.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=eF9qWbuQLuw" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>آنچه در ویدیو می‌سازید</h2>
+        <p>وسط مسیر، درک شما از سه مفهوم اصلی روشن می‌شود: <b>lexer</b> (تبدیل متن به token)، <b>parser</b> (تبدیل tokenها به درخت نحو) و <b>code generator</b> (تبدیل درخت به کد اسمبلی/ماشین). تفاوت این آموزش با آموزش‌های متنی، دیدن «حل کردن خطاهای لحظه‌ای» است.</p>
+      </section>
+
+      <section>
+        <h2>نمونه‌ای از ساختار توکن</h2>
+        <p>اگر با مفاهیم اصلی آشنا نیستید، این بخش به‌عنوان پیش‌زمینه است؛ ساختار توکن معمولاً این‌گونه است:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>enum TokenType {
+  TOK_NUMBER,   // عدد
+  TOK_IDENT,    // شناسه (متغیر)
+  TOK_PLUS,     // +
+  TOK_STAR,     // *
+  TOK_LPAREN,   // (
+  TOK_RPAREN,   // )
+  TOK_EOF
+};
+
+struct Token {
+  TokenType type;
+  std::string text;   // متن خام توکن
+  long double value;  // اگر عدد بود
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>نکته‌های کلیدی که از ویدیو می‌گیرید</h2>
+        <p>۱) ساده شروع کنید: اول یک زبان با اعداد و چهار عمل؛ ۲) به‌تدریج شرط‌ها و حلقه‌ها را اضافه کنید؛ ۳) همیشه خروجی اسمبلی را با <code>gcc</code> یا <code>clang</code> تست کنید؛ ۴) هر بار یک قابلیت اضافه کنید تا اشکال‌یابی ساده بماند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>برای یادگیری بصری، کمترین هزینهٔ ورودی و بیشترین بینش: این ویدیو شما را از «کامپایلر چیست؟» به «می‌توانم خودم بسازم» می‌رساند. پس از آن، برای عمق بیشتر به سری‌های متنی مثل acwj بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سازندهٔ ویدیو. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/watch?v=eF9qWbuQLuw" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک Lisp (OCaml)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک Lisp</span>
+      </div>
+      <h1>نوشتن یک Lisp — سری مکس برنستاین در OCaml</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: OCaml</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://bernsteinbear.com/blog/lisp/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعه مقالات «Let's write a Lisp» از مکس برنستاین (bernsteinbear) است — ساخت مفسر Lisp با OCaml.
+        </div>
+        <a class="btn solid" href="https://bernsteinbear.com/blog/lisp/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی سری</h2>
+        <p>مکس برنستاین (که روی کامپایلرهای واقعی مثل OCaml و CMUCL کار کرده) در این مجموعه مقالات، مفسر Lisp را با OCaml می‌سازد و در هر مقاله یک قطعهٔ جدید اضافه می‌کند: از parsing و eval ساده تا closures، ماکروها و شبیه‌سازی سیستم‌های runtime. کد هر مقاله در یک پوشهٔ جدا (part1 تا partN) موجود است.</p>
+      </section>
+
+      <section>
+        <h2>ساختار مقالات</h2>
+        <p>مقاله‌ها به‌ترتیب: (۱) مفسر پایه — آرایه، لیست، eval ساده؛ (۲) نمادها و متغیرها؛ (۳) توابع <code>lambda</code> و محیط‌های تودرتو؛ (۴) ساختارهای مترقی مثل <code>let*</code>؛ (۵) مدیریت خطا و بازنمایی «Error» در رانتایم؛ (۶) ماکروها؛ (۷) و پایان‌بندی با بهینه‌سازی و بحث دربارهٔ runtime. هر مقاله با backend پایتون یا OCaml و سپس تست مقایسهٔ رفتار همراه است.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: eval با pattern matching</h2>
+        <pre class="code"><span class="lang-tag">OCaml</span><code>(* ارزیابی: از نوع دادهٔ تجریدی استفاده می‌کنیم *)
+let rec eval env = function
+  | Atom a -> List.assoc a env      (* متغیر را در محیط پیدا کن *)
+  | Number n -> Number n
+  | List (Atom "quote" :: [x]) -> x (* quote: بدون ارزیابی *)
+  | List (Atom "if" :: [c; t; f]) ->
+      if eval env c = Bool true then eval env t else eval env f
+  | List (Atom "lambda" :: [params; body]) ->
+      (* closure: بدنه + پارامترها + محیط *)
+      Closure (params, body, env)
+  | List (Atom fn :: args) ->
+      let f = eval env (Atom fn) in
+      let args' = List.map (eval env) args in
+      apply f args'
+  | _ -> raise (Invalid_argument "عبارت نامعتبر")</code></pre>
+      </section>
+
+      <section>
+        <h2>نکته‌های جالب</h2>
+        <p>۱) مقایسهٔ استراتژی‌های مختلف بازنمایی (مثلاً استفاده از <code>Stone</code> در برابر <code>Variant</code>)؛ ۲) بررسی اینکه چرا ارسال پارامترها با call-by-value برای محیط‌ها درست جواب می‌دهد؛ ۳) در پایان، بحث دربارهٔ runtime هزینه‌ها و بهینه‌سازی — که شما را با دید مهندسی کامپایلر واقعی آشنا می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر OCaml را دوست دارید، این سری بهترین انتخاب است: عمق معرفتی خوب، کدهای کامل و مقایسه با پیاده‌سازی‌های دیگر. پس از آن می‌توانید به سمت «Write a C Compiler» نرا سندلر حرکت کنید تا وزن کامپایلر واقعی را هم تجربه کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مکس برنستاین (Max Bernstein). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://bernsteinbear.com/blog/lisp/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Little Lisp</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Little Lisp</span>
+      </div>
+      <h1>Little Lisp — مفسر Lisp در کمتر از ۱۵۰ خط جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://maryrosecook.com/blog/post/little-lisp" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Little Lisp» از ماری روز کوک است؛ مفسری که در یک بعدازظهر، از جملهٔ <code>(begin (define r 10) (* pi (* r r)))</code> پشتیبانی می‌کند.
+        </div>
+        <a class="btn solid" href="https://maryrosecook.com/blog/post/little-lisp" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>داستان: یک مفسر در کمتر از ۱۵۰ خط</h2>
+        <p>ماری روز کوک با این مقاله ثابت کرد که ساخت مفسر Lisp با جاوااسکریپت (زبان browsers) خیلی ساده است: کل پروژه ۴ تابع دارد — <code>tokenize</code>، <code>parse</code>، <code>evaluate</code> و <code>apply</code>. خروجی: یک زبان با توابع، متغیر، شرط و recursion.</p>
+      </section>
+
+      <section>
+        <h2>گام اول: tokenize</h2>
+        <p>تبدیل رشتهٔ ورودی به آرایه‌ای از توکن‌ها — برای مثال <code>(begin (define r 10) (* pi (* r r)))</code> تبدیل می‌شود به: <code>['(', 'begin', '(', 'define', 'r', '10', ')', '(', '*', 'pi', ...]</code>. از استریم‌ها با <code>memory</code> ساده استفاده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>گام دوم: parse</h2>
+        <p>توکن‌ها را به درخت (لیست‌های تو در تو) تبدیل می‌کند. اگر توکن «(» باشد، بازگشتی لیست داخلی را می‌سازد تا «)» برسد:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>function parse(tokens, memory) {
+  if (typeof memory === 'undefined') {
+    memory = { index: 0 };
+  }
+
+  if (tokens[memory.index] === '(') {           // شروع لیست
+    memory.index++;
+    let list = [];
+    while (tokens[memory.index] !== ')') {
+      list.push(parse(tokens, memory));         // بازگشت برای عنصر بعد
+    }
+    memory.index++;                             // رد شدن از ')'
+    return list;
+  } else if (tokens[memory.index] === ')') {
+    throw new Error('پرانتز اضافی!');
+  } else {
+    const atomicToken = tokens[memory.index];
+    memory.index++;
+    return atomicToken;                         // اتم: نام یا عدد
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>گام سوم: evaluate</h2>
+        <p>حالا درخت را ارزیابی می‌کند: اگر اتم «عدد» بود مقدارش؛ اگر «نام» بود مقدار متغیر از محیط؛ و اگر «لیست» بود، عنصر اول تابع و بقیه آرگومان هستند (<code>apply</code>). مفاهیم closure و محیط تودرتو هم در همین‌جا نوشته می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>function evaluate(ast, environment) {
+  if (typeof environment === 'undefined') {
+    environment = globalEnvironment;
+  }
+
+  // اتم‌ها
+  if (typeof ast === 'string') {
+    if (parseInt(ast) === NaN) {
+      return lookupVariable(ast, environment);   // نام متغیر
+    } else {
+      return parseInt(ast);                       // عدد
+    }
+  }
+
+  // لیست: عملگر و آرگومان‌ها
+  const operator = ast[0];
+  const operands = ast.slice(1);
+
+  if (operator === 'define') {
+    const variable = operands[0];
+    const value = evaluate(operands[1], environment);
+    environment[variable] = value;                // تعریف متغیر
+    return value;
+  }
+
+  if (operator === 'begin') {
+    // اجرای ترتیبی همهٔ عبارت‌ها
+    return operands.reduce((last, exp) =&gt; evaluate(exp, environment), undefined);
+  }
+
+  const closure = evaluate(operator, environment);
+  const args = operands.map(o =&gt; evaluate(o, environment));
+  return closure.apply(null, args);
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>چه یاد می‌گیرید؟</h2>
+        <p>۱) مفهوم AST و بازگشت؛ ۲) محیط (environment) به‌عنوان جدول نام→مقدار؛ ۳) closure با <code>apply</code>؛ ۴) اینکه Lisp = «قواعد بازگشتی» است نه چیز جادویی. برای تعریف تابع <code>lambda</code> هم همان patternها کافی است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بهترین نقطهٔ شروع برای ساخت مفسر در جاوااسکریپت: کوتاه، خوانا و کامل (متغیر + تابع). اگر می‌خواهید بعداً متغیرهای محلی، closures و GC را ببینید، «Crafting Interpreters» یا «mal» را دنبال کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ماری روز کوک (Mary Rose Cook). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://maryrosecook.com/blog/post/little-lisp" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

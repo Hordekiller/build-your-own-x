@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کامپایلر فوق‌کوچک (Go)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر فوق‌کوچک Go</span>
+      </div>
+      <h1>The Super Tiny Compiler — کامپایلر فوق‌کوچک در Go</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/hazbo/the-super-tiny-compiler" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پورت Go از «The Super Tiny Compiler» نوشتهٔ hazbo است — بازنویسی نسخهٔ مشهور جاوااسکریپتی jamiebuilds در Go.
+        </div>
+        <a class="btn solid" href="https://github.com/hazbo/the-super-tiny-compiler" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>داستان کامپایلر ۲۰۰ خطی</h2>
+        <p>کامپایلر اصلی (the-super-tiny-compiler) توسط جیمز کایل (jamiebuilds) در حدود ۲۰۰ خط جاوااسکریپت نوشته شد تا نشان دهد که ساختار کامپایلر در اصل ساده است؛ ورودی شبیه Lisp <code>(add 2 (subtract 4 2))</code> و خروجی شبیه C <code>add(2, subtract(4, 2))</code>. نسخهٔ Go همین مسیر را با تایپ‌های صریح و توابع تمیز دنبال می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>چهار مرحلهٔ اصلی</h2>
+        <p>۱) <b>Tokenizer</b>: درشت‌نمایی ورودی به توکن‌ها؛ ۲) <b>Parser</b>: توکن‌ها را به AST (درخت نحو) تبدیل می‌کند؛ ۳) <b>Transformer</b>: AST ورودی را به AST خروجی (که ساختار C دارد) تبدیل می‌کند؛ ۴) <b>Code Generator</b>: از AST خروجی، رشتهٔ کد C می‌سازد.</p>
+        <p>برای ساختاردهی، «کامپایلر» در سه تابع <code>tokenizer</code>، <code>parser</code> و <code>transformer</code> (با <code>traverser</code> داخلی) پیاده شده و در انتها <code>codeGenerator</code> کار چاپ را انجام می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: مرحلهٔ transformer در Go</h2>
+        <pre class="code"><span class="lang-tag">Go</span><code>// تبدیل گره‌ها: ولدها به "CallExpression"
+func transform(node *Node, parent *Node) {
+  switch n := (*node).(type) {
+  case *NumberLiteral:
+    if parent != nil {
+      (*parent).(type) = ... // تبدیل به NumberLiteral خروجی
+    }
+  case *CallExpression:
+    // بخش اول: تابع به CallExpression جدا تبدیل می‌شود
+    expression := &amp;CallExpression{Callee: n.Callee, Arguments: []Node{}}
+    // بخش دوم: آرگومان‌ها را با خودش (به‌عنوان والد) بازگشت بزن
+    for _, arg := range n.Arguments {
+      transform(&amp;arg, newParent)
+    }
+  }
+}</code></pre>
+        <p>ترفند اصلی کامپایلر اصلی، یک تابع <code>traverser</code> است که با دو نوع بازدید (enter و exit) روی AST حرکت می‌کند؛ نسخهٔ Go هم همین الگو را دارد.</p>
+      </section>
+
+      <section>
+        <h2>چه چیزی یاد می‌گیرید</h2>
+        <p>با ۲۰۰ خط کد، با مفاهیم اصلی کامپایلر آشنا می‌شوید: lexing (تشخیص کاراکترهای گروه‌بندی)، parsing (ساخت سلسله‌مراتب)، AST (درخت داده)، traverser (پیمایش بازگشتی) و codegen (چاپ کد). چون ورودی ساده است، تمرکز روی مفاهیم است نه جزئیات زبان.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بهترین «اولین کامپایلر» برای شروع: کوتاه، خوانا، با تست. نسخهٔ Go برای کسانی که به تایپ و وضوح Go علاقه دارند عالی است؛ نسخهٔ جاوااسکریپت برای آشنایی سریع با مفاهیم. بعد از آن، به سراغ کامپایلرهای واقعی‌تر (مثل acwj یا Crafting Interpreters) بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> hazbo. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/hazbo/the-super-tiny-compiler" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

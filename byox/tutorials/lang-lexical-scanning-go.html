@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اسکن واژگانی در Go (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>اسکن واژگانی Go</span>
+      </div>
+      <h1>Lexical Scanning در Go — سخنرانی راب پایک</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=HxaD_trXwRE" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور سخنرانی «Lexical Scanning in Go» از راب پایک (هم‌بنیان‌گذار Go) است که الگوی اسکنر متنی Go را با ماشین‌حالت (state machine) توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=HxaD_trXwRE" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ سخنرانی</h2>
+        <p>راب پایک در این سخنرانی نحوهٔ پیاده‌سازی اسکنر (lexer) بسته‌های <code>text/template</code> و <code>html/template</code> گو را توضیح می‌دهد — الگویی که بعدها در ساخت کامپایلرها و ابزارها بسیار استفاده شد. این یک درس کلاسیک در طراحی «ماشین حالت» (State Machine) است.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=HxaD_trXwRE" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>ایدهٔ مرکزی: تابع حالت به‌جای جدول حالت</h2>
+        <p>در الگوی پیشنهادی پایک، هر «حالت» یک تابع است که ورودی (اسکنر) را می‌گیرد و تابع حالت بعدی را برمی‌گرداند. به این ترتیب lexer به‌صورت یک حلقهٔ اصلی (<code>for state != nil</code>) اجرا می‌شود و هر تابع حالت مسئول تشخیص بخشی از ورودی است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type stateFn func(*lexer) stateFn
+
+func (l *lexer) run() {
+  for state := l.state; state != nil; {
+    state = state(l)   // اجرای حالت فعلی، دریافت حالت بعدی
+  }
+}
+
+// حالت ابتدایی
+func lexText(l *lexer) stateFn {
+  for {
+    if strings.HasPrefix(l.input[l.pos:], "{{") {
+      l.pos += 2
+      return lexLeftDelim   // برو به حالت داخل تگ
+    }
+    l.next()
+    if l.pos &gt;= len(l.input) {
+      l.emit(itemEOF)
+      return nil   // پایان
+    }
+  }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>خروجی اسکنر: آیتم‌ها و کانال</h2>
+        <p>اسکنر همهٔ توکن‌ها را از طریق یک <b>channel</b> به مصرف‌کننده (parser) می‌فرستد؛ هر آیتم (<code>item</code>) دارای تایپ و متن است. این الگو، lexer را از parser کاملاً جدا می‌کند و امکان اجرای هم‌زمان (goroutine) را ساده می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>type item struct {
+  typ itemType  // نوع آیتم (itemText, itemLeftDelim, ...)
+  val string    // متن خام
+  line int      // شماره خط برای خطاها
+}
+
+func (l *lexer) emit(t itemType) {
+  l.items &lt;- item{t, l.input[l.start:l.pos], l.line}
+  l.start = l.pos
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این الگو مهم است؟</h2>
+        <p>اول اینکه تمرکز روی «حالت به‌جای منطق شرطی» باعث می‌شود lexerها تمیز و قابل‌آزمایش شوند. دوم، همین سخنرانی منبع الهام بسیاری از پیاده‌سازی‌های lexer در زبان‌های دیگر (Rust، Python و…) شده است. اگر می‌خواهید زبان خودتان را بسازید و به lexer نیاز دارید، این الگو بهترین انتخاب است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>۳۰ دقیقه ویدیو + چند ساعت تمرین، شما را به مهارت طراحی lexer با ماشین حالت می‌رساند. با این زبان، ساخت بخش اول کامپایلر شما (تجزیهٔ متن) حرفه‌ای و تمیز خواهد بود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> راب پایک و بنیاد Go. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/watch?v=HxaD_trXwRE" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

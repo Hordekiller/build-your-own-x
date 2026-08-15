@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک کامپایلر بسازیم (Pascal)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کِرنشاو (Pascal)</span>
+      </div>
+      <h1>بیایید یک کامپایلر بسازیم — نسخهٔ اصلی کِرنشاو (Pascal)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Pascal</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://compilers.iecc.com/crenshaw/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعهٔ «Let's Build a Compiler» نوشتهٔ جک کرنشاو (۱۹۸۸) است — مرجع کلاسیک آموزش ساخت کامپایلر به روش تک‌مرحله‌ای.
+        </div>
+        <a class="btn solid" href="https://compilers.iecc.com/crenshaw/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>تاریخچه و اهمیت</h2>
+        <p>سپتامبر ۱۹۸۸، جک کرنشاو در ۱۶ قسمت یک کامپایلر را از صفر ساخت و در مجلهٔ RISC نوشت. این مجموعه به‌صورت آنلاین در دسترس است و به‌دلیل روش «تک‌مرحله‌ای» و توضیح سادهٔ هر تصمیم، هنوز هم بهترین «اولین کامپایلر» برای خیلی‌هاست. تقریباً همهٔ آموزش‌های بعدی (پورت‌های C، Haskell، Rust) از همینجا الهام گرفته‌اند.</p>
+      </section>
+
+      <section>
+        <h2>روش کار: سه تابع پایه</h2>
+        <p>قلب روش کرنشاو سه تابع ساده در Pascal است — <code>GetChar()</code> (خواندن کاراکتر بعدی)، <code>Look</code> (کاراکتر فعلی) و <code>Match()</code> (بررسی و پرش از کاراکتر مورد انتظار). همهٔ قواعد گرامر بر پایهٔ همین‌ها ساخته می‌شوند و مستقیماً اسمبلی 68k تولید می‌کنند:</p>
+        <pre class="code"><span class="lang-tag">Pascal</span><code>procedure Expression;
+begin
+  Term;
+  while Look in ['+', '-'] do begin
+    case Look of
+      '+': Add;
+      '-': Subtract;
+    end;
+  end;
+end;
+
+procedure Add;
+begin
+  Match('+');
+  Term;
+  EmitLn('ADD D0,D1');
+end;
+
+procedure Subtract;
+begin
+  Match('-');
+  Term;
+  EmitLn('SUB D0,D1');
+  EmitLn('NEG D0');
+end;</code></pre>
+        <p>چهار عمل اصلی همیشه روی رجیستر <code>D0</code> (نتیجه) و <code>D1</code> (عملوند دوم) انجام می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نقشهٔ ۱۶ قسمتی</h2>
+        <p>بخش‌ها: ۱) مبانی و ماشین‌حساب؛ ۲) ضرب/تقسیم و اولویت؛ ۳) متغیرها؛ ۴) انواع و ساختار؛ ۵) کنترل جریان (if/while)؛ ۶) توابع؛ ۷) نمادها و مدیریت نشانه؛ ۸) پارامترها؛ ۹-۱۰) پیشرفت‌های بیشتر (انواع داده، مدیریت خطا و…). پایان، یک کامپایلر کوچک با پشتیبانی از توابع است.</p>
+      </section>
+
+      <section>
+        <h2>چرا همچنان خواندنی است؟</h2>
+        <p>فلسفهٔ «ساده نگه دار و جلو برو» (single-pass، بدون AST) باعث می‌شود هر بخش در کمترین زمان درک شود. اما برای کامپایلرهای مدرن (با بهینه‌سازی و AST) بعداً باید سراغ منابع مدرن‌تر بروید. بااین‌حال، خواندن اصل کِرنشاو به شما درک شهودی از «گرامر ↔ اسمبلی» می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>منبع تاریخی و آموزشی بی‌نظیر: اگر زبان برنامه‌نویسی‌تان Pascal نیست، پورت‌های C (lotabout) و Haskell (g-ford) از همین متن موجودند. به‌عنوان «اولین قدم» در سفر ساخت کامپایلر، دیدن این مسیر ارزشمند است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جک کرنشاو (Jack Crenshaw) و compilers.iecc.com. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://compilers.iecc.com/crenshaw/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

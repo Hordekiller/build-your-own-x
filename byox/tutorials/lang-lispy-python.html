@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | lisp.py — مفسر Lisp در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>lisp.py</span>
+      </div>
+      <h1>lisp.py — ساخت مفسر Lisp در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/khamidou/lisp.py" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «lisp.py» از khamidou است — یک مفسر Lisp کوتاه و خوانا در پایتون.
+        </div>
+        <a class="btn solid" href="https://github.com/khamidou/lisp.py" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی</h2>
+        <p>lisp.py یک مفسر Lisp در چند ده خط پایتون است که درس‌های اصلی مفسرنویسی را در خودش جا داده: tokenizer، parser، evaluator با محیط، و پشتیبانی از تعریف تابع با <code>lambda</code> یا <code>def</code>، شرط <code>if</code>، و عملگرهای پایه.</p>
+      </section>
+
+      <section>
+        <h2>ساختار کد</h2>
+        <p>کد در سه بخش مرتب: <code>tokenize</code> (تبدیل متن به لیست)، <code>parse</code> (ساخت درخت با بازگشت)، و <code>eval</code> (اجرا با محیط). خود پروژه طوری نوشته شده که به‌عنوان «مفسر آموزشی» مستقیم خوانده شود — بدون وابستگی به خارج از پروژه فقط با پایتون استاندارد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: قلب مفسر</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>def eval(x, env):
+    if type(x) is int:                    # عدد: مقدار خودش
+        return x
+
+    if type(x) is str:                    # نماد: از محیط بخوان
+        return env[x]
+
+    if x[0] == 'quote':
+        return x[1]
+
+    if x[0] == 'if':                      # شرط: فقط شاخهٔ درست
+        (_, test, true, false) = x
+        return eval(true, env) if eval(test, env) else eval(false, env)
+
+    if x[0] == 'lambda':                  # lambda: ساخت closure
+        (_, params, body) = x
+        return Lambda(params, body, env)
+
+    if x[0] == 'define':                  # تعریف متغیر
+        (_, name, value) = x
+        env[name] = eval(value, env)
+        return None
+
+    # فراخوانی تابع: eval عملگر و آرگومان‌ها
+    op = eval(x[0], env)
+    args = [eval(arg, env) for arg in x[1:]]
+    return apply(op, args, env)</code></pre>
+      </section>
+
+      <section>
+        <h2>چه چیزهایی بیشتر می‌آموزید</h2>
+        <p>با <code>apply</code> و ساختار <code>Lambda</code> که محیط تعریف را نگه می‌دارد، مفهوم closure را در عمل می‌بینید — همان چیزی که توابع Lisp را قدرتمند می‌کند. می‌توانید در ادامه <code>let</code>، <code>begin</code> و حتی GC ساده (با استفاده از مقالهٔ «Baby's First Garbage Collector») اضافه کنید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>یک پروژهٔ کوچک اما کامل برای شروع مفسرنویسی در پایتون؛ سریع، تمام‌پایه، و مناسب برای تمرین. اگر می‌خواهید همین سطح را با عمق بیشتر ببینید، «lispy نورویگ» (۹۰ خط!) گزینهٔ بعدی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> khamidou. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/khamidou/lisp.py" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

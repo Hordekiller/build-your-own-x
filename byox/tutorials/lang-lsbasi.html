@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک مفسر ساده بسازیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>lsbasi</span>
+      </div>
+      <h1>بیایید یک مفسر ساده بسازیم — سری lsbasi رسلان اسپیواک</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://ruslanspivak.com/lsbasi-part1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری «Let's Build A Simple Interpreter» از رسلان اسپیواک است — آموزش مفهومی ساخت مفسر با پایتون.
+        </div>
+        <a class="btn solid" href="https://ruslanspivak.com/lsbasi-part1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>معرفی سری</h2>
+        <p>رسلان اسپیواک با سری «بیایید یک مفسر ساده بسازیم» (بیش از ۲۰ قسمت) یکی از محبوب‌ترین آموزش‌های ساخت مفسر را نوشته: شروع از ماشین‌حساب <code>3 + 5</code> و رسیدن به زبانی با متغیرها، شرط‌ها، حلقه‌ها و حتی فارسی‌نمایی Lexer و Parser مجزا. هر قسمت روی یک مفهوم متمرکز است.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم گام‌به‌گام</h2>
+        <p>۱) Token و Lexer (تبدیل متن به توکن)؛ ۲-۳) Parser و AST؛ ۴) Interpreter (ارزیابی)؛ ۵-۷) اولویت عملگرها و grammars (سینتکس دیاگرام)؛ ۸-۹) مدیریت توکن‌های چندگانه؛ ۱۰-۱۱) انجام محاسبات و نحو ساده؛ ۱۲-۱۳) متغیرها و انتساب؛ ۱۴-۱۵) مرور و خطاها؛ ۱۶-۲۰) شرط‌ها، حلقه‌ها، عملگرهای منطقی و ساختار نهایی.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: تقطیع فازی ۱ و ۲</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code># Token types
+INTEGER, PLUS, MINUS, MUL, DIV = 'INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV'
+
+class Interpreter:
+    def __init__(self, text):
+        self.text = text
+        self.pos = 0
+        self.current_token = None
+
+    def get_next_token(self):
+        # lexer: نادیده‌گرفتن فاصله، تشخیص عدد/عملگر
+        while self.pos &lt; len(self.text) and self.text[self.pos].isspace():
+            self.pos += 1
+        if self.pos &gt;= len(self.text):
+            return Token(EOF, None)
+        tok = self.text[self.pos]
+        if tok.isdigit():
+            start = self.pos
+            while self.pos &lt; len(self.text) and self.text[self.pos].isdigit():
+                self.pos += 1
+            return Token(INTEGER, int(self.text[start:self.pos]))
+        if tok == '+': self.pos += 1; return Token(PLUS, '+')
+        ...
+        raise Exception('خطای تجزیه')</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این سری محبوب است؟</h2>
+        <p>نوشته‌های رسلان بسیار توضیحی است: نمودارهای grammar، جدول‌ها و «بهتر است این کار را نکنیم چون…»ها. به‌ویژه مباحث AST و visitor pattern را به‌سادگی جا می‌اندازد. در انتها می‌توانید زبان خودتان را با تعریف کلمات کلیدی (<code>BEGIN…END</code>) گسترش دهید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید بدون هیچ پیش‌نیاز کامپایلری، به‌صورت شهودی مفسر بسازید: این بهترین نقطهٔ شروع است. در کنارش می‌توانید «lispy» نورویگ را هم بخوانید تا دو سبک (مفسر Lisp و مفسر دستوری) را مقایسه کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> رسلان اسپیواک (Ruslan Spivak). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://ruslanspivak.com/lsbasi-part1/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

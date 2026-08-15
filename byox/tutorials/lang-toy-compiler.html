@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کامپایلر اسباب‌بازی با Flex</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر Flex</span>
+      </div>
+      <h1>نوشتن کامپایلر اسباب‌بازی خودت با Flex و Bison</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++ / Flex / Bison</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Writing Your Own Toy Compiler» از وبلاگ gnuu است که با ابزارهای Lexer و Parser کلاسیک (Flex و Bison) یک کامپایلر کوچک می‌سازد.
+        </div>
+        <a class="btn solid" href="https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا Flex و Bison؟</h2>
+        <p>قبل از اینکه همه چیز را دستی بنویسیم، خوب است بدانیم ابزارهای کلاسیک «ساخت کامپایلر» چطور کار می‌کنند. <b>Flex</b> lexer تولید می‌کند (متن ورودی را به token تبدیل می‌کند) و <b>Bison</b> parser و تولیدکنندهٔ پارسر (که گرامر را با LALR parsing تحلیل می‌کند). این آموزش، با این دو ابزار، یک کامپایلر کوچک با خروجی اسمبلی می‌سازد.</p>
+      </section>
+
+      <section>
+        <h2>بخش اول: فایل Flex</h2>
+        <p>فایل lexer در Flex با سه بخش تعریف می‌شود: declarations، rules (قواعد بازگشتی)، و کدهای اضافه. برای مثال تعریف tokenهای ریاضی:</p>
+        <pre class="code"><span class="lang-tag">Flex</span><code>%{
+#include "parser.hpp"   // تعریف token ها از Bison
+%}
+
+DIGIT   [0-9]
+NUMBER  {DIGIT}+
+
+%%
+
+"+"   { return PLUS; }
+"-"   { return MINUS; }
+"*"   { return MULT; }
+"/"   { return DIV; }
+{NUMBER}  { yylval.num = atoi(yytext); return NUMBER; }
+[ \t\n]   { /* نادیده‌گرفتن فاصله‌ها */ }
+.         { yyerror("کاراکتر نامعتبر"); }
+
+%%
+
+int yywrap(void) { return 1; }   // پایان فایل</code></pre>
+      </section>
+
+      <section>
+        <h2>بخش دوم: گرامر Bison</h2>
+        <p>سرعت عمل Bison به‌خاطر گرامرهای LALR است؛ در اینجا یک اکسپرژن ساده تعریف می‌شود و با هر کاهش (reduction)، کد اسمبلی متناظر تولید می‌شود — همین اتصالِ «گرامر↔کد» اصل کار کامپایلر است:</p>
+        <pre class="code"><span class="lang-tag">Bison</span><code>%token NUMBER
+%left PLUS MINUS
+%left MULT DIV
+
+%%
+
+expr: expr PLUS expr   { $$ = gen_add($1, $3); }
+    | expr MULT expr   { $$ = gen_mult($1, $3); }
+    | NUMBER           { $$ = gen_number($1); }
+    ;
+
+%%
+
+int gen_number(int n) {
+  printf("push %d\n", n);   // کد اسمبلی برای عدد
+  return 0;
+}</code></pre>
+        <p>توجه کنید که عبارت‌ها با <code>%left</code> اولویت‌بندی می‌شوند — این هم‌ارز است با آنچه در parser دستی با Pratt انجام می‌دهیم.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های بعدی</h2>
+        <p>پس از ماشین‌حساب، مقاله به افزودن متغیرها، شرط‌ها و توابع اشاره می‌کند. به‌طور کلی مسیر این‌گونه است: (۱) ساخت lexer با Flex، (۲) تعریف گرامر و AST، (۳) تولید کد اسمبلی در actions، (۴) کامپایل و اجرای testها.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این مقاله نشان می‌دهد که ابزارهای قدیمی (Flex/Bison) هنوز بهترین راه برای ساخت سریع lexer/parser هستند؛ اگر به «دستی‌سازی» علاقه دارید بعداً به آموزش‌هایی مثل acwj بروید — اما اگر فقط می‌خواهید کامپایلر بسازید، این روش سریع‌ترین نقطهٔ شروع است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> gnuu.org. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Kaleidoscope با LLVM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Kaleidoscope</span>
+      </div>
+      <h1>Kaleidoscope — پیاده‌سازی زبان خودت با LLVM</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/index.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش رسمی «My First Language Frontend with LLVM» است — ده بخش ساخت زبان Kaleidoscope با پشتیبانی کامل از LLVM.
+        </div>
+        <a class="btn solid" href="https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/index.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>در این آموزش چه می‌سازید؟</h2>
+        <p>LLVM (مخفف Low Level Virtual Machine) یک مجموعه‌ابزار برای ساخت کامپایلر است؛ خروجی آن «کد میانی» (IR) و سپس کد ماشین بهینه‌شده است. این آموزش رسمی LLVM، زبان <b>Kaleidoscope</b> را می‌سازد: زبانی تابعی با دستور <code>def</code> برای تعریف تابع، <code>extern</code> برای توابع خارجی، شرط‌ها، حلقه‌ها، عملگرهای تعریف‌شدهٔ کاربر و متغیرهای متغیر.</p>
+      </section>
+
+      <section>
+        <h2>معماری ده بخشی</h2>
+        <p>بخش‌ها طوری طراحی شده‌اند که هرکدام یک لایه اضافه می‌کنند: (۱) lexer؛ (۲) parser و AST؛ (۳) تولید IR با <code>IRBuilder</code>؛ (۴) اضافه‌کردن JIT برای اجرای لحظه‌ای؛ (۵) بهینه‌ساز (Optimizer با PassManager)؛ (۶) شرط‌های if/else (با گره‌های PHI)؛ (۷) حلقه‌ها (for)؛ (۸) عملگرهای دودویی تعریف‌شدهٔ کاربر (با جدول اولویت دینامیک)؛ (۹) متغیرهای تغییرپذیر (با <code>alloca</code>)؛ (۱۰) خروجی فایل آبجکت‌کد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: ساخت IR با IRBuilder</h2>
+        <p>برای مثال، کد <code>def add(a, b) a + b</code> این‌گونه IR تولید می‌کند:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>Value *CodegenVisitor::visit(BinaryExpr &amp;e) {
+  Value *L = codegen(e.LHS);
+  Value *R = codegen(e.RHS);
+  switch (e.Op) {
+  case '+':
+    return Builder-&gt;CreateFAdd(L, R, "addtmp");  // جمع ممیز شناور
+  case '-':
+    return Builder-&gt;CreateFSub(L, R, "subtmp");
+  case '*':
+    return Builder-&gt;CreateFMul(L, R, "multmp");
+  case '/':
+    return Builder-&gt;CreateFDiv(L, R, "divtmp");
+  default:
+    return LogErrorV("عملگر ناشناخته");
+  }
+}</code></pre>
+        <p>نتیجهٔ این کد، یک ماژول LLVM است که می‌توانید با <code>lli</code> اجرا کنید حتی قبل از اینکه backend کامل شود.</p>
+      </section>
+
+      <section>
+        <h2>نکته‌های فنی ارزشمند</h2>
+        <p>بخش‌های ۶ و ۷ کار با <b>گره‌های PHI</b> را نشان می‌دهند — مفهومی مهم در SSA که در زبان‌های لو-لوول مثل Rust هم می‌بینید. بخش ۹ با <code>alloca</code> (متغیر روی پشته) نشان می‌دهد که چرا متغیرهای تغییرپذیر در SSA کار سختی هستند. بخش ۱۰ با خروجی آبجکت‌فایل، کامپایلرتان را «واقعی» می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>کامل‌ترین معرفی رسمی برای ساخت frontend روی LLVM در C++ است. اگر به‌دنبال مسیری هستید که زبان شما بتواند بعداً روی CPU واقعی سرعت بگیرد (JIT یا AOT)، با این آموزش شروع کنید — سپس می‌توانید Kaleidoscope را با انواع داده و ماژول‌ها گسترش دهید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> پروژهٔ LLVM. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/index.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

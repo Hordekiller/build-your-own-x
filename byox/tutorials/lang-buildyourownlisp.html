@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Lisp خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Build Your Own Lisp</span>
+      </div>
+      <h1>Build Your Own Lisp — زبان Lisp خودت را در C بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.buildyourownlisp.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب آنلاین «Build Your Own Lisp» نوشتهٔ دانیل هولدن است که ساخت یک مفسر Lisp کامل را در C (حدود ۱۰۰۰ خط) آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="http://www.buildyourownlisp.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>کتابی که از «صفر» شروع می‌کند</h2>
+        <p>دانیل هولدن با فرض اینکه خواننده C بلد نیست، از نصب کامپایلر تا ساخت کامل یک زبان Lisp را قدم‌به‌قدم می‌برد. نتیجهٔ نهایی «Lispy» است: زبانی با توابع، متغیرها، شرط‌ها، حلقه و قواعد لامبدا که روی REPL اجرا می‌شود.</p>
+        <p>ویژگی متمایز کتاب استفاده از کتابخانهٔ <b>mpc</b> (یک کتابخانهٔ parser combinator ساده که در خود کتاب ساخته می‌شود) برای تعریف گرامر زبان است — به این ترتیب خواننده با معماری واقعی کامپایلرها آشنا می‌شود بدون اینکه درگیر پیچیدگی lexer شود.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی: mpc و گرامر زبان</h2>
+        <p>در فصل اول، شما یک ماشین‌حساب لهستانی (Polish notation) می‌سازید: ورودی مثل <code>+ 1 (* 2 3)</code>. سپس با <code>mpc_parser_t*</code> گرامر زبان را تعریف می‌کنید:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>mpc_parser_t* Number    = mpc_new("number");
+mpc_parser_t* Operator  = mpc_new("operator");
+mpc_parser_t* Expr      = mpc_new("expr");
+mpc_parser_t* Lispy     = mpc_new("lispy");
+
+mpca_lang(MPCA_LANG_DEFAULT,
+  " number : /-?[0-9]+/ ;            "
+  " operator: '+' | '-' | '*' | '/' ;"
+  " expr    : <number> | '(' <operator> <expr>+ ')' ;"
+  " lispy   : /^/ <operator> <expr>+ /$/ ; ",
+  Number, Operator, Expr, Lispy);</code></pre>
+        <p>این گرامر به‌صورت بازگشتی تعریف شده — <code>expr</code> می‌تواند داخل خودش expr داشته باشد — که اساسِ درک ساختارهای تودرتوی زبان‌های برنامه‌نویسی است.</p>
+      </section>
+
+      <section>
+        <h2>از پارسر تا مفسر: eval</h2>
+        <p>پس از اینکه mpc درخت نحو (AST) را می‌سازد، می‌نویسید که هر گره چه‌طور ارزیابی شود. قلب مفسر تابعی است که یک لیست را می‌گیرد، عملگر و عملوندها را جدا می‌کند و محاسبه را انجام می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>lval* eval(lval* v) {
+  if (v-&gt;type == LVAL_NUM) return v;      // عدد = مقدار نهایی
+  lval* f = pop(v, 0);                    // عملگر را بردار
+  if (f-&gt;type != LVAL_FUN) { lval_del(f); lval_del(v); error! }
+  for (int i = 0; i &lt; v-&gt;count; i++)
+    v-&gt;cell[i] = eval(v-&gt;cell[i]);       // ارزیابی بازگشتی آرگومان‌ها
+  return call(f, v);                      // اجرای تابع
+}</code></pre>
+        <p>بعداً با افزودن <b>Q-Expression</b> (لیست‌هایی که ارزیابی نمی‌شوند) توابعی مثل <code>list</code>، <code>head</code> و <code>tail</code> به زبان اضافه می‌شوند؛ و در فصل‌های بعدی متغیرها با <code>def</code> و <code>=</code>، توابع تعریف‌شده با <code>\</code> (lambda) و حتی مدیریت خطا و GC ساده هم می‌آید.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پایانی</h2>
+        <p>کتاب در فصل‌های آخر: (۱) سیستم مدیریت خطا و انواع داده؛ (۲) ذخیره‌سازی و بارگذاری کد در فایل؛ (۳) افزودن کتابخانهٔ استاندارد کوچک (مثل <code>sum</code>، <code>len</code>). در پایان می‌توانید برنامه‌های واقعی با Lispy بنویسید.</p>
+        <p>همهٔ کدهای کتاب روی لینوکس و macOS و با <code>cc</code> ساده کامپایل می‌شوند؛ هیچ وابستگی خارجی جز mpc (که خودتان ساخته‌اید) نیست.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بهترین انتخاب برای کسی که «اصلاً هیچ چیز دربارهٔ زبان‌های برنامه‌نویسی نمی‌داند»: با C شروع می‌کنید و در پایان یک مفسر لیسپ دارید که توابع و متغیر دارد؛ مفاهیم parser، AST، eval و REPL را عمقاً می‌فهمید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> دانیل هولدن (Daniel Holden). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://www.buildyourownlisp.com/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

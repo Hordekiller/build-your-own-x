@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | acwj — سفر ساخت کامپایلر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>acwj</span>
+      </div>
+      <h1>acwj — A Compiler Writing Journey، سفر گام‌به‌گام ساخت کامپایلر C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/DoctorWkt/acwj" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «A Compiler Writing Journey» از وارن تومی (DoctorWkt) است؛ ساخت کامپایلر یک زیرمجموعهٔ بزرگ از C در ۳۴ بخش، با خروجی اسمبلی x86-64.
+        </div>
+        <a class="btn solid" href="https://github.com/DoctorWkt/acwj" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>واقعی‌ترین سری ساخت کامپایلر C</h2>
+        <p>بیشتر آموزش‌ها یا یک زبان ساختگی می‌سازند یا به یک زیرمجموعهٔ کوچک می‌رسند. اما جلسهٔ وارن تومی (که سال‌ها روی کامپایلرهای واقعی کار کرده) یک کامپایلر <b>SubC</b> می‌سازد که بخش بزرگی از زبان C واقعی را پشتیبانی می‌کند: تمام عملگرها، انواع پایه، struct، union، enum، typedef، توابع با آرگومان‌های متغیر (<code>varargs</code>)، حتی یک پیش‌پردازندهٔ ساده.</p>
+      </section>
+
+      <section>
+        <h2>معماری پایه: Pratts پارسر</h2>
+        <p>بخش‌های ابتدایی به سرعت پایه‌ها را می‌سازند: lexer با کلاس‌های token، سپس پارسری که از «قدرت باندینگ» (binding power) و روش <b>Pratt parsing</b> استفاده می‌کند — روشی مدرن که پردازش عملگرهای با اولویت‌های مختلف را بسیار تمیز می‌کند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// جدول اولویت عملگرها
+static struct {
+  int token;
+  int precedence;
+} binop_prec[] = {
+  { T_PLUS, 10 }, { T_MINUS, 10 },   // جمع/تفریق
+  { T_STAR, 20 }, { T_SLASH, 20 },   // ضرب/تقسیم
+  { T_EQ,   40 }, { T_NE, 40 },      // برابری
+  ...
+};
+
+// پارسر عملگرهای دودویی (Pratt)
+static struct ASTnode *binexpr(int ptp) {
+  struct ASTnode *left = unary();
+  while (op_precedence(Token.token) &gt; ptp) {
+    int tok = Token.token;
+    left = mkastnode(A_BINOP, left, NULL, tok, ...);
+  }
+  return left;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>گام‌های اصلی سفر</h2>
+        <p>سفر در ۳۴ بخش: ۱-۵) مبانی lexer/parser و تولید اسمبلی؛ ۶-۸) مقادیر و عملگرهای منطقی؛ ۹-۱۲) شرط‌ها و حلقه‌ها؛ ۱۳-۱۵) تابع‌ها و فراخوانی‌ها (<code>callq</code>)؛ ۱۶-۲۲) پوینترها و dereference (کلاس موقعیت‌های پرتنش!)؛ ۲۳-۲۸) struct/union/enum و typedef؛ ۲۹-۳۱) varargs و پیش‌پردازنده؛ ۳۲-۳۴) مقادیر منطقی، لانداها و …</p>
+        <p>نکتهٔ مهم: هر بخش شامل تست‌های (tests) است که رگرسیون را تضمین می‌کند — مثل یک پروژهٔ واقعی.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: تولید اسمبلی برای ضرب</h2>
+        <pre class="code"><span class="lang-tag">Assembly</span><code># a = b * 3  →  کد تولیدی برای x86-64
+        movq    %rbx, %rax    # b را در rax بگذار
+        imulq   $3, %rax, %rax   # ضرب در 3
+        movq    %rax, a(%rip) # ذخیره در a</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید بفهمید «کامپایلر C واقعی چطور کار می‌کند»، acwj بهترین منبع موجود است: عمق کامل، تست‌های منظم، و در پایان شما یک کامپایلر دارید که می‌تواند فایل‌های C واقعی را به اسمبلی تبدیل کند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> وارن تومی (DoctorWkt). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/DoctorWkt/acwj" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

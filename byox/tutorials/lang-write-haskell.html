@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Write You a Haskell</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Write You a Haskell</span>
+      </div>
+      <h1>Write You a Haskell — پیاده‌سازی Haskell در Haskell</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Haskell</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://dev.stephendiehl.com/fun/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور کتاب «Write You a Haskell» از استیون دیهل است که ساخت یک کامپایلر تابعی مدرن (Hindley-Milner) را در Haskell آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="http://dev.stephendiehl.com/fun/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مقدمه و هدف</h2>
+        <p>اگر «Write Yourself a Scheme در ۴۸ ساعت» را خوانده‌اید، این کتاب گام بعدی است: به‌جای مفسر ساده، یک <b>کامپایلر کامل زبان تابعی</b> با سیستم تایپی Hindley-Milner، type classes، الگوریتم دارنیکا (desugaring) و اجرای نهایی از طریق ترجمه به C می‌سازید. خروجی نهایی یک اجرایی واقعی است.</p>
+      </section>
+
+      <section>
+        <h2>محتوا و معماری</h2>
+        <p>کتاب در ۱۴ فصل: نحو با Parsec؛ AST (ترم‌ها با pattern matching)؛ نمایش میان‌مدّهای (Core Language)؛ سیستم تایپ (substitution، unification، Hindley-Milner)؛ type classes و instance resolution؛ تبدیل نوع تاپل/رشته به ساختارهای پایه؛ desugaring؛ مونومورفیسم؛ و در نهایت code generator که Core را به C ترجمه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: وحدت (Unification)</h2>
+        <pre class="code"><span class="lang-tag">Haskell</span><code>-- جایگزینی تایپ‌ها
+type Subst = Map.Map TVar Type
+
+-- وحدت: دو تایپ را با جایگزینی به‌یک‌شکل می‌کند
+unify :: Type -&gt; Type -&gt; Subst -&gt; Either String Subst
+unify (TAp l r) (TAp l' r') s = do
+  s1 &lt;- unify l l' s
+  s2 &lt;- unify r r' s1
+  return s2
+unify (TVar a) t s = bind a t s
+unify t (TVar a) s = bind a t s
+unify TInt TInt s = return s
+unify TBool TBool s = return s
+unify t1 t2 _ =
+  Left ("عدم تطابق تایپ: " ++ show t1 ++ " و " ++ show t2)</code></pre>
+        <p>همین الگوریتم (Robinson) است که در بسیاری از کامپایلرهای تابعی واقعی از جمله GHC وجود دارد.</p>
+      </section>
+
+      <section>
+        <h2>نکتهٔ پایانی: ترجمه به C</h2>
+        <p>پس از تایپ‌چک، برنامه‌های Core Language به کد C ترجمه می‌شوند (بسته <code>Crunch</code>) — اینجا با مسائل واقعی مثل مدیریت heap و garbage collection روبه‌رو می‌شوید (تخصیص با <code>malloc</code> و جمع‌آوری با علامت‌گذاری). قدم‌های پایانی، اجرای نمونه‌های واقعی (مانند بخش پیش‌بینی و طرح‌های کوچک) است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>منبعی پیشرفته اما بی‌نظیر برای درک کامپایلرهای تابعی: سیستم تایپی هیدلی-میلنر، الگوریتم وحدت، typeclasses و ترجمه به زبان میانی — همه را در عمل می‌بینید. پیش‌نیاز: آشنایی با Haskell و مفاهیم پایهٔ کامپایلر.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> استیون دیهل (Stephen Diehl). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://dev.stephendiehl.com/fun/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

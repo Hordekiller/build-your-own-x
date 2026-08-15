@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | رمزگشایی کامپایلرها با الیکسیر (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر الیکسیر</span>
+      </div>
+      <h1>رمزگشایی کامپایلرها — نوشتن کامپایلر خودت با الیکسیر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Elixir</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=zMJYoYwOCd4" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور ویدیویی دربارهٔ ساخت کامپایلر با زبان الیکسیر است — بخشی از کنفرانس‌های Elixir که در آن فرآیند «رمزگشایی» (Demystifying) کامپایلر گام‌به‌گام نشان داده می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=zMJYoYwOCd4" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ ویدیو</h2>
+        <p>این ویدیو نشان می‌دهد که یک کامپایلر چطور در زبان الیکسیر — زبانی تابعی مبتنی بر Erlang/OTP — ساخته می‌شود. الیکسیر برای ساخت کامپایلر عالی است چون الگوی <code>pattern matching</code> و داده‌های تغییرناپذیر، نوشتن lexer و parser را بسیار خواناتر می‌کند.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/watch?v=zMJYoYwOCd4" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>مبانی: سه مرحلهٔ اصلی</h2>
+        <p>کامپایلر به‌طور کلی سه مرحله دارد: <b>(۱) Lexing</b> — تبدیل رشتهٔ کاراکترها به لیست توکن‌ها؛ <b>(۲) Parsing</b> — تبدیل توکن‌ها به درخت نحو انتزاعی (AST)؛ <b>(۳) Code generation</b> — تبدیل AST به خروجی اجرایی (مثل بایت‌کد BEAM یا اسمبلی). در الیکسیر هر سه مرحله با توابع pure و pattern matching نوشته می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>نمونه: یک lexer کوچک در الیکسیر</h2>
+        <p>برای تجربهٔ همان حس، یک lexer بسیار ساده را ببینید (افزودن اعداد و عملگرها):</p>
+        <pre class="code"><span class="lang-tag">Elixir</span><code>defmodule Lexer do
+  @digits ~r/^[0-9]/
+
+  def tokenize(str), do: tokenize(str, [])
+
+  # پایان ورودی
+  defp tokenize("", acc), do: Enum.reverse(acc)
+
+  # اعداد: چند رقم پشت سر هم
+  defp tokenize(&lt;&lt;c::utf8, rest::binary&gt;&gt;, acc) when c in ?0..?9 do
+    {num, rest2} = take_digits(&lt;&lt;c::utf8&gt;&gt; &lt;&gt; rest, "")
+    tokenize(rest2, [{:number, String.to_integer(num)} | acc])
+  end
+
+  # عملگرها
+  defp tokenize(&lt;&lt;"+", rest::binary&gt;&gt;, acc), do: tokenize(rest, [{:plus, "+"} | acc])
+  defp tokenize(&lt;&lt;"-", rest::binary&gt;&gt;, acc), do: tokenize(rest, [{:minus, "-"} | acc])
+
+  defp tokenize(&lt;&lt;_, rest::binary&gt;&gt;, acc), do: tokenize(rest, acc)  # فضای خالی
+
+  defp take_digits(&lt;&lt;c::utf8, rest::binary&gt;&gt;, acc) when c in ?0..?9,
+    do: take_digits(rest, acc &lt;&gt; &lt;&lt;c&gt;&gt;)
+  defp take_digits(rest, acc), do: {acc, rest}
+end</code></pre>
+      </section>
+
+      <section>
+        <h2>چه چیز دیگری یاد می‌گیرید</h2>
+        <p>ساخت AST در الیکسیر با struct و recursion؛ انجام عملیات روی AST (مثل ثبت رجیستر)؛ و در نهایت تولید بایت‌کد یا ارزیابی مستقیم. ویدیو همچنین خطاهایی را نشان می‌دهد که در طراحی زبان باید پیش‌بینی کنید (توکن ناشناخته، پرانتز باز نشده و…).</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر به زبان الیکسیر علاقه دارید، این ویدیو هم اصول کامپایلر را می‌آموزد و هم مهارت Elixir را تقویت می‌کند. اگر تجربهٔ ساخت مفسر ندارید، بهتر است ابتدا با یک آموزش ساده‌تر (مثل Little Lisp در جاوااسکریپت) شروع کنید و بعداً سراغ این ویدیو بیایید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سازندهٔ ویدیو. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/watch?v=zMJYoYwOCd4" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

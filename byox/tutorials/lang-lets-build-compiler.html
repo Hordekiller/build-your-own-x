@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک کامپایلر بسازیم (C/x86)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Let's build a compiler</span>
+      </div>
+      <h1>بیایید یک کامپایلر بسازیم — پورت C/x86 از سری کِرنشاو</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/lotabout/Let-s-build-a-compiler" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «Let's build a compiler» از lotabout است؛ پورتِ مجموعهٔ کلاسیک جک کرنشاو به C با خروجی اسمبلی x86.
+        </div>
+        <a class="btn solid" href="https://github.com/lotabout/Let-s-build-a-compiler" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>سری کلاسیک کِرنشاو</h2>
+        <p>در دههٔ ۱۹۸۰، جک کرنشاو مجموعهٔ آموزشی «Let's Build a Compiler» را منتشر کرد که با یک ماشین‌حساب ساده شروع می‌شد و به یک کامپایلر کامل با توابع می‌رسید. این مجموعه پایهٔ صدها آموزش بعدی شد. پورت lotabout آن را از Pascal/68k به <b>C و اسمبلی x86</b> منتقل کرده تا روی ماشین‌های امروزی قابل اجرا باشد.</p>
+      </section>
+
+      <section>
+        <h2>روش «تک‌مرحله‌ای» (Single-Pass)</h2>
+        <p>فلسفهٔ اصلی سری: کامپایلر هم‌زمان با خواندن ورودی، کد خروجی تولید می‌کند — بدون AST، بدون lexer جدا. کافیست سه تابع پایه را تعریف کنیم: <code>GetChar()</code> (خواندن شخصیت بعدی)، <code>Look()</code> (شخصیت فعلی) و <code>Match()</code> (بررسی شخصیت) — سپس همهٔ قواعد با همین سه تابع ساخته می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>void Expression() {   // قاعدهٔ عبارت: +1+2 → mov eax,1; add eax,2
+  Term();
+  while (Look == '+' || Look == '-') {
+    EmitLn("push eax");
+    switch (Look) {
+      case '+': Add(); break;
+      case '-': Subtract(); break;
+    }
+  }
+}
+
+void Add() {
+  Match('+');
+  Term();
+  EmitLn("pop ebx");     // عملوند دوم را بازیابی کن
+  EmitLn("add eax, ebx");
+}</code></pre>
+        <p>هر قاعدهٔ گرامری یک تابع است و هر تابع مستقیماً اسمبلی x86 (دستورهای <code>mov/add/sub</code> و پشته) تولید می‌کند — این درک شهودی‌ای از رابطهٔ گرامر و کد ماشین می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>مسیر آموزشی</h2>
+        <p>این مجموعه گام‌به‌گام جلو می‌رود: (۱) ماشین‌حساب جمع/تفریق، (۲) ضرب و تقسیم با اولویت‌ها، (۳) متغیرها و انتساب، (۴) شرط‌های if و پرش‌های اسمبلی، (۵) حلقه‌های while/loop، (۶) توابع و پارامترها، (۷) انواع داده‌ٔ بیشتر. در پایان یک کامپایلر کوچک ولی کامل دارید.</p>
+      </section>
+
+      <section>
+        <h2>چرا این نسخهٔ C مفید است؟</h2>
+        <p>نسخهٔ اصلی برای پردازندهٔ 68000 بود؛ پورت lotabout هم کد C قابل‌فهم است و هم اسمبلی x86 تولید می‌کند که با <code>as</code> و <code>ld</code> قابل اجراست. اگر می‌خواهید سفر خودتان را آرام و با پایهٔ محکم شروع کنید و بعد به سراغ کامپایلرهای واقعی‌تر (مثل acwj) بروید، این نقطهٔ شروع ایده‌آل است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> lotabout. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/lotabout/Let-s-build-a-compiler" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>
