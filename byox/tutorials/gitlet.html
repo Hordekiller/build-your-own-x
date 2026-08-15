@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Gitlet — پیاده‌سازی گیت در جاوااسکریپت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>Gitlet — پیاده‌سازی گیت در جاوااسکریپت</span>
+      </div>
+      <h1>Gitlet — پیاده‌سازی گیت در جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://gitlet.maryrosecook.com/docs/gitlet.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مستندات «Gitlet» از <b>ماری رز کوک</b> (Mary Rose Cook)
+          است — بازپیاده‌سازی گیت در جاوااسکریپت برای نشان دادن اینکه گیت زیر کاپوت چگونه کار می‌کند.
+          گیت‌لت مخزن را در <code>.gitlet</code> می‌سازد و init, add, rm, commit, branch, checkout, diff,
+          remote, fetch, merge, pull, push, status, clone, update-index, write-tree و update-ref را پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="http://gitlet.maryrosecook.com/docs/gitlet.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>گیت‌لت را نوشتم تا نشان دهم گیت زیر کاپوت چگونه کار می‌کند. آن را خوانا نوشتم و کد را پر از کامنت کردم. اگر با دستورهای پایه گیت آشنا نیستید، بخش «گیت در شش‌صد کلمه» را بخوانید.</p>
+      </section>
+
+      <section>
+        <h2>گیت در شش‌صد کلمه</h2>
+        <p>تصور کنید پوشه‌ای به نام <code>alpha</code> دارید که فایل <code>number.txt</code> با متن <code>first</code> در آن است.</p>
+        <p><code>git init</code> را اجرا می‌کنید تا <code>alpha</code> به مخزن گیت تبدیل شود. <code>git add number.txt</code> فایل را به index اضافه می‌کند: فهرستی از همه فایل‌هایی که گیت ردیابی می‌کند، و نام فایل را به محتوایش نگاشت می‌کند (حالا <code>number.txt -&gt; first</code>). همین دستور یک شیء blob حاوی <code>first</code> به پایگاه داده اشیای گیت اضافه کرده است.</p>
+        <p><code>git commit -m first</code> سه کار می‌کند: (۱) یک شیء tree می‌سازد که فهرست اقلام سطح بالای پوشه alpha است و به blob اول اشاره می‌کند؛ (۲) یک شیء commit می‌سازد که نسخه مخزن را نشان می‌دهد و به tree اشاره می‌کند؛ (۳) شاخه master را به commit جدید اشاره می‌دهد.</p>
+        <p><code>git clone . ../beta</code> پوشه جدید beta می‌سازد، آن را مخزن می‌کند، اشیای alpha را در beta کپی می‌کند، شاخه master هر دو را هم‌نقطه می‌کند، index را با محتوای commit اول هماهنگ می‌کند و فایل‌ها (number.txt) را به‌روزرسانی می‌کند.</p>
+        <p>در beta محتوای number.txt را به <code>second</code> تغییر می‌دهید، add و commit می‌کنید. commit جدید به commit اول (پدرش) اشاره می‌کند و شاخه master به commit دوم اشاره می‌کند.</p>
+        <p>در alpha: <code>git remote add beta ../beta</code> — beta به مخزن راه‌دور تبدیل می‌شود. <code>git pull beta master</code> زیر کاپوت <code>git fetch beta master</code> را اجرا می‌کند (شیءهای commit دوم را از beta به alpha کپی می‌کند، رکورد شاخه beta در alpha را به commit دوم می‌رساند و FETCH_HEAD را به‌روز می‌کند) و سپس <code>git merge FETCH_HEAD</code> را: چون master در alpha روی commit اول (جد commit دوم) است، merge فقط شاخه را به commit دوم جلو می‌برد و index و شاخه کاری را به‌روز می‌کند.</p>
+        <p><code>git branch red</code> شاخه <code>red</code> را به commit دوم اشاره می‌دهد. <code>git checkout red</code> HEAD را از شاخه master به red می‌برد. محتوای number.txt را <code>third</code> می‌کنید، add و commit می‌کنید. <code>git push beta red</code> اشیای commit سوم را به beta کپی می‌کند و شاخه red در beta را به commit سوم اشاره می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>توابع اصلی API گیت‌لت</h2>
+        <p>گیت‌لت یک ماژول node است: <code>var gitlet = module.exports = {...}</code>. فایل‌ها در <code>.gitlet</code> ذخیره می‌شوند (در مخازن bare داخل پوشه اصلی).</p>
+        <h3>init()</h3>
+        <p>پوشه فعلی را به عنوان مخزن جدید مقداردهی می‌کند — ساختار گیت را با یک آبجکت JS آینه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  init: function(opts) {
+    if (files.inRepo()) { return; }
+    opts = opts || {};
+
+    var gitletStructure = {
+      HEAD: "ref: refs/heads/master\\n",
+      config: config.objToStr({ core: { "": { bare: opts.bare === true }}}),
+      objects: {},
+      refs: {
+        heads: {},
+      }
+    };
+
+    files.writeFilesFromTree(opts.bare ? gitletStructure : { ".gitlet": gitletStructure },
+                             process.cwd());
+  },</code></pre>
+        <h3>add()</h3>
+        <p>فایل‌های هم‌نام <code>path</code> را به index اضافه می‌کند — با استفاده از فرمان گیت <code>update_index()</code>:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  add: function(path, _) {
+    files.assertInRepo();
+    config.assertNotBare();
+
+    var addedFiles = files.lsRecursive(path);
+
+    if (addedFiles.length === 0) {
+      throw new Error(files.pathFromRepoRoot(path) + " did not match any files");
+    } else {
+      addedFiles.forEach(function(p) { gitlet.update_index(p, { add: true }); });
+    }
+  },</code></pre>
+        <h3>commit()</h3>
+        <p>یک شیء commit می‌سازد که وضعیت فعلی index را نشان می‌دهد، یک مجموعه اشیاء tree می‌نویسد و HEAD را به commit اشاره می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  commit: function(opts) {
+    files.assertInRepo();
+    config.assertNotBare();
+
+    var treeHash = gitlet.write_tree();
+    var headDesc = refs.isHeadDetached() ? "detached HEAD" : refs.headBranchName();
+
+    if (refs.hash("HEAD") !== undefined &amp;&amp;
+        treeHash === objects.treeHash(objects.read(refs.hash("HEAD")))) {
+      throw new Error("# On " + headDesc + "\\nnothing to commit, working directory clean");
+    } else {
+      // ...
+      var m = merge.isMergeInProgress() ? files.read(files.gitletPath("MERGE_MSG")) : opts.m;
+      var commitHash = objects.writeCommit(treeHash, m, refs.commitParentHashes());
+      gitlet.update_ref("HEAD", commitHash);
+      // در حالت merge: MERGE_HEAD و MERGE_MSG حذف می‌شوند
+    }
+  },</code></pre>
+        <h3>branch() و checkout()</h3>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  branch: function(name, opts) {
+    files.assertInRepo();
+    opts = opts || {};
+
+    if (name === undefined) {
+      return Object.keys(refs.localHeads()).map(function(branch) {
+        return (branch === refs.headBranchName() ? "* " : "  ") + branch;
+      }).join("\\n") + "\\n";
+    } else if (refs.hash("HEAD") === undefined) {
+      throw new Error(refs.headBranchName() + " not a valid object name");
+    } else if (refs.exists(refs.toLocalRef(name))) {
+      throw new Error("A branch named " + name + " already exists");
+    } else {
+      gitlet.update_ref(refs.toLocalRef(name), refs.hash("HEAD"));
+    }
+  },</code></pre>
+        <p>checkout ر؛ index، شاخه کاری و HEAD را به محتوای <code>ref</code> تغییر می‌دهد؛ اگر ref هش باشد، HEAD جدا می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  checkout: function(ref, _) {
+    // ... بررسی‌ها: ref باید به commit برسد، فایل‌های تغییرکرده نباید رونویسی شوند ...
+    var isDetachingHead = objects.exists(ref);
+    workingCopy.write(diff.diff(refs.hash("HEAD"), toHash));
+    refs.write("HEAD", isDetachingHead ? toHash : "ref: " + refs.toLocalRef(ref));
+    index.write(index.tocToIndex(objects.commitToc(toHash)));
+    return isDetachingHead ?
+      "Note: checking out " + toHash + "\\nYou are in detached HEAD state." :
+      "Switched to branch " + ref;
+  },</code></pre>
+        <h3>fetch و merge و pull</h3>
+        <p><code>fetch(remote, branch)</code> رکورد commit شاخه راه‌دور را به‌روز می‌کند (بدون تغییر شاخه محلی): هش جدید را از راه‌دور می‌گیرد، همه اشیای راه‌دور را به پایگاه داده محلی می‌نویسد و محتوای ref راه‌دور و FETCH_HEAD را می‌نویسد.</p>
+        <p><code>merge(ref)</code> تفاوت بین commit شاخه فعلی و commit مقصد را پیدا می‌کند: اگر شاخه مقصد جد باشد، fast-forward؛ وگرنه <code>MERGE_HEAD</code> نوشته می‌شود (وضعیت merge)، فایل‌های متعارض در index با stage های مختلف نوشته می‌شوند و در شاخه کاری هر دو نسخه درج می‌شوند; سپس کاربر باید تعارض‌ها را حل کند و commit بزند.</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  merge: function(ref, _) {
+    // ... بررسی‌ها ...
+    } else if (objects.isUpToDate(receiverHash, giverHash)) {
+      return "Already up-to-date";
+    } else {
+      // ... بررسی فایل‌های تغییرکرده ...
+      } else if (merge.canFastForward(receiverHash, giverHash)) {
+        merge.writeFastForwardMerge(receiverHash, giverHash);
+        return "Fast-forward";
+      } else {
+        merge.writeNonFastForwardMerge(receiverHash, giverHash, ref);
+        if (merge.hasConflicts(receiverHash, giverHash)) {
+          return "Automatic merge failed. Fix conflicts and commit the result.";
+        } else {
+          return gitlet.commit();
+        }
+      }
+    }
+  },</code></pre>
+        <h3>push و clone</h3>
+        <p><code>push(remote, branch)</code> همه اشیای محلی را به مخزن راه‌دور می‌نویسد و شاخه مربوطه را در راه‌دور به هش محلی اشاره می‌دهد; از fast-forward نشدن امتناع می‌کند مگر با `-f`:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>  push: function(remote, branch, opts) {
+    // ... بررسی‌ها ...
+          var receiverHash = remoteCall(refs.hash, branch);
+          var giverHash = refs.hash(branch);
+          if (objects.isUpToDate(receiverHash, giverHash)) {
+            return "Already up-to-date";
+          } else if (!opts.f &amp;&amp; !merge.canFastForward(receiverHash, giverHash)) {
+            throw new Error("failed to push some refs to " + remotePath);
+          } else {
+            objects.allObjects().forEach(function(o) { remoteCall(objects.write, o); });
+            remoteCall(gitlet.update_ref, refs.toLocalRef(branch), giverHash);
+            gitlet.update_ref(refs.toRemoteRef(remote, branch), giverHash);
+            return ["To " + remotePath,
+                    "Count " + objects.allObjects().length,
+                    branch + " -&gt; " + branch].join("\\n") + "\\n";
+          }
+  },</code></pre>
+        <p><code>clone(remotePath, targetPath)</code> پوشه هدف را به‌عنوان مخزن init می‌کند، <code>remote add origin</code> و <code>fetch origin master</code> و fast-forward می‌کند.</p>
+        <h3>update_index()</h3>
+        <p>محتوای فعلی فایل را به index اضافه یا از آن حذف می‌کند — شکلی کوچک‌شده از انتخاب‌های گیت: اگر فایل حذف‌شده و در index است، حذف; اگر روی دیسک است و <code>--add</code> داده شده یا در index است، افزودن; در غیر این صورت خطا.</p>
+      </section>
+
+      <section>
+        <h2>ماژول Refs</h2>
+        <p>refها نام‌هایی برای هش‌های commit هستند. ref نام یک فایل است: برخی شاخه‌های محلی‌اند (<code>refs/heads/master</code>)، برخی راه‌دور (<code>refs/remotes/origin/master</code>) و برخی حالت‌های مهم مخزن (HEAD ،MERGE_HEAD ،FETCH_HEAD). فایل‌های ref یا هش دارند یا ref دیگر.</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var refs = {
+  isRef: function(ref) {
+    return ref !== undefined &amp;&amp;
+      (ref.match("^refs/heads/[A-Za-z-]+$") ||
+       ref.match("^refs/remotes/[A-Za-z-]+/[A-Za-z-]+$") ||
+       ["HEAD", "FETCH_HEAD", "MERGE_HEAD"].indexOf(ref) !== -1);
+  },
+
+  terminalRef: function(ref) {
+    if (ref === "HEAD" &amp;&amp; !refs.isHeadDetached()) {
+      return files.read(files.gitletPath("HEAD")).match("ref: (refs/heads/.+)")[1];
+    } else if (refs.isRef(ref)) {
+      return ref;
+    } else {
+      return refs.toLocalRef(ref);
+    }
+  },
+
+  hash: function(refOrHash) {
+    if (objects.exists(refOrHash)) {
+      return refOrHash;
+    } else {
+      var terminalRef = refs.terminalRef(refOrHash);
+      if (terminalRef === "FETCH_HEAD") {
+        return refs.fetchHeadBranchToMerge(refs.headBranchName());
+      } else if (refs.exists(terminalRef)) {
+        return files.read(files.gitletPath(terminalRef));
+      }
+    }
+  },
+
+  isHeadDetached: function() {
+    return files.read(files.gitletPath("HEAD")).match("refs") === null;
+  },
+
+  toLocalRef: function(name) { return "refs/heads/" + name; },
+  toRemoteRef: function(remote, name) { return "refs/remotes/" + remote + "/" + name; },
+
+  write: function(ref, content) {
+    if (refs.isRef(ref)) {
+      files.write(files.gitletPath(nodePath.normalize(ref)), content);
+    }
+  },
+  // ...
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>ماژول Objects</h2>
+        <p>اشیاء فایل‌هایی در پوشه <code>.gitlet/objects/</code> هستند: blob محتوای فایل را ذخیره می‌کند (hash(content) به‌عنوان نام)، tree فهرست فایل‌ها/پوشه‌های یک پوشه (ورودی‌های فایل به blob و ورودی‌های پوشه به tree دیگر اشاره می‌کنند)، commit به tree و پیام و والدها اشاره می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var objects = {
+  writeTree: function(tree) {
+    var treeObject = Object.keys(tree).map(function(key) {
+      if (util.isString(tree[key])) {
+        return "blob " + tree[key] + " " + key;
+      } else {
+        return "tree " + objects.writeTree(tree[key]) + " " + key;
+      }
+    }).join("\\n") + "\\n";
+
+    return objects.write(treeObject);
+  },
+
+  fileTree: function(treeHash, tree) {
+    if (tree === undefined) { return objects.fileTree(treeHash, {}); }
+    util.lines(objects.read(treeHash)).forEach(function(line) {
+      var lineTokens = line.split(/ /);
+      tree[lineTokens[2]] = lineTokens[0] === "tree" ?
+        objects.fileTree(lineTokens[1], {}) :
+        lineTokens[1];
+    });
+    return tree;
+  },
+
+  writeCommit: function(treeHash, message, parentHashes) {
+    return objects.write("commit " + treeHash + "\\n" +
+                         parentHashes
+                           .map(function(h) { return "parent " + h + "\\n"; }).join("") +
+                         "Date:  " + new Date().toString() + "\\n" +
+                         "\\n" +
+                         "    " + message + "\\n");
+  },
+
+  write: function(str) {
+    files.write(nodePath.join(files.gitletPath(), "objects", util.hash(str)), str);
+    return util.hash(str);
+  },
+
+  isUpToDate: function(receiverHash, giverHash) {
+    return receiverHash !== undefined &amp;&amp;
+      (receiverHash === giverHash || objects.isAncestor(receiverHash, giverHash));
+  },
+
+  ancestors: function(commitHash) {
+    var parents = objects.parentHashes(objects.read(commitHash));
+    return util.flatten(parents.concat(parents.map(objects.ancestors)));
+  },
+  // ...
+};</code></pre>
+      </section>
+
+      <section>
+        <h2>ماژول Index</h2>
+        <p>index فایل‌ها را به هش محتوایشان نگاشت می‌کند. کلیدهای ورودی index در واقع ترکیب <code>path,stage</code> هستند؛ stage همیشه ۰ است، مگر اینکه فایل در تعارض باشد (برای merge های غیر fast-forward stage 2/3 نوشته می‌شود).</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var index = {
+  hasFile: function(path, stage) {
+    return index.read()[index.key(path, stage)] !== undefined;
+  },
+
+  read: function() {
+    var indexFilePath = files.gitletPath("index");
+    return util.lines(fs.existsSync(indexFilePath) ? files.read(indexFilePath) : "\\n")
+      .reduce(function(idx, blobStr) {
+        var blobData = blobStr.split(/ /);
+        idx[index.key(blobData[0], blobData[1])] = blobData[2];
+        return idx;
+      }, {});
+  },
+
+  key: function(path, stage) { return path + "," + stage; },
+
+  toc: function() {
+    var idx = index.read();
+    return Object.keys(idx)
+      .reduce(function(obj, k) { return util.setIn(obj, [k.split(",")[0], idx[k]]); }, {});
+  },
+
+  conflictedPaths: function() {
+    var idx = index.read();
+    return Object.keys(idx)
+      .filter(function(k) { return index.keyPieces(k).stage === 2; })
+      .map(function(k) { return index.keyPieces(k).path; });
+  },
+  // ...
+};</code></pre>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مستندات Gitlet اثر ماری رز کوک (Mary Rose Cook) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب (کد کامل ~۱۴۰۰ خطی) به
+        <a href="http://gitlet.maryrosecook.com/docs/gitlet.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

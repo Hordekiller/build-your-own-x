@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک شل یونیکس — از fork تا builtin (Indradhanush Gupta)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک شل یونیکس — بخش ۱ و ۲</span>
+      </div>
+      <h1>نوشتن یک شل یونیکس (Writing a Unix Shell)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://indradhanush.github.io/blog/writing-a-unix-shell-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مجموعهٔ «Writing a Unix Shell» از
+          <b>ایندرادانوش گوپتا</b> (Indradhanush Gupta) در وبلاگ Cracking The Code است — یادداشت‌های
+          سفر او در Recurse Center، با کدهای کاملِ قابل اجرا در هر بخش و مثال‌های واقعی از خروجی ترمینال.
+        </div>
+        <a class="btn solid" href="https://indradhanush.github.io/blog/writing-a-unix-shell-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>شل چیست و چطور کار می‌کند؟</h2>
+        <p>به زبان ساده: «شل رابطی است که به شما اجازه می‌دهد با هستهٔ سیستمعامل تعامل کنید». جریان کار شل این است: راه‌اندازی ← انتظار برای ورودی کاربر ← تجزیهٔ ورودی ← اجرای دستور و برگرداندن نتیجه ← بازگشت به مرحلهٔ ۲.</p>
+        <p>اما یک نکتهٔ مهم هست: <strong>فرایندها</strong>. شل فرایند والد است (رشتهٔ main که منتظر ورودی است)، اما نمی‌توانیم دستور را در خودِ main اجرا کنیم؛ چون (۱) دستورِ خراب، کل شل را از کار می‌اندازد — می‌خواهیم از این بپرهیزیم؛ و (۲) دستورهای مستقل باید بلوک فرایندی خودشان را داشته باشند — این «انزوا» بخشی از تحمل‌پذیری خطاست.</p>
+      </section>
+
+      <section>
+        <h2>فهمیدن fork با چهار خط کد</h2>
+        <p>نویسنده می‌گوید: «فکر می‌کردم fork را می‌فهمم تا وقتی چهار خط کد با آن نوشتم». <code>fork</code> کپی‌ای از فرایند فعلی می‌سازد (به‌نام child) و هر فرایند یک شناسهٔ منحصربه‌فرد (pid) دارد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main() {
+    pid_t child_pid = fork();
+
+    if (child_pid == 0) {   /* فرایند فرزند */
+        printf("### Child ###\nCurrent PID: %d and Child PID: %d\n",
+               getpid(), child_pid);
+    } else {                /* فرایند والد */
+        printf("### Parent ###\nCurrent PID: %d and Child PID: %d\n",
+               getpid(), child_pid);
+    }
+    return 0;
+}</code></pre>
+        <p>سیستم‌کال <code>fork</code> <strong>دوبار برمی‌گردد</strong> — برای هر فرایند یک بار! این در نگاه اول متناقض است، اما پشت پرده: <code>fork</code> کپی‌ای از فرایند فعلی می‌سازد و در والد، مقدارِ <code>child_pid</code> همان pid فرزندِ تازه‌ساخته است؛ در خودِ فرزند اما این مقدار <code>0</code> است چون فرزند، فرزندی ندارد. بلافاصله بعد از fork، هر دو فرایند همزمان اجرا می‌شوند و ترتیب اجرا به زمان‌بند سیستمعامل بستگی دارد. خروجی نمونه:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>### Parent ###
+Current PID: 85247 and Child PID: 85248
+### Child ###
+Current PID: 85248 and Child PID: 0</code></pre>
+        <p>(نکته: بزرگ‌تر بودن pid فرزند معمول است ولی تضمینی نیست — سیستم‌عامل می‌تواند شناسه‌های قدیمی را بازیافت کند.)</p>
+      </section>
+
+      <section>
+        <h2>قطعیت با wait، نه با sleep</h2>
+        <p>با <code>sleep(1)</code> در بلوک والد، فرزند تقریباً همیشه اول اجرا می‌شود و خروجی قطعی می‌شود؛ اما sleep راه‌حل خوبی نیست: (۱) چه تضمینی هست که منتظرِ چه چیزی، در n ثانیه تمام شود؟ (۲) اگر زودتر تمام شود بیهوده بیکار می‌مانیم. راه درست، سیستم‌کال <code>wait</code> و بهتر از آن <code>waitpid</code> است که سه پارامتر دارد: pid فرایند موردانتظار، متغیری که وضعیت پایان را پر می‌کند، و فلگ‌های سفارشی:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;sys/wait.h&gt;
+
+int main() {
+    pid_t child_pid, wait_result;
+    int stat_loc;
+
+    child_pid = fork();
+    if (child_pid == 0) {
+        printf("### Child ###\nCurrent PID: %d and Child PID: %d\n",
+               getpid(), child_pid);
+        sleep(1);
+    } else {
+        wait_result = waitpid(child_pid, &amp;stat_loc, WUNTRACED);
+        printf("### Parent ###\nCurrent PID: %d and Child PID: %d\n",
+               getpid(), child_pid);
+    }
+    return 0;
+}</code></pre>
+        <p>والد تا پایان کار فرزند صبر می‌کند و بعد دستورهای خودش را اجرا می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>اجرای دستور با execvp</h2>
+        <p>خانوادهٔ <code>exec</code> شامل <code>execl</code>، <code>execv</code>، <code>execle</code>، <code>execve</code>، <code>execlp</code> و <code>execvp</code> است. ما <code>execvp</code> را می‌گیریم: «vp» یعنی نام فایل را می‌پذیرد و آن را در متغیر <code>$PATH</code> سیستم جست‌وجو می‌کند، به‌همراه آرایه‌ای از آرگومان‌ها. اجرای <code>ls -l -h -a</code>:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#include &lt;unistd.h&gt;
+
+int main() {
+    char *argv[] = {"ls", "-l", "-h", "-a", NULL};
+    execvp(argv[0], argv);
+    return 0;
+}</code></pre>
+        <p>سه نکته: آرگومان اول نام دستور است؛ آرگومان دوم نام دستور به‌همراه آرگومان‌هایش است و باید با <code>NULL</code> پایان یابد؛ و <code>execvp</code> تصویر فرایندِ فعلی را با برنامهٔ موردنظر عوض می‌کند — در موفقیت <em>هرگز برنمی‌گردد</em>.</p>
+      </section>
+
+      <section>
+        <h2>تجزیهٔ ورودی و حلقهٔ اصلی</h2>
+        <p>ورودی را با <code>strtok</code> به‌وسیلهٔ جداکنندهٔ فاصله می‌شکنیم و آرایه‌ای که با <code>NULL</code> تمام می‌شود می‌سازیم؛ بعد در حلقهٔ بی‌نهایت: ورودی را با <code>readline</code> می‌گیریم، fork می‌کنیم، فرزند <code>execvp</code> می‌زند و والد <code>waitpid</code> می‌کند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>char **get_input(char *input) {
+    char **command = malloc(8 * sizeof(char *));
+    char *separator = " ";
+    char *parsed;
+    int index = 0;
+
+    parsed = strtok(input, separator);
+    while (parsed != NULL) {
+        command[index] = parsed;
+        index++;
+        parsed = strtok(NULL, separator);
+    }
+    command[index] = NULL;
+    return command;
+}
+
+int main() {
+    char **command, *input;
+    pid_t child_pid;
+    int stat_loc;
+
+    while (1) {
+        input = readline("unixsh&gt; ");
+        command = get_input(input);
+
+        child_pid = fork();
+        if (child_pid == 0) {
+            execvp(command[0], command);   /* موفق که بشود برنمی‌گردد */
+            printf("This won't be printed if execvp is successful\n");
+        } else {
+            waitpid(child_pid, &amp;stat_loc, WUNTRACED);
+        }
+        free(input);
+        free(command);
+    }
+    return 0;
+}</code></pre>
+        <p>نکته: <code>fork</code> فقط بعد از وارد شدن دستور صدا زده می‌شود؛ یعنی فرایند والد همانی است که اعلانِ دریافت ورودی را نمایش می‌دهد. با این کد (کامپایل با <code>gcc -g -lreadline shell.c</code>) یک شل مینیمالِ کارا دارید که <code>pwd</code> و <code>ls -lha</code> را اجرا می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت خطا</h2>
+        <ul>
+          <li><strong>fork</strong> — اگر سیستم حافظه تمام کند یا به سقف تعداد فرایندها برسد، <code>-1</code> برمی‌گردد: <code>perror("Fork failed"); exit(1);</code></li>
+          <li><strong>execvp</strong> — فقط در شکست برمی‌گردد: <code>if (execvp(...) &lt; 0) { perror(command[0]); exit(1); }</code> — این <code>exit</code> فقط فرزند را می‌میراند.</li>
+          <li><strong>malloc</strong> — می‌تواند <code>NULL</code> برگرداند: خطا و خروج.</li>
+          <li><strong>بافر آرگومان‌ها</strong> — فقط ۸ بلاک است؛ دستورهای بیش از ۸ کلمه درست کار نمی‌کنند (تمرینی برای خواننده).</li>
+        </ul>
+        <p>تمرین‌های بیشتر: اگر <code>sleep</code> را به فرزند بدهید، خروجی والد فوراً چاپ می‌شود ولی بعداً خروجی فرزند وسط ترمینال ریخته می‌شود — چون والد بعد از printf کاری ندارد و می‌میرد.</p>
+      </section>
+
+      <section>
+        <h2>Builtin ها — ماجرای cd</h2>
+        <p>اجرای <code>cd</code> در شلِ تازه‌ساخته خطای «No such file or directory» می‌دهد؛ چون <code>cd</code> برنامهٔ سیستمی مثل <code>ls</code> نیست. فرض کنید بود: fork می‌شود، در فرزند اجرا و تمام می‌شود، و دایرکتوری کاری والد دست‌نخورده می‌ماند — یعنی <code>cd</code> گرچه موفق است، نتیجهٔ دلخواه را ندارد! پس باید خودمان پیاده‌اش کنیم و به‌جای fork، مستقیم اجرا کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int cd(char *path) {
+    return chdir(path);
+}
+
+/* در حلقهٔ main */
+if (strcmp(command[0], "cd") == 0) {
+    if (cd(command[1]) &lt; 0) {
+        perror(command[1]);
+    }
+    continue;   /* fork نمی‌زنیم */
+}</code></pre>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>unixsh&gt; pwd
+/Users/dhanush/github.com/indradhanush.github.io/code/shell-part-2
+unixsh&gt; cd /
+unixsh&gt; pwd
+/</code></pre>
+      </section>
+
+      <section>
+        <h2>خلاصه و ادامهٔ مسیر</h2>
+        <p>شما حالا: fork را فهمیده‌اید (با مثال و بحث قطعیت/زمان‌بند)، execvp را به کار گرفته‌اید، ورودی را تجزیه کرده‌اید، خطاها را مدیریت می‌کنید و builtin دارید. بخش سوم همین مجموعه به سیگنال‌ها و مدیریت <code>Ctrl-C</code> می‌پردازد. همهٔ کدها در <a href="https://github.com/indradhanush/indradhanush.github.io/tree/master/code/" target="_blank" rel="noopener">مخزن وبلاگ</a> (پوشهٔ shell-part-1 و shell-part-2) موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مجموعهٔ «Writing a Unix Shell» اثر ایندرادانوش گوپتا است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ نسخهٔ کامل (شامل بخش سوم دربارهٔ سیگنال‌ها) به
+        <a href="https://indradhanush.github.io/blog/writing-a-unix-shell-part-1/" target="_blank" rel="noopener">وبلاگ اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

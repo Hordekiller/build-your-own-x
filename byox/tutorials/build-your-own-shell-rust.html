@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شل خودت را با رست بساز (Build Your Own Shell using Rust)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>شل خودت را با رست بساز</span>
+      </div>
+      <h1>شل خودت را با رست بساز (Build Your Own Shell using Rust)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.joshmcguigan.com/blog/build-your-own-shell-rust/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «Build Your Own Shell using Rust» از
+          <b>جاش مک‌گیگان</b> (Josh Mcguigan، نوامبر ۲۰۱۸) است — ساختن شل گام‌به‌گام با رست،
+          از چند خط ابتدایی تا پایپ‌ها، در کمتر از ۱۰۰ خط کد. کد نهایی (bubble-shell) روی گیت‌هاب
+          موجود است.
+        </div>
+        <a class="btn solid" href="https://www.joshmcguigan.com/blog/build-your-own-shell-rust/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>شل چیست؟</h2>
+        <p>شل برنامه‌ای است که به شما اجازه می‌دهد کامپیوترتان را کنترل کنید؛ بیشترِ این کار را با آسان‌کردنِ اجرای برنامه‌های دیگر انجام می‌دهد. اما شل به‌تنهایی برنامه‌ای تعاملی نیست! بیشتر کاربران از طریق یک «شبیه‌ساز ترمینال» با شل تعامل می‌کنند:</p>
+        <blockquote>شبیه‌ساز ترمینال (که معمولاً فقط به آن «ترمینال» می‌گویند) «فقط همان پنجره است». یک برنامهٔ متنی اجرا می‌کند که به‌صورت پیش‌فرض شلِ ورود شماست. وقتی در پنجره تایپ می‌کنید، ترمینال کاراکترها را در پنجره رسم می‌کند و به‌همان صورت به stdin شل می‌فرستد؛ و خروجی stdout و stderr شل به ترمینال می‌رود و ترمینال آن را در پنجره رسم می‌کند. — کاربر geirha</blockquote>
+        <p>در این آموزش شل خودمان را می‌نویسیم و داخل ترمینال معمولی‌مان اجرا می‌کنیم. (مثال‌ها در Rust Playground اجرا نمی‌شوند چون از stdin یا فرایندهای طولانی پشتیبانی نمی‌کند.)</p>
+      </section>
+
+      <section>
+        <h2>نقطهٔ شروع — ساده‌ترین شل ممکن</h2>
+        <p>فقط چند خط رست کافی است: <code>stdin().read_line</code> بلاک می‌شود تا کاربر Enter را بزند و سپس کل ورودی (با خط جدید) را در رشتهٔ ما می‌نویسد؛ با <code>input.trim()</code> خط جدید را می‌کنیم و دستور را اجرا می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn main() {
+    let mut input = String::new();
+    stdin().read_line(&amp;mut input).unwrap();
+
+    let command = input.trim();   // read_line یک خط جدید انتهایی می‌گذارد
+
+    Command::new(command)
+        .spawn()
+        .unwrap();
+}</code></pre>
+        <p>بعد از <code>cargo run</code> یک مکان‌نما می‌بینید که منتظر ورودی است؛ <code>ls</code> را بزنید، محتوای پوشه چاپ می‌شود و بعد شل خارج می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>پذیرش چند دستور و آرگومان‌ها</h2>
+        <p>برای اینکه شل بعد از یک دستور خارج نشود، کد را داخل <code>loop</code> می‌بریم و روی هر فرزند <code>wait</code> صدا می‌زنیم تا قبل از تمام‌شدن فرایند فعلی، اعلانِ جدید چاپ نشود (و برای تشخیص ورودی کاربر از خروجی فرایندها، <code>&gt;</code> چاپ می‌کنیم که باید صریحاً <code>stdout().flush()</code> شود):</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>fn main() {
+    loop {
+        print!("&gt; ");
+        stdout().flush();
+
+        let mut input = String::new();
+        stdin().read_line(&amp;mut input).unwrap();
+
+        let command = input.trim();
+
+        let mut child = Command::new(command).spawn().unwrap();
+        child.wait();   // تا پایان این دستور، دستور بعدی نگیر
+    }
+}</code></pre>
+        <p>حالا <code>ls -a</code> کرش می‌کند چون شلِ ما از آرگومان بی‌خبر است و دارد برنامهِ به‌نام <code>ls -a</code> را اجرا می‌کند. راه‌حل: ورودی را روی کاراکترهای فاصله می‌شکنیم؛ هرچه قبل از اولین فاصله است نام دستور است و بقیه آرگومان‌ها:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let mut parts = input.trim().split_whitespace();
+let command = parts.next().unwrap();
+let args = parts;
+
+let mut child = Command::new(command)
+    .args(args)
+    .spawn()
+    .unwrap();
+child.wait();</code></pre>
+      </section>
+
+      <section>
+        <h2>Builtin ها — چرا cd باید در شل پیاده شود؟</h2>
+        <p>دستورهایی هستند که شل نمی‌تواند به فرایند دیگری بسپاردشان: چیزهایی که به وضعیتِ درونیِ خودِ شل مربوط‌اند و باید توسط خود شل پیاده شوند. معروف‌ترین مثال <code>cd</code> است (برای دلیلش این دو لینک مرجع‌اند: <a href="https://unix.stackexchange.com/a/38809" target="_blank" rel="noopener">چرا cd باید builtin باشد</a> و <a href="https://unix.stackexchange.com/a/38819" target="_blank" rel="noopener">چرا با این حال یک برنامهٔ cd هم وجود دارد</a>). پیاده‌سازی:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>match command {
+    "cd" =&gt; {
+        // اگر مسیری داده نشد، پیش‌فرض '/'
+        let new_dir = args.peekable().peek().map_or("/", |x| *x);
+        let root = Path::new(new_dir);
+        if let Err(e) = env::set_current_dir(&amp;root) {
+            eprintln!("{}", e);
+        }
+    },
+    command =&gt; {
+        let mut child = Command::new(command).args(args).spawn().unwrap();
+        child.wait();
+    }
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>مدیریت خطا و دستور exit</h2>
+        <p>اگر دستوری که وجود ندارد وارد کنید، شل‌های قبلی کرش می‌کردند. اینجا خطا به‌شکلی شایسته چاپ و به کاربر اجازه داده می‌شود دستور دیگری وارد کند. چون «دستور بد» تا قبل از این، راهی آسان برای بستن شل بود، builtin دیگری به‌نام <code>exit</code> هم اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>"exit" =&gt; return,
+command =&gt; {
+    let child = Command::new(command).args(args).spawn();
+    match child {
+        Ok(mut child) =&gt; { child.wait(); },
+        Err(e) =&gt; eprintln!("{}", e),  // مدیریت شایستهٔ ورودی ناقص
+    };
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>پایپ‌ها</h2>
+        <p>کارکردن در شلی بدون پایپ دشوار است. <code>|</code> به شل می‌گوید خروجی دستور اول را به ورودی دستور دوم بریزد؛ مثلاً <code>ls | grep Cargo</code>: (۱) ls فهرست فایل‌ها را می‌دهد (۲) شل این فهرست را به grep پایپ می‌کند (۳) grep فیلتر می‌کند و فقط فایل‌های دارای «Cargo» را چاپ می‌کند. پیاده‌سازی پایه: ورودی را روی <code>" | "</code> می‌شکنیم (peekable تا بدانیم روی آخرین دستور هستیم) و خروجیِ هر فرایند، stdinِ بعدی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">rust</span><code>let mut commands = input.trim().split(" | ").peekable();
+let mut previous_command = None;
+
+while let Some(command) = commands.next() {
+    let mut parts = command.trim().split_whitespace();
+    let command = parts.next().unwrap();
+    let args = parts;
+
+    match command {
+        "cd" =&gt; { /* ... */ previous_command = None; },
+        "exit" =&gt; return,
+        command =&gt; {
+            let stdin = previous_command
+                .map_or(Stdio::inherit(),
+                        |output: Child| Stdio::from(output.stdout.unwrap()));
+
+            let stdout = if commands.peek().is_some() {
+                Stdio::piped()       // دستور دیگری پشت این است
+            } else {
+                Stdio::inherit()     // دستور آخر؛ به stdout شل
+            };
+
+            let output = Command::new(command)
+                .args(args).stdin(stdin).stdout(stdout).spawn();
+
+            match output {
+                Ok(output) =&gt; { previous_command = Some(output); },
+                Err(e) =&gt; { previous_command = None; eprintln!("{}", e); },
+            };
+        }
+    }
+}
+
+if let Some(mut final_command) = previous_command {
+    final_command.wait();  // تا پایان دستور آخر صبر کن
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>در کمتر از ۱۰۰ خط رست شلی ساخته‌ایم که برای بسیاری از کارهای روزمره کاربردی است، اما شل واقعی امکانات خیلی بیشتری دارد. کتابچهٔ آنلاین bash در گنو با <a href="https://www.gnu.org/software/bash/manual/html_node/Basic-Shell-Features.html" target="_blank" rel="noopener">فهرست امکانات شل</a> نقطهٔ عالی برای شروع است. نویسنده تصریح می‌کند که این یک پروژهٔ یادگیری است و هر جا بین سادگی و استحکام تعارض بود، بیشتر سادگی را برگزیده. کد این شل (bubble-shell) در <a href="https://github.com/JoshMcguigan/bubble-shell" target="_blank" rel="noopener">github.com/JoshMcguigan/bubble-shell</a> موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی آموزش «Build Your Own Shell using Rust» اثر جاش مک‌گیگان است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ نسخهٔ اصلی به
+        <a href="https://www.joshmcguigan.com/blog/build-your-own-shell-rust/" target="_blank" rel="noopener">وبلاگ نویسنده</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

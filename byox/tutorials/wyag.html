@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | گیت خودت را بنویس (wyag)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>گیت خودت را بنویس (wyag)</span>
+      </div>
+      <h1>گیت خودت را بنویس (wyag)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://wyag.thb.lt/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Write yourself a Git!» از <b>تیبو پلژ</b>
+          (Thibault Polge) است — توضیح گیت از پایین به بالا با بازپیاده‌سازی کامل آن در ۹۸۳ خط
+          پایتون ساده، به‌طور کامل سازگار با گیت واقعی: حتی کامیت نهایی مقاله با خود wyag ساخته شد.
+        </div>
+        <a class="btn solid" href="https://wyag.thb.lt/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>۱. مقدمه</h2>
+        <p>این مقاله تلاشی است برای توضیح سیستم کنترل نسخه گیت از پایین به بالا — یعنی شروع از بنیادی‌ترین سطح و صعود از آنجا. کار ساده‌ای به نظر نمی‌رسد و بارها با موفقیت مشکوک امتحان شده. اما راه آسانی هم هست: برای فهمیدن درون‌های گیت همه چیز لازم است آن را از صفر بازپیاده‌سازی کنیم. نه، فرار نکنید.</p>
+        <p>شوخی نیست و واقعاً پیچیده نیست: اگر این مقاله را از بالا به پایین بخوانید و کد را بنویسید (یا فقط ZIP آن را دانلود کنید — اما واقعاً بهتر است خودتان کد را بنویسید)، به برنامه‌ای به نام <code>wyag</code> می‌رسید که همه ویژگی‌های بنیادین گیت را پیاده می‌کند: <code>init</code>، <code>add</code>، <code>rm</code>، <code>status</code>، <code>commit</code>، <code>log</code>... به شکلی کاملاً سازگار با خود گیت.</p>
+        <p>اینکه گیت پیچیده است، به نظر من باوری نادرست است. گیت برنامه بزرگ پر از ویژگی است، درست؛ اما هسته آن فوق‌العاده ساده است. ظاهراً پیچیدگی‌اش اول از همه از اینجا می‌آید که غالباً عمیقاً ضدشهود است. اما شاید گیج‌کننده‌ترین چیز، سادگی و قدرت مفرط مدل اصلی‌اش باشد: ترکیب سادگی هسته و کاربردهای قدرتمند درک را سخت می‌کند، چون جهش ذهنی لازم است که از سادگی انتزاع بنیادین به تنوع کاربردها برسید.</p>
+        <p>پیاده‌سازی گیت، بنیادهای آن را با تمام برهنگی‌شان آشکار می‌کند.</p>
+        <p>نکات: به پایتون ۳.۱۰+ نیاز دارید، فقط کتابخانه استاندارد. کد در دو فایل تقسیم می‌شود: اجرایی <code>wyag</code> (دو خط: import libwyag و فراخوانی main) و کتابخانه <code>libwyag.py</code>. CLI با argparse، config با configparser، SHA-1 با hashlib و فشرده‌سازی با zlib ساخته می‌شود.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def main(argv=sys.argv[1:]):
+    args = argparser.parse_args(argv)
+    match args.command:
+        case "add"          : cmd_add(args)
+        case "cat-file"     : cmd_cat_file(args)
+        case "check-ignore" : cmd_check_ignore(args)
+        case "checkout"     : cmd_checkout(args)
+        case "commit"       : cmd_commit(args)
+        case "hash-object"  : cmd_hash_object(args)
+        case "init"         : cmd_init(args)
+        case "log"          : cmd_log(args)
+        case "ls-files"     : cmd_ls_files(args)
+        case "ls-tree"      : cmd_ls_tree(args)
+        case "rev-parse"    : cmd_rev_parse(args)
+        case "rm"           : cmd_rm(args)
+        case "show-ref"     : cmd_show_ref(args)
+        case "status"       : cmd_status(args)
+        case "tag"          : cmd_tag(args)
+        case _              : print("Bad command.")</code></pre>
+      </section>
+
+      <section>
+        <h2>۲. ساخت مخازن: init</h2>
+        <p>جدا از یک <code>GitRepository</code> به دو یا سه تابع کمکی مسیر هم نیاز داریم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitRepository (object):
+    """A git repository"""
+
+    worktree = None
+    gitdir = None
+    conf = None
+
+    def __init__(self, path, force=False):
+        self.worktree = path
+        self.gitdir = os.path.join(path, ".git")
+
+        if not (force or os.path.isdir(self.gitdir)):
+            raise Exception(f"Not a Git repository {path}")
+
+        # فایل تنظیمات .git/config را بخوان
+        self.conf = configparser.ConfigParser()
+        cf = repo_file(self, "config")
+        if cf and os.path.exists(cf):
+            self.conf.read([cf])
+        elif not force:
+            raise Exception("Configuration file missing")
+
+        if not force:
+            vers = int(self.conf.get("core", "repositoryformatversion"))
+            if vers != 0:
+                raise Exception(f"Unsupported repositoryformatversion: {vers}")
+
+def repo_path(repo, *path):
+    """Compute path under repo's gitdir."""
+    return os.path.join(repo.gitdir, *path)
+
+def repo_file(repo, *path, mkdir=False):
+    """Same as repo_path, but create dirname(*path) if absent."""
+    if repo_dir(repo, *path[:-1], mkdir=mkdir):
+        return repo_path(repo, *path)
+
+def repo_dir(repo, *path, mkdir=False):
+    """Same as repo_path, but mkdir *path if absent if mkdir."""
+    path = repo_path(repo, *path)
+    if os.path.exists(path):
+        if (os.path.isdir(path)):
+            return path
+        else:
+            raise Exception(f"Not a directory {path}")
+    if mkdir:
+        os.makedirs(path)
+        return path
+    else:
+        return None</code></pre>
+        <p>ساخت مخزن: پوشه <code>.git/</code> با زیرپوشه‌های <code>objects/</code> و <code>refs/</code> (با heads و tags)، فایل‌های <code>HEAD</code> (با محتوای <code>ref: refs/heads/master</code>)، <code>config</code> و <code>description</code>:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def repo_create(path):
+    """Create a new repository at path."""
+    repo = GitRepository(path, True)
+
+    if os.path.exists(repo.worktree):
+        if not os.path.isdir(repo.worktree):
+            raise Exception (f"{path} is not a directory!")
+        if os.path.exists(repo.gitdir) and os.listdir(repo.gitdir):
+            raise Exception (f"{path} is not empty!")
+    else:
+        os.makedirs(repo.worktree)
+
+    assert repo_dir(repo, "branches", mkdir=True)
+    assert repo_dir(repo, "objects", mkdir=True)
+    assert repo_dir(repo, "refs", "tags", mkdir=True)
+    assert repo_dir(repo, "refs", "heads", mkdir=True)
+
+    with open(repo_file(repo, "description"), "w") as f:
+        f.write("Unnamed repository; edit this file 'description' to name the repository.\n")
+
+    with open(repo_file(repo, "HEAD"), "w") as f:
+        f.write("ref: refs/heads/master\n")
+
+    with open(repo_file(repo, "config"), "w") as f:
+        config = repo_default_config()
+        config.write(f)
+
+    return repo</code></pre>
+        <p>و تابع <code>repo_find()</code> که ریشه مخزن فعلی را پیدا می‌کند (از پوشه فعلی به بالا بازگشت می‌کند تا <code>.git</code> پیدا شود):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def repo_find(path=".", required=True):
+    path = os.path.realpath(path)
+
+    if os.path.isdir(os.path.join(path, ".git")):
+        return GitRepository(path)
+
+    parent = os.path.realpath(os.path.join(path, ".."))
+
+    if parent == path:
+        # حالت پایه: به ریشه رسیدیم
+        if required:
+            raise Exception("No git directory.")
+        else:
+            return None
+
+    # حالت بازگشتی
+    return repo_find(parent, required)</code></pre>
+      </section>
+
+      <section>
+        <h2>۳. اشیا: hash-object و cat-file</h2>
+        <p>در هسته خود، گیت یک «فایل‌سیستم آدرس‌دهی‌شده با محتوا» است. برخلاف فایل‌سیستم‌های معمولی که نام فایل‌ها دلخواه و بی‌ربط به محتواست، نام فایل‌های گیت به‌صورت ریاضی از محتوایشان مشتق می‌شود. اگر یک بایت فایل تغییر کند، نام داخلی‌اش هم تغییر می‌کند: شما فایل را در گیت «ویرایش» نمی‌کنید، بلکه فایل جدیدی در جای مختلف می‌سازید.</p>
+        <p>مسیر ذخیره یک شیء از هش SHA-1 محتوایش محاسبه می‌شود: دو کاراکتر اول به‌عنوان نام پوشه و بقیه به‌عنوان نام فایل (۲۵۶ پوشه میانی ممکن، متوسط تعداد فایل در پوشه را ۲۵۶ برابر کم می‌کند).</p>
+        <p>قالب ذخیره اشیاء: هدری با نوع شیء (<code>blob</code>، <code>commit</code>، <code>tree</code> یا <code>tag</code>)، یک فاصله ASCII (0x20)، اندازه شیء به بایت به‌صورت عدد ASCII، یک بایت null (0x00) و سپس محتوای شیء. کل این‌ها با zlib فشرده می‌شود. بایت‌های اول یک شیء commit: <code>commit 1086\x00tree ...</code>.</p>
+        <h3>کلاس عمومی GitObject</h3>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitObject (object):
+
+    def __init__(self, data=None):
+        if data != None:
+            self.deserialize(data)
+        else:
+            self.init()
+
+    def serialize(self, repo):
+        raise Exception("Unimplemented!")
+
+    def deserialize(self, data):
+        raise Exception("Unimplemented!")
+
+    def init(self):
+        pass</code></pre>
+        <h3>خواندن اشیاء</h3>
+        <pre class="code"><span class="lang-tag">python</span><code>def object_read(repo, sha):
+    """Read object sha from Git repository repo.  Return a
+    GitObject whose exact type depends on the object."""
+    path = repo_file(repo, "objects", sha[0:2], sha[2:])
+
+    if not os.path.isfile(path):
+        return None
+
+    with open (path, "rb") as f:
+        raw = zlib.decompress(f.read())
+
+        # نوع شیء را بخوان
+        x = raw.find(b' ')
+        fmt = raw[0:x]
+
+        # اندازه را بخوان و اعتبارسنجی کن
+        y = raw.find(b'\x00', x)
+        size = int(raw[x:y].decode("ascii"))
+        if size != len(raw)-y-1:
+            raise Exception(f"Malformed object {sha}: bad length")
+
+        # سازنده را انتخاب کن
+        match fmt:
+            case b'commit' : c=GitCommit
+            case b'tree'   : c=GitTree
+            case b'tag'    : c=GitTag
+            case b'blob'   : c=GitBlob
+            case _:
+                raise Exception(f"Unknown type {fmt.decode('ascii')} for object {sha}")
+
+        return c(raw[y+1:])</code></pre>
+        <h3>نوشتن اشیاء</h3>
+        <pre class="code"><span class="lang-tag">python</span><code>def object_write(obj, repo=None):
+    # داده شیء را سریال کن
+    data = obj.serialize()
+    # هدر را اضافه کن
+    result = obj.fmt + b' ' + str(len(data)).encode() + b'\x00' + data
+    # هش را محاسبه کن
+    sha = hashlib.sha1(result).hexdigest()
+
+    if repo:
+        # مسیر را محاسبه کن
+        path=repo_file(repo, "objects", sha[0:2], sha[2:], mkdir=True)
+        if not os.path.exists(path):
+            with open(path, 'wb') as f:
+                # فشرده کن و بنویس
+                f.write(zlib.compress(result))
+    return sha</code></pre>
+        <h3>Blobها</h3>
+        <p>blob ساده‌ترین نوع است؛ هیچ قالب واقعی ندارد — داده کاربر:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitBlob(GitObject):
+    fmt=b'blob'
+
+    def serialize(self):
+        return self.blobdata
+
+    def deserialize(self, data):
+        self.blobdata = data</code></pre>
+        <p>دستورات: <code>cat-file</code> محتوای خام یک شیء را بدون هدر و بدون فشرده‌سازی می‌نویسد؛ <code>hash-object</code> برعکس cat-file است: فایل را می‌خواند، هشش را به‌عنوان شیء محاسبه می‌کند و یا در مخزن ذخیره می‌کند (<code>-w</code>) یا فقط هش را چاپ می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>۴. خواندن تاریخچه: log</h2>
+        <p>قالب شیء commit شبیه پیام‌های ایمیل (RFC 2822) است: مجموعه‌ای از جفت‌های کلید-مقدار با جداکننده فاصله، و در پایان پیام commit (چند خطی). فیلدها: <code>tree</code> (ارجاع به درخت — محتوای واقعی commit)، <code>parent</code> (می‌تواند تکرار شود: merge commitها چند والد دارند؛ در commit اول غایب است)، <code>author</code> و <code>committer</code> (جدا از هم، چون نویسنده لزوماً کسی نیست که commit می‌کند)، <code>gpgsig</code> (امضای PGP). مقادیر می‌توانند چند خط شوند؛ خطوط بعدی با فاصله شروع می‌شوند.</p>
+        <p>کد <code>kvlm_parse</code> — «Key-Value List با Message» — برای commit و tag مشترک است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def kvlm_parse(raw, start=0, dct=None):
+    if not dct:
+        dct = dict()
+        # هرگز آرگومان پیش‌فرض را dct=dict() نکنید:
+        # همه فراخوانی‌ها همان dict را بی‌نهایت بزرگ می‌کنند
+
+    # جست‌وجوی فضای بعدی و خط جدید بعدی
+    spc = raw.find(b' ', start)
+    nl = raw.find(b'\n', start)
+
+    # حالت پایه
+    # =========
+    # اگر خط جدید اول باشد، پیام نهایی است: با کلید None ذخیره و برگرد
+    if (spc < 0) or (nl < spc):
+        assert nl == start
+        dct[None] = raw[start+1:]
+        return dct
+
+    # حالت بازگشتی
+    # =============
+    key = raw[start:spc]
+
+    # پایان مقدار را پیدا کن؛ خطوط ادامه با فاصله شروع می‌شوند
+    end = start
+    while True:
+        end = raw.find(b'\n', end+1)
+        if raw[end+1] != ord(' '): break
+
+    # مقدار را بگیر و فاصله اول خطوط ادامه را حذف کن
+    value = raw[spc+1:end].replace(b'\n ', b'\n')
+
+    # داده موجود را رونویسی نکن
+    if key in dct:
+        if type(dct[key]) == list:
+            dct[key].append(value)
+        else:
+            dct[key] = [ dct[key], value ]
+    else:
+        dct[key]=value
+
+    return kvlm_parse(raw, start=end+1, dct=dct)</code></pre>
+        <p>و <code>kvlm_serialize</code> برای نوشتن: همه فیلدها، بعد خط جدید، پیام، و خط جدید نهایی.</p>
+        <p>کلاس GitCommit:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitCommit(GitObject):
+    fmt=b'commit'
+
+    def deserialize(self, data):
+        self.kvlm = kvlm_parse(data)
+
+    def serialize(self):
+        return kvlm_serialize(self.kvlm)
+
+    def init(self):
+        self.kvlm = dict()</code></pre>
+        <p>نسخه log ما نسبتاً ساده است: به‌جای نمایش log، داده Graphviz تولید می‌کند تا کاربر آن را با <code>dot</code> رندر کند (یا خروجی خام را در سایت‌های «graphviz online» بچسباند):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def log_graphviz(repo, sha, seen):
+    if sha in seen:
+        return
+    seen.add(sha)
+
+    commit = object_read(repo, sha)
+    message = commit.kvlm[None].decode("utf8").strip()
+    message = message.replace("\\", "\\\\")
+    message = message.replace("\"", "\\\"")
+
+    if "\n" in message: # فقط خط اول را نگه دار
+        message = message[:message.index("\n")]
+
+    print(f"  c_{sha} [label=\"{sha[0:7]}: {message}\"]")
+    assert commit.fmt==b'commit'
+
+    if not b'parent' in commit.kvlm.keys():
+        # حالت پایه: کامیت اولیه
+        return
+
+    parents = commit.kvlm[b'parent']
+    if type(parents) != list:
+        parents = [ parents ]
+
+    for p in parents:
+        p = p.decode("ascii")
+        print (f"  c_{sha} -> c_{p};")
+        log_graphviz(repo, p, seen)</code></pre>
+        <p>استفاده: <code>wyag log e03158... &gt; log.dot</code> سپس <code>dot -O -Tpdf log.dot</code>.</p>
+        <h3>نظریه: تاریخچه گیت یک Merkle DAG است</h3>
+        <p>ساختار داده نگهدارنده تاریخچه commit یک گراف است. با دو ویژگی اضافی: یال‌ها جهت دارند (از بچه به والد — پس commitها به والدهایشان اشاره می‌کنند، نه بچه‌هایشان) و هیچ حلقه‌ای وجود ندارد؛ از هر commit می‌توان به والدش رفت و در نهایت به commit ریشه بدون والد رسید. اعضا هم به همین دلیل اسمش «گراف جهت‌دار بدون دور» — DAG — است. ویژگی سوم: برخلاف گراف‌های معمولی، والدهای یک گره بخشی از هویت آن گره‌اند، چون نام commit هش رمزنگارانه محتوایش است و محتوا شامل نام والدها هم می‌شود. پس نام هر commit به جایگاهش در کل تاریخچه، تا اولین commit، گره خورده است. «هاستینگ از برگ به ریشه» است: هر commit جدید به کل تاریخچه قبل از خود پیوند می‌خورد، بدون تغییر آن.</p>
+      </section>
+
+      <section>
+        <h2>۵. خواندن داده commit: checkout</h2>
+        <p>یک tree فهرست blobها (فایل‌ها) و درخت‌های دیگر (پوشه‌ها) است. قالب entry tree: <code>mode</code>، فاصله، <code>path</code>، بایت null، هش (۲۰ بایت خام). هر خط یک entry است.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitTreeLeaf(object):
+    def __init__(self, mode, path, sha):
+        self.mode = mode
+        self.path = path
+        self.sha = sha
+
+def tree_parse_one(raw, start=0):
+    # یک entry tree را پیدا کن: mode SP path NUL sha
+    x = raw.find(b' ', start)
+    assert x-start == 5 or x-start == 6
+    mode = raw[start:x]
+
+    y = raw.find(b'\x00', x)
+    path = raw[x+1:y]
+
+    sha = hex(
+        int.from_bytes(raw[y+1:y+21], "big")
+    )[2:]  # هگز
+    return y+21, GitTreeLeaf(mode, path.decode("utf8"), sha)
+
+def tree_parse(raw):
+    pos = 0
+    max = len(raw)
+    ret = list()
+    while pos < max:
+        pos, data = tree_parse_one(raw, pos)
+        ret.append(data)
+    return ret</code></pre>
+        <p><code>ls-tree</code> این درخت را چاپ می‌کند؛ <code>checkout</code> از commit شروع کرده، درخت را می‌خواند و هر blob را به‌شکل فایل روی دیسک می‌نویسد (با ایجاد پوشه‌ها) — و در پایان یک ref جدید می‌سازد.</p>
+      </section>
+
+      <section>
+        <h2>۶. refها، برچسب‌ها و شاخه‌ها</h2>
+        <p>یک ref رجوعی به یک شیء است. <code>show-ref</code> همه refهای پوشه <code>.git/refs</code> را فهرست می‌کند (که فایل‌هایشان هش‌اند). برچسب‌ها refهایی در <code>refs/tags</code> هستند؛ می‌توانند «سبک» باشند (اشاره مستقیم به commit) یا «pec» (شیء tag که به sha با <code>^{}</code> اشاره دارد). شاخه چیست؟ refی در <code>refs/heads</code> — همین. و تابع کلیدی <code>object_find</code> برای حل نام‌های مختلف (هش کامل، هش کوتاه، نام ref، نام برچسب...):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def object_resolve(repo, name):
+    """Resolve name to AbbreviatedObjectId.  This function is
+    responsible for what is described as "resolving a name"
+    in Git."""
+    candidates = list()
+    hashRE = re.compile(r"^[0-9A-Fa-f]{4,40}$")
+
+    if not name.strip():
+        return None
+
+    if name == "HEAD":
+        return [ ref_resolve(repo, "HEAD") ]
+
+    if hashRE.match(name):
+        if len(name) == 40:
+            return [ name.lower() ]
+        elif len(name) >= 4:
+            prefix = name.lower()
+            x = os.path.join(repo.gitdir, "objects", prefix[:2], prefix[2:])
+            if os.path.exists(x):
+                return [ prefix ]
+            # ... جست‌وجو بین همه اشیای /objects/xx/ ...
+
+    try:
+        # حل نام ref
+        if name in ref_list(repo) or name in ref_list(repo, "tags"):
+            return [ ref_resolve(repo, name) ]
+    except:
+        pass
+
+    # در نهایت به صراحت refs/heads را امتحان کن
+    try:
+        return [ ref_resolve(repo, f"refs/heads/{name}") ]
+    except NameError as e:
+        pass
+
+    raise Exception(f"Unknown name {name}")</code></pre>
+      </section>
+
+      <section>
+        <h2>۷. ناحیه stage و فایل index</h2>
+        <p>فایل index وضعیت ناحیه stage را نگه می‌دارد: نسخه‌های فایل‌ها که برای commit بعدی انتخاب شده‌اند، به‌همراه فراداده (زمان، اندازه...). قالب: ۱۲ بایت هدر (امضای <code>DIRC</code>، نسخه، تعداد ورودی‌ها)، ورودی‌های ۶۲ بایتی + مسیر + padding، و در پایان هش SHA-1 کل فایل.</p>
+        <p>ورودی‌ها: <code>ctime/mtime</code> (ثانیه و نانوثانیه)، <code>dev/ino/mode/uid/gid/size</code> (اطلاعات فایل)، <code>sha1</code> و <code>flags</code> و <code>path</code>.</p>
+        <pre class="code"><span class="lang-tag">python</span><code>class GitIndexEntry (object):
+    def __init__(self, ctime=None, mtime=None, dev=None, ino=None,
+                 mode_type=None, mode_perms=None, uid=None, gid=None,
+                 size=None, obj=None, flags=None):
+        self.ctime = ctime
+        # ... همه فیلدها ...
+
+def index_read(repo):
+    index_file = repo_file(repo, "index")
+    if not os.path.exists(index_file):
+        return GitIndex (version=2, entries=[])
+
+    with open (index_file, 'rb') as f:
+        raw = f.read()
+
+    header = raw[:12]
+    signature, version, count = struct.unpack("!4sLL", header)
+    assert signature == b"DIRC"
+    assert version == 2
+
+    entries = list()
+    pos = 12
+    for i in range(count):
+        fields = struct.unpack("!LLLLLLLLLL20sH", raw[pos:pos+62])
+        path_len = fields[10]
+        path = raw[pos+62:pos+62+path_len]
+        pos += 62 + path_len
+        # padding 8 بایتی را نادیده بگیر
+        while pos % 8 != 0:
+            pos += 1
+        entries.append(GitIndexEntry(ctime=fields[0], ...))</code></pre>
+        <p><code>ls-files</code> محتوای index را چاپ می‌کند. <code>check-ignore</code> قاعده‌های .gitignore را بر اساس فیلترهای fnmatch اعمال می‌کند. <code>status</code> وضعیت «HEAD در برابر index» و «index در برابر شاخه کاری» را مقایسه می‌کند و فایل‌های ستج‌شده/تغییرنیافته/جدا (untracked) را نشان می‌دهد.</p>
+        <p>بخش ۲ ناحیه stage: <code>index_write</code> (معکوس index_read)، <code>rm</code>، <code>add</code> (خواندن فایل، ذخیره آن به‌عنوان blob و افزودن ورودی به index) و <code>commit</code>:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def commit_create(repo, tree, parent, author, timestamp, message):
+    # ... ساخت هدرهای kvlm و پایین‌نویسی ...
+    commit = GitCommit()
+    commit.kvlm = kvlm
+    return object_write(commit, repo)</code></pre>
+      </section>
+
+      <section>
+        <h2>۸. سخن پایانی</h2>
+        <p>حالا باید کامیت بعدی این مقاله را با خود wyag ساخته باشید! (این اتفاق واقعاً افتاده.) بازخورد و مشکلات را به نویسنده گزارش دهید. آموزش کامل با همه جزئیات و مراجع در مقاله اصلی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقاله «Write yourself a Git!» اثر تیبو پلژ (Thibault Polge) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب (و سخنرانی‌های فصل‌ها) به
+        <a href="https://wyag.thb.lt/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

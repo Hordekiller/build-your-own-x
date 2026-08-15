@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شلِ خودت را بساز — کارگاه مرحله‌ای (tokenrove)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>شلِ خودت را بساز — Build Your Own Shell</span>
+      </div>
+      <h1>شلِ خودت را بساز (Build Your Own Shell)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/tokenrove/build-your-own-shell" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کارگاه «Build Your Own Shell» از
+          <b>جولیان اسکوارز</b> (Julian Squires، github.com/tokenrove) است — مجموعه‌ای از
+          کارگاه‌های تمرینی که در محل کار خودش برگزار کرده؛ هر مرحله شامل توضیح، فهرست manpage ها
+          و — نکتهٔ طلایی — «مجموعه تست» است که با اسکریپت <code>validate</code> روی شلِ درحال‌ساخت شما اجرا می‌شود.
+        </div>
+        <a class="btn solid" href="https://github.com/tokenrove/build-your-own-shell" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>چرا شل خودت را بنویسی؟ و فلسفهٔ کارگاه</h2>
+        <p>شل قلب یونیکس است؛ چسبی که همهٔ ابزارهای کوچک یونیکس را به هم می‌چسباند. فهمیدن آن روشن‌گر بسیاری از ایده‌های مهم یونیکس است و بهترین راهِ فهمیدن، ساختنِ خودمان است. سه هدف کارگاه: (۱) فهم بهتر کارکرد فرایندهای یونیکس؛ (۲) رفع سوءتفاهم‌های رایج دربارهٔ شل‌های POSIX (که شما را در استفاده و اسکریپت‌نویسی با شل‌هایی مثل bash مهارت‌مندتر می‌کند)؛ و (۳) ساخت پیاده‌سازیِ کاری از یک شل که از کار رویش هیجان‌زده باشید — «مشخصات بی‌پایانی برای شخصی‌سازی شل خودتان هست و این به شما کمک می‌کند دربارهٔ نحوهٔ تعاملتان با کامپیوتر فکر کنید».</p>
+        <p>تمرکز کارگاه کمی بیشتر روی شل <em>تعاملی</em> است تا شل اسکریپت‌نویس، چون پاداش بیشتری دارد. کارگاه شمرده‌شمرده (به ۵ مرحلهٔ عمودی) جلو می‌رود و بعضی انتخاب‌ها سلیقه‌ای‌اند.</p>
+        <p><strong>بازیکنان:</strong> <code>bash</code> (و ksh) همهٔ تست‌ها را پاس می‌کنند — با <code>./validate /bin/bash</code> می‌توانید «تست‌ها را تست کنید»؛ <code>dash</code> همهٔ مراحل جز مرحلهٔ ۵ را پاس می‌کند؛ و <code>cat</code> در همهٔ تست‌ها می‌بازد!</p>
+      </section>
+
+      <section>
+        <h2>چطور از مخزن استفاده کنیم؟ — آزمون‌محور!</h2>
+        <p>هر مرحله توضیح امکانات موردبحث، فهرست manpage های لازم و مجموعه‌ای از تست‌ها دارد. اسکریپت <code>validate</code> در ریشهٔ مخزن، تمام تست‌ها را روی شلِ شما اجرا می‌کند و دقیقاً می‌گوید کدام مرحله را باید پیاده کنید:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$ ./validate ../mysh/mysh          # همهٔ مراحل
+$ ./validate ../mysh/mysh stage_2  # فقط مرحلهٔ ۲
+$ ./validate ../mysh/mysh stage_3 03</code></pre>
+        <p>تست‌ها به ابزار <code>expect</code> و یک کامپایلر C نیاز دارند و برای شلِ به‌سبک Bourne با تأثیراتی از ksh طراحی شده‌اند؛ اگر سینتکس جایگزین می‌خواهید، احتمالاً باید تست‌ها را تنظیم کنید. کنجکاوها هم هر مرحله را جداگانه مطالعه کنند: <code>stage_1.md</code> تا <code>stage_5.md</code>.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۱ — fork / exec / wait</h2>
+        <p>مبانی فرایندهای یونیکس: «ساده‌ترین شل ممکن را بنویس و بعد پایهٔ بقیهٔ مراحل را بگذار». این حدوداً همان چیزی است که در «شل را با C بنویس» (استفن برنان) هم با جزئیات بیشتری آمده؛ این مرحله خلاصه‌ترش است: چاپ اعلان، خواندن خط، تجزیه، fork، exec در فرزند و wait در والد.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۲ — فایل‌ها و پایپ‌ها</h2>
+        <p>افزودن پایپ (<code>|</code>) و ریدایرکت فایل‌دسکریپتورها به شل. نکتهٔ (فقط برای پایتون‌نویس‌ها): از نسخهٔ پایتون ۳٫۴ فایل‌دسکریپتورها به‌صورت پیش‌فرض غیرقابل‌ارث‌بری شده‌اند؛ پس باید صریحاً <code>os.set_inheritable(fd, True)</code> را روی هر fd که می‌خواهید به فرزند برسد صدا بزنید!</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۳ — کنترل کارها و سیگنال‌ها</h2>
+        <p>سیگنال‌ها و پشتیبانی از میان‌برهای همیشه‌مفید <code>^C</code>، <code>^\</code> و <code>^Z</code>؛ یعنی کنترل‌کار (job control): گروه‌های فرایند، فرایندهای پیش‌زمینه/پس‌زمینه، و چگونگی بازیابی کنترل با ترمینال. منابع مطرح‌شده: راهنمای گنو «Implementing a Job Control Shell» از glibc، و مقالهٔ نلسون الهیج «Signalling and Job Control».</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۴ — نقل‌قول‌ها و گسترش</h2>
+        <p>محیط‌ها، متغیرها، گلابینگ (glob) و دیگر مفاهیم اغلب بدفهمیدهٔ شل — مثل تفاوت نقل‌قول‌های تکی <code>'…'</code> و دوتایی <code>"…"</code>، و اینکه گسترش (expansion) در کدام نقطهٔ اجرا اتفاق می‌افتد. ابزار عالی برای این مرحله: <a href="http://shell.cs.pomona.edu/shtepper" target="_blank" rel="noopener">shtepper</a> — ورودی Expression بدهید و ببینید «در دَمِ جزئیات» چطور باید ارزیابی شود.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۵ — تعاملی بودن</h2>
+        <p>پولیش شل برای کاربری تعاملیِ روزمره: نمایش دستور پیش از اجرا، مدیریت مؤثر Ctrl-C در حالت تعاملی، و احساس «خوشایند» بودنِ استفاده. این مرحله مهم‌ترین انگیزهٔ شیفت از <code>/bin/sh</code> به bash به‌عنوان مرجع تست‌ها بوده (چون dash این مرحله را پاس نمی‌کند).</p>
+      </section>
+
+      <section>
+        <h2>کجا ادامه دهیم؟</h2>
+        <ul>
+          <li>کتاب <strong>Advanced Programming in the UNIX Environment</strong> (استیونز) — «همهٔ این مطلب» را دارد؛ مرجع مطلق</li>
+          <li><strong>The Architecture of Open Source Applications</strong> — فصل «Bourne-Again Shell» نوشتهٔ چت ریمی: بهترین چیز برای فهمیدن ساختار یک شل واقعی</li>
+          <li><strong>The Linux Programming Interface</strong> (مایکل کریسک) — پوشش عالی همین موضوع‌ها در لینوکس</li>
+          <li>شل‌هایی که نگاه‌شان بیندازید: busybox (C)، rc (C، مینیمال)، fish (C++11، با تست‌های expect تعاملی)، Thompson shell (شل اصلی یونیکس)، scsh (اسکیم) و oil (پایتون و C++)</li>
+          <li>کارگاه‌های مشابه: «Write a Shell in C» (برنان)، «A Unix Shell in Ruby» (جسی استوریمر) و «Let's Build a Shell» (کامال مرهوبی)</li>
+        </ul>
+        <p>نکتهٔ زبان‌ها: رابطهٔ ظریف C با یونیکس وسوسه‌انگیز است، اما برای کم‌ترین ناکامی، نویسنده پیشنهاد می‌کند اول با یک زبان سطح‌بالاتر شروع کنید؛ زبانی که پشتیبانی خوبی از سیستم‌کال‌های POSIX، دستکاری رشته و جدول هش داشته باشد. (نکته‌اش برای پایتون: از ماژول <code>os</code> استفاده کنید، نه <code>subprocess</code>؛ و برای روبی: <code>Process</code> تقریباً همه‌چیز را دارد.)</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی کارگاه «Build Your Own Shell» اثر جولیان اسکوارز است. تمام حقوق محتوا، متن و تست‌ها متعلق به نویسندهٔ اصلی است. مطالب کامل هر مرحله (stage_1.md تا stage_5.md)، تست‌ها و شل نمونه در
+        <a href="https://github.com/tokenrove/build-your-own-shell" target="_blank" rel="noopener">github.com/tokenrove/build-your-own-shell</a> موجود است.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

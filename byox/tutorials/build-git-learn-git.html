@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | گیت بساز — گیت یاد بگیر (قسمت ۱)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>گیت بساز — گیت یاد بگیر (قسمت ۱)</span>
+      </div>
+      <h1>گیت بساز — گیت یاد بگیر (قسمت ۱)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://kushagra.dev/blog/build-git-learn-git/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی پست «Build GIT - Learn GIT (P1)» از <b>کوشاگرا گور</b>
+          (ژانویه ۲۰۱۴) است — پیاده‌سازی مفاهیم پایه گیت (مخزن، commit، زنجیره commit، شاخه)
+          در جاوااسکریپت. کد کامل در مخزن <code>chinchang/build-git-learn-git</code>.
+        </div>
+        <a class="btn solid" href="https://kushagra.dev/blog/build-git-learn-git/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>اگر این پست را می‌خوانید، احتمالاً از گیت استفاده می‌کنید یا می‌خواهید استفاده کنید. من طرفدار پر و پا قرص گیت هستم و عاشق پست‌هایی هستم که در آن‌ها کسی برای فهمیدنِ طرز کار یک فناوری، تکه‌ای از همان فناوری را پیاده می‌کند. منطقش روشن است: اگر چیزی را پیاده کرده باشید، مسلماً می‌دانید چگونه کار می‌کند. این هم یکی از آن پست‌هاست که برای گسترش عشق‌ام به گیت نوشته‌ام. <strong>بله، گیت را پیاده می‌کنیم!...</strong> در جاوااسکریپت.</p>
+        <p>این قسمت مفاهیم پایه زیر را پیاده می‌کند:</p>
+        <ol>
+          <li>مخزن (Repository)</li>
+          <li>کامیت (Commit)</li>
+          <li>زنجیره‌سازی کامیت‌ها</li>
+          <li>شاخه (Branch)</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>گیت چیست؟</h2>
+        <p>تعریف بسیار ساده‌ای از گیت در kernel.org هست:</p>
+        <blockquote>«گیت را بهتر است ابزاری برای ذخیره تاریخچه مجموعه‌ای از فایل‌ها بدانیم.» — kernel.org</blockquote>
+        <p>بله، اساساً به همین دلیل از گیت استفاده می‌شود: حفظ تاریخچه تغییرات یک پروژه.</p>
+      </section>
+
+      <section>
+        <h2>مخزن (Repository)</h2>
+        <p>وقتی می‌خواهید در پروژه‌تان از گیت استفاده کنید، چیزی به نام <strong>مخزن</strong> می‌سازید. تعریف رسمی خیلی پیچیده است؛ ساده‌اش کنیم: یک مخزن گیت را مجموعه‌ای از همه چیزهای مرتبط با گیت در نظر بگیرید. وقتی پوشه پروژه را به مخزن گیت تبدیل می‌کنید، گیت تعدادی چیز داخلی در آن می‌سازد و در آن محصور می‌کند.</p>
+        <p>یک کلاس ساده به نام <code>Git</code> می‌سازیم که معرف مخزن است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Git(name) {
+  this.name = name; // نام مخزن
+}</code></pre>
+        <p>ساخت مخزن فقط به‌سادگی ساختن نمونه‌ای از کلاس <code>Git</code> با نام مخزن است:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var repo = new Git("my-repo");
+// دستور واقعی:
+// &gt; git init</code></pre>
+      </section>
+
+      <section>
+        <h2>کامیت (Commit)</h2>
+        <p>مفهوم بعدی <strong>کامیت</strong> است. به زبان خیلی ساده، یک کامیت «عکس فوری» از محتوای پروژه شماست. همین کامیت‌ها وقتی به هم زنجیر می‌شوند، تاریخچه پروژه شما را می‌سازند.</p>
+        <p>کلاس ساده <code>Commit</code> یک <em>شناسه</em> برای ارجاع به آن و یک <em>تغییر</em> شامل عکس فوری تغییرات دارد. (درک نحوه واقعی ذخیره تغییرات خارج از حوصله این پیاده‌سازی است؛ فرض می‌کنیم هر کامیت تغییراتش را همراه دارد.) گیت اجازه می‌دهد به هر کامیت یک پیام توصیفی بدهید که «پیام کامیت» نام دارد:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Commit(id, message) {
+  this.id = id;
+  this.message = message;
+}</code></pre>
+        <p>توانایی ساخت کامیت را به کلاس <code>Git</code> اضافه می‌کنیم. کلاس گیت شناسه کامیت‌ها را با یک شمارنده به نام <code>lastCommitId</code> پیگیری می‌کند:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Git() {
+  this.lastCommitId = -1;
+}
+
+Git.prototype.commit = function(message) {
+  var commit = new Commit(++this.lastCommitId, message);
+  return commit;
+};
+
+repo.commit("Make commit work");
+// دستور واقعی:
+// &gt; git commit -m "Make commit work"</code></pre>
+        <p>نکته: در گیت واقعی شناسه کامیت یک عدد ۴۰ رقم هگزایSHA-1 است؛ برای سادگی از اعداد صحیح استفاده می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>تاریخچه کامیت‌ها — زنجیره‌سازی</h2>
+        <p>گیت فرمان <code>log</code> دارد که تاریخچه کامیت‌ها را به ترتیب زمانی معکوس نشان می‌دهد (اول جدیدترین). این فرمان را به‌صورت متد روی کلاس <code>Git</code> پیاده می‌کنیم که آرایه‌ای از کامیت‌ها به ترتیب معکوس برمی‌گرداند.</p>
+        <p>برای پیاده‌سازی منطق آن دو نیاز داریم: (۱) دانستن آخرین کامیت و (۲) هر کامیت باید بداند کدام کامیت قبل از آن ساخته شده.</p>
+        <h3>نیاز اول: HEAD</h3>
+        <p>گیت چیزی به نام <strong>HEAD</strong> دارد. در گیت واقعی HEAD صرفاً اشاره‌گری به شاخه فعلی شماست. (چون شاخه‌ها را هنوز پوشش نداده‌ایم، فعلاً تعریف را شل می‌گیریم.) به کلاس گیت یک خاصیت <code>HEAD</code> اضافه می‌کنیم که به آبجکت کامیت آخرین کامیت اشاره می‌کند و در هر commit به‌روز می‌شود:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Git(name) {
+  this.name = name; // نام مخزن
+  this.lastCommitId = -1; // ردیابی شناسه آخرین کامیت
+  this.HEAD = null; // ارجاع به آخرین کامیت
+}
+
+Git.prototype.commit = function(message) {
+  var commit = new Commit(++this.lastCommitId, message);
+  this.HEAD = commit;
+  return commit;
+};</code></pre>
+        <h3>نیاز دوم: والد (parent)</h3>
+        <p>کامیت‌ها در گیت با یک ساختار داده به نام <strong>لیست پیوندی</strong> کنار هم نگه داشته می‌شوند. هر آیتم اشاره‌گری به آیتم والدش ذخیره می‌کند تا از هر آیتم به والدش برسیم و با دنبال‌کردن اشاره‌گرها فهرست مرتب بگیریم:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Commit(id, parent, message) {
+  this.id = id;
+  this.parent = parent;
+  this.message = message;
+}
+
+Git.prototype.commit = function (message) {
+  // شناسه آخرین کامیت را زیاد کن و به کامیت جدید بده.
+  var commit = new Commit(++this.lastCommitId, this.HEAD, message);
+  this.HEAD = commit;
+  return commit;
+};</code></pre>
+        <p>حالا تابع <code>log()</code>:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>Git.prototype.log = function () {
+  // از HEAD شروع کن
+  var commit = this.HEAD,
+    history = [];
+  while (commit) {
+    history.push(commit);
+    // والد را دنبال کن
+    commit = commit.parent;
+  }
+  return history;
+};
+// قابل استفاده به‌صورت repo.log();
+// دستور واقعی:
+// &gt; git log</code></pre>
+      </section>
+
+      <section>
+        <h2>شاخه‌ها (Branches)</h2>
+        <p>به جذاب‌ترین و قدرتمندترین ویژگی گیت رسیدیم. شاخه چیست و چه کاربردی دارد؟ فرض کنید روی پروژه‌ای کار می‌کنید و مدام کامیت می‌زنید. در مقطعی، شما یا یکی از هم‌تیمی‌ها می‌خواهد روی کار فعلی آزمایشی انجام دهد، مثلاً الگوریتمی متفاوت. می‌توانید آن کامیت‌های آزمایشی را بسازید، اما یادتان باشد این آزمایش شماست و قرار نیست حتماً در پروژه اصلی بماند. این‌طوری پروژه اصلی‌تان را آلوده کرده‌اید.</p>
+        <p><strong>شاخه‌ها به کمک می‌آیند.</strong> شاخه چیزی جز یک اشاره‌گر به یک کامیت نیست. جدی، همین است. این همان چیزی است که شاخه‌ها را در گیت این‌قدر سبک و مصرفی می‌کند. می‌گویید HEAD دقیقاً همین بود؟ درست است؛ تنها تفاوت این است که HEAD یکی است (چون در هر لحظه فقط روی یک کامیت هستید)، اما شاخه‌ها می‌توانند زیاد باشند و هرکدام به یک کامیت اشاره کنند.</p>
+        <p>هر مخزن گیت هنگام مقداردهی با یک شاخه پیش‌فرض به نام <em>master</em> می‌آید. با نمودارهای git-scm.com بفهمیم:</p>
+        <ul>
+          <li>مخزن جدید می‌سازید و چند کامیت می‌زنید → فقط master</li>
+          <li>شاخه جدید <em>testing</em> می‌سازید → فقط یک اشاره‌گر جدید به آخرین کامیت</li>
+          <li>HEAD به شاخه فعلی اشاره می‌کند</li>
+          <li>روی شاخه testing کامیت می‌زنید → حالا فقط اشاره‌گر testing حرکت می‌کند، نه master</li>
+        </ul>
+        <p>با همین منطق، تاریخچه هر شاخه با دنبال‌کردن اشاره‌گرها از HEAD شاخه قابل بازسازی است — همان الگوریتم <code>log()</code> ما.</p>
+        <h3>کدنویسی</h3>
+        <p>کلاس <code>Branch</code>: نام و ارجاع به یک کامیت دارد. و کلاس گیت فهرست شاخه‌ها و HEAD را به شاخه فعلی نگه می‌دارد (master هنگام ساخت):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>function Branch(name, commit) {
+  this.name = name;
+  this.commit = commit;
+}
+
+function Git(name) {
+  this.name = name; // نام مخزن
+  this.lastCommitId = -1; // ردیابی شناسه آخرین کامیت
+  this.branches = []; // فهرست همه شاخه‌ها
+  var master = new Branch("master", null); // هنوز کامیتی نیست، پس null
+  this.branches.push(master); // شاخه master را ذخیره کن
+  this.HEAD = master; // HEAD به شاخه فعلی اشاره می‌کند
+}</code></pre>
+        <p>تغییرات لازم در <code>commit</code> و <code>log</code> چون HEAD دیگر به کامیت اشاره نمی‌کند بلکه به شاخه:</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>Git.prototype.commit = function(message) {
+  // شناسه آخرین کامیت را زیاد کن و به کامیت جدید بده.
+  var commit = new Commit(++this.lastCommitId, this.HEAD.commit, message);
+  // اشاره‌گر شاخه فعلی را به کامیت جدید به‌روز کن
+  this.HEAD.commit = commit;
+  return commit;
+};
+
+Git.prototype.log = function () {
+  // از کامیت HEAD شروع کن
+  var commit = this.HEAD.commit, history = [];
+  while (commit) {
+    history.push(commit);
+    commit = commit.parent;
+  }
+  return history;
+};</code></pre>
+        <h3>checkout</h3>
+        <p>برای سوییچ‌کردن بین شاخه‌ها، <code>checkout</code> را پیاده می‌کنیم: اگر شاخه با نام داده‌شده موجود باشد، HEAD را به آن اشاره می‌دهیم; اگر نباشد، شاخه جدیدی می‌سازیم (رفتار شبیه <code>git checkout -b</code>):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>Git.prototype.checkout = function(branchName) {
+  // از بین همه شاخه‌ها بگرد آیا شاخه‌ای با نام branchName هست
+  for (var i = this.branches.length; i--; ) {
+    if (this.branches[i].name === branchName) {
+      // شاخه موجود پیدا شد
+      console.log("Switched to existing branch: " + branchName);
+      this.HEAD = this.branches[i];
+      return this;
+    }
+  }
+  // شاخه پیدا نشد؛ یکی جدید بساز
+  var newBranch = new Branch(branchName, this.HEAD.commit);
+  this.branches.push(newBranch);
+  this.HEAD = newBranch;
+  console.log("Switched to new branch: " + branchName);
+  return this;
+};
+// دستور واقعی:
+// &gt; git checkout existing-branch
+// &gt; git checkout -b new-branch</code></pre>
+        <p>آزمون نهایی — همان نمودارهایی که دیدیم (پاک‌ماندن تاریخچه master از کامیت‌های آزمایشی):</p>
+        <pre class="code"><span class="lang-tag">javascript</span><code>var repo = new Git("test");
+repo.commit("Initial commit");
+repo.commit("Change 1");
+console.assert(historyToIdMapper(repo.log()) === "1-0"); // باید ۲ کامیت نشان دهد
+repo.checkout("testing");
+repo.commit("Change 3");
+console.assert(historyToIdMapper(repo.log()) === "2-1-0"); // باید ۳ کامیت نشان دهد
+repo.checkout("master");
+console.assert(historyToIdMapper(repo.log()) === "1-0"); // master پاک مانده
+repo.commit("Change 3");
+console.assert(historyToIdMapper(repo.log()) === "3-1-0"); // ادامه روی master با کامیت چهارم</code></pre>
+        <p>پیاده‌سازی ما با تئوری هم‌سو است.</p>
+      </section>
+
+      <section>
+        <h2>بعدش چه؟</h2>
+        <p>در قدم‌های بعدی قصد دارم مفاهیمی مثل merge (fast-forward و 3-way) و rebase شاخه‌ها را پیاده کنم. نوشتنش برایم خیلی لذت‌بخش بود؛ امیدوارم شما هم لذت برده باشید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی پست «Build GIT - Learn GIT (P1)» اثر کوشاگرا گور (Kushagra Gour) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://kushagra.dev/blog/build-git-learn-git/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

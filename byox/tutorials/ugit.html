@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</span>
+      </div>
+      <h1>ugit — درون‌های گیت را با ساختن خود گیت یاد بگیر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی «Git Internals - Learn by Building Your Own Git» از
+          <b>نیکیتا لشنکو</b> (Nikita Leshenko) است — آموزش تعاملی مرحله‌ای (با commitهای قابل پیمایش،
+          diff و قابلیت Clone روی گیت‌هاب و کامنت) که درون‌های گیت را با ساختن ugit از صفر می‌آموزد.
+          باید با گیت آشنا باشید و راحتی کار با commit، branch، merge و push را تجربه کرده باشید؛ این آموزش دربارهٔ «استفاده» از گیت نیست، بلکه برای کسانی است که می‌خواهند «چگونگی» کار درون آن را درک کنند. آموزش ساختار جذابی دارد: هر گام یک تغییر کد مشخص (diff) است با توضیح کامل در کنار آن؛ در همان صفحه می‌توانید هر گام را Checkout کنید، diff آن را ببینید، برای آن کامنت بگذارید (ورود با گیت‌هاب) و کل محتوای آموزش را Clone کنید (لینک Download در صفحه).
+        </div>
+        <a class="btn solid" href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>آموزش چیست؟</h2>
+        <p>گیت سیستم بزرگی است و می‌تواند ترسناک به نظر برسد، اما درون‌های آن در واقع بسیار ساده‌اند. بهترین راه برای درک آن، ساختن یک نسخه از روی گیت از صفر است: این همان چیزی است که در این آموزش انجام می‌دهیم.</p>
+        <p><strong>ugit</strong> ("یوگیت") پیاده‌سازی آموزشی گیت در پایتون است. در طول دوره با ساختن گام‌به‌گام آن، این مفاهیم را یاد می‌گیرید: ساختار objectهای گیت (blob، tree، commit و tag)، هش‌ها و فایل‌سیستم content-addressed، فایل index و ناحیه stage، refها و شاخه‌ها، HEAD، merge، و دستورهای <code>add</code>، <code>commit</code>، <code>log</code>، <code>diff</code>، <code>show</code>، <code>branch</code>، <code>checkout</code>، <code>merge</code>، <code>status</code> و... — همه فقط با کتابخانه استاندارد پایتون.</p>
+        <p>این آموزش ساختار تعاملی دارد: هر گام یک تغییر کد مشخص با توضیح کنار آن است؛ همان‌طور که در جعبهٔ منبع بالا گفته شد، در خود صفحه می‌توانید هر گام را Checkout و diff کنید و کامنت بگذارید.</p>
+        <h3>روش گام‌به‌گام</h3>
+        <p>دوره در بخش‌هایی با نام commitهای مختلفِ مخزن ugit سازمان‌یافته است. سرفصل‌های اصلی:</p>
+        <ol>
+          <li><strong>مقدمه</strong> — چرا گیت را بسازیم؛ آناتومی گیت: پایگاه داده اشیاء، فایل index، refها</li>
+          <li><strong>خواندن و نوشتن اشیاء</strong> — قالب ذخیره‌سازی (نوع + جداکننده + محتوا، با sha1 در نام فایل)، hash-object و cat-file</li>
+          <li><strong>blob، tree و commit</strong> — درخت‌های پوشه، عکس فوری‌ها، زنجیره والدها، Merkle tree و خواص content-addressing (همان محتوا = همان هش؛ تغییر کوچک = هش کاملاً متفاوت)</li>
+          <li><strong>refs و branchها</strong> — فایل‌های refs/heads، HEAD و وضعیت detached</li>
+          <li><strong>index و stage</strong> — قالب باینری index، add و وضعیت‌ها (staged, modified, untracked)</li>
+          <li><strong>merge</strong> — پیدا کردن جد مشترک، merge سه‌جانبه (three-way)، fast-forward و تعارض‌ها</li>
+        </ol>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$ python3 ugit init
+$ python3 ugit add README.md
+$ python3 ugit commit -m "First commit"
+$ python3 ugit log
+$ python3 ugit checkout <branch>
+$ python3 ugit merge <branch></code></pre>
+        <p>هر گام با «آزمون رفتاری» همراه است: قبل از کدنویسی مشخص می‌کنید رفتار موردنظر چیست، بعد کد واقعی گام را پیاده می‌کنید. مثلاً خواندن یک شیء یعنی: باز کردن فایل <code>objects/&lt;sha&gt;</code>، جداسازی نوع با <code>partition(b'\x00')</code> و برگرداندن محتوا — همین چند خط، قلب خواندن هر شیء گیتی است.</p>
+      </section>
+
+      <section>
+        <h2>مثال واقعی کد — خواندن یک شیء</h2>
+        <p>یک تفاوت مهم که در خود آموزش هم تصریح شده: برخلاف گیتِ واقعی، ugit برای سادگی آموزشی اشیاء را فشرده نمی‌کند (بدون zlib)، حالت اجرایی فایل‌ها و زمان ثبت commit را ذخیره نمی‌کند. نام فایل هر شیء هش sha1 آن است و قالب داخلی آن ساده است. توابع اصلی که در گام‌های آغازین نوشته می‌شوند (مطابق کد واقعی آموزش):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def hash_object(data, type_='blob'):
+    obj = type_.encode() + b'\x00' + data
+    oid = hashlib.sha1(obj).hexdigest()
+    with open(f'{GIT_DIR}/objects/{oid}', 'wb') as out:
+        out.write(obj)
+    return oid
+
+def get_object(oid, expected='blob'):
+    with open(f'{GIT_DIR}/objects/{oid}', 'rb') as f:
+        obj = f.read()
+    type_, _, content = obj.partition(b'\x00')
+    type_ = type_.decode()
+    assert type_ == expected, f'Expected {expected}, got {type_}'
+    return content</code></pre>
+        <p>ساختارهای اصلی داده که در خلال آموزش ساخته می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># objid : هش sha1 شیء — محتوا مستقیم به هش نگاشت می‌شود
+# blob  : عکس فوری محتوای یک فایل (متن ساده، فشرده‌نشده)
+# tree  : نگاشت نام فایل/پوشه → sha، به‌صورت متن چندخطی
+# commit: درختِ sha، والدها، پیام — بدون timestamp
+# ref   : فایل متنی که یا مستقیماً هش است یا اشاره به ref دیگر</code></pre>
+      </section>
+
+      <section>
+        <h2>چرا این کار ارزشش را دارد؟</h2>
+        <ul>
+          <li>می‌فهمید دستورهای گیت که هر روز استفاده می‌کنید واقعاً چه کار می‌کنند (add, commit, log, branch, checkout, merge, status, diff...)</li>
+          <li>خواص شگفت‌انگیز مدل داده گیت را می‌بینید: deduplication خودکار (همان محتوا = همان هش)، یکپارچگی داده با هش‌ها، و تاریخچه تغییرناپذیر</li>
+          <li>مهارت‌های سیستم‌سازی و کار با فایل‌سیستم/فشرده‌سازی را تمرین می‌کنید</li>
+        </ul>
+        <p>در پایان دوره، ugit شما (چند صد خط پایتون خالص، بدون هیچ وابستگی خارجی) همه دستورهای اصلی را در یک مخزن محلی پیاده می‌کند: init، hash-object، cat-file، write-tree، read-tree، commit، log، status، diff، show، branch، checkout، merge، rebase و push/pull — و سپس می‌بینید که مدل دادهٔ گیت واقعی تا چه حد به همین سادگی است. برای دیدن نمونهٔ کد کامل، fork های عمومی ugit در گیت‌هاب (مانند VarunBarad/ugit) در دسترس‌اند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی آموزش «Git Internals - Learn by Building Your Own Git» اثر نیکیتا لشنکو (Nikita Leshenko) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای دسترسی به آموزش کامل (با همه گام‌ها، diff ها و کامنت‌ها) به
+        <a href="https://www.leshenko.net/p/ugit/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

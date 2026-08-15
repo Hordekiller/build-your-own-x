@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک شل بسازیم — کارگاه شل در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>کارگاه شل — Let's build a shell!</span>
+      </div>
+      <h1>بیایید یک شل بسازیم — کارگاه «شل در C» (kamalmarhubi)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی کارگاه «Let's build a shell!» از
+          <b>کمال مرهوبی</b> (Kamal Marhubi) است — مخزن <code>kamalmarhubi/shell-workshop</code>
+          شامل آموزش تمرینی گام‌به‌گام (با کد اسکلت و تمرین‌های شماره‌دار) برای ساخت شل در C، با تمرکز
+          روی اجرای فرایندها و کنترل ورودی/خروجی با pipe ها.
+        </div>
+        <a class="btn solid" href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>معرفی کارگاه</h2>
+        <p>بیشتر ما هر روز از یک شل استفاده می‌کنیم، اما آن را بدیهی می‌دانیم و نمی‌دانیم (و اهمیت نمی‌دهیم) که چطور کار می‌کند. این کارگاه با ساخت یک شل شخصی، کمی به درون آن سر می‌کشد. تمرکز بر <strong>نحوهٔ راه‌اندازی فرایندها</strong> و <strong>کنترل ورودی/خروجی آن‌ها با pipe</strong> است؛ چیزهایی مثل گسترش متغیرهای محیطی و مدیریت سیگنال را عمداً کنار می‌گذارد و در پایان پیشنهادهایی برای ادامه می‌دهد.</p>
+        <p><strong>قانون ۰:</strong> «هیچ علاقه‌ای به درگیر شدن با جزئیات به‌هم‌ریخته نداریم»: مدیریت حافظه، تجزیه و توکن‌سازی و مدیریت خطای «حرفه‌ای» — برای همین یک تابع آمادهٔ <code>parse_command</code> در اسکلت پروژه هست. توصیهٔ مهم: حتماً از یک سیستم کنترل نسخه استفاده کنید و مرتب commit بگیرید.</p>
+      </section>
+
+      <section>
+        <h2>تمرین‌ها — قدم به قدم</h2>
+        <h3>۱. نام شل و خواندن ورودی</h3>
+        <p>مهم‌ترین کار اول، انتخاب نام برای شل و اعلان (prompt) آن است؛ نویسنده هنگام ساخت کارگاه <code>heeee&gt;</code> را انتخاب کرده بود! اولین تمرین: حلقهٔ اصلی شل را بنویسید که مدام خطی از کاربر بگیرد و تا حالا فقط آن را چاپ کند (شلی که شبیه cat شخصی‌سازی‌شده است):</p>
+        <pre class="code"><span class="lang-tag">c</span><code>char *line = NULL;
+int capacity = 0;
+getline(&amp;line, &amp;capacity, stdin);</code></pre>
+        <h3>۲. سیستم‌کال‌ها</h3>
+        <p>برای اجرای دستور به کمک هسته نیاز داریم: برنامه با هسته از طریق <strong>سیستم‌کال‌ها</strong> حرف می‌زند؛ مثل باز کردن فایل (<code>open</code>)، خواندن/نوشتن (<code>read</code>/<code>write</code>)، ارسال داده از شبکه (<code>sendto</code>/<code>recvfrom</code>) و <strong>شروع برنامه</strong> (<code>execve</code>). تقریباً هر تعامل برنامه با «دنیای واقعی» یک سیستم‌کال است. برای ما، اجرای برنامه یعنی سیستم‌کال <code>execve</code> با wrapper ای به‌نام <code>execvp</code>.</p>
+        <h3>۳. اجرای برنامه</h3>
+        <p>هنگام اجرا، برنامه یک آرایهٔ آرگومان به‌نام <code>argv</code> می‌گیرد که طبق قرارداد اولی‌اش نام برنامه است؛ برای <code>ls -l /tmp</code> آرایه برابر <code>{"ls", "-l", "/tmp"}</code> است. تمرین ۲: بعد از خواندن خط، دستور را با آرگومان‌هایش اجرا کنید. چیزی غیرمنتظره پیش آمد؟</p>
+        <h3>۴. fork — چرا شل‌تان «دود شد»؟</h3>
+        <p>در تمرین قبل، بعد از پایان برنامه، به اعلان شل‌تان برنگشتید و مستقیم به شل معمولی پرت شدید! چون <code>exec</code> فرایند فعلی را <em>تبدیل</em> به دستور می‌کند — یعنی شل با <code>ls</code> جایگزین شد. راه‌حل، سیستم‌کال <code>fork</code> است: فرایندی جدید می‌سازد که کلونِ فرایند فعلی است (حتی در همان نقطهٔ اجرای برنامه). بعد در فرزندِ تازه‌ساخته <code>exec</code> را صدا می‌زنیم و شل زنده می‌ماند. مقدار بازگشتی <code>fork</code> می‌گوید کجا هستیم: <code>0</code> یعنی فرزند، و شناسهٔ فرایند یعنی والد.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>pid_t pid = fork();
+if (pid == 0) {
+    /* فرزند: اجرای برنامه */
+    execvp(args[0], args);
+} else {
+    /* والد: کاری ندارد، فقط منتظر می‌ماند */
+}</code></pre>
+        <h3>۵. انتظار برای فرزند</h3>
+        <p>تمرین ۴: قبل از برگشتن به اعلان، با <code>wait(NULL)</code> منتظر فرزند شوید. حالا شل‌تان دارد واقعی رفتار می‌کند! (نویسنده عاشق <code>cowsay</code> است.)</p>
+      </section>
+
+      <section>
+        <h2>چرا cd باید builtin باشد؟</h2>
+        <p>توالی <code>pwd</code> ← <code>cd ..</code> ← <code>pwd</code> احتمالاً شما را شگفت‌زده کرد. هر فرایند حافظهٔ خودش و فراداده‌ای دارد که هسته نگه می‌دارد و فقط با سیستم‌کال می‌تواند تغییرش دهد: شناسهٔ کاربر (<code>setuid</code>)، گروه (<code>setgid</code>)، اولویت (<code>setpriority</code>) و <strong>دایرکتوری کاری</strong> (<code>chdir</code>). اگر <code>/bin/cd</code> را با fork/exec اجرا کنیم: والد دایرکتوری‌اش را عوض نمی‌کند، فقط فرزند که می‌میرد! یک فرایند فقط می‌تواند وضعیت <em>خودش</em> را تغییر دهد. پس خودِ شل باید <code>chdir</code> را صدا بزند: یعنی <code>cd</code> باید builtin باشد.</p>
+        <pre class="code"><span class="lang-tag">c</span><code>/* تمرین ۶: افزودن builtin به نام cd */
+if (strcmp(cmd-&gt;argv[0], "cd") == 0) {
+    chdir(cmd-&gt;argv[1]);
+}</code></pre>
+        <p>بقیهٔ builtin ها را با <code>man builtin</code> ببینید؛ بعضی‌ها (مثل <code>echo</code>) می‌توانند برنامهٔ بیرونی هم باشند ولی برای کارایی (سربار ساخت فرایند) builtin شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>پایپ‌لاین‌ها</h2>
+        <p><code>ls | wc</code> در شل ما خطا می‌دهد چون شل هنوز معنی <code>|</code> را نمی‌داند. در یونیکس، فایل‌ها با <strong>فایل‌دسکریپتور</strong> مدیریت می‌شوند (در لینوکس: <code>ls -l /proc/&lt;pid&gt;/fd</code>): اعداد صحیح مثبت که ۰=stdin، ۱=stdout، ۲=stderr و از ۳ به بالا فایل‌های دیگر.</p>
+        <p>سیستم‌کال <code>pipe</code> دو فایل‌دسکریپتور جدید با خاصیت ویژه می‌سازد: هرچه به <code>5</code> بنویسید از <code>4</code> خوانده می‌شود. برای <code>ls | wc</code> باید stdout لِس به ۵ و stdin دابلیوسی به ۴ برود؛ ابزار این کار سیستم‌کال <code>dup2</code> است (<code>dup2(5, 1)</code> و <code>dup2(4, 0)</code>).</p>
+        <p>خلاصهٔ مراحل: (۱) ساخت pipe با <code>pipe</code>؛ (۲) دو بار <code>fork</code> (یکی برای ls و یکی برای wc)؛ (۳) در فرزندِ ls: <code>dup2(pipe_fds[1], 1)</code> و اجرا؛ (۴) در فرزندِ wc: <code>dup2(pipe_fds[0], 0)</code> و اجرا؛ (۵) بستن هر دو سر pipe در فرایند والد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int pipe_fds[2];
+pipe(pipe_fds);            /* فرض: [4, 5] برمی‌گرداند */
+
+/* تمرین ۷: */
+void fork_and_exec_with_io(cmd* cmd, int stdout_fd, int stdin_fd);
+
+/* تمرین ۸: پیاده‌سازی pipe دو عنصری با تابع بالا */
+fork_and_exec_with_io(cmd1, pipe_fds[1], STDIN_FILENO);  /* ls → 5 */
+fork_and_exec_with_io(cmd2, STDOUT_FILENO, pipe_fds[0]); /* 4 ← wc */
+close(pipe_fds[0]);
+close(pipe_fds[1]);</code></pre>
+      </section>
+
+      <section>
+        <h2>ادامه‌های پیشنهادی</h2>
+        <ul>
+          <li><strong>پایپ‌لاین‌های طولانی‌تر</strong> — <code>parse_line</code> هر تعداد دستور پایپ‌شده برمی‌گرداند؛ ادامه با شماست</li>
+          <li><strong>ریدایرکت ورودی/خروجی به فایل</strong> (<code>grep shel &gt; /tmp/shel_words</code>) — به‌جای <code>pipe</code> از <code>open</code> استفاده کنید</li>
+          <li><strong>ریدایرکت سایر فایل‌دسکریپتورها</strong> — مثل <code>2&gt;/tmp/errors</code> برای stderr</li>
+          <li><strong>ریدایرکت به فایل‌دسکریپتور دیگر</strong> — مثل <code>2&gt;&amp;1</code></li>
+          <li><strong>گسترش متغیر محیطی</strong> (<code>echo $HOME</code>) با تابع <code>getenv</code></li>
+          <li><strong>تنظیم متغیر محیطی برای فرزندان</strong> — <code>TZ=Pacific/Samoa date</code> با <code>setenv</code>؛ و builtin <code>export</code> (چون فرزند نمی‌تواند محیط والد را عوض کند!)</li>
+          <li><strong>مدیریت سیگنال</strong> — فشردن <code>^C</code> سیگنال <code>SIGINT</code> می‌فرستد؛ می‌توانید handler ثبت کنید تا شل کشته نشود</li>
+          <li><strong>گلابینگ</strong> — <code>wc -c *</code> قبل از عبور آرگومان‌ها به فرزند انجام می‌شود؛ با تابع <code>glob</code> از <code>&lt;glob.h&gt;</code></li>
+          <li><strong>پس‌زمینه</strong> — دستوری که با <code>&amp;</code> تمام می‌شود بدون <code>wait</code> روی فرزند اجرا می‌شود</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی کارگاه «Let's build a shell!» اثر کامال مرهوبی است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. اسکلت کد و تمرین‌های کامل در
+        <a href="https://github.com/kamalmarhubi/shell-workshop" target="_blank" rel="noopener">github.com/kamalmarhubi/shell-workshop</a> در دسترس است.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

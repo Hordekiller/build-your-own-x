@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازپیاده‌سازی «git clone» در Haskell از پایه</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>بازپیاده‌سازی «git clone» در Haskell از پایه</span>
+      </div>
+      <h1>بازپیاده‌سازی «git clone» در Haskell از پایه</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Haskell</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://stefan.saasen.me/articles/git-clone-in-haskell-from-the-bottom-up/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Reimplementing git clone in Haskell from the bottom up»
+          از <b>استفان ساسن</b> (مارس ۲۰۱۳) است — بازپیاده‌سازی git clone بدون استفاده از هیچ‌یک از
+          دستورات plumbing گیت. کد منبع در Bitbucket موجود است.
+        </div>
+        <a class="btn solid" href="http://stefan.saasen.me/articles/git-clone-in-haskell-from-the-bottom-up/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>انگیزه</h2>
+        <p>برای اینکه به بررسی‌هایم درباره ساختارهای داده، پروتکل‌ها و پیاده‌سازی گیت نظم بدهم، تصمیم گرفتم <code>git clone</code> را بدون استفاده از هیچ‌یک از دستورات plumbing گیت یا کتابخانه‌های موجود گیت بازپیاده‌سازی کنم. در این مسیر یادداشت‌هایی نگه داشتم که به فهم اجزای لازم برای بازتولید قابلیت clone کمک می‌کند.</p>
+        <p>پیاده‌سازی به‌دست‌آمده طبیعتاً ارزش عملی محدودی دارد، اما نیازمند بررسی حوزه‌هایی از گیت بود که کاربر معمولی گیت به‌ندرت با آن‌ها روبه‌رو می‌شود. هدف این تمرین، گسترده‌رفتن بود نه عمیق‌رفتن؛ برای اجرای یک دستور clone مینیمال اما کارا، میان‌برهای خاصی برداشتم.</p>
+      </section>
+
+      <section>
+        <h2>مرور</h2>
+        <p>برای پیاده‌سازی git clone این حوزه‌ها پوشش داده می‌شوند:</p>
+        <ul>
+          <li><strong>پروتکل گیت</strong> — پروتکلی که به مشتری گیت اجازه می‌دهد مجموعه تغییرات لازم را با مکانیزم‌های انتقال مختلف (پروتکل بومی گیت، ssh، http) از سرور راه‌دور بگیرد</li>
+          <li><strong>فرمت فایل pack</strong> — فرمت انتقال حداقل داده از سرور به مشتری (و به‌طور کلی ذخیره‌سازی کارآمد اشیای بسته‌بندی‌شده در مخازن)</li>
+          <li><strong>ذخیره‌گاه اشیا</strong> — مخزن زیربنایی که گیت برای ذخیره commits، trees، tags و محتوای واقعی فایل‌ها به شکل blobs از آن استفاده می‌کند</li>
+          <li><strong>فرمت index</strong> — برای ردیابی تغییرات فایل‌ها در شاخه کاری</li>
+        </ul>
+        <p>در پایان مقاله می‌توانیم این‌ها را اجرا کنیم:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$&gt; hgit clone git://github.com/juretta/git-pastiche.git</code></pre>
+        <p>و یک مخزن گیت معتبر می‌گیریم که با مشتری معمولی گیت هم کار می‌کند — بدون استفاده از گیت یا کتابخانه‌های گیت برای بخش clone و راه‌اندازی مخزن. برای متمرکز نگه‌داشتن پیاده‌سازی، فقط پروتکل انتقال <code>git://</code> پشتیبانی می‌شود و مشتری فقط clone کامل (نه shallow) انجام می‌دهد.</p>
+        <p>روش کلی: بررسی/مهندسی معکوس رفتار واقعی هنگام اجرای دستور clone، جمع‌آوری اطلاعات دیباگ (متغیرهای محیط دیباگ گیت، ثبت بسته‌های شبکه، Dtrace)، تحقیق درباره پروتکل‌ها و ساختارهای داده و خواندن مستندات رسمی در کد منبع گیت و خود کد منبع گیت.</p>
+      </section>
+
+      <section>
+        <h2>فرآیند clone</h2>
+        <p>عملیات clone مراحلی دارد که با فراخوانی دستور با یک URL گیت شروع می‌شود:</p>
+        <ol>
+          <li>تجزیه URL برای استخراج host، port و مسیر مخزن</li>
+          <li>اتصال TCP به سرور گیت با استفاده از پروتکل انتقال بومی</li>
+          <li>مذاکره بر سر اشیایی که باید منتقل شوند — شامل دریافت وضعیت فعلی مخزن راه‌دور (به شکل آگهی refها) که refهای سرور و هش commit هر ref را نشان می‌دهد</li>
+          <li>درخواست refهای لازم و دریافت فایل pack که همه اشیای قابل‌دسترسی از refهای درخواستی سرور را شامل می‌شود</li>
+          <li>ساخت ساختار معتبر پوشه/فایل مخزن روی دیسک</li>
+          <li>ذخیره اشیا و refها روی دیسک</li>
+          <li>آماده‌سازی شاخه کاری با فایل‌ها و پوشه‌هایی که نمایانگر نوک ref موردنظرند</li>
+          <li>ساخت فایل index (ناحیه stage) متناظر با آن نوک و فایل‌های روی دیسک</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>پروتکل انتقال و سیم بسته pack گیت</h2>
+        <p>برای انتقال داده مخزن (commits، tags، محتوای فایل، اطلاعات ref) فرآیندهای مشتری و سرور گیت درباره حداقل داده لازم برای به‌روزرسانی طرف مقابل مذاکره می‌کنند.</p>
+        <p>گیت چهار پروتکل انتقال اصلی دارد: پروتکل محلی (دسترسی از طریق فایل‌سیستم)، و سه پروتکل دسترسی راه‌دور: SSH، پروتکل بومی گیت و HTTP. همه این‌ها رویکرد زیربنایی مشترکی دارند: اتصال فرآیندهای مختلف <code>*-pack</code> اجراشده روی مشتری و سرور. برای fetch این یعنی اتصال <code>git fetch-pack</code> روی مشتری به <code>git upload-pack</code> روی سرور؛ برای push، <code>git send-pack</code> مشتری به <code>git receive-pack</code> سرور متصل می‌شود.</p>
+        <h3>کشف refها</h3>
+        <p>فاز کشف ref به مشتری اجازه می‌دهد بفهمد سرور چه داده‌ای دارد. سرور این اطلاعات را در فهرستی از refها ارائه می‌دهد؛ برای هر ref (شاخه‌ها و برچسب‌ها) جدیدترین commitش را می‌نویسد:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$&gt; git ls-remote -h -t git://github.com/git/git.git | head -n 10
+3a3101c62ecfbde184934f590bab5d84d7ae64a0        refs/heads/maint
+21ccebec0dd1d7e624ea2f22af6ac93686daf34f        refs/heads/master
+...</code></pre>
+        <h3>ظرفیت‌ها (Capabilities)</h3>
+        <p>به‌عنوان بخشی از کشف ref، مشتری و سرور درباره ظرفیت‌هایی که سرور پشتیبانی می‌کند تبادل اطلاعات می‌کنند. ظرفیت‌ها به‌عنوان بخشی از اولین ref سرور، جدا از جفت hhash/نام ref توسط یک بایت NUL منتقل می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>3b1031798a00fdf9b574b5857b1721bc4b0e6bac HEAD\0multi_ack thin-pack
+  side-band side-band-64k ofs-delta shallow no-progress include-tag
+  multi_ack_detailed agent=git/1.8.1</code></pre>
+        <h3>فرمت pkt-line</h3>
+        <p>بسته عملیاتی پروتکل گیت به‌شدت از قالب «pkt-line» استفاده می‌کند: رشته باینری با طول متغیر که طولش در چهار بایت اول pkt-line کد شده است.</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>003f3b1031798a00fdf9b574b5857b1721bc4b0e6bac refs/heads/master\n</code></pre>
+        <p>چهار بایت اول <code>003f</code> طول کل رشته (شامل ۴ بایت طول) به هگزادسیمال است (<code>003f</code> = ۶۳ دهدهی).</p>
+        <p>در Haskell:</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>-- یک pkt-line با طول کلی پیشونددار بساز. طول ۴ بایت، هگز، با 0 پرشده
+pktLine :: String -&gt; String
+pktLine msg = printf "%04s%s" (toHex . (4 +) $ length msg) msg</code></pre>
+        <p>pkt-line با طول صفر یعنی <code>0000</code> «flush-pkt» نامیده می‌شود؛ یک pkt-line خاص که برای علامت‌دادن نقطه تحویل موردتوافق در مبادله ارتباط استفاده می‌شود.</p>
+        <h3>مبادله مشتری-سرور</h3>
+        <p>با یک سرور گیت ساده (دستور <code>git daemon</code>) و <code>GIT_TRACE_PACKET=1</code> می‌توان مبادله واقعی را دید:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$&gt; git ls-remote git://127.0.0.1/git-bottom-up
+packet:          git&gt; git-upload-pack /git-bottom-up\0host=127.0.0.1\0
+packet:          git&lt; 3b1031798a00fdf9b574b5857b1721bc4b0e6bac HEAD\0multi_ack ...
+packet:          git&lt; 3b1031798a00fdf9b574b5857b1721bc4b0e6bac refs/heads/master
+packet:          git&lt; c4bf7555e2eb4a2b55c7404c742e7e95017ec850 refs/remotes/origin/master
+packet:          git&lt; 0000
+packet:          git&gt; 0000</code></pre>
+        <p>پیاده‌سازی کشف ref — مشتری اتصال TCP برقرار می‌کند، یک درخواست در قالب pkt-line می‌فرستد، پاسخ را می‌خواند، flush-pkt می‌فرستد و پاسخ را parse می‌کند:</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>data Remote = Remote {
+    getHost         :: String
+  , getPort         :: Maybe Int
+  , getRepository   :: String
+} deriving (Eq, Show)
+
+lsRemote' :: Remote -&gt; IO [PacketLine]
+lsRemote' Remote{..} = withSocketsDo $
+    withConnection getHost (show $ fromMaybe 9418 getPort) $ \sock -&gt; do
+        let payload = gitProtoRequest getHost getRepository
+        send sock payload
+        response &lt;- receive sock
+        send sock flushPkt -- به سرور بگو قطع شود
+        return $ parsePacket $ L.fromChunks [response]</code></pre>
+        <p>خواندن یک pkt-line — ۴ بایت طول را می‌خوانیم تا بفهمیم چند بایت باید بخوانیم؛ تابع بازگشتی <code>readFully</code> تضمین می‌کند تعداد بایت درخواستی واقعاً خوانده شود (قرارداد <code>recv</code> تضمینی برای یکجا خواندن نمی‌دهد):</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>readPacketLine :: Socket -&gt; IO (Maybe C.ByteString)
+readPacketLine sock = do
+        len &lt;- readFully mempty 4
+        if C.null len then return Nothing else
+            case readHex $ C.unpack len of
+                ((l,_):_) | l &gt; 4 -&gt; do
+                     line &lt;- readFully mempty (l-4)
+                     return $ Just line
+                _                 -&gt; return Nothing
+    where readFully acc expected = do
+            line &lt;- recv sock expected
+            let len  = C.length line
+                acc' = acc `mappend` line
+                cont = len /= expected &amp;&amp; not (C.null line)
+            if cont then readFully acc' (expected - len) else return acc'</code></pre>
+        <p>اگر طول «خط خالی» (<code>0004</code>) یا flush-pkt (<code>0000</code>) باشد، خواندن متوقف شده و Nothing برمی‌گردد.</p>
+        <h3>مذاکره بر سر فایل pack</h3>
+        <p>حالا که مشتری همه refهای آگهی‌شده را می‌داند، می‌تواند refهای لازم را بخواهد. clone ساده‌ترین حالت است: همه refهای سرور را می‌خواهد. جریان کلی:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>Client -&gt; درخواست بومی
+          آگهی ref                          &lt;- Server
+Client -&gt; درخواست مذاکره (فهرست refهای خواسته‌شده)
+          ارسال packfile                     &lt;- Server</code></pre>
+        <p>مشتری همه شناسه‌های commit خواسته‌شده را با پیشوند <code>want</code> در قالب pkt-line فهرست می‌کند. پروتکل الزام می‌کند حداقل یک فرمان <code>want</code> فرستاده شود و مشتری نمی‌تواند commit-idای را بخواهد که سرور آگهی نکرده:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>0077want 8c25759f3c2b14e9eab301079c8b505b59b3e1ef multi_ack_detailed side-band-64k thin-pack ofs-delta agent=git/1.8.2
+0032want 8c25759f3c2b14e9eab301079c8b505b59b3e1ef
+0032want 4574b4c7bb073b6b661abd0558a639f7a32b3f8f</code></pre>
+        <p>سرور بر اساس refهای خواسته‌شده، packfile شاملهمه refها و اشیای قابل‌دسترسی از آن‌ها تولید می‌کند (کد کامل در مقاله اصلی):</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>receivePack :: Remote -&gt; IO ([Ref], B.ByteString)
+receivePack Remote{..} = withSocketsDo $
+    withConnection getHost (show $ fromMaybe 9418 getPort) $ \sock -&gt; do
+        let payload = gitProtoRequest getHost getRepository
+        send sock payload
+        response &lt;- receive sock
+        let pack = parsePacket $ L.fromChunks [response]
+            request = createNegotiationRequest ["multi_ack_detailed",
+                        "side-band-64k",
+                        "agent=git/1.8.1"] pack ++ flushPkt ++ pktLine "done\n"
+        send sock request
+        !rawPack &lt;- receiveWithSideband sock (printSideband . C.unpack)
+        return (mapMaybe toRef pack, rawPack)</code></pre>
+        <p>ظرفیت side-band به سرور اجازه می‌دهد گزارش پیشرفت و پنجره اطلاعات خطا را در کنار همان packfile بفرستد (به‌صورت مالتی‌پلکس). بایت اول بعد از طول pkt-line کانال sideband را نشان می‌دهد: <code>1</code> تکه‌ای از packfile است (کانال داده)، <code>2</code> اطلاعات پیشرفت (چاپ روی stderr با پیشوند <code>remote:</code>)، <code>3</code> اطلاعات خطا.</p>
+      </section>
+
+      <section>
+        <h2>فرمت فایل pack</h2>
+        <p>فایل pack برای انتقال یا ذخیره‌سازی کارآمد تعداد زیادی از اشیای گیت استفاده می‌شود؛ شامل:</p>
+        <ul>
+          <li><strong>هدر ۱۲ بایتی:</strong> ۴ بایت جادویی <code>'P' 'A' 'C' 'K'</code>، ۴ بایت نسخه فایل pack و ۴ بایت تعداد اشیا</li>
+          <li><strong>n شیء</strong> که هرکدام: هدر طول متغیر (نوع شیء و طول داده بازشده)، برای اشیای دلتایی ۲۰ بایت نام شیء پایه یا افست نسبی، و داده فشرده zlib</li>
+          <li><strong>checksum ۲۰ بایتی SHA1</strong> همه موارد بالا به‌عنوان دنباله</li>
+        </ul>
+        <p>شیء دلتایی اشاره‌گری به شیء پایه دارد و بارش دلتای بین نسخه پایه و نسخه بعدی آن شیء است.</p>
+        <p>ابزارهای مفید برای بررسی: <code>git verify-pack</code> (اعتبارسنجی packfile‌های ایندکس‌شده) و <code>git unpack-objects</code> (تبدیل packfile به اشیای loose).</p>
+        <h3>هدر packfile</h3>
+        <pre class="code"><span class="lang-tag">haskell</span><code>parsePackFile :: I.Iteratee ByteString IO Packfile
+parsePackFile = do
+    magic       &lt;- endianRead4 MSB -- 4 بایت، big-endian
+    version'    &lt;- endianRead4 MSB
+    numObjects' &lt;- endianRead4 MSB
+    if packMagic == magic
+                then parseObjects version' numObjects'
+                else return InvalidPackfile
+  where packMagic = fromOctets $ map (fromIntegral . ord) "PACK"</code></pre>
+        <h3>هدر شیء pack — اعداد صحیح طول متغیر</h3>
+        <p>هدر شیء از نوعی کدگذاری عدد صحیح بدون علامت با طول متغیر استفاده می‌کند که نوع شیء در بایت اول است:</p>
+        <ul>
+          <li><strong>MSB</strong> تعیین می‌کند آیا بایت‌های بیشتری برای طول داده لازم است،</li>
+          <li><strong>۳ بیت</strong> نوع شیء: <code>OBJ_COMMIT=1</code>، <code>OBJ_TREE=2</code>، <code>OBJ_BLOB=3</code>، <code>OBJ_TAG=4</code>، <code>OBJ_OFS_DELTA=6</code>، <code>OBJ_REF_DELTA=7</code>،</li>
+          <li><strong>۴ بیت</strong> بخشی از طول (اگر MSB تنظیم باشد بخشی از طول است)</li>
+        </ul>
+        <p>بایت‌های بعدی بخش‌های باقی‌مانده طول را در ۷ بیت کم‌ارزش خود دارند. نسخه C آن بسیار موجز است:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>type = (c &gt;&gt; 4) &amp; 7;
+size = (c &amp; 15);
+shift = 4;
+while (c &amp; 0x80) {
+	pack = fill(1);
+	c = *pack;
+	use(1);
+	size += (c &amp; 0x7f) &lt;&lt; shift;
+	shift += 7;
+}</code></pre>
+        <h3>دلتا‌سازی</h3>
+        <p>بازنمایی‌های دلتایی در packfile از فشرده‌سازی دلتا استفاده می‌کنند تا مقدار داده‌ای که باید منتقل/ذخیره شود کمینه شود. فشرده‌سازی دلتا نمایش محتوای نسخه هدف به‌عنوان «جهش» (دلتا) از محتوای منبع موجود است. الگوریتم دلتای گیت کپی/درج (copy/insert) است: دنباله‌ای از عملیات کپی (افست در بافر منبع + تعداد بایت‌ها) و درج (بایت‌های افزوده‌شده) روی بافر موردنظر اعمال می‌شود.</p>
+        <p>بافر دلتا با هدری شروع می‌شود که طول بافر منبع و هدف را دارد (دوباره اعداد صحیح طول متغیر):</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>| Varint - طول بافر منبع/پایه  |
+| Varint - طول بافر هدف       |
+| n دستور کپی/درج              |</code></pre>
+        <p>دستور کپی وقتی MSB بایت opcode تنظیم باشد؛ ۴ بیت برای افست و ۳ بیت برای طول، که بایت‌های بعدی را مشخص می‌کنند. دستور درج وقتی MSB تنظیم نباشد: خود opcode تعداد بایت‌هایی است که از بافر دلتا به هدف باید کپی شوند.</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>patch :: B.ByteString -- ^ منبع/پایه
+      -&gt; B.ByteString -- ^ دلتا
+      -&gt; Either String B.ByteString
+patch base delta = do
+        header &lt;- decodeDeltaHeader delta
+        if B.length base == sourceLength header then
+            fst $ runGet (run (getOffset header) base delta) delta
+        else Left "Source length check failed"</code></pre>
+        <h3>Ref vs. Ofs delta</h3>
+        <p>دو نوع شیء دلتایی وجود دارد: <code>OBJ_REF_DELTA</code> که نام شیء پایه ۲۰ بایتی دارد و <code>OBJ_OFS_DELTA</code> که افست نسبی (منفی) از موقعیت خود شیء دلتا در pack دارد. چک‌سوم‌ها با <code>git verify-pack</code> قابل مشاهده‌اند:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>2486a54b0fa69143639407f94082cab866a91e08 commit 228 153 12
+...
+99618348415a3a0f78222e54c03c51e638fbad41 blob   466 340 1917 1 42d5f4d92691c3b90b2b66ecb79dfb60773fa1a1</code></pre>
+      </section>
+
+      <section>
+        <h2>ذخیره‌گاه اشیا</h2>
+        <p>اشیای گیت به‌شکل یک فایل در هر شیء ذخیره می‌شوند (با zlib فشرده): هدر با نوع و اندازه، null byte و سپس داده. نزدیک به دورهٔ داستان گیت از کد داخلی .git استفاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">جدول</span><code>object-type SP object-size NUL object-contents
+    مثال:  commit 1086 \0 tree 29ff16c9...</code></pre>
+        <h3>refها</h3>
+        <p>refها نام‌هایی برای هش‌های commit هستند؛ فایل‌هایی محتوایشان یا هش است یا ref دیگر (مثل <code>HEAD</code> که <code>ref: refs/heads/master</code> است). پیاده‌سازی آنها ساده است: خواندن فایل‌های refs/heads و refs/tags.</p>
+        <h3>شاخه کاری و index</h3>
+        <p>قالب index (ناحیه stage) فرمت باینری سفارشی با هدر، ورودی‌ها و checksum است؛ هر ورودی شامل مسیر فایل، زمان تغییر، هش SHA-1 و موارد دیگر است.</p>
+      </section>
+
+      <section>
+        <h2>دستور clone بازپیاده‌شده</h2>
+        <p>کل فرایند در یک تابع:</p>
+        <pre class="code"><span class="lang-tag">haskell</span><code>clone' :: GitRepository -&gt; Remote -&gt; IO ()
+clone' repo remote@Remote{..} = do
+        (refs,packFile) &lt;- receivePack remote
+        let dir = pathForPack repo
+            tmpPack = dir &lt;/&gt; "tmp_pack_incoming"
+        _ &lt;- createDirectoryIfMissing True dir
+        B.writeFile tmpPack packFile
+        _ &lt;- runReaderT (createGitRepositoryFromPackfile tmpPack refs) repo
+        removeFile tmpPack
+        runReaderT checkoutHead repo</code></pre>
+        <ol>
+          <li>دریافت packfile و فهرست refهای آگهی‌شده</li>
+          <li>نوشتن packfile در یک مکان موقت مشخص</li>
+          <li>تجزیه packfile و ساخت مخزن محلی از روی آن</li>
+          <li>checkout کردن HEAD در شاخه کاری</li>
+        </ol>
+        <p>برای سادگی، به‌جای نگه‌داشتن packfile، آن را به اشیای loose (یک فایل به ازای هر شیء) باز می‌کنیم.</p>
+      </section>
+
+      <section>
+        <h2>چه چیزی کم است؟</h2>
+        <ul>
+          <li>پشتیبانی از پروتکل‌های http و ssh</li>
+          <li>clone های shallow</li>
+          <li>optimization های ایندکس packfile</li>
+        </ul>
+        <p>هدف این تمرین درک {building blocks}گیت بود؛ پیاده‌سازی کامل یک مشتری گیت کار بزرگی است که فراتر از این مقاله است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقاله «Reimplementing git clone in Haskell from the bottom up» اثر استفان ساسن (Stefan Saasen) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://stefan.saasen.me/articles/git-clone-in-haskell-from-the-bottom-up/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

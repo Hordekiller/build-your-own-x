@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بازسازی گیت با روبی — RGit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>بازسازی گیت با روبی — RGit</span>
+      </div>
+      <h1>بازسازی گیت با روبی (Rebuilding Git in Ruby)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://thoughtbot.com/blog/rebuilding-git-in-ruby" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Rebuilding Git in Ruby» از
+          <b>تیم thoughtbot</b> (نویسنده: جوئل کوئنویل، مارس ۲۰۱۶) است — بازپیاده‌سازی گیت با روبی
+          به‌نام <b>RGit</b>. مخزن کامل این پروژه روی گیت‌هاب: <code>JoelQ/rgit</code>.
+        </div>
+        <a class="btn solid" href="https://thoughtbot.com/blog/rebuilding-git-in-ruby" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>چرا گیت را با روبی بازسازی کنیم؟</h2>
+        <p>گیت ابزاری قدرتمند است که هر روز استفاده می‌کنیم، اما تا به حال فکر کرده‌اید «جادوی» آن چطور کار می‌کند؟ مستندات داخلی گیت ترسناک، ناقص و بی‌مثال‌اند؛ کندوکاو در پیاده‌سازی واقعی آن هم اگر با C آشنا نباشید سخت است. برداشتن موتورِ یک سیستم و سرهم کردن دوبارهٔ آن، یکی از بهترین راه‌های فهمیدنِ سیستم است. این مقاله همین کار را با روبی انجام می‌دهد: پیاده‌سازی گیت برای توسعه‌دهندگان Rails که روبی را بهتر از C می‌شناسند.</p>
+        <p>نتیجهٔ نهایی RGit است که این کارها را انجام می‌دهد: اجرای دستورها از طریق نسخهٔ شخصیِ <code>rgit</code>، ایجاز مخزن (<code>init</code>)، مرحله‌بندی فایل‌ها (<code>add</code>) و ثبت عکس فوری (<code>commit</code>).</p>
+      </section>
+
+      <section>
+        <h2>قدم ۱ — دستورهای گیت و فلسفهٔ یونیکس</h2>
+        <p>گیت به‌صورت مدولار ساخته شده و از «فلسفهٔ یونیکس» پیروی می‌کند: ابزارهای کوچک و تیز. هر دستور یک فایل اسکریپت مجزاست و دستور سطح بالا فقط به آن‌ها پراکسی می‌کند. کافیست کنوانسیون نام‌گذاری را رعایت کنیم تا دستور دلخواه خودمان را بسازیم:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>#!/usr/bin/env ruby
+# bin/rgit
+command, *args = ARGV
+
+if command.nil?
+  $stderr.puts "Usage: rgit &lt;command&gt; [&lt;args&gt;]"
+  exit 1
+end
+
+path_to_command = File.expand_path("../rgit-#{command}", __FILE__)
+if !File.exist? path_to_command
+  $stderr.puts "No such command"
+  exit 1
+end
+
+exec path_to_command, *args</code></pre>
+        <p>این اسکریپت یکی از سه کار را می‌کند: نمایش راهنما اگر زیردستوری داده نشده، خطا اگر اسکریپتی برای زیردستور وجود نداشته باشد، یا اجرای زیردستور. به‌عنوان شهروند خوب یونیکس، پیام‌های خطا به <code>stderr</code> می‌روند و کد خروج غیرصفر برمی‌گردانیم.</p>
+      </section>
+
+      <section>
+        <h2>قدم ۲ — ایجاز مخزن (init)</h2>
+        <p>گیت همهٔ داده و فرادادهٔ خود را در پوشه‌ای به‌نام <code>.git</code> در ریشهٔ مخزن نگه می‌دارد. ساختار هدف:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>.rgit
+├── HEAD
+├── config
+├── objects
+│   ├── info
+│   └── pack
+└── refs
+    ├── heads
+    └── tags</code></pre>
+        <p><code>HEAD</code> فایلی است با مقدار ثابت <code>ref: refs/heads/master</code> و بقیهٔ درخت هم پوشه‌های خالی‌اند. «بیشترِ این ساخت را فراخوانی‌های پشت‌سرهمِ <code>Dir.mkdir</code> تشکیل می‌دهد»:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>#!/usr/bin/env ruby
+# bin/rgit-init
+RGIT_DIRECTORY = ".rgit".freeze
+OBJECTS_DIRECTORY = "#{RGIT_DIRECTORY}/objects".freeze
+REFS_DIRECTORY = "#{RGIT_DIRECTORY}/refs".freeze
+
+if Dir.exists? RGIT_DIRECTORY
+  $stderr.puts "Existing RGit project"
+  exit 1
+end
+
+def build_objects_directory
+  Dir.mkdir OBJECTS_DIRECTORY
+  Dir.mkdir "#{OBJECTS_DIRECTORY}/info"
+  Dir.mkdir "#{OBJECTS_DIRECTORY}/pack"
+end
+
+def build_refs_directory
+  Dir.mkdir REFS_DIRECTORY
+  Dir.mkdir "#{REFS_DIRECTORY}/heads"
+  Dir.mkdir "#{REFS_DIRECTORY}/tags"
+end
+
+def initialize_head
+  File.open("#{RGIT_DIRECTORY}/HEAD", "w") do |file|
+    file.puts "ref: refs/heads/master"
+  end
+end
+
+Dir.mkdir RGIT_DIRECTORY
+build_objects_directory
+build_refs_directory
+initialize_head
+
+$stdout.puts "RGit initialized in #{RGIT_DIRECTORY}"</code></pre>
+      </section>
+
+      <section>
+        <h2>قدم ۳ — افزودن به ناحیهٔ مرحله‌بندی (add)</h2>
+        <p>مرحله‌بندی فایل چند گام دارد: ساخت SHA از روی محتوای فایل، ساخت بلاب با فشرده‌سازی محتوا، ذخیرهٔ بلاب به‌صورت <code>objects/&lt;دو کاراکتر اول sha&gt;/&lt;بقیهٔ sha&gt;</code>، و ثبت sha و مسیر در ایندکس.</p>
+        <p>ایندکس واقعی گیت فایلی باینری با هدر <code>DIRC</code> و فرادادهٔ زیاد (ctime، mtime، mode، uid، gid و...) است و به همین دلیل «مشتی کاراکتر بی‌معنی» به نظر می‌رسد. مقاله برای سادگی و خوانایی، قالب متنی ساده را برمی‌گزیند:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code># قالب ایندکس RGit
+&lt;SHA&gt; &lt;path&gt;
+&lt;SHA&gt; &lt;path&gt;
+&lt;SHA&gt; &lt;path&gt;</code></pre>
+        <pre class="code"><span class="lang-tag">ruby</span><code>#!/usr/bin/env ruby
+# bin/rgit-add
+require "digest"
+require "zlib"
+require "fileutils"
+
+RGIT_DIRECTORY = ".rgit".freeze
+OBJECTS_DIRECTORY = "#{RGIT_DIRECTORY}/objects".freeze
+INDEX_PATH = "#{RGIT_DIRECTORY}/index"
+
+path = ARGV.first
+if path.nil?
+  $stderr.puts "No path specified"
+  exit 1
+end
+
+file_contents = File.read(path)
+sha = Digest::SHA1.hexdigest file_contents
+blob = Zlib::Deflate.deflate file_contents
+object_directory = "#{OBJECTS_DIRECTORY}/#{sha[0..1]}"
+FileUtils.mkdir_p object_directory
+blob_path = "#{object_directory}/#{sha[2..-1]}"
+
+File.open(blob_path, "w") { |file| file.print blob }
+File.open(INDEX_PATH, "a") { |file| file.puts "#{sha} #{path}" }</code></pre>
+        <p>بعد از <code>rgit add bin/rgit</code>، انبار اشیاء یک بلاب فشرده دارد و ایندکس یک خط مثل <code>b302dd6f8cd2b385b170e78c14503342c0ba6ae8 bin/rgit</code>.</p>
+      </section>
+
+      <section>
+        <h2>قدم ۴ — ثبت عکس فوری (commit)</h2>
+        <p>بلاب‌ها محتوای یک فایل در یک زمان‌اند. برای عکس برداشتن از کل پروژه، گیت برای هر دایرکتوری یک شیء «tree» می‌سازد: درخت‌ها نمایانگر پوشه‌ها و بلاب‌ها نمایانگر فایل‌ها، و کل این ساختار به یک شیء «commit» گره می‌خورد. دستور commit سه کار می‌کند:</p>
+        <ol>
+          <li>ساختن ساختار tree/blob</li>
+          <li>ساخت شیء commit که به آن ساختار اشاره می‌کند</li>
+          <li>به‌روزرسانی شاخهٔ فعلی برای اشاره به این commit</li>
+        </ol>
+        <p>چون ساخت اشیاء کار رایجی است، به کلاس کمکی استخراج شده است:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code># lib/rgit/object
+require "fileutils"
+
+module RGit
+  class Object
+    def initialize(sha)
+      @sha = sha
+    end
+
+    def write(&amp;block)
+      object_directory = "#{OBJECTS_DIRECTORY}/#{sha[0..1]}"
+      FileUtils.mkdir_p object_directory
+      object_path = "#{object_directory}/#{sha[2..-1]}"
+      File.open(object_path, "w", &amp;block)
+    end
+
+    private
+    attr_reader :sha
+  end
+end</code></pre>
+        <p>سپس خود دستور commit: اول ایندکس را به ساختار هشِ درختی تبدیل می‌کند، بعد این ساختار را به‌صورت بازگشتی به اشیاء tree روی دیسک تبدیل کرده و sha هرکدام را در والدش ثبت می‌کند؛ پیام commit را با ویرایشگر کاربر (<code>$VISUAL</code>) می‌گیرد؛ و در پایان، شاخهٔ فعلی (که از <code>HEAD</code> خوانده می‌شود) را به commit جدید اشاره می‌دهد و ایندکس را خالی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">ruby</span><code>#!/usr/bin/env ruby
+# bin/rgit-commit — خلاصه‌شده
+def index_tree
+  index_files.each_with_object({}) do |line, obj|
+    sha, _, path = line.split
+    segments = path.split("/")
+    segments.reduce(obj) do |memo, s|
+      if s == segments.last
+        memo[segments.last] = sha
+        memo
+      else
+        memo[s] ||= {}
+        memo[s]
+      end
+    end
+  end
+end
+
+def build_tree(name, tree)
+  sha = Digest::SHA1.hexdigest(Time.now.iso8601 + name)
+  object = RGit::Object.new(sha)
+  object.write do |file|
+    tree.each do |key, value|
+      if value.is_a? Hash
+        dir_sha = build_tree(key, value)
+        file.puts "tree #{dir_sha} #{key}"
+      else
+        file.puts "blob #{value} #{key}"
+      end
+    end
+  end
+  sha
+end
+
+def build_commit(tree:)
+  # پیام از طریق ویرایشگر $VISUAL گرفته می‌شود
+  sha = Digest::SHA1.hexdigest(Time.now.iso8601 + "user")
+  object = RGit::Object.new(sha)
+  object.write do |file|
+    file.puts "tree #{tree}"
+    file.puts "author user"
+    file.puts
+    file.puts message
+  end
+  sha
+end</code></pre>
+        <p>نتیجه: برای یافتن وضعیت فعلی، از <code>HEAD</code> شاخهٔ فعلی را می‌یابیم؛ شاخه به آخرین commit اشاره می‌کند؛ commit به شیء tree ریشه اشاره می‌کند؛ و آن tree به tree های زیرپوشه و بلاب‌های فایل‌ها. این ساختارِ اشیاءِ اشاره‌کننده به هم، همان چیزی است که گیت را قدرتمند می‌کند: با تغییر چند فایل اشاره‌گر، به هر نقطه‌ای از تاریخچه می‌رویم.</p>
+      </section>
+
+      <section>
+        <h2>چرا این کار ارزشش را دارد؟</h2>
+        <ul>
+          <li>ساختار واقعی <code>.git</code>، ایندکس و اشیاء را با مثال‌های واقعی روبی می‌بینید — نه فقط تئوری</li>
+          <li>فلسفهٔ «ابزارهای کوچک و تیز» گیت را در عمل تجربه می‌کنید</li>
+          <li>درک می‌کنید که چرا گیت می‌تواند با تغییر چند فایل اشاره‌گر، در تاریخچه جابه‌جا شود</li>
+        </ul>
+        <p>اگر می‌خواهید عمیق‌تر بروید، کد کامل RGit در <a href="https://github.com/JoelQ/rgit" target="_blank" rel="noopener">github.com/JoelQ/rgit</a> موجود است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقالهٔ «Rebuilding Git in Ruby» از Joël Quenneville و وبلاگ thoughtbot است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ نسخهٔ اصلی به
+        <a href="https://thoughtbot.com/blog/rebuilding-git-in-ruby" target="_blank" rel="noopener">وبلاگ thoughtbot</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

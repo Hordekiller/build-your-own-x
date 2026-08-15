@@ -1510,74 +1510,74 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "git-clone-haskell",
 "category": "گیت",
 "lang": "Haskell",
 "title": "بازپیاده‌سازی «git clone» در Haskell از پایه",
 "url": "http://stefan.saasen.me/articles/git-clone-in-haskell-from-the-bottom-up/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/git-clone-haskell.html"
 },
 {
-"id": "",
+"id": "gitlet",
 "category": "گیت",
 "lang": "JavaScript",
 "title": "Gitlet",
 "url": "http://gitlet.maryrosecook.com/docs/gitlet.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/gitlet.html"
 },
 {
-"id": "",
+"id": "build-git-learn-git",
 "category": "گیت",
 "lang": "JavaScript",
 "title": "گیت بساز — گیت یاد بگیر",
 "url": "https://kushagra.dev/blog/build-git-learn-git/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/build-git-learn-git.html"
 },
 {
-"id": "",
+"id": "pygit",
 "category": "گیت",
 "lang": "Python",
 "title": "دقیقاً به اندازه کافی کلاینت گیت تا بتواند ریپو بسازد، کامیت کند و خودش را به GitHub بفرستد",
 "url": "https://benhoyt.com/writings/pygit/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/pygit.html"
 },
 {
-"id": "",
+"id": "wyag",
 "category": "گیت",
 "lang": "Python",
 "title": "گیت خودت را بنویس!",
 "url": "https://wyag.thb.lt/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/wyag.html"
 },
 {
-"id": "",
+"id": "ugit",
 "category": "گیت",
 "lang": "Python",
 "title": "ugit: درون‌های گیت را با ساختن خود گیت یاد بگیر",
 "url": "https://www.leshenko.net/p/ugit/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/ugit.html"
 },
 {
-"id": "",
+"id": "rebuilding-git-in-ruby",
 "category": "گیت",
 "lang": "Ruby",
 "title": "بازسازی گیت در Ruby",
 "url": "https://robots.thoughtbot.com/rebuilding-git-in-ruby",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/rebuilding-git-in-ruby.html"
 },
 {
 "id": "",
@@ -2630,74 +2630,74 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "write-a-shell-in-c",
 "category": "شل",
 "lang": "C",
 "title": "آموزش — یک شل در C بنویس",
 "url": "https://brennan.io/2015/01/16/write-a-shell-in-c/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/write-a-shell-in-c.html"
 },
 {
-"id": "",
+"id": "shell-workshop",
 "category": "شل",
 "lang": "C",
 "title": "یک شل بسازیم!",
 "url": "https://github.com/kamalmarhubi/shell-workshop",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/shell-workshop.html"
 },
 {
-"id": "",
+"id": "writing-a-unix-shell",
 "category": "شل",
 "lang": "C",
 "title": "نوشتن یک شل UNIX",
 "url": "https://indradhanush.github.io/blog/writing-a-unix-shell-part-1/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/writing-a-unix-shell.html"
 },
 {
-"id": "",
+"id": "build-your-own-shell",
 "category": "شل",
 "lang": "C",
 "title": "شل خودت را بساز",
 "url": "https://github.com/tokenrove/build-your-own-shell",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/build-your-own-shell.html"
 },
 {
-"id": "",
+"id": "write-a-shell",
 "category": "شل",
 "lang": "C",
 "title": "یک شل در C بنویس",
 "url": "https://danishpraka.sh/posts/write-a-shell/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/write-a-shell.html"
 },
 {
-"id": "",
+"id": "go-unix-shell",
 "category": "شل",
 "lang": "Go",
 "title": "نوشتن یک شل ساده در Go",
 "url": "https://sj14.gitlab.io/post/2018-07-01-go-unix-shell/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/go-unix-shell.html"
 },
 {
-"id": "",
+"id": "build-your-own-shell-rust",
 "category": "شل",
 "lang": "Rust",
 "title": "شل خودت را با Rust بساز",
 "url": "https://www.joshmcguigan.com/blog/build-your-own-shell-rust/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/build-your-own-shell-rust.html"
 },
 {
 "id": "",

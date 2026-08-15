@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | pygit — دقیقاً به اندازه کافی کلاینت گیت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">گیت</a>
+        <span class="sep">←</span>
+        <span>pygit — دقیقاً به اندازه کافی کلاینت گیت</span>
+      </div>
+      <h1>pygit — دقیقاً به اندازه کافی کلاینت گیت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://benhoyt.com/writings/pygit/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «pygit: Just enough of a Git client to create a repo,
+          commit, and push itself to GitHub» از <b>بن هویت</b> (آوریل ۲۰۱۷) است — حدود ۵۰۰ خط پایتون که
+          init، add، commit، push و چند دستور دیگر گیت را با کتابخانه استاندارد پیاده می‌کند.
+          کد کامل در مخزن <code>benhoyt/pygit</code>.
+        </div>
+        <a class="btn solid" href="https://benhoyt.com/writings/pygit/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>خلاصه</h2>
+        <p>چند وقت پیش حدود ۵۰۰ خط کد پایتون نوشتم که به اندازه کافی از یک کلاینت گیت را پیاده می‌کند تا بتواند یک مخزن بسازد، فایل‌ها را به index اضافه کند، commit بزند و خودش را به GitHub بفرستد. این مقاله کمی از پیش‌زمینه این کار می‌گوید و کد را قدم‌به‌قدم بررسی می‌کند.</p>
+        <p>گیت (در میان چیزهای دیگر) به خاطر مدل اشیای بسیار ساده‌اش معروف است. هنگام یادگیری گیت کشف کردم که پایگاه داده اشیای محلی در واقع فقط مجموعه‌ای از فایل‌های ساده در پوشه <code>.git</code> است. به استثنای indexو pack files (که تا حدی اختیاری‌اند)، چیدمان و قالب این فایل‌ها فوق‌العاده سرراست است.</p>
+        <p>کمی الهام‌گرفته از تلاش مشابه ماری رز کوک (gitlet)، می‌خواستم ببینم آیا می‌توانم به اندازه کافی از گیت را پیاده کنم که یک مخزن بسازد، commit انجام دهد و به یک سرور واقعی (اینجا GitHub) push کند. برنامه gitlet او تمرکز آموزشی بیشتری دارد؛ برنامه من خودش را به GitHub فرستاد و بنابراین (به زعم فروتنانه خودم) ارزش هک بیشتری دارد. نسخه pygit فقط از یک شاخه خطی ساده پشتیبانی می‌کند، از قالب باینری index واقعی گیت استفاده می‌کند (تا بتوانم کارم را با دستورهای گیت در هر قدم چک کنم) و فقط کتابخانه استاندارد پایتون ۳.۵+ را به کار می‌برد. pygit این دستورها را دارد: <code>init</code>، <code>status</code>، <code>add</code>، <code>diff</code>، <code>commit</code>، <code>cat-file</code>، <code>ls-files</code>، <code>hash-object</code> و <code>push</code>.</p>
+      </section>
+
+      <section>
+        <h2>مقداردهی یک مخزن</h2>
+        <p>مقداردهی مخزن محلی گیت فقط شامل ساخت پوشه <code>.git</code> و چند فایل و پوشه زیر آن است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def init(repo):
+    """Create directory for repo and initialize .git directory."""
+    os.mkdir(repo)
+    os.mkdir(os.path.join(repo, '.git'))
+    for name in ['objects', 'refs', 'refs/heads']:
+        os.mkdir(os.path.join(repo, '.git', name))
+    write_file(os.path.join(repo, '.git', 'HEAD'),
+               b'ref: refs/heads/master')
+    print('initialized empty repository: {}'.format(repo))</code></pre>
+        <p>مدیریت خطا چندان ظریف نیست — این یک زیرمجموعه ۵۰۰ خطی است؛ اگر پوشه مخزن از قبل وجود داشته باشد، با traceback سخت خطا می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>هش‌کردن اشیاء</h2>
+        <p>تابع <code>hash_object</code> یک شیء را هش می‌کند و در پایگاه داده <code>.git/objects</code> می‌نویسد. سه نوع شیء در مدل گیت هست: <strong>blob</strong> (فایل‌های معمولی)، <strong>commit</strong> و <strong>tree</strong> (وضعیت یک پوشه). هر شیء هدر کوچکی با نوع و اندازه (بایت) دارد، بعد یک بایت NUL و بعد داده فایل. همه این‌ها با zlib فشرده شده و در <code>.git/objects/ab/cd...</code> نوشته می‌شود که <code>ab</code> دو کاراکتر اول هش ۴۰ کاراکتری SHA-1 است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def hash_object(data, obj_type, write=True):
+    """Compute hash of object data of given type and write to object store
+    if "write" is True. Return SHA-1 object hash as hex string.
+    """
+    header = '{} {}'.format(obj_type, len(data)).encode()
+    full_data = header + b'\x00' + data
+    sha1 = hashlib.sha1(full_data).hexdigest()
+    if write:
+        path = os.path.join('.git', 'objects', sha1[:2], sha1[2:])
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            write_file(path, zlib.compress(full_data))
+    return sha1</code></pre>
+        <p>سپس <code>find_object()</code> (پیداکردن شیء با هش یا پیشوند هش) و <code>read_object()</code> (خواندن شیء و نوعش — برعکس <code>hash_object</code>) و در نهایت <code>cat_file</code> که معادل pygit از <code>git cat-file</code> است (نمایش زیبای محتوای یک شیء).</p>
+      </section>
+
+      <section>
+        <h2>index گیت</h2>
+        <p>قدم بعدی افزودن فایل‌ها به index (ناحیه stage) است. index فهرستی از ورودی‌های فایل است، مرتب‌شده بر اساس مسیر؛ هر ورودی شامل نام مسیر، زمان تغییر، هش SHA-1 و چیزهای دیگر است. توجه کنید index همه فایل‌های درخت فعلی را فهرست می‌کند، نه فقط فایل‌هایی که همین حالا برای commit در حال stage شدن‌اند.</p>
+        <p>index — تک‌فایل <code>.git/index</code> — در قالب باینری سفارشی ذخیره می‌شود. ۱۲ بایت اول هدر است، ۲۰ بایت آخر هش SHA-1 index و بایت‌های بین آن‌ها ورودی‌های index هستند: هر ورودی ۶۲ بایت به اضافه طول مسیر با طول متغیر و کمی padding:</p>
+        <pre class="code"><span class="lang-tag">python</span><code># Data for one entry in the git index (.git/index)
+IndexEntry = collections.namedtuple('IndexEntry', [
+    'ctime_s', 'ctime_n', 'mtime_s', 'mtime_n', 'dev', 'ino', 'mode',
+    'uid', 'gid', 'size', 'sha1', 'flags', 'path',
+])
+
+def read_index():
+    """Read git index file and return list of IndexEntry objects."""
+    try:
+        data = read_file(os.path.join('.git', 'index'))
+    except FileNotFoundError:
+        return []
+    digest = hashlib.sha1(data[:-20]).digest()
+    assert digest == data[-20:], 'invalid index checksum'
+    signature, version, num_entries = struct.unpack('!4sLL', data[:12])
+    assert signature == b'DIRC', \
+            'invalid index signature {}'.format(signature)
+    assert version == 2, 'unknown index version {}'.format(version)
+    entry_data = data[12:-20]
+    entries = []
+    i = 0
+    while i + 62 < len(entry_data):
+        fields_end = i + 62
+        fields = struct.unpack('!LLLLLLLLLL20sH',
+                               entry_data[i:fields_end])
+        path_end = entry_data.index(b'\x00', fields_end)
+        path = entry_data[fields_end:path_end]
+        entry = IndexEntry(*(fields + (path.decode(),)))
+        entries.append(entry)
+        entry_len = ((62 + len(path) + 8) // 8) * 8
+        i += entry_len
+    assert len(entries) == num_entries
+    return entries</code></pre>
+        <p>بعد از آن <code>ls_files</code>، <code>status</code> و <code>diff</code> می‌آیند که ر�وش‌های مختلف چاپ وضعیت index هستند: <code>ls_files</code> همه فایل‌های index را چاپ می‌کند، <code>status</code> با <code>get_status()</code> فایل‌های index را با فایل‌های پوشه فعلی مقایسه می‌کند و فایل‌های تغییرکرده/جدید/حذف‌شده را نشان می‌دهد و <code>diff</code> تفاوت هر فایل تغییرکرده را با ماژول <code>difflib</code> پایتون نشان می‌دهد. مثال — مجموعه‌سازی برای محاسبه فایل‌های تغییرکرده:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>changed = {p for p in (paths & entry_paths)
+           if hash_object(read_file(p), 'blob', write=False) !=
+              entries_by_path[p].sha1.hex()}</code></pre>
+        <p>در نهایت <code>write_index</code> برای نوشتن index و <code>add()</code> که یک یا چند مسیر را اضافه می‌کند: کل index را می‌خواند، مسیرها را اضافه و مرتب می‌کند و دوباره می‌نویسد. حالا می‌توانیم فایل‌ها را به index اضافه کنیم و آماده commit شویم.</p>
+      </section>
+
+      <section>
+        <h2>کامیت گرفتن</h2>
+        <p>انجام commit شامل نوشتن دو شیء است. اول یک شیء <strong>tree</strong>: عکس فوری از پوشه فعلی (در واقع index) در زمان commit. یک tree فقط هش فایل‌ها (blobها) و زیردرخت‌های یک پوشه را فهرست می‌کند — بازگشتی است. پس هر commit عکس فوری از کل درخت پوشه است. اما نکته قشنگ ذخیره‌سازی با هش: اگر هر فایلی در درخت تغییر کند، هش کل درخت هم تغییر می‌کند. برعکس، اگر فایل/زیردرختی تغییر نکرده باشد، با همان هش ارجاع داده می‌شود — پس تغییرات در درخت‌های پوشه کارآمد ذخیره می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def write_tree():
+    """Write a tree object from the current index entries."""
+    tree_entries = []
+    for entry in read_index():
+        assert '/' not in entry.path, \
+                'currently only supports a single, top-level directory'
+        mode_path = '{:o} {}'.format(entry.mode, entry.path).encode()
+        tree_entry = mode_path + b'\x00' + entry.sha1
+        tree_entries.append(tree_entry)
+    return hash_object(b''.join(tree_entries), 'tree')</code></pre>
+        <p>دوم، یک شیء <strong>commit</strong> که هش tree، commit والد، نویسنده و زمان‌سنج و پیام commit را ثبت می‌کند. pygit فقط یک شاخه خطی ساده را پشتیبانی می‌کند، پس همیشه فقط یک والد هست (یا در commit اول هیچ):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def commit(message, author):
+    """Commit the current state of the index to master with given message.
+    Return hash of commit object.
+    """
+    tree = write_tree()
+    parent = get_local_master_hash()
+    timestamp = int(time.mktime(time.localtime()))
+    utc_offset = -time.timezone
+    author_time = '{} {}{:02}{:02}'.format(
+            timestamp,
+            '+' if utc_offset > 0 else '-',
+            abs(utc_offset) // 3600,
+            (abs(utc_offset) // 60) % 60)
+    lines = ['tree ' + tree]
+    if parent:
+        lines.append('parent ' + parent)
+    lines.append('author {} {}'.format(author, author_time))
+    lines.append('committer {} {}'.format(author, author_time))
+    lines.append('')
+    lines.append(message)
+    lines.append('')
+    data = '\n'.join(lines).encode()
+    sha1 = hash_object(data, 'commit')
+    master_path = os.path.join('.git', 'refs', 'heads', 'master')
+    write_file(master_path, (sha1 + '\n').encode())
+    print('committed to master: {:7}'.format(sha1))
+    return sha1</code></pre>
+      </section>
+
+      <section>
+        <h2>صحبت با یک سرور</h2>
+        <p>بخش کمی سخت‌تر: pygit را با یک سرور گیت واقعی و زنده صحبت می‌کنیم (با GitHub کار می‌کند و با Bitbucket و دیگر سرورها هم). ایده پایه: از سرور بپرسیم master‌اش روی چه commitی است، بعد تعیین کنیم سرور به کدام مجموعه اشیا برای رسیدن به commit محلی فعلی نیاز دارد، و در نهایت هش commit راه‌دور را به‌روز کنیم و یک «pack file» از همه اشیای غایب بفرستیم.</p>
+        <p>این «پروتکل هوشمند» نامیده می‌شود؛ از ۲۰۱۱ گیت‌هاب پشتیبانی از «پروتکل گنگ» (انتقال مستقیم فایل‌های <code>.git</code>) را متوقف کرده است. پس باید از پروتکل هوشمند استفاده کنیم و اشیا را در pack file بسته‌بندی کنیم.</p>
+        <h3>قالب pkt-line</h3>
+        <p>یکی از بخش‌های کلیدی پروتکل انتقال، قالب «pkt-line» است: قالب بسته‌ای با طول‌پیشوند برای فرستادن فراداده‌هایی مثل هش‌های commit. هر «خط» طول ۴ رقمی هگز دارد (به اضافه ۴ برای خود طول) و بعد طول منهای ۴ بایت داده. هر خط معمولاً بایت LF پایانی هم دارد. طول خاص <code>0000</code> نشانگر بخش و پایان داده است:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def extract_lines(data):
+    """Extract list of lines from given server data."""
+    lines = []
+    i = 0
+    for _ in range(1000):
+        line_length = int(data[i:i + 4], 16)
+        line = data[i + 4:i + line_length]
+        lines.append(line)
+        if line_length == 0:
+            i += 4
+        else:
+            i += line_length
+        if i >= len(data):
+            break
+    return lines
+
+def build_lines_data(lines):
+    """Build byte string from given lines to send to server."""
+    result = []
+    for line in lines:
+        result.append('{:04x}'.format(len(line) + 5).encode())
+        result.append(line)
+        result.append(b'\n')
+    result.append(b'0000')
+    return b''.join(result)</code></pre>
+        <p>(نکته: در <code>build_lines_data</code> طول +۵ است چون یک بایت LF اضافه می‌شود.)</p>
+        <h3>درخواست HTTPS</h3>
+        <p>قلب بعدی پروتکل هوشمند: درخواست HTTPS معتبر بدون کتابخانه requests، فقط با urllib:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def http_request(url, username, password, data=None):
+    """Make an authenticated HTTP request to given URL (GET by default,
+    POST if "data" is not None).
+    """
+    password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    password_manager.add_password(None, url, username, password)
+    auth_handler = urllib.request.HTTPBasicAuthHandler(password_manager)
+    opener = urllib.request.build_opener(auth_handler)
+    f = opener.open(url, data=data)
+    return f.read()</code></pre>
+        <p>نمونه بالا دقیقاً دلیل وجود requests است! نسخه معادل با requests حتی نیازی به تابع کمکی نداشت.</p>
+        <p>پرسیدن از سرور که شاخه master‌اش به کجا رسیده (تابعی نسبتاً شکننده اما به‌راحتی قابل عمومی‌سازی):</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def get_remote_master_hash(git_url, username, password):
+    """Get commit hash of remote master branch, return SHA-1 hex string or
+    None if no remote commits.
+    """
+    url = git_url + '/info/refs?service=git-receive-pack'
+    response = http_request(url, username, password)
+    lines = extract_lines(response)
+    assert lines[0] == b'# service=git-receive-pack\n'
+    assert lines[1] == b''
+    if lines[2][:40] == b'0' * 40:
+        return None
+    master_sha1, master_ref = lines[2].split(b'\x00')[0].split()
+    assert master_ref == b'refs/heads/master'
+    assert len(master_sha1) == 40
+    return master_sha1.decode()</code></pre>
+        <h3>تعیین اشیای غایب</h3>
+        <p>حالا باید تعیین کنیم سرور به چه اشیایی نیاز دارد که ندارد. pygit فرض می‌کند همه چیز محلی است (پشتیبانی از pull ندارد). تابع <code>read_tree</code> (برعکس <code>write_tree</code>) و دو تابع بازگشتی برای پیدا کردن مجموعه هش اشیای یک درخت و یک commit:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def find_tree_objects(tree_sha1):
+    """Return set of SHA-1 hashes of all objects in this tree
+    (recursively), including the hash of the tree itself.
+    """
+    objects = {tree_sha1}
+    for mode, path, sha1 in read_tree(sha1=tree_sha1):
+        if stat.S_ISDIR(mode):
+            objects.update(find_tree_objects(sha1))
+        else:
+            objects.add(sha1)
+    return objects
+
+def find_commit_objects(commit_sha1):
+    """Return set of SHA-1 hashes of all objects in this commit
+    (recursively), its tree, its parents, and the hash of the commit itself.
+    """
+    objects = {commit_sha1}
+    obj_type, commit = read_object(commit_sha1)
+    assert obj_type == 'commit'
+    lines = commit.decode().splitlines()
+    tree = next(l[5:45] for l in lines if l.startswith('tree '))
+    objects.update(find_tree_objects(tree))
+    parents = (l[7:47] for l in lines if l.startswith('parent '))
+    for parent in parents:
+        objects.update(find_commit_objects(parent))
+    return objects
+
+def find_missing_objects(local_sha1, remote_sha1):
+    """Return set of SHA-1 hashes of objects in local commit that are
+    missing at the remote (based on the given remote commit hash).
+    """
+    local_objects = find_commit_objects(local_sha1)
+    if remote_sha1 is None:
+        return local_objects
+    remote_objects = find_commit_objects(remote_sha1)
+    return local_objects - remote_objects</code></pre>
+        <h3>خود push</h3>
+        <p>برای push باید یک درخواست pkt-line بفرستیم («شاخه master را به این هش commit به‌روز کن») و بعد یک pack file شامل محتوای به‌هم‌پیوسته همه اشیای غایب. pack file هدر ۱۲ بایتی دارد (شروع با PACK)، بعد هر شیء با اندازه طول متغیر فشرده zlib و در آخر هش ۲۰ بایتی کل pack file. ما از نمایش «بدون دلتا» برای سادگی استفاده می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def encode_pack_object(obj):
+    """Encode a single object for a pack file and return bytes
+    (variable-length header followed by compressed data bytes).
+    """
+    obj_type, data = read_object(obj)
+    type_num = ObjectType[obj_type].value
+    size = len(data)
+    byte = (type_num << 4) | (size & 0x0f)
+    size >>= 4
+    header = []
+    while size:
+        header.append(byte | 0x80)
+        byte = size & 0x7f
+        size >>= 7
+    header.append(byte)
+    return bytes(header) + zlib.compress(data)
+
+def create_pack(objects):
+    """Create pack file containing all objects in given given set of
+    SHA-1 hashes, return data bytes of full pack file.
+    """
+    header = struct.pack('!4sLL', b'PACK', 2, len(objects))
+    body = b''.join(encode_pack_object(o) for o in sorted(objects))
+    contents = header + body
+    sha1 = hashlib.sha1(contents).digest()
+    data = contents + sha1
+    return data</code></pre>
+        <p>و گام آخر — خود <code>push()</code> با کمی حذف کد حاشیه‌ای برای اختصار:</p>
+        <pre class="code"><span class="lang-tag">python</span><code>def push(git_url, username, password):
+    """Push master branch to given git repo URL."""
+    remote_sha1 = get_remote_master_hash(git_url, username, password)
+    local_sha1 = get_local_master_hash()
+    missing = find_missing_objects(local_sha1, remote_sha1)
+    lines = ['{} {} refs/heads/master\x00 report-status'.format(
+            remote_sha1 or ('0' * 40), local_sha1).encode()]
+    data = build_lines_data(lines) + create_pack(missing)
+    url = git_url + '/git-receive-pack'
+    response = http_request(url, username, password, data=data)
+    lines = extract_lines(response)
+    assert lines[0] == b'unpack ok\n', \
+        "expected line 1 b'unpack ok', got: {}".format(lines[0])</code></pre>
+      </section>
+
+      <section>
+        <h2>استفاده از pygit</h2>
+        <p>در بیشتر جاها سعی کردم نحو خط فرمان pygit با نحو گیت یکسان (یا شبیه) باشد. این است commit کردن pygit به گیت‌هاب:</p>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>$ python3 misc/pygit.py init pygit
+initialized empty repository: pygit
+$ cd pygit
+$ python3 pygit.py add pygit.py
+$ python3 pygit.py commit -m "First working version of pygit"
+committed to master: 00d56c2a774147c35eeb7b205c0595cf436bf2fe
+$ python3 pygit.py cat-file commit 00d5
+tree 7758205fe7dfc6638bd5b098f6b653b2edd0657b
+author Ben Hoyt <benhoyt@gmail.com> 1493169321 -0500
+committer Ben Hoyt <benhoyt@gmail.com> 1493169321 -0500
+
+First working version of pygit
+$ python3 pygit.py push https://github.com/benhoyt/pygit.git
+updating remote master from no commits to
+    4117234220d4e9927e1a626b85e33041989252b5 (6 objects)</code></pre>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقاله «pygit» اثر بن هویت (Ben Hoyt) است. تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب (شامل argparse و کد کامل) به
+        <a href="https://benhoyt.com/writings/pygit/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

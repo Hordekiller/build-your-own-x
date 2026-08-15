@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شل را با C بنویس — dash (Danish Prakash)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>شل را با C بنویس — dash</span>
+      </div>
+      <h1>شل را با C بنویس (Write a shell in C — dash)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://danishpraka.sh/2018/01/15/write-a-shell.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Write a shell in C» از
+          <b>دَنیش پرکاش</b> (Danish Prakash، ژانویه ۲۰۱۸) است — نوشتن شل «dash» در C با کد کامل،
+          از صفر تا اجرای دستورها؛ نویسنده نسخهٔ پیشرفته‌تر (با پایپ، تاریخچه و ...) را هم در
+          گیت‌هاب منتشر کرده.
+        </div>
+        <a class="btn solid" href="https://danishpraka.sh/2018/01/15/write-a-shell.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه</h2>
+        <p>تا به حال فکر کرده‌اید آن ترمینال چطور کار می‌کند؟ (سؤال دقیق‌تر: آن شل چطور کار می‌کند؟) نویسنده هم همین سؤال را داشت و بعد از «چند جست‌وجو و کلی مطالعه» فهمید: اول یک شل پایه در C نوشت و بعد چند قابلیت دیگر رویش سوار کرد. شل به زبان ساده «ابزاری است که از طریق آن با سیستمعامل تعامل می‌کنید» — تعریفی گنگ اما گویا. نیازمندی‌ها: دانش C، یک gcc و یک ویرایشگر متن.</p>
+      </section>
+
+      <section>
+        <h2>حلقهٔ اصلی شل</h2>
+        <p>این تابع، موتور محرک حلقه است. اول از همه یک prompt («») کاربر را از آمادگی شل باخبر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>void loop() {
+    char *line;
+    char **args;
+    int status = 1;
+
+    do {
+        printf("&gt; ");
+        line = read_line();
+        args = split_line(line);
+        status = dash_execute(args);
+        free(line);
+        free(args);
+    } while (status);
+}</code></pre>
+        <p><code>status</code> مقدار بازگشتی توابع اجرای دستور را نگه می‌دارد و پایان حلقه را تعیین می‌کند: وقتی کاربر <code>exit</code> را وارد کند، تابع exit مقدار <code>0</code> برمی‌گرداند و حلقه می‌شکند. دو خط آخرِ do-while با <code>free()</code> حافظهٔ دو اشاره‌گر را آزاد می‌کنند — آزادسازی صریح حافظه در C ضروری و عادت خوبی است.</p>
+      </section>
+
+      <section>
+        <h2>خواندن دستورها — read_line</h2>
+        <p>چون نمی‌توانید طول دستورِ کاربر را از قبل بدانید، تخصیص ایستا بی‌معنی است: حافظه را به‌صورت پویا تخصیص می‌دهیم و هر وقت لازم شد بیشتر می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>char *read_line() {
+    int buffsize = 1024;
+    int position = 0;
+    char *buffer = malloc(sizeof(char) * buffsize);
+    int c;
+
+    if (!buffer) {                          /* malloc ناکام */
+        fprintf(stderr, "dash: Allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while (1) {
+        c = getchar();
+        if (c == EOF || c == '\n') {
+            buffer[position] = '\0';
+            return buffer;
+        } else {
+            buffer[position] = c;
+        }
+        position++;
+
+        if (position >= buffsize) {         /* رشد بافر */
+            buffsize += 1024;
+            buffer = realloc(buffer, buffsize);
+            if (!buffer) {
+                fprintf(stderr, "dash: Allocation error\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+}</code></pre>
+        <p>وقتی <code>EOF</code> یا <code>\n</code> رسید، تهی‌پایان‌گر برمی‌گردد؛ بررسی‌های <code>if(!buffer)</code> هم اطمینان می‌دهند که در صورت شکست تخصیص (<code>NULL</code> از malloc/realloc) خطا بگیریم.</p>
+      </section>
+
+      <section>
+        <h2>توکن‌سازی ورودی — split_line</h2>
+        <p>دستورِ خوانده‌شده را توکن (تکه‌تکه) می‌کنیم تا اجرایش آسان شود. کار با تابع استاندارد <code>strtok</code> است: فراخوانی اول token اول را برمی‌گرداند و هر فراخوانی بعدی با ورودی <code>NULL</code> از همان‌جا ادامه می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>str1 = strtok("this is it!", " ");
+// str1 -> "this"
+str1 = strtok(NULL, " ");
+// str1 -> "is"
+str1 = strtok(NULL, " ");
+// str1 -> "it!"</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>#define TOK_DELIM " \t\r\n"
+#define TK_BUFF_SIZE 1024
+
+char **split_line(char *line) {
+    int buffsize = TK_BUFF_SIZE, position = 0;
+    char **tokens = malloc(buffsize * sizeof(char *));
+    char *token;
+
+    if (!tokens) {
+        fprintf(stderr, "dash: Allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+    token = strtok(line, TOK_DELIM);
+    while (token != NULL) {
+        tokens[position] = token;
+        position++;
+        if (position >= buffsize) {
+            buffsize += TK_BUFF_SIZE;
+            tokens = realloc(tokens, buffsize * sizeof(char *));
+            if (!tokens) { /* ... */ }
+        }
+        token = strtok(NULL, TOK_DELIM);
+    }
+    tokens[position] = NULL;
+    return tokens;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>خروج — dash_exit و اجرای دستور — dash_execute</h2>
+        <p>یک تابع پیش‌پاافتاده که <code>0</code> برمی‌گرداند تا حلقه بسته شود؛ و در <code>dash_execute</code> اول بررسی می‌کنیم که آیا دستور <code>exit</code> است (برای خوانایی، تابع جدا گرفته شده). اگر نه، <code>fork()</code> فرایند فعلی را کپی می‌کند («فرزند» که دقیقاً مثل والد است جز شناسهٔ فرایندش) و مقدار بازگشتی می‌گوید کجاییم: <code>0</code> یعنی فرزند، و pid فرزند یعنی والد:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int dash_execute(char **args) {
+    pid_t cpid;
+    int status;
+
+    if (strcmp(args[0], "exit") == 0) {
+        return dash_exit(args);
+    }
+
+    cpid = fork();
+
+    if (cpid == 0) {
+        /* فرزند: execvp تصویر فرایند را با برنامهٔ موردنظر عوض می‌کند؛
+           در شکست -1 برمی‌گرداند */
+        if (execvp(args[0], args) &lt; 0)
+            printf("dash: command not found: %s\n", args[0]);
+        exit(EXIT_FAILURE);
+
+    } else if (cpid &lt; 0) {
+        printf("Error forking\n");
+    } else {
+        waitpid(cpid, &amp;status, WUNTRACED);
+    }
+    return 1;
+}
+
+int dash_exit(char **args) {
+    return 0;
+}</code></pre>
+        <p><code>waitpid</code> هم تضمین می‌کند فرزند قبل از برگشت شل به اعلان، کارش را تمام کند.</p>
+      </section>
+
+      <section>
+        <h2>کد کامل و نتیجه‌گیری</h2>
+        <p>کل کد بالا — شامل پروتوتایپ‌ها، تعریف <code>TOK_DELIM</code>، ماکروهای رنگیِ خطا و <code>main()</code> که فقط <code>loop()</code> را صدا می‌زند — یک شل پایهٔ کامل می‌سازد. این تمرینی «یادگیری»، نه محصول: «احتمالاً هرگز نمی‌خواهید از شلی این‌قدر پایه استفاده کنید، اما حالا می‌دانید شل‌های محبوب‌تان زیر پوست چطور کار می‌کنند.»</p>
+        <p>نسخهٔ پیشرفته‌تر (با پایپ، تاریخچه و دستورهای داخلی دیگر) در <a href="https://github.com/danishprakash/dash" target="_blank" rel="noopener">github.com/danishprakash/dash</a> در دسترس است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقالهٔ «Write a shell in C» اثر دَنیش پرکاش است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ نسخهٔ اصلی به
+        <a href="https://danishpraka.sh/2018/01/15/write-a-shell.html" target="_blank" rel="noopener">وبلاگ نویسنده</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

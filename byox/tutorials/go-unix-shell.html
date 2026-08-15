@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک شل ساده با گو (Go Unix Shell)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک شل ساده با گو</span>
+      </div>
+      <h1>نوشتن یک شل ساده با گو (Writing a simple shell in Go)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://sj14.gitlab.io/post/2018-07-01-go-unix-shell/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی پست «Writing a simple shell in Go» از
+          <b>سایمون جاکوسکی</b> (sj14) است — شلی مینیمال برای سیستمعامل‌های یونیکس‌گونه در گو،
+          فقط حدود ۶۰ خط کد! پست اصلی روی sj14.gitlab.io منتشر شده و کپیِ کاملِ آن (که این
+          ترجمه بر اساس آن است) در مخزن <code>awesee/gosh</code> در گیت‌هاب موجود است.
+        </div>
+        <a class="btn solid" href="https://sj14.gitlab.io/post/2018-07-01-go-unix-shell/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>شل چیست؟</h2>
+        <p>«شل رابط پایهٔ کاربر با سیستمعامل است: به آن دستور می‌دهید و خروجیِ متناظرش را می‌گیرید.» گنوم و ویندوز هم شل‌هایی گرافیکی‌اند، اما وقتی اغلب اهل فناوری از شل حرف می‌زنند، منظورش شل متنی است (مثل Bash و Zsh). عملکرد ساده است: <code>ls</code> را بدهید و فهرست پوشه را بگیرید.</p>
+        <blockquote>یونیکس خیلی ساده است؛ فقط یک نابغه لازم دارد تا سادگی‌اش را بفهمد. — دنیس ریچی</blockquote>
+        <p>شل فقط بخش کوچکی از سیستمعامل است (و نسبت به هسته واقعاً بخش آسانش!)؛ امید نویسنده این است که در پایان، شما هم مثل او شگفت‌زده شوید که نوشتن شل وقتی مفاهیم پشتش را فهمیدید چقدر ساده است.</p>
+      </section>
+
+      <section>
+        <h2>حلقهٔ ورودی</h2>
+        <p>صفحه‌کلیدِ ما دستگاه ورودی استاندارد (<code>os.Stdin</code>) است. با هر بار فشردن Enter یک خط نو (<code>\n</code>) ساخته می‌شود و ما آن خط را می‌خوانیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func main() {
+    reader := bufio.NewReader(os.Stdin)
+    for {
+        fmt.Print("&gt; ")
+        input, err := reader.ReadString('\n')
+        if err != nil {
+            fmt.Println(err)
+        }
+        err = execInput(input)
+        if err != nil {
+            fmt.Println(err)
+        }
+    }
+}</code></pre>
+        <p>نکتهٔ جانبی: بهتر است خطاها به <code>os.Stderr</code> نوشته شوند (مثلاً با <code>log.Println</code>)، اما آن تایم‌استمپ اضافه می‌کند و پرگویی به نظر می‌رسد؛ بعداً می‌توانید اصلاحش کنید.</p>
+      </section>
+
+      <section>
+        <h2>اجرای دستورها</h2>
+        <p>اول کاراکتر خط جدید را از انتهای ورودی می‌کنیم، بعد دستور را با <code>exec.Command</code> آماده و با <code>cmd.CombinedOutput()</code> اجرا می‌کنیم (خروجی موفق به stdout و خطا به stderr می‌رود، ولی هر دو در متغیر <code>stdoutStderr</code> جمع می‌شوند):</p>
+        <pre class="code"><span class="lang-tag">go</span><code>func execInput(input string) error {
+    // حذف کاراکتر خط جدید
+    input = strings.TrimSuffix(input, "\n")
+
+    // تهیهٔ دستور برای اجرا
+    cmd := exec.Command(input)
+
+    // اجرا و گرفتن خروجی
+    stdoutStderr, err := cmd.CombinedOutput()
+    if err != nil {
+        return err
+    }
+    fmt.Printf("%s", stdoutStderr)
+    return nil
+}</code></pre>
+        <p>اولین تست: <code>go run main.go</code>، اعلان <code>&gt;</code>، و <code>ls</code> کار می‌کند! خروجی از برنامه گرفته می‌شود و <code>CTRL-C</code> مثل هر برنامهٔ دیگری شل را می‌بندد.</p>
+      </section>
+
+      <section>
+        <h2>آرگومان‌ها — داستان ls -l</h2>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>&gt; ls -l
+exec: "ls -l": executable file not found in $PATH</code></pre>
+        <p>شکست خورد! چون شلِ ما دارد برنامه‌ای به‌نام <code>ls -l</code> را اجرا می‌کند؛ در حالی که برنامه فقط <code>ls</code> است و <code>-l</code> آرگومانی است که خودِ برنامه تجزیه‌اش می‌کند. پس ورودی را روی هر فاصله می‌شکنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// جدا کردن دستور از آرگومان‌ها
+args := strings.Split(input, " ")
+
+// عبور جداگانهٔ برنامه و آرگومان‌ها
+cmd := exec.Command(args[0], args[1:]...)</code></pre>
+        <p>حالا نام برنامه در <code>args[0]</code> و آرگومان‌ها در اندیس‌های بعدی‌اند و <code>ls -l</code> آن‌طور که انتظار می‌رود کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>Builtin — چرا cd کار نمی‌کند؟</h2>
+        <p>تماشای <code>cd /</code> و بعد <code>ls</code> که فهرستِ پوشهٔ فعلی را می‌دهد! پاسخ ساده است: برنامهٔ «واقعی» <code>cd</code> وجود ندارد — این قابلیت یک دستور داخلیِ شل است (برای اینکه بتواند حالتِ خودِ شل را تغییر دهد). پس یک <code>switch</code> روی اولین آرگومان اضافه می‌کنیم:</p>
+        <pre class="code"><span class="lang-tag">go</span><code>// بررسی دستورهای داخلی
+switch args[0] {
+case "cd":
+    // با مسیر خالی، cd به خانهٔ کاربر هنوز پشتیبانی نمی‌شود
+    if len(args) &lt; 2 {
+        return errors.New("path required")
+    }
+    if err := os.Chdir(args[1]); err != nil {
+        return err
+    }
+    return nil
+case "exit":
+    os.Exit(0)
+}</code></pre>
+        <pre class="code"><span class="lang-tag">ترمینال</span><code>&gt; cd /
+&gt; ls
+Applications
+Library
+Network
+System
+...</code></pre>
+        <p>«بله، این خروجی بیشتر شبیه پوشهٔ ریشهٔ من است» — و تمام! یک شل ساده نوشته شد.</p>
+      </section>
+
+      <section>
+        <h2>بهبودهای پیشنهادی و جمع‌بندی</h2>
+        <ul>
+          <li>اصلاح اعلان: اضافه کردن دایرکتوری کاری، نام میزبان یا کاربر فعلی</li>
+          <li>نوشتن خطاها به <code>stderr</code></li>
+          <li>مرور تاریخچهٔ ورودی با کلیدهای بالا/پایین</li>
+        </ul>
+        <p>در مجموع حرف اصلی این است: برخلاف آنچه به نظر می‌رسد، گو هم به سادگی‌اش کمک کرد — بدون هیچ کار سطح‌پایینی مثل مدیریت حافظه. «راب پایک و کن تامسون که به‌همراه رابرت گریزمِر گو را ساختند، در ساخت یونیکس هم دست داشتند؛ پس نوشتن شل با گو ترکیب خوبی است.»</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی پست «Writing a simple shell in Go» اثر سایمون جاکوسکی است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. نسخهٔ اصلی در
+        <a href="https://sj14.gitlab.io/post/2018-07-01-go-unix-shell/" target="_blank" rel="noopener">sj14.gitlab.io</a>
+        و کپی کامل آن در <a href="https://github.com/awesee/gosh" target="_blank" rel="noopener">github.com/awesee/gosh</a> موجود است.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

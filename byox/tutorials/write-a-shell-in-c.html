@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شل را با C بنویس (Write a Shell in C)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">شل</a>
+        <span class="sep">←</span>
+        <span>شل را با C بنویس — آموزش استفن برنان</span>
+      </div>
+      <h1>شل را با C بنویس — Write a Shell in C</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://brennan.io/2015/01/16/write-a-shell-in-c/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Write a shell in C» از
+          <b>استفن برنان</b> (Stephen Brennan، ژانویه ۲۰۱۵) است — مشهورترین آموزش ساخت شل از صفر؛
+          کد کامل هر بخش به‌همراه تست خطای اجباری (leak checker) و ساختار دادهٔ خط فرمان ارائه می‌شود.
+        </div>
+        <a class="btn solid" href="https://brennan.io/2015/01/16/write-a-shell-in-c/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>مقدمه — شل چیست؟</h2>
+        <p>شل فرایندها را اجرا و به آن‌ها آموزش می‌دهد که stdin و stdout شان کجاست. و برای آنکه این کار را انجام دهد، یک زبان (اسکریپت‌نویسی) دارد. پس شل دو کار انجام می‌دهد: <strong>اجرای برنامه‌ها</strong> با <code>fork()</code> و <code>execvp()</code>، و <strong>ایجاد زبان</strong> که همان «گزاره‌ها» (statements) و «توکن‌ها» (tokens) است.</p>
+        <p>در این آموزش یک شل مینیمال در C می‌سازیم: خواندن خط (read_line)، تجزیهٔ خط به آرگومان‌ها (split_line)، اجرای دستور (execute — همین اول این کار دشوار را انجام می‌دهیم و بعد سراغ ساختارها می‌رویم)، و چرخهٔ اصلی که این سه را به هم می‌دوزد. سپس به‌ترتیب: builtin ها، یافتن مسیر (PATH)، <code>cd</code>، فرایندهای پس‌زمینه و <code>Ctrl-C</code>، و نهایتاً راه‌اندازی کامل — و در هر مرحله با <code>valgrind --leak-check=yes</code> تست می‌کنیم که حافظه نشت نکند.</p>
+      </section>
+
+      <section>
+        <h2>خواندن خط فرمان</h2>
+        <p>اول از <code>getline()</code> استفاده می‌کنیم، اما بعداً هنگام دیدن کاراکترهای توکن‌ساز، ساختار ویژه‌ای می‌سازیم که نه‌تنها خط کامل، بلکه هر توکن را جدا نگه می‌دارد تا نهایتاً اجرای builtin ها و پس‌زمینه ممکن شود:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>/* ساختار خط فرمان و نهادهای آن */
+typedef struct {
+    char *buffer;
+    size_t buf_len;
+    int argc;
+    char **argv;
+    char *program_name; /* argv[0] بدون slash، برای پیام‌های خطا */
+    int background;     /* آیا این دستور باید پس‌زمینه اجرا شود؟ */
+    int stdin, stdout;  /* ریدایرکت؟ */
+} lsh_cmd;</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>/* ساده‌ترین حالت: خواندن خط از stdin */
+char *lsh_read_line(void) {
+    char *line = NULL;
+    ssize_t bufsize = 0;
+    if (getline(&amp;line, &amp;bufsize, stdin) == -1) {
+        if (feof(stdin)) exit(EXIT_SUCCESS); /* Ctrl-D */
+        else { perror("readline"); exit(EXIT_FAILURE); }
+    }
+    return line;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>تجزیهٔ خط به آرگومان</h2>
+        <p>حالت ساده با جداکنندهٔ فاصله و توکن‌بندی با <code>strtok</code>:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>#define LSH_TOK_BUFSIZE 64
+#define LSH_TOK_DELIM " \t\r\n\a"
+
+char **lsh_split_line(char *line) {
+    int bufsize = LSH_TOK_BUFSIZE, position = 0;
+    char **tokens = malloc(bufsize * sizeof(char*));
+    char *token;
+
+    if (!tokens) { fprintf(stderr, "lsh: allocation error\n"); exit(EXIT_FAILURE); }
+
+    token = strtok(line, LSH_TOK_DELIM);
+    while (token != NULL) {
+        tokens[position] = token;
+        position++;
+        if (position >= bufsize) { /* رشد بافر */ }
+        token = strtok(NULL, LSH_TOK_DELIM);
+    }
+    tokens[position] = NULL;
+    return tokens;
+}</code></pre>
+        <p>و در نسخهٔ نهایی، یک توکن‌ساز با جداسازی کاراکترهای خاص <code>&gt;</code>، <code>&gt;&gt;</code>، <code>&lt;</code>، <code>|</code>، <code>&amp;</code> (پس‌زمینه) و ساخت شیء <code>lsh_cmd</code> که ریدایرکت و پس‌زمینه را هم دربرمی‌گیرد.</p>
+      </section>
+
+      <section>
+        <h2>اجرا — قلب شل</h2>
+        <p>فرایند فرزند با <code>fork()</code> ساخته می‌شود؛ فرزند ریدایرکت را اعمال و برنامه را با <code>execvp</code> اجرا می‌کند؛ اگر شل در حالت عادی باشد، <code>waitpid</code> منتظر می‌ماند (این همان «خط فرمان دوباره می‌آید» است) و اگر پس‌زمینه باشد، شل بلافاصله اعلان بعدی را چاپ می‌کند:</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int lsh_launch(char **args) {
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+    if (pid == 0) {
+        /* فرزند: exec هرگز برنمی‌گردد مگر در خطا */
+        if (execvp(args[0], args) == -1) perror("lsh");
+        exit(EXIT_FAILURE);
+    } else if (pid &lt; 0) {
+        perror("lsh");
+    } else {
+        do {
+            wpid = waitpid(pid, &amp;status, WUNTRACED);
+        } while (!WIFEXITED(status) &amp;&amp; !WIFSIGNALED(status));
+    }
+    return 1;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>Builtin ها و یافتن برنامه‌ها</h2>
+        <p>وظایف شل (مثل <code>cd</code>، <code>exit</code>، <code>help</code>) باید بدون ساخت فرایند اجرا شوند؛ پس فهرستی از نام‌ها با تابع‌های متناظر نگه می‌داریم (<code>lsh_builtin_str[]</code> و <code>lsh_builtin_func[]</code>). برای یافتن برنامه‌ها هم در مسیرهای <code>PATH</code> می‌گردیم: اول بررسی می‌کنیم نام شامل <code>/</code> هست یا نه؛ اگر نه، با <code>strchr</code> هر مسیرِ PATH را با <code>/name</code> می‌سازیم و با <code>stat</code> وجودش را می‌سنجیم. <code>execvp</code> این کار را برای ما می‌کند، اما دیدن کدِ جست‌وجوی PATH به فهم عمیق‌تر کمک می‌کند: مسیرها را با <code>:</code> از <code>getenv("PATH")</code> جدا کنید، کنار هم قرار دهید و با <code>strdup</code> کپسوله کنید.</p>
+        <p>پیاده‌سازی <code>cd</code> ساختن دلچسبی است: <code>chdir()</code> فقط در فرایند فعلی مؤثر است، پس باید یک builtin باشد — یعنی نمی‌تواند یک برنامهٔ عادی باشد، چون <code>chdir</code> یک فرایند فرزند را به‌جای خود شل عوض می‌کند!</p>
+        <pre class="code"><span class="lang-tag">c</span><code>int lsh_cd(char **args) {
+    if (args[1] == NULL) {
+        fprintf(stderr, "lsh: expected argument to \"cd\"\n");
+    } else if (chdir(args[1]) != 0) {
+        perror("lsh");
+    }
+    return 1;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>پس‌زمینه و Ctrl-C</h2>
+        <p>پس‌زمینه یعنی اگر دستور با <code>&amp;</code> تمام شود (<code>lsh-&gt;background</code>)، برای فرزند <code>setpgid(0,0)</code> می‌کنیم تا مستقل از ترمینال شود (فشردن Ctrl-C، شل را نکشد چون سیگنال فقط به فرایندهای همان فرایندگروه می‌رود) و <code>waitpid(pid, &amp;status, WNOHANG)</code> برای تعیین اینکه فرایند هنوز زنده است یا نه. نشت‌یاب <code>valgrind --leak-check=yes ./lsh</code> را در هر مرحله اجرا می‌کنیم و مطمئن می‌شویم همهٔ malloc ها آزاد می‌شوند (free_list برای ساختارهای command).</p>
+      </section>
+
+      <section>
+        <h2>کد کامل و چرخهٔ اصلی</h2>
+        <pre class="code"><span class="lang-tag">c</span><code>int main(int argc, char **argv) {
+    /* بارگذاری پیکربندی و اجرای دستورات راه‌اندازی */
+    lsh_loop();
+    return EXIT_SUCCESS;
+}
+
+void lsh_loop(void) {
+    char *line; char **args; int status;
+    do {
+        printf("&gt; ");
+        line = lsh_read_line();
+        args = lsh_split_line(line);
+        status = lsh_execute(args);
+        free(line); free(args);
+    } while (status);
+}</code></pre>
+        <p>(در نسخهٔ کامل، <code>lsh_execute</code> دستورات builtin را می‌شناسد و <code>lsh_launch</code> را صدا می‌زند؛ loop هم روی ساختار <code>lsh_cmd</code> کار می‌کند.) کل کد حدود ۵۰۰ خط C خالص است و در <a href="https://github.com/brenns10/lsh" target="_blank" rel="noopener">github.com/brenns10/lsh</a> در دسترس است. برای یادگیری بیشتر، ادامهٔ مقاله سری دوم همین آموزش است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> این صفحه ترجمه فارسی مقالهٔ «Write a Shell in C» اثر استفن برنان است. تمام حقوق محتوا و کدها متعلق به نویسندهٔ اصلی است. برای مطالعهٔ نسخهٔ کامل (شامل همهٔ بخش‌ها، تصاویر و تست‌ها) به
+        <a href="https://brennan.io/2015/01/16/write-a-shell-in-c/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
