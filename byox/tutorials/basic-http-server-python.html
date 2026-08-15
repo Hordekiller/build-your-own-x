@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Building a basic HTTP Server from scratch in Python»
+  از João Ventura — joaoventura.net
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک سرور HTTP پایه از صفر در پایتون</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>ساخت یک سرور HTTP پایه از صفر در پایتون</span>
+      </div>
+      <h1>ساخت یک سرور HTTP پایه از صفر در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://joaoventura.net/blog/2017/python-webserver/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Building a basic HTTP Server from scratch in Python» از «ژوآو ونتورا (João Ventura)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://joaoventura.net/blog/2017/python-webserver/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>در ذات خود، وب مدرن فقط متنی است که بین کلاینت‌ها و سرورها در رفت‌وآمد است. به‌عنوان توسعه‌دهنده، اغلب از فریم‌ورک‌های وب برای ساختن رشته‌هایی استفاده می‌کنیم که به کلاینت‌ها فرستاده می‌شوند. فریم‌ورک‌های وب ما را از «واقعیت متنی» زیربنایی دور می‌کنند: درخواست‌های http ورودی (که فقط یک رشته است) را پارس می‌کنند، تابع متناظر را صدا می‌زنند و یک پاسخ رشته‌ای می‌سازند (بیشتر با قالب‌ها). در نهایت، کلاینت‌ها آن رشته‌ها را پارس می‌کنند و هر کاری که خواسته‌اند با آن انجام می‌دهند.</p>
+        <p>این پست وبلاگ نشان می‌دهد چگونه یک سرور HTTP کاملاً ساده را از صفر بسازیم و بر اساس تمرینی است که نویسنده به دانشجویان کارشناسی‌ارشدش داده. تنها پیش‌نیاز، درک پایه‌ای پایتون ۳ است. اگر می‌خواهید همراه با آموزش پیاده‌سازی کنید، برنامهٔ شروع‌کننده را از <a href="http://joaoventura.net/static/blog/2017/python-httpserver-base.zip" target="_blank" rel="noopener">این لینک</a> بگیرید. سورس نهایی را در <a href="https://gist.github.com/joaoventura/824cbb501b8585f7c61bd54fec42f08f" target="_blank" rel="noopener">این gist</a> می‌بینید.</p>
+      </section>
+
+      <section>
+        <h2>HTTP فقط متن است</h2>
+        <p>HTTP <a href="https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol" target="_blank" rel="noopener">پروتکلی</a> است که مرورگرها با آن اطلاعات را از سرورها می‌گیرند و به آن‌ها می‌فرستند. در ذات خود، HTTP فقط متنی است که از الگویی خاص پیروی می‌کند: در خط اول مشخص می‌کنید کدام منبع را می‌خواهید، بعد هدرها می‌آیند و بعد یک خط خالی دارید که هدرها را از بدنهٔ پیام (اگر هست) جدا می‌کند. این‌طور می‌توانید صفحهٔ «about» یک وب‌سایت را بگیرید:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>GET /about.html HTTP/1.0
+User-Agent: Mozilla/5.0</code></pre>
+
+        <p>و این‌طور با متد POST دادهٔ فرم به یک وب سرور می‌فرستید:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>POST /form.php HTTP/1.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 21
+
+name=John&amp;surname=Doe</code></pre>
+
+        <p>برای اثبات اینکه این فقط متن است، می‌توانید متن بالا را کپی-پیست کنید و از چیزی استفاده کنید که به شما اجازه می‌دهد متن را روی شبکه بفرستید. بگذارید با telnet صفحهٔ about گوگل را بگیریم:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>telnet google.com 80
+Trying 84.91.171.170...
+Connected to google.com.
+Escape character is '^]'.
+
+(1) GET /about/ HTTP/1.0
+
+(2) HTTP/1.0 200 OK
+Vary: Accept-Encoding
+Content-Type: text/html
+Date: Thu, 09 Feb 2017 16:41:37 GMT
+...
+&lt;!DOCTYPE html&gt;
+    &lt;html class="google mmfb" lang="en"&gt;
+        &lt;head&gt;
+        ...
+    &lt;/html&gt;
+Connection closed by foreign host.</code></pre>
+
+        <p>و یک پیام POST به httpbin.org بفرستیم:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>telnet httpbin.org 80
+
+Trying 54.175.219.8...
+Connected to httpbin.org.
+Escape character is '^]'.
+
+(1) POST /post HTTP/1.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 21
+
+name=John&amp;surname=Doe
+
+(2) HTTP/1.1 200 OK
+Server: nginx
+Date: Thu, 09 Feb 2017 16:38:26 GMT
+Content-Type: application/json
+Content-Length: 328
+...
+{
+  "form": {
+    "name": "John",
+    "surname": "Doe"
+  },
+  ...
+}
+Connection closed by foreign host.</code></pre>
+
+        <p>درخواست‌های HTTP <strong>(1)</strong> و بعد پاسخ‌های سرور HTTP را در <strong>(2)</strong> می‌بینید. همان الگو در درخواست‌ها و پاسخ‌ها، و همه‌جا متن! اطلاعات بیشتر دربارهٔ HTTP را در کتاب عالی <a href="https://hpbn.co/brief-history-of-http/" target="_blank" rel="noopener">High Performance Browser Networking</a> بخوانید.</p>
+      </section>
+
+      <section>
+        <h2>فرستادن پاسخ‌های HTTP با سوکت‌ها</h2>
+        <p>اگر قصد پیاده‌سازی برنامه‌های شبکه از صفر را دارید، احتمالاً لازم است با <a href="https://en.wikipedia.org/wiki/Network_socket" target="_blank" rel="noopener">سوکت‌های شبکه</a> کار کنید. سوکت انتزاعی است که سیستم‌عامل‌تان فراهم کرده و به شما اجازه می‌دهد بایت‌ها را از طریق شبکه بفرستید و دریافت کنید. این‌جا یک پیاده‌سازی پایهٔ سرور HTTP است:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>"""
+پیاده‌سازی یک سرور HTTP/1.0 ساده
+"""
+
+import socket
+
+# تعریف میزبان و پورت سوکت
+SERVER_HOST = '0.0.0.0'
+SERVER_PORT = 8000
+
+# ساخت سوکت
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server_socket.bind((SERVER_HOST, SERVER_PORT))
+server_socket.listen(1)
+print('Listening on port %s ...' % SERVER_PORT)
+
+while True:
+        # منتظر اتصال کلاینت باش
+    client_connection, client_address = server_socket.accept()
+
+    # درخواست کلاینت را بگیر
+    request = client_connection.recv(1024).decode()
+    print(request)
+
+    # پاسخ HTTP بفرست
+    response = 'HTTP/1.0 200 OK\n\nHello World'
+    client_connection.sendall(response.encode())
+    client_connection.close()
+
+# بستن سوکت
+server_socket.close()</code></pre>
+
+        <p>با تعریف میزبان و پورت سوکت شروع می‌کنیم. بعد متغیر <em>server_socket</em> را می‌سازیم و روی <em>AF_INET</em> (خانوادهٔ آدرس IPv4) و <em>SOCK_STREAM</em> (در اصل TCP) تنظیم می‌کنیم. بقیهٔ کد برای این است که سوکت را برای گوش‌دادن به درخواست‌های (host, port) داده‌شده آماده کند. مستندات پایتون دربارهٔ سوکت‌ها اطلاعات بیشتری دارد.</p>
+        <p>بقیهٔ کد خودتوضیح است: منتظر اتصال کلاینت بمان، رشتهٔ درخواست را بخوان، یک رشتهٔ HTTP-formatted با <em>Hello World</em> در بدنهٔ پاسخ بفرست و اتصال کلاینت را ببند. این کار را برای همیشه انجام می‌دهیم (یا تا وقتی کسی Ctrl+C را نزند). مرورگرتان را روی <a href="http://localhost:8000/" target="_blank" rel="noopener">http://localhost:8000/</a> باز کنید و باید پاسخ سرور را ببینید:</p>
+        <p><img src="http://joaoventura.net/static/blog/2017/python-webserver-1.png" alt="خروجی Hello World سرور در مرورگر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>به‌عنوان تمرین، <em>Hello World</em> را به <code class="inline">&lt;h1&gt;Hello World&lt;/h1&gt;</code> تغییر دهید و ببینید چه اتفاقی می‌افتد. و <code class="inline">print(request)</code> را در سورس سرور دیدید؟ این خروجی‌اش در کنسول است:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>Listening on port 8000 ...
+
+GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:51.0) Gecko/20100101 Firefox/51.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: pt-PT,pt;q=0.8,en;q=0.5,en-US;q=0.3
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Cache-Control: max-age=0</code></pre>
+
+        <p>بله، مرورگر در حال درخواست صفحهٔ ریشه («/») سرور است.</p>
+      </section>
+
+      <section>
+        <h2>index.html</h2>
+        <p>به‌طور پیش‌فرض، وقتی مرورگر ریشهٔ یک سرور را درخواست می‌کند (با درخواستی مثل <strong>GET / HTTP/1.0</strong>)، باید صفحهٔ <em>index.html</em> را برگردانیم. بگذارید کد داخل while را تغییر دهیم تا همیشه محتویات فایل <em>htdocs/index.html</em> را برگرداند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>while True:
+    # منتظر اتصال کلاینت باش
+    (...)
+
+    # درخواست کلاینت را بگیر
+    (...)
+
+    # محتوای htdocs/index.html را بگیر
+    fin = open('htdocs/index.html')
+    content = fin.read()
+    fin.close()
+
+    # پاسخ HTTP بفرست
+    response = 'HTTP/1.0 200 OK\n\n' + content
+    client_connection.sendall(response.encode())
+    (...)</code></pre>
+
+        <p>در اصل، محتویات فایل را می‌خوانیم و به‌جای <em>Hello World</em> قبلی به‌عنوان بدنهٔ پیام به رشتهٔ <em>response</em> اضافه می‌کنیم. فایل <em>index.html</em> فقط یک فایل متنی است (داخل دایرکتوری <em>htdocs</em>) با محتوای html:</p>
+
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Hello World&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello World!&lt;/h1&gt;
+    &lt;p&gt;Welcome to the index.html web page..&lt;/p&gt;
+    &lt;p&gt;Here's a link to &lt;a href="ipsum.html"&gt;Ipsum&lt;/a&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <p><img src="http://joaoventura.net/static/blog/2017/python-webserver-2.png" alt="نمایش صفحهٔ index.html با لینک به صفحهٔ Ipsum" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>می‌توانید هر چند بار که می‌خواهید روی لینک کلیک کنید، اما سرور شما <strong>همیشه</strong> محتویات <em>index.html</em> را برمی‌گرداند؛ طوری برنامه‌ریزی شده!</p>
+      </section>
+
+      <section>
+        <h2>برگرداندن صفحات دیگر</h2>
+        <p>تا اینجا سرور ما صفحهٔ <em>index.html</em> را برمی‌گرداند، اما باید اجازه دهیم بقیهٔ صفحات را هم برگرداند. از نظر فنی یعنی باید خط اول درخواست HTTP (چیزی مثل <em>GET /ipsum.html HTTP/1.0</em>) را پارس کنیم، فایل مورد نظر را باز کنیم و محتویاتش را برگردانیم. تغییرات:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>while True:
+    # منتظر اتصال کلاینت باش
+    (...)
+
+    # درخواست کلاینت را بگیر
+    (...)
+
+    # هدرهای HTTP را پارس کن
+    headers = request.split('\n')
+    filename = headers[0].split()[1]
+
+    # محتوای فایل را بگیر
+    if filename == '/':
+        filename = '/index.html'
+
+    fin = open('htdocs' + filename)
+    content = fin.read()
+    fin.close()
+
+    # پاسخ HTTP بفرست
+    response = 'HTTP/1.0 200 OK\n\n' + content
+    client_connection.sendall(response.encode())
+    (...)</code></pre>
+
+        <p>در اصل، نام فایل را از رشتهٔ درخواست بیرون می‌کشیم، فایل را باز می‌کنیم (فرض می‌کنیم همهٔ فایل‌های html داخل پوشهٔ <strong>htdocs</strong> هستند) و محتوایش را برمی‌گردانیم. هم‌چنین می‌بینید که وقتی کلاینت‌ها منبع ریشه ('/') را می‌خواهند، فایل <em>index.html</em> را درست برمی‌گردانیم.</p>
+        <p>محتویات <em>htdocs/ipsum.html</em>:</p>
+
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Ipsum&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Ipsum!&lt;/h1&gt;
+    &lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Pellentesque tincidunt libero diam, nec imperdiet libero
+        sodales quis. Nulla in pulvinar sem. Vivamus placerat
+        ullamcorper sagittis. Proin varius, erat sed egestas semper,
+        enim lectus viverra diam, id placerat est augue et turpis.
+    &lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <p>روی کد خودتان امتحان کنید و ببینید آیا می‌توانید فایل‌های <strong>index.html</strong> و <strong>ipsum.html</strong> را باز کنید.</p>
+      </section>
+
+      <section>
+        <h2>404 — پیدا نشد</h2>
+        <p>تمام نشده! این اتفاقی است که اگر بخواهیم فایلی را درخواست کنیم که وجود ندارد — مثلاً http://localhost:8000/hello.html:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /hello.html HTTP/1.1
+
+Traceback (most recent call last):
+  File "httpserver.py", line 36, in &lt;module&gt;
+    fin = open('htdocs' + filename)
+FileNotFoundError: [Errno 2] No such file or directory: 'htdocs/hello.html'</code></pre>
+
+        <p>سرور کرش می‌کند و خارج می‌شود!</p>
+        <p>باید استثنا را بگیریم و پاسخ 404 بفرستیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>while True:
+    # منتظر اتصال کلاینت باش
+    (...)
+
+    # درخواست کلاینت را بگیر
+    (...)
+
+    # هدرهای HTTP را پارس کن
+    headers = request.split('\n')
+    filename = headers[0].split()[1]
+
+    # محتوای فایل را بگیر
+    if filename == '/':
+        filename = '/index.html'
+
+    try:
+        fin = open('htdocs' + filename)
+        content = fin.read()
+        fin.close()
+
+        response = 'HTTP/1.0 200 OK\n\n' + content
+    except FileNotFoundError:
+        response = 'HTTP/1.0 404 NOT FOUND\n\nFile Not Found'
+
+    # پاسخ HTTP بفرست
+    client_connection.sendall(response.encode())
+    client_connection.close()</code></pre>
+
+        <p>اگر بخواهید، می‌توانید بدنهٔ پاسخ Http 404 را تغییر دهید تا پیام‌های خطای شخصی‌سازی‌شده داشته باشد:</p>
+        <p><img src="http://joaoventura.net/static/blog/2017/python-webserver-3.png" alt="نمایش پیام File Not Found در مرورگر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>کل سورس این مثال را در <a href="https://gist.github.com/joaoventura/824cbb501b8585f7c61bd54fec42f08f" target="_blank" rel="noopener">این gist</a> پیدا می‌کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building a basic HTTP Server from scratch in Python» اثر «ژوآو ونتورا (João Ventura)» است که در joaoventura.net منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://joaoventura.net/blog/2017/python-webserver/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

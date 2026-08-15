@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Let's code a web server from scratch with NodeJS Streams!»
+  از Ziad Saab — Codementor
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک وب سرور را از صفر با NodeJS Streams کدنویسی کنیم</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>یک وب سرور را از صفر با NodeJS Streams کدنویسی کنیم</span>
+      </div>
+      <h1>یک وب سرور را از صفر با NodeJS Streams کدنویسی کنیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.codementor.io/@ziad-saab/let-s-code-a-web-server-from-scratch-with-nodejs-streams-h4uc9utji" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقاله «Let's code a web server from scratch with NodeJS Streams!»
+          از «زیاد صعب (Ziad Saab)» — Codementor است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.codementor.io/@ziad-saab/let-s-code-a-web-server-from-scratch-with-nodejs-streams-h4uc9utji" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>در این پست، به سراغ مبانی می‌رویم و یک وب سرور ساده را از صفر با NodeJS می‌سازیم. در این مسیر، ساختار درخواست‌ها و پاسخ‌های HTTP را مرور می‌کنیم و با <a href="https://nodejs.org/api/stream.html" target="_blank" rel="noopener">Stream API نود</a> آشنا می‌شویم.</p>
+        <p>اول، ماژول داخلی <code class="inline">http</code> نود را به‌سرعت مرور می‌کنیم. بعد، ساختار کلی یک درخواست و پاسخ HTTP را بررسی می‌کنیم. سپس با ماژول داخلی <code class="inline">net</code>، یک سرور TCP سطح پایین می‌سازیم و سعی می‌کنیم آن را به یک وب سرور قابل استفاده تبدیل کنیم.</p>
+        <p>لازم به ذکر است که همهٔ کدهای این مقاله هرگز نباید در برنامه‌های تولیدی استفاده شوند؛ فقط جنبهٔ آموزشی دارند.</p>
+      </section>
+
+      <section>
+        <h2>نگاهی سریع به ماژول http داخلی نود</h2>
+        <p>NodeJS همراه با یک سرور HTTP ساده ارائه می‌شود. این سرور به ما اجازه می‌دهد روی هر پورتی گوش دهیم و یک تابع callback ارائه دهیم که در هر درخواست ورودی فراخوانی می‌شود.</p>
+        <p>تابع callback دو آرگومان دریافت می‌کند: یک شیء Request و یک شیء Response. شیء Request با خصوصیات مفیدی دربارهٔ درخواست پر شده و از شیء Response برای ارسال پاسخ به کلاینت استفاده می‌شود. مثال «Hello World» با سرور http نود:</p>
+
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const http = require('http');
+const server = http.createServer();
+server.on('request', (req, res) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  res.setHeader('Content-Type','text/plain');
+  res.end('Hello World!');
+});
+server.listen(3000);</code></pre>
+
+        <p>این کار یک وب سرور راه می‌اندازد که روی پورت 3000 گوش می‌دهد. وقتی درخواستی بیاید، پیامی با تاریخ فعلی و سپس متد و URL درخواست لاگ می‌شود. این داده‌ها از پارامتر <code class="inline">req</code> می‌آید — شیء Request که توسط نود ساخته شده. این شیء خصوصیتی به نام <code class="inline">.socket</code> نیز دارد که سوکت TCP سطح پایین‌تر است.</p>
+        <p>در کد بالا، این که به یک شیء مرتب با <code class="inline">req.method</code> و <code class="inline">req.url</code> دسترسی داریم یعنی شخص دیگری به جای ما زحمتِ پارس‌کردن متن درخواست و تبدیلش به یک شیء مرتب را کشیده است. در بخش بعد، به ساختار یک درخواست HTTP نگاه می‌کنیم تا سرنخ‌هایی برای پارس‌کردنش به دست آوریم.</p>
+      </section>
+
+      <section>
+        <h2>تجزیهٔ HTTP</h2>
+        <p>در این‌جا یک نمونه درخواست HTTP است:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>POST /posts/42/comments HTTP/1.1\r\n
+Host: www.my-api.com\r\n
+Accept: application/json\r\n
+Authorization: Bearer N2E5NTU2MzQ5MGQ4N2UzNjIxOTY2ZDU1M2YwNjA3OGFjYjgyMjU4NQ\r\n
+Accept-Encoding: gzip, deflate, br\r\n
+Content-Type: application/json\r\n
+Content-Length: 28\r\n
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0)\r\n
+\r\n
+{"text":"this is a comment"}</code></pre>
+
+        <ul>
+          <li>هر خط با <code class="inline">\r\n</code> جدا می‌شود.</li>
+          <li>خط اول «خط درخواست» (request line) نام دارد؛ از سه نشانهٔ جدا شده با فاصله تشکیل شده: متد درخواست (POST)، URI درخواست (<code class="inline">/posts/42/comments</code>) و نسخهٔ پروتکل (<code class="inline">HTTP/1.1</code>).</li>
+          <li>هر خط بعدی یک هدر درخواست است؛ از یک فیلد و مقدارش که با <code class="inline">:</code> جدا شده‌اند تشکیل می‌شود.</li>
+          <li>خطی فقط با <code class="inline">\r\n</code> هست که پایان هدرها را نشان می‌دهد. هر چیزی بعد از آن بدنهٔ درخواست است.</li>
+          <li>در این درخواست، بدنه یک سند JSON است که با هدر <code class="inline">Content-Type</code> هماهنگ است و طولش ۲۸ بایت است که با هدر <code class="inline">Content-Length</code> مطابقت دارد.</li>
+        </ul>
+
+        <p>و این یک نمونه پاسخ HTTP است:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>HTTP/1.1 200 OK\r\n
+Server: nginx/1.9.4\r\n
+Date: Fri, 20 Apr 2017 16:19:42 GMT\r\n
+Content-Type: application/json\r\n
+Content-Length: 141\r\n
+\r\n
+{
+  "id": "8fh924b42o",
+  "text": "this is a comment",
+  "createdAt": "2017-04-20T16:19:42.840Z",
+  "updatedAt": "2017-04-20T16:19:42.840Z"
+}</code></pre>
+
+        <ul>
+          <li>مثل درخواست، هر خط با <code class="inline">\r\n</code> جدا می‌شود.</li>
+          <li>خط اول «خط وضعیت» (status line) نام دارد: نسخهٔ HTTP، کد وضعیت (200) و عبارت دلیل (OK).</li>
+          <li>هر خط بعدی یک هدر پاسخ است با همان ساختار هدرهای درخواست.</li>
+          <li>یک خط خالی پایان هدرها و شروع بدنه را نشان می‌دهد.</li>
+          <li>بدنه یک سند JSON با ۱۴۱ بایت است که با مقادیر هدرها مطابقت دارد.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>دریافت و پارس‌کردن درخواست HTTP</h2>
+        <p>NodeJS ماژول داخلی <code class="inline">net</code> را برای ساخت یک سرور TCP استریمی فراهم کرده. «استریمی» یعنی سرور می‌تواند داده را در طول زمان ارسال و دریافت کند و از Stream API نود استفاده می‌کند.</p>
+        <p>جایی که سرور http رویداد <code class="inline">request</code> را با اشیاء Request و Response منتشر می‌کرد، سرور TCP رویداد <code class="inline">connection</code> را با یک شیء Socket منتشر می‌کند. اشیاء Socket از نوع <a href="https://nodejs.org/api/stream.html#stream_class_stream_duplex" target="_blank" rel="noopener">Duplex Streams</a> هستند؛ یعنی هم قابل خواندن‌اند و هم قابل نوشتن.</p>
+        <p>اگر به سرور TCP خودمان درخواست HTTP بفرستیم، خواندن از Socket متن درخواست را به ما می‌دهد. دو راه برای خواندن از یک readable stream هست: اشتراک در رویداد <code class="inline">data</code> یا فراخواندن متد <code class="inline">.read()</code>. بگذارید اولی را ببینیم:</p>
+
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const net = require('net');
+const server = net.createServer();
+server.on('connection', handleConnection);
+server.listen(3000);
+
+function handleConnection(socket) {
+  socket.on('data', (chunk) => {
+    console.log('Received chunk:\n', chunk.toString());
+  });
+  socket.write('HTTP/1.1 200 OK\r\nServer: my-web-server\r\nContent-Length: 0\r\n\r\n');
+}</code></pre>
+
+        <p>این کد را در فایلی به نام <code class="inline">server.js</code> بگذارید و از خط فرمان با <code class="inline">node server.js</code> اجرایش کنید. در ترمینال دیگر، با cURL یک درخواست ساده به سرورتان بفرستید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -v localhost:3000/some/url</code></pre>
+
+        <p>خروجی با جزئیات از cURL می‌بینید که هدرهای درخواست و پاسخ را نشان می‌دهد و در ترمینال نود چیزی شبیه این دیده می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>Received chunk:
+GET /some/url HTTP/1.1
+Host: localhost:3000
+User-Agent: curl/7.54.0
+Accept: */*</code></pre>
+
+        <p>بگذارید یک درخواست POST با داده بفرستیم:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -v -XPOST -d'hello=world' localhost:3000/some/url</code></pre>
+
+        <p>اگر بدنهٔ درخواست طولانی‌تر بود، آن را در چند chunk دریافت می‌کردید. اما <strong>یک وب سرور همیشه لازم نیست بدنهٔ درخواست را پردازش کند</strong>. اغلب بخش هدر برای شروع پردازش درخواست کافی است. چون داریم یک وب سرور عمومی می‌نویسیم، باید راهی پیدا کنیم که به محض رسیدن به رشتهٔ <code class="inline">\r\n\r\n</code> در ورودی، دریافت داده را از سوکت متوقف کنیم.</p>
+        <p>این کار با متد <code class="inline">.read()</code> سوکت راحت‌تر انجام می‌شود، چون کنترل می‌کنیم چه زمانی کشیدن داده از استریم را متوقف کنیم. کدی برای این کار:</p>
+
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const net = require('net');
+const server = net.createServer();
+server.on('connection', handleConnection);
+server.listen(3000);
+
+function handleConnection(socket) {
+  // یک بار مشترک رویداد readable بشو تا بتوانیم .read() را صدا بزنیم
+  socket.once('readable', function() {
+    // بافر برای نگه‌داشتن دادهٔ ورودی
+    let reqBuffer = new Buffer('');
+    // بافر موقت برای خواندن chunk ها
+    let buf;
+    let reqHeader;
+    while(true) {
+      // خواندن داده از سوکت
+      buf = socket.read();
+      // اگر داده‌ای نبود متوقف شو
+      if (buf === null) break;
+
+      // افزودن دادهٔ جدید به بافر درخواست
+      reqBuffer = Buffer.concat([reqBuffer, buf]);
+
+      // آیا به \r\n\r\n رسیده‌ایم؟ یعنی پایان هدر
+      let marker = reqBuffer.indexOf('\r\n\r\n')
+      if (marker !== -1) {
+        // اگر رسیده‌ایم، ممکن است بعد از آن داده باشد؛ به خاطر بسپار
+        let remaining = reqBuffer.slice(marker + 4);
+        // هدر همهٔ چیزهایی است که خوانده‌ایم، تا قبل از \r\n\r\n
+        reqHeader = reqBuffer.slice(0, marker).toString();
+        // دادهٔ اضافه را دوباره به استریم سوکت برمی‌گردانیم
+        socket.unshift(remaining);
+        break;
+      }
+    }
+    console.log(`Request header:\n${reqHeader}`);
+
+    // ارسال یک پاسخ عمومی
+    socket.end('HTTP/1.1 200 OK\r\nServer: my-custom-server\r\nContent-Length: 0\r\n\r\n');
+  });
+}</code></pre>
+
+        <p>کد کمی طولانی‌تر است چون به منطقی برای تصمیم‌گیری دربارهٔ زمان توقف خواندن از استریم نیاز داریم. این به ما اجازه می‌دهد هدر را از بدنه جدا کنیم. بخش کلیدی خط <code class="inline">socket.unshift</code> است که هر دادهٔ اضافه‌ای را که خوانده بودیم دوباره به استریم readable برمی‌گرداند؛ بنابراین می‌توانیم همین سوکت را در صورت لزوم به کاربر بدهیم تا از آن بخواند.</p>
+      </section>
+
+      <section>
+        <h2>کد کامل وب سرور پایه</h2>
+        <p>اینجا کد کامل وب سرور پایهٔ ماست که همهٔ چیزهایی که دیدیم را کنار هم می‌گذارد. سرورمان تابعی به نام <code class="inline">createWebServer(requestHandler)</code> در معرض دید قرار می‌دهد که یک هندلر به شکل <code class="inline">(req, res) =&gt; void</code> می‌گیرد — دقیقاً مثل وب سرور پایهٔ نود. کامنت‌های کد توضیح می‌دهند هر گام چه می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const net = require('net');
+
+function createWebServer(requestHandler) {
+  const server = net.createServer();
+  server.on('connection', handleConnection);
+  
+  function handleConnection(socket) {
+    // یک بار مشترک رویداد readable شو تا بتوانیم .read() را صدا بزنیم
+    socket.once('readable', function() {
+      // بافر برای نگه‌داشتن دادهٔ ورودی
+      let reqBuffer = new Buffer('');
+      // بافر موقت برای خواندن chunk ها
+      let buf;
+      let reqHeader;
+      while(true) {
+        // خواندن داده از سوکت
+        buf = socket.read();
+        // اگر داده‌ای نبود متوقف شو
+        if (buf === null) break;
+  
+        // افزودن دادهٔ جدید به بافر درخواست
+        reqBuffer = Buffer.concat([reqBuffer, buf]);
+  
+        // آیا به \r\n\r\n رسیده‌ایم؟ یعنی پایان هدر
+        let marker = reqBuffer.indexOf('\r\n\r\n')
+        if (marker !== -1) {
+          // ممکن است بعد از آن داده باشد؛ به خاطر بسپار
+          let remaining = reqBuffer.slice(marker + 4);
+          // هدر همهٔ آن چیزی است که خوانده‌ایم تا قبل از \r\n\r\n
+          reqHeader = reqBuffer.slice(0, marker).toString();
+          // برگرداندن دادهٔ اضافه به استریم readable سوکت
+          socket.unshift(remaining);
+          break;
+        }
+      }
+      
+      /* کارهای مربوط به درخواست */
+      // شروع پارس‌کردن هدر
+      const reqHeaders = reqHeader.split('\r\n');
+      // خط اول خاص است
+      const reqLine = reqHeaders.shift().split(' ');
+      // خطوط بعدی هر کدام یک هدرند؛ از آن‌ها یک شیء می‌سازیم
+      const headers = reqHeaders.reduce((acc, currentHeader) => {
+        const [key, value] = currentHeader.split(':');
+        return {
+          ...acc,
+          [key.trim().toLowerCase()]: value.trim()
+        };
+      }, {});
+      // این شیء به callback هندل درخواست فرستاده می‌شود
+      const request = {
+        method: reqLine[0],
+        url: reqLine[1],
+        httpVersion: reqLine[2].split('/')[1],
+        headers,
+        // کاربر این وب سرور می‌تواند مستقیم از سوکت بخواند تا بدنهٔ درخواست را بگیرد
+        socket
+      };
+
+      /* کارهای مربوط به پاسخ */
+      // مقادیر اولیه
+      let status = 200, statusText = 'OK', headersSent = false, isChunked = false;
+      const responseHeaders = {
+        server: 'my-custom-server'
+      };
+      function setHeader(key, value) {
+        responseHeaders[key.toLowerCase()] = value;
+      }
+      function sendHeaders() {
+        // فقط یک بار انجامش بده :)
+        if (!headersSent) {
+          headersSent = true;
+          // افزودن هدر تاریخ
+          setHeader('date', new Date().toGMTString());
+          // فرستادن خط وضعیت
+          socket.write(`HTTP/1.1 ${status} ${statusText}\r\n`);
+          // فرستادن هر کدام از هدرهای بعدی
+          Object.keys(responseHeaders).forEach(headerKey => {
+            socket.write(`${headerKey}: ${responseHeaders[headerKey]}\r\n`);
+          });
+          // افزودن \r\n پایانی که هدرها را از بدنه جدا می‌کند
+          socket.write('\r\n');
+        }
+      }
+      const response = {
+        write(chunk) {
+          if (!headersSent) {
+            // اگر هدر content-length وجود ندارد، Transfer-Encoding chunked را مشخص کن
+            if (!responseHeaders['content-length']) {
+              isChunked = true;
+              setHeader('transfer-encoding', 'chunked');
+            }
+            sendHeaders();
+          }
+          if (isChunked) {
+            const size = chunk.length.toString(16);
+            socket.write(`${size}\r\n`);
+            socket.write(chunk);
+            socket.write('\r\n');
+          }
+          else {
+            socket.write(chunk);
+          }
+        },
+        end(chunk) {
+          if (!headersSent) {
+            // طول کامل پاسخ را می‌دانیم؛ بگذار تنظیمش کنیم
+            if (!responseHeaders['content-length']) {
+              // فرض می‌کنیم chunk بافر است نه رشته!
+              setHeader('content-length', chunk ? chunk.length : 0);
+            }
+            sendHeaders();
+          }
+          if (isChunked) {
+            if (chunk) {
+              const size = (chunk.length).toString(16);
+              socket.write(`${size}\r\n`);
+              socket.write(chunk);
+              socket.write('\r\n');
+            }
+            socket.end('0\r\n\r\n');
+          }
+          else {
+            socket.end(chunk);
+          }
+        },
+        setHeader,
+        setStatus(newStatus, newStatusText) { status = newStatus, statusText = newStatusText },
+        // متد راحتی برای ارسال JSON از طریق سرور
+        json(data) {
+          if (headersSent) {
+            throw new Error('Headers sent, cannot proceed to send JSON');
+          }
+          const json = new Buffer(JSON.stringify(data));
+          setHeader('content-type', 'application/json; charset=utf-8');
+          setHeader('content-length', json.length);
+          sendHeaders();
+          socket.end(json);
+        }
+      };
+      
+      // ارسال درخواست به هندلر!
+      requestHandler(request, response);
+    });
+  }
+
+  return {
+    listen: (port) => server.listen(port)
+  };
+}
+
+const webServer = createWebServer((req, res) => {
+  // این همان کد اولیه‌مان با ماژول http است :)
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  res.setHeader('Content-Type','text/plain');
+  res.end('Hello World!');
+});
+
+webServer.listen(3000);</code></pre>
+
+        <p>همان‌طور که در ابتدای پست گفته شد، این کد سرور هیچ جایی در تولید ندارد؛ فقط برای یادگیری استریم‌ها و بافرهاست.</p>
+        <p>بیشتر کدها خودتوضیح‌دهنده‌اند: درخواست را با قوانین بخش قبل پارس و پاسخ را ارسال می‌کنیم. تنها بخش جدید، <code class="inline">Transfer-Encoding: chunked</code> است که وقتی طول پاسخ را از قبل نمی‌دانیم لازم است. می‌توانید دربارهٔ <a href="https://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank" rel="noopener">chunked transfer encoding در ویکی‌پدیا</a> بیشتر بخوانید.</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>با استفاده از بلوک‌های ساختمان سطح پایین‌تر مثل <code class="inline">net</code>، <code class="inline">Stream</code> و <code class="inline">Buffer</code>، توانستیم یک سرور HTTP ابتدایی بر پایهٔ یک سرور TCP و کمی منطق پارس بسازیم. در این مسیر، کمی دربارهٔ نحوهٔ کار درخواست‌ها و پاسخ‌های HTTP، و همچنین مبانی استریم‌ها و بافرهای readable و writable یاد گرفتیم.</p>
+        <p><em>نویسنده: زیاد صعب — مشاور NodeJS, React, Postgres و Web3 از مونترآل کانادا.</em></p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقاله «Let's code a web server from scratch with NodeJS Streams!» اثر «زیاد صعب (Ziad Saab)» است که در Codementor منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.codementor.io/@ziad-saab/let-s-code-a-web-server-from-scratch-with-nodejs-streams-h4uc9utji" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

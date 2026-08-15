@@ -2860,114 +2860,114 @@ window.TUTORIALS = [
 "file": ""
 },
 {
-"id": "",
+"id": "web-server-csharp-codeproject",
 "category": "وب سرور",
 "lang": "C#",
 "title": "نوشتن یک وب سرور از صفر",
 "url": "https://www.codeproject.com/Articles/859108/Writing-a-Web-Server-from-Scratch",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/web-server-csharp-codeproject.html"
 },
 {
-"id": "",
+"id": "web-server-nodejs-buildown",
 "category": "وب سرور",
 "lang": "Node.js",
 "title": "وب سرور خودت را از صفر در جاوااسکریپت بساز",
 "url": "https://build-your-own.org/webserver/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/web-server-nodejs-buildown.html"
 },
 {
-"id": "",
+"id": "web-server-nodejs-streams",
 "category": "وب سرور",
 "lang": "Node.js",
 "title": "یک وب سرور را از صفر با NodeJS Streams کدنویسی کنیم",
 "url": "https://www.codementor.io/@ziad-saab/let-s-code-a-web-server-from-scratch-with-nodejs-streams-h4uc9utji",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/web-server-nodejs-streams.html"
 },
 {
-"id": "",
+"id": "lets-build-express",
 "category": "وب سرور",
 "lang": "Node.js",
 "title": "lets-build-express",
 "url": "https://github.com/antoaravinth/lets-build-express",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/lets-build-express.html"
 },
 {
-"id": "",
+"id": "webserver-pure-php",
 "category": "وب سرور",
 "lang": "PHP",
 "title": "نوشتن یک وب سرور با PHP خالص",
 "url": "http://station.clancats.com/writing-a-webserver-in-pure-php/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/webserver-pure-php.html"
 },
 {
-"id": "",
+"id": "simple-web-server-500lines",
 "category": "وب سرور",
 "lang": "Python",
 "title": "یک وب سرور ساده",
 "url": "http://aosabook.org/en/500L/a-simple-web-server.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/simple-web-server-500lines.html"
 },
 {
-"id": "",
+"id": "lets-build-a-web-server",
 "category": "وب سرور",
 "lang": "Python",
 "title": "بیایید یک وب سرور بسازیم.",
 "url": "https://ruslanspivak.com/lsbaws-part1/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/lets-build-a-web-server.html"
 },
 {
-"id": "",
+"id": "web-app-from-scratch",
 "category": "وب سرور",
 "lang": "Python",
 "title": "برنامه وب از صفر",
 "url": "https://defn.io/2018/02/25/web-app-from-scratch-01/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/web-app-from-scratch.html"
 },
 {
-"id": "",
+"id": "basic-http-server-python",
 "category": "وب سرور",
 "lang": "Python",
 "title": "ساخت یک سرور HTTP پایه از صفر در پایتون",
 "url": "http://joaoventura.net/blog/2017/python-webserver/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/basic-http-server-python.html"
 },
 {
-"id": "",
+"id": "rest-api-flask",
 "category": "وب سرور",
 "lang": "Python",
 "title": "پیاده‌سازی یک وب API مبتنی بر REST با پایتون و Flask",
 "url": "http://blog.luisrei.com/articles/flaskrest.html",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/rest-api-flask.html"
 },
 {
-"id": "",
+"id": "websockets-server-ruby",
 "category": "وب سرور",
 "lang": "Ruby",
 "title": "ساخت یک سرور websockets ساده از صفر در Ruby",
 "url": "http://blog.honeybadger.io/building-a-simple-websockets-server-from-scratch-in-ruby/",
 "video": false,
-"done": false,
-"file": ""
+"done": true,
+"file": "tutorials/websockets-server-ruby.html"
 },
 {
 "id": "",

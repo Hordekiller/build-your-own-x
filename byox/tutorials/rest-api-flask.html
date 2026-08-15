@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Implementing a RESTful Web API with Python & Flask»
+  از Luis Rei — blog.luisrei.com
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیاده‌سازی یک وب API مبتنی بر REST با پایتون و Flask</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>پیاده‌سازی یک وب API مبتنی بر REST با پایتون و Flask</span>
+      </div>
+      <h1>پیاده‌سازی یک وب API مبتنی بر REST با پایتون و Flask</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://blog.luisrei.com/articles/flaskrest.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Implementing a RESTful Web API with Python &amp; Flask» از «لویس ری (Luis Rei)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://blog.luisrei.com/articles/flaskrest.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>برای شروع:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>sudo pip install flask</code></pre>
+
+        <p>فرض بر این است که مبانی REST را می‌دانید. <a href="http://flask.pocoo.org/" target="_blank" rel="noopener">Flask</a> یک میکروفریم‌ورک پایتون بر پایهٔ <a href="http://werkzeug.pocoo.org/" target="_blank" rel="noopener">Werkzeug</a> است — یک کتابخانهٔ کاربردی WSGI.</p>
+        <p>Flask انتخاب خوبی برای یک API از نوع REST است چون:</p>
+        <ul>
+          <li>به پایتون نوشته شده (که می‌تواند مزیت باشد)؛</li>
+          <li>استفاده از آن ساده است؛</li>
+          <li>انعطاف‌پذیر است؛</li>
+          <li>گزینه‌های استقرار (deployment) خوب متعددی دارد؛</li>
+          <li><strong>توزیع درخواست‌ها (Request Dispatching) RESTful</strong> دارد.</li>
+        </ul>
+        <p>نویسنده معمولاً با <a href="http://curl.haxx.se" target="_blank" rel="noopener">curl</a> درخواست‌های آزمایشی می‌فرستد و یک مرجع کوچک curl هم در انتهای مقاله هست. <a href="http://www.restconsole.com" target="_blank" rel="noopener">REST Console</a> هم ابزار خوبی برای Google Chrome است.</p>
+        <p>کدهای مثال این مقاله در <a href="https://github.com/lrei/articles/tree/master/2012-05-02-flaskrest" target="_blank" rel="noopener">GitHub</a> است.</p>
+      </section>
+
+      <section>
+        <h2>منابع (Resources)</h2>
+        <p>با یک برنامهٔ کامل شروع می‌کنیم که به درخواست‌های ریشه، <code class="inline">/articles</code> و <code class="inline">/articles/:id</code> پاسخ می‌دهد:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>from flask import Flask, url_for
+app = Flask(__name__)
+
+@app.route('/')
+def api_root():
+    return 'Welcome'
+
+@app.route('/articles')
+def api_articles():
+    return 'List of ' + url_for('api_articles')
+
+@app.route('/articles/&lt;articleid&gt;')
+def api_article(articleid):
+    return 'You are reading ' + articleid
+
+if __name__ == '__main__':
+    app.run()</code></pre>
+
+        <p>با curl می‌توانید این درخواست‌ها را بفرستید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl http://127.0.0.1:5000/</code></pre>
+
+        <p>پاسخ‌ها به ترتیب این‌ها هستند:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /
+Welcome
+
+GET /articles
+List of /articles
+
+GET /articles/123
+You are reading 123</code></pre>
+
+        <p>مسیرها می‌توانند از مبدل‌های مختلفی در تعریف‌شان استفاده کنند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>@app.route('/articles/&lt;articleid&gt;')</code></pre>
+
+        <p>می‌تواند با این‌ها جایگزین شود:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>@app.route('/articles/&lt;int:articleid&gt;')
+@app.route('/articles/&lt;float:articleid&gt;')
+@app.route('/articles/&lt;path:articleid&gt;')</code></pre>
+
+        <p>پیش‌فرض <code class="inline">string</code> است که هر متنی بدون اسلش را می‌پذیرد.</p>
+      </section>
+
+      <section>
+        <h2>درخواست‌ها (Requests)</h2>
+
+        <h3>پارامترهای GET</h3>
+        <p>برنامه‌ای می‌سازیم که به درخواست‌های <code class="inline">/hello</code> پاسخ دهد و یک پارامتر GET اختیاری مدیریت کند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>from flask import request
+
+@app.route('/hello')
+def api_hello():
+    if 'name' in request.args:
+        return 'Hello ' + request.args['name']
+    else:
+        return 'Hello John Doe'</code></pre>
+
+        <p>سرور این‌طور پاسخ می‌دهد:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /hello
+Hello John Doe
+
+GET /hello?name=Luis
+Hello Luis</code></pre>
+
+        <h3>متدهای درخواست (فعل‌های HTTP)</h3>
+        <p>برنامه را طوری تغییر می‌دهیم که فعل‌های HTTP مختلف را مدیریت کند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>@app.route('/echo', methods = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
+def api_echo():
+    if request.method == 'GET':
+        return "ECHO: GET\n"
+
+    elif request.method == 'POST':
+        return "ECHO: POST\n"
+
+    elif request.method == 'PATCH':
+        return "ECHO: PACTH\n"
+
+    elif request.method == 'PUT':
+        return "ECHO: PUT\n"
+
+    elif request.method == 'DELETE':
+        return "ECHO: DELETE"</code></pre>
+
+        <p>با curl گزینهٔ -X نوع درخواست را مشخص می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -X PATCH http://127.0.0.1:5000/echo</code></pre>
+
+        <h3>داده و هدرهای درخواست</h3>
+        <p>معمولاً POST و PATCH با داده همراه‌اند؛ گاهی در یکی از چند قالب: متن ساده، JSON، XML، قالب دادهٔ خودتان، فایل باینری و... دسترسی به هدرهای HTTP با دیکشنری <code class="inline">request.headers</code> و به دادهٔ درخواست با رشتهٔ <code class="inline">request.data</code> انجام می‌شود. اگر mimetype برابر <em>application/json</em> باشد، <code class="inline">request.json</code> JSON پارس‌شده را دارد:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>from flask import json
+
+@app.route('/messages', methods = ['POST'])
+def api_message():
+
+    if request.headers['Content-Type'] == 'text/plain':
+        return "Text Message: " + request.data
+
+    elif request.headers['Content-Type'] == 'application/json':
+        return "JSON Message: " + json.dumps(request.json)
+
+    elif request.headers['Content-Type'] == 'application/octet-stream':
+        f = open('./binary', 'wb')
+        f.write(request.data)
+        f.close()
+        return "Binary message written!"
+
+    else:
+        return "415 Unsupported Media Type ;)"</code></pre>
+
+        <p>مشخص‌کردن نوع محتوا با curl:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -H "Content-type: application/json" \
+-X POST http://127.0.0.1:5000/messages -d '{"message":"Hello Data"}'</code></pre>
+
+        <p>فرستادن فایل با curl:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -H "Content-type: application/octet-stream" \
+-X POST http://127.0.0.1:5000/messages --data-binary @message.bin</code></pre>
+
+        <p>پاسخ‌ها برای انواع محتوای مختلف:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>POST /messages {"message": "Hello Data"}
+Content-type: application/json
+JSON Message: {"message": "Hello Data"}
+
+POST /message &lt;message.bin&gt;
+Content-type: application/octet-stream
+Binary message written!</code></pre>
+
+        <p>ضمناً Flask می‌تواند فایل‌های POST شده از طریق فرم HTML را با <code class="inline">request.files</code> مدیریت کند و curl هم می‌تواند با پرچم <code class="inline">-F</code> این رفتار را شبیه‌سازی کند.</p>
+      </section>
+
+      <section>
+        <h2>پاسخ‌ها (Responses)</h2>
+        <p>پاسخ‌ها توسط کلاس Response فلاسک مدیریت می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>from flask import Response
+
+@app.route('/hello', methods = ['GET'])
+def api_hello():
+    data = {
+        'hello'  : 'world',
+        'number' : 3
+    }
+    js = json.dumps(data)
+
+    resp = Response(js, status=200, mimetype='application/json')
+    resp.headers['Link'] = 'http://luisrei.com'
+
+    return resp</code></pre>
+
+        <p>برای دیدن هدرهای پاسخ HTTP با curl گزینهٔ <code class="inline">-i</code> را مشخص کنید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -i http://127.0.0.1:5000/hello</code></pre>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /hello
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 31
+Link: http://luisrei.com
+Server: Werkzeug/0.8.2 Python/2.7.1
+Date: Wed, 25 Apr 2012 16:40:27 GMT
+{"hello": "world", "number": 3}</code></pre>
+
+        <p><em>Mimetype</em> فقط همان content-type بدون اطلاعات اضافه است (مثل charset، encoding، language و...). اگر ممکن است، اطلاعات کامل نوع محتوا را برگردانید.</p>
+        <p>مثال قبلی را می‌توان با یک متد راحتی Flask برای تولید پاسخ‌های JSON ساده‌تر کرد:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>   from flask import jsonify</code></pre>
+
+        <p>و جایگزینی:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code> resp = Response(js, status=200, mimetype='application/json')</code></pre>
+
+        <p>با:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>resp = jsonify(data)
+resp.status_code = 200</code></pre>
+
+        <p>که دقیقاً همان پاسخ قبلی را تولید می‌کند. مشخص‌کردن mime type به‌ویژه برای mime type های سفارشی مثل <em>application/vnd.example.v2+json</em> مفید است.</p>
+
+        <h3>کدهای وضعیت و خطاها</h3>
+        <p>توجه کنید که <em>200</em> کد وضعیت پیش‌فرض برای درخواست‌های GET است و در هر دو مثال، مشخص‌کردن آن فقط برای نشان دادن بود. مواردی هست که باید پیش‌فرض‌ها را override کرد؛ مثلاً مدیریت خطا:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>@app.errorhandler(404)
+def not_found(error=None):
+    message = {
+            'status': 404,
+            'message': 'Not Found: ' + request.url,
+    }
+    resp = jsonify(message)
+    resp.status_code = 404
+
+    return resp
+
+@app.route('/users/&lt;userid&gt;', methods = ['GET'])
+def api_users(userid):
+    users = {'1':'john', '2':'steve', '3':'bill'}
+    
+    if userid in users:
+        return jsonify({userid:users[userid]})
+    else:
+        return not_found()</code></pre>
+
+        <p>این را تولید می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /users/2
+HTTP/1.0 200 OK
+{
+    "2": "steve"
+}
+
+GET /users/4
+HTTP/1.0 404 NOT FOUND
+{
+"status": 404, 
+"message": "Not Found: http://127.0.0.1:5000/users/4"
+}</code></pre>
+
+        <p>پیام‌های خطای پیش‌فرض Flask را می‌توان یا با دکوراتور <code class="inline">@error_handler</code> یا با <code class="inline">app.error_handler_spec[None][404] = not_found</code> بازنویسی کرد. حتی اگر API نیازی به پیام‌های خطای سفارشی ندارد، اگر از mime type های مختلف (JSON, XML و...) پشتیبانی می‌کند این قابلیت مهم است، چون Flask به‌صورت پیش‌فرض خطاهای HTML می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>احراز هویت (Authorization)</h2>
+        <p>یک <a href="http://flask.pocoo.org/snippets/8/" target="_blank" rel="noopener">snippet</a> بسیار مفید از Armin Ronacher نحوهٔ مدیریت HTTP Basic Authentication را نشان می‌دهد و به‌راحتی برای طرح‌های دیگر قابل تغییر است. نسخهٔ کمی تغییر یافتهٔ آن:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>from functools import wraps
+
+def check_auth(username, password):
+    return username == 'admin' and password == 'secret'
+
+def authenticate():
+    message = {'message': "Authenticate."}
+    resp = jsonify(message)
+
+    resp.status_code = 401
+    resp.headers['WWW-Authenticate'] = 'Basic realm="Example"'
+
+    return resp
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth: 
+            return authenticate()
+
+        elif not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+
+    return decorated</code></pre>
+
+        <p>و استفاده از آن فقط جایگزینی تابع <code class="inline">check_auth</code> و استفاده از دکوراتور <code class="inline">requires_auth</code> است:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>@app.route('/secrets')
+@requires_auth
+def api_hello():
+    return "Shhh this is top secret spy stuff!"</code></pre>
+
+        <p>پس یک درخواست بدون احراز هویت:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /secrets
+HTTP/1.0 401 UNAUTHORIZED
+WWW-Authenticate: Basic realm="Example"
+{
+  "message": "Authenticate."
+}</code></pre>
+
+        <p>در حالی که درخواست احراز هویت‌شده — که با curl و گزینهٔ <code class="inline">-u</code> برای Basic authentication و <code class="inline">-v</code> برای دیدن هدرها فرستاده می‌شود — نتیجهٔ مورد انتظار را دارد:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>curl -v -u "admin:secret" http://127.0.0.1:5000/secrets</code></pre>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>GET /secrets Authorization: Basic YWRtaW46c2VjcmV0
+Shhh this is top secret spy stuff!</code></pre>
+
+        <p>Flask از یک <a href="http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.MultiDict" target="_blank" rel="noopener">MultiDict</a> برای ذخیرهٔ هدرها استفاده می‌کند. برای ارائهٔ چند طرح احراز هویت ممکن به کلاینت‌ها، کافی است خطوط <em>WWW-Authenticate</em> بیشتری به هدر اضافه کنید:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>resp.headers['WWW-Authenticate'] = 'Basic realm="Example"'
+resp.headers.add('WWW-Authenticate', 'Bearer realm="Example"')</code></pre>
+
+        <p>یا از یک خط با چند طرح استفاده کنید (استاندارد هر دو را مجاز می‌داند).</p>
+      </section>
+
+      <section>
+        <h2>اشکال‌زدایی و لاگ ساده</h2>
+        <p>فعال‌کردن پیام‌های اشکال‌زدایی زیبای (HTML) در طول توسعه ساده است — فقط یک آرگومان:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>app.run(debug=True)</code></pre>
+
+        <p>Flask از همان logging پایتون استفاده می‌کند — با کمی پیکربندی:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>import logging
+file_handler = logging.FileHandler('app.log')
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+
+@app.route('/hello', methods = ['GET'])
+def api_hello():
+    app.logger.info('informing')
+    app.logger.warning('warning')
+    app.logger.error('screaming bloody murder!')
+    
+    return "check your logs\n"</code></pre>
+      </section>
+
+      <section>
+        <h2>مرجع کوچک: گزینه‌های curl</h2>
+        <table>
+          <thead>
+            <tr><th>گزینه</th><th>کاربرد</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code class="inline">-X</code></td><td>مشخص‌کردن متد درخواست HTTP، مثل POST</td></tr>
+            <tr><td><code class="inline">-H</code></td><td>مشخص‌کردن هدرهای درخواست، مثل "Content-type: application/json"</td></tr>
+            <tr><td><code class="inline">-d</code></td><td>مشخص‌کردن دادهٔ درخواست، مثل '{"message":"Hello Data"}'</td></tr>
+            <tr><td><code class="inline">--data-binary</code></td><td>مشخص‌کردن دادهٔ باینری درخواست، مثل @file.bin</td></tr>
+            <tr><td><code class="inline">-i</code></td><td>نمایش هدرهای پاسخ</td></tr>
+            <tr><td><code class="inline">-u</code></td><td>مشخص‌کردن نام کاربری و رمز عبور، مثل "admin:secret"</td></tr>
+            <tr><td><code class="inline">-v</code></td><td>فعال‌کردن حالت verbose که اطلاعاتی مثل هدرهای درخواست و پاسخ و خطاها را خروجی می‌دهد</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Implementing a RESTful Web API with Python &amp; Flask» اثر «لویس ری (Luis Rei)» است که در blog.luisrei.com منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://blog.luisrei.com/articles/flaskrest.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

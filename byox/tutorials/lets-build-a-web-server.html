@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Let's Build A Web Server. Part 1»
+  از Ruslan Spivak — ruslanspivak.com
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بیایید یک وب سرور بسازیم — قسمت ۱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>بیایید یک وب سرور بسازیم — قسمت ۱</span>
+      </div>
+      <h1>بیایید یک وب سرور بسازیم — قسمت ۱</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://ruslanspivak.com/lsbaws-part1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Let's Build A Web Server. Part 1» از «روسلان سسیواک (Ruslan Spivak)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید (قسمت‌های ۲ و ۳ هم در ادامهٔ همین مجموعه است).
+        </div>
+        <a class="btn solid" href="https://ruslanspivak.com/lsbaws-part1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه — داستان آجرها</h2>
+        <p>یک روز، زنی هنگام قدم‌زدن به یک کارگاه ساختمانی رسید و سه مرد را دید که کار می‌کنند. از نفر اول پرسید: «چه می‌کنی؟» مرد اول که از سوال اذیت شده بود گفت: «نمی‌بینی آجر می‌چینم؟» زن که از جوابش راضی نشده بود از مرد دوم پرسید چه می‌کند. مرد دوم جواب داد: «دارم دیوار آجری می‌سازم.» باز راضی نشد و از مرد سوم پرسید. مرد سوم در حالی که به آسمان نگاه می‌کرد گفت: «من دارم بزرگ‌ترین کلیسای جامعی را می‌سازم که این دنیا به خودش دیده.»</p>
+        <p>مفهوم داستان این است که وقتی کل سیستم را می‌شناسید و می‌فهمید اجزای مختلف (آجرها، دیوارها، کلیسای جامع) چطور کنار هم می‌نشینند، می‌توانید مشکلات را سریع‌تر شناسایی و رفع کنید.</p>
+        <p>این چه ربطی به ساختن وب سرور از صفر دارد؟</p>
+        <blockquote>نویسنده معتقد است برای بهتر شدن باید درک بهتری از سیستم‌های نرم‌افزاری زیربنایی که روزانه استفاده می‌کنید به دست آورید — زبان‌های برنامه‌نویسی، کامپایلرها و مفسرها، پایگاه‌های داده و سیستم‌عامل‌ها، وب سرورها و فریم‌ورک‌های وب. و برای درک عمیق‌تر این سیستم‌ها باید آن‌ها را از صفر بازسازی کنید: آجر به آجر، دیوار به دیوار.</blockquote>
+        <p>کنفوسیوس این‌طور گفته: «می‌شنوم و فراموش می‌کنم. می‌بینم و به یاد می‌آورم. انجام می‌دهم و می‌فهمم.»</p>
+        <p>در این مجموعهٔ سه‌قسمتی نشان می‌دهم چگونه وب سرور پایهٔ خودتان را بسازید. بگذارید شروع کنیم.</p>
+      </section>
+
+      <section>
+        <h2>وب سرور چیست؟</h2>
+        <p>در یک کلام، یک سرور شبکه است که روی یک سرور فیزیکی نشسته و منتظر می‌ماند کلاینتی درخواستی بفرستد. وقتی درخواست را دریافت می‌کند، یک پاسخ تولید می‌کند و برای کلاینت برمی‌فرستد. ارتباط بین کلاینت و سرور با پروتکل HTTP انجام می‌شود. کلاینت می‌تواند مرورگر شما یا هر نرم‌افزار دیگری باشد که HTTP صحبت می‌کند.</p>
+        <p><img src="https://ruslanspivak.com/lsbaws-part1/LSBAWS_HTTP_request_response.png" alt="درخواست و پاسخ HTTP بین کلاینت و سرور" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>پیاده‌سازی خیلی سادهٔ یک وب سرور چه شکلی است؟ این برداشت نویسنده است. مثال به زبان پایتون (تست‌شده روی Python 3.7+) — حتی اگر پایتون نمی‌دانید، باید بتوانید مفاهیم را از کد و توضیحات پایین بفهمید:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code># Python3.7+
+import socket
+
+HOST, PORT = '', 8888
+
+listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+listen_socket.bind((HOST, PORT))
+listen_socket.listen(1)
+print(f'Serving HTTP on port {PORT} ...')
+while True:
+    client_connection, client_address = listen_socket.accept()
+    request_data = client_connection.recv(1024)
+    print(request_data.decode('utf-8'))
+
+    http_response = b"""\
+HTTP/1.1 200 OK
+
+Hello, World!
+"""
+    client_connection.sendall(http_response)
+    client_connection.close()</code></pre>
+
+        <p>کد بالا را به‌عنوان <code class="inline">webserver1.py</code> ذخیره کنید (یا مستقیم از <a href="https://github.com/rspivak/lsbaws/blob/master/part1/webserver1.py" target="_blank" rel="noopener">GitHub</a> دانلودش کنید) و در خط فرمان اجرا کنید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>$ python webserver1.py
+Serving HTTP on port 8888 ...</code></pre>
+
+        <p>حالا در نوار آدرس مرورگر <a href="http://localhost:8888/hello" target="_blank" rel="noopener">http://localhost:8888/hello</a> را تایپ کنید و Enter بزنید؛ «Hello, World!» را در مرورگر می‌بینید. واقعاً امتحانش کنید — نویسنده صبر می‌کند تا تست کنید!</p>
+        <p>تمام شد؟ عالی. حالا بگذارید دربارهٔ نحوهٔ کار این‌ها صحبت کنیم.</p>
+      </section>
+
+      <section>
+        <h2>چطور کار می‌کند</h2>
+        <p>اول با آدرس وب‌ای که وارد کردید شروع کنیم. به آن <a href="http://en.wikipedia.org/wiki/Uniform_resource_locator" target="_blank" rel="noopener">URL</a> می‌گویند و ساختار پایه‌اش این است:</p>
+        <p><img src="https://ruslanspivak.com/lsbaws-part1/LSBAWS_URL_Web_address.png" alt="ساختار URL: پروتکل، میزبان، پورت، مسیر" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>این‌طور به مرورگر می‌گویید آدرس وب سروری که باید پیدا کند و وصل شود چیست و صفحهٔ (مسیر) مورد نظر روی سرور کدام است. اما قبل از اینکه مرورگر بتواند درخواست HTTP بفرستد، اول باید یک اتصال TCP با وب سرور برقرار کند. بعد یک درخواست HTTP روی اتصال TCP به سرور می‌فرستد و منتظر می‌ماند سرور یک پاسخ HTTP برگرداند. وقتی مرورگر پاسخ را می‌گیرد نمایشش می‌دهد — در این مورد «Hello, World!».</p>
+        <p>بگذارید دقیق‌تر بررسی کنیم کلاینت و سرور چگونه قبل از فرستادن درخواست‌ها و پاسخ‌های HTTP اتصال TCP برقرار می‌کنند. برای این کار هر دو از «سوکت‌ها» استفاده می‌کنند. به‌جای استفاده مستقیم از مرورگر، با <em>telnet</em> در خط فرمان مرورگرتان را شبیه‌سازی می‌کنید.</p>
+        <p>روی همان کامپیوتری که وب سرور را اجرا می‌کنید، یک نشست telnet از خط فرمان باز کنید، میزبان <em>localhost</em> و پورت <em>8888</em> را مشخص کنید و Enter بزنید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>$ telnet localhost 8888
+Trying 127.0.0.1 ...
+Connected to localhost.</code></pre>
+
+        <p>در این نقطه با سروری که روی میزبان محلی اجرا می‌شود اتصال TCP برقرار کرده‌اید و آمادهٔ فرستادن و دریافت پیام‌های HTTP هستید. در تصویر زیر رویهٔ استانداردی را می‌بینید که یک سرور برای پذیرش اتصالات TCP جدید باید انجام دهد.</p>
+        <p><img src="https://ruslanspivak.com/lsbaws-part1/LSBAWS_socket.png" alt="رویهٔ سوکت سرور: ساخت، bind، listen، accept" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>در همان نشست telnet، <code class="inline">GET /hello HTTP/1.1</code> را تایپ کنید و Enter بزنید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>$ telnet localhost 8888
+Trying 127.0.0.1 ...
+Connected to localhost.
+GET /hello HTTP/1.1
+
+HTTP/1.1 200 OK
+Hello, World!</code></pre>
+
+        <p>تازه مرورگرتان را دستی شبیه‌سازی کردید! یک درخواست HTTP فرستادید و یک پاسخ HTTP گرفتید. این ساختار پایهٔ یک درخواست HTTP است:</p>
+        <p><img src="https://ruslanspivak.com/lsbaws-part1/LSBAWS_HTTP_request_anatomy.png" alt="آناتومی درخواست HTTP: خط متد، مسیر و نسخهٔ پروتکل" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>درخواست HTTP از خطی تشکیل شده که متد HTTP (GET — چون از سرور می‌خواهیم چیزی برگرداند)، مسیر <em>/hello</em> که «صفحهٔ» مورد نظرمان روی سرور است و نسخهٔ پروتکل را نشان می‌دهد.</p>
+        <p>برای سادگی، وب سرورمان در این نقطه کاملاً خط درخواست بالا را نادیده می‌گیرد. به‌جای «GET /hello HTTP/1.1» هر زباله‌ای هم تایپ کنید، باز «Hello, World!» می‌گیرید.</p>
+        <p>این پاسخ HTTP است که سرور به کلاینت می‌فرستد:</p>
+        <p><img src="https://ruslanspivak.com/lsbaws-part1/LSBAWS_HTTP_response_anatomy.png" alt="آناتومی پاسخ HTTP: خط وضعیت، خط خالی و بدنه" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+        <p>بگذارید تجزیه‌اش کنیم. پاسخ شامل یک خط وضعیت <em>HTTP/1.1 200 OK</em>، سپس یک خط خالیِ الزامی و بعد بدنهٔ پاسخ HTTP است. خط وضعیت <em>HTTP/1.1 200 OK</em> از <em>نسخهٔ HTTP</em>، <em>کد وضعیت HTTP</em> و <em>عبارت دلیل</em> OK تشکیل شده. وقتی مرورگر پاسخ را می‌گیرد، بدنهٔ پاسخ را نمایش می‌دهد و به همین دلیل «Hello, World!» را در مرورگر می‌بینید.</p>
+      </section>
+
+      <section>
+        <h2>خلاصه</h2>
+        <p>و این مدل پایهٔ کار یک وب سرور است. خلاصه: وب سرور یک سوکت شنونده می‌سازد و در یک حلقه شروع به پذیرش اتصالات جدید می‌کند. کلاینت یک اتصال TCP آغاز می‌کند و بعد از برقراری موفق، کلاینت یک درخواست HTTP به سرور می‌فرستد و سرور با یک پاسخ HTTP پاسخ می‌دهد که به کاربر نمایش داده می‌شود. برای برقراری اتصال TCP، کلاینت‌ها و سرورها هر دو از <em>سوکت‌ها</em> استفاده می‌کنند.</p>
+        <p>حالا یک وب سرور پایهٔ کارا دارید که می‌توانید با مرورگر یا هر کلاینت HTTP دیگری تستش کنید. همان‌طور که دیدید و امیدوارم امتحان کرده باشید، می‌توانید با telnet و تایپ دستی درخواست‌های HTTP، خودتان هم یک کلاینت HTTPِ انسانی باشید.</p>
+        <p>سوالی برای شما: «چطور می‌توانید یک برنامهٔ Django، برنامهٔ Flask و برنامهٔ Pyramid را زیر وب سرور تازه‌ساخته‌تان اجرا کنید بدون اینکه یک تغییر در سرور برای سازگاری با این فریم‌ورک‌های مختلف بدهید؟»</p>
+        <p>نویسنده دقیقاً این را در <a href="https://ruslanspivak.com/lsbaws-part2/" target="_blank" rel="noopener">قسمت ۲</a> مجموعه نشان می‌دهد. منتظر بمانید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Let's Build A Web Server. Part 1» اثر «روسلان سسیواک (Ruslan Spivak)» است که در ruslanspivak.com منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://ruslanspivak.com/lsbaws-part1/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

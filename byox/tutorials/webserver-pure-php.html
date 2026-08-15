@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Writing a webserver in pure PHP» (ClanCats Station)
+  از Mario Deluna — ClanCats Station
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک وب سرور با PHP خالص</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک وب سرور با PHP خالص</span>
+      </div>
+      <h1>نوشتن یک وب سرور با PHP خالص</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: PHP</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://station.clancats.com/writing-a-webserver-in-pure-php/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی آموزش «Writing a webserver in pure PHP» از «ماریو دلونا (Mario Deluna)» — ClanCats Station است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://station.clancats.com/writing-a-webserver-in-pure-php/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه — خب، این کار تقریباً بی‌فایده است، اما ممکن است!</h2>
+        <p>این آموزش به شما کمک می‌کند بهتر بفهمید یک وب سرور ساده چگونه می‌تواند کار کند و اینکه نوشتن یکی با PHP هیچ مشکلی ندارد. اما استفاده از آن در تولید مثل این است که با چنگال سوپ بخورید؛ پس... فقط، نکنید. بگذارید مختصر توضیح دهم چرا ایدهٔ خوبی نیست:</p>
+        <blockquote>PHP یک زبان اسکریپتی است که واقعاً برای چنین کارهایی طراحی نشده.</blockquote>
+        <p>یک وب سرور یک فرایند طولانی‌مدت است و PHP ساختهٔ چنین کاری نیست. همچنین PHP به‌صورت بومی از چندنخی پشتیبانی نمی‌کند (pthreads)، که توسعهٔ یک وب سرور خوب و پرسرعت را سخت یا غیرممکن می‌کند. تخصیص حافظهٔ PHP هم می‌تواند پرهزینه باشد و حتی با وجود سرعت بالای مفسر، سربار یک مفسر را دارد.</p>
+        <p>اما چیزها ممکن است در آینده تغییر کنند. اگر با برنامه‌نویس‌ها معاشرت کرده باشید، حداقل یکی را دیده‌اید که دربارهٔ بد بودن PHP شوخی می‌کند و دلایل واضحی هم دارد که چرا PHP چنین شوخی صنعتی شده. اما زبان و اکوسیستمش بسیار تکامل یافته است. هنوز هم آدم‌هایی هستند که پشت شوخی‌ها را نمی‌بینند؛ بسیاری از آن‌ها یا حداقل ۱۰ سال است PHP را لمس نکرده‌اند یا کورکورانه نظر دیگران را کپی می‌کنند. من شرط می‌بندم چیزهایی مثل برنامه‌های PHP طولانی‌مدت با وب سرورهای تعبیه‌شده بیشتر و بیشتر دیده خواهند شد.</p>
+      </section>
+
+      <section>
+        <h2>مبانی — وب سرور چگونه کار می‌کند؟</h2>
+        <ol>
+          <li>سرور منتظر اتصالات ورودی می‌ماند.</li>
+          <li>یک کلاینت به سرور متصل می‌شود.</li>
+          <li>سرور اتصال را می‌پذیرد و ورودی را پردازش می‌کند.</li>
+          <li>سرور به کلاینت پاسخ می‌دهد.</li>
+        </ol>
+        <p>کل سورس در GitHub در دسترس است: <a href="https://github.com/ClanCatsStation/PHPWebserver" target="_blank" rel="noopener">ClanCatsStation/PHPWebserver</a></p>
+      </section>
+
+      <section>
+        <h2>ساختار</h2>
+        <p>ما این را به‌صورت انتزاعی از Request و Response می‌سازیم. راه‌های زیادی برای طراحی یک برنامه هست؛ نویسنده به‌عنوان گام اول، ترجیح می‌دهد بخشی از برنامه را بنویسد که API را مصرف می‌کند و بعد خود API را بنویسد. پس انتظار داریم بتوانیم از آن این‌طور استفاده کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>// ساخت یک نمونه از سرور
+$server = new Server( '127.0.0.1', 80 );
+
+// شروع گوش‌دادن
+$server->listen( function( Request $request ) 
+{
+	return new Response( 'Hello Dude' );
+});</code></pre>
+
+        <p>ساختار دایرکتوری:</p>
+
+        <pre class="code"><span class="lang-tag">Text</span><code>server
+composer.json
+src/Request.php
+src/Response.php
+src/Server.php
+src/Exception.php</code></pre>
+
+        <p>از autoloading <code class="inline">PSR-4</code> استفاده می‌کنیم؛ اول یک فایل <code class="inline">composer.json</code> بسازید (فراموش نکنید بعداً <code class="inline">composer install</code> را اجرا کنید):</p>
+
+        <pre class="code"><span class="lang-tag">json</span><code>{
+	"autoload":
+	{
+		"psr-4": 
+		{
+			"ClanCats\\Station\\PHPServer\\": "src/"	
+		}
+	}
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>راه‌اندازی</h2>
+        <p>بعد فایل اسکریپت (<code class="inline">server</code>) را می‌سازیم که راه‌اندازی سرور را بر عهده دارد. پسوند <code class="inline">.php</code> را اضافه نمی‌کنیم تا bash بداند چه کند؛ این هدر را اضافه کنید:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>#!/usr/bin/env php
+<?php </code></pre>
+
+        <p>همیشه سرور را به localhost وصل می‌کنیم اما می‌خواهیم پورت به‌عنوان آرگومان خط فرمان قابل تعریف باشد:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>// به آرگومان اول نیازی نداریم
+array_shift( $argv );
+
+// آرگومان بعدی باید پورت باشد؛ اگر نبود از 80 استفاده کن
+if ( empty( $argv ) )
+{
+	$port = 80;
+} else {
+	$port = array_shift( $argv );
+}</code></pre>
+
+        <p>این امکان را می‌دهد بعداً سرور را این‌طور راه بیندازیم:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>$ sudo php server 8008</code></pre>
+
+        <p>با ترکیب با آنچه قبلاً تعریف کردیم، چنین فایلی به دست می‌آید:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>#!/usr/bin/env php
+<?php 
+use ClanCats\Station\PHPServer\Server; 
+use ClanCats\Station\PHPServer\Request;
+use ClanCats\Station\PHPServer\Response;
+
+// به آرگومان اول نیازی نداریم
+array_shift( $argv );
+
+// آرگومان بعدی باید پورت باشد؛ اگر نبود از 80 استفاده کن
+if ( empty( $argv ) )
+{
+	$port = 80;
+} else {
+	$port = array_shift( $argv );
+}
+
+require 'vendor/autoload.php';
+
+// ساخت نمونه از سرور
+$server = new Server( '127.0.0.1', $port );
+
+// شروع گوش‌دادن
+$server->listen( function( Request $request ) 
+{
+	return new Response( 'Hello Dude' );
+});</code></pre>
+      </section>
+
+      <section>
+        <h2>شیء Server</h2>
+        <p>بعد فایل <code class="inline">src/Server.php</code> را می‌سازیم که با سوکت سروکار دارد:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+
+class Server 
+{
+}</code></pre>
+
+        <p>کلاس سرور ما می‌خواهد <em>host</em>، <em>port</em> و <em>منبع سوکت</em> را نگه دارد؛ پس این متغیرهای کلاس را اضافه کنید:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>protected $host = null;
+protected $port = null;
+protected $socket = null;</code></pre>
+
+        <h3>ساخت سوکت</h3>
+        <p>برای bind کردن سوکت به یکی نیاز داریم؛ پس تابع <code class="inline">createSocket</code> را می‌سازیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>protected function createSocket()
+{
+	$this->socket = socket_create( AF_INET, SOCK_STREAM, 0 );
+}</code></pre>
+
+        <ul>
+          <li>آرگومان اول خانوادهٔ پروتکل/دامنه را مشخص می‌کند؛ <code class="inline">AF_INET</code> برای پروتکل‌های <code class="inline">IPv4</code> و TCP و UDP است.</li>
+          <li>آرگومان دوم نوع ارتباط سوکت را تعریف می‌کند؛ <code class="inline">SOCK_STREAM</code> یک استریم بایت ساده مبتنی بر اتصال تمام‌دوطرفه (full-duplex) است.</li>
+          <li>آرگومان سوم پروتکل را تنظیم می‌کند.</li>
+        </ul>
+
+        <h3>Bind کردن سوکت</h3>
+        <p>تابع <code class="inline">socket_bind</code> وقتی خطایی رخ دهد <code class="inline">false</code> برمی‌گرداند. چون این نباید هرگز اتفاق بیفتد، با پیام خطای سوکت یک استثنا پرتاب می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>protected function bind()
+{
+	if ( !socket_bind( $this->socket, $this->host, $this->port ) )
+	{
+		throw new Exception( 'Could not bind: '.$this->host.':'.$this->port.' - '.socket_strerror( socket_last_error() ) );
+	}
+}</code></pre>
+
+        <h3>ساخت و bind سوکت در سازنده</h3>
+        <p>برای سادگی این کار را داخل سازنده انجام می‌دهیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function __construct( $host, $port )
+{
+	$this->host = $host;
+	$this->port = (int) $port;
+	
+	// ساخت سوکت
+	$this->createSocket();
+	
+	// bind کردن سوکت
+	$this->bind();
+}</code></pre>
+
+        <h3>گوش‌دادن به اتصالات</h3>
+        <p>تابع <code class="inline">listen</code> حلقهٔ بی‌نهایت اصلی سرور است:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function listen( $callback )
+{
+	// بررسی اینکه callback معتبر است؛ اگر نه استثنا پرتاب کن
+	if ( !is_callable( $callback ) )
+	{
+		throw new Exception('The given argument should be callable.');
+	}
+	
+	// این همان چیزی است که فرایند را طولانی، بی‌نهایت و بی‌پایان می‌کند..
+	while ( 1 ) 
+	{
+		// گوش‌دادن به اتصالات
+		socket_listen( $this->socket );
+		
+		// تلاش برای گرفتن منبع سوکت کلاینت
+		// اگر false بود خطا داریم؛ اتصال را ببند و رد شو
+		if ( !$client = socket_accept( $this->socket ) ) 
+		{
+			socket_close( $client ); continue;
+		}
+		
+		// ساخت نمونه جدید Request با هدر کلاینت
+		// در دنیای واقعی نمی‌توانید حداکثر اندازه را روی 1024 ثابت کنید..
+		$request = Request::withHeaderString( socket_read( $client, 1024 ) );
+		
+		// اجرای callback
+		$response = call_user_func( $callback, $request );
+		
+		// بررسی اینکه واقعاً یک شیء Response دریافت کرده‌ایم
+		// اگر نه، یک شیء Response خطای 404 برگردان
+		if ( !$response || !$response instanceof Response )
+		{
+			$response = Response::error( 404 );
+		}
+		
+		// از پاسخ‌مان یک رشته بساز
+		$response = (string) $response;
+		
+		// پاسخ را به سوکت کلاینت بنویس
+		socket_write( $client, $response, strlen( $response ) );
+		
+		// اتصال را ببند تا بتوانیم اتصالات جدید بپذیریم
+		socket_close( $client );
+	}
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>شیء Request</h2>
+        <p>فایل <code class="inline">src/Request.php</code> ورودی کاربر را مدیریت می‌کند. Request قرار است <code class="inline">method</code>، <code class="inline">uri</code>، <code class="inline">parameters</code> و <code class="inline">headers</code> را نگه دارد:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+
+class Request 
+{
+	protected $method = null;
+	protected $uri = null;
+	protected $parameters = [];
+	protected $headers = [];
+}</code></pre>
+
+        <h3>پارس‌کردن هدر</h3>
+        <p>یک هدر HTTP این‌طور به نظر می‌رسد:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>GET / HTTP/1.1
+Host: 127.0.0.1:8008
+Connection: keep-alive
+Accept: text/html
+User-Agent: Chrome/41.0.2272.104
+Accept-Encoding: gzip, deflate, sdch
+Accept-Language: en-US,en;q=0.8,de;q=0.6</code></pre>
+
+        <p>خط اول متد درخواست، uri و پروتکل را نشان می‌دهد و بعد از آن پارامترهای هدر به صورت کلید/مقدار می‌آیند:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public static function withHeaderString( $header )
+{
+	// رشته را به خط تبدیل کن
+	$lines = explode( "\n", $header );
+	
+	// متد و uri را استخراج کن
+	list( $method, $uri ) = explode( ' ', array_shift( $lines ) );
+	
+	$headers = [];
+	
+	foreach( $lines as $line )
+	{
+		// تمیزکردن خط
+		$line = trim( $line );
+		
+		if ( strpos( $line, ': ' ) !== false )
+		{
+			list( $key, $value ) = explode( ': ', $line );
+			$headers[$key] = $value;
+		}
+	}	
+	
+	// ساخت شیء درخواست جدید
+	return new static( $method, $uri, $headers );
+}</code></pre>
+
+        <p>سازنده <code class="inline">$method</code>، <code class="inline">$uri</code> و <code class="inline">$headers</code> را می‌گیرد. برای این مثال می‌خواهیم پارامترهای کوئری را هم جدا و پارس کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function __construct( $method, $uri, $headers = [] ) 
+{
+	$this->headers = $headers;
+	$this->method = strtoupper( $method );
+	
+	// جداکردن uri و رشتهٔ پارامترها
+	@list( $this->uri, $params ) = explode( '?', $uri );
+
+	// پارس‌کردن پارامترها
+	parse_str( $params, $this->parameters );
+}</code></pre>
+
+        <p>برای دسترسی به داده‌های درخواست، چند getter می‌سازیم؛ getter های <code class="inline">header</code> و <code class="inline">param</code> اجازهٔ دادن مقدار پیش‌فرض را دارند:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function method()
+{
+	return $this->method;
+}
+
+public function uri()
+{
+	return $this->uri;
+}
+
+public function header( $key, $default = null )
+{
+	if ( !isset( $this->headers[$key] ) )
+	{
+		return $default;
+	}
+		
+	return $this->headers[$key];
+}
+
+public function param( $key, $default = null )
+{
+	if ( !isset( $this->parameters[$key] ) )
+	{
+		return $default;
+	}
+		
+	return $this->parameters[$key];
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>شیء Response</h2>
+        <p>مانند درخواست، پاسخ هم هدر و بدنه دارد؛ هر دو را در سوکت می‌نویسیم تا به کلاینت پاسخ دهیم. فایل <code class="inline">src/Response.php</code>:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+
+class Response 
+{
+}</code></pre>
+
+        <h3>کدهای وضعیت</h3>
+        <p>برای ساختن رشتهٔ هدر باید کدهای وضعیت HTTP را بدانیم. این آرایه بیشتر تعریف‌های استاندارد را پوشش می‌دهد:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>protected static $statusCodes = [
+	// اطلاعاتی 1xx
+	100 => 'Continue',
+	101 => 'Switching Protocols',
+
+	// موفقیت 2xx
+	200 => 'OK',
+	201 => 'Created',
+	202 => 'Accepted',
+	203 => 'Non-Authoritative Information',
+	204 => 'No Content',
+	205 => 'Reset Content',
+	206 => 'Partial Content',
+
+	// تغییر مسیر 3xx
+	300 => 'Multiple Choices',
+	301 => 'Moved Permanently',
+	302 => 'Found', // 1.1
+	303 => 'See Other',
+	304 => 'Not Modified',
+	305 => 'Use Proxy',
+	// 306 منسوخ شده اما رزرو است
+	307 => 'Temporary Redirect',
+
+	// خطای کلاینت 4xx
+	400 => 'Bad Request',
+	401 => 'Unauthorized',
+	402 => 'Payment Required',
+	403 => 'Forbidden',
+	404 => 'Not Found',
+	405 => 'Method Not Allowed',
+	406 => 'Not Acceptable',
+	407 => 'Proxy Authentication Required',
+	408 => 'Request Timeout',
+	409 => 'Conflict',
+	410 => 'Gone',
+	411 => 'Length Required',
+	412 => 'Precondition Failed',
+	413 => 'Request Entity Too Large',
+	414 => 'Request-URI Too Long',
+	415 => 'Unsupported Media Type',
+	416 => 'Requested Range Not Satisfiable',
+	417 => 'Expectation Failed',
+
+	// خطای سرور 5xx
+	500 => 'Internal Server Error',
+	501 => 'Not Implemented',
+	502 => 'Bad Gateway',
+	503 => 'Service Unavailable',
+	504 => 'Gateway Timeout',
+	505 => 'HTTP Version Not Supported',
+	509 => 'Bandwidth Limit Exceeded'
+];</code></pre>
+
+        <h3>سازندهٔ Response</h3>
+        <p>پارامترهای عمومی که شیء Response باید پیاده‌سازی کند عبارت‌اند از وضعیت <em>status</em>، بدنهٔ <em>body</em> و سایر هدرها. بدنه باید آرگومان الزامی سازنده باشد و وضعیت و بقیهٔ هدرها اختیاری. سازنده باید مقادیر پیش‌فرضی مثل <em>Date</em> و <em>Server</em> را هم تنظیم کند:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>protected $status = 200;
+protected $body = '';
+protected $headers = [];
+
+public function __construct( $body, $status = null )
+{
+	if ( !is_null( $status ) )
+	{
+		$this->status = $status;
+	}
+	
+	$this->body = $body;
+	
+	// تنظیم هدرهای اولیه
+	$this->header( 'Date', gmdate( 'D, d M Y H:i:s T' ) );
+	$this->header( 'Content-Type', 'text/html; charset=utf-8' );
+	$this->header( 'Server', 'PHPServer/1.0.0 (Whateva)' );
+}</code></pre>
+
+        <h3>تنظیم هدرها</h3>
+        <p>برای افزودن پارامترهای هدر جدید یک setter می‌سازیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function header( $key, $value )
+{
+	$this->headers[ucfirst($key)] = $value;
+}</code></pre>
+
+        <h3>ساختن رشتهٔ هدر</h3>
+        <p>نمی‌توانیم شیء Response را مستقیم به نویسندهٔ سوکت بدهیم؛ باید از داده‌هایمان یک رشته بسازیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function buildHeaderString()
+{
+	$lines = [];
+		
+	// وضعیت پاسخ
+	$lines[] = "HTTP/1.1 ".$this->status." ".static::$statusCodes[$this->status];
+		
+	// افزودن هدرها
+	foreach( $this->headers as $key => $value )
+	{
+		$lines[] = $key.": ".$value;
+	}
+		
+	return implode( " \r\n", $lines )."\r\n\r\n";
+}</code></pre>
+
+        <h3>جادو!</h3>
+        <p>با متد جادویی <code class="inline">__toString</code> کل رشتهٔ نوشته‌شده به اتصال باز را برمی‌گردانیم:</p>
+
+        <pre class="code"><span class="lang-tag">php</span><code>public function __toString()
+{
+	return $this->buildHeaderString().$this->body;
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>همین!</h2>
+        <p>حالا باید بتوانید سرورتان را این‌طور راه بیندازید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>$ sudo php server 8008</code></pre>
+
+        <p>و با مرورگرتان به آن دسترسی پیدا کنید:</p>
+
+        <pre class="code"><span class="lang-tag">URL</span><code>http://127.0.0.1:8008/everything/you/want/?cool=yes</code></pre>
+
+        <div class="callout tip">
+          <strong>نکتهٔ پایانی:</strong> نویسنده اعتراف می‌کند در نگارش این مقاله کیفیت یکنواخت نبوده، اما امیدوار است آموزش و به‌ویژه سورس آن به افرادی که بیشتر با PHP کار می‌کنند کمک کند تا بهتر بفهمند یک وب سرور چگونه کار می‌کند.
+        </div>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آموزش «Writing a webserver in pure PHP» اثر «ماریو دلونا (Mario Deluna)» است که در ClanCats Station منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://station.clancats.com/writing-a-webserver-in-pure-php/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

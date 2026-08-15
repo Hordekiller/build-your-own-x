@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Web application from scratch, Part I»
+  از Bogdan Popa — defn.io
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | برنامهٔ وب از صفر — قسمت ۱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>برنامهٔ وب از صفر — قسمت ۱</span>
+      </div>
+      <h1>برنامهٔ وب از صفر — قسمت ۱</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://defn.io/2018/02/25/web-app-from-scratch-01/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Web application from scratch, Part I» از «بوگدان پوپا (Bogdan Popa)» است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://defn.io/2018/02/25/web-app-from-scratch-01/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>این اولین پست از مجموعه‌ای است که در آن فرایند ساخت یک برنامهٔ وب (و وب سرورش) را از صفر در پایتون مرور می‌کنیم. برای این مجموعه، فقط به کتابخانهٔ استاندارد پایتون تکیه می‌کنیم و استاندارد WSGI را نادیده می‌گیریم.</p>
+        <p>بدون مقدمه‌چینی، بگذارید شروع کنیم!</p>
+      </section>
+
+      <section>
+        <h2>وب سرور</h2>
+        <p>برای شروع، قرار است سرور HTTP را بنویسیم که وب‌اپ ما را تغذیه می‌کند. اما اول باید کمی وقت بگذاریم و ببینیم پروتکل HTTP چگونه کار می‌کند.</p>
+
+        <h3>HTTP چگونه کار می‌کند</h3>
+        <p>به زبان ساده، کلاینت‌های HTTP روی شبکه به سرورهای HTTP متصل می‌شوند و رشته‌ای از داده را که نشان‌دهندهٔ درخواست است می‌فرستند. سرور آن درخواست را تفسیر می‌کند و یک پاسخ برای کلاینت برمی‌فرستد. کل پروتکل و قالب‌های درخواست‌ها و پاسخ‌ها در <a href="https://tools.ietf.org/html/rfc2616" target="_blank" rel="noopener">RFC2616</a> توصیف شده.</p>
+
+        <h4>قالب درخواست</h4>
+        <p>درخواست‌ها با مجموعه‌ای از خطوط جدا شده با <code class="inline">\r\n</code> نمایش داده می‌شوند که اولین‌شان «خط درخواست» نام دارد. خط درخواست از یک متد HTTP، سپس فاصله، سپس مسیر فایلِ درخواستی، سپس فاصلهٔ دیگر، سپس نسخهٔ پروتکل HTTP که کلاینت حرف می‌زند و در نهایت کاراکتر بازگشت (<code class="inline">\r</code>) و خط‌تغذیه (<code class="inline">\n</code>) تشکیل شده:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>GET /some-path HTTP/1.1\r\n</code></pre>
+
+        <p>بعد از خط درخواست، صفر یا چند خط هدر می‌آید. هر خط هدر از نام هدر، سپس دونقطه، سپس یک مقدار اختیاری و بعد <code class="inline">\r\n</code> تشکیل شده:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>Host: example.com\r\n
+Accept: text/html\r\n</code></pre>
+
+        <p>پایان بخش هدرها با یک خط خالی اعلام می‌شود: <code class="inline">\r\n</code>. در نهایت، ممکن است درخواست «بدنه» داشته باشد — یک بار اضافه که همراه درخواست به سرور فرستاده می‌شود.</p>
+        <p>همهٔ این‌ها را کنار هم بگذاریم، یک درخواست سادهٔ GET:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>GET / HTTP/1.1\r\n
+Host: example.com\r\n
+Accept: text/html\r\n
+\r\n</code></pre>
+
+        <p>و یک درخواست سادهٔ POST با بدنه:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>POST / HTTP/1.1\r\n
+Host: example.com\r\n
+Accept: application/json\r\n
+Content-type: application/json\r\n
+Content-length: 2\r\n
+\r\n
+{}</code></pre>
+
+        <h4>قالب پاسخ</h4>
+        <p>پاسخ‌ها هم مثل درخواست‌ها از مجموعه‌ای خطوط جدا شده با <code class="inline">\r\n</code> تشکیل شده‌اند. اولین خط در پاسخ «خط وضعیت» نام دارد و از نسخهٔ پروتکل HTTP، فاصله، کد وضعیت پاسخ، فاصلهٔ دیگر، دلیل کد وضعیت و سپس <code class="inline">\r\n</code> تشکیل شده:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>HTTP/1.1 200 OK\r\n</code></pre>
+
+        <p>بعد از خط وضعیت، هدرهای پاسخ، سپس یک خط خالی و سپس بدنهٔ پاسخ اختیاری می‌آید:</p>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>HTTP/1.1 200 OK\r\n
+Content-type: text/html\r\n
+Content-length: 15\r\n
+\r\n
+&lt;h1&gt;Hello!&lt;/h1&gt;</code></pre>
+      </section>
+
+      <section>
+        <h2>یک سرور ساده</h2>
+        <p>بر اساس آنچه دربارهٔ پروتکل می‌دانیم، سروری می‌نویسیم که بدون توجه به درخواست ورودی، همان پاسخ را می‌فرستد.</p>
+        <p>برای شروع باید یک سوکت بسازیم، به یک آدرس bind کنیم و بعد شروع به گوش‌دادن برای اتصالات کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>import socket
+
+HOST = "127.0.0.1"
+PORT = 9000
+
+# به‌طور پیش‌فرض، socket.socket سوکت TCP می‌سازد.
+with socket.socket() as server_sock:
+    # این به هسته می‌گوید سوکت‌هایی را که در حالت TIME_WAIT هستند دوباره استفاده کند.
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    # این به سوکت می‌گوید به چه آدرسی bind شود.
+    server_sock.bind((HOST, PORT))
+
+    # 0 تعداد اتصالات در انتظاری است که سوکت قبل از ردکردن
+    # اتصالات جدید ممکن است داشته باشد. چون این سرور قرار است هر بار
+    # یک اتصال را پردازش کند، می‌خواهیم اتصالات اضافه رد شوند.
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")</code></pre>
+
+        <p>اگر این کد را الان اجرا کنید، روی <code class="inline">127.0.0.1:9000</code> گوش‌دادن را چاپ می‌کند و بعد خارج می‌شود. برای پردازش واقعی اتصالات ورودی باید متد <code class="inline">accept</code> را روی سوکت‌مان صدا بزنیم. این کار فرایند را مسدود می‌کند تا وقتی کلاینتی به سرور متصل شود:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    client_sock, client_addr = server_sock.accept()
+    print(f"New connection from {client_addr}.")</code></pre>
+
+        <p>وقتی اتصال سوکت به کلاینت را داریم، می‌توانیم با آن ارتباط برقرار کنیم. با متد <code class="inline">sendall</code> یک مثال پاسخ به کلاینتی که متصل شده می‌فرستیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>RESPONSE = b"""\
+HTTP/1.1 200 OK
+Content-type: text/html
+Content-length: 15
+
+&lt;h1&gt;Hello!&lt;/h1&gt;""".replace(b"\n", b"\r\n")
+
+with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    client_sock, client_addr = server_sock.accept()
+    print(f"New connection from {client_addr}.")
+    with client_sock:
+        client_sock.sendall(RESPONSE)</code></pre>
+
+        <p>اگر کد را الان اجرا کنید و به http://127.0.0.1:9000 در مرورگر موردعلاقه‌تان بروید، باید رشتهٔ «Hello!» را رندر کند. متأسفانه، سرور بعد از فرستادن پاسخ خارج می‌شود، پس رفرش صفحه شکست می‌خورد. بگذارید این را درست کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>RESPONSE = b"""\
+HTTP/1.1 200 OK
+Content-type: text/html
+Content-length: 15
+
+&lt;h1&gt;Hello!&lt;/h1&gt;""".replace(b"\n", b"\r\n")
+
+with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    while True:
+        client_sock, client_addr = server_sock.accept()
+        print(f"New connection from {client_addr}.")
+        with client_sock:
+            client_sock.sendall(RESPONSE)</code></pre>
+
+        <p>در این نقطه یک وب سرور داریم که می‌تواند در هر درخواست یک صفحهٔ وب سادهٔ HTML را سرو کند — همه در حدود ۲۵ خط کد. بد نیست!</p>
+      </section>
+
+      <section>
+        <h2>یک فایل سرور</h2>
+        <p>بگذارید سرور HTTP را گسترش دهیم تا بتواند فایل‌ها را از دیسک سرو کند.</p>
+
+        <h3>انتزاع درخواست</h3>
+        <p>قبل از هر چیز باید دادهٔ درخواست ورودی را از کلاینت بخوانیم و پارس کنیم. چون می‌دانیم دادهٔ درخواست با خطوطی نمایش داده می‌شود که هر کدام با <code class="inline">\r\n</code> جدا شده‌اند، یک تابع مولد می‌نویسیم که داده را از سوکت می‌خواند و هر خط را yield می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>import typing
+
+
+def iter_lines(sock: socket.socket, bufsize: int = 16_384) -&gt; typing.Generator[bytes, None, bytes]:
+    """با گرفتن یک سوکت، همهٔ خطوط جدا شده با CRLF را می‌خواند
+    و هر کدام را yield می‌کند تا وقتی به یک خط خالی برسد. باقی‌مانده
+    بعد از خط خالی را برمی‌گرداند.
+    """
+    buff = b""
+    while True:
+        data = sock.recv(bufsize)
+        if not data:
+            return b""
+
+        buff += data
+        while True:
+            try:
+                i = buff.index(b"\r\n")
+                line, buff = buff[:i], buff[i + 2:]
+                if not line:
+                    return buff
+
+                yield line
+            except IndexError:
+                break</code></pre>
+
+        <p>ممکن است ترسناک به نظر برسد، اما کاری که می‌کند این است: هر مقدار داده‌ای که بتواند از سوکت بخواند (در قطعات <code class="inline">bufsize</code>) می‌خواند، آن را در یک بافر (<code class="inline">buff</code>) کنار هم می‌گذارد و مدام بافر را به خطوط جدا تقسیم می‌کند و هر بار یکی را yield می‌کند. وقتی به یک خط خالی برسد، دادهٔ اضافه‌ای که خوانده را برمی‌گرداند.</p>
+        <p>با <code class="inline">iter_lines</code> می‌توانیم درخواست‌هایی که از کلاینت‌ها می‌گیریم را چاپ کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    while True:
+        client_sock, client_addr = server_sock.accept()
+        print(f"New connection from {client_addr}.")
+        with client_sock:
+            for request_line in iter_lines(client_sock):
+                print(request_line)
+
+            client_sock.sendall(RESPONSE)</code></pre>
+
+        <p>یک کلاس <code class="inline">Request</code> تعریف می‌کنیم که فعلاً فقط روش، مسیرها و هدرهای درخواست را می‌داند:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>import typing
+
+
+class Request(typing.NamedTuple):
+    method: str
+    path: str
+    headers: typing.Mapping[str, str]</code></pre>
+
+        <p>برای در بر گرفتن منطق ساخت درخواست، یک متد کلاس به نام <code class="inline">from_socket</code> به <code class="inline">Request</code> اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>class Request(typing.NamedTuple):
+    method: str
+    path: str
+    headers: typing.Mapping[str, str]
+
+    @classmethod
+    def from_socket(cls, sock: socket.socket) -&gt; "Request":
+        """خواندن و پارس‌کردن درخواست از یک شیء سوکت.
+
+        استثناها:
+          ValueError: وقتی درخواست قابل پارس نیست.
+        """
+        lines = iter_lines(sock)
+
+        try:
+            request_line = next(lines).decode("ascii")
+        except StopIteration:
+            raise ValueError("Request line missing.")
+
+        try:
+            method, path, _ = request_line.split(" ")
+        except ValueError:
+            raise ValueError(f"Malformed request line {request_line!r}.")
+
+        headers = {}
+        for line in lines:
+            try:
+                name, _, value = line.decode("ascii").partition(":")
+                headers[name.lower()] = value.lstrip()
+            except ValueError:
+                raise ValueError(f"Malformed header line {line!r}.")
+
+        return cls(method=method.upper(), path=path, headers=headers)</code></pre>
+
+        <p>روی سوکت متصل‌شده اجرا می‌شود و خطوطی مثل این را چاپ می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>Request(method='GET', path='/', headers={'host': 'localhost:9000', 'user-agent': 'curl/7.54.0', 'accept': '*/*'})</code></pre>
+
+        <p>چون <code class="inline">from_socket</code> در شرایط خاصی می‌تواند استثنا پرتاب کند، ممکن است سرور با درخواست نامعتبر الان کرش کند. برای مدیریت این‌ها، فراخوانی <code class="inline">from_socket</code> را در try-except می‌گذاریم و وقتی درخواست بدی بگیریم به کلاینت پاسخ «400 Bad Request» می‌فرستیم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>BAD_REQUEST_RESPONSE = b"""\
+HTTP/1.1 400 Bad Request
+Content-type: text/plain
+Content-length: 11
+
+Bad Request""".replace(b"\n", b"\r\n")
+
+with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    while True:
+        client_sock, client_addr = server_sock.accept()
+        print(f"Received connection from {client_addr}...")
+        with client_sock:
+            try:
+                request = Request.from_socket(client_sock)
+                print(request)
+                client_sock.sendall(RESPONSE)
+            except Exception as e:
+                print(f"Failed to parse request: {e}")
+                client_sock.sendall(BAD_REQUEST_RESPONSE)</code></pre>
+
+        <p>در این نقطه آمادهٔ شروع پیاده‌سازی بخش سرو فایل هستیم، اما اول بگذارید پاسخ پیش‌فرض‌مان را «404 Not Found» کنیم و یک پاسخ «405 Method Not Allowed» هم اضافه کنیم — برای وقتی چیزی غیر از درخواست GET می‌گیریم:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>NOT_FOUND_RESPONSE = b"""\
+HTTP/1.1 404 Not Found
+Content-type: text/plain
+Content-length: 9
+
+Not Found""".replace(b"\n", b"\r\n")
+
+METHOD_NOT_ALLOWED_RESPONSE = b"""\
+HTTP/1.1 405 Method Not Allowed
+Content-type: text/plain
+Content-length: 17
+
+Method Not Allowed""".replace(b"\n", b"\r\n")</code></pre>
+
+        <p>یک ثابت <code class="inline">SERVER_ROOT</code> تعریف می‌کنیم تا نشان دهد سرور فایل‌ها را از کجا سرو کند و یک تابع <code class="inline">serve_file</code>:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>import mimetypes
+import os
+import socket
+import typing
+
+SERVER_ROOT = os.path.abspath("www")
+
+FILE_RESPONSE_TEMPLATE = """\
+HTTP/1.1 200 OK
+Content-type: {content_type}
+Content-length: {content_length}
+
+""".replace("\n", "\r\n")
+
+
+def serve_file(sock: socket.socket, path: str) -&gt; None:
+    """با گرفتن یک سوکت و مسیر نسبی یک فایل (نسبت به
+    SERVER_SOCK)، اگر فایل وجود داشت آن را به سوکت بفرست. اگر
+    فایل وجود نداشت، پاسخ «404 Not Found» بفرست.
+    """
+    if path == "/":
+        path = "/index.html"
+
+    abspath = os.path.normpath(os.path.join(SERVER_ROOT, path.lstrip("/")))
+    if not abspath.startswith(SERVER_ROOT):
+        sock.sendall(NOT_FOUND_RESPONSE)
+        return
+
+    try:
+        with open(abspath, "rb") as f:
+            stat = os.fstat(f.fileno())
+            content_type, encoding = mimetypes.guess_type(abspath)
+            if content_type is None:
+                content_type = "application/octet-stream"
+
+            if encoding is not None:
+                content_type += f"; charset={encoding}"
+
+            response_headers = FILE_RESPONSE_TEMPLATE.format(
+                content_type=content_type,
+                content_length=stat.st_size,
+            ).encode("ascii")
+
+            sock.sendall(response_headers)
+            sock.sendfile(f)
+    except FileNotFoundError:
+        sock.sendall(NOT_FOUND_RESPONSE)
+        return</code></pre>
+
+        <p><code class="inline">serve_file</code> سوکت کلاینت و مسیر فایل را می‌گیرد. سعی می‌کند آن مسیر را به یک فایل واقعی داخل <code class="inline">SERVER_ROOT</code> تبدیل کند و اگر فایل بیرون از ریشهٔ سرور resolve شد، پاسخ «not found» می‌فرستد. بعد سعی می‌کند فایل را باز کند، نوع mime و اندازه‌اش را با <code class="inline">os.fstat</code> بفهمد، هدرهای پاسخ را بسازد و با فراخوان سیستمی <code class="inline">sendfile</code> فایل را به سوکت بنویسد. اگر فایل روی دیسک نبود، پاسخ «not found» می‌فرستد.</p>
+        <p>حلقهٔ سرور با <code class="inline">serve_file</code>:</p>
+
+        <pre class="code"><span class="lang-tag">python</span><code>with socket.socket() as server_sock:
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_sock.bind((HOST, PORT))
+    server_sock.listen(0)
+    print(f"Listening on {HOST}:{PORT}...")
+
+    while True:
+        client_sock, client_addr = server_sock.accept()
+        print(f"Received connection from {client_addr}...")
+        with client_sock:
+            try:
+                request = Request.from_socket(client_sock)
+                if request.method != "GET":
+                    client_sock.sendall(METHOD_NOT_ALLOWED_RESPONSE)
+                    continue
+
+                serve_file(client_sock, request.path)
+            except Exception as e:
+                print(f"Failed to parse request: {e}")
+                client_sock.sendall(BAD_REQUEST_RESPONSE)</code></pre>
+
+        <p>اگر فایلی به نام <code class="inline">www/index.html</code> کنار <code class="inline">server.py</code> اضافه کنید و به http://localhost:9000 بروید، باید محتویات آن فایل را ببینید. باحال است، نه؟</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اینجا قسمت ۱ تمام می‌شود. در قسمت ۲ استخراج انتزاع‌های <code class="inline">Server</code> و <code class="inline">Response</code> و مدیریت اتصالات هم‌زمانِ متعدد توسط سرور را پوشش می‌دهیم. اگر می‌خواهید سورس کامل را ببینید و دنبال کنید، آن را <a href="https://github.com/Bogdanp/web-app-from-scratch/tree/part-01" target="_blank" rel="noopener">اینجا</a> پیدا می‌کنید.</p>
+        <p>بعداً می‌بینمت!</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Web application from scratch, Part I» اثر «بوگدان پوپا (Bogdan Popa)» است که در defn.io منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://defn.io/2018/02/25/web-app-from-scratch-01/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

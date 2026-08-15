@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «lets-build-express» (Build a minimal express library)
+  از antsmartian (نویسندهٔ اصلی: antoaravinth) — GitHub
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | lets-build-express — اکسپرس را از صفر بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>lets-build-express — اکسپرس را از صفر بساز</span>
+      </div>
+      <h1>lets-build-express — کتابخانهٔ اکسپرس را از صفر بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی راهنمای «lets-build-express» از «آن‌توآراوینت (antoaravinth)» است.
+          نسخه کامل و به‌روز را از مخزن اصلی GitHub بخوانید.
+        </div>
+        <a class="btn solid" href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>این مجموعه چیست؟</h2>
+        <p>این مجموعهٔ آموزشی به شما یاد می‌دهد کتابخانهٔ <code class="inline">express</code> را از صفر بسازید. این کار کمک می‌کند بفهمیم express واقعاً در پشت صحنه چگونه کار می‌کند. نویسنده همان کدها، نام متغیرها و موارد مشابه express را استفاده می‌کند تا خوانندگان این آموزش بتوانند مستقیم و راحت در توسعهٔ خودِ express نیز مشارکت کنند.</p>
+
+        <h3>چرا؟</h3>
+        <p>بسیاری از افراد واقعاً دربارهٔ نحوهٔ کار <code class="inline">next</code> یا ترتیب روت‌ها در express گیج می‌شوند. با ساختن خودِ کتابخانهٔ express، درک بسیار محکم‌تری به دست می‌آوریم. به‌علاوه، این کار سرگرم‌کننده است!</p>
+        <p>هر فصل، express را گام‌به‌گام با مثال‌های قابل اجرا می‌سازد.</p>
+      </section>
+
+      <section>
+        <h2>فهرست فصل‌ها (TOC)</h2>
+        <ol>
+          <li>فصل ۱ — ساخت انتزاع‌های Express (Building Express Abstractions)</li>
+          <li>فصل ۲ — مدیریت روت‌ها از جعبه (Handling routes out of the box)</li>
+          <li>فصل ۳ — پیاده‌سازی تابع <code class="inline">next</code></li>
+          <li>فصل ۴ — گسترش شیء Response</li>
+          <li>فصل ۵ — پیاده‌سازی <code class="inline">send</code>/<code class="inline">json</code> روی <code class="inline">response</code></li>
+          <li>فصل ۶ — مدیریت خطا (Error Handling) — در حال انجام</li>
+          <li>و فصل‌های بیشتری در راه است</li>
+        </ol>
+        <div class="callout tip">
+          <strong>نکته:</strong> مخزن هنوز در حال کار است، اما کتابخانهٔ حداقلیِ کارا و آموزشِ متناظرش کامل شده و قابل استفاده است.
+        </div>
+      </section>
+
+      <section>
+        <h2>نحوهٔ شروع</h2>
+        <p>مخزن را کلون کنید و هر فصل را به ترتیب دنبال کنید:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>git clone https://github.com/antoaravinth/lets-build-express
+cd lets-build-express</code></pre>
+
+        <p>هر فصل در دایرکتوری <code class="inline">chap01</code> تا <code class="inline">chap05</code> قرار دارد و توضیحات کامل داخل فایل <code class="inline">CHAP*</code> هر دایرکتوری است. در فصل‌ها این موارد را خواهید ساخت:</p>
+        <ul>
+          <li><strong>فصل ۱:</strong> انتزاع‌های پایهٔ express — تابع <code class="inline">app</code>، شیء درخواست و پاسخِ ابتدایی و نحوهٔ اتصال به سرور.</li>
+          <li><strong>فصل ۲:</strong> پشتیبانی داخلی از روت‌ها — نگاشت متد و مسیر به هندلرها.</li>
+          <li><strong>فصل ۳:</strong> تابع <code class="inline">next</code> — مکانیزم زنجیرهٔ middleware که به توسعه‌دهنده اجازه می‌دهد کنترل را به هندلر بعدی بسپارد.</li>
+          <li><strong>فصل ۴:</strong> گسترش شیء Response با متدهای راحت مثل <code class="inline">redirect</code>.</li>
+          <li><strong>فصل ۵:</strong> پیاده‌سازی <code class="inline">send</code> و <code class="inline">json</code> روی response.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>مشارکت‌ها خوش‌آمدند</h2>
+        <p>کمک‌ها برای بهبود این مخزن پذیرفته است: اصلاح اشتباهات نگارشی، اشکالات فنی و حتی ترجمه‌ها! با کمال میل PR ها پذیرفته می‌شوند.</p>
+        <p>مجوز این پروژه <a href="https://github.com/antoaravinth/lets-build-express/blob/master/LICENSE.md" target="_blank" rel="noopener">MIT</a> است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مجموعهٔ «lets-build-express» اثر «آن‌توآراوینت (antoaravinth)» است که در GitHub منتشر شده.
+        این صفحه فقط ترجمه فارسی توضیحات آن است و تمام حقوق محتوا و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://github.com/antoaravinth/lets-build-express" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

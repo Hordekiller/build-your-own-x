@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Writing a Web Server from Scratch» (Marc Clifton — CodeProject)
+  از Marc Clifton — CodeProject
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک وب سرور از صفر (C#)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>نوشتن یک وب سرور از صفر (C#)</span>
+      </div>
+      <h1>نوشتن یک وب سرور از صفر — با کمتر از ۶۵۰ خط کد</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.codeproject.com/Articles/859108/Writing-a-Web-Server-from-Scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Writing a Web Server from Scratch» از «مارک کلیفتون (Marc Clifton)» — CodeProject است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://www.codeproject.com/Articles/859108/Writing-a-Web-Server-from-Scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>در این مقاله، گام‌به‌گام ساخت وب سرور مستند شده تا حس کنید چگونه از یک تختهٔ خالی ساخته می‌شود: تصمیم‌های طراحی و پیاده‌سازی (خوب یا بد) و کل فرایند. اولین گامِ فرایند این است که یک کلاس <code class="inline">HttpListener</code> کار کند. بعد کمی لاگ‌گیری اضافه می‌کنیم. سپس ساختار پایه را برای برنامهٔ وب‌مان می‌سازیم. بعد مکانیزم ساده‌ای برای مسیریابی فعل‌ها (verbs) و مسیرها به هندلرها پیاده‌سازی می‌کنیم، به احراز هویت و انقضای نشست می‌پردازیم و چند پرس‌وجوی AJAX انجام می‌دهیم.</p>
+        <p>پیکربندی فعلی این‌ها را پشتیبانی می‌کند:</p>
+        <ul>
+          <li>مسیریابی (Routing)</li>
+          <li>مدیر نشست (Session Manager)</li>
+          <li>مجوز (Authorization)</li>
+          <li>نشست‌های منقضی‌شده (Expired Sessions)</li>
+        </ul>
+        <p>چون وب سرور بسیار سبک است، نویسنده کاملاً غیرضروری دید کاری پیچیده مثل پیاده‌سازی پلاگین انجام دهد. سه فایل اصلی وجود دارد:</p>
+        <ul>
+          <li><code class="inline">Listener.cs</code> — با HttpListener گوش می‌دهد و به اتصالات پاسخ می‌دهد</li>
+          <li><code class="inline">Router.cs</code> — مسیریابی را مدیریت می‌کند</li>
+          <li><code class="inline">SessionManager.cs</code> — وضعیت نشست‌های اتصال را مدیریت می‌کند</li>
+        </ul>
+        <p>سورس کد روی GitHub میزبانی می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">Bash</span><code>git clone https://github.com/cliftonm/BasicWebServer.git</code></pre>
+      </section>
+
+      <section>
+        <h2>گام ۱ — HttpListener</h2>
+        <p>اولین گام، راه‌اندازی یک کلاس <code class="inline">HttpListener</code> است. نویسنده این مسیر را به‌جای مسیر سوکت سطح پایین انتخاب کرده چون <code class="inline">HttpListener</code> خدمات مفید زیادی مثل رمزگشایی درخواست HTML فراهم می‌کند. وب سرور به‌صورت یک کتابخانه پیاده‌سازی می‌شود. برای اولین گام، وب سرور به این‌ها نیاز دارد:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>using System.Net;
+using System.Net.Sockets;
+using System.Threading;</code></pre>
+
+        <p>چون وب سرور اساساً بی‌وضعیت است (به‌جز اشیاء نشست)، بیشتر رفتارها را می‌توان به‌صورت singleton های استاتیک پیاده‌سازی کرد:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>namespace Clifton.WebServer
+{
+  /// &lt;summary&gt;
+  /// یک وب سرور چابک و بی‌رحم.
+  /// &lt;/summary&gt;
+  public static class Server
+  {
+    private static HttpListener listener;
+    // ...
+</code></pre>
+
+        <p>فرض اولیه این است که روی یک شبکهٔ داخلی (intranet) به سرور متصل می‌شویم، پس آدرس‌های IP میزبان محلی را می‌گیریم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// لیست آدرس‌های IP اختصاص‌داده‌شده به دستگاه‌های شبکهٔ localhost،
+/// مثل اترنت سیمی، وایرلس و غیره را برمی‌گرداند.
+/// &lt;/summary&gt;
+private static List&lt;IPAddress&gt; GetLocalHostIPs()
+{
+  IPHostEntry host;
+  host = Dns.GetHostEntry(Dns.GetHostName());
+  List&lt;IPAddress&gt; ret = host.AddressList.Where(ip =&gt; ip.AddressFamily == AddressFamily.InterNetwork).ToList();
+
+  return ret;
+}</code></pre>
+
+        <p>سپس <code class="inline">HttpListener</code> را نمونه‌سازی می‌کنیم و پیشوندهای localhost را اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>private static HttpListener InitializeListener(List&lt;IPAddress&gt; localhostIPs)
+{
+  HttpListener listener = new HttpListener();
+  listener.Prefixes.Add("http://localhost/");
+
+  // به آدرس IP هم گوش کن
+  localhostIPs.ForEach(ip =&gt;
+  {
+    Console.WriteLine("Listening on IP " + "http://" + ip.ToString() + "/");
+    listener.Prefixes.Add("http://" + ip.ToString() + "/");
+  });
+
+  return listener;
+}</code></pre>
+
+        <p>با قرض‌گرفتن مفهومی از مقالهٔ «REST — A Simple REST framework»، یک سمافور می‌سازیم که منتظر تعداد مشخصی اتصال هم‌زمان مجاز می‌ماند:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public static int maxSimultaneousConnections = 20;
+private static Semaphore sem = new Semaphore(maxSimultaneousConnections, maxSimultaneousConnections);</code></pre>
+
+        <p>این در یک ترد کارگر پیاده‌سازی می‌شود که با <code class="inline">Task.Run</code> فراخوانی می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// شروع گوش‌دادن به اتصالات روی یک ترد کارگر جدا.
+/// &lt;/summary&gt;
+private static void Start(HttpListener listener)
+{
+  listener.Start();
+  Task.Run(() =&gt; RunServer(listener));
+}
+
+/// &lt;summary&gt;
+/// شروع انتظار برای اتصالات، تا مقدار "maxSimultaneousConnections".
+/// این کد در یک ترد جدا اجرا می‌شود.
+/// &lt;/summary&gt;
+private static void RunServer(HttpListener listener)
+{
+  while (true)
+  {
+    sem.WaitOne();
+    StartConnectionListener(listener);
+  }
+}</code></pre>
+
+        <p>در نهایت، شنوندهٔ اتصال را به‌صورت فرایند async قابل انتظار (awaitable) پیاده‌سازی می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// انتظار برای اتصالات.
+/// &lt;/summary&gt;
+private static async void StartConnectionListener(HttpListener listener)
+{
+  // منتظر اتصال بمان. در حالی که منتظریم کنترل را به فراخواننده برگردان.
+  HttpListenerContext context = await listener.GetContextAsync();
+
+  // سمافور را آزاد کن تا شنوندهٔ دیگری بلافاصله شروع شود.
+  sem.Release();
+
+  // یک اتصال داریم، یک کاری بکن...
+}</code></pre>
+
+        <p>پس یک کاری بکنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>string response = "Hello Browser!";
+byte[] encoded = Encoding.UTF8.GetBytes(response);
+context.Response.ContentLength64 = encoded.Length;
+context.Response.OutputStream.Write(encoded, 0, encoded.Length);
+context.Response.OutputStream.Close();</code></pre>
+
+        <p>و یک متد عمومی <code class="inline">Start</code> هم لازم داریم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// وب سرور را شروع می‌کند.
+/// &lt;/summary&gt;
+public static void Start()
+{
+  List&lt;IPAddress&gt; localHostIPs = GetLocalHostIPs();
+  HttpListener listener = InitializeListener(localHostIPs);
+  Start(listener);
+}</code></pre>
+
+        <p>حالا در برنامهٔ کنسولی‌مان می‌توانیم سرور را شروع کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>using System;
+
+using Clifton.WebServer;
+
+namespace ConsoleWebServer
+{
+  class Program
+  {
+    static void Main(string[] args)
+    {
+      Server.Start();
+      Console.ReadLine();
+    }
+  }
+}</code></pre>
+
+        <div class="callout tip">
+          <strong>نکتهٔ نویسنده:</strong> همیشه پنجرهٔ کنسول وب مرورگر را بازرسی کنید — دوست شماست و همهٔ کارهای غلطی که می‌کنید را به شما می‌گوید! مثلاً در تست بالا متوجه می‌شویم باید مراقب encoding باشیم که در HTML انجام می‌شود: <code class="inline">response = "&lt;html&gt;&lt;head&gt;&lt;meta http-equiv='content-type' content='text/html; charset=utf-8'/&gt;&lt;/head&gt;Hello Browser!&lt;/html&gt;"</code>
+        </div>
+      </section>
+
+      <section>
+        <h2>گام ۲ — لاگ‌گیری</h2>
+        <p>اول کمی لاگ‌گیری اضافه می‌کنیم، چون برای دیدن اینکه چه درخواست‌هایی از وب سرورمان می‌شود واقعاً مفید است:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>Log(context.Request);
+
+/// &lt;summary&gt;
+/// لاگ درخواست‌ها.
+/// &lt;/summary&gt;
+public static void Log(HttpListenerRequest request)
+{
+  Console.WriteLine(request.RemoteEndPoint + " " + request.HttpMethod + " /" + request.Url.AbsoluteUri.RightOf('/', 3));
+}</code></pre>
+
+        <p>فراخوانی <code class="inline">Log</code> را درست بعد از آزادکردن سمافور اضافه می‌کنیم. بعد از اضافه‌کردن لاگر بلافاصله متوجه می‌شویم که مرورگر نه‌تنها صفحهٔ پیش‌فرض را درخواست می‌کند، بلکه دارد <code class="inline">favicon.ico</code> را هم می‌خواهد! باید کاری کنیم!</p>
+      </section>
+
+      <section>
+        <h2>گام ۳ — سرو محتوا: مسیریابی پیش‌فرض</h2>
+        <p>واضح است که نمی‌خواهیم صفحات وب‌مان را به‌صورت رشته در C# کدنویسی کنیم. پس یک ساختار پایه برای برنامهٔ وب‌مان می‌سازیم که کاملاً سلیقه‌ای است: همه‌چیز از پوشهٔ «Website» مشتق می‌شود که این زیرپوشه‌ها را دارد:</p>
+        <ul>
+          <li><strong>Pages:</strong> ریشهٔ همهٔ صفحات</li>
+          <li><strong>CSS:</strong> همهٔ فایل‌های .css و مرتبط</li>
+          <li><strong>Scripts:</strong> همهٔ فایل‌های .js</li>
+          <li><strong>Images:</strong> همهٔ فایل‌های تصویری</li>
+        </ul>
+        <p>برای مدیریت عملکرد پایه، به آغاز یک مسیریاب نیاز داریم. اولین نسخه فقط با فایل‌های موجود در پوشهٔ «Website» و زیرپوشه‌ها — بر اساس مسیر URL و پسوند درخواست — پاسخ می‌دهد. اول چند اطلاعات از درخواست URL استخراج می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>HttpListenerRequest request = context.Request;
+string path = request.RawUrl.LeftOf("?"); // فقط مسیر، نه پارامترها
+string verb = request.HttpMethod; // get, post, delete و غیره
+string parms = request.RawUrl.RightOf("?"); // پارامترهای URL بعد از ؟ می‌آیند
+Dictionary&lt;string, string&gt; kvParams = GetKeyValues(parms); // به ورودی‌های کلید-مقدار تبدیل کن</code></pre>
+
+        <p>حالا می‌توانیم این اطلاعات را به مسیریاب بدهیم: <code class="inline">router.Route(verb, path, kvParams);</code></p>
+        <p>به‌جای عبارت‌های switch (که نویسنده دوست ندارد)، نگاشتی از پسوندهای شناخته‌شده و مکان‌های لودرشان مقداردهی می‌کنیم. در نظر بگیرید توابع متفاوتی چطور می‌توانند محتوا را مثلاً از پایگاه داده لود کنند:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public class Router
+{
+  public string WebsitePath { get; set; }
+
+  private Dictionary&lt;string, ExtensionInfo&gt; extFolderMap;
+
+  public Router()
+  {
+    extFolderMap = new Dictionary&lt;string, ExtensionInfo&gt;() 
+    {
+      {"ico", new ExtensionInfo() {Loader=ImageLoader, ContentType="image/ico"}},
+      {"png", new ExtensionInfo() {Loader=ImageLoader, ContentType="image/png"}},
+      {"jpg", new ExtensionInfo() {Loader=ImageLoader, ContentType="image/jpg"}},
+      {"gif", new ExtensionInfo() {Loader=ImageLoader, ContentType="image/gif"}},
+      {"bmp", new ExtensionInfo() {Loader=ImageLoader, ContentType="image/bmp"}},
+      {"html", new ExtensionInfo() {Loader=PageLoader, ContentType="text/html"}},
+      {"css", new ExtensionInfo() {Loader=FileLoader, ContentType="text/css"}},
+      {"js", new ExtensionInfo() {Loader=FileLoader, ContentType="text/javascript"}},
+      {"", new ExtensionInfo() {Loader=PageLoader, ContentType="text/html"}},
+    };
+  }
+  // ...</code></pre>
+
+        <p>توجه کنید حالت «بدون پسوند» را هم مدیریت می‌کنیم که فرض می‌کند محتوا یک صفحهٔ HTML خواهد بود. همچنین content type را تنظیم می‌کنیم — اگر نکنیم، در کنسول وب هشدار «محتوا از نوع خاصی فرض شده» می‌گیریم. در نهایت توجه کنید که تابعی برای انجام لود واقعی نشان می‌دهیم.</p>
+
+        <h3>Image Loader</h3>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// یک فایل تصویری را می‌خواند و با دادهٔ خام یک ResponsePacket برمی‌گرداند.
+/// &lt;/summary&gt;
+private ResponsePacket ImageLoader(string fullPath, string ext, ExtensionInfo extInfo)
+{
+  FileStream fStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+  BinaryReader br = new BinaryReader(fStream);
+  ResponsePacket ret = new ResponsePacket() { Data = br.ReadBytes((int)fStream.Length), ContentType = extInfo.ContentType };
+  br.Close();
+  fStream.Close();
+
+  return ret;
+}</code></pre>
+
+        <h3>File Loader</h3>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// یک فایل اساساً متنی را می‌خواند و با متن UTF8 کدشده یک ResponsePacket برمی‌گرداند.
+/// &lt;/summary&gt;
+private ResponsePacket FileLoader(string fullPath, string ext, ExtensionInfo extInfo)
+{
+  string text = File.ReadAllText(fullPath);
+  ResponsePacket ret = new ResponsePacket() { Data = Encoding.UTF8.GetBytes(text), ContentType = extInfo.ContentType, Encoding = Encoding.UTF8 };
+
+  return ret;
+}</code></pre>
+
+        <h3>Page Loader</h3>
+        <p>Page loader باید برای مدیریت گزینه‌هایی مثل این‌ها کار بیشتری کند:</p>
+        <ul>
+          <li>foo.com</li>
+          <li>foo.com\index</li>
+          <li>foo.com\index.html</li>
+        </ul>
+        <p>همهٔ این ترکیب‌ها به لود Pages\index.html ختم می‌شوند:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>/// &lt;summary&gt;
+/// یک فایل HTML را لود می‌کند؛ پسوندهای گم‌شده و IP/دامنهٔ بدون فایل را هم
+/// حساب می‌کند که باید به index.html پیش‌فرض برگردد.
+/// &lt;/summary&gt;
+private ResponsePacket PageLoader(string fullPath, string ext, ExtensionInfo extInfo)
+{
+  ResponsePacket ret = new ResponsePacket();
+
+  if (fullPath == WebsitePath) // اگر بعد از نام دامنه یا IP چیزی نیامد، به لود index.html پیش‌فرض برو
+  {
+    ret = Route(GET, "/index.html", null);
+  }
+  else
+  {
+    if (String.IsNullOrEmpty(ext))
+    {
+      // پسوند نیست، پس ".html" می‌سازیم
+      fullPath = fullPath + ".html";
+    }
+
+    // پوشهٔ "Pages" را به مسیر تزریق کن
+    fullPath = WebsitePath + "\\Pages" + fullPath.RightOf(WebsitePath);
+    ret = FileLoader(fullPath, ext, extInfo);
+  }
+
+  return ret;
+}</code></pre>
+
+        <p>دو کلاس کمکی داریم و بعد از کنار هم گذاشتن همه‌چیز، آغاز یک مسیریاب داریم که حالا محتوای موجود در فایل‌ها را برمی‌گرداند:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public ResponsePacket Route(string verb, string path, Dictionary&lt;string, string&gt; kvParams)
+{
+  string ext = path.RightOf('.');
+  ExtensionInfo extInfo;
+  ResponsePacket ret = null;
+
+  if (extFolderMap.TryGetValue(ext, out extInfo))
+  {
+    // '/' ابتدایی را حذف کن و با جداکنندهٔ مسیر ویندوز قالب‌بندی کن
+    string fullPath = Path.Combine(WebsitePath, path);
+    ret = extInfo.Loader(fullPath, ext, extInfo);
+  }
+
+  return ret;
+}</code></pre>
+
+        <p>یک بازسازی نهایی هم لازم داریم — حذف پاسخ تست و جایگزینی با محتوای برگردانده‌شده توسط مسیریاب:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>private static void Respond(HttpListenerResponse response, ResponsePacket resp)
+{
+  response.ContentType = resp.ContentType;
+  response.ContentLength64 = resp.Data.Length;
+  response.OutputStream.Write(resp.Data, 0, resp.Data.Length);
+  response.ContentEncoding = resp.Encoding;
+  response.StatusCode = (int)HttpStatusCode.OK;
+  response.OutputStream.Close();
+}</code></pre>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> اینجا آشکار می‌شود که مکان واقعی فایل «محتوا» می‌تواند کاملاً توسط سرور جعل شود. نویسنده همهٔ محتوای HTML را زیر پوشهٔ Pages گذاشته و بدین ترتیب مکان ریشه را جعل می‌کند. می‌توانیم کارهای دیگری هم بکنیم — لود داده از پایگاه داده، ارتباط با سرور دیگر، تولید پویای صفحه از داده... — این‌ها همه قابلیت‌هایی هستند که در ادامه‌ٔ بارگذاری محتوای پیش‌فرض بررسی می‌شوند.
+        </div>
+      </section>
+
+      <section>
+        <h2>گام ۴ — شیطان در جزئیات است</h2>
+
+        <h3>صفحات خطا</h3>
+        <p>چند صفحهٔ خطا اضافه می‌کنیم (حتی اگر الان از همه استفاده نکنیم):</p>
+        <ul>
+          <li>نشست منقضی‌شده</li>
+          <li>مجاز نبودن</li>
+          <li>پیدا نشدن صفحه</li>
+          <li>خطای سرور</li>
+          <li>نوع ناشناخته</li>
+        </ul>
+        <p>برای اینکه برنامه بتواند تعیین کند این صفحات برای خطای داده‌شده کجا هستند، یک enum به سرور اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public enum ServerError
+{
+  OK,
+  ExpiredSession,
+  NotAuthorized,
+  FileNotFound,
+  PageNotFound,
+  ServerError,
+  UnknownType,
+}</code></pre>
+
+        <p>حالا می‌توانیم شروع کنیم به مدیریت خطاها (بدون پرتاب استثنا). اول پسوند ناشناخته:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>if (extFolderMap.TryGetValue(ext, out extInfo))
+{
+ // ...
+}
+else
+{
+  ret = new ResponsePacket() { Error = Server.ServerError.UnknownType };
+}</code></pre>
+
+        <p>و مانند آن. برای مدیریت خطاها از یک callback استفاده می‌کنیم که برنامهٔ وب می‌تواند فراهم کند — به شکل صفحه‌ای که کاربر باید به آن هدایت شود:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>ResponsePacket resp = router.Route(verb, path, kvParams);
+
+if (resp.Error != ServerError.OK)
+{
+  resp = router.Route("get", onError(resp.Error), null);
+}
+
+Respond(context.Response, resp);</code></pre>
+
+        <p>و یک هندلر خطای سرراست در برنامهٔ وب:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public static string ErrorHandler(Server.ServerError error)
+{
+  string ret = null;
+
+  switch (error)
+  {
+    case Server.ServerError.ExpiredSession:
+      ret= "/ErrorPages/expiredSession.html";
+      break;
+    case Server.ServerError.FileNotFound:
+      ret = "/ErrorPages/fileNotFound.html";
+      break;
+    case Server.ServerError.NotAuthorized:
+      ret = "/ErrorPages/notAuthorized.html";
+      break;
+    case Server.ServerError.PageNotFound:
+      ret = "/ErrorPages/pageNotFound.html";
+      break;
+    case Server.ServerError.ServerError:
+      ret = "/ErrorPages/serverError.html";
+      break;
+    case Server.ServerError.UnknownType:
+      ret = "/ErrorPages/unknownType.html";
+      break;
+  }
+
+  return ret;
+}</code></pre>
+
+        <p>البته باید هندلر خطا را هم مقداردهی کنیم: <code class="inline">Server.onError = ErrorHandler;</code></p>
+
+        <h3>هدایت (Redirects)</h3>
+        <p>توجه خواهید کرد URL در پیام‌های خطای بالا برای نشان‌دادن صفحه تغییر نکرده. این به این خاطر است که redirect پاسخ را نداریم. وقت رفع این مشکل است: فرض می‌کنیم هندلر خطا همیشه ما را به صفحهٔ دیگری هدایت می‌کند، پس نحوهٔ مدیریت پاسخ را عوض می‌کنیم. به‌جای گرفتن <code class="inline">ResponsePacket</code> جدید و فرستادن آن محتوا به مرورگر، خصوصیت <code class="inline">Redirect</code> را روی صفحه‌ای می‌گذاریم که برنامهٔ وب می‌خواهد برویم. این به‌طور کلی به مکانیزم redirect یونیورسال تبدیل می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>if (resp.Error != ServerError.OK)
+{
+  resp.Redirect = onError(resp.Error);
+}</code></pre>
+
+        <p>و کمی بازسازی در متد <code class="inline">Respond</code>:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>private static void Respond(HttpListenerRequest request, HttpListenerResponse response, ResponsePacket resp)
+{
+  if (String.IsNullOrEmpty(resp.Redirect))
+  {
+    response.ContentType = resp.ContentType;
+    response.ContentLength64 = resp.Data.Length;
+    response.OutputStream.Write(resp.Data, 0, resp.Data.Length);
+    response.ContentEncoding = resp.Encoding;
+    response.StatusCode = (int)HttpStatusCode.OK;
+  }
+  else
+  {
+    response.StatusCode = (int)HttpStatusCode.Redirect;
+    response.Redirect("http://" + request.UserHostAddress + resp.Redirect);
+  }
+
+  response.OutputStream.Close();
+}</code></pre>
+
+        <div class="callout tip">
+          <strong>نکته:</strong> بستن استریم خروجی خیلی مهم است. اگر نبندید، مرورگر می‌تواند منتظر داده بماند. و توجه کنید چون خطاها را با redirect مدیریت می‌کنیم، تنها دو کد وضعیت ممکن که وب سرورمان می‌تواند پاسخ دهد OK و Redirect است.
+        </div>
+
+        <h3>مدیریت استثنا</h3>
+        <p>از همان مکانیزم redirect برای گرفتن استثناهای واقعی استفاده می‌کنیم — با پیچیدن ادامهٔ <code class="inline">GetContextAsync</code> در یک بلوک try-catch:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>catch(Exception ex)
+{
+  Console.WriteLine(ex.Message);
+  Console.WriteLine(ex.StackTrace);
+  resp = new ResponsePacket() { Redirect = onError(ServerError.ServerError) };
+}</code></pre>
+      </section>
+
+      <section>
+        <h2>گام ۵ — مرور و مقابله با مسائل بیشتر</h2>
+        <p>حالا با فعل‌ها سروکار داریم، به‌خصوص فعل POST. این به ما اجازه می‌دهد سه مورد بعدی لیست را حل کنیم.</p>
+
+        <h3>فعل‌ها (Verbs)</h3>
+        <p>فعل‌های متعددی می‌توانند همراه درخواست HTTP باشند: OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT. در اصل وب سرور واقعاً به فعل کاری ندارد — فعل فقط اطلاعات اضافه‌ای می‌دهد که با کدام هندلر برای پاسخ فراخوانی شود. بالاخره به موضوعی می‌رسیم که نویسنده تا حالا از آن فرار کرده — کنترلرها (controllers). به‌جای اینکه وب سرور از الگوی Model-View-Controller خبر داشته باشد یا آن را به توسعه‌دهندهٔ برنامهٔ وب تحمیل کند، وب سرورِ پیاده‌سازی‌شده مکانیزم ساده‌ای برای مسیریابی فعل‌ها و مسیرها به هندلرها فراهم می‌کند. همهٔ کاری که باید بکند همین است. هندلر به نوبهٔ خود تعیین می‌کند مرورگر باید به صفحهٔ دیگری هدایت شود یا روی صفحهٔ فعلی بماند.</p>
+
+        <h3>مسیرها (Routes)</h3>
+        <p>با یک مسیریاب پایه شروع می‌کنیم که از یک کلاس <code class="inline">Route</code> تشکیل شده:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public class Route
+{
+  public string Verb { get; set; }
+  public string Path { get; set; }
+  public Func&lt;Dictionary&lt;string,string&gt;, string&gt; Action { get; set; }
+}</code></pre>
+
+        <p>توجه کنید خصوصیت Action یک تابع callback است که پارامترهای URL را می‌گیرد (با پارامترهای post بعداً کار داریم) و یک «URL هدایتِ» اختیاری انتظار دارد.</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public void AddRoute(Route route)
+{
+  routes.Add(route);
+}</code></pre>
+
+        <p>حالا می‌توانیم فراخوانی هندلرهای خاص برنامه را پیاده‌سازی کنیم، که یک بازسازی از متد Route است:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>public ResponsePacket Route(string verb, string path, Dictionary&lt;string, string&gt; kvParams)
+{
+  string ext = path.RightOfRightmostOf('.');
+  ExtensionInfo extInfo;
+  ResponsePacket ret = null;
+  verb = verb.ToLower();
+
+  if (extFolderMap.TryGetValue(ext, out extInfo))
+  {
+    string wpath = path.Substring(1).Replace('/', '\\'); // '/' ابتدایی را حذف کن و با جداکنندهٔ مسیر ویندوز قالب‌بندی کن
+    string fullPath = Path.Combine(WebsitePath, wpath);
+
+    Route route = routes.SingleOrDefault(r =&gt; verb == r.Verb.ToLower() &amp;&amp; path == r.Path);
+
+    if (route != null)
+    {
+      // برنامه برای این مسیر هندلر دارد
+      string redirect = route.Action(kvParams);
+
+      if (String.IsNullOrEmpty(redirect))
+      {
+        // با لودر محتوای پیش‌فرض پاسخ بده
+        ret = extInfo.Loader(fullPath, ext, extInfo);
+      }
+      else
+      {
+        // با redirect پاسخ بده
+        ret = new ResponsePacket() { Redirect = redirect };
+      }
+    }
+    else
+    {
+      // رفتار پیش‌فرض را امتحان کن
+      ret = extInfo.Loader(fullPath, ext, extInfo);
+    }
+  }
+  else
+  {
+    ret = new ResponsePacket() { Error = Server.ServerError.UnknownType };
+  }
+
+  return ret;
+}</code></pre>
+
+        <p>حالا صفحهٔ دمو را تغییر می‌دهیم تا وقتی دکمه کلیک می‌شود یک فراخوان POST به سرور بکند و در هندلرمان به صفحهٔ دیگری هدایت شویم. بله، این کار می‌توانست کاملاً در جاوااسکریپت انجام شود، اما این‌جا داریم هندلرهای فعل-مسیر را نشان می‌دهیم، پس این رفتار را سمت سرور پیاده‌سازی می‌کنیم.</p>
+        <p>همچنین پردازش استریم ورودی درخواست به جفت‌های کلید-مقدار و لاگ پارامترها (هم URL و هم پارامترهای استریم ورودی) را اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>private static async void StartConnectionListener(HttpListener listener)
+{
+  // ...
+  Dictionary&lt;string, string&gt; kvParams = GetKeyValues(parms); // به ورودی‌های کلید-مقدار تبدیل کن
+  string data = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding).ReadToEnd();
+  GetKeyValues(data, kvParams);
+  Log(kvParams);
+  // ...
+}
+
+private static Dictionary&lt;string, string&gt; GetKeyValues(string data, Dictionary&lt;string, string&gt; kv = null)
+{
+  kv.IfNull(() =&gt; kv = new Dictionary&lt;string, string&gt;());
+  data.If(d =&gt; d.Length &gt; 0, (d) =&gt; d.Split('&amp;').ForEach(keyValue =&gt; kv[keyValue.LeftOf('=')] = keyValue.RightOf('=')));
+
+  return kv;
+}
+
+private static void Log(Dictionary&lt;string, string&gt; kv)
+{
+  kv.ForEach(kvp=&gt;Console.WriteLine(kvp.Key+" : "+kvp.Value));
+}</code></pre>
+
+        <p>ممکن است ترکیب پارامترهای URL و پارامترهای postback در یک مجموعهٔ جفت-کلید-مقدار عادت بدی باشد، اما فعلاً به همین پیاده‌سازی «ساده‌تر» بسنده می‌کنیم.</p>
+        <p>صفحهٔ HTML جدید <code class="inline">/demo/redirect</code> با یک فرم که به <code class="inline">/demo/redirect</code> با متد post می‌رود، و دکمهٔ «Redirect Me» با نام <code class="inline">redirectButton</code> می‌سازیم. اگر دقت کنید، در لاگ اول GET را هنگام لود صفحه می‌بینیم، سپس با کلیک روی دکمه POST با پارامترها را. چیز جالب نوشتن وب سرور خودتان این است که واقعاً حس عمیق‌تری از آنچه پشت صحنه می‌شود می‌گیرید.</p>
+        <p>حالا یک هندلر برای این فعل و مسیر ثبت می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>static void Main(string[] args)
+{
+  string websitePath = GetWebsitePath();
+  Server.onError = ErrorHandler;
+
+  // ثبت یک هندلر مسیر:
+  Server.AddRoute(new Route() { Verb = Router.POST, Path = "/demo/redirect", Action = RedirectMe });
+
+  Server.Start(websitePath);
+  Console.ReadLine();
+}
+
+public static string RedirectMe(Dictionary&lt;string, string&gt; parms)
+{
+  return "/demo/clicked";
+}</code></pre>
+
+        <p>و حالا با کلیک روی دکمه هدایت می‌شویم. این آسان بود. با حداقل بازسازی، این سه مورد را حل کرده‌ایم:</p>
+        <ul>
+          <li>فعل همیشه «get» فرض می‌شد</li>
+          <li>برنامه هیچ گزینه‌ای برای دستکاری محتوا (به‌خصوص HTML) بعد از لود نداشت</li>
+          <li>نمی‌شد مسیریابی را override کرد</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>گام ۶ — احراز هویت و انقضای نشست</h2>
+        <p>در گام ۵ یک هندلر مسیر خیلی پایه پیاده کردیم. چیزی کمی پیشرفته‌تر می‌خواهیم که کارهای کاملاً رایج را مدیریت کند:</p>
+        <ul>
+          <li>مطمئن شدن کاربر مجاز به دیدن صفحه است</li>
+          <li>بررسی اینکه نشست منقضی شده یا نه</li>
+        </ul>
+        <p>callback های هندلر بالا را بازسازی می‌کنیم تا از یک کلاس Routing استفاده کنند که هم رفتارهای داخلی فراهم می‌کند و هم به توسعه‌دهندهٔ برنامهٔ وب اجازه می‌دهد رفتارهای اضافه خودش (مثل احراز هویت مبتنی بر نقش) را جایگزین یا اضافه کند.</p>
+
+        <h3>مدیریت نشست</h3>
+        <p>اول یک کلاس پایهٔ <code class="inline">Session</code> و <code class="inline">SessionManager</code> اضافه می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+using Clifton.ExtensionMethods;
+
+namespace Clifton.WebServer
+{
+  /// &lt;summary&gt;
+  /// نشست‌ها با IP کلاینت مرتبط می‌شوند.
+  /// &lt;/summary&gt;
+  public class Session
+  {
+    public DateTime LastConnection { get; set; }
+    public bool Authorized { get; set; }
+
+    /// &lt;summary&gt;
+    /// می‌تواند توسط کنترلرها برای افزودن اطلاعات اضافه‌ای که باید در نشست بمانند استفاده شود.
+    /// &lt;/summary&gt;
+    public Dictionary&lt;string, string&gt; Objects { get; set; }
+
+    public Session()
+    {
+      Objects = new Dictionary&lt;string, string&gt;();
+      UpdateLastConnectionTime();
+    }
+
+    public void UpdateLastConnectionTime()
+    {
+      LastConnection = DateTime.Now;
+    }
+
+    /// &lt;summary&gt;
+    /// اگر آخرین درخواست از زمان انقضای مشخص‌شده (به ثانیه) گذشته باشد true برمی‌گرداند.
+    /// &lt;/summary&gt;
+    public bool IsExpired(int expirationInSeconds)
+    {
+      return (DateTime.Now - LastConnection).TotalSeconds &gt; expirationInSeconds;
+    }
+  }
+
+  public class SessionManager
+  {
+    /// &lt;summary&gt;
+    /// همهٔ نشست‌ها را پیگیری کن.
+    /// &lt;/summary&gt;
+    protected Dictionary&lt;IPAddress, Session&gt; sessionMap = new Dictionary&lt;IPAddress, Session&gt;();
+
+    public SessionManager()
+    {
+      sessionMap = new Dictionary&lt;IPAddress, Session&gt;();
+    }
+
+    /// &lt;summary&gt;
+    /// نشست موجود برای این remote endpoint را می‌سازد یا برمی‌گرداند.
+    /// &lt;/summary&gt;
+    public Session GetSession(IPEndPoint remoteEndPoint)
+    {
+      // پورت روی remote endpoint همیشه عوض می‌شود، پس فقط از بخش IP استفاده می‌کنیم.
+      // ...
+    }
+  }
+}</code></pre>
+
+        <p>سه کلاس اضافه می‌کنیم که برنامه می‌تواند از آن‌ها استفاده کند:</p>
+        <ul>
+          <li><code class="inline">AnonymousRouteHandler</code></li>
+          <li><code class="inline">AuthenticatedRouteHandler</code></li>
+          <li><code class="inline">AuthenticatedExpirableRouteHandler</code></li>
+        </ul>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>namespace Clifton.WebServer
+{
+  /// &lt;summary&gt;
+  /// کلاس پایهٔ هندلرهای مسیر.
+  /// &lt;/summary&gt;
+  public abstract class RouteHandler
+  {
+    protected Func&lt;Session, Dictionary&lt;string, string&gt;, string&gt; handler;
+
+    public RouteHandler(Func&lt;Session, Dictionary&lt;string, string&gt;, string&gt; handler)
+    {
+      this.handler = handler;
+    }
+
+    public abstract string Handle(Session session, Dictionary&lt;string, string&gt; parms);
+  }
+
+  // AuthenticatedRouteHandler و AuthenticatedExpirableRouteHandler
+  // از RouteHandler مشتق می‌شوند و مدیریت وضعیت Authorized و
+  // انقضای نشست را در متد Handle خود پیاده‌سازی می‌کنند.
+}</code></pre>
+
+        <p>و مثالی از ثبت هندلر احراز هویت‌شده:</p>
+
+        <pre class="code"><span class="lang-tag">csharp</span><code>static void Main(string[] args)
+{
+  string websitePath = GetWebsitePath();
+  Server.onError = ErrorHandler;
+
+  // یک هندلر مسیر احراز هویت‌شده ثبت کن:
+  Server.AddRoute(new Route() { Verb = Router.POST, Path = "/demo/redirect",
+                                Handler = new AuthenticatedRouteHandler(RedirectMe) });
+
+  Server.Start(websitePath);
+  Console.ReadLine();
+}</code></pre>
+
+        <div class="callout tip">
+          <strong>چرا کلاس به‌جای attribute؟</strong> نویسنده از روزهای اول کار با C# گفته: attribute ها برای دادن نکته به serializer دربارهٔ نحوهٔ سریال‌کردن فیلدها عالی‌اند؛ در غیر این صورت بیشتر طراحی بد را ترویج می‌کنند. مثلاً مسیرهای نوشته‌شده با کلاس پایهٔ <code class="inline">Route</code> و کلاس فرزند <code class="inline">AuthenticatedRoute</code> پیاده‌سازی می‌شوند. اگر احراز هویت مبتنی بر نقش می‌خواهید، کلاس مشتق‌شده می‌سازید به‌جای اینکه attribute روی تابع‌های کنترلرِ اغلب خالی بگذارید.
+        </div>
+      </section>
+
+      <section>
+        <h2>گام‌های بعدی در مقالهٔ اصلی</h2>
+        <ul>
+          <li><strong>گام ۷ — پرس‌وجوهای AJAX:</strong> پشتیبانی از فعل GET برای AJAX، توکن ضد «underscore» برای جلوگیری از کش، و پردازش دادهٔ برگشتی به‌صورت JSON.</li>
+          <li><strong>گام ۸ — اینترنت در برابر اینترانت:</strong> مدیریت آدرس‌های IP محلی در برابر عمومی و نام‌های دامنه برای گوش‌دادن.</li>
+          <li><strong>گام ۹ — تغییر پویای HTML:</strong> جایگزینی تکه‌های HTML در جریان پاسخ، و مدیریت Cross-Site Request Forgery (CSRF).</li>
+        </ul>
+        <p><strong>مسائل برای روزی دیگر:</strong> CSRF و AJAX، HTTPS، رمزگشایی مقادیر پارامترها، زنجیرهٔ پردازش پس از پاسخ، و موارد دیگر.</p>
+      </section>
+
+      <section>
+        <h2>نتیجه‌گیری</h2>
+        <p>ایده این است که وب سرور خیلی کوچک بماند. نویسنده در مجموع چهار کلاس دارد (بدون احتساب متدهای extension) و کل چیز کمی کمتر از ۶۵۰ خط کد است، با کامنت و هر چه حساب کنید.</p>
+        <p>نکتهٔ جالب (و آخرین حرف نویسنده بالای منبرش) این است که با پیاده‌سازی وب سرور خودش متوجه شده فناوری‌هایی مثل MVC Razor و Ruby on Rails چقدر سر راهِ سروکردن صفحات وب و دادن کنترل رندر محتوای غیرایستا به برنامه‌نویس می‌ایستند. با یک وب سرور ساده، او خیلی بیشتر روی جاوااسکریپت سمت کلاینت، HTML و کامپوننت‌ها تمرکز می‌کند، جایی که تنها توجه لازم به فرایند سمت سرور، هندلرهای PUT و درخواست AJAX گاه‌به‌گاه است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Writing a Web Server from Scratch» اثر «مارک کلیفتون (Marc Clifton)» است که در CodeProject منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://www.codeproject.com/Articles/859108/Writing-a-Web-Server-from-Scratch" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

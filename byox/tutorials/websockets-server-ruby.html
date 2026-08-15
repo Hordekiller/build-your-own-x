@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Building a simple websockets server from scratch in Ruby»
+  از Starr Horne — Honeybadger Developer Blog
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک سرور websockets ساده از صفر در Ruby</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>ساخت یک سرور websockets ساده از صفر در Ruby</span>
+      </div>
+      <h1>ساخت یک سرور websockets ساده از صفر در Ruby</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://blog.honeybadger.io/building-a-simple-websockets-server-from-scratch-in-ruby/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقالهٔ «Building a simple websockets server from scratch in Ruby» از «استار هورن (Starr Horne)» — Honeybadger Developer Blog است.
+          نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="http://blog.honeybadger.io/building-a-simple-websockets-server-from-scratch-in-ruby/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>این روزها وب‌سوکت‌ها خیلی سر و صدا به پا کرده‌اند. می‌شنویم که «آینده‌اند» و «به لطف ActionCable در Rails 5 از همیشه راحت‌ترند». اما وب‌سوکت‌ها واقعاً چیستند و چگونه کار می‌کنند؟</p>
+        <p>در این پست با ساختن یک سرور WebSocket ساده از صفر در Ruby به این سوال‌ها پاسخ می‌دهیم. وقتی تمام شود، ارتباط دوطرفه بین مرورگر و سرورمان را به دست آورده‌ایم.</p>
+        <blockquote>کد این پست تمرین یادگیری است. اگر می‌خواهید وب‌سوکت‌ها را در برنامهٔ واقعی تولید پیاده‌سازی کنید، gem عالی <a href="https://github.com/imanel/websocket-ruby" target="_blank" rel="noopener">websocket-ruby</a> را ببینید. همچنین می‌توانید نگاهی به <a href="https://tools.ietf.org/html/rfc6455" target="_blank" rel="noopener">مشخصات WebSocket</a> بیندازید.</blockquote>
+      </section>
+
+      <section>
+        <h2>شاید تا حالا اسم وب‌سوکت‌ها را نشنیده باشید</h2>
+        <p>وب‌سوکت‌ها برای حل مشکلات ذاتی اتصالات HTTP معمولی اختراع شدند. وقتی با یک اتصال HTTP معمولی صفحه‌ای را درخواست می‌کنید، سرور محتوا را می‌فرستد و اتصال را می‌بندد. اگر بخواهید صفحهٔ دیگری درخواست کنید، باید اتصال جدیدی برقرار کنید. این معمولاً خوب کار می‌کند، اما برای بعضی کاربردها بهترین روش نیست:</p>
+        <ul>
+          <li>برای برنامه‌هایی مثل چت، فرانت‌اند باید به محض آمدن پیام جدید به‌روز شود. اگر فقط درخواست‌های HTTP معمولی داشته باشید، یعنی باید مدام از سرور poll (پرس‌وجو) کنید که محتوای جدید هست یا نه.</li>
+          <li>اگر برنامهٔ فرانت‌اندتان نیاز به درخواست‌های کوچک زیاد به سرور داشته باشد، سربار ایجاد اتصال جدید برای هر درخواست می‌تواند مشکل کارایی شود.</li>
+        </ul>
+        <p>با وب‌سوکت‌ها، یک اتصال به سرور می‌سازید که باز نگه داشته می‌شود و برای ارتباط دوطرفه استفاده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>سمت کلاینت</h2>
+        <p>وب‌سوکت‌ها معمولاً برای ارتباط بین مرورگر و یک وب سرور استفاده می‌شوند. سمت مرورگر با جاوااسکریپت پیاده‌سازی می‌شود. در مثال زیر، جاوااسکریپت ساده‌ای نوشته شده که وب‌سوکتی به سرور محلی باز می‌کند و پیامی به آن می‌فرستد:</p>
+
+        <pre class="code"><span class="lang-tag">html</span><code>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;title&gt;Websocket Client&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;script&gt;
+    var exampleSocket = new WebSocket("ws://localhost:2345");
+    exampleSocket.onopen = function (event) {
+      exampleSocket.send("Can you hear me?");
+    };
+    exampleSocket.onmessage = function (event) {
+      console.log(event.data);
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <p>اگر یک سرور استاتیک کوچک راه بیندازید و این فایل را در مرورگر باز کنید، خطا می‌گیرید. منطقی است، چون هنوز سروری وجود ندارد. ما باید یکی بسازیم! :-)</p>
+        <p><img src="https://www.honeybadger.io/images/2015/12/websocket_client_error.png" alt="خطای اتصال کلاینت وب‌سوکت وقتی سروری وجود ندارد" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+      </section>
+
+      <section>
+        <h2>شروع سرور</h2>
+        <p>وب‌سوکت‌ها زندگی‌شان را به‌صورت درخواست‌های HTTP معمولی شروع می‌کنند. چرخهٔ زندگی عجیبی دارند:</p>
+        <ol>
+          <li>مرورگر یک درخواست HTTP معمولی می‌فرستد با چند هدر خاص که می‌گوید «لطفاً مرا وب‌سوکت کن».</li>
+          <li>سرور با یک پاسخ HTTP خاص جواب می‌دهد، اما <strong>اتصال را نمی‌بندد</strong>.</li>
+          <li>مرورگر و سرور سپس با یک پروتکل وب‌سوکت خاص، فریم‌های داده را روی اتصال باز مبادله می‌کنند.</li>
+        </ol>
+        <p>پس اولین گام ما ساخت یک وب سرور است. در کد زیر ساده‌ترین وب سرور ممکن را می‌سازم. هیچ چیزی سرو نمی‌کند؛ فقط منتظر درخواست می‌ماند و آن را روی STDERR چاپ می‌کند:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>require 'socket'
+
+server = TCPServer.new('localhost', 2345)
+
+loop do
+
+  # منتظر اتصال بمان
+  socket = server.accept
+  STDERR.puts "Incoming Request"
+
+  # درخواست HTTP را بخوان. می‌دانیم وقتی تمام می‌شود که خطی فقط با \r\n ببینیم
+  http_request = ""
+  while (line = socket.gets) &amp;&amp; (line != "\r\n")
+    http_request += line
+  end
+  STDERR.puts http_request
+  socket.close
+end</code></pre>
+
+        <p>اگر سرور را اجرا کنم و صفحهٔ تست وب‌سوکت‌مان را رفرش کنم، این را می‌گیرم:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>$ ruby server1.rb
+Incoming Request
+GET / HTTP/1.1
+Host: localhost:2345
+Connection: Upgrade
+Upgrade: websocket
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Key: cG8zEwcrcLnEftn2qohdKQ==</code></pre>
+
+        <p>اگر دقت کنید، این درخواست HTTP یک دسته هدر مرتبط با وب‌سوکت دارد. این در واقع اولین گام دست‌دادن (handshake) وب‌سوکت است.</p>
+      </section>
+
+      <section>
+        <h2>دست‌دادن (Handshake)</h2>
+        <p>همهٔ درخواست‌های وب‌سوکت با یک دست‌دادن شروع می‌شوند تا مطمئن شویم هم کلاینت و هم سرور می‌فهمند وب‌سوکت در راه است و هر دو روی نسخهٔ پروتکل توافق دارند. این‌طور کار می‌کند:</p>
+
+        <h3>کلاینت درخواست HTTP مثل این می‌فرستد</h3>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>GET / HTTP/1.1
+Host: localhost:2345
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: E4i4gDQc1XTIQcQxvf+ODA==
+Sec-WebSocket-Version: 13</code></pre>
+
+        <p>مهم‌ترین بخش این درخواست <code class="inline">Sec-WebSocket-Key</code> است. کلاینت انتظار دارد سرور نسخهٔ اصلاح‌شده‌ای از این مقدار را برگرداند تا به‌عنوان محافظی در برابر حملات XSS و پروکسی‌های کش‌کننده عمل کند.</p>
+
+        <h3>سرور پاسخ می‌دهد</h3>
+
+        <pre class="code"><span class="lang-tag">HTTP</span><code>HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: d9WHst60HtB4IvjOVevrexl0oLA=</code></pre>
+
+        <p>پاسخ سرور از قبل تعیین شده است به‌جز هدر <code class="inline">Sec-WebSocket-Accept</code>. این هدر این‌طور تولید می‌شود:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code># مقدار داده‌شده توسط کلاینت را بگیر، یک رشتهٔ جادویی به آن اضافه کن،
+# هش SHA1 بساز، سپس base64 کدگذاریش کن.
+Digest::SHA1.base64digest([sec_websocket_accept, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"].join)</code></pre>
+
+        <p>چشمانتان شما را گول نمی‌زند. یک ثابت جادویی در کار است.</p>
+
+        <h3>پیاده‌سازی دست‌دادن</h3>
+        <p>سرورمان را به‌روز کنیم تا دست‌دادن را کامل کند. اول نشانی امنیتی را از هدرهای درخواست بیرون می‌کشیم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code># کلید امنیتی را از هدرها بگیر.
+# اگر نبود، اتصال را ببند.
+if matches = http_request.match(/^Sec-WebSocket-Key: (\S+)/)
+  websocket_key = matches[1]
+  STDERR.puts "Websocket handshake detected with key: #{ websocket_key }"
+else
+  STDERR.puts "Aborting non-websocket connection"
+  socket.close
+  next
+end</code></pre>
+
+        <p>حالا از کلید امنیتی برای تولید یک پاسخ معتبر استفاده می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>response_key = Digest::SHA1.base64digest([websocket_key, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"].join)
+STDERR.puts "Responding to handshake with key: #{ response_key }"
+
+socket.write &lt;&lt;-eos
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: #{ response_key }
+
+eos
+
+STDERR.puts "Handshake completed."</code></pre>
+
+        <p>وقتی صفحهٔ تست وب‌سوکت را رفرش می‌کنم، دیگر خطای اتصال نمی‌بینم. اتصال برقرار شد!</p>
+        <p><img src="https://www.honeybadger.io/images/2015/12/websocket_client_handshake_complete.png" alt="دست‌دادن کامل شده؛ اتصال وب‌سوکت برقرار است" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+      </section>
+
+      <section>
+        <h2>پروتکل فریم وب‌سوکت</h2>
+        <p>وقتی اتصال وب‌سوکت برقرار شد، دیگر HTTP استفاده نمی‌شود. در عوض، داده با پروتکل WebSocket مبادله می‌شود.</p>
+        <p>فریم‌ها واحد پایهٔ پروتکل WebSocket هستند. پروتکل WebSocket فریم‌محور است، اما این یعنی چه؟</p>
+        <p>هر بار که از مرورگرتان می‌خواهید داده‌ای با WebSocket بفرستد یا از سرور بخواهید پاسخ دهد، داده به مجموعه‌ای از قطعات تقسیم می‌شود و هر قطعه در متادیتایی برای ساخت یک فریم پیچیده می‌شود.</p>
+        <p>ساختار فریم این‌طور است (اعداد بالا بیت‌ها هستند و بعضی فیلدها مثل طول بارِ توسعه‌یافته ممکن است همیشه حاضر نباشند):</p>
+
+        <pre class="code"><span class="lang-tag">Text</span><code>0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-------+-+-------------+-------------------------------+
+|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+|N|V|V|V|       |S|             |   (if payload len==126/127)   |
+| |1|2|3|       |K|             |                               |
++-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+|     Extended payload length continued, if payload len == 127  |
++ - - - - - - - - - - - - - - - +-------------------------------+
+|                               |Masking-key, if MASK set to 1  |
++-------------------------------+-------------------------------+
+| Masking-key (continued)       |          Payload Data         |
++-------------------------------- - - - - - - - - - - - - - - - +
+:                     Payload Data continued ...                :
++ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+|                     Payload Data continued ...                |
++---------------------------------------------------------------+</code></pre>
+
+        <p>اولین چیزی که توجه را جلب می‌کند این است که یک پروتکل باینری است. باید کمی دستکاری بیت انجام دهیم، اما نگران نباشید — خیلی سخت نیست. اعداد بالای شکل بیت‌ها هستند و بعضی فیلدها ممکن است حاضر نباشند؛ مثلاً طول بارِ توسعه‌یافته وقتی حضور دارد که بار زیر 127 بایت باشد.</p>
+      </section>
+
+      <section>
+        <h2>دریافت داده</h2>
+        <p>حالا که دست‌دادن کامل شده، می‌توانیم پارس‌کردن فریم باینری را شروع کنیم. برای سادگی، در ابتدا فریم ورودی را بایت‌به‌بایت نگاه می‌کنیم و بعد همه‌اش را کنار هم می‌گذاریم تا عملاً ببینیمش.</p>
+
+        <h3>بایت ۱: FIN و Opcode</h3>
+        <p>اولین بایت (هشت بیت اول) چند تکه داده دارد:</p>
+        <ul>
+          <li><strong>FIN: ۱ بیت</strong> — اگر false باشد، پیام به چند فریم تقسیم شده.</li>
+          <li><strong>opcode: ۴ بیت</strong> — می‌گوید بار متن است، باینری است یا فقط «ping» برای زنده نگه‌داشتن اتصال.</li>
+          <li><strong>RSV: ۳ بیت</strong> — در نسخهٔ فعلی مشخصات WebSockets استفاده نشده‌اند.</li>
+        </ul>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>first_byte = socket.getbyte
+fin = first_byte &amp; 0b10000000
+opcode = first_byte &amp; 0b00001111
+
+# سرور ما فقط پیام‌های متنی تک‌فریمی را پشتیبانی می‌کند.
+# اگر کلاینت چیز دیگری بفرستد استثنا پرتاب کن
+raise "We don't support continuations" unless fin
+raise "We only support opcode 1" unless opcode == 1</code></pre>
+
+        <h3>بایت ۲: MASK و طول بار</h3>
+        <p>بایت دوم فریم اطلاعات بیشتری دربارهٔ بار دارد:</p>
+        <ul>
+          <li><strong>MASK: ۱ بیت</strong> — علامت بولی که نشان می‌دهد بار ماسک‌خورده است یا نه. اگر true باشد، قبل از استفاده باید بار «unmask» شود. برای فریم‌های ورودی از کلاینت این همیشه باید true باشد؛ مشخصات می‌گوید.</li>
+          <li><strong>طول بار: ۷ بیت</strong> — اگر بارمان کمتر از ۱۲۶ بایت باشد، طول این‌جا ذخیره شده. اگر این مقدار از ۱۲۶ بزرگ‌تر باشد، یعنی بایت‌های بیشتری برای دادن طول دنبال می‌شوند.</li>
+        </ul>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>second_byte = socket.getbyte
+is_masked = second_byte &amp; 0b10000000
+payload_size = second_byte &amp; 0b01111111
+
+raise "All frames sent to a server should be masked according to the websocket spec" unless is_masked
+raise "We only support payloads &lt; 126 bytes in length" unless payload_size &lt; 126
+
+STDERR.puts "Payload size: #{ payload_size } bytes"</code></pre>
+
+        <h3>بایت‌های ۳ تا ۷: کلید ماسک</h3>
+        <p>انتظار داریم بارهای همهٔ فریم‌های ورودی ماسک‌خورده باشند. برای unmask کردن محتوا باید آن را با کلید ماسک XOR کنیم. این کلید ماسک چهار بایت بعدی را می‌سازد. لازم نیست پردازشش کنیم؛ فقط بایت‌ها را در یک آرایه می‌خوانیم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>mask = 4.times.map { socket.getbyte }
+STDERR.puts "Got mask: #{ mask.inspect }"</code></pre>
+
+        <h3>بایت ۸ به بعد: بار</h3>
+        <p>خوب، با متادیتا تمام کردیم. حالا می‌توانیم بار واقعی را بگیریم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>data = payload_size.times.map { socket.getbyte }
+STDERR.puts "Got masked data: #{ data.inspect }"</code></pre>
+
+        <p>یادتان باشد این بار ماسک‌خورده است. پس اگر چاپش کنید، شبیه زباله به نظر می‌رسد. برای unmask کردن، هر بایت را با بایت متناظر ماسک XOR می‌کنیم. چون ماسک فقط چهار بایت است، آن را برای مطابقت با طول بار تکرار می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>unmasked_data = data.each_with_index.map { |byte, i| byte ^ mask[i % 4] }
+STDERR.puts "Unmasked the data: #{ unmasked_data.inspect }"</code></pre>
+
+        <p>حالا آرایه‌ای از بایت‌ها داریم. باید آن را به یک رشتهٔ یونیکد تبدیل کنیم. همهٔ متن‌های Websocket یونیکد هستند:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>STDERR.puts "Converted to a string: #{ unmasked_data.pack('C*').force_encoding('utf-8').inspect }"</code></pre>
+
+        <h3>کنار هم گذاشتن همه‌چیز</h3>
+        <p>وقتی همهٔ این کدها را کنار هم بگذارید، اسکریپتی به این شکل می‌گیرید:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>require 'socket' # کلاس‌های TCPServer و TCPSocket را فراهم می‌کند
+require 'digest/sha1'
+
+server = TCPServer.new('localhost', 2345)
+
+loop do
+
+  # منتظر اتصال بمان
+  socket = server.accept
+  STDERR.puts "Incoming Request"
+
+  # درخواست HTTP را بخوان. می‌دانیم وقتی تمام می‌شود که خطی فقط با \r\n ببینیم
+  http_request = ""
+  while (line = socket.gets) &amp;&amp; (line != "\r\n")
+    http_request += line
+  end
+
+  # کلید امنیتی را از هدرها بگیر. اگر نبود، اتصال را ببند.
+  if matches = http_request.match(/^Sec-WebSocket-Key: (\S+)/)
+    websocket_key = matches[1]
+    STDERR.puts "Websocket handshake detected with key: #{ websocket_key }"
+  else
+    STDERR.puts "Aborting non-websocket connection"
+    socket.close
+    next
+  end
+
+
+  response_key = Digest::SHA1.base64digest([websocket_key, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"].join)
+  STDERR.puts "Responding to handshake with key: #{ response_key }"
+
+  socket.write &lt;&lt;-eos
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: #{ response_key }
+
+  eos
+
+  STDERR.puts "Handshake completed. Starting to parse the websocket frame."
+
+  first_byte = socket.getbyte
+  fin = first_byte &amp; 0b10000000
+  opcode = first_byte &amp; 0b00001111
+
+  raise "We don't support continuations" unless fin
+  raise "We only support opcode 1" unless opcode == 1
+
+  second_byte = socket.getbyte
+  is_masked = second_byte &amp; 0b10000000
+  payload_size = second_byte &amp; 0b01111111
+
+  raise "All incoming frames should be masked according to the websocket spec" unless is_masked
+  raise "We only support payloads &lt; 126 bytes in length" unless payload_size &lt; 126
+
+  STDERR.puts "Payload size: #{ payload_size } bytes"
+
+  mask = 4.times.map { socket.getbyte }
+  STDERR.puts "Got mask: #{ mask.inspect }"
+
+  data = payload_size.times.map { socket.getbyte }
+  STDERR.puts "Got masked data: #{ data.inspect }"
+
+  unmasked_data = data.each_with_index.map { |byte, i| byte ^ mask[i % 4] }
+  STDERR.puts "Unmasked the data: #{ unmasked_data.inspect }"
+
+  STDERR.puts "Converted to a string: #{ unmasked_data.pack('C*').force_encoding('utf-8').inspect }"
+
+  socket.close
+end</code></pre>
+
+        <p>وقتی صفحهٔ تست WebSocket را رفرش می‌کنم، این خروجی را می‌بینم:</p>
+
+        <pre class="code"><span class="lang-tag">Console</span><code>$ ruby websocket_server.rb
+Incoming Request
+Websocket handshake detected with key: E4i4gDQc1XTIQcQxvf+ODA==
+Responding to handshake with key: d9WHst60HtB4IvjOVevrexl0oLA=
+Handshake completed. Starting to parse the websocket frame.
+Payload size: 16 bytes
+Got mask: [80, 191, 161, 254]
+Got masked data: [19, 222, 207, 222, 41, 208, 212, 222, 56, 218, 192, 140, 112, 210, 196, 193]
+Unmasked the data: [67, 97, 110, 32, 121, 111, 117, 32, 104, 101, 97, 114, 32, 109, 101, 63]
+Converted to a string: "Can you hear me?"</code></pre>
+      </section>
+
+      <section>
+        <h2>فرستادن داده به کلاینت</h2>
+        <p>پیام تستی را از کلاینت به سرور اسباب‌بازی‌مان فرستادیم. حالا خوب است پیامی از سرور به کلاینت برگردانیم. این کار ساده‌تر است چون با هیچ‌کدام از مباحث ماسک‌کردن سروکار نداریم. فریم‌های فرستاده‌شده از سرور به کلاینت همیشه unmask هستند.</p>
+        <p>درست مثل مصرف فریم بایت‌به‌بایت، فریم را هم بایت‌به‌بایت می‌سازیم.</p>
+
+        <h3>بایت ۱: FIN و opcode</h3>
+        <p>بارمان در یک فریم جا می‌شود و متنی است؛ یعنی FIN برابر 1 و opcode هم برابر یک است. وقتی آن‌ها را با همان قالب بیتی که قبلاً استفاده کردیم ترکیب کنم، عددی می‌گیرم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>output = [0b10000001]</code></pre>
+
+        <h3>بایت ۲: MASKED و طول بار</h3>
+        <p>چون این فریم از سرور به کلاینت می‌رود، MASKED برابر صفر است؛ پس می‌توانیم نادیده‌اش بگیریم. طول بار فقط طول رشته است:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>output = [0b10000001, response.size]</code></pre>
+
+        <h3>بایت ۳ به بعد: بار</h3>
+        <p>بار ماسک‌خورده نیست؛ فقط یک رشته است:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>response = "Loud and clear!"
+STDERR.puts "Sending response: #{ response.inspect }"
+
+output = [0b10000001, response.size, response]</code></pre>
+
+        <h3>بفرست! (Bombs away!)</h3>
+        <p>در این نقطه، آرایه‌ای داریم که داده‌های فرستادنی را در خود دارد. باید آن را به رشته‌ای از بایت‌ها تبدیل کنیم که بتوانیم روی شبکه بفرستیم. برای این کار از متد فوق‌العاده همه‌کارهٔ <code class="inline">Array#pack</code> استفاده می‌کنیم:</p>
+
+        <pre class="code"><span class="lang-tag">ruby</span><code>socket.write output.pack("CCA#{ response.size }")</code></pre>
+
+        <p>آن رشتهٔ عجیب <code class="inline">"CCA#{ response.size }"</code> به <code class="inline">Array#pack</code> می‌گوید آرایه شامل دو عدد صحیح بدون علامت ۸ بیتی و سپس یک رشتهٔ کاراکتری با اندازهٔ مشخص است.</p>
+        <p>اگر بازرس شبکه را در کروم باز کنم، می‌بینم پیام رسیده: «Loud and clear!»</p>
+        <p><img src="https://www.honeybadger.io/images/2015/12/websocket_client_done.png" alt="کلاینت وب‌سوکت پاسخ سرور را دریافت کرده" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" /></p>
+      </section>
+
+      <section>
+        <h2>نمرهٔ اضافه (Extra Credit)</h2>
+        <p>همین! امیدوارم چیزی دربارهٔ WebSockets یاد گرفته باشید. چیزهای زیادی هست که سرور ما ندارد. اگر می‌خواهید تمرین را ادامه دهید، می‌توانید این‌ها را بررسی کنید:</p>
+        <ul>
+          <li>پشتیبانی از بارهای چندفریمی</li>
+          <li>پشتیبانی از بار باینری</li>
+          <li>پشتیبانی از Ping / Pong</li>
+          <li>پشتیبانی از بار طولانی</li>
+          <li>Closing handshake (دست‌دادن بستن)</li>
+        </ul>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مقالهٔ «Building a simple websockets server from scratch in Ruby» اثر «استار هورن (Starr Horne)» است که در Honeybadger Developer Blog منتشر شده.
+        این صفحه فقط ترجمه فارسی آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="http://blog.honeybadger.io/building-a-simple-websockets-server-from-scratch-in-ruby/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>

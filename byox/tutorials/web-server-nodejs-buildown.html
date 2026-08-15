@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  BYOX — ترجمه فارسی «Build Your Own Web Server From Scratch In Node.JS»
+  از James Smith — build-your-own.org
+  قوانین اجباری قالب: lang="fa" dir="rtl" | CSS نسبی ../assets/css/style.css?v=2
+  کدها در pre.code با کامنت فارسی | تصاویر با آدرس مستقیم سایت اصلی | بلاک کپیرایت پایانی
+  ============================================================
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | وب سرور خودت را از صفر در جاوااسکریپت بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">وب سرور</a>
+        <span class="sep">←</span>
+        <span>وب سرور خودت را از صفر در جاوااسکریپت بساز</span>
+      </div>
+      <h1>وب سرور خودت را از صفر در جاوااسکریپت بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">📁 دسته: وب سرور</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمه فارسی مقدمه و فهرست کتاب «Build Your Own Web Server From Scratch In Node.JS»
+          از «جیمز اسمیت (James Smith)» است. نسخه کامل و به‌روز را از سایت اصلی بخوانید.
+        </div>
+        <a class="btn solid" href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+
+    <article class="content">
+
+      <section>
+        <h2>مقدمه</h2>
+        <p>بیشتر مردم هر روز از HTTP استفاده می‌کنند، اما کمتر کسی از جزئیات درونیِ آن سر درمی‌آورد. این کتابِ «خودت بساز»، عمیق به موضوع می‌زند و اصول را از صفر آموزش می‌دهد تا درک واضح‌تری از ابزارها و فناوری‌هایی که به آن‌ها تکیه می‌کنیم به دست آوریم.</p>
+        <ul>
+          <li>برنامه‌نویسی شبکه (Network Programming)</li>
+          <li>پروتکل‌ها و ارتباطات</li>
+          <li>HTTP به تفصیل</li>
+        </ul>
+        <p>با کدنویسیِ یک وب سرور، مهارت‌های برنامه‌نویسی شبکه، پروتکل HTTP و WebSocket را یاد می‌گیرید.</p>
+      </section>
+
+      <section>
+        <h2>فهرست مطالب</h2>
+
+        <h3>بخش اول: ساخت یک سرور HTTP پایه</h3>
+        <ol>
+          <li>مقدمه</li>
+          <li>مرور HTTP</li>
+          <li>کدنویسی یک سرور TCP</li>
+          <li>پرامیس‌ها (Promises) و رویدادها</li>
+          <li>یک پروتکل شبکهٔ ساده</li>
+          <li>معنا و نحو (Semantics and Syntax) HTTP</li>
+          <li>کدنویسی یک سرور HTTP پایه</li>
+        </ol>
+
+        <h3>بخش دوم: برنامه‌ها و افزونه‌ها</h3>
+        <ol start="8">
+          <li>محتوای پویا و استریمینگ</li>
+          <li>فایل IO و مدیریت منابع</li>
+          <li>درخواست‌های برد (Range Requests)</li>
+          <li>کش‌کردن HTTP</li>
+          <li>فشرده‌سازی و Stream API</li>
+          <li>WebSocket و همروندی</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>نسخه‌های PDF/EPUB و چاپی</h2>
+        <p>کتاب کامل برای خرید در دسترس است — نسخهٔ آنلاین رایگان بخش‌های اصلی را پوشش می‌دهد. در فهرست «Recommended Reading» نویسنده این منابع مکمل را پیشنهاد کرده است:</p>
+        <ul>
+          <li><strong>High Performance Browser Networking</strong> نوشتهٔ Ilya Grigorik — تمرکز بر ساخت برنامه‌های شبکهٔ سریع؛ کتابی عملی دربارهٔ شبکه برای انواع توسعه‌دهنده‌ها.</li>
+          <li><strong>Eloquent JavaScript</strong> نوشتهٔ Marijn Haverbeke — اگر برنامه‌نویس JS نیستید اما می‌خواهید این پروژه را دنبال کنید و یک سرور HTTP بنویسید، JS یکی از ساده‌ترین زبان‌ها برای شروع است.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>چرا از صفر بسازیم؟</h2>
+        <p>پروژه‌های «Build Your Own X» این‌جا در build-your-own.org شامل Redis، پایگاه داده، کامپایلر و وب سرور هستند. این رویکرد به شما اجازه می‌دهد همان‌طور که چرخ را دوباره اختراع می‌کنید، عمیقاً بفهمید چرخ واقعاً چگونه کار می‌کند — چیزی که هیچ آموزش سطح بالایی نمی‌تواند جایگزینش کند.</p>
+        <p>پس از این مقدمه، با فصل «HTTP Overview» شروع کنید، سپس یک سرور TCP با Node.js بسازید (ماژول <code class="inline">net</code>)، یک پروتکل ساده طراحی کنید و در نهایت سرور HTTP خودتان را با مفاهیم نحو و معنا (syntax و semantics) HTTP کامل کنید؛ در بخش دوم هم محتوای پویا، فایل IO، Range Requests، کش، فشرده‌سازی و نهایتاً WebSocket را اضافه می‌کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کتاب «Build Your Own Web Server From Scratch In Node.JS» اثر «جیمز اسمیت (James Smith)» است که در build-your-own.org منتشر شده.
+        این صفحه فقط ترجمه فارسی مقدمه و فهرست آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسنده اصلی است. برای مشاهده اصل مطلب به
+        <a href="https://build-your-own.org/webserver/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>  </footer>
+
+</body>
+</html>
