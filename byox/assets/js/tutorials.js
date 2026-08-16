@@ -2350,14 +2350,14 @@ window.TUTORIALS = [
     "file": "tutorials/lang-ocaml-lisp.html"
   },
   {
-    "id": "lang-crenshaw",
+    "id": "lang-crenshaw-pascal",
     "category": "زبان برنامه‌نویسی",
     "lang": "Pascal",
     "title": "بیایید یک کامپایلر بسازیم",
     "url": "https://compilers.iecc.com/crenshaw/",
     "video": false,
     "done": true,
-    "file": "tutorials/lang-crenshaw.html"
+    "file": "tutorials/lang-crenshaw-pascal.html"
   },
   {
     "id": "lang-python-interpreter-python",
