@@ -90,7 +90,7 @@ matchOne('p', '') -> false</code></pre>
   // حالت پایه - اگر الگو خالی باشد، هر متن ورودی مطابقت است
   else
     return (
-      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+      matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(1), text.slice(1))
     );
 }</code></pre>
         <p>کد بالا کاراکتربه‌کاراکتر روی جفت الگو/متن پیش می‌رود. اول <code>pattern[0]</code> را با <code>text[0]</code> مقایسه می‌کند، بعد <code>pattern[1]</code> را با <code>text[1]</code> و تا <code>i === pattern.length - 1</code> ادامه می‌دهد. اگر در هر نقطه مطابقت ندادند، می‌دانیم الگو نمی‌تواند با متن مطابقت کند.</p>
@@ -102,10 +102,10 @@ matchOne('p', '') -> false</code></pre>
         <p>پشتیبانی از کاراکتر ویژه الگو <code>$</code> را اضافه می‌کنیم که به ما اجازه می‌دهد پایان رشته را مطابقت دهیم. راه‌حل فقط به افزودن یک حالت پایه به تابع match نیاز دارد:</p>
         <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
   if (pattern === "") return true;
-  if (pattern === "$" && text === "") return true;
+  if (pattern === "$" &amp;&amp; text === "") return true;
   else
     return (
-      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+      matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(1), text.slice(1))
     );
 }</code></pre>
       </section>
@@ -153,7 +153,7 @@ search("a?b?c?", "") -> true</code></pre>
         <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
   if (pattern === "") {
     return true;
-  } else if (pattern === "$" && text === "") {
+  } else if (pattern === "$" &amp;&amp; text === "") {
     return true;
     // توجه کنید به pattern[1] نگاه می‌کنیم نه pattern[0].
     // pattern[0] کاراکتری است که باید صفر یا یک بار مطابقت کند.
@@ -161,7 +161,7 @@ search("a?b?c?", "") -> true</code></pre>
     return matchQuestion(pattern, text);
   } else {
     return (
-      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+      matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(1), text.slice(1))
     );
   }
 }</code></pre>
@@ -177,7 +177,7 @@ search("a?b?c?", "") -> true</code></pre>
 }</code></pre>
         <p>حالت دوم کمی چالش‌برانگیزتر است، اما مثل قبل از توابعی که قبلاً نوشته‌ایم دوباره استفاده می‌کند:</p>
         <pre class="code"><span class="lang-tag">js</span><code>function matchQuestion(pattern, text) {
-  if (matchOne(pattern[0], text[0]) && match(pattern.slice(2), text.slice(1))) {
+  if (matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(2), text.slice(1))) {
     return true;
   } else {
     return match(pattern.slice(2), text);
@@ -186,7 +186,7 @@ search("a?b?c?", "") -> true</code></pre>
         <p>اگر <code>text[0]</code> با <code>pattern[0]</code> مطابقت کند و بقیه متن (منهای بخشی که matchOne مطابقت داده) با بقیه الگو مطابقت داشته باشد، موفقیم. می‌توانیم کد را این‌گونه بازنویسی کنیم:</p>
         <pre class="code"><span class="lang-tag">js</span><code>function matchQuestion(pattern, text) {
   return (
-    (matchOne(pattern[0], text[0]) && match(pattern.slice(2), text.slice(1))) ||
+    (matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(2), text.slice(1))) ||
     match(pattern.slice(2), text)
   );
 }</code></pre>
@@ -204,7 +204,7 @@ search("a*b", "aaaaaaab")</code></pre>
         <pre class="code"><span class="lang-tag">js</span><code>function match(pattern, text) {
   if (pattern === "") {
     return true;
-  } else if (pattern === "$" && text === "") {
+  } else if (pattern === "$" &amp;&amp; text === "") {
     return true;
   } else if (pattern[1] === "?") {
     return matchQuestion(pattern, text);
@@ -212,7 +212,7 @@ search("a*b", "aaaaaaab")</code></pre>
     return matchStar(pattern, text);
   } else {
     return (
-      matchOne(pattern[0], text[0]) && match(pattern.slice(1), text.slice(1))
+      matchOne(pattern[0], text[0]) &amp;&amp; match(pattern.slice(1), text.slice(1))
     );
   }
 }</code></pre>
@@ -224,7 +224,7 @@ search("a*b", "aaaaaaab")</code></pre>
         <p>چون دو حالت هست که هر دو به مطابقت می‌انجامند، می‌دانیم <code>matchStar</code> را می‌توان با OR بولی پیاده کرد. علاوه بر این، حالت ۱ برای <code>matchStar</code> دقیقاً همان حالت ۱ برای <code>matchQuestion</code> است و می‌توان آن را یکسان پیاده کرد: <code>match(pattern.slice(2), text)</code>. یعنی فقط باید عبارتی بسازیم که حالت ۲ را برآورده کند:</p>
         <pre class="code"><span class="lang-tag">js</span><code>function matchStar(pattern, text) {
   return (
-    (matchOne(pattern[0], text[0]) && match(pattern, text.slice(1))) ||
+    (matchOne(pattern[0], text[0]) &amp;&amp; match(pattern, text.slice(1))) ||
     match(pattern.slice(2), text)
   );
 }</code></pre>

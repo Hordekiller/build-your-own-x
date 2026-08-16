@@ -103,7 +103,7 @@ type parseContext struct { // &lt;4>
         </ol>
         <p>حالا الگوریتم تحلیل ما:</p>
         <pre class="code"><span class="lang-tag">go</span><code>func parse(regex string) *parseContext {
-   ctx := &parseContext{
+   ctx := &amp;parseContext{
       pos:    0,
       tokens: []token{},
    }
@@ -120,7 +120,7 @@ type parseContext struct { // &lt;4>
         <pre class="code"><span class="lang-tag">go</span><code>func process(regex string, ctx *parseContext) {
     ch := regex[ctx.pos]
     if ch == '(' { // &lt;1>
-        groupCtx := &parseContext{
+        groupCtx := &amp;parseContext{
             pos:    ctx.pos,
             tokens: []token{},
         }
@@ -207,7 +207,7 @@ type parseContext struct { // &lt;4>
         <p>در نوبت بعدی <code>parseOr</code> است که جایگزینی‌ها <strong>(3)</strong> را تحلیل می‌کند:</p>
         <pre class="code"><span class="lang-tag">go</span><code>func parseOr(regex string, ctx *parseContext) {
     // &lt;1:start>
-    rhsContext := &parseContext{
+    rhsContext := &amp;parseContext{
         pos:    ctx.pos,
         tokens: []token{},
     }
@@ -365,22 +365,22 @@ func parseRepeat(regex string, ctx *parseContext) {
         <p>همان چیز در کد:</p>
         <pre class="code"><span class="lang-tag">go</span><code>const epsilonChar uint8 = 0 // کاراکتر خالی
 func toNfa(ctx *parseContext) *state {
-    startState, endState := tokenToNfa(&ctx.tokens[0]) // &lt;1>
+    startState, endState := tokenToNfa(&amp;ctx.tokens[0]) // &lt;1>
     for i := 1; i &lt; len(ctx.tokens); i++ { // &lt;2>
-        startNext, endNext := tokenToNfa(&ctx.tokens[i]) // &lt;3>
+        startNext, endNext := tokenToNfa(&amp;ctx.tokens[i]) // &lt;3>
         endState.transitions[epsilonChar] = append(
             endState.transitions[epsilonChar],
             startNext,
         ) // &lt;4>
         endState = endNext // &lt;5>
     }
-    start := &state{ // &lt;6>
+    start := &amp;state{ // &lt;6>
         transitions: map[uint8][]*state{
             epsilonChar: {startState},
         },
         start: true,
     }
-    end := &state{ // &lt;7>
+    end := &amp;state{ // &lt;7>
         transitions: map[uint8][]*state{},
         terminal:    true,
     }
@@ -404,10 +404,10 @@ func toNfa(ctx *parseContext) *state {
         <p>حالا که طرح کلی ساخت NFA را داریم، ببینیم هر توکن چگونه به NFA تبدیل می‌شود:</p>
         <pre class="code"><span class="lang-tag">go</span><code>// برمی‌گرداند (start, end)
 func tokenToNfa(t *token) (*state, *state) {
-    start := &state{
+    start := &amp;state{
         transitions: map[uint8][]*state{},
     }
-    end := &state{
+    end := &amp;state{
         transitions: map[uint8][]*state{},
     }
     switch t.tokenType {
@@ -442,8 +442,8 @@ func tokenToNfa(t *token) (*state, *state) {
     values := t.value.([]token)
     left := values[0]
     right := values[1]
-    s1, e1 := tokenToNfa(&left) // &lt;1>
-    s2, e2 := tokenToNfa(&right) // &lt;1>
+    s1, e1 := tokenToNfa(&amp;left) // &lt;1>
+    s2, e2 := tokenToNfa(&amp;right) // &lt;1>
     start.transitions[epsilonChar] = []*state{s1, s2} // &lt;2>
     e1.transitions[epsilonChar] = []*state{end} // &lt;3>
     e2.transitions[epsilonChar] = []*state{end} // &lt;3></code></pre>
@@ -470,9 +470,9 @@ func tokenToNfa(t *token) (*state, *state) {
 // group و groupUncaptured نیست
 case group, groupUncaptured:
     tokens := t.value.([]token)
-    start, end = tokenToNfa(&tokens[0])
+    start, end = tokenToNfa(&amp;tokens[0])
     for i := 1; i &lt; len(tokens); i++ {
-        ts, te := tokenToNfa(&tokens[i])
+        ts, te := tokenToNfa(&amp;tokens[i])
         end.transitions[epsilonChar] = append(
             end.transitions[epsilonChar],
             ts,
@@ -519,14 +519,14 @@ case group, groupUncaptured:
     } else {
         copyCount = p.max
     }
-    from, to := tokenToNfa(&p.token) // &lt;3>
+    from, to := tokenToNfa(&amp;p.token) // &lt;3>
     start.transitions[epsilonChar] = append( // &lt;4>
         start.transitions[epsilonChar],
         from,
     )
 
     for i := 2; i &lt;= copyCount; i++ { // &lt;5>
-        s, e := tokenToNfa(&p.token)
+        s, e := tokenToNfa(&amp;p.token)
         // پایان قبلی را به شروع این یکی وصل کن
         to.transitions[epsilonChar] = append( // &lt;6>
             to.transitions[epsilonChar],

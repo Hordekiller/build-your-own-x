@@ -83,6 +83,16 @@
         </ol>
         <p>به‌همراه <b>ضمیمه‌ها</b> (راهنمای حل‌شدن در آموزش: چه کنید اگر گیر کردید، از کجا کمک
         بگیرید) و <b>گزارش تغییرات</b> (Change Log).</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>// فصل ۲: ورود به حالت خام ترمینال با crossterm
+use crossterm::terminal::{enable_raw_mode, disable_raw_mode};
+
+fn main() -&gt; crossterm::Result&lt;()&gt; {
+    enable_raw_mode()?;    // خواندن کلیدها بدون Enter
+    // ...
+    disable_raw_mode()?;   // بازگشت به حالت عادی
+    Ok(())
+}</code></pre>
+        <p>از همین حالت خام، فصل‌های بعدی نمایشگر متن و سپس ویرایشگر کامل را بالا می‌آورند.</p>
       </section>
 
       <section>

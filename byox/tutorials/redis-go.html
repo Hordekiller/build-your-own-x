@@ -451,7 +451,7 @@ func main() {
 }
 
 func NewResp(rd io.Reader) *Resp {
-	return &Resp{reader: bufio.NewReader(rd)}
+	return &amp;Resp{reader: bufio.NewReader(rd)}
 }</code></pre>
         <p>بعداً از NewResp استفاده خواهیم کرد تا بافر را از اتصال (Connection)ای که در بخش ۱ ساختیم عبور دهیم.</p>
         <p>در این مرحله، دو تابع می‌سازیم که برای فرآیند تجزیه ضروری هستند:</p>
@@ -471,7 +471,7 @@ func NewResp(rd io.Reader) *Resp {
 		}
 		n += 1
 		line = append(line, b)
-		if len(line) >= 2 && line[len(line)-2] == '\r' {
+		if len(line) >= 2 &amp;&amp; line[len(line)-2] == '\r' {
 			break
 		}
 	}
@@ -629,7 +629,7 @@ type Resp struct {
 }
 
 func NewResp(rd io.Reader) *Resp {
-	return &Resp{reader: bufio.NewReader(rd)}
+	return &amp;Resp{reader: bufio.NewReader(rd)}
 }
 
 func (r *Resp) readLine() (line []byte, n int, err error) {
@@ -640,7 +640,7 @@ func (r *Resp) readLine() (line []byte, n int, err error) {
 		}
 		n += 1
 		line = append(line, b)
-		if len(line) >= 2 && line[len(line)-2] == '\r' {
+		if len(line) >= 2 &amp;&amp; line[len(line)-2] == '\r' {
 			break
 		}
 	}
@@ -948,7 +948,7 @@ func (v Value) marshallNull() []byte {
 }
 
 func NewWriter(w io.Writer) *Writer {
-	return &Writer{writer: w}
+	return &amp;Writer{writer: w}
 }</code></pre>
         <p>سپس متدی می‌سازیم که Value می‌گیرد و بایت‌هایی را که از متد Marshal می‌گیرد روی Writer می‌نویسد.</p>
         <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (w *Writer) Write(v Value) error {
@@ -1324,7 +1324,7 @@ ahmedash95.github.io</code></pre>
 		return nil, err
 	}
 
-	aof := &Aof{
+	aof := &amp;Aof{
 		file: f,
 		rd:   bufio.NewReader(f),
 	}

@@ -51,6 +51,19 @@
         <h2>درباره این آموزش</h2>
         <p>یک پلی‌لیست کامل ویدیویی برای ساخت ربات‌های Reddit با پایتون و کتابخانه PRAW؛ از مفاهیم پایه تا پروژه‌های عملی مثل پایش ساب‌ردیت‌ها، پاسخ به پیام‌ها و انتشار خودکار پست.</p>
         <p>ویدیوها به ترتیب ساخته شده‌اند؛ بهتر است از اول تماشا کنید.</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># اتصال به Reddit با PRAW و پایش یک ساب‌ردیت
+import praw
+
+reddit = praw.Reddit(
+    client_id="شناسه_برنامه",
+    client_secret="رمز_برنامه",
+    user_agent="my-bot/0.1",
+)
+
+for comment in reddit.subreddit("learnpython").stream.comments(skip_existing=True):
+    if "سلام" in comment.body:
+        comment.reply("سلام! خوش آمدید.")   # پاسخ خودکار</code></pre>
+        <p>همین حلقهٔ ساده پایهٔ تمام پروژه‌های عملی سری است: پایش، فیلتر و پاسخ خودکار.</p>
       </section>
 
       <section>

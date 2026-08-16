@@ -58,6 +58,14 @@
         بصری <b>p5.js</b> نشان داده می‌شود تا «مکانیک» شبکه دیده شود، نه فقط فرمول‌ها.
         برای بخشی از مطالب، کتاب <b>Make Your Own Neural Network</b> از تریک رشید مرجع
         شیفمن بوده است.</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// پرسپترون ساده در p5.js: مجموع وزن‌دار + فعال‌سازی پله‌ای
+function guess(inputs) {
+  let sum = 0;
+  for (let i = 0; i &lt; inputs.length; i++) {
+    sum += inputs[i] * this.weights[i];   // جمع وزن‌دار ورودی‌ها
+  }
+  return sum &gt; 0 ? 1 : -1;                // خروجی پله‌ای
+}</code></pre>
         <a class="btn solid" href="https://www.youtube.com/playlist?list=PLRqwX-V7Uu6aCibgK1PTWWu9by6XFdCfh" target="_blank" rel="noopener">▶ تماشای پلی‌لیست در یوتیوب</a>
       </section>
 

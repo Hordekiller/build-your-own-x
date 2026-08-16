@@ -76,7 +76,7 @@
   transformed_op = ours.dup
 
   if ours[:position] &gt; theirs[:position] ||
-    (ours[:position] == theirs[:position] && !win_tiebreakers)
+    (ours[:position] == theirs[:position] &amp;&amp; !win_tiebreakers)
     transformed_op[:position] =
       transformed_op[:position] + theirs[:text].length
   end

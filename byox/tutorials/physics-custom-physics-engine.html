@@ -34,7 +34,7 @@
       <div class="meta-row">
         <span class="meta-badge">⚙ زبان: C++</span>
         <span class="meta-badge">✅ ترجمه شده</span>
-        <span class="meta-badge"><a href="https://code.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+        <span class="meta-badge"><a href="https://gamedevelopment.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
@@ -44,7 +44,7 @@
           حل برخورد با ضربه، گام زمانی ثابت، معماری موتور، اصطکاک، جدول پرش برخورد و اجسام صلب جهت‌دار، به‌همراه
           موتور نمونهٔ متن‌باز ImpulseEngine.
         </div>
-        <a class="btn solid" href="https://code.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+        <a class="btn solid" href="https://gamedevelopment.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
     </header>
 
@@ -159,7 +159,7 @@ while( accumulator &gt;= dt ) {          // تا وقتی تکهٔ کافی هس
         </ol>
         <h3>طراحی ماژولار و ساختار Body</h3>
         <p>هر جسم فیزیکی به داده‌های مشخصی نیاز دارد؛ ولی جزئیات هر جسم کمی فرق دارد. مقاله یک ساختار
-        <code>Body</code> طراحی می‌کند با یک جا برای نیروها: این عضو <code>force</code> در начале هر
+        <code>Body</code> طراحی می‌کند با یک جا برای نیروها: این عضو <code>force</code> در آغازِ هر
         به‌روزرسانی صفر می‌شود؛ هر مؤلفهٔ موتور (مثل گرانش) بردارش را به آن اضافه می‌کند؛ درست قبل از
         یکپارچه‌سازی، همهٔ آن برای محاسبهٔ شتاب استفاده و بعد صفر می‌شود.</p>
         <h3>Broad Phase</h3>
@@ -213,7 +213,7 @@ CollisionCallback dispatch[ShapeType::COUNT][ShapeType::COUNT] = {
     ...
 };
 
-// فراخوانی: dispatch[shapeA.type][shapeB.type]( &m, bodyA, bodyB );</code></pre>
+// فراخوانی: dispatch[shapeA.type][shapeB.type]( &amp;m, bodyA, bodyB );</code></pre>
         <p>نکته: <code>AABBvsCircle</code> و <code>CirclevsAABB</code> تقریباً یکسان‌اند — یک‌شان فقط نرمال را
         برمی‌گرداند! این کار، رفتار یکسانِ حل‌کننده را برای هر ترکیب تضمین می‌کند.</p>
       </section>
@@ -269,7 +269,7 @@ j = ─────────────────────────�
         <strong>کپیرایت:</strong> مطالب سری «How to Create a Custom Physics Engine» اثر رندی گال (Randy Gaul)
         است که روی Envato Tuts+ منتشر شده. این صفحه ترجمهٔ فارسی و خلاصهٔ آموزشی آن است؛ تمام حقوق محتوا، کد
         و موتور نمونه ImpulseEngine متعلق به نویسنده است. صفحات اصلی:
-        <a href="https://code.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">سری در Tuts+</a>
+        <a href="https://gamedevelopment.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715" target="_blank" rel="noopener">سری در Tuts+</a>
         و
         <a href="https://github.com/tutsplus/ImpulseEngine" target="_blank" rel="noopener">گیت‌هاب ImpulseEngine</a>.
       </div>

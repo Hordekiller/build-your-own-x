@@ -35,7 +35,7 @@
         <span class="meta-badge">⚙ زبان: Shell + C</span>
         <span class="meta-badge">🐧 توزیع شخصی لینوکس</span>
         <span class="meta-badge">✅ ترجمه شده</span>
-        <span class="meta-badge"><a href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+        <span class="meta-badge"><a href="https://linuxfromscratch.org/lfs" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
@@ -45,7 +45,7 @@
           <b>بروس دابز (Bruce Dubbs)</b> است — یک توزیع کامل و عملاً کارآمد لینوکس
           که فقط با کامپایل کردن سورس همهٔ بسته‌ها، ساخته می‌شود.
         </div>
-        <a class="btn solid" href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+        <a class="btn solid" href="https://linuxfromscratch.org/lfs" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
     </header>
 
@@ -91,13 +91,13 @@
         ابزارهای موقت استفاده می‌شود و با <b>دستورات کوتاه‌کننده</b> از نگاه
         داشتن به فایل‌های سیستم میزبان جلوگیری می‌کنیم:</p>
         <pre class="code"><span class="lang-tag">bash</span><code># خلاصه‌ای از ساخت GCC pass 1 (فصل ۵ LFS)
-mkdir -v build && cd build
+mkdir -v build &amp;&amp; cd build
 ../configure --prefix=$LFS/tools \
     --with-local-prefix=$LFS/tools \
     --disable-nls --disable-shared --disable-libssp \
     --enable-languages=c --disable-bootstrap
 
-make -j$(nproc) && make install
+make -j$(nproc) &amp;&amp; make install
 
 # مهم‌ترین نکته: یک «گادز» مخصوص که کامپایلر را وادار
 # می‌کند هرگز به فایل‌های سیستم میزبان نگاه نکند
@@ -135,7 +135,7 @@ EOF</code></pre>
         Beekmans) و بروس دابز (Bruce Dubbs) است و به‌صورت متن‌باز منتشر شده. این صفحه فقط
         ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ
         اصلی است. برای مشاهدهٔ اصل مطلب به
-        <a href="https://www.linuxfromscratch.org/lfs/view/stable/" target="_blank" rel="noopener">سایت اصلی</a>
+        <a href="https://linuxfromscratch.org/lfs" target="_blank" rel="noopener">سایت اصلی</a>
         مراجعه کنید.
       </div>
     </article>

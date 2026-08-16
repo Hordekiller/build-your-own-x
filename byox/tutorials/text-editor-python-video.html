@@ -68,6 +68,19 @@
         خود را بسازد: ویرایشگری که می‌تواند فایل‌های متنی را باز کند، متن را ویرایش کند و نتیجه را ذخیره
         کند. پس از تماشا، اگر دنبال نسخهٔ مکتوب و کامل‌تر با tkinter هستید، آموزش
         «یک ویرایشگر متن ساده پایتون بساز!» (Instructables) در همین مجموعه را هم ببینید.</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>import tkinter as tk
+
+app = tk.Tk()
+text = tk.Text(app)                        # ناحیهٔ ویرایش متن
+text.pack(fill="both", expand=True)
+
+def save():
+    with open("file.txt", "w") as f:
+        f.write(text.get("1.0", "end"))    # ذخیرهٔ محتوا
+
+tk.Button(app, text="ذخیره", command=save).pack()
+app.mainloop()</code></pre>
+        <p>این چارچوبِ همان ویرایشگر ویدیو است؛ منوهای New/Open/Save به همین مدل callback اضافه می‌شوند.</p>
       </section>
 
       <section>

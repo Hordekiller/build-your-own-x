@@ -180,7 +180,7 @@ package.json</code></pre>
         <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
   isValid() {
     return this.parentHash === 'root' ||
-      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &amp;&amp;
       this.hash === sha256(this.nonce + this.parentHash).toString())
   }
 
@@ -239,7 +239,7 @@ package.json</code></pre>
         <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">class Block {
   isValid() {
     return this.parentHash === 'root' ||
-      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &amp;&amp;
       this.hash === this._calculateHash())
   }
 
@@ -291,7 +291,7 @@ class Blockchain {
 
     // بررسی اینکه والد عملاً وجود دارد و ارتفاع اعلام‌شده درست است
     const parent = this.blocks[block.parentHash];
-    if (parent === undefined && parent.height + 1 !== block.height )
+    if (parent === undefined &amp;&amp; parent.height + 1 !== block.height )
       return
 
     // اضافه‌کردن سکهٔ کوین‌بیس به استخر والد
@@ -354,7 +354,7 @@ class Blockchain {
 
   isValidTransaction(inputPublicKey, amount) {
     const utxo = this.utxos[inputPublicKey]
-    return utxo !== undefined && utxo.amount >= amount && amount > 0
+    return utxo !== undefined &amp;&amp; utxo.amount >= amount &amp;&amp; amount > 0
   }
 }</code></pre>
         <p>از آنجا که هشِ تراکنش‌ها را به محاسبهٔ هش بلاک اضافه می‌کنیم، سایر نودهای شبکه به‌راحتی می‌توانند تأیید کنند که
@@ -482,7 +482,7 @@ class UTXOPool {
 
   hasValidSignature() {
     return (
-      this.signature !== undefined &&
+      this.signature !== undefined &amp;&amp;
       verifySignature(this.hash, this.signature, this.inputPublicKey)
     );
   }
@@ -491,7 +491,7 @@ class UTXOPool {
 class Block {
   isValidTransaction(transaction) {
     return (
-      this.utxoPool.isValidTransaction(transaction) &&
+      this.utxoPool.isValidTransaction(transaction) &amp;&amp;
       transaction.hasValidSignature()
     );
   }
@@ -716,7 +716,7 @@ class Block {
   isValid() {
     return (
       this.isRoot() ||
-      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &&
+      (this.hash.substr(-DIFFICULTY) === "0".repeat(DIFFICULTY) &amp;&amp;
         this.hash === this._calculateHash())
     );
   }
@@ -745,7 +745,7 @@ class Block {
 
   isValidTransaction(transaction) {
     return (
-      this.utxoPool.isValidTransaction(transaction) &&
+      this.utxoPool.isValidTransaction(transaction) &amp;&amp;
       transaction.hasValidSignature()
     );
   }
@@ -891,7 +891,7 @@ class Blockchain {
 
     // بررسی اینکه والد عملاً وجود دارد و ارتفاع اعلام‌شده درست است
     const parent = this.blocks[block.parentHash];
-    if (parent === undefined && parent.height + 1 !== block.height) return;
+    if (parent === undefined &amp;&amp; parent.height + 1 !== block.height) return;
 
     const isParentMaxHeight = this.maxHeightBlock().hash === parent.hash;
 
@@ -912,7 +912,7 @@ class Blockchain {
         block.addTransaction(transaction);
 
         // اگر تراکنش در لیست در انتظار بلاک‌چین داشتیم و در بلندترین ارتفاع هستیم، آن را حذف کن
-        if (isParentMaxHeight && this.pendingTransactions[transaction.hash])
+        if (isParentMaxHeight &amp;&amp; this.pendingTransactions[transaction.hash])
           delete this.pendingTransactions[transaction.hash];
       } else {
         containsInvalidTransactions = true;
@@ -945,7 +945,7 @@ export default class Transaction {
 
   hasValidSignature() {
     return (
-      this.signature !== undefined &&
+      this.signature !== undefined &amp;&amp;
       verifySignature(this.hash, this.signature, this.inputPublicKey)
     );
   }
@@ -1023,7 +1023,7 @@ export default class UTXOPool {
   isValidTransaction(transaction) {
     const { inputPublicKey, amount, fee } = transaction
     const utxo = this.utxos[inputPublicKey]
-    return utxo !== undefined && utxo.amount >= (amount + fee) && amount > 0
+    return utxo !== undefined &amp;&amp; utxo.amount >= (amount + fee) &amp;&amp; amount > 0
   }
 
   addingTransactionErrorMessage(transaction) {

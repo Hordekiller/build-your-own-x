@@ -50,6 +50,13 @@
       <section>
         <h2>درباره این آموزش</h2>
         <p>با این آموزش ویدیویی یک پرتال ARKit بسازید که شما را به دنیای معروف Upside Down (از سریال Stranger Things) می‌برد؛ ترکیبی از تکنیک‌های پیشرفته رندر و افکت‌های ویدیویی.</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// افزودن یک پرتال ساده به صحنه در ARKit با SceneKit
+var portal = new SCNNode {
+    Geometry = SCNBox.Create(1f, 2f, 0.05f, 0)
+};
+portal.Position = new SCNVector3(0, 1, -2);
+sceneView.Scene.RootNode.AddChildNode(portal);   // دوربین درون دوربین بعداً اضافه می‌شود</code></pre>
+        <p>در ویدیو همین گرهٔ پایه با دوربین ثانویه و افکت‌های نوری تکمیل می‌شود تا نمای «دنیای دیگر» از داخل پرتال ساخته شود.</p>
       </section>
 
       <section>

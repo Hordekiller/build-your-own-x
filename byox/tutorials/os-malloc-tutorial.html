@@ -91,7 +91,7 @@ void *global_base = NULL;  // ابتدای لیست بلوک‌ها</code></pre>
     block_meta_t *block;
 
     // هم‌ترازی ۸ بایتی اندازه
-    size = (size + ALIGN - 1) & ~(ALIGN - 1);
+    size = (size + ALIGN - 1) &amp; ~(ALIGN - 1);
 
     if (!global_base) {
         // اولین بار: یک بلوک اولیه از سیستم می‌گیریم
@@ -100,7 +100,7 @@ void *global_base = NULL;  // ابتدای لیست بلوک‌ها</code></pre>
         global_base = block;
     } else {
         // جست‌وجوی یک بلوک آزادِ به‌اندازه
-        block = find_free_block(global_base, &size);
+        block = find_free_block(global_base, &amp;size);
         if (!block) {
             block = request_space(global_base, size);
             if (!block) return NULL;
@@ -127,7 +127,7 @@ void *global_base = NULL;  // ابتدای لیست بلوک‌ها</code></pre>
     block->magic = 0;
 
     // ادغام با بلوک آزادِ بعدی
-    if (block->next && block->next->free) {
+    if (block->next &amp;&amp; block->next->free) {
         block->size += META_SIZE + block->next->size;
         block->next = block->next->next;
     }

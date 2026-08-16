@@ -282,7 +282,7 @@ import (
 	mux := makeMuxRouter()
 	httpAddr := os.Getenv("ADDR")
 	log.Println("Listening on ", os.Getenv("ADDR"))
-	s := &http.Server{
+	s := &amp;http.Server{
 		Addr:           ":" + httpAddr,
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
@@ -335,7 +335,7 @@ import (
 	var m Message
 
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&m); err != nil {
+	if err := decoder.Decode(&amp;m); err != nil {
 		respondWithJSON(w, r, http.StatusBadRequest, r.Body)
 		return
 	}

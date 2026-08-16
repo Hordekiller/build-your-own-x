@@ -293,7 +293,7 @@ const Any = Symbol('Any');</code></pre>
     match (str) {
         let state = this.start,
             chars = Array.from(str);
-        if ((chars.length === 0) && (state === EmptyString)) { return true; }
+        if ((chars.length === 0) &amp;&amp; (state === EmptyString)) { return true; }
         for (let i = 0; i &lt; chars.length; i++) {
             let char = chars[i];
             state = state.derive(char);
@@ -355,14 +355,14 @@ const EmptyString = new _EmptyString();</code></pre>
     match (str) {
         let state = this.start,
             chars = Array.from(str);
-        if ((chars.length === 0) && state.matchEnd()) { return true; }
+        if ((chars.length === 0) &amp;&amp; state.matchEnd()) { return true; }
         for (let i = 0; i &lt; chars.length; i++) {
             let char = chars[i];
             state = state.derive(char);
-            if (state.matchEnd() && (i === (chars.length - 1))) {
+            if (state.matchEnd() &amp;&amp; (i === (chars.length - 1))) {
                 // پایان regex و پایان رشته؛ مطابقت موفق
                 return true;
-            } else if (state.matchEnd() && !state.canMatchMore()) {
+            } else if (state.matchEnd() &amp;&amp; !state.canMatchMore()) {
                 // پایان regex اما نه پایان رشته؛ مطابقت نمی‌کند
                 return false;
             }

@@ -183,7 +183,7 @@ Allowed arguments:
         <pre class="code"><span class="lang-tag">nim</span><code style="direction:ltr;text-align:left">  try:
     stow(getLinkableFiles(appPath=app, dest=dest), simulate=simulate, verbose=verbose, force=force)
   except ValueError:
-    echo "Error happened: " & getCurrentExceptionMsg()</code></pre>
+    echo "Error happened: " &amp; getCurrentExceptionMsg()</code></pre>
         <p>در اینجا تلاش می‌کنیم همهٔ فایل‌های قابل لینک در دایرکتوری <code class="inline">app</code> را به دایرکتوری
         <code class="inline">dest</code> لینک کنیم و همهٔ گزینه‌هایی را که از آرگومان‌های خط فرمان جمع‌آوری کرده‌ایم —
         یعنی <code class="inline">simulate</code>، <code class="inline">verbose</code> و <code class="inline">force</code> —

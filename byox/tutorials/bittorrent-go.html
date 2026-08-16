@@ -166,11 +166,11 @@ type bencodeTorrent struct {
 // Open یک فایل تورنت را تجزیه می‌کند
 func Open(r io.Reader) (*bencodeTorrent, error) {
     bto := bencodeTorrent{}
-    err := bencode.Unmarshal(r, &bto)
+    err := bencode.Unmarshal(r, &amp;bto)
     if err != nil {
         return nil, err
     }
-    return &bto, nil
+    return &amp;bto, nil
 }</code></pre>
         <p>
           چون دوست دارم ساختارهایم نسبتاً تخت باشند و ساختارهای کاربردی برنامه را از ساختارهای سریال‌سازی جدا نگه دارم، یک
@@ -439,7 +439,7 @@ func Read(r io.Reader) (*Message, error) {
         Payload: messageBuf[1:],
     }
 
-    return &m, nil
+    return &amp;m, nil
 }</code></pre>
         <p>
           یکی از جالب‌ترین انواع پیام، <b>بیت‌فیلد (bitfield)</b> است؛ یک ساختار داده که همتاها با آن به‌شکل کارآمد کدگذاری
@@ -461,7 +461,7 @@ type Bitfield []byte
 func (bf Bitfield) HasPiece(index int) bool {
     byteIndex := index / 8 // کدام بایت
     offset := index % 8    // کدام بیت در آن بایت
-    return bf[byteIndex]>>(7-offset)&1 != 0
+    return bf[byteIndex]>>(7-offset)&amp;1 != 0
 }
 
 // SetPiece یک بیت را در بیت‌فیلد به ۱ می‌کند
@@ -489,7 +489,7 @@ workQueue := make(chan *pieceWork, len(t.PieceHashes))
 results := make(chan *pieceResult)
 for index, hash := range t.PieceHashes {
     length := t.calculatePieceSize(index)
-    workQueue &lt;- &pieceWork{index, hash, length}
+    workQueue &lt;- &amp;pieceWork{index, hash, length}
 }
 
 // کارگرها را راه‌اندازی می‌کنیم
@@ -547,7 +547,7 @@ func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork
         }
 
         c.SendHave(pw.index)
-        results &lt;- &pieceResult{pw.index, buf}
+        results &lt;- &amp;pieceResult{pw.index, buf}
     }
 }</code></pre>
         <p>
@@ -629,7 +629,7 @@ func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
     for state.downloaded &lt; pw.length {
         // اگر خفه نیستیم، درخواست بفرست تا درخواست‌های برآورده‌نشده کافی داشته باشیم
         if !state.client.Choked {
-            for state.backlog &lt; MaxBacklog && state.requested &lt; pw.length {
+            for state.backlog &lt; MaxBacklog &amp;&amp; state.requested &lt; pw.length {
                 blockSize := MaxBlockSize
                 // آخرین بلاک ممکن است کوتاه‌تر از بلاک معمولی باشد
                 if pw.length-state.requested &lt; blockSize {

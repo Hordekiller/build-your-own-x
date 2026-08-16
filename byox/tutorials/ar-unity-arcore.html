@@ -51,6 +51,13 @@
         <h2>درباره این آموزش</h2>
         <p>یک پلی‌لیست کامل برای یادگیری ARCore گوگل در Unity؛ از مفاهیم پایه واقعیت افزوده روی اندروید تا پروژه‌های عملی مثل تشخیص سطوح و قرار دادن اشیا.</p>
         <p>ویدیوها به ترتیب ساخته شده‌اند؛ بهتر است از اول تماشا کنید.</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// raycast روی صفحه‌های شناسایی‌شده و قرار دادن شیء (AR Foundation)
+if (arRaycastManager.Raycast(touchPos, hits,
+        TrackableType.PlaneWithinPolygon)) {
+    var pose = hits[0].pose;                    // موقعیت برخورد پرتو
+    Instantiate(prefab, pose.position, pose.rotation);
+}</code></pre>
+        <p>تشخیص صفحه و raycast دو مهارت اصلی پلی‌لیست هستند و بقیهٔ پروژه‌ها روی همین پایه ساخته می‌شوند.</p>
       </section>
 
       <section>

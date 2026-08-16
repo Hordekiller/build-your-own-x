@@ -69,6 +69,15 @@
         <p>این ویدیو برای کسانی که می‌خواهند «مغز» یک موتور جست‌وجو را — بدون پیچیدگی‌های توزیع‌شده — با
         چشم خود ببینند، بهترین نقطهٔ شروع است. اگر پس از تماشا دنبال تمرین مکتوب هستید، آموزش‌های
         «TF-IDF» و «ایندکس‌گذاری فضای برداری» همین مجموعه مکمل‌های عالی‌اند.</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># نمایهٔ معکوس: هر واژه → فهرست (شناسهٔ سند، موقعیت)
+index = {}
+for doc_id, words in enumerate(documents):
+    for pos, word in enumerate(words):
+        index.setdefault(word, []).append((doc_id, pos))
+
+def search(query):
+    return index.get(query, [])   # جست‌وجو مستقیم در نمایه، بدون اسکن اسناد</code></pre>
+        <p>این همان ساختار داده‌ای است که ویدیو می‌سازد؛ n-gram ها هم فقط «واژه‌های» چندتایی با همین نگاشت‌اند.</p>
       </section>
 
       <section>

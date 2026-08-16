@@ -51,6 +51,13 @@
         <h2>درباره این آموزش</h2>
         <p>یک آموزش سرگرم‌کننده و عملی: یک اژدهای سه‌بعدی را با Unity و ARCore روی سطوح واقعی رها کنید و انیمیشن و تعامل آن را ببینید.</p>
         <p>مناسب برای تکمیل مهارت‌های پایه ARCore با یک پروژه جذاب.</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// قرار دادن اژدها روی صفحهٔ شناسایی‌شده (Unity + AR Foundation)
+public void OnPlaneHit(ARRaycastHit hit) {
+    dragon.transform.position = hit.pose.position;   // نقطهٔ تماس پرتو
+    dragon.transform.rotation = hit.pose.rotation;
+    dragon.SetActive(true);                          // فعال‌شدن مدل
+}</code></pre>
+        <p>همین دو خط موقعیت‌دهی، پایهٔ تعامل لمسی است که در ویدیو کامل می‌شود.</p>
       </section>
 
       <section>

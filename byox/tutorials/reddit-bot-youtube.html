@@ -51,6 +51,14 @@
         <h2>درباره این آموزش</h2>
         <p>در این آموزش ویدیویی گام‌به‌گام یاد می‌گیرید یک ربات Reddit با پایتون بسازید؛ از ساخت اپلیکیشن در Reddit و دریافت اعتبارنامه‌ها تا نوشتن اسکریپتی که به‌طور خودکار به نظرات و پست‌ها پاسخ می‌دهد.</p>
         <p>ویدیو مفاهیم پایه API و خودکارسازی را با مثال عملی نشان می‌دهد.</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># دریافت جدیدترین پست‌های یک ساب‌ردیت با درخواست مستقیم
+import requests
+
+url = "https://www.reddit.com/r/Python/new.json"
+data = requests.get(url, headers={"User-Agent": "byox-bot/0.1"}).json()
+for post in data["data"]["children"][:5]:
+    print(post["data"]["title"])   # عنوان پست‌های تازه</code></pre>
+        <p>ربات ویدیو همین داده را پایش می‌کند و بر اساس قواعدش به‌صورت خودکار پاسخ می‌دهد.</p>
       </section>
 
       <section>

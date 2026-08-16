@@ -322,8 +322,8 @@ order_price_tiered8 <- 99999
         </ul>
         <pre class="code"><span class="lang-tag">r</span><code style="direction:ltr;text-align:left"># حلقهٔ معاملاتی واقعی
 if(curr_bal_usd() >= 20){    # اگر بیش از ۲۰ دلار داشتیم، حلقه را شروع کن
-  if(curr_rsi14_api >= 30 &    # و RSI فعلی بزرگ‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
-     rsi14_api_less_one <= 30 &    # RSI بسته‌شدهٔ قبلی کوچک‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
+  if(curr_rsi14_api >= 30 &amp;    # و RSI فعلی بزرگ‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
+     rsi14_api_less_one <= 30 &amp;    # RSI بسته‌شدهٔ قبلی کوچک‌تر یا مساوی ۳۰ باشد  # نسخهٔ ۲
      rsi14_api_less_two < 30 | rsi14_api_less_three < 30 | rsi14_api_less_four < 30) {    # RSI دوره‌های i-2، i-3 یا i-4 کمتر از ۳۰ باشد  # نسخهٔ ۲
     
     # ۱ خرید

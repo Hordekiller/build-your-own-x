@@ -98,7 +98,7 @@ app.use(express.json());
 
 // تأیید وب‌هوک توسط فیسبوک
 app.get('/webhook', (req, res) => {
-  if (req.query['hub.mode'] === 'subscribe' &&
+  if (req.query['hub.mode'] === 'subscribe' &amp;&amp;
       req.query['hub.verify_token'] === VERIFY_TOKEN) {
     res.status(200).send(req.query['hub.challenge']);
   } else {
@@ -113,7 +113,7 @@ app.post('/webhook', (req, res) => {
     body.entry.forEach(entry => {
       entry.messaging.forEach(event => {
         const senderId = event.sender.id;
-        if (event.message && event.message.text) {
+        if (event.message &amp;&amp; event.message.text) {
           handleMessage(senderId, event.message.text);
         }
       });

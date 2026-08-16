@@ -69,6 +69,14 @@
           <li><b>امنیت و عملکرد</b>: اسکریپت‌های متقاطع (XSS)، مرور ایمن، کشینگ و بهینه‌سازی
           زمان اجرا.</li>
         </ul>
+        <pre class="code"><span class="lang-tag">Python</span><code># فصل ۱ کتاب: دانلود یک صفحه با درخواست HTTP ساده
+import socket
+
+s = socket.create_connection(("example.com", 80))
+s.sendall(b"GET / HTTP/1.0\r\nHost: example.com\r\n\r\n")
+body = s.recv(65536).decode("utf-8")
+print(body.split("\r\n\r\n", 1)[1])   # جداکردن سربرگ‌ها از بدنه</code></pre>
+        <p>بقیهٔ فصل‌ها همین بدنهٔ خام را به DOM، چیدمان و پیکسل تبدیل می‌کنند.</p>
       </section>
 
       <section>

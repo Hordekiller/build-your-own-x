@@ -103,9 +103,9 @@ int matchhere(char *regexp, char *text)
         return 1;
     if (regexp[1] == '*')
         return matchstar(regexp[0], regexp+2, text);
-    if (regexp[0] == '$' && regexp[1] == '\0')
+    if (regexp[0] == '$' &amp;&amp; regexp[1] == '\0')
         return *text == '\0';
-    if (*text!='\0' && (regexp[0]=='.' || regexp[0]==*text))
+    if (*text!='\0' &amp;&amp; (regexp[0]=='.' || regexp[0]==*text))
         return matchhere(regexp+1, text+1);
     return 0;
 }
@@ -116,7 +116,7 @@ int matchstar(int c, char *regexp, char *text)
     do {    /* * با صفر یا بیشتر رخداد مطابقت دارد */
         if (matchhere(regexp, text))
             return 1;
-    } while (*text != '\0' && (*text++ == c || c == '.'));
+    } while (*text != '\0' &amp;&amp; (*text++ == c || c == '.'));
     return 0;
 }</code></pre>
       </section>
@@ -140,10 +140,10 @@ int matchstar(int c, char *regexp, char *text)
         <h2>جایگزین‌ها</h2>
         <p>این قطعه کد بسیار الگانت و خوش‌نویسی است، اما کامل نیست. چه کاری می‌توان متفاوت انجام داد؟ شاید <code>matchhere</code> را طوری مرتب کنم که <code>$</code> را قبل از <code>*</code> اداره کند. هرچند اینجا فرقی نمی‌کند، اما کمی طبیعی‌تر به نظر می‌رسد؛ و قاعده خوب آن است که کارهای آسان قبل از کارهای سخت انجام شوند.</p>
         <p>اما به‌طور کلی، ترتیب آزمون‌ها حیاتی است. مثلاً در این آزمون از <code>matchstar</code>:</p>
-        <pre class="code"><span class="lang-tag">c</span><code>} while (*text != '\0' && (*text++ == c || c == '.'));</code></pre>
+        <pre class="code"><span class="lang-tag">c</span><code>} while (*text != '\0' &amp;&amp; (*text++ == c || c == '.'));</code></pre>
         <p>در هر صورت باید روی یک کاراکتر بیشتر از متن پیش برویم، بنابراین افزایش <code>text++</code> باید همیشه انجام شود.</p>
         <p>این کد درباره شرایط پایان دقت دارد. به‌طور کلی، موفقیت مطابقت با این تعیین می‌شود که آیا عبارت باقاعده هم‌زمان با متن تمام می‌شود. اگر با هم تمام شوند، مطابقت است؛ اگر یکی قبل از دیگری تمام شود، مطابقت نیست. این امر شاید در خطی مانند</p>
-        <pre class="code"><span class="lang-tag">c</span><code>if (regexp[0] == '$' && regexp[1] == '\0')
+        <pre class="code"><span class="lang-tag">c</span><code>if (regexp[0] == '$' &amp;&amp; regexp[1] == '\0')
     return *text == '\0';</code></pre>
         <p>آشکارترین باشد، اما شرایط پایان ظریفی در جاهای دیگر هم ظاهر می‌شوند.</p>
         <p>نسخه <code>matchstar</code> که مطابقت چپ‌ترین-<em>طولانی‌ترین</em> را پیاده می‌کند، ابتدا با شناسایی دنباله بیشینه رخدادهای کاراکتر c شروع می‌کند. سپس از <code>matchhere</code> برای تلاش به گسترش مطابقت به بقیه الگو و متن استفاده می‌کند. هر شکست، تعداد cها را یکی کم می‌کند و دوباره امتحان می‌کند، از جمله حالت صفر رخداد.</p>
@@ -152,7 +152,7 @@ int matchstar(int c, char *regexp, char *text)
 {
 	char *t;
 
-	for (t = text; *t != '\0' && (*t == c || c == '.'); t++)
+	for (t = text; *t != '\0' &amp;&amp; (*t == c || c == '.'); t++)
 		;
 	do {	/* * با صفر یا بیشتر مطابقت دارد */
 		if (matchhere(regexp, t))

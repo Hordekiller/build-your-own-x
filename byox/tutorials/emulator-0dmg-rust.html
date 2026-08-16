@@ -163,7 +163,7 @@ Addr_0007:
         <h3>تصفیهٔ کد: توابع ابزار بیتی</h3>
         <p>منطق اشتباهِ big-endian در سطح بایت و بیت در چند متد دسترسی ثبات تکراری شده بود:</p>
 
-        <pre class="code"><span class="lang-tag">rust</span><code>fn set_h_flag(&mut self, value: bool) {
+        <pre class="code"><span class="lang-tag">rust</span><code>fn set_h_flag(&amp;mut self, value: bool) {
     self.flag_register = (self.flag_register &amp; 0b11011111) + (if value { 0b00100000 } else { 0 });
 }</code></pre>
 

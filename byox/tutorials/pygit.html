@@ -128,7 +128,7 @@ def read_index():
     assert len(entries) == num_entries
     return entries</code></pre>
         <p>بعد از آن <code>ls_files</code>، <code>status</code> و <code>diff</code> می‌آیند که ر�وش‌های مختلف چاپ وضعیت index هستند: <code>ls_files</code> همه فایل‌های index را چاپ می‌کند، <code>status</code> با <code>get_status()</code> فایل‌های index را با فایل‌های پوشه فعلی مقایسه می‌کند و فایل‌های تغییرکرده/جدید/حذف‌شده را نشان می‌دهد و <code>diff</code> تفاوت هر فایل تغییرکرده را با ماژول <code>difflib</code> پایتون نشان می‌دهد. مثال — مجموعه‌سازی برای محاسبه فایل‌های تغییرکرده:</p>
-        <pre class="code"><span class="lang-tag">python</span><code>changed = {p for p in (paths & entry_paths)
+        <pre class="code"><span class="lang-tag">python</span><code>changed = {p for p in (paths &amp; entry_paths)
            if hash_object(read_file(p), 'blob', write=False) !=
               entries_by_path[p].sha1.hex()}</code></pre>
         <p>در نهایت <code>write_index</code> برای نوشتن index و <code>add()</code> که یک یا چند مسیر را اضافه می‌کند: کل index را می‌خواند، مسیرها را اضافه و مرتب می‌کند و دوباره می‌نویسد. حالا می‌توانیم فایل‌ها را به index اضافه کنیم و آماده commit شویم.</p>
@@ -285,12 +285,12 @@ def find_missing_objects(local_sha1, remote_sha1):
     obj_type, data = read_object(obj)
     type_num = ObjectType[obj_type].value
     size = len(data)
-    byte = (type_num &lt;&lt; 4) | (size & 0x0f)
+    byte = (type_num &lt;&lt; 4) | (size &amp; 0x0f)
     size >>= 4
     header = []
     while size:
         header.append(byte | 0x80)
-        byte = size & 0x7f
+        byte = size &amp; 0x7f
         size >>= 7
     header.append(byte)
     return bytes(header) + zlib.compress(data)

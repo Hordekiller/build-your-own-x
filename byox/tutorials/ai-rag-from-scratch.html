@@ -92,6 +92,19 @@
           <li><strong>نمره‌دهی (Scoring):</strong> بازیابی با نمره‌دهی نوعگذاری‌شده (type-aware) و مقایسهٔ معیارهای مختلف بازیابی</li>
         </ul>
         <p>ویدیوها گام‌به‌گام این مفاهیم را با کد پیاده‌سازی می‌کنند و نوتبوک‌های مخزن همان کدها را به‌صورت قابل اجرا نگه می‌دارند.</p>
+        <pre class="code"><span class="lang-tag">Python</span><code># چرخهٔ پایهٔ RAG: ایندکس‌گذاری → بازیابی → تولید
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# ۱) ایندکس‌گذاری: اسناد را خرد می‌کنیم و برداریشان می‌سازیم
+chunks = RecursiveCharacterTextSplitter(chunk_size=500).split_documents(docs)
+index = FAISS.from_documents(chunks, embeddings)
+
+# ۲) بازیابی: نزدیک‌ترین اسناد به پرس‌وجو
+hits = index.similarity_search("سؤال کاربر", k=4)
+
+# ۳) تولید: اسناد بازیابی‌شده را به‌عنوان زمینه به مدل می‌دهیم
+answer = llm.invoke(f"بر اساس این اسناد پاسخ بده:\n{hits}")</code></pre>
+        <p>همین سه گام، هستهٔ تمام نوتبوک‌های مخزن است؛ ویدیوهای بعدی هر گام را عمیق‌تر می‌کنند (بازیابی پیشرفته، مسیریابی، نمره‌دهی و…).</p>
       </section>
 
       <section>

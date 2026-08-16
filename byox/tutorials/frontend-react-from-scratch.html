@@ -86,6 +86,16 @@
           کاربر — هستهٔ واکنش‌گرایی React.</li>
           <li><b>معماری diff</b>: ایدهٔ مقایسهٔ دو درخت و اعمال حداقل تغییرات لازم.</li>
         </ul>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// قلب React: تبدیل عنصر به DOM واقعی
+function render(element, container) {
+  const node = document.createElement(element.type);
+  node.textContent = element.props.children;
+  for (const name in element.props) {
+    node[name] = element.props[name];   // اعمال صفات
+  }
+  container.appendChild(node);
+}</code></pre>
+        <p>سخنرانی همین تابع ساده را با Instance ها، state و diff کامل می‌کند.</p>
       </section>
 
       <section>

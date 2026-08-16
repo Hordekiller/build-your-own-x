@@ -350,7 +350,7 @@ data class Block(val previousHash: String,   // هش بلوک قبلی
                         currentBlock.previousHash != previousBlock.calculateHash() -> return false
 
                         // هر دو بلوک باید استخراج شده باشند
-                        !(isMined(previousBlock) && isMined(currentBlock)) -> return false
+                        !(isMined(previousBlock) &amp;&amp; isMined(currentBlock)) -> return false
                     }
                 }
                 return true
@@ -686,7 +686,7 @@ data class Block(val previousHash: String,                                      
                     when {
                         currentBlock.hash != currentBlock.calculateHash() -> return false
                         currentBlock.previousHash != previousBlock.calculateHash() -> return false
-                        !(isMined(previousBlock) && isMined(currentBlock)) -> return false
+                        !(isMined(previousBlock) &amp;&amp; isMined(currentBlock)) -> return false
                     }
                 }
                 return true

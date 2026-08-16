@@ -69,6 +69,15 @@
           <li><strong>زنجیرهٔ فرایندها:</strong> چطور فرایند «والد» فرایند «فرزند» را داخل namespace های ایزوله راه‌اندازی می‌کند</li>
         </ul>
         <p>این ویدیو نقطهٔ شروع عالی‌ای برای هر کسی است که می‌خواهد بفهمد کانتینرها واقعاً در سطح سیستمعامل چطور کار می‌کنند.</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// هستهٔ کانتینر: اجرای فرایند فرزند در namespace های ایزوله
+cmd := exec.Command("/proc/self/exe", "child")
+cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+    Cloneflags: syscall.CLONE_NEWUTS | // نام‌میزبان جدا
+        syscall.CLONE_NEWPID |         // درخت فرایند جدا
+        syscall.CLONE_NEWNS,           // mount جدا
+}
+cmd.Run()</code></pre>
+        <p>همین چند پرچم، همان کاری است که در ویدیو با حدود ۱۰۰ خط Go کامل می‌شود؛ cgroups هم بعداً محدودیت منابع را اضافه می‌کند.</p>
 
         <h2>مشاهده ویدیو</h2>
         <p>ویدیو را می‌توانید مستقیماً از یوتیوب تماشا کنید:</p>

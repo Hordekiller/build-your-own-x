@@ -119,7 +119,7 @@
           در ادامه و طبق قراردادهای زبان Go، تابعی را پیاده‌سازی می‌کنیم که ساخت یک بلاک را ساده می‌کند:
         </p>
         <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}}
+	block := &amp;Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}}
 	block.SetHash()
 	return block
 }</code></pre>
@@ -159,7 +159,7 @@
 }</code></pre>
         <p>حالا می‌توانیم تابعی پیاده‌سازی کنیم که بلاک‌چینی با بلاک پیدایش می‌سازد:</p>
         <pre class="code"><span class="lang-tag">Go</span><code>func NewBlockchain() *Blockchain {
-	return &Blockchain{[]*Block{NewGenesisBlock()}}
+	return &amp;Blockchain{[]*Block{NewGenesisBlock()}}
 }</code></pre>
         <p>بیایید بررسی کنیم که بلاک‌چین درست کار می‌کند:</p>
         <pre class="code"><span class="lang-tag">Go</span><code>func main() {
@@ -322,7 +322,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
 
-	pow := &ProofOfWork{b, target}
+	pow := &amp;ProofOfWork{b, target}
 
 	return pow
 }</code></pre>
@@ -406,7 +406,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
         </ol>
         <p>به همان آسانی که قبلاً توضیح داده شد. حالا می‌توانیم متد <code>SetHash</code> بلاک را حذف کنیم و تابع <code>NewBlock</code> را تغییر دهیم:</p>
         <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+	block := &amp;Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 
@@ -614,7 +614,7 @@ PoW: true</code></pre>
         <p>بیایید متد <code>Serialize</code> بلاک را پیاده‌سازی کنیم (پردازش خطاها برای اختصار حذف شده است):</p>
         <pre class="code"><span class="lang-tag">Go</span><code>func (b *Block) Serialize() []byte {
 	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
+	encoder := gob.NewEncoder(&amp;result)
 
 	err := encoder.Encode(b)
 
@@ -632,9 +632,9 @@ PoW: true</code></pre>
 	var block Block
 
 	decoder := gob.NewDecoder(bytes.NewReader(d))
-	err := decoder.Decode(&block)
+	err := decoder.Decode(&amp;block)
 
-	return &block
+	return &amp;block
 }</code></pre>
         <p>و این هم تمام کار سریال‌سازی!</p>
 
@@ -684,7 +684,7 @@ PoW: true</code></pre>
 
 	bc := Blockchain{tip, db}
 
-	return &bc
+	return &amp;bc
 }</code></pre>
         <p>بیایید این را قطعه‌به‌قطعه بررسی کنیم.</p>
         <pre class="code"><span class="lang-tag">Go</span><code>db, err := bolt.Open(dbFile, 0600, nil)</code></pre>
@@ -794,7 +794,7 @@ bc.tip = newBlock.Hash</code></pre>
           <code>Blockchain</code> ساخته می‌شود:
         </p>
         <pre class="code"><span class="lang-tag">Go</span><code>func (bc *Blockchain) Iterator() *BlockchainIterator {
-	bci := &BlockchainIterator{bc.tip, bc.db}
+	bci := &amp;BlockchainIterator{bc.tip, bc.db}
 
 	return bci
 }</code></pre>
@@ -1125,7 +1125,7 @@ PoW: true</code></pre>
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
 	tx.SetID()
 
-	return &tx
+	return &amp;tx
 }</code></pre>
         <p>
           یک تراکنش کوین‌بیس فقط یک ورودی دارد. در پیاده‌سازی ما <code>Txid</code> آن خالی است و <code>Vout</code>
@@ -1157,7 +1157,7 @@ PoW: true</code></pre>
 }</code></pre>
         <p><code>NewBlock</code> و <code>NewGenesisBlock</code> نیز باید بر این اساس تغییر کنند:</p>
         <pre class="code"><span class="lang-tag">Go</span><code>func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+	block := &amp;Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
 	...
 }
 
@@ -1405,7 +1405,7 @@ Balance of 'Ivan': 10</code></pre>
 	tx := Transaction{nil, inputs, outputs}
 	tx.SetID()
 
-	return &tx
+	return &amp;tx
 }</code></pre>
         <p>
           قبل از ساخت خروجی‌های جدید، اول باید همه خروجی‌های خرج‌نشده را پیدا کنیم و مطمئن شویم مقدار کافی ذخیره
@@ -2132,7 +2132,7 @@ Balance of '1NE86r4Esjf53EL7fR86CsfTZpNN42Sfab': 6</code></pre>
 	...
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
-	// bc.SignTransaction(&tx, wallet.PrivateKey)
+	// bc.SignTransaction(&amp;tx, wallet.PrivateKey)
 
 	return &amp;tx
 }</code></pre>

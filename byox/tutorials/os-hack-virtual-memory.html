@@ -87,7 +87,7 @@ int read_byte(pid_t pid, long addr) {
 
     int fd = open(path, O_RDONLY);
     char byte;
-    pread(fd, &byte, 1, addr);   // خواندن یک بایت از آدرس داده‌شده
+    pread(fd, &amp;byte, 1, addr);   // خواندن یک بایت از آدرس داده‌شده
     close(fd);
     return byte;
 }</code></pre>
@@ -108,7 +108,7 @@ int write_byte(pid_t pid, long addr, char value) {
     snprintf(path, sizeof path, "/proc/%d/mem", pid);
 
     int fd = open(path, O_WRONLY);
-    pwrite(fd, &value, 1, addr);
+    pwrite(fd, &amp;value, 1, addr);
     close(fd);
     return 0;
 }</code></pre>

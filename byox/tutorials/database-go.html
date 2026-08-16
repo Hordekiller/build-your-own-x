@@ -1365,7 +1365,7 @@ func (tree *BTree) Delete(key []byte) bool {
         return false // not found
     }
     tree.del(tree.root)
-    if updated.btype() == BNODE_NODE && updated.nkeys() == 1 {
+    if updated.btype() == BNODE_NODE &amp;&amp; updated.nkeys() == 1 {
         // remove the root node.
         tree.root = updated.getPtr(0)
     } else {
@@ -1395,7 +1395,7 @@ func (tree *BTree) Delete(key []byte) bool {
     pages map[uint64]BNode // in-memory pages
 }
 func newC() *C {
-    c := &C{}
+    c := &amp;C{}
     c.pages = map[uint64]BNode{}
     c.tree.get = func(ptr uint64) []byte {
         return c.pages[ptr]
@@ -1543,7 +1543,7 @@ func (tree *BTree) Get(key []byte) ([]byte, bool) {
         <p>اما استفادهٔ مجدد از صفحات حذف‌شده به یک لیست آزاد نیاز دارد و یک لیست آزاد نیاز دارد که صفحات از پایین فایل
         نیز تخصیص داده شوند:</p>
         <pre class="code"><span class="lang-tag">go</span><code style="direction:ltr;text-align:left">func (db *KV) pageAlloc(node BNode) uint64 {
-    if len(db.page.free.nodes) != 0 && db.page.nused+1 < db.page.flushed {
+    if len(db.page.free.nodes) != 0 &amp;&amp; db.page.nused+1 < db.page.flushed {
         // reuse a page from the free list
         ptr := db.page.freePop()
         db.pageAppend(node)

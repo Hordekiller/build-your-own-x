@@ -89,13 +89,13 @@ const torrent = fs.readFileSync('puppy.torrent');
 console.log(torrent.toString('utf8'));</code></pre>
         <p>readFileSync ساده‌ترین راه برای خواندن محتوای یک فایل است. اما اگر این کد را اجرا کنید می‌فهمید که readFileSync یک <strong>بافر</strong> (buffer) برمی‌گرداند، نه یک رشته. بعداً خواهید دید که همه پیام‌های شبکه ما به صورت بافر فرستاده و دریافت می‌شوند، پس مهم است درک خوبی از نحوه کار آن‌ها داشته باشید. اگر با بافرها در node.js آشنایی ندارید، یک راهنمای کوچک درباره بافرها نوشته‌ام (<a href="https://allenkim67.github.io/2016/05/seeing-node-buffers.html" target="_blank" rel="noopener">اینجا</a>). خلاصه کلام اینکه بافرها دنباله‌ای از بایت‌های خام را نشان می‌دهند. اگر می‌خواهید بافر را به صورت رشته بخوانید باید یک طرح رمزگذاری (encoding) مشخص کنید (می‌بینید که بالا از utf-8 استفاده کردم).</p>
         <p>خروجی باید چیزی شبیه این بوده باشد:</p>
-        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'d8:announce43:udp://tracker.coppersurfer.tk:6969/announce10:created by13:uTorrent/187013:creation datei1462355939e8:encoding5:UTF-84:infod6:lengthi124234e4:name9:puppy.jpg12:piece lengthi16384e6:pieces160:T�k�/�_(�S\u0011h%���+]q'B\u0018�٠:����p"�j����1-g"\u0018�s(\u001b\u000f���V��=�h�m\u0017a�nF�2���N\r�ǩ�_�\u001e"2���'�wO���-;\u0004ע\u0017�ؑ��L&����0\u001f�D_9��\t\\��O�h,n\u001a5g�(��仑,�\\߰�%��U��\u0019��C\u0007>��df��ee'</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'d8:announce43:udp://tracker.coppersurfer.tk:6969/announce10:created by13:uTorrent/187013:creation datei1462355939e8:encoding5:UTF-84:infod6:lengthi124234e4:name9:puppy.jpg12:piece lengthi16384e6:pieces160:T�k�/�_(�S\u0011h%���+]q'B\u0018�٠:����p"�j����1-g"\u0018�s(\u001b\u000f���V��=�h�m\u0017a�nF�2���N\r�ǩ�_�\u001e"2���'�wO���-;\u0004ע\u0017�ؑ��L&amp;����0\u001f�D_9��\t\\��O�h,n\u001a5g�(��仑,�\\߰�%��U��\u0019��C\u0007>��df��ee'</code></pre>
 
         <h3>۲.۱ بنکد (Bencode)</h3>
         <p><em>* Github commit #2: باز کردن تورنت، گرفتن URL ترکر</em></p>
         <p>آن خروجی احتمالاً برایتان کاملاً غیرقابل‌فهم به نظر رسید، و دلیلش این است که احتمالاً هرگز نام بنکد را نشنیده‌اید. بنکد یک قالب سریال‌سازی داده است و فکر نمی‌کنم جایی خارج از فایل‌های تورنت از آن استفاده شده باشد. اما شاید با JSON یا XML آشنا باشید و بنکد اساساً همان ایده است؛ فقط یک قالب کمی متفاوت استفاده می‌کند.</p>
         <p>داده‌های یکسان بالا را در JSON ببینید:</p>
-        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&amp;����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
         <p>آن باید کمی آشناتر به نظر برسد (به‌جز خاصیت pieces که بعداً به آن می‌رسم). هرچند نوشتن parser بنکد خودمان ممکن است، کتابخانه‌های متن‌باز خوبی وجود دارند که این کار را برای ما انجام می‌دهند. من فقط جستجو کردم «bencode node» و اولین نتیجه را نصب کردم:</p>
         <pre class="code"><span class="lang-tag">shell</span><code style="direction:ltr;text-align:left">npm install --save bencode</code></pre>
         <p>حالا می‌توانیم تورنت‌مان را به داده‌ای که قابلیت تعامل دارد تجزیه کنیم:</p>
@@ -456,7 +456,7 @@ tracker.getPeers(torrent, peers => {
 
         <h3>۳.۳.۳.۱ هش اطلاعات (Info Hash)</h3>
         <p>حالا برگردیم به وقتی که اول فایل تورنت را باز کردیم. یادتان هست شبیه این بود:</p>
-        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
+        <pre class="code"><span class="lang-tag">text</span><code style="direction:ltr;text-align:left">'{"announce":"udp://tracker.coppersurfer.tk:6969/announce","created by":"uTorrent/1870","creation date":1462355939,"encoding":"UTF-8","info":{"length":124234,"name":"puppy.jpg","piece length":16384,"pieces":"T�k�/�_(�S\\u0011h%���+]q'B\\u0018�٠:����p\\"�j����1-g\\"\\u0018�s(\\u001b\\u000f���V��=�h�m\\u0017a�nF�2���N\\r�ǩ�_�\\u001e\\"2���'�wO���-;\\u0004ע\\u0017�ؑ��L&amp;����0\\u001f�D_9��\\t\\\\��O�h,n\\u001a5g�(��仑,�\\\\߰�%��U��\\u0019��C\\u0007>��df��"}}'</code></pre>
         <p>دفعه قبل خاصیت announce را از این آبجکت بیرون کشیدیم. می‌بینید که یک خاصیت info هم دارد؟ اگر خاصیت info را بردارید و از تابع هش SHA1 عبورش دهید، هش اطلاعات (info hash) را می‌گیرید! می‌توانید با ماژول داخلی crypto به راحتی هش SHA1 اعمال کنید.</p>
         <p><strong>torrent-parser.js:</strong></p>
         <pre class="code"><span class="lang-tag">js</span><code style="direction:ltr;text-align:left">// بقیه فایل برای صرفه‌جویی در فضا حذف شده است
@@ -780,7 +780,7 @@ module.exports.buildPort = payload => {
     const msgLen = () => handshake ? savedBuf.readUInt8(0) + 49 : savedBuf.readInt32BE(0) + 4;
     savedBuf = Buffer.concat([savedBuf, recvBuf]);
 
-    while (savedBuf.length >= 4 && savedBuf.length >= msgLen()) {
+    while (savedBuf.length >= 4 &amp;&amp; savedBuf.length >= msgLen()) {
       callback(savedBuf.slice(0, msgLen())); // پاس دادن یک پیام کامل به callback
       savedBuf = savedBuf.slice(msgLen());   // حذف آن پیام از بافر
       handshake = false;
@@ -827,7 +827,7 @@ function msgHandler(msg, socket) {
 
 // 3 — بررسی اینکه پیام دست دادن است
 function isHandshake(msg) {
-  return msg.length === msg.readUInt8(0) + 49 &&
+  return msg.length === msg.readUInt8(0) + 49 &amp;&amp;
     msg.toString('utf8', 1) === 'BitTorrent protocol';
 }</code></pre>
         <p>از تابع buildHandshake که در فایل message.js ساختیم استفاده می‌کنیم، اما این متد به آبجکت تورنت نیاز دارد، پس حالا آن را از طریق تابع download پاس می‌دهیم.</p>
@@ -1069,7 +1069,7 @@ function onWholeMsg(socket, callback) {
     const msgLen = () => handshake ? savedBuf.readUInt8(0) + 49 : savedBuf.readInt32BE(0) + 4;
     savedBuf = Buffer.concat([savedBuf, recvBuf]);
 
-    while (savedBuf.length >= 4 && savedBuf.length >= msgLen()) {
+    while (savedBuf.length >= 4 &amp;&amp; savedBuf.length >= msgLen()) {
       callback(savedBuf.slice(0, msgLen()));
       savedBuf = savedBuf.slice(msgLen());
       handshake = false;
@@ -1094,7 +1094,7 @@ function msgHandler(msg, socket, pieces, queue) {
 }
 
 function isHandshake(msg) {
-  return msg.length === msg.readUInt8(0) + 49 &&
+  return msg.length === msg.readUInt8(0) + 49 &amp;&amp;
     msg.toString('utf8', 1) === 'BitTorrent protocol';
 }
 

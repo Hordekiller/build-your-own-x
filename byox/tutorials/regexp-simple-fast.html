@@ -154,7 +154,7 @@ post2nfa(char *postfix)
         <p><strong>لیترال‌ها:</strong></p>
         <pre class="code"><span class="lang-tag">c</span><code>default:
 	s = state(*p, NULL, NULL);
-	push(frag(s, list1(&s->out)));
+	push(frag(s, list1(&amp;s->out)));
 	break;</code></pre>
         <p><strong>الحاق:</strong></p>
         <pre class="code"><span class="lang-tag">c</span><code>case '.':
@@ -174,21 +174,21 @@ post2nfa(char *postfix)
         <pre class="code"><span class="lang-tag">c</span><code>case '?':
 	e = pop();
 	s = state(Split, e.start, NULL);
-	push(frag(s, append(e.out, list1(&s->out1))));
+	push(frag(s, append(e.out, list1(&amp;s->out1))));
 	break;</code></pre>
         <p><strong>صفر یا بیشتر:</strong></p>
         <pre class="code"><span class="lang-tag">c</span><code>case '*':
 	e = pop();
 	s = state(Split, e.start, NULL);
 	patch(e.out, s);
-	push(frag(s, list1(&s->out1)));
+	push(frag(s, list1(&amp;s->out1)));
 	break;</code></pre>
         <p><strong>یک یا بیشتر:</strong></p>
         <pre class="code"><span class="lang-tag">c</span><code>case '+':
 	e = pop();
 	s = state(Split, e.start, NULL);
 	patch(e.out, s);
-	push(frag(e.start, list1(&s->out1)));
+	push(frag(e.start, list1(&amp;s->out1)));
 	break;</code></pre>
       </section>
 
@@ -207,8 +207,8 @@ match(State *start, char *s)
 	List *clist, *nlist, *t;
 
 	/* l1 و l2 گلوبال‌های از پیش تخصیص‌داده‌شده هستند */
-	clist = startlist(start, &l1);
-	nlist = &l2;
+	clist = startlist(start, &amp;l1);
+	nlist = &amp;l2;
 	for(; *s; s++){
 		step(clist, *s, nlist);
 		t = clist; clist = nlist; nlist = t;	/* clist و nlist را جابه‌جا کن */

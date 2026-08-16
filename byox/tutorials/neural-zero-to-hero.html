@@ -59,6 +59,21 @@
         در مخزن <a href="https://github.com/karpathy/nn-zero-to-hero" target="_blank" rel="noopener">karpathy/nn-zero-to-hero</a>
         منتشر شده‌اند.</p>
         <a class="btn solid" href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank" rel="noopener">▶ تماشای پلی‌لیست در یوتیوب</a>
+        <pre class="code"><span class="lang-tag">Python</span><code># micrograd: یک Value با گراف محاسباتی برای autodiff
+class Value:
+    def __init__(self, data):
+        self.data = data
+        self.grad = 0
+        self._backward = lambda: None
+
+    def __add__(self, other):
+        out = Value(self.data + other.data)
+        def _bw():                        # پخش گرادیان
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = _bw
+        return out</code></pre>
+        <p>جلسهٔ اول همین کلاس را می‌سازد و همهٔ شبکه‌ها و مدل‌های زبانی دوره بر پایهٔ همین گراف ساخته می‌شوند.</p>
       </section>
 
       <section>

@@ -51,6 +51,15 @@
         <h2>درباره این آموزش</h2>
         <p>در این آموزش ویدیویی گام‌به‌گام یاد می‌گیرید یک اپ واقعیت افزوده (AR) را از صفر با Unity 3D و Vuforia بسازید؛ از ساخت پروژه و تنظیم لایسنس Vuforia تا نمایش مدل‌های سه‌بعدی روی تصاویر نشانه‌گذار (Image Target).</p>
         <p>این ویدیو برای مبتدیان طراحی شده و پیش‌نیاز خاصی جز نصب Unity ندارد.</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// نمایش مدل سه‌بعدی وقتی Image Target شناسایی شد (Vuforia)
+public class TargetHandler : MonoBehaviour, ITrackableEventHandler {
+  public GameObject model;   // مدل سه‌بعدیِ متصل به نشانه‌گذار
+
+  void OnTrackableStateChanged(TrackableBehaviour.Status st) {
+    model.SetActive(st == TrackableBehaviour.Status.TRACKED);
+  }
+}</code></pre>
+        <p>در ویدیو همین منطق ساده با تنظیم لایسنس Vuforia و ساخت Image Target کامل می‌شود.</p>
       </section>
 
       <section>

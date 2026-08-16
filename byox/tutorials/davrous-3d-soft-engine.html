@@ -298,7 +298,7 @@ namespace SoftEngine
         public void DrawPoint(Vector2 point)
         {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
+            if (point.X >= 0 &amp;&amp; point.Y >= 0 &amp;&amp; point.X &lt; bmp.PixelWidth &amp;&amp; point.Y &lt; bmp.PixelHeight)
             {
                 // رسم یک نقطه زرد
                 PutPixel((int)point.X, (int)point.Y, new Color4(1.0f, 1.0f, 0.0f, 1.0f));
@@ -403,8 +403,8 @@ module SoftEngine {
         // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
         public drawPoint(point: BABYLON.Vector2): void {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
-                                             && point.y &lt; this.workingHeight) {
+            if (point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth
+                                             &amp;&amp; point.y &lt; this.workingHeight) {
                 // رسم یک نقطه زرد
                 this.putPixel(point.x, point.y, new BABYLON.Color4(1, 1, 0, 1));
             }
@@ -497,8 +497,8 @@ module SoftEngine {
         // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
         Device.prototype.drawPoint = function (point) {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
-                                             && point.y &lt; this.workingHeight) {
+            if (point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth
+                                             &amp;&amp; point.y &lt; this.workingHeight) {
                 // رسم یک نقطه زرد
                 this.putPixel(point.x, point.y, new BABYLON.Color4(1, 1, 0, 1));
             }
@@ -1034,7 +1034,7 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
     while (true) {
         DrawPoint(new Vector2(x0, y0));
 
-        if ((x0 == x1) && (y0 == y1)) break;
+        if ((x0 == x1) &amp;&amp; (y0 == y1)) break;
         var e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
         if (e2 &lt; dx) { err += dx; y0 += sy; }
@@ -1055,7 +1055,7 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
     while (true) {
         this.drawPoint(new BABYLON.Vector2(x0, y0));
 
-        if ((x0 == x1) && (y0 == y1)) break;
+        if ((x0 == x1) &amp;&amp; (y0 == y1)) break;
         var e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
         if (e2 &lt; dx) { err += dx; y0 += sy; }
@@ -1074,7 +1074,7 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
     var err = dx - dy;
     while(true) {
         this.drawPoint(new BABYLON.Vector2(x0, y0));
-        if((x0 == x1) && (y0 == y1)) break;
+        if((x0 == x1) &amp;&amp; (y0 == y1)) break;
         var e2 = 2 * err;
         if(e2 > -dy) { err -= dy; x0 += sx; }
         if(e2 &lt; dx) { err += dx; y0 += sy; }
@@ -1198,7 +1198,7 @@ public LoadJSONFileAsync(fileName: string, callback: (result: Mesh[]) => any): v
     xmlhttp.open("GET", fileName, true);
     var that = this;
     xmlhttp.onreadystatechange = function () {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        if (xmlhttp.readyState == 4 &amp;&amp; xmlhttp.status == 200) {
             jsonObject = JSON.parse(xmlhttp.responseText);
             callback(that.CreateMeshesFromJSON(jsonObject));
         }
@@ -1272,7 +1272,7 @@ Device.prototype.LoadJSONFileAsync = function (fileName, callback) {
     xmlhttp.open("GET", fileName, true);
     var that = this;
     xmlhttp.onreadystatechange = function () {
-        if(xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        if(xmlhttp.readyState == 4 &amp;&amp; xmlhttp.status == 200) {
             jsonObject = JSON.parse(xmlhttp.responseText);
             callback(that.CreateMeshesFromJSON(jsonObject));
         }
@@ -1535,7 +1535,7 @@ public Vector3 Project(Vector3 coord, Matrix transMat)
 public void DrawPoint(Vector2 point, Color4 color)
 {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
+    if (point.X >= 0 &amp;&amp; point.Y >= 0 &amp;&amp; point.X &lt; bmp.PixelWidth &amp;&amp; point.Y &lt; bmp.PixelHeight)
     {
         // رسم یک نقطه
         PutPixel((int)point.X, (int)point.Y, color);
@@ -1559,7 +1559,7 @@ public project(coord: BABYLON.Vector3, transMat: BABYLON.Matrix): BABYLON.Vector
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 public drawPoint(point: BABYLON.Vector2, color: BABYLON.Color4): void {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
+    if (point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth &amp;&amp; point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, color);
     }
@@ -1581,8 +1581,8 @@ Device.prototype.project = function (coord, transMat) {
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 Device.prototype.drawPoint = function (point, color) {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
-                                        && point.y &lt; this.workingHeight) {
+    if (point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth
+                                        &amp;&amp; point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, color);
     }
@@ -2081,7 +2081,7 @@ public Vector3 Project(Vector3 coord, Matrix transMat)
 public void DrawPoint(Vector3 point, Color4 color)
 {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
+    if (point.X >= 0 &amp;&amp; point.Y >= 0 &amp;&amp; point.X &lt; bmp.PixelWidth &amp;&amp; point.Y &lt; bmp.PixelHeight)
     {
         // رسم یک نقطه
         PutPixel((int)point.X, (int)point.Y, point.Z ,color);
@@ -2189,7 +2189,7 @@ public project(coord: BABYLON.Vector3, transMat: BABYLON.Matrix): BABYLON.Vector
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 public drawPoint(point: BABYLON.Vector3, color: BABYLON.Color4): void {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
+    if (point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth &amp;&amp; point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, point.z, color);
     }
@@ -2284,7 +2284,7 @@ Device.prototype.project = function (coord, transMat) {
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 Device.prototype.drawPoint = function (point, color) {
     // برش آنچه روی صفحه دیده می‌شود
-    if(point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
+    if(point.x >= 0 &amp;&amp; point.y >= 0 &amp;&amp; point.x &lt; this.workingWidth &amp;&amp; point.y &lt; this.workingHeight) {
         // رسم یک نقطه
         this.putPixel(point.x, point.y, point.z, color);
     }

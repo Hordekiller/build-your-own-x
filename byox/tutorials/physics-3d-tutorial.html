@@ -72,6 +72,19 @@
           <li>کلاس <b>بردار سه‌بعدی</b> (Vec3): جمع، تفریق، ضرب اسکالر، ضرب داخلی، ضرب خارجی، اندازه و نرمال‌سازی</li>
           <li>کلاس <b>ماتریس ۴×۴</b> و <b>کواترنیون</b> برای چرخش — چون چرخش سه‌بعدی با زاویهٔ ساده قابل نمایش نیست</li>
         </ul>
+        <pre class="code"><span class="lang-tag">C++</span><code>// هستهٔ کلاس بردار سه‌بعدی — همان چیزی که سری اول می‌سازد
+struct Vec3 {
+  float x, y, z;
+
+  Vec3 operator+(const Vec3&amp; o) const { return {x + o.x, y + o.y, z + o.z}; }
+  Vec3 operator*(float s)     const { return {x * s,   y * s,   z * s};   }
+
+  float dot(const Vec3&amp; o) const { return x * o.x + y * o.y + z * o.z; }
+  Vec3  cross(const Vec3&amp; o) const {
+    return {y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x};
+  }
+  Vec3 normalized() const { return *this * (1.0f / sqrt(dot(*this))); }
+};</code></pre>
         <h3>مرحلهٔ ۲ — پایهٔ فیزیک</h3>
         <ul>
           <li><b>قوانین حرکت نیوتن</b> و مفاهیم نیرو، جرم، شتاب، سرعت و موقعیت</li>

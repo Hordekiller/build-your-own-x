@@ -35,7 +35,7 @@
         <span class="meta-badge">⚙ زبان: C + Assembly</span>
         <span class="meta-badge">⌨️ وقفه + درگاه I/O</span>
         <span class="meta-badge">✅ ترجمه شده</span>
-        <span class="meta-badge"><a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+        <span class="meta-badge"><a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
       </div>
 
       <div class="sourcebox">
@@ -45,7 +45,7 @@
           support»</b> از <b>ارجون سری‌داران</b> است — ادامهٔ Kernel 101 که
           پشتیبانی صفحه‌کلید و صفحه‌نمایش را به هسته اضافه می‌کند.
         </div>
-        <a class="btn solid" href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+        <a class="btn solid" href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
       </div>
     </header>
 
@@ -87,9 +87,9 @@ void move_cursor(int row, int col) {
     unsigned short pos = row * 80 + col;
 
     outb(0x3D4, 14);            // رجیستر «بایت بالایی» را انتخاب کن
-    outb(0x3D5, (pos >> 8) & 0xFF);  // بایت بالا
+    outb(0x3D5, (pos >> 8) &amp; 0xFF);  // بایت بالا
     outb(0x3D4, 15);            // رجیستر «بایت پایینی»
-    outb(0x3D5, pos & 0xFF);    // بایت پایین
+    outb(0x3D5, pos &amp; 0xFF);    // بایت پایین
 }</code></pre>
       </section>
 
@@ -137,7 +137,7 @@ qemu-system-i386 -cdrom os.iso</code></pre>
         Sreedharan) است و در arjunsreedharan.org منتشر شده. این صفحه فقط ترجمهٔ فارسی و
         مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای
         مشاهدهٔ اصل مطلب به
-        <a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard-and-screen-support" target="_blank" rel="noopener">سایت اصلی</a>
+        <a href="https://arjunsreedharan.org/post/99370248137/kernel-201-lets-write-a-kernel-with-keyboard" target="_blank" rel="noopener">سایت اصلی</a>
         مراجعه کنید.
       </div>
     </article>
