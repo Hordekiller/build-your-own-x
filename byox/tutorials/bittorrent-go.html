@@ -272,7 +272,7 @@ func Unmarshal(peersBin []byte) ([]Peer, error) {
         return nil, err
     }
     peers := make([]Peer, numPeers)
-    for i := 0; i < numPeers; i++ {
+    for i := 0; i &lt; numPeers; i++ {
         offset := i * peerSize
         peers[i].IP = net.IP(peersBin[offset : offset+4])
         peers[i].Port = binary.BigEndian.Uint16(peersBin[offset+4 : offset+6])
@@ -396,7 +396,7 @@ type Message struct {
 }
 
 // Serialize یک پیام را به بافری به شکل
-// <پیشوند طول><شناسه پیام><بار>
+// &lt;پیشوند طول>&lt;شناسه پیام>&lt;بار>
 // سریال می‌کند. مقدار nil به‌عنوان پیام keep-alive تفسیر می‌شود
 func (m *Message) Serialize() []byte {
     if m == nil {
@@ -468,7 +468,7 @@ func (bf Bitfield) HasPiece(index int) bool {
 func (bf Bitfield) SetPiece(index int) {
     byteIndex := index / 8
     offset := index % 8
-    bf[byteIndex] |= 1 << (7 - offset)
+    bf[byteIndex] |= 1 &lt;&lt; (7 - offset)
 }</code></pre>
 
         <h3>کنار هم قرار دادن همه‌چیز</h3>
@@ -489,7 +489,7 @@ workQueue := make(chan *pieceWork, len(t.PieceHashes))
 results := make(chan *pieceResult)
 for index, hash := range t.PieceHashes {
     length := t.calculatePieceSize(index)
-    workQueue <- &pieceWork{index, hash, length}
+    workQueue &lt;- &pieceWork{index, hash, length}
 }
 
 // کارگرها را راه‌اندازی می‌کنیم
@@ -500,8 +500,8 @@ for _, peer := range t.Peers {
 // نتیجه‌ها را در بافر جمع می‌کنیم تا پر شود
 buf := make([]byte, t.Length)
 donePieces := 0
-for donePieces < len(t.PieceHashes) {
-    res := <-results
+for donePieces &lt; len(t.PieceHashes) {
+    res := &lt;-results
     begin, end := t.calculateBoundsForPiece(res.index)
     copy(buf[begin:end], res.buf)
     donePieces++
@@ -527,7 +527,7 @@ func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork
 
     for pw := range workQueue {
         if !c.Bitfield.HasPiece(pw.index) {
-            workQueue <- pw // همتا این قطعه را ندارد؛ دوباره به صف برگردان
+            workQueue &lt;- pw // همتا این قطعه را ندارد؛ دوباره به صف برگردان
             continue
         }
 
@@ -535,19 +535,19 @@ func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork
         buf, err := attemptDownloadPiece(c, pw)
         if err != nil {
             log.Println("Exiting", err)
-            workQueue <- pw // قطعه را دوباره به صف برگردان
+            workQueue &lt;- pw // قطعه را دوباره به صف برگردان
             return
         }
 
         err = checkIntegrity(pw, buf)
         if err != nil {
             log.Printf("Piece #%d failed integrity check\n", pw.index)
-            workQueue <- pw // قطعه را دوباره به صف برگردان
+            workQueue &lt;- pw // قطعه را دوباره به صف برگردان
             continue
         }
 
         c.SendHave(pw.index)
-        results <- &pieceResult{pw.index, buf}
+        results &lt;- &pieceResult{pw.index, buf}
     }
 }</code></pre>
         <p>
@@ -626,13 +626,13 @@ func attemptDownloadPiece(c *client.Client, pw *pieceWork) ([]byte, error) {
     c.Conn.SetDeadline(time.Now().Add(30 * time.Second))
     defer c.Conn.SetDeadline(time.Time{}) // ددلاین را غیرفعال کن
 
-    for state.downloaded < pw.length {
+    for state.downloaded &lt; pw.length {
         // اگر خفه نیستیم، درخواست بفرست تا درخواست‌های برآورده‌نشده کافی داشته باشیم
         if !state.client.Choked {
-            for state.backlog < MaxBacklog && state.requested < pw.length {
+            for state.backlog &lt; MaxBacklog && state.requested &lt; pw.length {
                 blockSize := MaxBlockSize
                 // آخرین بلاک ممکن است کوتاه‌تر از بلاک معمولی باشد
-                if pw.length-state.requested < blockSize {
+                if pw.length-state.requested &lt; blockSize {
                     blockSize = pw.length - state.requested
                 }
 

@@ -278,7 +278,7 @@ def repo_dir(repo, *path, mkdir=False):
     # حالت پایه
     # =========
     # اگر خط جدید اول باشد، پیام نهایی است: با کلید None ذخیره و برگرد
-    if (spc < 0) or (nl < spc):
+    if (spc &lt; 0) or (nl &lt; spc):
         assert nl == start
         dct[None] = raw[start+1:]
         return dct
@@ -380,7 +380,7 @@ def tree_parse(raw):
     pos = 0
     max = len(raw)
     ret = list()
-    while pos < max:
+    while pos &lt; max:
         pos, data = tree_parse_one(raw, pos)
         ret.append(data)
     return ret</code></pre>

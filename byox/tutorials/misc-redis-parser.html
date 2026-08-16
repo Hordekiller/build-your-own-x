@@ -71,7 +71,7 @@ type RespValue = object
 proc parseSimple(line: string): RespValue =
   result = RespValue(kind: rSimple, s: line)
 
-# پارس bulk string: $len\r\n<payload>\r\n
+# پارس bulk string: $len\r\n&lt;payload>\r\n
 proc parseBulk(data: seq[string], idx: var int): RespValue =
   let len = parseBiggestInt(data[idx]); inc idx
   if len == -1:

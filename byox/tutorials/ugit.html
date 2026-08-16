@@ -78,7 +78,7 @@
 
 def hash_object(data: bytes, type_: str = "blob") -&gt; str:
     """یک شیء بنویس و شناسه اش را برگردان"""
-    raw = type_.encode() + b"\x00" + data   # قالب: <نوع>\x00<داده>
+    raw = type_.encode() + b"\x00" + data   # قالب: &lt;نوع>\x00&lt;داده>
     oid = hashlib.sha1(raw).hexdigest()
     path = repo("objects", oid)
     os.makedirs(os.path.dirname(path), exist_ok=True)

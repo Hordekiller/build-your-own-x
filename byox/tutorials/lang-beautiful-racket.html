@@ -71,7 +71,8 @@
   (require racket/base syntax/readerr)
   (provide read-syntax)
   (define (read-syntax src in)
-    ...))</code></pre>
+    (define datum (read in))
+    (datum->syntax #f `(module forms ,datum))))</code></pre>
         <p>این الگو مبنای همهٔ زبان‌های Beautiful Racket است: هر فایل با `#lang` به این ماژول متصل می‌شود و خواندن ورودی به عهدهٔ ریدر شماست. گام بعدی اضافه‌کردن ماکروهای معنایی است که ساختار خام را به اجرا تبدیل کنند.</p>
       </section>
 

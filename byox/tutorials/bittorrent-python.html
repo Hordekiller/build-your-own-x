@@ -254,7 +254,7 @@ length', 524288), (b'pieces', b'\x1at\xfc\x84\xc8\xfaV\xeb\x12\x1c\xc5\xa4\x1c?\
         <p>شناسهٔ <code class="inline">peer_id</code> باید دقیقاً ۲۰ بایت باشد و دو قرارداد اصلی برای نحوهٔ تولید این
         شناسه وجود دارد. Pieces از سبک Azureus پیروی می‌کند و شناسهٔ همتا را این‌گونه تولید می‌کند:</p>
         <pre class="code"><span class="lang-tag">python</span><code>&gt;&gt;&gt; import random
-# -شناسه ۲ کاراکتری><شماره نسخه ۴ رقمی>-<اعداد تصادفی>
+# -شناسه ۲ کاراکتری>&lt;شماره نسخه ۴ رقمی>-&lt;اعداد تصادفی>
 &gt;&gt;&gt; '-PC0001-' + ''.join([str(random.randint(0, 9)) for _ in range(12)])
 '-PC0001-478269329936'</code></pre>
         <p>یک درخواست ترکر با استفاده از httpie می‌تواند این‌گونه باشد:</p>

@@ -116,7 +116,7 @@ src/Exception.php</code></pre>
         <p>بعد فایل اسکریپت (<code class="inline">server</code>) را می‌سازیم که راه‌اندازی سرور را بر عهده دارد. پسوند <code class="inline">.php</code> را اضافه نمی‌کنیم تا bash بداند چه کند؛ این هدر را اضافه کنید:</p>
 
         <pre class="code"><span class="lang-tag">php</span><code>#!/usr/bin/env php
-<?php </code></pre>
+&lt;?php </code></pre>
 
         <p>همیشه سرور را به localhost وصل می‌کنیم اما می‌خواهیم پورت به‌عنوان آرگومان خط فرمان قابل تعریف باشد:</p>
 
@@ -138,7 +138,7 @@ if ( empty( $argv ) )
         <p>با ترکیب با آنچه قبلاً تعریف کردیم، چنین فایلی به دست می‌آید:</p>
 
         <pre class="code"><span class="lang-tag">php</span><code>#!/usr/bin/env php
-<?php 
+&lt;?php 
 use ClanCats\Station\PHPServer\Server; 
 use ClanCats\Station\PHPServer\Request;
 use ClanCats\Station\PHPServer\Response;
@@ -170,7 +170,7 @@ $server->listen( function( Request $request )
         <h2>شیء Server</h2>
         <p>بعد فایل <code class="inline">src/Server.php</code> را می‌سازیم که با سوکت سروکار دارد:</p>
 
-        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+        <pre class="code"><span class="lang-tag">php</span><code>&lt;?php namespace ClanCats\Station\PHPServer;
 
 class Server 
 {
@@ -276,7 +276,7 @@ protected $socket = null;</code></pre>
         <h2>شیء Request</h2>
         <p>فایل <code class="inline">src/Request.php</code> ورودی کاربر را مدیریت می‌کند. Request قرار است <code class="inline">method</code>، <code class="inline">uri</code>، <code class="inline">parameters</code> و <code class="inline">headers</code> را نگه دارد:</p>
 
-        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+        <pre class="code"><span class="lang-tag">php</span><code>&lt;?php namespace ClanCats\Station\PHPServer;
 
 class Request 
 {
@@ -376,7 +376,7 @@ public function param( $key, $default = null )
         <h2>شیء Response</h2>
         <p>مانند درخواست، پاسخ هم هدر و بدنه دارد؛ هر دو را در سوکت می‌نویسیم تا به کلاینت پاسخ دهیم. فایل <code class="inline">src/Response.php</code>:</p>
 
-        <pre class="code"><span class="lang-tag">php</span><code><?php namespace ClanCats\Station\PHPServer;
+        <pre class="code"><span class="lang-tag">php</span><code>&lt;?php namespace ClanCats\Station\PHPServer;
 
 class Response 
 {

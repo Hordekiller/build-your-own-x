@@ -119,12 +119,12 @@ case class Plus(expr: RegexExpr) extends RegexExpr</code></pre>
     }</code></pre>
         <p>یک لحظه برای توضیح این نحو صبر کنیم. این یک تحلیل‌گر تعریف می‌کند که یک RegexExpr می‌سازد. سمت راست می‌گوید: «چیزی را پیدا کن که با <code>\w</code> (هر کاراکتر واژه‌ای) یا یک نقطه مطابقت داشته باشد. اگر پیدا کردی، آن را به Literal تبدیل کن.</p>
         <p>پرانتزها باید در پایین‌ترین سطح تحلیل‌گر تعریف شوند چون قوی‌ترین اتصال را دارند. اما باید بتوانید هر چیزی را داخل پرانتز بگذارید. می‌توانیم این را با کد زیر انجام دهیم:</p>
-        <pre class="code"><span class="lang-tag">scala</span><code>    def parenExpr: Parser[RegexExpr] = "(" ~> highExpr <~ ")"
+        <pre class="code"><span class="lang-tag">scala</span><code>    def parenExpr: Parser[RegexExpr] = "(" ~> highExpr &lt;~ ")"
     def lit: Parser[RegexExpr] = charLit | parenExpr</code></pre>
         <p>اینجا <code>*</code> و <code>+</code> را تعریف می‌کنیم:</p>
-        <pre class="code"><span class="lang-tag">scala</span><code>    def repeat: Parser[RegexExpr] = lit <~ "*"
+        <pre class="code"><span class="lang-tag">scala</span><code>    def repeat: Parser[RegexExpr] = lit &lt;~ "*"
         ^^ { case l => Repeat(l) }
-    def plus: Parser[RegexExpr] = lit <~ "+"
+    def plus: Parser[RegexExpr] = lit &lt;~ "+"
         ^^ { case p => Plus(p) }
     def lowExpr: Parser[RegexExpr] = repeat | plus | lit</code></pre>
         <p>بعد، الحاق را تعریف می‌کنیم، سطح بعدی:</p>

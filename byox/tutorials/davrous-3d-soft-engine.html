@@ -152,7 +152,7 @@ namespace SoftEngine
     }
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>//<reference path="babylon.math.ts"/>
+        <pre class="code"><span class="lang-tag">typescript</span><code>//&lt;reference path="babylon.math.ts"/>
 module SoftEngine {
     export class Camera {
         Position: BABYLON.Vector3;
@@ -242,7 +242,7 @@ namespace SoftEngine
 
         // این متد برای پاک کردن بافر پشتی با یک رنگ مشخص صدا زده می‌شود
         public void Clear(byte r, byte g, byte b, byte a) {
-            for (var index = 0; index < backBuffer.Length; index += 4)
+            for (var index = 0; index &lt; backBuffer.Length; index += 4)
             {
                 // ویندوز از BGRA استفاده می‌کند نه RGBA مثل HTML5
                 backBuffer[index] = b;
@@ -298,7 +298,7 @@ namespace SoftEngine
         public void DrawPoint(Vector2 point)
         {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.X >= 0 && point.Y >= 0 && point.X < bmp.PixelWidth && point.Y < bmp.PixelHeight)
+            if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
             {
                 // رسم یک نقطه زرد
                 PutPixel((int)point.X, (int)point.Y, new Color4(1.0f, 1.0f, 0.0f, 1.0f));
@@ -335,7 +335,7 @@ namespace SoftEngine
     }
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>///<reference path="babylon.math.ts"/>
+        <pre class="code"><span class="lang-tag">typescript</span><code>///&lt;reference path="babylon.math.ts"/>
 
 module SoftEngine {
     export class Device {
@@ -403,8 +403,8 @@ module SoftEngine {
         // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
         public drawPoint(point: BABYLON.Vector2): void {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.x >= 0 && point.y >= 0 && point.x < this.workingWidth
-                                             && point.y < this.workingHeight) {
+            if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
+                                             && point.y &lt; this.workingHeight) {
                 // رسم یک نقطه زرد
                 this.putPixel(point.x, point.y, new BABYLON.Color4(1, 1, 0, 1));
             }
@@ -417,7 +417,7 @@ module SoftEngine {
             var projectionMatrix = BABYLON.Matrix.PerspectiveFovLH(0.78,
                                                   this.workingWidth / this.workingHeight, 0.01, 1.0);
 
-            for (var index = 0; index < meshes.length; index++) {
+            for (var index = 0; index &lt; meshes.length; index++) {
                 // مش فعلی که رویش کار می‌کنیم
                 var cMesh = meshes[index];
                 // مواظب باشید: چرخش باید قبل از انتقال اعمال شود
@@ -428,7 +428,7 @@ module SoftEngine {
 
                 var transformMatrix = worldMatrix.multiply(viewMatrix).multiply(projectionMatrix);
 
-                for (var indexVertices = 0; indexVertices < cMesh.Vertices.length; indexVertices++) {
+                for (var indexVertices = 0; indexVertices &lt; cMesh.Vertices.length; indexVertices++) {
                     // اول مختصات سه‌بعدی را به فضای دوبعدی پروژه می‌کنیم
                     var projectedPoint = this.project(cMesh.Vertices[indexVertices], transformMatrix);
                     // بعد می‌توانیم روی صفحه رسم کنیم
@@ -497,8 +497,8 @@ module SoftEngine {
         // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
         Device.prototype.drawPoint = function (point) {
             // برش آنچه روی صفحه دیده می‌شود
-            if (point.x >= 0 && point.y >= 0 && point.x < this.workingWidth
-                                             && point.y < this.workingHeight) {
+            if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
+                                             && point.y &lt; this.workingHeight) {
                 // رسم یک نقطه زرد
                 this.putPixel(point.x, point.y, new BABYLON.Color4(1, 1, 0, 1));
             }
@@ -511,7 +511,7 @@ module SoftEngine {
             var projectionMatrix = BABYLON.Matrix.PerspectiveFovLH(0.78,
                                            this.workingWidth / this.workingHeight, 0.01, 1.0);
 
-            for (var index = 0; index < meshes.length; index++) {
+            for (var index = 0; index &lt; meshes.length; index++) {
                 // مش فعلی که رویش کار می‌کنیم
                 var cMesh = meshes[index];
                 // مواظب باشید: چرخش باید قبل از انتقال اعمال شود
@@ -522,7 +522,7 @@ module SoftEngine {
 
                 var transformMatrix = worldMatrix.multiply(viewMatrix).multiply(projectionMatrix);
 
-                for (var indexVertices = 0; indexVertices < cMesh.Vertices.length; indexVertices++) {
+                for (var indexVertices = 0; indexVertices &lt; cMesh.Vertices.length; indexVertices++) {
                     // اول مختصات سه‌بعدی را به فضای دوبعدی پروژه می‌کنیم
                     var projectedPoint = this.project(cMesh.Vertices[indexVertices], transformMatrix);
                     // بعد می‌توانیم روی صفحه رسم کنیم
@@ -589,7 +589,7 @@ void CompositionTarget_Rendering(object sender, object e)
     device.Present();
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>///<reference path="SoftEngine.ts"/>
+        <pre class="code"><span class="lang-tag">typescript</span><code>///&lt;reference path="SoftEngine.ts"/>
 
 var canvas: HTMLCanvasElement;
 var device: SoftEngine.Device;
@@ -726,7 +726,7 @@ function drawingLoop() {
 
     // اگر فاصله بین ۲ نقطه کمتر از ۲ پیکسل باشد
     // از تابع خارج می‌شویم
-    if (dist < 2)
+    if (dist &lt; 2)
         return;
 
     // نقطه میانی بین نقطه اول و دوم را پیدا می‌کنیم
@@ -744,7 +744,7 @@ function drawingLoop() {
 
     // اگر فاصله بین ۲ نقطه کمتر از ۲ پیکسل باشد
     // از تابع خارج می‌شویم
-    if (dist < 2)
+    if (dist &lt; 2)
         return;
 
     // نقطه میانی بین نقطه اول و دوم را پیدا می‌کنیم
@@ -762,7 +762,7 @@ function drawingLoop() {
 
     // اگر فاصله بین ۲ نقطه کمتر از ۲ پیکسل باشد
     // از تابع خارج می‌شویم
-    if(dist < 2) {
+    if(dist &lt; 2) {
         return;
     }
 
@@ -778,20 +778,20 @@ function drawingLoop() {
 
         <p>باید حلقه رندر را با این قطعه کد جدید به‌روزرسانی کنید:</p>
 
-        <pre class="code"><span class="lang-tag">c#</span><code>for (var i = 0; i < mesh.Vertices.Length - 1; i++)
+        <pre class="code"><span class="lang-tag">c#</span><code>for (var i = 0; i &lt; mesh.Vertices.Length - 1; i++)
 {
     var point0 = Project(mesh.Vertices[i], transformMatrix);
     var point1 = Project(mesh.Vertices[i + 1], transformMatrix);
     DrawLine(point0, point1);
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>for (var i = 0; i < cMesh.Vertices.length -1; i++){
+        <pre class="code"><span class="lang-tag">typescript</span><code>for (var i = 0; i &lt; cMesh.Vertices.length -1; i++){
     var point0 = this.project(cMesh.Vertices[i], transformMatrix);
     var point1 = this.project(cMesh.Vertices[i + 1], transformMatrix);
     this.drawLine(point0, point1);
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">javascript</span><code>for (var i = 0; i < cMesh.Vertices.length -1; i++){
+        <pre class="code"><span class="lang-tag">javascript</span><code>for (var i = 0; i &lt; cMesh.Vertices.length -1; i++){
     var point0 = this.project(cMesh.Vertices[i], transformMatrix);
     var point1 = this.project(cMesh.Vertices[i + 1], transformMatrix);
     this.drawLine(point0, point1);
@@ -845,7 +845,7 @@ mesh.Faces[1] = new Face { A = 1, B = 2, C = 3 };</code></pre>
     }
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>///<reference path="babylon.math.ts"/>
+        <pre class="code"><span class="lang-tag">typescript</span><code>///&lt;reference path="babylon.math.ts"/>
 
 module SoftEngine {
     export interface Face {
@@ -901,7 +901,7 @@ module SoftEngine {
     DrawLine(pixelC, pixelA);
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>for (var indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++)
+        <pre class="code"><span class="lang-tag">typescript</span><code>for (var indexFaces = 0; indexFaces &lt; cMesh.Faces.length; indexFaces++)
 {
     var currentFace = cMesh.Faces[indexFaces];
     var vertexA = cMesh.Vertices[currentFace.A];
@@ -917,7 +917,7 @@ module SoftEngine {
     this.drawLine(pixelC, pixelA);
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">javascript</span><code>for (var indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++)
+        <pre class="code"><span class="lang-tag">javascript</span><code>for (var indexFaces = 0; indexFaces &lt; cMesh.Faces.length; indexFaces++)
 {
     var currentFace = cMesh.Faces[indexFaces];
     var vertexA = cMesh.Vertices[currentFace.A];
@@ -1027,8 +1027,8 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
 
     var dx = Math.Abs(x1 - x0);
     var dy = Math.Abs(y1 - y0);
-    var sx = (x0 < x1) ? 1 : -1;
-    var sy = (y0 < y1) ? 1 : -1;
+    var sx = (x0 &lt; x1) ? 1 : -1;
+    var sy = (y0 &lt; y1) ? 1 : -1;
     var err = dx - dy;
 
     while (true) {
@@ -1037,7 +1037,7 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
         if ((x0 == x1) && (y0 == y1)) break;
         var e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
-        if (e2 < dx) { err += dx; y0 += sy; }
+        if (e2 &lt; dx) { err += dx; y0 += sy; }
     }
 }</code></pre>
 
@@ -1048,8 +1048,8 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
     var y1 = point1.y >> 0;
     var dx = Math.abs(x1 - x0);
     var dy = Math.abs(y1 - y0);
-    var sx = (x0 < x1) ? 1 : -1;
-    var sy = (y0 < y1) ? 1 : -1;
+    var sx = (x0 &lt; x1) ? 1 : -1;
+    var sy = (y0 &lt; y1) ? 1 : -1;
     var err = dx - dy;
 
     while (true) {
@@ -1058,7 +1058,7 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
         if ((x0 == x1) && (y0 == y1)) break;
         var e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
-        if (e2 < dx) { err += dx; y0 += sy; }
+        if (e2 &lt; dx) { err += dx; y0 += sy; }
     }
 }</code></pre>
 
@@ -1069,15 +1069,15 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
     var y1 = point1.y >> 0;
     var dx = Math.abs(x1 - x0);
     var dy = Math.abs(y1 - y0);
-    var sx = (x0 < x1) ? 1 : -1;
-    var sy = (y0 < y1) ? 1 : -1;
+    var sx = (x0 &lt; x1) ? 1 : -1;
+    var sy = (y0 &lt; y1) ? 1 : -1;
     var err = dx - dy;
     while(true) {
         this.drawPoint(new BABYLON.Vector2(x0, y0));
         if((x0 == x1) && (y0 == y1)) break;
         var e2 = 2 * err;
         if(e2 > -dy) { err -= dy; x0 += sx; }
-        if(e2 < dx) { err += dx; y0 += sy; }
+        if(e2 &lt; dx) { err += dx; y0 += sy; }
     }
 };</code></pre>
 
@@ -1127,14 +1127,14 @@ mesh.Faces[11] = { A:4, B:6, C:7 };</code></pre>
         <p>بیایید با اضافه کردن منطق بارگذاری داخل شیء Device شروع کنیم:</p>
 
         <pre class="code"><span class="lang-tag">c#</span><code>// بارگذاری فایل JSON به‌صورت غیرهمزمان
-public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
+public async Task&lt;Mesh[]> LoadJSONFileAsync(string fileName)
 {
-    var meshes = new List<Mesh>();
+    var meshes = new List&lt;Mesh>();
     var file = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(fileName);
     var data = await Windows.Storage.FileIO.ReadTextAsync(file);
     dynamic jsonObject = Newtonsoft.Json.JsonConvert.DeserializeObject(data);
 
-    for (var meshIndex = 0; meshIndex < jsonObject.meshes.Count; meshIndex++)
+    for (var meshIndex = 0; meshIndex &lt; jsonObject.meshes.Count; meshIndex++)
     {
         var verticesArray = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
@@ -1165,7 +1165,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         var mesh = new Mesh(jsonObject.meshes[meshIndex].name.Value, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++)
+        for (var index = 0; index &lt; verticesCount; index++)
         {
             var x = (float)verticesArray[index * verticesStep].Value;
             var y = (float)verticesArray[index * verticesStep + 1].Value;
@@ -1174,7 +1174,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for (var index = 0; index < facesCount; index++)
+        for (var index = 0; index &lt; facesCount; index++)
         {
             var a = (int)indicesArray[index * 3].Value;
             var b = (int)indicesArray[index * 3 + 1].Value;
@@ -1208,7 +1208,7 @@ public LoadJSONFileAsync(fileName: string, callback: (result: Mesh[]) => any): v
 
 private CreateMeshesFromJSON(jsonObject): Mesh[] {
     var meshes: Mesh[] = [];
-    for (var meshIndex = 0; meshIndex < jsonObject.meshes.length; meshIndex++) {
+    for (var meshIndex = 0; meshIndex &lt; jsonObject.meshes.length; meshIndex++) {
         var verticesArray: number[] = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
         var indicesArray: number[] = jsonObject.meshes[meshIndex].indices;
@@ -1237,7 +1237,7 @@ private CreateMeshesFromJSON(jsonObject): Mesh[] {
         var mesh = new SoftEngine.Mesh(jsonObject.meshes[meshIndex].name, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++) {
+        for (var index = 0; index &lt; verticesCount; index++) {
             var x = verticesArray[index * verticesStep];
             var y = verticesArray[index * verticesStep + 1];
             var z = verticesArray[index * verticesStep + 2];
@@ -1245,7 +1245,7 @@ private CreateMeshesFromJSON(jsonObject): Mesh[] {
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for (var index = 0; index < facesCount; index++) {
+        for (var index = 0; index &lt; facesCount; index++) {
             var a = indicesArray[index * 3];
             var b = indicesArray[index * 3 + 1];
             var c = indicesArray[index * 3 + 2];
@@ -1281,7 +1281,7 @@ Device.prototype.LoadJSONFileAsync = function (fileName, callback) {
 };
 Device.prototype.CreateMeshesFromJSON = function (jsonObject) {
     var meshes = [];
-    for(var meshIndex = 0; meshIndex < jsonObject.meshes.length; meshIndex++) {
+    for(var meshIndex = 0; meshIndex &lt; jsonObject.meshes.length; meshIndex++) {
         var verticesArray = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
         var indicesArray = jsonObject.meshes[meshIndex].indices;
@@ -1310,7 +1310,7 @@ Device.prototype.CreateMeshesFromJSON = function (jsonObject) {
         var mesh = new SoftEngine.Mesh(jsonObject.meshes[meshIndex].name, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++) {
+        for (var index = 0; index &lt; verticesCount; index++) {
             var x = verticesArray[index * verticesStep];
             var y = verticesArray[index * verticesStep + 1];
             var z = verticesArray[index * verticesStep + 2];
@@ -1318,7 +1318,7 @@ Device.prototype.CreateMeshesFromJSON = function (jsonObject) {
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for(var index = 0; index < facesCount; index++) {
+        for(var index = 0; index &lt; facesCount; index++) {
             var a = indicesArray[index * 3];
             var b = indicesArray[index * 3 + 1];
             var c = indicesArray[index * 3 + 2];
@@ -1339,11 +1339,11 @@ Device.prototype.CreateMeshesFromJSON = function (jsonObject) {
 
         <p>احتمالاً می‌پرسید چرا برای گرفتن مختصات سه‌بعدی (X، Y، Z) رأس‌ها با پرش‌های 6، 8 و 10 خانه از آرایه رأس‌ها عبور می‌کنیم. باز هم به این دلیل است که صادرکننده Babylon جزئیات بیشتری از آنچه برای رندر وایرفریم‌مان لازم داریم اضافه می‌کند؛ با این رویکرد پنجره‌ای این جزئیات را فیلتر می‌کنیم. این منطق مختص قالب فایل ماست. اگر می‌خواهید خروجی قالب دیگری (مثل قالب three.js) را بارگذاری کنید، فقط باید شناسایی کنید در آن قالب، رأس‌ها و ایندکس‌های وجه‌ها کجا قرار دارند.</p>
         <div class="callout note"><strong>نکته:</strong> برای بارگذاری فایل‌های .babylon، توسعه‌دهندگان TypeScript/JavaScript باید نوع MIME جدیدی به نام «application/babylon» برای پسوند «.babylon» تعریف کنند. در IIS باید آن را داخل web.config اعلام کنید:</div>
-        <pre class="code"><span class="lang-tag">xml</span><code>  <system.webServer>
-    <staticContent>
-      <mimeMap fileExtension=".babylon" mimeType="application/babylon" />
-    </staticContent>
-  </system.webServer></code></pre>
+        <pre class="code"><span class="lang-tag">xml</span><code>  &lt;system.webServer>
+    &lt;staticContent>
+      &lt;mimeMap fileExtension=".babylon" mimeType="application/babylon" />
+    &lt;/staticContent>
+  &lt;/system.webServer></code></pre>
         <p>توسعه‌دهندگان C# باید خصوصیات فایلی را که در راه‌حل قرار می‌دهند تغییر دهند: «Build Action» را روی «Content» بگذارید و «always copy to the output directory» را فعال کنید:</p>
         <img src="https://web.archive.org/web/20180317190916im_/https://msdnshared.blob.core.windows.net/media/MSDNBlogsFS/prod.evol.blogs.msdn.com/CommunityServer.Blogs.Components.WeblogFiles/00/00/01/10/46/metablogapi/0523.image_thumb_46D5E390.png" alt="تنظیم Build Action روی Content برای فایل monkey.babylon در Visual Studio" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
         <p>وگرنه فایل پیدا نمی‌شود.</p>
@@ -1386,7 +1386,7 @@ void CompositionTarget_Rendering(object sender, object e)
     device.Present();
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>///<reference path="SoftEngine.ts"/>
+        <pre class="code"><span class="lang-tag">typescript</span><code>///&lt;reference path="SoftEngine.ts"/>
 
 var canvas: HTMLCanvasElement;
 var device: SoftEngine.Device;
@@ -1416,7 +1416,7 @@ function loadJSONCompleted(meshesLoaded: SoftEngine.Mesh[]) {
 function drawingLoop() {
     device.clear();
 
-    for (var i = 0; i < meshes.length; i++) {
+    for (var i = 0; i &lt; meshes.length; i++) {
         // چرخش اندک مش در هر فریم رندر شده
         meshes[i].Rotation.x += 0.01;
         meshes[i].Rotation.y += 0.01;
@@ -1457,7 +1457,7 @@ function loadJSONCompleted(meshesLoaded) {
 function drawingLoop() {
     device.clear();
 
-    for (var i = 0; i < meshes.length; i++) {
+    for (var i = 0; i &lt; meshes.length; i++) {
         // چرخش اندک مش در هر فریم رندر شده
         meshes[i].Rotation.x += 0.01;
         meshes[i].Rotation.y += 0.01;
@@ -1535,7 +1535,7 @@ public Vector3 Project(Vector3 coord, Matrix transMat)
 public void DrawPoint(Vector2 point, Color4 color)
 {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.X >= 0 && point.Y >= 0 && point.X < bmp.PixelWidth && point.Y < bmp.PixelHeight)
+    if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
     {
         // رسم یک نقطه
         PutPixel((int)point.X, (int)point.Y, color);
@@ -1559,7 +1559,7 @@ public project(coord: BABYLON.Vector3, transMat: BABYLON.Matrix): BABYLON.Vector
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 public drawPoint(point: BABYLON.Vector2, color: BABYLON.Color4): void {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x < this.workingWidth && point.y < this.workingHeight) {
+    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, color);
     }
@@ -1581,8 +1581,8 @@ Device.prototype.project = function (coord, transMat) {
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 Device.prototype.drawPoint = function (point, color) {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x < this.workingWidth
-                                        && point.y < this.workingHeight) {
+    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth
+                                        && point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, color);
     }
@@ -1619,7 +1619,7 @@ void ProcessScanLine(int y, Vector3 pa, Vector3 pb, Vector3 pc, Vector3 pd, Colo
     int ex = (int)Interpolate(pc.X, pd.X, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++)
+    for (var x = sx; x &lt; ex; x++)
     {
         DrawPoint(new Vector2(x, y), color);
     }
@@ -1679,9 +1679,9 @@ public void DrawTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Color4 color)
     // P3
     if (dP1P2 > dP1P3)
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(y, p1, p3, p1, p2, color);
             }
@@ -1704,9 +1704,9 @@ public void DrawTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Color4 color)
     //       P3
     else
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(y, p1, p2, p1, p3, color);
             }
@@ -1744,7 +1744,7 @@ public processScanLine(y: number, pa: BABYLON.Vector3, pb: BABYLON.Vector3,
     var ex = this.interpolate(pc.x, pd.x, gradient2) >> 0;
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         this.drawPoint(new BABYLON.Vector2(x, y), color);
     }
 }
@@ -1799,9 +1799,9 @@ public drawTriangle(p1: BABYLON.Vector3, p2: BABYLON.Vector3,
     // -
     // P3
     if (dP1P2 > dP1P3) {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(y, p1, p3, p1, p2, color);
             }
             else {
@@ -1821,9 +1821,9 @@ public drawTriangle(p1: BABYLON.Vector3, p2: BABYLON.Vector3,
     //        -
     //       P3
     else {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(y, p1, p2, p1, p3, color);
             }
             else {
@@ -1861,7 +1861,7 @@ Device.prototype.processScanLine = function (y, pa, pb, pc, pd, color) {
     var ex = this.interpolate(pc.x, pd.x, gradient2) >> 0;
 
     // رسم خط از چپ (sx) به راست (ex)
-    for(var x = sx; x < ex; x++) {
+    for(var x = sx; x &lt; ex; x++) {
         this.drawPoint(new BABYLON.Vector2(x, y), color);
     }
 };
@@ -1915,8 +1915,8 @@ Device.prototype.drawTriangle = function (p1, p2, p3, color) {
     // -
     // P3
     if(dP1P2 > dP1P3) {
-        for(var y = p1.y >> 0; y <= p3.y >> 0; y++) {
-            if(y < p2.y) {
+        for(var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
+            if(y &lt; p2.y) {
                 this.processScanLine(y, p1, p3, p1, p2, color);
             } else {
                 this.processScanLine(y, p1, p3, p2, p3, color);
@@ -1935,8 +1935,8 @@ Device.prototype.drawTriangle = function (p1, p2, p3, color) {
     //        -
     //       P3
     else {
-        for(var y = p1.y >> 0; y <= p3.y >> 0; y++) {
-            if(y < p2.y) {
+        for(var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
+            if(y &lt; p2.y) {
                 this.processScanLine(y, p1, p2, p1, p3, color);
             } else {
                 this.processScanLine(y, p2, p3, p1, p3, color);
@@ -1964,7 +1964,7 @@ foreach (var face in mesh.Faces)
     faceIndex++;
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">typescript</span><code>for (var indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++) {
+        <pre class="code"><span class="lang-tag">typescript</span><code>for (var indexFaces = 0; indexFaces &lt; cMesh.Faces.length; indexFaces++) {
     var currentFace = cMesh.Faces[indexFaces];
     var vertexA = cMesh.Vertices[currentFace.A];
     var vertexB = cMesh.Vertices[currentFace.B];
@@ -1978,7 +1978,7 @@ foreach (var face in mesh.Faces)
     this.drawTriangle(pixelA, pixelB, pixelC, new BABYLON.Color4(color, color, color, 1));
 }</code></pre>
 
-        <pre class="code"><span class="lang-tag">javascript</span><code>for (var indexFaces = 0; indexFaces < cMesh.Faces.length; indexFaces++) {
+        <pre class="code"><span class="lang-tag">javascript</span><code>for (var indexFaces = 0; indexFaces &lt; cMesh.Faces.length; indexFaces++) {
     var currentFace = cMesh.Faces[indexFaces];
     var vertexA = cMesh.Vertices[currentFace.A];
     var vertexB = cMesh.Vertices[currentFace.B];
@@ -2024,7 +2024,7 @@ public Device(WriteableBitmap bmp)
 // این متد برای پاک کردن بافر پشتی با یک رنگ مشخص صدا زده می‌شود
 public void Clear(byte r, byte g, byte b, byte a) {
     // پاک کردن بافر پشتی
-    for (var index = 0; index < backBuffer.Length; index += 4)
+    for (var index = 0; index &lt; backBuffer.Length; index += 4)
     {
         // ویندوز از BGRA استفاده می‌کند نه RGBA مثل HTML5
         backBuffer[index] = b;
@@ -2034,7 +2034,7 @@ public void Clear(byte r, byte g, byte b, byte a) {
     }
 
     // پاک کردن بافر عمق
-    for (var index = 0; index < depthBuffer.Length; index++)
+    for (var index = 0; index &lt; depthBuffer.Length; index++)
     {
         depthBuffer[index] = float.MaxValue;
     }
@@ -2049,7 +2049,7 @@ public void PutPixel(int x, int y, float z, Color4 color)
     var index = (x + y * renderWidth);
     var index4 = index * 4;
 
-    if (depthBuffer[index] < z)
+    if (depthBuffer[index] &lt; z)
     {
         return; // کنار گذاشتن
     }
@@ -2081,7 +2081,7 @@ public Vector3 Project(Vector3 coord, Matrix transMat)
 public void DrawPoint(Vector3 point, Color4 color)
 {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.X >= 0 && point.Y >= 0 && point.X < bmp.PixelWidth && point.Y < bmp.PixelHeight)
+    if (point.X >= 0 && point.Y >= 0 && point.X &lt; bmp.PixelWidth && point.Y &lt; bmp.PixelHeight)
     {
         // رسم یک نقطه
         PutPixel((int)point.X, (int)point.Y, point.Z ,color);
@@ -2107,7 +2107,7 @@ void ProcessScanLine(int y, Vector3 pa, Vector3 pb, Vector3 pc, Vector3 pd, Colo
     float z2 = Interpolate(pc.Z, pd.Z, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++)
+    for (var x = sx; x &lt; ex; x++)
     {
         float gradient = (x - sx) / (float)(ex - sx);
 
@@ -2144,7 +2144,7 @@ public clear(): void {
     this.backbuffer = this.workingContext.getImageData(0, 0, this.workingWidth, this.workingHeight);
 
     // پاک کردن بافر عمق
-    for (var i = 0; i < this.depthbuffer.length; i++) {
+    for (var i = 0; i &lt; this.depthbuffer.length; i++) {
         // بیشترین مقدار ممکن
         this.depthbuffer[i] = 10000000;
     }
@@ -2159,7 +2159,7 @@ public putPixel(x: number, y: number, z: number, color: BABYLON.Color4): void {
     var index: number = ((x >> 0) + (y >> 0) * this.workingWidth);
     var index4: number = index * 4;
 
-    if (this.depthbuffer[index] < z) {
+    if (this.depthbuffer[index] &lt; z) {
         return; // کنار گذاشتن
     }
 
@@ -2189,7 +2189,7 @@ public project(coord: BABYLON.Vector3, transMat: BABYLON.Matrix): BABYLON.Vector
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 public drawPoint(point: BABYLON.Vector3, color: BABYLON.Color4): void {
     // برش آنچه روی صفحه دیده می‌شود
-    if (point.x >= 0 && point.y >= 0 && point.x < this.workingWidth && point.y < this.workingHeight) {
+    if (point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
         // رسم یک نقطه زرد
         this.putPixel(point.x, point.y, point.z, color);
     }
@@ -2213,7 +2213,7 @@ public processScanLine(y: number, pa: BABYLON.Vector3, pb: BABYLON.Vector3, pc: 
     var z2: number = this.interpolate(pc.z, pd.z, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient: number = (x - sx) / (ex - sx); // نرمال‌سازی برای رسم از چپ به راست
 
         var z = this.interpolate(z1, z2, gradient);
@@ -2239,7 +2239,7 @@ Device.prototype.clear = function () {
     this.backbuffer = this.workingContext.getImageData(0, 0, this.workingWidth, this.workingHeight);
 
     // پاک کردن بافر عمق
-    for (var i = 0; i < this.depthbuffer.length; i++) {
+    for (var i = 0; i &lt; this.depthbuffer.length; i++) {
         // بیشترین مقدار ممکن
         this.depthbuffer[i] = 10000000;
     }
@@ -2254,7 +2254,7 @@ Device.prototype.putPixel = function (x, y, z, color) {
     var index = ((x >> 0) + (y >> 0) * this.workingWidth);
     var index4 = index * 4;
 
-    if(this.depthbuffer[index] < z) {
+    if(this.depthbuffer[index] &lt; z) {
         return; // کنار گذاشتن
     }
 
@@ -2284,7 +2284,7 @@ Device.prototype.project = function (coord, transMat) {
 // drawPoint تابع putPixel را صدا می‌زند اما قبلش عملیات برش را انجام می‌دهد
 Device.prototype.drawPoint = function (point, color) {
     // برش آنچه روی صفحه دیده می‌شود
-    if(point.x >= 0 && point.y >= 0 && point.x < this.workingWidth && point.y < this.workingHeight) {
+    if(point.x >= 0 && point.y >= 0 && point.x &lt; this.workingWidth && point.y &lt; this.workingHeight) {
         // رسم یک نقطه
         this.putPixel(point.x, point.y, point.z, color);
     }
@@ -2308,7 +2308,7 @@ Device.prototype.processScanLine = function (y, pa, pb, pc, pd, color) {
     var z2 = this.interpolate(pc.z, pd.z, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for(var x = sx; x < ex; x++) {
+    for(var x = sx; x &lt; ex; x++) {
         var gradient = (x - sx) / (ex - sx);
         var z = this.interpolate(z1, z2, gradient);
         this.drawPoint(new BABYLON.Vector3(x, y, z), color);
@@ -2390,7 +2390,7 @@ void CompositionTarget_Rendering(object sender, object e)
 {
     Parallel.For((int)p1.Y, (int)p3.Y + 1, y =>
         {
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(y, p1, p3, p1, p2, color);
             }
@@ -2404,7 +2404,7 @@ else
 {
     Parallel.For((int)p1.Y, (int)p3.Y + 1, y =>
         {
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(y, p1, p2, p1, p3, color);
             }
@@ -2441,7 +2441,7 @@ public Device(WriteableBitmap bmp)
     backBuffer = new byte[renderWidth * renderHeight * 4];
     depthBuffer = new float[renderWidth * renderHeight];
     lockBuffer = new object[renderWidth * renderHeight];
-    for (var i = 0; i < lockBuffer.Length; i++)
+    for (var i = 0; i &lt; lockBuffer.Length; i++)
     {
         lockBuffer[i] = new object();
     }
@@ -2459,7 +2459,7 @@ public void PutPixel(int x, int y, float z, Color4 color)
     // محافظت از بافرمان در برابر رقابت نخ‌ها
     lock (lockBuffer[index])
     {
-        if (depthBuffer[index] < z)
+        if (depthBuffer[index] &lt; z)
         {
             return; // کنار گذاشتن
         }
@@ -2594,7 +2594,7 @@ export interface ScanLineData {
         <p>این موضوع تغییرات جزئی گوناگونی در کد به وجود می‌آورد. اولی روش بارگذاری فایل JSON صادرشده از Blender است: حالا باید نرمال‌های هر رأس را بارگذاری کنیم و به‌جای اشیای Vector3 در آرایه Vertices، اشیای Vertex بسازیم:</p>
 
         <pre class="code"><span class="lang-tag">c#</span><code>// اول آرایه رأس‌های مش را پر می‌کنیم
-for (var index = 0; index < verticesCount; index++)
+for (var index = 0; index &lt; verticesCount; index++)
 {
     var x = (float)verticesArray[index * verticesStep].Value;
     var y = (float)verticesArray[index * verticesStep + 1].Value;
@@ -2607,7 +2607,7 @@ for (var index = 0; index < verticesCount; index++)
 }</code></pre>
 
         <pre class="code"><span class="lang-tag">typescript</span><code>// اول آرایه رأس‌های مش را پر می‌کنیم
-for (var index = 0; index < verticesCount; index++) {
+for (var index = 0; index &lt; verticesCount; index++) {
     var x = verticesArray[index * verticesStep];
     var y = verticesArray[index * verticesStep + 1];
     var z = verticesArray[index * verticesStep + 2];
@@ -2623,7 +2623,7 @@ for (var index = 0; index < verticesCount; index++) {
 }</code></pre>
 
         <pre class="code"><span class="lang-tag">javascript</span><code>// اول آرایه رأس‌های مش را پر می‌کنیم
-for (var index = 0; index < verticesCount; index++) {
+for (var index = 0; index &lt; verticesCount; index++) {
     var x = verticesArray[index * verticesStep];
     var y = verticesArray[index * verticesStep + 1];
     var z = verticesArray[index * verticesStep + 2];
@@ -2697,7 +2697,7 @@ void ProcessScanLine(ScanLineData data, Vertex va, Vertex vb, Vertex vc, Vertex 
     float z2 = Interpolate(pc.Z, pd.Z, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++)
+    for (var x = sx; x &lt; ex; x++)
     {
         float gradient = (x - sx) / (float)(ex - sx);
 
@@ -2791,11 +2791,11 @@ public void DrawTriangle(Vertex v1, Vertex v2, Vertex v3, Color4 color)
     // P3
     if (dP1P2 > dP1P3)
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
             data.currentY = y;
 
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(data, v1, v3, v1, v2, color);
             }
@@ -2818,11 +2818,11 @@ public void DrawTriangle(Vertex v1, Vertex v2, Vertex v3, Color4 color)
     //       P3
     else
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
             data.currentY = y;
 
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 ProcessScanLine(data, v1, v2, v1, v3, color);
             }
@@ -2882,7 +2882,7 @@ public processScanLine(data: ScanLineData, va: Vertex, vb: Vertex,
     var z2: number = this.interpolate(pc.z, pd.z, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient: number = (x - sx) / (ex - sx);
 
         var z = this.interpolate(z1, z2, gradient);
@@ -2971,11 +2971,11 @@ public drawTriangle(v1: Vertex, v2: Vertex, v3: Vertex, color: BABYLON.Color4): 
     // -
     // P3
     if (dP1P2 > dP1P3) {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(data, v1, v3, v1, v2, color);
             }
             else {
@@ -2995,11 +2995,11 @@ public drawTriangle(v1: Vertex, v2: Vertex, v3: Vertex, color: BABYLON.Color4): 
     //        -
     //       P3
     else {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(data, v1, v2, v1, v3, color);
             }
             else {
@@ -3056,7 +3056,7 @@ Device.prototype.processScanLine = function (data, va, vb, vc, vd, color) {
     var z2 = this.interpolate(pc.z, pd.z, gradient2);
 
     // رسم خط از چپ (sx) به راست (
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient = (x - sx) / (ex - sx);
 
         var z = this.interpolate(z1, z2, gradient);
@@ -3143,10 +3143,10 @@ Device.prototype.drawTriangle = function (v1, v2, v3, color) {
     // -
     // P3
     if (dP1P2 > dP1P3) {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(data, v1, v3, v1, v2, color);
             } else {
                 this.processScanLine(data, v1, v3, v2, v3, color);
@@ -3165,10 +3165,10 @@ Device.prototype.drawTriangle = function (v1, v2, v3, color) {
     //        -
     //       P3
     else {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 this.processScanLine(data, v1, v2, v1, v3, color);
             } else {
                 this.processScanLine(data, v2, v3, v1, v3, color);
@@ -3229,7 +3229,7 @@ void ProcessScanLine(ScanLineData data, Vertex va, Vertex vb, Vertex vc, Vertex 
     var enl = Interpolate(data.ndotlc, data.ndotld, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++)
+    for (var x = sx; x &lt; ex; x++)
     {
         float gradient = (x - sx) / (float)(ex - sx);
 
@@ -3298,11 +3298,11 @@ public void DrawTriangle(Vertex v1, Vertex v2, Vertex v3, Color4 color)
 
     if (dP1P2 > dP1P3)
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
             data.currentY = y;
 
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 data.ndotla = nl1;
                 data.ndotlb = nl3;
@@ -3322,11 +3322,11 @@ public void DrawTriangle(Vertex v1, Vertex v2, Vertex v3, Color4 color)
     }
     else
     {
-        for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
+        for (var y = (int)p1.Y; y &lt;= (int)p3.Y; y++)
         {
             data.currentY = y;
 
-            if (y < p2.Y)
+            if (y &lt; p2.Y)
             {
                 data.ndotla = nl1;
                 data.ndotlb = nl2;
@@ -3373,7 +3373,7 @@ public processScanLine(data: ScanLineData, va: Vertex, vb: Vertex,
     var enl = this.interpolate(data.ndotlc, data.ndotld, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient: number = (x - sx) / (ex - sx);
 
         var z = this.interpolate(z1, z2, gradient);
@@ -3438,11 +3438,11 @@ public drawTriangle(v1: Vertex, v2: Vertex, v3: Vertex, color: BABYLON.Color4): 
         dP1P3 = 0;
 
     if (dP1P2 > dP1P3) {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 data.ndotla = nl1;
                 data.ndotlb = nl3;
                 data.ndotlc = nl1;
@@ -3459,11 +3459,11 @@ public drawTriangle(v1: Vertex, v2: Vertex, v3: Vertex, color: BABYLON.Color4): 
         }
     }
     else {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++)
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++)
         {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 data.ndotla = nl1;
                 data.ndotlb = nl2;
                 data.ndotlc = nl1;
@@ -3507,7 +3507,7 @@ Device.prototype.processScanLine = function (data, va, vb, vc, vd, color) {
     var enl = this.interpolate(data.ndotlc, data.ndotld, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient = (x - sx) / (ex - sx);
 
         var z = this.interpolate(z1, z2, gradient);
@@ -3570,10 +3570,10 @@ Device.prototype.drawTriangle = function (v1, v2, v3, color) {
         dP1P3 = 0;
 
     if (dP1P2 > dP1P3) {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 data.ndotla = nl1;
                 data.ndotlb = nl3;
                 data.ndotlc = nl1;
@@ -3589,10 +3589,10 @@ Device.prototype.drawTriangle = function (v1, v2, v3, color) {
         }
     }
     else {
-        for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
+        for (var y = p1.y >> 0; y &lt;= p3.y >> 0; y++) {
             data.currentY = y;
 
-            if (y < p2.y) {
+            if (y &lt; p2.y) {
                 data.ndotla = nl1;
                 data.ndotlb = nl2;
                 data.ndotlc = nl1;
@@ -3881,7 +3881,7 @@ SoftEngine.Texture = Texture;</code></pre>
     var ev = Interpolate(data.vc, data.vd, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++)
+    for (var x = sx; x &lt; ex; x++)
     {
         float gradient = (x - sx) / (float)(ex - sx);
 
@@ -3935,7 +3935,7 @@ SoftEngine.Texture = Texture;</code></pre>
     var ev = this.interpolate(data.vc, data.vd, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient: number = (x - sx) / (ex - sx);
 
         // درون‌یابی Z، نرمال و مختصات تکسچر روی X
@@ -3991,7 +3991,7 @@ SoftEngine.Texture = Texture;</code></pre>
     var ev = this.interpolate(data.vc, data.vd, gradient2);
 
     // رسم خط از چپ (sx) به راست (ex)
-    for (var x = sx; x < ex; x++) {
+    for (var x = sx; x &lt; ex; x++) {
         var gradient = (x - sx) / (ex - sx);
 
         // درون‌یابی Z، نرمال و مختصات تکسچر روی X
@@ -4029,15 +4029,15 @@ SoftEngine.Texture = Texture;</code></pre>
         <p>باز هم فقط بخش اصلیِ تغییر را با شما به اشتراک می‌گذارم: متد/تابعی که فایل JSON را بارگذاری و پارس می‌کند.</p>
 
         <pre class="code"><span class="lang-tag">c#</span><code>// بارگذاری فایل JSON به‌صورت غیرهمزمان
-public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
+public async Task&lt;Mesh[]> LoadJSONFileAsync(string fileName)
 {
-    var meshes = new List<Mesh>();
-    var materials = new Dictionary<String,Material>();
+    var meshes = new List&lt;Mesh>();
+    var materials = new Dictionary&lt;String,Material>();
     var file = await Windows.ApplicationModel.Package.Current.InstalledLocation.GetFileAsync(fileName);
     var data = await Windows.Storage.FileIO.ReadTextAsync(file);
     dynamic jsonObject = Newtonsoft.Json.JsonConvert.DeserializeObject(data);
 
-    for (var materialIndex = 0; materialIndex < jsonObject.materials.Count; materialIndex++)
+    for (var materialIndex = 0; materialIndex &lt; jsonObject.materials.Count; materialIndex++)
     {
         var material = new Material();
         material.Name = jsonObject.materials[materialIndex].name.Value;
@@ -4048,7 +4048,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         materials.Add(material.ID, material);
     }
 
-    for (var meshIndex = 0; meshIndex < jsonObject.meshes.Count; meshIndex++)
+    for (var meshIndex = 0; meshIndex &lt; jsonObject.meshes.Count; meshIndex++)
     {
         var verticesArray = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
@@ -4079,7 +4079,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         var mesh = new Mesh(jsonObject.meshes[meshIndex].name.Value, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++)
+        for (var index = 0; index &lt; verticesCount; index++)
         {
             var x = (float)verticesArray[index * verticesStep].Value;
             var y = (float)verticesArray[index * verticesStep + 1].Value;
@@ -4105,7 +4105,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for (var index = 0; index < facesCount; index++)
+        for (var index = 0; index &lt; facesCount; index++)
         {
             var a = (int)indicesArray[index * 3].Value;
             var b = (int)indicesArray[index * 3 + 1].Value;
@@ -4134,7 +4134,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
     var meshes: Mesh[] = [];
     var materials: Material[] = [];
 
-    for (var materialIndex = 0; materialIndex < jsonObject.materials.length; materialIndex++) {
+    for (var materialIndex = 0; materialIndex &lt; jsonObject.materials.length; materialIndex++) {
         var material: Material = {};
 
         material.Name = jsonObject.materials[materialIndex].name;
@@ -4145,7 +4145,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         materials[material.ID] = material;
     }
 
-    for (var meshIndex = 0; meshIndex < jsonObject.meshes.length; meshIndex++) {
+    for (var meshIndex = 0; meshIndex &lt; jsonObject.meshes.length; meshIndex++) {
         var verticesArray: number[] = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
         var indicesArray: number[] = jsonObject.meshes[meshIndex].indices;
@@ -4174,7 +4174,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         var mesh = new SoftEngine.Mesh(jsonObject.meshes[meshIndex].name, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++) {
+        for (var index = 0; index &lt; verticesCount; index++) {
             var x = verticesArray[index * verticesStep];
             var y = verticesArray[index * verticesStep + 1];
             var z = verticesArray[index * verticesStep + 2];
@@ -4200,7 +4200,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for (var index = 0; index < facesCount; index++) {
+        for (var index = 0; index &lt; facesCount; index++) {
             var a = indicesArray[index * 3];
             var b = indicesArray[index * 3 + 1];
             var c = indicesArray[index * 3 + 2];
@@ -4230,7 +4230,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
     var meshes = [];
     var materials = [];
 
-    for (var materialIndex = 0; materialIndex < jsonObject.materials.length; materialIndex++) {
+    for (var materialIndex = 0; materialIndex &lt; jsonObject.materials.length; materialIndex++) {
         var material = {};
 
         material.Name = jsonObject.materials[materialIndex].name;
@@ -4241,7 +4241,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         materials[material.ID] = material;
     }
 
-    for (var meshIndex = 0; meshIndex < jsonObject.meshes.length; meshIndex++) {
+    for (var meshIndex = 0; meshIndex &lt; jsonObject.meshes.length; meshIndex++) {
         var verticesArray = jsonObject.meshes[meshIndex].vertices;
         // وجه‌ها
         var indicesArray = jsonObject.meshes[meshIndex].indices;
@@ -4270,7 +4270,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         var mesh = new SoftEngine.Mesh(jsonObject.meshes[meshIndex].name, verticesCount, facesCount);
 
         // اول آرایه رأس‌های مش را پر می‌کنیم
-        for (var index = 0; index < verticesCount; index++) {
+        for (var index = 0; index &lt; verticesCount; index++) {
             var x = verticesArray[index * verticesStep];
             var y = verticesArray[index * verticesStep + 1];
             var z = verticesArray[index * verticesStep + 2];
@@ -4296,7 +4296,7 @@ public async Task<Mesh[]> LoadJSONFileAsync(string fileName)
         }
 
         // بعد آرایه وجه‌ها را پر می‌کنیم
-        for (var index = 0; index < facesCount; index++) {
+        for (var index = 0; index &lt; facesCount; index++) {
             var a = indicesArray[index * 3];
             var b = indicesArray[index * 3 + 1];
             var c = indicesArray[index * 3 + 2];

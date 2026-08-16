@@ -91,14 +91,19 @@ proc parseIni(content: string): IniFile =
       </section>
 
       <section>
-        <h2>استفاده و جزئیات</h2>
+        <h2>استفادهٔ پایه</h2>
         <pre class="code"><span class="lang-tag">Nim</span><code>let config = parseIni(readFile("app.ini"))
 echo config["server"]["port"]       # 8080
 echo config["database"]["name"]     # byox
 
-# دسترسی امن به بخش/کلید نبوده:
-echo config.getOrDefault("missing", initTable[string,string]())</code></pre>
-        <p>گام‌های بعدی که پارسرهای واقعی دارند: پشتیبانی از `:` به‌جای `=`، حذف کوتیشن‌ها از مقدارها، پشتیبانی از مقادیر چندخطی، و نگاشت خودکار به انواع (int، bool).</p>
+# دسترسی امن در نبودِ بخش/کلید:
+echo config.getOrDefault("missing", initTable[string, string]())</code></pre>
+        <p>جداول تو در تو در Nim همان دیکشنری هستند، پس ارسال پارامترِ پیش‌فرض `getOrDefault` باید از نوع `Table[string,string]` باشد؛ این همان ساختاری است که `parseIni` برمی‌گرداند.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های بعدی</h2>
+        <p>پارسرهای واقعی فراتر از این نسخهٔ پایه می‌روند: پشتیبانی از `:` به‌جای `=`، حذف کوتیشن‌ها از مقدارها، پشتیبانی از مقادیر چندخطی، و نگاشت خودکار به انواع (int، bool). این موارد با همان ساختار خط‌به‌خط فعلی قابل افزودن هستند — هر کدام فقط یک قانون تجزیهٔ دیگر روی خط جاری است.</p>
       </section>
 
       <div class="callout note">

@@ -62,8 +62,10 @@ macro describe(name: static[string], body: untyped): untyped =
   for child in body:
     if child.kind == nnkCall and child[0].repr == "test":
       let testName = child[1].repr
-      let body = child[2].repr
-      # ... تولید کد ثبت تست
+      let body = child[2]
+      # ساخت گرهٔ ثبت: tests.add((نامِ تست، بدنهٔ اجرا))
+      result.add newCall(ident"tests.add",
+                         newTree(nnkTupleConstr, newLit(testName), body))
 
 describe "محاسبات ریاضی":
   test "جمع ساده":

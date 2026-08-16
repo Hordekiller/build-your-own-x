@@ -59,7 +59,7 @@
         <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(tpl, data) {
     // جادو اینجاست ...
 }
-var template = 'Hello, my name is <%name%>. I\'m <%age%> years old.';
+var template = 'Hello, my name is &lt;%name%>. I\'m &lt;%age%> years old.';
 console.log(TemplateEngine(template, {
     name: "Krasimir",
     age: 29
@@ -72,14 +72,14 @@ console.log(TemplateEngine(template, {
         <p>اولین قدم، یافتنِ تکه‌های پویا داخل قالب است. با رگکس شروع می‌کنیم — عبارتی که همهٔ بخش‌های
         بین <code>&lt;%</code> و <code>%&gt;</code> را می‌گیرد، و با پرچمِ <code>g</code> (سراسری) همهٔ
         تطبیق‌ها را، نه فقط اولی:</p>
-        <pre class="code"><span class="lang-tag">javascript</span><code>var re = /<%([^%>]+)?%>/g;
+        <pre class="code"><span class="lang-tag">javascript</span><code>var re = /&lt;%([^%>]+)?%>/g;
 var match = re.exec(tpl);
-// match شامل: "<%name%>" ، "name" ، index و input می‌شود
+// match شامل: "&lt;%name%>" ، "name" ، index و input می‌شود
 
 // برای پردازشِ همهٔ تطبیق‌ها داخل حلقهٔ while
-var re = /<%([^%>]+)?%>/g, match;
+var re = /&lt;%([^%>]+)?%>/g, match;
 while(match = re.exec(tpl)) {
-    console.log(match);   // هم <%name%> و هم <%age%> دیده می‌شوند
+    console.log(match);   // هم &lt;%name%> و هم &lt;%age%> دیده می‌شوند
 }</code></pre>
       </section>
 
@@ -102,9 +102,9 @@ fn(2); // خروجی: 3  — معادلِ fn = function(arg) { console.log(arg +
         کاربر داخل قالب حلقه بنویسد خراب می‌شود:</p>
         <pre class="code"><span class="lang-tag">javascript</span><code>var template =
 'My skills:' +
-'<%for(var index in this.skills) {%>' +
-'<%this.skills[index]%>' +
-'<%}%>';</code></pre>
+'&lt;%for(var index in this.skills) {%>' +
+'&lt;%this.skills[index]%>' +
+'&lt;%}%>';</code></pre>
         <p>چسباندن با <code>+</code> به <code>return 'My skills:' + for(...) { + ...}</code> می‌رسد که
         خطای سینتکس می‌دهد. راه‌حل جان رسیگ: همهٔ قطعه‌ها را در یک آرایه بریزیم و آخر کار
         <code>join</code> کنیم — آن‌وقت کدهای کنترلی می‌توانند «مستقیم» داخل متد بروند:</p>
@@ -119,7 +119,7 @@ return r.join('');</code></pre>
         جای‌نگه‌دارها «کد» هستند (نباید داخل کوتیشن بروند)، بقیهٔ متن «رشته» است (باید کوتیشن بگیرد و
         گریزِ <code>"</code> شود):</p>
         <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(tpl, data) {
-    var re = /<%([^%>]+)?%>/g,
+    var re = /&lt;%([^%>]+)?%>/g,
         code = 'var r=[];\n',
         cursor = 0, match;
     var add = function(line, js) {
@@ -154,13 +154,13 @@ var add = function(line, js) {
         <p>حالا می‌توانید داخل قالب منطق کامل بنویسید:</p>
         <pre class="code"><span class="lang-tag">javascript</span><code>var template =
 'My skills:' +
-'<%if(this.showSkills) {%>' +
-    '<%for(var index in this.skills) {%>' +
-    '<a href="#"><%this.skills[index]%></a>' +
-    '<%}%>' +
-'<%} else {%>' +
-    '<p>none</p>' +
-'<%}%>';</code></pre>
+'&lt;%if(this.showSkills) {%>' +
+    '&lt;%for(var index in this.skills) {%>' +
+    '&lt;a href="#">&lt;%this.skills[index]%>&lt;/a>' +
+    '&lt;%}%>' +
+'&lt;%} else {%>' +
+    '&lt;p>none&lt;/p>' +
+'&lt;%}%>';</code></pre>
       </section>
 
       <section>
@@ -168,7 +168,7 @@ var add = function(line, js) {
         <p>با چند بهینه‌سازی کوچک (برگرداندنِ <code>add</code> برای زنجیره‌شدن و نادیده‌گرفتن خطوط
         خالی)، نسخهٔ نهایی نه‌تنها ۲۰ خط نیست؛ فقط ۱۵ خط است:</p>
         <pre class="code"><span class="lang-tag">javascript</span><code>var TemplateEngine = function(html, options) {
-    var re = /<%([^%>]+)?%>/g, reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g,
+    var re = /&lt;%([^%>]+)?%>/g, reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g,
         code = 'var r=[];\n', cursor = 0, match;
     var add = function(line, js) {
         js ? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n')

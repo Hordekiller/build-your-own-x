@@ -49,7 +49,7 @@
 
       <section>
         <h2>مهم‌ترین بخش‌ها</h2>
-        <p>بخش ۱: lexer و parser برای ساده‌ترین برنامه؛ بخش ۲: تولید اسمبلی برای <code>return</code>؛ بخش ۳: متغیرهای محلی و انتساب (with stack allocation)؛ بخش ۴: if/else و حلقه‌ها؛ بخش ۵: توابع و آرگومان؛ بخش ۶: عملگرهای unary/binary کامل (مثل <code>~</code> و <code>!</code>)؛ بخش ۷: پوینتر (dereference) و آدرس‌گیری (<code>&amp;</code>)؛ بخش ۸: struct و union؛ بخش ۹: کلیدواژه‌های باقی‌مانده و پشتیبانی از typedef؛ بخش ۱۰: نوع‌Bременные ارشد (long، unsigned و…).</p>
+        <p>بخش ۱: lexer و parser برای ساده‌ترین برنامه؛ بخش ۲: تولید اسمبلی برای <code>return</code>؛ بخش ۳: متغیرهای محلی و انتساب (with stack allocation)؛ بخش ۴: if/else و حلقه‌ها؛ بخش ۵: توابع و آرگومان؛ بخش ۶: عملگرهای unary/binary کامل (مثل <code>~</code> و <code>!</code>)؛ بخش ۷: پوینتر (dereference) و آدرس‌گیری (<code>&amp;</code>)؛ بخش ۸: struct و union؛ بخش ۹: کلیدواژه‌های باقی‌مانده و پشتیبانی از typedef؛ بخش ۱۰: انواع دادهٔ پیشرفته (long، unsigned و…).</p>
       </section>
 
       <section>
@@ -59,7 +59,7 @@ let rec parse_exp tokens =
   let left, tokens = parse_exp1 tokens in
   parse_exp_tail left tokens
 
-(* exp-tail := ("+"|"-"|"*"|"/") exp ... *)
+(* exp-tail := ("+"|"-"|"*"|"/") exp exp-tail | eps *)
 and parse_exp_tail left tokens =
   match tokens with
   | Tok_PLUS :: rest ->

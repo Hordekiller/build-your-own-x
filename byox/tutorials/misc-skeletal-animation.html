@@ -53,13 +53,13 @@
         <p>قلب کار، محاسبهٔ «ماتریس نهایی» برای هر استخوان است: `global = parent * local`. این ماتریس‌ها به شیدر فرستاده می‌شوند و در آن‌جا برای هر رأس به‌صورت وزنی (weight) ترکیب می‌شوند:</p>
         <pre class="code"><span class="lang-tag">C#</span><code>// محاسبهٔ ماتریس‌های جهانی استخوان‌ها با پیمایش درخت
 void ComputeBoneMatrices(Bone[] bones, int parentIndex,
-                         Matrix4<float> parentMatrix) {
+                         Matrix4&lt;float> parentMatrix) {
     for (int i = 0; i &lt; bones.Length; i++) {
         if (bones[i].parent != parentIndex) continue;
 
         // ماتریس جهانی = ماتریس والد × ماتریس محلی
-        Matrix4<float> local = bones[i].localTransform;
-        Matrix4<float> global = local * parentMatrix;
+        Matrix4&lt;float> local = bones[i].localTransform;
+        Matrix4&lt;float> global = local * parentMatrix;
 
         // ماتریس نهایی برای رندر (inverse bind × global)
         boneMatrices[i] = bones[i].inverseBindMatrix

@@ -74,8 +74,8 @@ Literal(.)
 Repeat(2, بی‌نهایت):
    Range(a, b,...z, A, B,...,Z)</code></pre>
         <p>ایده اصلی هنگام تحلیل یک رشته regex ساده است: به دنبال کاراکترهایی می‌گردیم که معانی ویژه دارند مثل <code>* + ? () [] {}</code> و سعی می‌کنیم با کمک آن‌ها توکن بسازیم. ابتدا چند نوع و ثابت تعریف می‌کنیم:</p>
-        <pre class="code"><span class="lang-tag">go</span><code>type tokenType uint8 // <1>
-const ( // <2>
+        <pre class="code"><span class="lang-tag">go</span><code>type tokenType uint8 // &lt;1>
+const ( // &lt;2>
    group         tokenType = iota
    bracket       tokenType = iota
    or            tokenType = iota
@@ -83,13 +83,13 @@ const ( // <2>
    literal       tokenType = iota
    groupUncaptured tokenType = iota
 )
-type token struct { // <3>
+type token struct { // &lt;3>
    tokenType tokenType
    // محتوای مورد نیاز برای هر توکن متفاوت خواهد بود
    // پس باید با نوع انعطاف‌پذیر باشیم
    value     interface{}
 }
-type parseContext struct { // <4>
+type parseContext struct { // &lt;4>
    // اندیس کاراکتری که در حال پردازش آن
    // در رشته regex هستیم
    pos    int
@@ -119,7 +119,7 @@ type parseContext struct { // <4>
         <p>حالا نگاهی به متد <code>process</code> بیندازیم. کمی درگیرتر است؛ قدم‌به‌قدم بررسی‌اش می‌کنیم.</p>
         <pre class="code"><span class="lang-tag">go</span><code>func process(regex string, ctx *parseContext) {
     ch := regex[ctx.pos]
-    if ch == '(' { // <1>
+    if ch == '(' { // &lt;1>
         groupCtx := &parseContext{
             pos:    ctx.pos,
             tokens: []token{},
@@ -129,15 +129,15 @@ type parseContext struct { // <4>
             tokenType: group,
             value:     groupCtx.tokens,
         })
-    } else if ch == '[' { // <2>
+    } else if ch == '[' { // &lt;2>
         parseBracket(regex, ctx)
-    } else if ch == '|' { // <3>
+    } else if ch == '|' { // &lt;3>
         parseOr(regex, ctx)
-    } else if ch == '*' || ch == '?' || ch == '+' { // <4>
+    } else if ch == '*' || ch == '?' || ch == '+' { // &lt;4>
         parseRepeat(regex, ctx)
-    } else if ch == '{' { // <5>
+    } else if ch == '{' { // &lt;5>
         parseRepeatSpecified(regex, ctx)
-    } else { // <6>
+    } else { // &lt;6>
         // لیترال
         t := token{
             tokenType: literal,
@@ -171,25 +171,25 @@ type parseContext struct { // <4>
         <pre class="code"><span class="lang-tag">go</span><code>func parseBracket(regex string, ctx *parseContext) {
     ctx.pos++ // از براکت باز رد شو
     var literals []string
-    for regex[ctx.pos] != ']' { // <1>
+    for regex[ctx.pos] != ']' { // &lt;1>
         ch := regex[ctx.pos]
-        if ch == '-' { // <2>
-            next := regex[ctx.pos+1] // <3-1>
-            prev := literals[len(literals)-1][0] // <3-1>
-            literals[len(literals)-1] = fmt.Sprintf("%c%c", prev, next) // <3-2>
+        if ch == '-' { // &lt;2>
+            next := regex[ctx.pos+1] // &lt;3-1>
+            prev := literals[len(literals)-1][0] // &lt;3-1>
+            literals[len(literals)-1] = fmt.Sprintf("%c%c", prev, next) // &lt;3-2>
             ctx.pos++  // برای مصرف کاراکتر next
-        } else { // <4>
+        } else { // &lt;4>
             literals = append(literals, fmt.Sprintf("%c", ch))
         }
-        ctx.pos++ // <5>
+        ctx.pos++ // &lt;5>
     }
     literalsSet := map[uint8]bool{}
-    for _, l := range literals { // <6>
-        for i := l[0]; i &lt;= l[len(l)-1]; i++ { // <7>
+    for _, l := range literals { // &lt;6>
+        for i := l[0]; i &lt;= l[len(l)-1]; i++ { // &lt;7>
             literalsSet[i] = true
         }
     }
-    ctx.tokens = append(ctx.tokens, token{ // <8>
+    ctx.tokens = append(ctx.tokens, token{ // &lt;8>
         tokenType: bracket,
         value:     literalsSet,
     })
@@ -206,7 +206,7 @@ type parseContext struct { // <4>
         </ol>
         <p>در نوبت بعدی <code>parseOr</code> است که جایگزینی‌ها <strong>(3)</strong> را تحلیل می‌کند:</p>
         <pre class="code"><span class="lang-tag">go</span><code>func parseOr(regex string, ctx *parseContext) {
-    // <1:start>
+    // &lt;1:start>
     rhsContext := &parseContext{
         pos:    ctx.pos,
         tokens: []token{},
@@ -216,18 +216,18 @@ type parseContext struct { // <4>
         process(regex, rhsContext)
         rhsContext.pos += 1
     }
-    // <1:end>
+    // &lt;1:end>
     // دو طرف عبارت OR
     left := token{
         tokenType: groupUncaptured,
-        value:     ctx.tokens, // <2>
+        value:     ctx.tokens, // &lt;2>
     }
-    right := token{ // <3>
+    right := token{ // &lt;3>
         tokenType: groupUncaptured,
         value:     rhsContext.tokens,
     }
-    ctx.pos = rhsContext.pos // <4>
-    ctx.tokens = []token{{ // <5>
+    ctx.pos = rhsContext.pos // &lt;4>
+    ctx.tokens = []token{{ // &lt;5>
         tokenType: or,
         value:     []token{left, right},
     }}
@@ -279,17 +279,17 @@ func parseRepeat(regex string, ctx *parseContext) {
     for regex[ctx.pos] != '}' {
         ctx.pos++
     }
-    boundariesStr := regex[start:ctx.pos] // <1>
-    pieces := strings.Split(boundariesStr, ",") // <2>
+    boundariesStr := regex[start:ctx.pos] // &lt;1>
+    pieces := strings.Split(boundariesStr, ",") // &lt;2>
     var min, max int
-    if len(pieces) == 1 { // <3>
+    if len(pieces) == 1 { // &lt;3>
         if value, err := strconv.Atoi(pieces[0]); err != nil {
             panic(err.Error())
         } else {
             min = value
             max = value
         }
-    } else if len(pieces) == 2 { // <4>
+    } else if len(pieces) == 2 { // &lt;4>
         if value, err := strconv.Atoi(pieces[0]); err != nil {
             panic(err.Error())
         } else {
@@ -305,7 +305,7 @@ func parseRepeat(regex string, ctx *parseContext) {
     } else {
         panic(fmt.Sprintf("برای شمارنده باید 1 یا 2 مقدار مشخص شود: '%s'", boundariesStr))
     }
-    // <5>
+    // &lt;5>
     lastToken := ctx.tokens[len(ctx.tokens)-1]
     ctx.tokens[len(ctx.tokens)-1] = token{
         tokenType: repeat,
@@ -365,30 +365,30 @@ func parseRepeat(regex string, ctx *parseContext) {
         <p>همان چیز در کد:</p>
         <pre class="code"><span class="lang-tag">go</span><code>const epsilonChar uint8 = 0 // کاراکتر خالی
 func toNfa(ctx *parseContext) *state {
-    startState, endState := tokenToNfa(&ctx.tokens[0]) // <1>
-    for i := 1; i &lt; len(ctx.tokens); i++ { // <2>
-        startNext, endNext := tokenToNfa(&ctx.tokens[i]) // <3>
+    startState, endState := tokenToNfa(&ctx.tokens[0]) // &lt;1>
+    for i := 1; i &lt; len(ctx.tokens); i++ { // &lt;2>
+        startNext, endNext := tokenToNfa(&ctx.tokens[i]) // &lt;3>
         endState.transitions[epsilonChar] = append(
             endState.transitions[epsilonChar],
             startNext,
-        ) // <4>
-        endState = endNext // <5>
+        ) // &lt;4>
+        endState = endNext // &lt;5>
     }
-    start := &state{ // <6>
+    start := &state{ // &lt;6>
         transitions: map[uint8][]*state{
             epsilonChar: {startState},
         },
         start: true,
     }
-    end := &state{ // <7>
+    end := &state{ // &lt;7>
         transitions: map[uint8][]*state{},
         terminal:    true,
     }
     endState.transitions[epsilonChar] = append(
         endState.transitions[epsilonChar],
         end,
-    ) // <8>
-    return start // <9>
+    ) // &lt;8>
+    return start // &lt;9>
 }</code></pre>
         <ol>
           <li>اولین توکن را می‌گیریم و به NFA تبدیل می‌کنیم. <code>tokenToNfa</code> یک NFA از توکن می‌سازد و حالت شروع و پایان آن را برمی‌گرداند.</li>
@@ -442,11 +442,11 @@ func tokenToNfa(t *token) (*state, *state) {
     values := t.value.([]token)
     left := values[0]
     right := values[1]
-    s1, e1 := tokenToNfa(&left) // <1>
-    s2, e2 := tokenToNfa(&right) // <1>
-    start.transitions[epsilonChar] = []*state{s1, s2} // <2>
-    e1.transitions[epsilonChar] = []*state{end} // <3>
-    e2.transitions[epsilonChar] = []*state{end} // <3></code></pre>
+    s1, e1 := tokenToNfa(&left) // &lt;1>
+    s2, e2 := tokenToNfa(&right) // &lt;1>
+    start.transitions[epsilonChar] = []*state{s1, s2} // &lt;2>
+    e1.transitions[epsilonChar] = []*state{end} // &lt;3>
+    e2.transitions[epsilonChar] = []*state{end} // &lt;3></code></pre>
         <ol>
           <li>هر دو NFA چپ و راست ساخته می‌شوند.</li>
           <li>حالت شروع با انتقال اپسیلون به شروع هر دو NFA وصل می‌شود.</li>
@@ -457,8 +457,8 @@ func tokenToNfa(t *token) (*state, *state) {
         <img src="https://rhaeguard.github.io/tokenToNfa_bracket.jpeg" alt="تبدیل براکت به NFA؛ نمونه [a-c]" style="max-width:100%;border-radius:12px;border:1px solid var(--line)" />
         <pre class="code"><span class="lang-tag">go</span><code>case bracket:
     literals := t.value.(map[uint8]bool)
-    for l := range literals { // <1>
-        start.transitions[l] = []*state{end} // <2>
+    for l := range literals { // &lt;1>
+        start.transitions[l] = []*state{end} // &lt;2>
     }</code></pre>
         <ol>
           <li>از هر لیترال براکت رد می‌شویم.</li>
@@ -506,10 +506,10 @@ case group, groupUncaptured:
         <p>حالا ببینیم چگونه کدنویسی شده:</p>
         <pre class="code"><span class="lang-tag">go</span><code>case repeat:
     p := t.value.(repeatPayload)
-    if p.min == 0 { // <1>
+    if p.min == 0 { // &lt;1>
         start.transitions[epsilonChar] = []*state{end}
     }
-    var copyCount int // <2>
+    var copyCount int // &lt;2>
     if p.max == repeatInfinity {
         if p.min == 0 {
             copyCount = 1
@@ -519,40 +519,40 @@ case group, groupUncaptured:
     } else {
         copyCount = p.max
     }
-    from, to := tokenToNfa(&p.token) // <3>
-    start.transitions[epsilonChar] = append( // <4>
+    from, to := tokenToNfa(&p.token) // &lt;3>
+    start.transitions[epsilonChar] = append( // &lt;4>
         start.transitions[epsilonChar],
         from,
     )
 
-    for i := 2; i &lt;= copyCount; i++ { // <5>
+    for i := 2; i &lt;= copyCount; i++ { // &lt;5>
         s, e := tokenToNfa(&p.token)
         // پایان قبلی را به شروع این یکی وصل کن
-        to.transitions[epsilonChar] = append( // <6>
+        to.transitions[epsilonChar] = append( // &lt;6>
             to.transitions[epsilonChar],
             s,
         )
 
         // حالت‌های ورود و خروج NFA قبلی را دنبال کن
-        from = s // <7>
-        to = e   // <7>
+        from = s // &lt;7>
+        to = e   // &lt;7>
         // بعد از حداقل تکرارهای لازم
         // بقیه باید اختیاری باشند؛ پس به شروع
         // هر NFA انتقال اپسیلون اضافه کن
         // تا در صورت نیاز نادیده گرفته شوند
-        if i &gt; p.min { // <8>
+        if i &gt; p.min { // &lt;8>
             s.transitions[epsilonChar] = append(
                 s.transitions[epsilonChar],
                 end,
             )
         }
     }
-    to.transitions[epsilonChar] = append( // <9>
+    to.transitions[epsilonChar] = append( // &lt;9>
         to.transitions[epsilonChar],
         end,
     )
 
-    if p.max == repeatInfinity { // <10>
+    if p.max == repeatInfinity { // &lt;10>
         end.transitions[epsilonChar] = append(
             end.transitions[epsilonChar],
             from,
@@ -595,26 +595,26 @@ func getChar(input string, pos int) uint8 {
     return input[pos]
 }</code></pre>
         <p>و کد مطابقت:</p>
-        <pre class="code"><span class="lang-tag">go</span><code>func (s *state) check(input string, pos int) bool { // <1>
-    ch := getChar(input, pos) // <2>
-    if ch == endOfText &amp;&amp; s.terminal { // <3>
+        <pre class="code"><span class="lang-tag">go</span><code>func (s *state) check(input string, pos int) bool { // &lt;1>
+    ch := getChar(input, pos) // &lt;2>
+    if ch == endOfText &amp;&amp; s.terminal { // &lt;3>
         return true
     }
-    if states := s.transitions[ch]; len(states) &gt; 0 { // <4>
+    if states := s.transitions[ch]; len(states) &gt; 0 { // &lt;4>
         nextState := states[0]
-        if nextState.check(input, pos+1) { // <5>
+        if nextState.check(input, pos+1) { // &lt;5>
             return true
         }
     }
-    for _, state := range s.transitions[epsilonChar] { // <6>
-        if state.check(input, pos) { // <7>
+    for _, state := range s.transitions[epsilonChar] { // &lt;6>
+        if state.check(input, pos) { // &lt;7>
             return true
         }
-        if ch == startOfText &amp;&amp; state.check(input, pos+1) { // <8>
+        if ch == startOfText &amp;&amp; state.check(input, pos+1) { // &lt;8>
             return true
         }
     }
-    return false // <9>
+    return false // &lt;9>
 }</code></pre>
         <ol>
           <li><code>(s *state)</code> فقط راهی برای افزودن تابع به ساختار <code>state</code> در گولنگ است؛ ربطی به الگوریتم ندارد.</li>

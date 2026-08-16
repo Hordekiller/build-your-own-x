@@ -83,7 +83,7 @@ int tun_alloc(char *dev) {
     struct ifreq ifr;
     int fd, err;
 
-    if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
+    if ((fd = open("/dev/net/tun", O_RDWR)) &lt; 0)
         return -1;
 
     memset(&amp;ifr, 0, sizeof(ifr));
@@ -91,7 +91,7 @@ int tun_alloc(char *dev) {
     if (*dev) strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
     err = ioctl(fd, TUNSETIFF, (void *)&amp;ifr);
-    if (err < 0) { close(fd); return err; }
+    if (err &lt; 0) { close(fd); return err; }
     strcpy(dev, ifr.ifr_name);
     return fd;
 }</code></pre>

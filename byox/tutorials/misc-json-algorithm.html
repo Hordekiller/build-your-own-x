@@ -58,7 +58,7 @@
 
     def read_ws():
         nonlocal pos
-        while pos < n and json_string[pos] in ' \t\n\r':
+        while pos &lt; n and json_string[pos] in ' \t\n\r':
             pos += 1
 
     def read_string():
@@ -77,7 +77,7 @@
         pos += 1                       # رد کردن " پایانی
         return ''.join(out)
 
-    # ... و توابع read_number، read_array، read_object
+    # read_number، read_array و read_object در ادامهٔ همین تابع تعریف می‌شوند
 
     def read_value():
         nonlocal pos
@@ -101,9 +101,12 @@
         <pre class="code"><span class="lang-tag">Python</span><code>    def read_number():
         nonlocal pos
         start = pos
-        while pos < n and json_string[pos] in '0123456789.eE+-':
+        while pos &lt; n and json_string[pos] in '0123456789.eE+-':
             pos += 1
-        return float/json or int(...)   # بر اساس کاراکترها
+        text = json_string[start:pos]       # برش عدد خوانده‌شده
+        if '.' in text or 'e' in text or 'E' in text:
+            return float(text)              # عدد اعشاری
+        return int(text)                    # عدد صحیح
 
     def read_array():
         nonlocal pos

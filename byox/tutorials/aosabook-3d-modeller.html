@@ -599,7 +599,7 @@ class Cube(Primitive):
         closest_node = None
         for node in self.node_list:
             hit, distance = node.pick(start, direction, mat)
-            if hit and distance < mindist:
+            if hit and distance &lt; mindist:
                 mindist, closest_node = distance, node
 
         # اگر برخوردی رخ داد، آن را پیگیری کن
@@ -681,7 +681,7 @@ class Cube(Primitive):
         self.color_index += 1 if forwards else -1
         if self.color_index > color.MAX_COLOR:
             self.color_index = color.MIN_COLOR
-        if self.color_index < color.MIN_COLOR:
+        if self.color_index &lt; color.MIN_COLOR:
             self.color_index = color.MAX_COLOR</code></pre>
 
         <h4>مقیاس‌بندی گره‌ها</h4>

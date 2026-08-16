@@ -64,7 +64,8 @@ function parse_atom() {
       return exp;
     }
     if (is_num()) return make_number(parse_num());
-    ...
+    if (is_word()) return make_word(parse_word());
+    error("توکن غیرمنتظره");
   };
 }
 

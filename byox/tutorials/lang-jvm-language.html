@@ -52,7 +52,8 @@
         <p>سری شامل چند بخش اصلی است: (۱) طراحی زبان و ساختار AST؛ (۲) lexer و parser با Apache Antlr یا دستی؛ (۳) تولید بایت‌کد با ASM (کتابخانهٔ معروف جاوا)؛ (۴) پشتیبانی از متغیرها، توابع، شرط‌ها، حلقه‌ها، کلاس‌ها و inheritance؛ (۵) مدیریت error reporting.</p>
         <p>برای مثال، تبدیل عبارت <code>x + 3</code> به بایت‌کد با ASM این‌گونه است:</p>
         <pre class="code"><span class="lang-tag">Java</span><code>// با استفاده از کتابخانهٔ ASM
-MethodVisitor mv = ...;   // از ClassWriter
+MethodVisitor mv = cw.visitMethod(
+    Opcodes.ACC_PUBLIC, "compute", "(I)I", null, null);   // متد compute(int):int
 
 // بارگذاری مقدار متغیر x (ایندکس ۱ در local variables)
 mv.visitVarInsn(Opcodes.ILOAD, 1);

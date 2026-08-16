@@ -80,16 +80,19 @@ impl BytePacketBuffer {
         <h2>قدرت: forwarder و پاسخ‌گویی</h2>
         <p>بعد از پارس کردن درخواست، سرور به یک سرور DNS بالادست (مثل 8.8.8.8) فوروارد می‌کند، جواب را می‌گیرد و برای کاربر برمی‌گرداند — این یعنی یک «سرور DNS رله» واقعی (glue). جواب را هم که باز کنید و ایمن بفرستید، کار تمام است:</p>
         <pre class="code"><span class="lang-tag">Rust</span><code>fn handle_query(socket: &amp;UdpSocket, buf: &amp;mut [u8]) -&gt; Result&lt;()&gt; {
-    let query = Packet::from_buffer(&amp;mut BytePacketBuffer::new(buf))?;
+    // خواندن درخواست کاربر و گرفتن آدرس مبدأ او
+    let (size, src) = socket.recv_from(buf)?;
+
+    let query = Packet::from_buffer(&amp;mut BytePacketBuffer::new(&amp;buf[..size]))?;
 
     // فوروارد به سرور بالادست
     let mut resolver = UdpSocket::bind("0.0.0.0:0")?;
-    resolver.send_to(buf, "8.8.8.8:53")?;
+    resolver.send_to(&amp;buf[..size], "8.8.8.8:53")?;
     let mut response = [0u8; 512];
     let (n, _) = resolver.recv_from(&amp;mut response)?;
 
-    // ارسال پاسخ به کاربر
-    socket.send_to(&amp;response[..n], ...)?;
+    // ارسال پاسخ به کاربر (همان آدرس مبدأ)
+    socket.send_to(&amp;response[..n], src)?;
     Ok(())
 }</code></pre>
         <p>با `SocketAddr` مشتری از `recv_from`، پاسخ دقیقاً همانجا برمی‌گردد که باید.</p>

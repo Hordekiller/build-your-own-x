@@ -50,12 +50,12 @@
       <section>
         <h2>معماری: زمگ و PUB/SUB</h2>
         <p>ZeroMQ یک کتابخانهٔ سوکت است که الگوهای پیام‌رسانی دارد؛ PUB/SUB یعنی «ناشر» پیام را روی یک موضوع می‌فرستد و همهٔ مشترکانِ آن موضوع می‌گیرند. در چت: سرور PUB است، کلاینت‌ها SUB:</p>
-        <pre class="code"><span class="lang-tag">Rust</span><code>// زرنگ: سمت سرور (پخش)
+        <pre class="code"><span class="lang-tag">Rust</span><code>// سمت سرور (پخش)
 let ctx = zmq::Context::new();
 let publisher = ctx.socket(zmq::PUB).unwrap();
 publisher.bind("tcp://*:5555").unwrap();
 
-// زرنگ: سمت کلاینت (دریافت همهٔ پیام‌ها)
+// سمت کلاینت (دریافت همهٔ پیام‌ها)
 let subscriber = ctx.socket(zmq::SUB).unwrap();
 subscriber.connect("tcp://server:5555").unwrap();
 subscriber.set_subscribe(b"").unwrap();   // همهٔ موضوع‌ها

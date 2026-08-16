@@ -67,7 +67,14 @@ public Object visitBinaryExpr(Expr.Binary expr) {
     case MINUS:
       checkNumberOperands(expr.operator, left, right);
       return (double) left - (double) right;
-    ...
+    case STAR:
+      checkNumberOperands(expr.operator, left, right);
+      return (double) left * (double) right;
+    case SLASH:
+      checkNumberOperands(expr.operator, left, right);
+      return (double) left / (double) right;
+    default:
+      throw new RuntimeError(expr.operator, "عملگر ناشناخته");
   }
 }</code></pre>
       </section>

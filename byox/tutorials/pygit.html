@@ -115,7 +115,7 @@ def read_index():
     entry_data = data[12:-20]
     entries = []
     i = 0
-    while i + 62 < len(entry_data):
+    while i + 62 &lt; len(entry_data):
         fields_end = i + 62
         fields = struct.unpack('!LLLLLLLLLL20sH',
                                entry_data[i:fields_end])
@@ -285,7 +285,7 @@ def find_missing_objects(local_sha1, remote_sha1):
     obj_type, data = read_object(obj)
     type_num = ObjectType[obj_type].value
     size = len(data)
-    byte = (type_num << 4) | (size & 0x0f)
+    byte = (type_num &lt;&lt; 4) | (size & 0x0f)
     size >>= 4
     header = []
     while size:
@@ -332,8 +332,8 @@ $ python3 pygit.py commit -m "First working version of pygit"
 committed to master: 00d56c2a774147c35eeb7b205c0595cf436bf2fe
 $ python3 pygit.py cat-file commit 00d5
 tree 7758205fe7dfc6638bd5b098f6b653b2edd0657b
-author Ben Hoyt <benhoyt@gmail.com> 1493169321 -0500
-committer Ben Hoyt <benhoyt@gmail.com> 1493169321 -0500
+author Ben Hoyt &lt;benhoyt@gmail.com> 1493169321 -0500
+committer Ben Hoyt &lt;benhoyt@gmail.com> 1493169321 -0500
 
 First working version of pygit
 $ python3 pygit.py push https://github.com/benhoyt/pygit.git
