@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت CDN از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>CDN</span>
+      </div>
+      <h1>ساخت یک CDN از صفر برای یادگیری دربارهٔ CDN</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Lua</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/leandromoreira/cdn-up-and-running" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «CDN Up and Running» از لیندرو موریرا است که با OpenResty (Nginx + Lua) یک CDN کامل راه‌اندازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/leandromoreira/cdn-up-and-running" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>CDN چیست و چطور کار می‌کند؟</h2>
+        <p>شبکهٔ توزیع محتوا (CDN) محتوای شما (تصاویر، ویدیو، صفحه) را در سرورهای edge در نقاط مختلف جهان کپی می‌کند. وقتی کاربر از نزدیک‌ترین edge درخواست می‌کند، پاسخ سریع‌تر می‌آید و بار سرور اصلی کم می‌شود. اجزای اصلی: <b>edge node</b>، <b>کش</b>، <b>فوروارد به origin</b> و <b>به‌روزرسانی هوشمند</b>.</p>
+        <p>این آموزش با OpenResty (Nginx به‌همراه Lua) یک CDN واقعی و قابل‌اجرا می‌سازد که هم درک نظری می‌دهد و هم مهارت عملی.</p>
+      </section>
+
+      <section>
+        <h2>تفاوت کش و پیش‌کش</h2>
+        <p>دو نوع کش اصلی وجود دارد: <b>pull caching</b> که edge فقط وقتی درخواست بیاید محتوا را می‌گیرد، و <b>push caching</b> که محتوا از قبل به همهٔ edgeها فرستاده می‌شود. در شروع، pull کافی است. سرصفحه‌های HTTP مانند `Cache-Control: max-age` تعیین می‌کنند که چه چیزی چند وقت قابل‌کش است:</p>
+        <pre class="code"><span class="lang-tag">Lua (OpenResty)</span><code>-- بررسی کش بودن درخواست و تنظیم سرصفحه‌ها
+local cache_ttl = 3600   -- یک ساعت
+
+function handle_request(ngx)
+    local status, headers, body = ngx.location.capture('/proxy_upstream')
+
+    if status == ngx.HTTP_OK then
+        -- کَش کردن پاسخ با مدت اعتبار
+        ngx.shared.cache:set(ngx.var.uri, body, cache_ttl)
+        ngx.header['Cache-Control'] = 'public, max-age=' .. cache_ttl
+    end
+    ngx.status = status
+    ngx.say(body or 'error')
+end</code></pre>
+        <p>کلیهٔ منطق در Lua نوشته می‌شود و Nginx بقیهٔ کار (TLS، HTTP/2، گزفب) را انجام می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>پیکربندی کانفیگ Nginx</h2>
+        <p>بخش فایل nginx.conf که edge را به origin می‌بندد:</p>
+        <pre class="code"><span class="lang-tag">Nginx</span><code># edge node: کش + پروکسی به origin
+server {
+    listen 8080;
+
+    location / {
+        # اسم این edge node را در هدر برای دیباگ بگذار
+        add_header X-CDN-Node "edge-iran-1";
+
+        # ارسال به backend با fetch از کش
+        content_by_lua_block {
+            local res = ngx.location.capture("/internal_origin")
+            ngx.status = res.status
+            ngx.say(res.body)
+        }
+    }
+
+    location /internal_origin {
+        proxy_pass http://origin-backend:3000;
+        proxy_set_header Host $host;
+    }
+}</code></pre>
+        <p>با این ساختار، هر درخواست می‌تواند از کش لوح_اشتراکی (shared dict) سرو شود یا به origin فرستاده شود.</p>
+      </section>
+
+      <section>
+        <h2>پس‌زمینهٔ مفاهیم</h2>
+        <p>در طول آموزش، مسائل واقعی CDN هم مطرح می‌شود: استهلال کش (پاک‌کردن با درخواست PURGE)، زمان‌بندی TTL بر اساس نوع محتوا، جغرافیای edgeها و ذخیرهٔ گرم (prefetch). هرکدام با مثال Lua پیاده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>با این آموزش، بخش‌های تاریک CDN شفاف می‌شوند و شما می‌توانید CDN شخصی (برای پروژه‌های داخلی) راه‌اندازی کنید. مهارت‌های Lua/OpenResty هم در دنیای واقعی (API Gatewayها) ارزشمند است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> لیندرو موریرا (Leandro Moreira). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/leandromoreira/cdn-up-and-running" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

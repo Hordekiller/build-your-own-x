@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور بازی خودت را بساز (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>موتور بازی (ویدیو)</span>
+      </div>
+      <h1>موتور بازی خودت را بساز — پلی‌لیست ویدیویی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور پلی‌لیست «Game Engine Development» از چریل (The Cherno) است که ساخت یک موتور بازی مدرن با C++ و OpenGL را قدم‌به‌قدم آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ پلی‌لیست</h2>
+        <p>این دورهٔ ویدیویی بلند، سیر ساخت موتور بازی را از پنجرهٔ اول تا renderer و ویندوژ نشان می‌دهد: پنجره‌سازی با GLFW، OpenGL، شیدرها، ریاضیات سه‌بعدی، بافت و مدل‌ها. هر قسمت، مفاهیم را با کد زنده و اجرا نشان می‌دهد — مشاهدهٔ خطاها و اصلاح آن‌ها در زمان واقعی، ارزش آموزشی بالایی دارد.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>از پنجره تا مثلث</h2>
+        <p>اولین قدم‌ها ساخت پنجره با GLFW و یک buffer است. برای اولین مثلث باید VBO (بافر رأس‌ها) و شیدر را تنظیم کنیم. این مرحله پایه‌ای، تمام معماری گرافیک را تعیین می‌کند.</p>
+        <p>اگر با OpenGL آشنا نیستید، حتماً ابتدا قسمت‌های مقدماتی را ببینید، چون ادامهٔ دوره بر همان مفاهیم بنا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: رندر مثلث</h2>
+        <p>یک نکتهٔ فنی که در دوره بارها تکرار می‌شود، درست تنظیم‌کردن شیدر و بافرها است:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>// راه‌اندازی رأس‌های یک مثلث و ارسال به GPU
+float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+
+unsigned int vbo, vao;
+glGenVertexArrays(1, &amp;vao);
+glBindVertexArray(vao);
+
+glGenBuffers(1, &amp;vbo);
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+// توضیح چیدمان رأس‌ها: 3 مولفهٔ float
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);</code></pre>
+        <p>این الگو در همهٔ رندرهای بعدی (مکعب، مدل) تکرار می‌شود؛ ولی این بار با ماتریس‌های تبدیل و بافت اضافه می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>به کجا می‌رسید؟</h2>
+        <p>در پایان دوره، چیزی دارید که وابسته به هیچ موتور آماده نیست: یک pipeline رندر اختصاصی که می‌توانید آن را برای پروژه‌های شخصی و تحصیلی توسعه دهید. این مهارت، درک عمیقی از بازی‌سازی (چرخهٔ رندر، حافظهٔ GPU) به شما می‌دهد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> چریل (The Cherno). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

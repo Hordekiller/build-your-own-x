@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پخش‌کننده ویدیو در کمتر از ۱۰۰۰ خط</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پخش‌کننده ویدیو (FFmpeg)</span>
+      </div>
+      <h1>چگونه یک پخش‌کننده ویدیو در کمتر از ۱۰۰۰ خط بنویسیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://dranger.com/ffmpeg/ffmpeg.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش کلاسیک «How to write a video player in less than 1,000 lines» از استیون دکترانگر است که با FFmpeg و SDL یک پخش‌کنندهٔ ویدیو می‌سازد.
+        </div>
+        <a class="btn solid" href="http://dranger.com/ffmpeg/ffmpeg.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>هدف و جریان داده</h2>
+        <p>پخش‌کردن ویدیو یعنی تبدیل یک فایل فشرده‌شده به فریم‌هایی که روی صفحه نمایش داده شوند. این آموزش با کتابخانهٔ FFmpeg کار می‌کند و سه مرحله دارد: <b>باز کردن</b> فایل و یافتن استریم‌ها (video/audio)، <b>رمزگشایی</b> فریم‌ها با کدک مناسب، و <b>نمایش</b> با SDL. تمام این‌ها با API قدیمی و تا حدی ساده‌شدهٔ FFmpeg انجام می‌شود.</p>
+        <p>جریان اصلی (pipeline) چنین است: فایل → بسته‌های encoded → فریم‌های decoded → تبدیل به RGB → نمایش.</p>
+      </section>
+
+      <section>
+        <h2>کدک‌ها و ساختار API</h2>
+        <p>کلید این کار، درک دو ساختار است: <code>AVFormatContext</code> (که فایل و استریم‌هایش را دارد) و <code>AVCodecContext</code> (که کدک فعال را نگه می‌دارد). برای نمایش، بافر قاب را با `av_frame_alloc` می‌سازیم.</p>
+        <p>در ادامه، حلقهٔ پخش برای هر فریم، آن را رمزگشایی و به فرمت RGB (برای SDL) تبدیل می‌کند. تابعی که «frame را برای SDL آماده می‌کند» هستهٔ کار است:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// تبدیل یک فریم رمزگشایی‌شده بهRGB و نمایش
+void displayFrame(AVFrame *frame, AVPicture *pict, SwsContext *sws,
+                  SDL_Surface *screen) {
+    int w = frame-&gt;width, h = frame-&gt;height;
+
+    // تبدیل YUV به RGB با استفاده از swscale
+    sws_scale(sws, frame-&gt;data, frame-&gt;linesize, 0, h,
+              pict-&gt;data, pict-&gt;linesize);
+
+    // کپی پیکسل‌ها به سطح SDL
+    SDL_LockSurface(screen);
+    memcpy(screen-&gt;pixels, pict-&gt;data[0],
+           pict-&gt;linesize[0] * h);
+    SDL_UnlockSurface(screen);
+    SDL_UpdateRect(screen, 0, 0, w, h);
+}</code></pre>
+        <p>در این‌جا `sws_scale` کار تبدیل فرمت (YUV → RGB) را انجام می‌دهد و سپس پیکسل‌ها مستقیماً به بافر سطح SDL کپی می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت زمان‌بندی (Timing)</h2>
+        <p>بخش سخت اما مهم، همگام‌سازی صدا و تصویر است. برای اینکه فریم‌ها با سرعت درست پخش شوند، باید «زمان نمایش» (PTS) را محاسبه و بین فریم‌ها `usleep` کنیم. اگر این مرحله را درست انجام ندهید، ویدیو یا تند یا کند پخش می‌شود.</p>
+        <p>در نسخهٔ پیشرفته، تفاوت زمانی با «audio clock» محاسبه می‌شود؛ اما در آموزش ابتدایی یک فرمول ساده بر اساس duration هر فریم کافی است: `delay = (frame->pts - last_pts) * (1000 / fps)`.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش نشان می‌دهد که با چند صد خط C و FFmpeg، می‌توان یک پخش‌کنندهٔ ویدیوی واقعی ساخت. مفاهیم کدک، تبدیل رنگ و همگام‌سازی، مهارت‌هایی هستند که در هر کار چندرسانه‌ای به کار می‌آیند و این مسیر بهترین شروع است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> استیون دکترانگر (Dranger). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://dranger.com/ffmpeg/ffmpeg.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

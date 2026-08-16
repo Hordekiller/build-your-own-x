@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | راهنمای ساخت سرور DNS در Rust</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سرور DNS در Rust</span>
+      </div>
+      <h1>ساخت یک سرور DNS در Rust</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/EmilHernvall/dnsguide/blob/master/README.md" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «DNS guide» از امیل هرنوال است که یک سرور DNS کامل را از صفر در Rust می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/EmilHernvall/dnsguide/blob/master/README.md" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>قلمرو: بایت به بایت</h2>
+        <p>DNS یک پروتکل باینری ساده است: درخواست UDP روی پورت ۵۳ فرستاده می‌شود. اگر پیام را بایت‌به‌بایت تشریح کنید (header، سوال، پاسخ)، مفاهیم تمام سیستم‌های باینری را یاد گرفته‌اید. این راهنما با Rust — زبانی که برای کار بایت‌محور عالی است — انجامش می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>خواندن بایت‌ها با ساختارهای Rust</h2>
+        <p>اولین قدم: ارسال یک درخواست ساده و چاپ بایت‌های خام پاسخ. بعد ساختار `Packet` تعریف می‌شود که از `BytePacketBuffer` می‌خواند؛ هر فیلد (ID، پرچم‌ها، شماره‌ها) با متدهایی مثل `read_u16` بیرون کشیده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>pub struct BytePacketBuffer {
+    pub buf: [u8; 512],
+    pub pos: usize,
+}
+
+impl BytePacketBuffer {
+    pub fn read_u16(&amp;mut self) -&gt; Result&lt;u16&gt; {
+        let hi = self.buf[self.pos] as u16;
+        let lo = self.buf[self.pos + 1] as u16;
+        self.pos += 2;
+        Ok((hi &lt;&lt; 8) | lo)      // big-endian در DNS
+    }
+
+    pub fn read_string(&amp;mut self) -&gt; Result&lt;String&gt; {
+        // فرمت label: هر بخش طول + حروف
+        let len = self.buf[self.pos]; self.pos += 1;
+        let mut s = String::with_capacity(len as usize);
+        for _ in 0..len {
+            s.push(self.buf[self.pos] as char); self.pos += 1;
+        }
+        Ok(s)
+    }
+}</code></pre>
+        <p>نکتهٔ مهم پروتکل: بایت‌ها big-endian هستند و نام‌ها به شکل متوالی label ذخیره می‌شوند — بدون null-terminator مثل C.</p>
+      </section>
+
+      <section>
+        <h2>قدرت: forwarder و پاسخ‌گویی</h2>
+        <p>بعد از پارس کردن درخواست، سرور به یک سرور DNS بالادست (مثل 8.8.8.8) فوروارد می‌کند، جواب را می‌گیرد و برای کاربر برمی‌گرداند — این یعنی یک «سرور DNS رله» واقعی (glue). جواب را هم که باز کنید و ایمن بفرستید، کار تمام است:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>fn handle_query(socket: &amp;UdpSocket, buf: &amp;mut [u8]) -&gt; Result&lt;()&gt; {
+    let query = Packet::from_buffer(&amp;mut BytePacketBuffer::new(buf))?;
+
+    // فوروارد به سرور بالادست
+    let mut resolver = UdpSocket::bind("0.0.0.0:0")?;
+    resolver.send_to(buf, "8.8.8.8:53")?;
+    let mut response = [0u8; 512];
+    let (n, _) = resolver.recv_from(&amp;mut response)?;
+
+    // ارسال پاسخ به کاربر
+    socket.send_to(&amp;response[..n], ...)?;
+    Ok(())
+}</code></pre>
+        <p>با `SocketAddr` مشتری از `recv_from`، پاسخ دقیقاً همانجا برمی‌گردد که باید.</p>
+      </section>
+
+      <section>
+        <h2>ارتقاها: recursive و DoT</h2>
+        <p>راهنما در فصل‌های بعد چیزهای بیشتری اضافه می‌کند: کش کردن (Cache) پاسخ‌ها، حلقهٔ بازگشتی خودکار (بدون اتکا به 8.8.8.8)، DNS-over-TCP و حتی DNS-over-TLS. هر کدام با همین واحدهای کوچک بایت‌خوانی ساخته می‌شوند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> امیل هرنوال (Emil Hernvall). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/EmilHernvall/dnsguide/blob/master/README.md" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

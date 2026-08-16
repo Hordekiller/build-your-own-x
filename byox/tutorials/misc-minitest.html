@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | فریم‌ورک MiniTest در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>فریم‌ورک MiniTest</span>
+      </div>
+      <h1>نوشتن یک فریم‌ورک MiniTest</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day08_minitest.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 8: MiniTest» از سری NimDays است که یک فریم‌ورک تست کوچک با قدرت ماکروهای Nim می‌سازد.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day08_minitest.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>یک فریم‌ورک تست چه اجزایی دارد؟</h2>
+        <p>حداقل اجزای هر فریم‌ورک تست: ثبت‌نام تست‌ها، اجرای هر تست به‌صورت ایزوله، مقایسهٔ انتظار با نتیجه (assertion)، خلاصهٔ نتایج و خروجی غیرصفر در صورت شکست. فریم‌ورک‌های پیشرفته‌تر fixture (برپایی/مصرف) و suite دارند.</p>
+        <p>در این آموزش، یک MiniTest در Nim می‌سازیم که سینتکسی شبیه RSpec دارد — با کمک macroها.</p>
+      </section>
+
+      <section>
+        <h2>وضعیت توصیفی با ماکرو</h2>
+        <p>ایدهٔ اصلی: یک ماکرو `describe` بلوک‌های تست را جمع می‌کند و هنگام اجرا، فقط تست‌هایی که نامشان از خط فرمان آمده اجرا می‌شوند. هر تست یک closure ساده است:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>import macros
+
+# ثبت تست ها: آرایه‌ای از نام + بدنه
+var tests: seq[(string, proc())]
+
+macro describe(name: static[string], body: untyped): untyped =
+  # کارهای ماکرو: جمع کردن تست‌ها با AST
+  result = newStmtList()
+  for child in body:
+    if child.kind == nnkCall and child[0].repr == "test":
+      let testName = child[1].repr
+      let body = child[2].repr
+      # ... تولید کد ثبت تست
+
+describe "محاسبات ریاضی":
+  test "جمع ساده":
+    check(1 + 1 == 2)
+  test "ضرب":
+    check(2 * 3 == 6)</code></pre>
+        <p>ماکروهای Nim AST را در زمان کامپایل می‌بینند؛ به همین دلیل می‌توانیم «زبان‌هایی روی زبان» (DSL) بسازیم بدون اینکه اجرای برنامه کند شود.</p>
+      </section>
+
+      <section>
+        <h2>اجرا و گزارش</h2>
+        <p>بخش اجرا تست‌ها را یکی‌یکی صدا می‌زند، خطاها را می‌گیرد و در پایان خلاصه می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>var passed = 0
+var failed = 0
+
+for (name, body) in tests:
+  try:
+    body()
+    passed.inc
+    echo "✓ ", name
+  except CatchableError as e:
+    failed.inc
+    echo "✗ ", name, " — ", e.msg
+    echo "  ", getCurrentException().trace
+
+echo ""
+echo passed, " قبول، ", failed, " شکست"
+if failed &gt; 0:
+  quit(1)   # برای CI مهم است!</code></pre>
+        <p>همان `quit(1)` است که در پایپ‌لاین‌های CI کار ابزارهایی مثل pytest را تحقق می‌بخشد: شاید هیچ کلمه‌ای چاپ نشود ولی خروجی صفر/غیرصفر همه‌چیز را می‌گوید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>شگفت‌انگیز است که با حدود ۵۰ خط کد، یک فریم‌ورک تست داستانی (describe/it) ساخته‌اید. دفعهٔ بعد که از RSpec یا Jest استفاده می‌کنید، می‌دانید پشت صحنه چه خبر است — و Nim این را با ماکروها تر و تمیز نشان می‌دهد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day08_minitest.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

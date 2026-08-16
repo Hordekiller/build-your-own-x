@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کامپایلر WebAssembly خودت را بساز</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر WebAssembly</span>
+      </div>
+      <h1>کامپایلر WebAssembly خودت را بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: TypeScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.scottlogic.com/2019/05/17/webassembly-compiler.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «WebAssembly Compiler» از کالین ابرهارت (Scott Logic) است که ساخت یک کامپایلر TypeScript → بایت‌کد wasm را از پایه نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://blog.scottlogic.com/2019/05/17/webassembly-compiler.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا WebAssembly نقطهٔ عالی برای کامپایلر است؟</h2>
+        <p>WebAssembly یک قالب باینری با هدف اجرای سریع در مرورگر است. مزیت آن برای یادگیری کامپایلر این است که خروجی نهایی شما یک فایل `.wasm` قابل‌اجرا در مرورگر خواهد بود — یعنی بلافاصله و بدون واسطه می‌توانید ببینید که کد شما درست کار می‌کند یا نه.</p>
+        <p>این آموزش با یک زبان مینی سفارشی شروع می‌کند و با سه مرحلهٔ اساسی پیش می‌رود: <b>lexer</b> برای تشخیص توکن، <b>parser</b> برای ساخت درخت نحو و <b>code generator</b> برای تولید بایت‌کد wasm.</p>
+      </section>
+
+      <section>
+        <h2>ساختار زبان ورودی</h2>
+        <p>زبان مورد نظر سینتکسی شبیه به جاوااسکریپت دارد: اعداد صحیح، متغیرهای محلی، دستور return و تابع main. ساده‌ترین نقطهٔ شروع، تولید یک تابع است که با تعداد مشخصی آرگومان ورودی کار می‌کند و نتیجه را با `return` برمی‌گرداند.</p>
+      </section>
+
+      <section>
+        <h2>lexer و parser</h2>
+        <p>بخش‌های ابتدایی به‌صورت کلاسیک هستند: توکن‌های `number`، `identifier`، عملگرها و کلیدواژه‌ها. در ادامه، parser با یک تابع recursive descent روی AST می‌سازد:</p>
+        <pre class="code"><span class="lang-tag">TypeScript</span><code>// تجزیهٔ عبارت: عدد، متغیر یا فراخوانی تابع
+function parseExpression(): AstNode {
+  const token = nextToken();
+  if (token.type === "number") {
+    return { kind: "number", value: Number(token.value) };
+  }
+  if (token.type === "identifier") {
+    const next = peek();
+    if (next.type === "lparen") {          // فراخوانی تابع
+      nextToken();
+      const args: AstNode[] = [];
+      while (peek().type !== "rparen") {
+        args.push(parseExpression());
+        if (peek().type === "comma") nextToken();
+      }
+      nextToken();                          // بستن پرانتز
+      return { kind: "call", name: token.value, args };
+    }
+    return { kind: "var", name: token.value };
+  }
+  throw new Error(`توکن غیرمنتظره: ${token.value}`);
+}</code></pre>
+        <p>این parser ساده، ساختارهای متداخل مثل `main(add(1, 2))` را درست تجزیه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>codegen به بایت‌کد wasm</h2>
+        <p>بخش جذاب، ترجمهٔ AST به دستورهای باینری بود: هر گره به یک سری `opcode` و `leb128` تبدیل می‌شود. به‌طور مثال، جمع دو عدد یک دستور `i32.add` و یک تابع، یک type section و function body خواهد داشت:</p>
+        <pre class="code"><span class="lang-tag">TypeScript</span><code>// تولید بایت‌کد برای تابع main
+function emitFunction(name: string, params: number[], body: AstNode): Uint8Array {
+  const bytes: number[] = [];
+
+  // بخش function type را ثبت می‌کند
+  const typeIdx = encodeL128(params.filter(p =&gt; p === i32).length);
+
+  // body: بدنهٔ عبارت return
+  bytes.push(0x0b);          // end of expression block
+  emitExpression(body);      // دستورها به bytes اضافه می‌شوند
+
+  return new Uint8Array(bytes);
+}</code></pre>
+        <p>اینجا دید می‌کنید که بخش‌های محتلف (header، type و code) هرکدام با یک بایت مودیولار ۰x و شناسه ثبت می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>اجرا و تست</h2>
+        <p>در پایان، لودر itify به‌کمک `WebAssembly.instantiate`، بایت‌کد را در مرورگر اجرا و نتیجهٔ تابع را چاپ می‌کند. این چرخه — ویرایش، کامپایل، اجرا — بازخورد فوری می‌دهد و یادگیری را واقعاً به‌دست‌یافتنی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش یک شروع عالی برای ورود به دنیای کامپایلرهای زبان‌های مرورگاهی است. اگر بعد از آن به دنبال پروژهٔ بزرگ‌تری هستید، ساخت یک frontend برای زبانی با تایپ‌ها یا حلقه‌ها منطق بعدی است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کالین ابرهارت (Colin Eberhardt) / Scott Logic. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://blog.scottlogic.com/2019/05/17/webassembly-compiler.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

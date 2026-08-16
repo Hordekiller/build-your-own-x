@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اینترو ۶۴K چگونه ساخته می‌شود</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>اینترو ۶۴K</span>
+      </div>
+      <h1>یک اینترو ۶۴K چگونه ساخته می‌شود</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://www.lofibucket.com/articles/64k_intro.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «How 64k intros are made» است که توضیح می‌دهد چگونه یک فایل اجرایی ۶۴ کیلوبایتی می‌تواند صحنه‌های گرافیکی دقیق اجرا کند.
+        </div>
+        <a class="btn solid" href="http://www.lofibucket.com/articles/64k_intro.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چالش ۶۴ کیلوبایت</h2>
+        <p>در دنیای دموصحنه (demoscene)، «۶۴K intro» اثری است که باید در ۶۴ کیلوبایت جا شود ولی بتواند صحنهٔ سه‌بعدی کامل، موسیقی و انیمیشن اجرا کند. راز آن در دو بخش است: <b>تولید روی‌فرار (procedural generation)</b> برای ایجاد مدل‌ها، بافت‌ها و صدا در اجرا، و <b>کپرسسازی شدید</b> فایل نهایی.</p>
+        <p>این مقاله نشان می‌دهد که یک صحنهٔ ۶۴K معمولاً با شیدرها (که حاوی تمام جزئیات صحنه هستند) و ابزارهایی مثل العlot یا Marmalade شروع می‌شود، نه با مدل‌های از پیش ساخته‌شده.</p>
+      </section>
+
+      <section>
+        <h2>ساختار: شیدر به‌عنوان هسته</h2>
+        <p>در بسیاری از اینتروها، گرافیک به کمک کد GLSL (شیدر) تولید می‌شود که صحنه را ray-march یا پروژه می‌کند. کل «تصویر» فقط با یک حلقه در شیدر fragment رسم می‌شود:</p>
+        <pre class="code"><span class="lang-tag">GLSL</span><code>#version 330 core
+out vec4 frag_color;
+uniform vec2 u_resolution;
+uniform float u_time;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;
+    // یک موج ساده که با زمان حرکت می‌کند — و الگوی رنگارنگ
+    vec3 color = vec3(uv.x, uv.y, 0.5 + 0.5*sin(u_time));
+    color += vec3(uv.x*uv.y)*0.5;
+    frag_color = vec4(color, 1.0);
+}</code></pre>
+        <p>با این دست چند خط، یک صحنهٔ متحرک تولید می‌شود؛ برای صحنه‌های واقعی از ray marching استفاده می‌شود که فاصله از سطح را محاسبه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>تولید روی‌فرار و کپرس</h2>
+        <p>مدل‌های سه‌بعدی به صورت «دستور توصیفی» (مثلاً تعداد و موقعیت شعاع‌ها) در کد می‌آیند، نه به‌صورت متن ضخیم. موسیقی هم با ساختار «tracker» و هندسهای تکهتکه ذخیره می‌شود. سپس کل فایل با یک پکر (کرانکر) مثل CRinkler فشرده می‌شود که می‌تواندتیاه اصلی اجرا را هم بازسازی کند.</p>
+        <p>نتیجه: فایل نهایی ممکن است کمتر از ۶۴ کیلوبایت باشد ولی میلیون‌ها بایت «داده» را بارگذاری کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>مقاله به شما نشان می‌دهد که محدودیت، خلاقیت می‌آورد: یاد می‌گیرید با حداقل منابع، تصاویر پیچیده بسازید و به «اندازهٔ فایل» به‌عنوان یک محدودیت طراحی نگاه کنید — مهارتی که در وب و گسترش بازی هم کاربرد دارد.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ مقالهٔ lofi bucket. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://www.lofibucket.com/articles/64k_intro.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کتابخانه یادگیری عمیق</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>کتابخانه یادگیری عمیق</span>
+      </div>
+      <h1>یک کتابخانه یادگیری عمیق بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/watch?v=o64FV-ez6Gw" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Neural Networks from Scratch» (سری ویدیویی) است که شبکه‌های عصبی را از صفر با Python می‌سازد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/watch?v=o64FV-ez6Gw" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا شبکه از صفر؟</h2>
+        <p>بیشتر افراد فقط «کتابخانه را صدا می‌زنند»: `model.add(...)` و `model.fit(...)`. در این سری، شما همان چیز را با numpy می‌سازید و می‌فهمید forward pass، backpropagation و gradient descent واقعاً چه می‌کنند. این درک، تنها راه برای تشخیص اینکه چرا یک شبکه خوب یا بد کار می‌کند است.</p>
+      </section>
+
+      <section>
+        <h2>نورون و لایه</h2>
+        <p>یک لایهٔ Dense یعنی: ضرب ماتریس ورودی در وزن‌ها + بایاس. در numpy کل لایه با دو خط نوشته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>import numpy as np
+
+class Layer_Dense:
+    def __init__(self, n_inputs, n_neurons):
+        # وزن‌های کوچک تصادفی + بایاس
+        self.weights = np.random.randn(n_inputs, n_neurons) * 0.01
+        self.biases = np.zeros((1, n_neurons))
+
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.output = np.dot(inputs, self.weights) + self.biases
+        return self.output</code></pre>
+        <p>ضرب ماتریسی یعنی همهٔ نورون‌ها و همهٔ نمونه‌های یک batch هم‌زمان محاسبه می‌شوند — قدرت numpy همین است.</p>
+      </section>
+
+      <section>
+        <h2>همراه با فعال‌سازی و خطا</h2>
+        <p>بعد از لایه، تابع فعال‌سازی (ReLU در لایه‌های میانی، Softmax در خروجی) و تابع خطا (Cross-Entropy) اضافه می‌شود. نکتهٔ مهم سری: همهٔ این‌ها یک کلاس جدا با forward و (بعدا) backward خواهند داشت:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def relu_forward(inputs):
+    return np.maximum(0, inputs)
+
+def softmax_forward(z):
+    exp = np.exp(z - np.max(z, axis=1, keepdims=True))  # پایداری عددی
+    return exp / np.sum(exp, axis=1, keepdims=True)
+
+def cross_entropy(y_pred, y_true):
+    return -np.log(y_pred[range(len(y_pred)), y_true] + 1e-9).mean()</code></pre>
+        <p>کم‌کردن حداکثر (max) قبل از exp، از سرریز شدن لازم است — جزئیاتی که در کتابخانه‌های آماده دیده نمی‌شود.</p>
+      </section>
+
+      <section>
+        <h2>به سمت یادگیری</h2>
+        <p>در ادامهٔ سری: backpropagation با قاعدهٔ زنجیره، بهینه‌ساز SGD، و تست روی دادهٔ واقعی. وقتی به این عمق دیده باشید، استفاده از Keras/PyTorch مثل رانندگی کردن با ماشینی است که موتورش را دیده‌اید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> هریسون کینشلی (Sentdex). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/watch?v=o64FV-ez6Gw" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

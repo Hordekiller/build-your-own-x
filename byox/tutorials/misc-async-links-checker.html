@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | بررسی‌کنندهٔ لینکهای async در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>بررسی‌کنندهٔ لینک</span>
+      </div>
+      <h1>نوشتن یک بررسی‌کننده لینک</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day04_asynclinkschecker.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 4: Async Links Checker» از سری NimDays است که با async I/O لینک‌های یک صفحه را به‌صورت هم‌زمان بررسی می‌کند.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day04_asynclinkschecker.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مشکل: چک‌کردن صدها لینک</h2>
+        <p>چند صد لینک در یک صفحهٔ وب. اگر یکی‌یکی (سریال) بررسی شوند، هر درخواست چند صد میلی‌ثانیه منتظر می‌ماند و کل کار چند دقیقه طول می‌کشد. راه‌حل: ارسال همهٔ درخواست‌ها «هم‌زمان» و برخورد با نتایج وقتی رسیدند — همین ایدهٔ async I/O است.</p>
+      </section>
+
+      <section>
+        <h2>async در Nim</h2>
+        <p>Nim با کتابخانهٔ `asyncdispatch` مدل async/await را با event loop خودش دارد (بدون اپراتور سیستم‌عامل). هر تابع async چیزی شبیه یک کار است؛ `await` کار را تعلیق می‌کند تا I/O تمام شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>import asyncdispatch, httpclient
+
+# گرفتن HTML یک صفحه به‌صورت async
+proc fetch(url: string): Future[string] {.async.} =
+  let client = newAsyncHttpClient()
+  result = await client.getContent(url)
+  client.close()
+
+# بررسی وضعیت یک لینک بدون مسدودکردن event loop
+proc checkLink(url: string): Future[(string, bool)] {.async.} =
+  try:
+    let resp = await client.head(url)   # فقط سرصفحه
+    result = (url, resp.status in {Http200, Http301, Http302})
+  except:
+    result = (url, false)</code></pre>
+        <p>با `accept` (چک‌کردن دستی event loop) یا ترکیب futures می‌توان همهٔ لینک‌ها را leak-شده رها کرد تا موازی اجرا شوند.</p>
+      </section>
+
+      <section>
+        <h2>اجرای هم‌زمان همهٔ لینک‌ها</h2>
+        <p>کلید کار: ساخت آرایه‌ای از Future و `await` کردن همهٔ آن‌ها با هم. هر client جدا است، پس event loop همهٔ درخواست‌ها را هم‌زمان روی شبکه می‌فرستد:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>proc main() {.async.} =
+  let html = await fetch("https://example.com")
+  let links = extractLinks(html)   # استخراج href ها
+
+  # ساخت Future برای همهٔ لینک‌ها
+  var futures: seq[Future[(string, bool)]]
+  for link in links:
+    futures.add(checkLink(link))
+
+  # منتظر رسیدن همه
+  let results = await all(futures)
+
+  for (url, ok) in results:
+    echo (if ok: "✓ " else: "✗ "), url</code></pre>
+        <p>نتایج همان ترتیب را دارند چون آرایهٔ Futureها ترتیب را حفظ می‌کند. نکته: `all` اگر یکی خطا بدهد کلش خطا می‌دهد؛ با `failOnError: false` میتوان partial result گرفت.</p>
+      </section>
+
+      <section>
+        <h2>مقایسه با مدل‌های دیگر</h2>
+        <p>async/await فقط یکی از سه مدل هم‌زمانی است. مدل threads (۱۰۰۰ Thread یا ThreadPool) برای CPU-heavy خوب است؛ model event loop (Node.js) برای I/O-heavy. همین ساختار فایل، اگر `--threads:on` کامپایل شود، می‌تواند با Threads هم اجرا شود. با تمرین این آموزش، مفهوم event loop را که در Node.js هم هست، عمیق می‌فهمید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day04_asynclinkschecker.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

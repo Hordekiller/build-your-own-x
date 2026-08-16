@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | درخت تصمیم با کدنویسی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>درخت تصمیم</span>
+      </div>
+      <h1>الگوریتم‌های یادگیری ماشین را با کدنویسی یاد بگیر: درخت تصمیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://lethalbrains.com/learn-ml-algorithms-by-coding-decision-trees-439ac503c9a4" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Learn ML algorithms by coding: Decision Trees» است که درخت تصمیم را از صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="https://lethalbrains.com/learn-ml-algorithms-by-coding-decision-trees-439ac503c9a4" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>درخت تصمیم یعنی «سوال پرسیدن»</h2>
+        <p>درخت تصمیم دسته‌بندی را به سوال‌های سادهٔ متوالی تبدیل می‌کند: «سن بالای ۳۰؟»، «رنگ آیفون؟». هر سوال داده را به دو شاخه تقسیم می‌کند، تا به برگ‌هایی برسد که بیشتر نمونه‌های یک کلاس را دارند. سوال اصلی ساخت: کدام ویژگی، با کدام آستانه، بهترین تقسیم را می‌دهد؟</p>
+      </section>
+
+      <section>
+        <h2>معیار ناخالصی: Gini</h2>
+        <p>یک تقسیم خوب، کلاس‌های مخلوط را جدا می‌کند. «ناخالصی Gini» اندازه می‌گیرد چقدر کلاس‌ها داخل یک گروه قاطی‌اند (۰ = خالص)؛ هر split گزینش می‌شود که کاهش ناخالصی بیشینه باشد:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def gini(groups, classes):
+    """ناخالصی وزنی کل شاخه‌ها"""
+    total = sum(len(g) for g in groups)
+    score = 0.0
+    for group in groups:
+        size = len(group)
+        if size == 0: continue
+        # احتمال هر کلاس داخل این شاخه
+        probs = [group.count(c) / size for c in classes]
+        score += (size / total) * (1 - sum(p ** 2 for p in probs))
+    return score</code></pre>
+        <p>`1 - Σp²`: اگر همه یک کلاس‌اند → صفر. هر چه آمیخته‌تر → بزرگ‌تر.</p>
+      </section>
+
+      <section>
+        <h2>یافتن بهترین تقسیم</h2>
+        <p>برای هر ویژگی، آستانه‌های کاندید (مقادیر میانی) را امتحان می‌کنیم و آنی که کمترین Gini را دارد برنده است:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def best_split(data, classes):
+    """کوچک‌ترین gini را برای هر (ویژگی، آستانه) پیدا کن"""
+    best = None
+    for col in range(len(data[0]) - 1):
+        values = sorted({row[col] for row in data})
+        for i in range(len(values) - 1):
+            threshold = (values[i] + values[i + 1]) / 2
+            left = [r for r in data if r[col] &lt;= threshold]
+            right = [r for r in data if r[col] &gt; threshold]
+            g = gini([left, right], classes)
+            if best is None or g &lt; best[0]:
+                best = (g, col, threshold, left, right)
+    return best</code></pre>
+        <p>ساختن آستانه از «میانگین مقدارهای مجاور» باعث می‌شود ویژگی‌های پیوسته هم قابل استفاده باشند.</p>
+      </section>
+
+      <section>
+        <h2>ساخت بازگشتی درخت</h2>
+        <p>همان تابع بازگشتی که چارچوب: اگر گروه خالص بود → برگ؛ وگرنه بهترین split را بزن و روی دو شاخه تکرار کن. پیش‌بینی هم همین مسیر را از ریشه تا برگ طی می‌کند. با همین ~۸۰ خط، ایدهٔ تمام درخت‌های واقعی (Random Forest، XGBoost) را دارید؛ آن‌ها فقط صدها درخت مثل همین را ترکیب می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Lethal Brains. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://lethalbrains.com/learn-ml-algorithms-by-coding-decision-trees-439ac503c9a4" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک System Call بنویس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>System Call</span>
+      </div>
+      <h1>یک System Call بنویس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://brennan.io/2016/11/14/kernel-dev-ep3/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور قسمت سوم مجموعهٔ «The Adventures of OSDev» از مقالهٔ برنان است که ساختن یک system call را در هستهٔ لینوکس نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://brennan.io/2016/11/14/kernel-dev-ep3/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>System call چیست؟</h2>
+        <p>برنامه‌های کاربردی برای دسترسی به منابع سیستم (فایل، شبکه، پردازنده به‌وقت) باید از طریق API هسته اقدام کنند. System call همان پنجرهٔ ورود از فضای کاربر (user space) به فضای هسته (kernel space) است — یک عدد مشخص که پردازنده به‌عنوان ایندکسِ تابع در جدول syscall استفاده می‌کند.</p>
+        <p>در این آموزش، شما یک syscall ساده می‌نویسید که یک رشته را در هسته چاپ می‌کند؛ سپس آن را در جدول سیستم و از برنامهٔ کاربر فراخوانی می‌کنید.</p>
+      </section>
+
+      <section>
+        <h2>ساختار: جدول syscall</h2>
+        <p>در هستهٔ لینوکس، هر syscall در جدولی به نام `sys_call_table` ثبت می‌شود و تمام آن‌ها در `SYSCALL_DEFINEx` تعریف می‌شوند. برای مثال، یک syscall که پیام را می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// تعریف یک syscall با یک آرگومان رشته‌ای
+SYSCALL_DEFINE1(hello, const char __user*, buffer) {
+    // کپی امن از فضای کاربر (نسخه‌های kernel 5.16+)
+    char kernel_buf[128];
+    size_t len;
+    ssize_t copied;
+
+    copied = strncpy_from_user(kernel_buf, buffer, sizeof(kernel_buf) - 1);
+    if (copied &lt; 0) {
+        return -EFAULT;
+    }
+    kernel_buf[copied] = '\0';
+
+    printk(KERN_INFO "hello syscall: %s\n", kernel_buf);
+    return 0;
+}</code></pre>
+        <p>نکتهٔ امنیتی کلیدی: چون داده از فضای کاربر می‌آید، نباید مستقیماً `copy_from_user` را بدون بررسی اندازه انجام داد. در غیر این صورت ممکن است پایدارسازی نشت یا crash رخ دهد.</p>
+      </section>
+
+      <section>
+        <h2>فراخوانی از فضای کاربر</h2>
+        <p>برای فراخوانی syscall از C، می‌توانید از `syscall()` استفاده کنید. عدد syscall باید پیش‌تر در جدول ثبت شده باشد:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>#define SYS_HELLO 548   // عددی که در هسته اختصاص داده‌اید
+
+#include &lt;unistd.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;stdio.h&gt;
+
+int main(void) {
+    // فراخوانی syscall دلخواه
+    long ret = syscall(SYS_HELLO, "سلام از فضای کاربر!");
+    if (ret &lt; 0) {
+        perror("syscall");
+        return 1;
+    }
+    printf("syscall بازگشت: %ld\n", ret);
+    return 0;
+}</code></pre>
+        <p>بعد از خروجی گرفتن از هسته (dmesg) پیام چاپ‌شده را خواهید دید — یعنی برنامهٔ شما واقعاً وارد هسته شده و آن‌جا اجرا شده است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>نوشتن syscall بهترین راه برای درک «مرز» میان هسته و برنامه‌های کاربردی است. مفاهیم جدول نام، کپی امن بین فضاها و کنترل دسترسی را عملاً تجربه می‌کنید و برای ادامهٔ مسیر ساخت هسته آماده می‌شوید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> برنان (Brennan). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://brennan.io/2016/11/14/kernel-dev-ep3/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

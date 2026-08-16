@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مدیران پنجره X</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پنجره‌های X</span>
+      </div>
+      <h1>مدیران پنجره X چگونه کار می‌کنند و چگونه یکی بنویسیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://seasonofcode.com/posts/how-x-window-managers-work-and-how-to-write-one-part-i.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «How X Window Managers Work, And How To Write One» است که ساخت یک مدیر پنجرهٔ X را گام‌به‌گام توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="https://seasonofcode.com/posts/how-x-window-managers-work-and-how-to-write-one-part-i.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مدیر پنجره در اکوسیستم X11</h2>
+        <p>در X11، سرور X فقط «نقاشی» و ورودی را مدیریت می‌کند؛ چیدمان پنجره‌ها به مدیر پنجره (Window Manager) واگذار می‌شود. مدیر پنجره به‌عنوان یک کلاینت خاص، حدود پنجره‌ها را تغییر می‌دهد، titlebar ترسیم می‌کند و کلیدها را تفسیر می‌کند. برنامه‌های عادی هیچ اطلاعی از چیدمان به‌علت دکوراسیون‌ها ندارند.</p>
+        <p>این آموزش با یک مدیر پنجرهٔ ساده شروع می‌شود که پنجره‌ها را ترسیم و جابه‌جا می‌کند و بعداً ویژگی‌هایی مثل تایلینگ (tiling) و focus را اضافه می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>رویدادها و اتصال به سرور</h2>
+        <p>همهٔ کارها از طریق پروتکل X (با xcb در C) انجام می‌شود. مدیر پنجره باید به رویدادهای `MapRequest` (وقتی پنجره جدیدی می‌خواهد دیده شود) و `ConfigureRequest` (وقتی پنجره می‌خواهد اندازه/موقعیت بگیرد) گوش دهد:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>// حلقهٔ اصلی رویدادهای مدیر پنجره
+while ((e = xcb_wait_for_event(conn))) {
+    switch (e-&gt;response_type &amp; ~0x80) {
+        case XCB_MAP_REQUEST:
+            map_request(conn, (xcb_map_request_event_t*)e);
+            break;
+        case XCB_CONFIGURE_REQUEST:
+            configure_request(conn, (xcb_configure_request_event_t*)e);
+            break;
+        case XCB_KEY_PRESS:
+            handle_key(conn, (xcb_key_press_event_t*)e);
+            break;
+    }
+    free(e);
+}
+
+// نمایش و جای‌گذاری پنجرهٔ جدید
+void map_request(xcb_connection_t* c, xcb_map_request_event_t* e) {
+    xcb_configure_window(c, e-&gt;window,
+        XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y |
+        XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+        (uint32_t[]){ 0, 0, SCR_W, SCR_H });
+    xcb_map_window(c, e-&gt;window);
+    xcb_flush(c);
+}</code></pre>
+        <p>به این صورت، هر برنامهٔ جدید خودکار به‌اندازهٔ تمام صفحه بزرگ می‌شود — رفتار پایهٔ مدیران پنجرهٔ تایلینگ.</p>
+      </section>
+
+      <section>
+        <h2>اعلان‌های EWMH و دسکتاپ مدرن</h2>
+        <p>فساً به تنهایی کافی نیست؛ برای اینکه محیط‌های دسکتاپ متوجه مدیر پنجره شوند، باید پروتکل EWMH رعایت شود: اعلام `_NET_SUPPORTED`، `_NET_NUMBER_OF_DESKTOPS` و مواردی مشابه. همچنین تعامل با `_NET_WM_STATE` برای پنجره‌های تمام‌صفحه.</p>
+        <p>این بخش در قسمت دوم آموزش به‌طور کامل پوشش داده می‌شود؛ و بعد از آن پروژه آمادهٔ استفاده در یک دسکتاپ واقعی می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>ساخت مدیر پنجره پلی است میان گرافیک، پروتکل کلاینت-سرور و رابط کاربری. این آموزش دانش لازم برای ساختن دکوراسیون، تایلینگ و میان‌برها را در اختیار شما می‌گذارد؛ کاری که کمتر کسی از نزدیک تجربه کرده است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ نوشتهٔ «Season of Code». این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://seasonofcode.com/posts/how-x-window-managers-work-and-how-to-write-one-part-i.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

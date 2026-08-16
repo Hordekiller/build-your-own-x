@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پلاگین گیت با Python</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پلاگین گیت</span>
+      </div>
+      <h1>پلاگین گیت خودت را با پایتون بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://joshburns-xyz.vercel.app/posts/build-your-own-git-plugin" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Build your own git plugin» از جاش برنز است که اکستنشن git را با پایتون می‌سازد.
+        </div>
+        <a class="btn solid" href="https://joshburns-xyz.vercel.app/posts/build-your-own-git-plugin" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>git با هر زبانی قابل توسعه است</h2>
+        <p>چیزی که خیلی‌ها نمی‌دانند: هر برنامه‌ای که اسمش `git-XXX` باشد و در PATH باشد، با `git XXX` صدا زده می‌شود! همین مکانیزم ساده، همهٔ «افزونه‌های گیت» از git-flow تا ابزارهای شخصی را می‌سازد. با پایتون هم می‌توانیم — فقط باید executable باشد و با stdin/stdout رفتار درستی داشته باشد.</p>
+      </section>
+
+      <section>
+        <h2>قرارداد نام‌گذاری</h2>
+        <p>قانون اصلی: `git-<name>` در PATH → فرمان `git <name>`. پس فایل `git-brag` یا `git-stats` را در `/usr/local/bin` یا پوشهٔ scripts پروژه بگذارید:</p>
+        <pre class="code"><span class="lang-tag">Bash</span><code># git-brag — بدون هیچ پیکربندی گیت کار می‌کند
+code git-brag
+chmod +x git-brag          # قابل اجرا شدن لازم است!
+sudo cp git-brag /usr/local/bin/
+
+git brag                   # ← پلاگین اجرا می‌شود
+git brag --help            # ← آرگومان هم می‌گیرد</code></pre>
+        <p>مهم‌ترین نکته: Shedoller `git` هیچ برنامه‌ای را با این نام نمی‌شناسد؛ فقط پیدا می‌کند و می‌دودش.</p>
+      </section>
+
+      <section>
+        <h2>پلاگین ساده: آمار امروز شما</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>#!/usr/bin/env python3
+import subprocess, sys
+
+# همهٔ کامیت‌های امروز را بشمار
+cmd = ["git", "log", "--since=midnight", "--oneline"]
+result = subprocess.run(cmd, capture_output=True, text=True)
+
+commits = result.stdout.strip().splitlines()
+print(f"امروز {len(commits)} کامیت زدی:")
+for c in commits[:10]:
+    print(" ", c)</code></pre>
+        <p>با `subprocess` به خود گیت تکیه می‌کنید (نه بازسازی منطق گیت!) — این پیمان‌بار استاندارد همهٔ پلاگین‌هاست.</p>
+      </section>
+
+      <section>
+        <h2>چک هوک‌ها با پلاگین</h2>
+        <p>پلاگین‌ها فقط برای سرگرمی نیستند؛ می‌توانید قبل از کامیت، پلاگین `git pre-push` را روی CI اجرا کنید، یا پلاگینی بسازید که از `git status --porcelain` بخواند و خطای کد سبک را گزارش دهد. فرق پلاگین با hook: پلاگین را کاربر خودش صدا می‌زند، hook خودکار اجرا می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جاش برنز (Josh Burns). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://joshburns-xyz.vercel.app/posts/build-your-own-git-plugin" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

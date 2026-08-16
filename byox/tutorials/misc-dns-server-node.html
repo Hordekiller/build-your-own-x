@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سرور DNS در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سرور DNS</span>
+      </div>
+      <h1>یک سرور DNS در Node.js بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://engineerhead.github.io/dns-server/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «DNS server in Node.js» از EngineerHead است که DNS را در Node از پایه می‌سازد و تشریح می‌کند.
+        </div>
+        <a class="btn solid" href="https://engineerhead.github.io/dns-server/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>DNS چطور کار می‌کند؟</h2>
+        <p>وقتی مرورگر می‌خواهد `example.com` را باز کند، اول باید IP آن را پیدا کند. این «دفترچه تلفن اینترنت» سیستم DNS است: درخواست UDP روی پورت ۵۳ فرستاده می‌شود؛ پاسخ می‌گوید `example.com → 93.184.216.34`. نام‌ها ساختار سلسله‌مراتبی دارند: از ریشه (.) تا TLD (com) تا نام‌سرورهای دامنه.</p>
+        <p>در این آموزش، پیام DNS را به صورت باینری خودمان می‌خوانیم و می‌نویسیم — بدون کتابخانه.</p>
+      </section>
+
+      <section>
+        <h2>قالب پیام DNS</h2>
+        <p>هر پیام DNS ۱۲ بایت header دارد و سپس سوال‌ها (questions) و پاسخ‌ها (answers). بخش‌های مهم header: شناسه (ID)، پرچم‌ها (QR، Opcode، RD) و شمارنده‌ها. نام‌ها با قالب label (طول+کاراکتر) و با `\0` تمام می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript (نمونهٔ ساخت سوال)</span><code>// ساخت بخش سوال برای "example.com"
+// قالب: labelها + نوع (A) + کلاس (IN)
+function makeQuestion(name) {
+  const labels = name.split('.').map(l =&gt;
+    Buffer.from([l.length]).toString() + l).join('');
+  return Buffer.from(labels + '\x00' + '\x00\x01' + '\x00\x01', 'binary');
+}</code></pre>
+        <p>`\x00\x01` یعنی نوع رکورد A (آدرس IPv4) و `\x00\x01` کلاس IN (اینترنت).</p>
+      </section>
+
+      <section>
+        <h2>خود سرور</h2>
+        <p>سرور با `dgram` (UDP) روی پورت ۵۳ می‌شنود، سوال را پارس می‌کند و می‌تواند از پاسخی از پیش تعریف‌شده (مثل یک رکورد A ثابت) جواب بدهد — دقیقاً یک DNS سادهٔ شبیه hosts file:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const dgram = require('dgram');
+const server = dgram.createSocket('udp4');
+
+const ZONE = { 'example.com': '93.184.216.34' };
+
+server.on('message', (msg, rinfo) =&gt; {
+  // 1. پارس سوال از پیام
+  const qname = parseName(msg, 12);
+  // 2. جست‌وجو در زون
+  const ip = ZONE[qname];
+  // 3. ساخت پاسخ: کپی ID درخواست + پاسخ A
+  const response = buildResponse(msg, qname, ip);
+  server.send(response, rinfo.port, rinfo.address);
+});
+
+server.bind(53);</code></pre>
+        <p>مهم‌ترین نکته: پاسخ باید همان `ID` درخواست را کپی کند، وگرنه کلاینت پاسخ را قبول نمی‌کند.</p>
+      </section>
+
+      <section>
+        <h2>گام بعدی: recursive resolver</h2>
+        <p>سرور DNS واقعی اگر پاسخی نداند، سوال را به سرور‌های بالاتر (ریشه → TLD → نام‌سرور دامنه) می‌فرستد و برگشت‌پذیر پیگیری می‌کند. با همین پایه می‌توانید آن الگوریتم را هم اضافه کنید: `dns.resolve` داخلی Node را به عنوان «سرور بالادست» فراخوانی کنید و جواب را برای کاربر کش کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> EngineerHead. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://engineerhead.github.io/dns-server/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

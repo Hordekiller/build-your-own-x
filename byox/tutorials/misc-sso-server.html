@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سرور SSO در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سرور SSO</span>
+      </div>
+      <h1>ساخت یک سرور و راه‌حل Single Sign On (SSO) ساده از صفر در Node.js</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://codeburst.io/building-a-simple-single-sign-on-sso-server-and-solution-from-scratch-in-node-js-ea6ee5fdf340" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Building a simple SSO server from scratch in Node.js» از Codeburst است که احراز هویت واحد را با session پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://codeburst.io/building-a-simple-single-sign-on-sso-server-and-solution-from-scratch-in-node-js-ea6ee5fdf340" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مشکل SSO</h2>
+        <p>چند اپلیکیشن در سازمان: ایمیل، تقویم، سیستم داخلی. کاربر نخواسته برای هر کدام دوباره وارد شود. راه‌حل: یک سرور مرکزی احراز هویت؛ کاربر یک بار login می‌کند و بقیهٔ اپ‌ها به‌صورت خودکار او را می‌شناسند.</p>
+        <p>در ساده‌ترین شکل (که در این آموزش آمده): سرور SSO یک session نگه می‌دارد، اپلیکیشن‌ها با یک «توکن تصادفی» به آن وصل می‌شوند، و لیست اپ‌های مجاز هم نزد سرور ثبت شده است.</p>
+      </section>
+
+      <section>
+        <h2>جریان ورود</h2>
+        <p>وقتی کاربر به اپ B می‌رود و session ندارد، به سرور SSO ریدایرکت می‌شود. اگر آنجا هم session نداشت، فرم login می‌بیند؛ بعد از ورود موفق، سرور با یک کوکی به اپ B برمی‌گرداند و B باید این توکن را نزد سرور تأیید کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// در سرور SSO: اعتبارسنجی توکنی که اپ ارسال می‌کند
+app.post('/validate', (req, res) =&gt; {
+  const { appId, token } = req.body;
+
+  // این اپ مجاز است؟ توکن معتبر است؟
+  const session = sessions[token];
+  if (!apps.includes(appId) || !session) {
+    return res.status(401).json({ error: 'نامعتبر' });
+  }
+
+  // فقط شناسهٔ کاربر را برمی‌گردانیم، نه رمز!
+  res.json({ ok: true, userId: session.userId });
+});</code></pre>
+        <p>نکتهٔ امنیتی مهم: اپ‌ها فقط token را رد و بدل می‌کنند؛ رمز عبور و اطلاعات اضافه هرگز برای آن‌ها ارسال نمی‌شود.</p>
+      </section>
+
+      <section>
+        <h2>طرف اپلیکیشن</h2>
+        <p>هر اپ می‌داند SSO در کجا زندگی می‌کند (منطقهٔ مشترک دامنه یا کوکی). منطق اپ ساده است: اگر session کاربر را نداریم، به SSO ریدایرکت شو؛ با `app.validate` وضعیت را چک کن:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// در هر اپ: middleware برای چک کردن ورود
+function requireSSO(req, res, next) {
+  if (req.cookies.sso_token) {
+    // توکن را نزد سرور SSO تأیید کن
+    return ssoServer.validate(req.cookies.sso_token)
+      .then(userId =&gt; { req.userId = userId; next(); })
+      .catch(() =&gt; res.redirect(`${SSO_URL}/login?next=${req.path}`));
+  }
+  res.redirect(`${SSO_URL}/login?next=${req.path}`);
+}</code></pre>
+        <p>پارامتر `next` مهم است: بعد از ورود، کاربر به همان صفحه‌ای برمی‌گردد که می‌خواست، نه همیشه به خانه.</p>
+      </section>
+
+      <section>
+        <h2>مرزهای ساده‌سازی</h2>
+        <p>این راه‌حل برای یادگیری، عالی است؛ ولی برای تولید: توکن‌ها باید امضا شوند (HMAC/JWT)، session باید در Redis ماندگار شود، جریان باید ضد CSRF و ضد timing attack باشد، و بهتر است از استانداردهای OIDC/SAML استفاده کنید. با فهمیدن همین نسخهٔ ساده، خواندن مستندات OIDC خیلی راحت‌تر می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Codeburst. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://codeburst.io/building-a-simple-single-sign-on-sso-server-and-solution-from-scratch-in-node-js-ea6ee5fdf340" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

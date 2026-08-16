@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | وبلاگ با PHP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>وبلاگ PHP</span>
+      </div>
+      <h1>وبلاگ خودت را بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: PHP</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://ilovephp.jondh.me.uk/en/tutorial/make-your-own-blog" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Make your own blog» است که یک وبلاگ کامل را با PHP و MySQL بدون فریمورک می‌سازد.
+        </div>
+        <a class="btn solid" href="https://ilovephp.jondh.me.uk/en/tutorial/make-your-own-blog" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>وبلاگ بدون فریم‌ورک</h2>
+        <p>یک وبلاگ ساده سه بخش دارد: نمایش فهرست پست‌ها، نمایش تک‌پست، و مدیریت (نوشتن/ویرایش پست). این آموزش همه را با PHP خالص و MySQL می‌سازد تا ببینید پشت وردپرس و لاراول که اسمش را می‌شنوید، چه موجود ساده‌ای هست.</p>
+      </section>
+
+      <section>
+        <h2>اتصال و جدول‌ها</h2>
+        <p>ابتدا پایگاه داده: جدولی برای پست‌ها (id، title، content، created_at) و در نسخهٔ کامل‌تر جدول کامنت‌ها. اتصال با PDO انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">PHP</span><code>// db.php — اتصال مشترک
+$pdo = new PDO(
+    'mysql:host=localhost;dbname=blog;charset=utf8',
+    'user', 'pass',
+    [PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION]
+);
+
+// دریافت پست‌ها (query آماده)
+$stmt = $pdo-&gt;query('SELECT * FROM posts ORDER BY created_at DESC');
+$posts = $stmt-&gt;fetchAll();</code></pre>
+        <p>فعال کردن `ERRMODE_EXCEPTION` باعث می‌شود خطای SQL به‌جای سکوت، استثنا بدهد — برای دیباگ حیاتی است.</p>
+      </section>
+
+      <section>
+        <h2>نوشتن یک پست با فرم</h2>
+        <p>بخش مدیریت با فرم HTML و درج با prepared statement — که از تزریق SQL جلوگیری می‌کند:</p>
+        <pre class="code"><span class="lang-tag">PHP</span><code>if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['title'] ?? '';
+    $content = $_POST['content'] ?? '';
+
+    $stmt = $pdo-&gt;prepare(
+        'INSERT INTO posts (title, content) VALUES (:t, :c)'
+    );
+    $stmt-&gt;execute([':t' =&gt; $title, ':c' =&gt; $content]);
+
+    header('Location: index.php');   // برگرد به لیست
+    exit;
+}</code></pre>
+        <p>نکتهٔ امنیتی `htmlspecialchars` هنگام چاپ عنوان در ویو: ورودی کاربر را در HTML خام نگذارید، وگرنه XSS می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>مشاهدهٔ تک‌پست</h2>
+        <pre class="code"><span class="lang-tag">PHP</span><code>$id = (int)($_GET['id'] ?? 0);   // cast به int: تزریق ناممکن
+$stmt = $pdo-&gt;prepare('SELECT * FROM posts WHERE id = ?');
+$stmt-&gt;execute([$id]);
+$post = $stmt-&gt;fetch();
+
+if (!$post) { http_response_code(404); echo 'پست یافت نشد'; exit; }</code></pre>
+        <p>الگوهای این آموزش (PDO، prepared، فرم، redirect-after-POST) همان‌هایی هستند که در همهٔ فریم‌ورک‌ها به صورت خودکار انجام می‌شوند. بعد از ساخت این وبلاگ، وردپرس دیگر جعبهٔ سیاه نیست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Jon (ilovephp.jondh.me.uk). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://ilovephp.jondh.me.uk/en/tutorial/make-your-own-blog" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور همگام‌سازی با Y.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>موتور همگام‌سازی</span>
+      </div>
+      <h1>یک موتور همگام‌سازی با Node.js و Y.js بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://greenvitriol.com/posts/sync-engine-for-everyone" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «A sync engine for everyone» از GreenVitriol است که همگام‌سازی دیتا را با Yjs (CRDT) پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://greenvitriol.com/posts/sync-engine-for-everyone" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مشکل همگام‌سازی داده</h2>
+        <p>یادداشت‌بردار، تقویم، لیست خرید — همه این‌ها «دیتای مشترک» دارند که روی چند دستگاه باید یکسان باشد. راه اول: پوش‌اندن دلتاها به سرور مرکزی (مانند CRDT ساده). مشکل: وقتی دو دستگاه آفلاین تغییراتی می‌دهند، بعداً چه کسی برنده است؟ پاسخ CRDTهاست: ادغام بدون درگیری و همیشه سازگار.</p>
+      </section>
+
+      <section>
+        <h2>CRDT چیست؟</h2>
+        <p>CRDT (نوع دادهٔ تکرارشوندهٔ همگرا) ساختاری است که هر دستگاه کپی محلی خودش را دارد؛ تغییرات به شکل صریح «جابه‌جا» با نسخه و شناسهٔ دستگاه نگه داشته می‌شوند و ادغام‌کردن دو حالت همیشه نتیجهٔ یکسان می‌دهد — مهم نیست چقدر باهم در تعارض آمده باشند. متنی که در Google Docs هم‌زمان چند نفر ویرایش می‌کنند، نمونهٔ آن است.</p>
+      </section>
+
+      <section>
+        <h2>Yjs: CRDT آماده</h2>
+        <p>Yjs یک کتابخانهٔ CRDT برای JS است که متن، آرایه و Map را پشتیبانی می‌کند. ایدهٔ این آموزش: یک «موتور همگام‌سازی» که سرور Node فقط «مرکز رویداد» است؛ یعنی فقط تغییرات را بین کلاینت‌ها پخش می‌کند (relay) بدون اینکه بداند محتوا چیست:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const Y = require('yjs');
+const ws = require('ws');
+
+// یک سند مشترک در سرور
+const doc = new Y.Doc();
+
+// وقتی کلاینتی تغییر فرستاد، به بقیه بده
+function handleMessage(conn, data) {
+  Y.applyUpdate(doc, data);          // ادغام تغییر در سرور
+  broadcast(doc);                    // پخش وضعیت جدید برای همه
+}
+
+// کلاینت تازه‌وصل‌شده: وضعیت کامل را می‌گیرد نه دلتا
+function onConnect(conn) {
+  conn.send(Y.encodeStateAsUpdate(doc));   // state sync
+}</code></pre>
+        <p>الگوی `state sync + update sync` همان پروتکل Yjs است: اول وضعیت کامل، بعد فقط دلتاها — دقیقاً مانند راه‌اندازی اولیهٔ همگام‌سازی.</p>
+      </section>
+
+      <section>
+        <h2>چرا جذاب است؟</h2>
+        <p>با این موتور، همگام‌سازی آفلاین-اول (offline-first) برای هر اپلیکیشنی ممکن می‌شود: تغییرات روی دستگاه محلی ذخیره، و به‌محض وصل شدن وصل می‌شوند و ادغام می‌شوند. بدون CRDT باید مشکل «برندهٔ آخرین نوشتن» و نسخه‌بندی پیچیده را دستی حل می‌کردید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> GreenVitriol. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://greenvitriol.com/posts/sync-engine-for-everyone" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

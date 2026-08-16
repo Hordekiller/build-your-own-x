@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | انیمیشن اسکلتی از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>انیمیشن اسکلتی</span>
+      </div>
+      <h1>بارگذاری و رندر انیمیشن‌های سه‌بعدی اسکلتی از صفر در C# و GLSL</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.seanjoflynn.com/research/skeletal-animation.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Skeletal Animation from Scratch» از شان جی فلین است که انیمیشن‌های اسکلتی را بدون کتابخانهٔ آماده در C# و GLSL پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://www.seanjoflynn.com/research/skeletal-animation.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>انیمیشن اسکلتی چیست؟</h2>
+        <p>وقتی یک شخصیت سه‌بعدی راه می‌رود، کل مدل جابه‌جا نمی‌شود؛ بلکه یک <b>اسکلت</b> (سلسله‌مراتب استخوان‌ها) درون آن حرکت می‌کند و هر رأس mod به‌وسیلهٔ ماتریس استخوان‌های مجاورش جابه‌جا می‌شود. این روش «skeletal animation» یا «skinning» نام دارد.</p>
+        <p>در این آموزش، همهٔ بخش‌ها از صفر ساخته می‌شود: ساختار skeleton، بارگذاری animation (با فرمت gLTF ساده‌شده) و shader که ماتریس‌های استخوان را اعمال می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>ریاضیات: ماتریس استخوان</h2>
+        <p>قلب کار، محاسبهٔ «ماتریس نهایی» برای هر استخوان است: `global = parent * local`. این ماتریس‌ها به شیدر فرستاده می‌شوند و در آن‌جا برای هر رأس به‌صورت وزنی (weight) ترکیب می‌شوند:</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// محاسبهٔ ماتریس‌های جهانی استخوان‌ها با پیمایش درخت
+void ComputeBoneMatrices(Bone[] bones, int parentIndex,
+                         Matrix4<float> parentMatrix) {
+    for (int i = 0; i &lt; bones.Length; i++) {
+        if (bones[i].parent != parentIndex) continue;
+
+        // ماتریس جهانی = ماتریس والد × ماتریس محلی
+        Matrix4<float> local = bones[i].localTransform;
+        Matrix4<float> global = local * parentMatrix;
+
+        // ماتریس نهایی برای رندر (inverse bind × global)
+        boneMatrices[i] = bones[i].inverseBindMatrix
+                          .Multiply(global);
+        ComputeBoneMatrices(bones, i, global);
+    }
+}</code></pre>
+        <p>متغیر `inverseBindMatrix` رأس را از «فضای مدل» به «فضای استخوان» می‌برد تا فقط حرکت استخوان به آن اعمال شود.</p>
+      </section>
+
+      <section>
+        <h2>شیدر و vertex skinning</h2>
+        <p>هر رأس، چند شاخص استخوان و چند وزن دارد (مثلاً ۴). شیدر باید ماتریس‌های متناظر را جمع کند:</p>
+        <pre class="code"><span class="lang-tag">GLSL</span><code>// ورودی‌های رأس: موقعیت، وزن‌ها و شاخص استخوان
+layout(location = 0) in vec3 aPosition;
+layout(location = 3) in vec4 aWeights;
+layout(location = 4) in ivec4 aBoneIndices;
+
+uniform mat4 uBoneMatrices[24];
+uniform mat4 uModelViewProjection;
+
+void main() {
+    // ترکیب ماتریس استخوان‌ها با وزن‌ها
+    mat4 skin =
+        uBoneMatrices[aBoneIndices.x] * aWeights.x +
+        uBoneMatrices[aBoneIndices.y] * aWeights.y +
+        uBoneMatrices[aBoneIndices.z] * aWeights.z +
+        uBoneMatrices[aBoneIndices.w] * aWeights.w;
+
+    vec4 worldPos = skin * vec4(aPosition, 1.0);
+    gl_Position = uModelViewProjection * worldPos;
+}</code></pre>
+        <p>این شیدر است که حرکت اسکلتی را به گرافیک تبدیل می‌کند؛ بدون آن، انیمیشن فقط روی کاغذ می‌ماند.</p>
+      </section>
+
+      <section>
+        <h2>بارگذاری فرمت و پخش انیمیشن</h2>
+        <p>بخش بارگذاری، نمونه‌ها (keyframes) را می‌خواند و بین position/rotation درون‌یابی می‌کند. برای سادگی، از چارگشتی‌ها (quaternion) برای دوران استفاده می‌شود تا از «گیمبال لاک» جلوگیری شود.</p>
+        <p>در پایان، یک loop سادهٔ animation player دارید که ماتریس‌ها را با dt آپدیت می‌کند و شخصیت را راه می‌برد یا می‌دود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش تمام ریاضیات پشت «شخصیت‌های متحرک» را آشکار می‌کند: سلسله‌مراتب ماتریس، inverse bind و رندر وزنی. بعد از اتمام، فرمت‌های تجاری (FBX، glTF) برایتان جعبهٔ شفاف می‌شوند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> شان جی فلین (Sean J. Flynn). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.seanjoflynn.com/research/skeletal-animation.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

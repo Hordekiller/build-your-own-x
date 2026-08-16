@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مبانی یک شبیه‌ساز ترمینال</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>شبیه‌ساز ترمینال</span>
+      </div>
+      <h1>مبانی اولیه یک شبیه‌ساز ترمینال</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «Basics of writing a terminal emulator» از uninformativ.de است که ساختار و مفاهیم شبیه‌سازهای ترمینال را از پایه توضیح می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>ترمینال داخلش چه کار می‌کند؟</h2>
+        <p>شبیه‌ساز ترمینال (مانند xterm یا st) در ظاهر فقط یک پنجرهٔ متنی است، اما پشت آن یک مکانیزم مهم وجود دارد: یک <b>اندازهٔ grid</b> از سلول‌های کاراکتری، یک <b>buffer</b> برای حفظ محتوا، و مدیریت <b>escape sequences</b> — یعنی همان کدهای کنترلی که رنگ، حرکت مکان‌نما و وضعیت صفحه را تغییر می‌دهند.</p>
+        <p>وقتی برنامهای مثل vim یا ls را اجرا می‌کنید، این برنامه توالی‌هایی از بایت‌ها (مثل `\x1b[31m` برای قرمز) می‌فرستد؛ ترمینال باید آن‌ها را تفسیر کند و بکگراند و متن را مطابق آن رندر کند.</p>
+      </section>
+
+      <section>
+        <h2>مدل داده: سلول و بافر</h2>
+        <p>قلب ترمینال، یک آرایهٔ دوبعدی از «سلول» است. هر سلول شامل کاراکتر، رنگ جلو و رنگ پس‌زمینه و چند ویژگی (پررنگ، زیرخط) است:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>typedef struct {
+    char c;          // کاراکتر سلول
+    int fg, bg;      // رنگ جلو و پس‌زمینه
+    int bold, underline;
+} Cell;
+
+// بافر: آرایه‌ای از خطوط، هر خط آرایه‌ای از سلول‌ها
+typedef struct {
+    int rows, cols;
+    Cell** cells;
+} Buffer;
+
+// پاک‌کردن صفحه و تنظیم مکان‌نما
+void term_clear(Buffer* buf) {
+    for (int y = 0; y &lt; buf-&gt;rows; y++)
+        for (int x = 0; x &lt; buf-&gt;cols; x++) {
+            buf-&gt;cells[y][x].c = ' ';
+            buf-&gt;cells[y][x].fg = DEFAULT;
+        }
+}</code></pre>
+        <p>این ساختار ساده، پایهٔ همهٔ عملیات رندر است: هر عملیات فقط مقادیر این آرایه را تغییر می‌دهد و بعد یک «پاس رندر» آن را روی صفحه می‌کشد.</p>
+      </section>
+
+      <section>
+        <h2>تفسیر escape sequences</h2>
+        <p>بخش اصلی کد، یک ماشین حالت است که بایت‌های ورودی را می‌خواند. وقتی بایت `0x1b` دیده شد، ترمینال وارد حالت «escape» می‌شود و دنبالهٔ بعدی (مثل `[2J` برای پاک‌کردن صفحه) را تفسیر می‌کند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// پردازش دنباله‌های CSI (Control Sequence Introducer)
+void handle_csi(char* params, int plen) {
+    // "J" یعنی پاک‌کردن: 2J کل صفحه
+    if (params[plen-1] == 'J') {
+        term_clear(&amp;buf);
+        return;
+    }
+    // "H" یعنی حرکت مکان‌نما به (row, col)
+    if (params[plen-1] == 'H') {
+        int row = 0, col = 0;
+        if (plen &gt; 1)
+            sscanf(params, "%d;%d", &amp;row, &amp;col);
+        cursor.row = row - 1;
+        cursor.col = col - 1;
+    }
+}</code></pre>
+        <p>برای یک ترمینال کامل، باید صدها دنبالهٔ مختلف را پشتیبانی کنید، اما با همین چند تابع، رفتار پایهٔ xterm شبیه‌سازی می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>ساخت یک ترمینال، مفاهیم سیستم‌عامل (pty، control signals)، گرافیک متنی و ماشین‌های حالت را با هم ترکیب می‌کند. بعد از این مقدمه، می‌توانید سراغ پروژه‌های کامل مثل «st» یا «alacritty» بروید و معماری آن‌ها را واقعاً بفهمید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ پست «Basics of writing a terminal emulator». این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

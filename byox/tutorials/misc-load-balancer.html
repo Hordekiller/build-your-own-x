@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Load Balancer در Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>Load Balancer</span>
+      </div>
+      <h1>بیایید یک Load Balancer ساده بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://kasvith.me/posts/lets-create-a-simple-lb-go/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Let's Create a Simple Load Balancer» از کاشیت است که با Go یک load balancer با round-robin و reverse proxy می‌سازد.
+        </div>
+        <a class="btn solid" href="https://kasvith.me/posts/lets-create-a-simple-lb-go/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>Load Balancer چه کار می‌کند؟</h2>
+        <p>وقتی ترافیک وب زیاد می‌شود، یک سرور کافی نیست. Load balancer درخواست‌ها را بین چند «بک‌اند» (backend) توزیع می‌کند تا پاسخ‌گویی حفظ شود. ساده‌ترین استراتژی، <b>round-robin</b> است: هر درخواست به سرور بعدی می‌رود.</p>
+        <p>این آموزش با ابزار استاندارد Go (net/http و httputil) یک load balancer می‌سازد که با سلامت سنجی (health check) هم کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>ساختار و reverse proxy</h2>
+        <p>قلب کار، `httputil.ReverseProxy` است که درخواست را به یک سرور مقصد بازنویسی می‌کند. ما چند backend را نگه می‌داریم و با یک نوبت‌دهنده (index) بین آن‌ها می‌چرخیم:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// ساختار backends
+type Server struct {
+    URL          *url.URL
+    Alive        bool
+    ReverseProxy *httputil.ReverseProxy
+}
+
+// نوبت‌دهندهٔ round-robin با lock
+type LoadBalancer struct {
+    servers         []*Server
+    current         uint64
+    mu              sync.RWMutex
+}
+
+func (lb *LoadBalancer) NextServer() *Server {
+    lb.mu.Lock()
+    defer lb.mu.Unlock()
+    // سرور زندهٔ بعدی را پیدا کن
+    for i := 0; i &lt; len(lb.servers); i++ {
+        idx := int(lb.current) % len(lb.servers)
+        lb.current++
+        if lb.servers[idx].Alive {
+            return lb.servers[idx]
+        }
+    }
+    return nil
+}</code></pre>
+        <p>اگر هیچ سروری زنده نباشد، باید خطای ۵۰۳ برگردانیم؛ در غیر این صورت همان server برگردانده‌شده، پاسخ می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>هندلر درخواست</h2>
+        <p>وقتی درخواست به load balancer برسد، باید به یکی از سرورها برگردد. ساده‌ترین هندلر:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// توزیع درخواست روی سرورها
+func (lb *LoadBalancer) handleRequest(w http.ResponseWriter, r *http.Request) {
+    server := lb.NextServer()
+    if server == nil {
+        http.Error(w, "هیچ سرور زنده‌ای نیست", http.StatusServiceUnavailable)
+        return
+    }
+    server.ReverseProxy.ServeHTTP(w, r)
+}
+
+func main() {
+    lb := &amp;LoadBalancer{}
+    for _, s := range []string{"http://localhost:8081", "http://localhost:8082"} {
+        u, _ := url.Parse(s)
+        proxy := httputil.NewSingleHostReverseProxy(u)
+        lb.servers = append(lb.servers, &amp;Server{URL: u, Alive: true, ReverseProxy: proxy})
+    }
+    http.ListenAndServe(":8080", http.HandlerFunc(lb.handleRequest))
+}</code></pre>
+        <p>با این ۳۰ خط، توزیع round-robin روی دو سرور کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>سلامت‌سنجی</h2>
+        <p>در نسخهٔ کامل‌تر، یک تابع در پس‌زمینه هر چند ثانیه یک‌بار با درخواست GET به همهٔ سرورها، وضعیت آن‌ها را چک می‌کند و `Alive` را به‌روزرسانی می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// بررسی دوره‌ای سلامت سرورها
+func (lb *LoadBalancer) healthCheck() {
+    for _, s := range lb.servers {
+        resp, err := http.Get(s.URL.String() + "/health")
+        lb.mu.Lock()
+        s.Alive = err == nil &amp;&amp; resp != nil &amp;&amp; resp.StatusCode == http.StatusOK
+        lb.mu.Unlock()
+        if resp != nil { resp.Body.Close() }
+    }
+}
+
+func startHealthCheck(lb *LoadBalancer, every time.Duration) {
+    ticker := time.NewTicker(every)
+    for range ticker.C { lb.healthCheck() }
+}</code></pre>
+        <p>با این‌کار، اگر یک سرور از کار بیفتد، خودکار از چرخهٔ توزیع حذف می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش مفاهیم حیاتی زیرساخت وب — توزیع بار، پروکسی معکوس و سلامت‌سنجی — را در یک پروژهٔ کوچک و کاربردی جا می‌دهد. بعد از این می‌توانید الگوریتم‌های پیچیده‌تر (Least Connections، IP Hash) را اضافه کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کاشیت (Kasvith). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://kasvith.me/posts/lets-create-a-simple-lb-go/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | PHP مدرن بدون فریم‌ورک</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>PHP بدون فریم‌ورک</span>
+      </div>
+      <h1>PHP مدرن بدون فریم‌ورک</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: PHP</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://kevinsmith.io/modern-php-without-a-framework" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Modern PHP without a framework» از کوین اسمیت است که اپلیکیشن PHP مدرن را با Composer و PSR-4 می‌سازد.
+        </div>
+        <a class="btn solid" href="https://kevinsmith.io/modern-php-without-a-framework" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>PHP مدرن = Composer + استانداردها</h2>
+        <p>PHP امروزی خیلی فراتر از tagهای پراکنده در HTML است: مدیریت وابستگی با Composer، اوتولود استاندارد PSR-4، تایپ‌های سخت‌گیرانه و مسیریابی تمیز. این آموزش نشان می‌دهد که بدون هیچ فریم‌ورکی هم می‌شود این‌ها را داشت.</p>
+      </section>
+
+      <section>
+        <h2>اوتولود و namespace</h2>
+        <p>با PSR-4 هر کلاس `App\X` در پوشهٔ `src/X.php` قرار می‌گیرد و Composer همه‌جا خودش آن را بارگذاری می‌کند. دیگر نه include زنجیره‌ای، نه require دستی:</p>
+        <pre class="code"><span class="lang-tag">JSON</span><code>{
+  "name": "me/my-app",
+  "autoload": {
+    "psr-4": { "App\\": "src/" }
+  }
+}</code></pre>
+        <pre class="code"><span class="lang-tag">PHP</span><code>namespace App;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use App\Http\Request;
+use App\Http\Response;
+
+$request = Request::capture();
+$response = new Response('سلام دنیا!', 200);
+$response-&gt;send();</code></pre>
+        <p>composer dump-autoload بعد از هر کلاس جدید لازم است تا نقشهٔ فایل‌ها تازه شود.</p>
+      </section>
+
+      <section>
+        <h2>مسیریاب کوچک خودتان</h2>
+        <p>فقط چند روت تعریف می‌کنیم بدون جنگ با فریم‌ورک. نکتهٔ ظریف: مقایسهٔ متد HTTP با `strtoupper` و پارامترهای `{id}` با regex برای امنیت:</p>
+        <pre class="code"><span class="lang-tag">PHP</span><code>final class Router
+{
+    private array $routes = [];
+
+    public function add(string $method, string $path, callable $handler): void
+    {
+        $this-&gt;routes[] = [$method, $path, $handler];
+    }
+
+    public function dispatch(string $method, string $uri): Response
+    {
+        foreach ($this-&gt;routes as [$m, $path, $handler]) {
+            if ($m !== $method) continue;
+            $pattern = '#^' . str_replace('{id}', '(\d+)', $path) . '$#';
+            if (preg_match($pattern, $uri, $m)) {
+                return $handler((int) $m[1]);
+            }
+        }
+        return new Response('Not Found', 404);
+    }
+}</code></pre>
+        <p>پس از این، هرچیزی که فریم‌ورک‌ها می‌دهند (validation، template، container) را می‌توانید همین‌طور تکه‌تکه بسازید یا از پکیج‌های کوچک مستقل Composer استفاده کنید.</p>
+      </section>
+
+      <section>
+        <h2>چرا این کار را کنیم؟</h2>
+        <p>برای پروژه‌های کوچک، فریم‌ورک کامل سنگین است؛ برای یادگیری، دیدن لایه‌های بدون پوشش بهترین معلم است. مهارت‌هایی که می‌گیرید (PSR، autoload، تست) مستقیماً در پروژه‌های فریم‌ورک‌محور هم کار می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کوین اسمیت (Kevin Smith). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://kevinsmith.io/modern-php-without-a-framework" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

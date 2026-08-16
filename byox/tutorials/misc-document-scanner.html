@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اسکنر اسناد در OpenCV</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>اسکنر اسناد</span>
+      </div>
+      <h1>چگونه یک اسکنر اسناد موبایل فوق‌العاده در فقط ۵ دقیقه بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python + OpenCV</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.pyimagesearch.com/2014/09/01/build-kick-ass-mobile-document-scanner-just-5-minutes/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش PyImageSearch است که با OpenCV عکس کاغذ را تشخیص و به اسکن صاف و تمیز تبدیل می‌کند.
+        </div>
+        <a class="btn solid" href="https://www.pyimagesearch.com/2014/09/01/build-kick-ass-mobile-document-scanner-just-5-minutes/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چهار قدم تا اسکن</h2>
+        <p>اسکنر موبایل (مثل CamScanner) این چهار کار را با هم می‌کند: ۱) پیدا کردن لبه‌های کاغذ، ۲) استخراج گوشه‌های آن، ۳) تبدیل پرسپکتیو (به‌خاطرِ عکسبرداری اریب)، ۴) بهبود تصویر (خاکستری/آستانه). همه با OpenCV در چند ده خط.</p>
+      </section>
+
+      <section>
+        <h2>پیدا کردن کاغذ</h2>
+        <p>مشکل کلاسیک: عکس اریب است، نور بد است، زمینه متفاوت است. راه‌حل استاندارد: خاکستری → کم‌کردن نویز → آستانه‌یابی → پیدا کردن کانتور بزرگ:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>import cv2
+import numpy as np
+
+def find_document(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    edged = cv2.Canny(blur, 75, 200)      # لبه‌ها
+
+    cnts, _ = cv2.findContours(edged.copy(), cv2.RETR_LIST,
+                               cv2.CHAIN_APPROX_SIMPLE)
+    # بزرگ‌ترین کانتور = کاغذ
+    cnt = max(cnts, key=cv2.contourArea)
+    peri = cv2.arcLength(cnt, True)
+    approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+
+    # کاغذ باید چهار ضلع داشته باشد
+    return approx if len(approx) == 4 else None</code></pre>
+        <p>`approxPolyDP` گوشه‌های کانتور را ساده می‌کند؛ کاغذ A4 در هر عکسی چهار ضلع می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>تبدیل پرسپکتیو</h2>
+        <p>حالا چهار گوشه داریم. آن‌ها را با `getPerspectiveTransform` به یک مستطیل کامل A4 نگاشت می‌کنیم و با `warpPerspective` تصویر جدید را می‌چینیم. ترتیب گوشه‌ها (بالا-چپ، بالا-راست و...) مهم است و باید مرتب‌سازی شود:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def order_points(pts):
+    # مرتب‌سازی: TL, TR, BR, BL با مجموع و تفاضل مختصات
+    s = pts.sum(axis=1); d = np.diff(pts, axis=1)
+    return np.array([
+        pts[np.argmin(s)], pts[np.argmin(d)],
+        pts[np.argmax(s)], pts[np.argmax(d)]
+    ], dtype="float32")
+
+def scan(image, corners):
+    rect = order_points(corners)
+    w = int(max(np.linalg.norm(rect[0]-rect[1]),
+                np.linalg.norm(rect[2]-rect[3])))
+    h = int(max(np.linalg.norm(rect[0]-rect[2]),
+                np.linalg.norm(rect[1]-rect[3])))
+    dst = np.array([[0,0],[w-1,0],[w-1,h-1],[0,h-1]], dtype="float32")
+    M = cv2.getPerspectiveTransform(rect, dst)
+    return cv2.warpPerspective(image, M, (w, h))</code></pre>
+        <p>می‌بینید که «فقط ۵ دقیقه» یعنی همین ۳۰ خط! نتیجه را با `cv2.threshold` آستانه بگیرید تا مثل اسکنر واقعی شود.</p>
+      </section>
+
+      <section>
+        <h2>توسعه‌ها</h2>
+        <p>اپ‌های واقعی اضافه می‌کنند: تشخیص خودکار لبه با Document Scanner API (در OpenCV)، OCR با Tesseract برای تبدیل به متن، و محوکردن سایه‌ها. اما قلب همه‌شان همان چهار مرحلهٔ این آموزش است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> آدریان رزبروک (PyImageSearch). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.pyimagesearch.com/2014/09/01/build-kick-ass-mobile-document-scanner-just-5-minutes/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

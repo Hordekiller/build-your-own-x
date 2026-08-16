@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پارسر INI در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پارسر INI</span>
+      </div>
+      <h1>نوشتن یک Parser برای INI</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day05_iniparser.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 5: INI parser» از سری NimDays است که یک پارسر کامل برای فایل‌های پیکربندی INI می‌سازد.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day05_iniparser.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>فرمت INI</h2>
+        <p>INI ساده‌ترین فرمت پیکربندی متنی است: بخش‌ها با `[نام]` جدا می‌شوند و زیر هر بخش زوج‌های `کلید=مقدار` می‌آیند. کامنت‌ها با `;` یا `#` شروع می‌شوند. هنوز برای ابزارهای کوچک همه‌جا استفاده می‌شود — از php.ini تا پیکربندی‌های سیستمی:</p>
+        <pre class="code"><span class="lang-tag">INI</span><code>[server]
+host = 0.0.0.0
+port = 8080
+
+[database]
+name = byox
+user = admin
+; این خط کامنت است
+pass = secret123</code></pre>
+      </section>
+
+      <section>
+        <h2>راه‌اندازی پارسر</h2>
+        <p>پارسر خط‌به‌خط کار می‌کند: خطوط خالی و کامنت را رد می‌کند، `[x]` را به‌عنوان بخش جدید ثبت می‌کند و `کلید=مقدار` را به بخش جاری اضافه می‌کند. حالت جاری «بخش» باید بین خطوط حفظ شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>import strutils, tables
+
+type IniFile = Table[string, Table[string, string]]
+
+proc parseIni(content: string): IniFile =
+  var
+    currentSection = ""         # بخش جاری
+    section = initTable[string, string]()
+
+  for line in content.splitLines():
+    let trimmed = line.strip()
+
+    # رد کردن خالی و کامنت
+    if trimmed.len == 0 or trimmed[0] in {';', '#'}: continue
+
+    if trimmed[0] == '[':       # شروع بخش جدید
+      if currentSection != "":
+        result[currentSection] = section
+      currentSection = trimmed[1..^2]
+      section = initTable[string, string]()
+    else:                       # کلید=مقدار
+      let parts = trimmed.split("=", 1)
+      let key = parts[0].strip()
+      let value = (if parts.len &gt; 1: parts[1].strip() else: "")
+      section[key] = value
+
+  if currentSection != "":
+    result[currentSection] = section</code></pre>
+        <p>توجه: `split("=", 1)` یعنی فقط روی اولین `=` شکسته شود — این برای مقادیری مثل URL که `=` دارند ضروری است.</p>
+      </section>
+
+      <section>
+        <h2>استفاده و جزئیات</h2>
+        <pre class="code"><span class="lang-tag">Nim</span><code>let config = parseIni(readFile("app.ini"))
+echo config["server"]["port"]       # 8080
+echo config["database"]["name"]     # byox
+
+# دسترسی امن به بخش/کلید نبوده:
+echo config.getOrDefault("missing", initTable[string,string]())</code></pre>
+        <p>گام‌های بعدی که پارسرهای واقعی دارند: پشتیبانی از `:` به‌جای `=`، حذف کوتیشن‌ها از مقدارها، پشتیبانی از مقادیر چندخطی، و نگاشت خودکار به انواع (int، bool).</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day05_iniparser.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سیستم‌های پیشنهاددهنده در Python</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سیستم‌های پیشنهاددهنده</span>
+      </div>
+      <h1>سیستم‌های پیشنهاددهنده در پایتون: آموزش مبتدیان</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.datacamp.com/community/tutorials/recommender-systems-python" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش DataCamp است که انواع سیستم‌های پیشنهاددهنده و پیاده‌سازی آن‌ها در پایتون را پوشش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.datacamp.com/community/tutorials/recommender-systems-python" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>پیشنهاددهنده‌ها چه می‌کنند؟</h2>
+        <p>فروشگاه‌های بزرگ «ممکن است دوست داشته باشند» را پیشنهاد می‌دهند. دو خانوادهٔ اصلی: <b>محتوامحور (Content-Based)</b> که ویژگی‌های آیتم را با سلیقهٔ کاربر مقایسه می‌کند، و <b>فیلتر همکاری (Collaborative Filtering)</b> که رفتار کاربران مشابه را مقایسه می‌کند. ترکیب این دو بهترین نتیجه را دارد.</p>
+      </section>
+
+      <section>
+        <h2>فیلتر همکاری با شباهت‌ها</h2>
+        <p>ایده: ماتریس کاربران×آیتم‌ها. اگر کاربر A به فیلم‌های X و Y امتیاز داده و کاربر B هم همین‌طور، احتمالاً سلیقه‌شان نزدیک است؛ پس فیلم‌های جدید B به A هم پیشنهاد می‌شود. شباهت با cosine یا correlation محاسبه می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ماتریس: ردیف = کاربر، ستون = فیلم، سلول = امتیاز
+ratings = pd.DataFrame({
+    'user': ['u1','u1','u2','u2','u3'],
+    'movie': ['M1','M2','M1','M3','M2'],
+    'rating': [5, 3, 4, 1, 2]
+})
+matrix = ratings.pivot(index='user', columns='movie', values='rating')
+matrix = matrix.fillna(0)   # امتیاز نداده = 0
+
+sim = pd.DataFrame(          # شباهت بین کاربران
+    cosine_similarity(matrix),
+    index=matrix.index, columns=matrix.index)
+
+# به u1 چه پیشنهاد بدهیم؟ کاربر مشابه: u2
+print(sim.loc['u1'].sort_values(ascending=False))</code></pre>
+        <p>بعد از یافتن کاربر مشابه، فیلم‌هایی که او امتیاز بالایی داده و کاربر ما هنوز ندیده را پیشنهاد بدهید.</p>
+      </section>
+
+      <section>
+        <h2>رویکرد ماتریس فاکتورگیری</h2>
+        <p>وقتی داده زیاد باشد، ماتریس کاربر×فیلم را به دو ماتریس کوچک (عوامل نهان) تجزیه می‌کنیم؛ هر کاربر و هر فیلم یک «بردار پنهان» می‌گیرد و امتیاز = ضرب داخلی آن‌ها. کتاب‌خانهٔ `surprise` این کار را راحت می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>from surprise import SVD, Dataset, Reader
+from surprise.model_selection import cross_validate
+
+reader = Reader(rating_scale=(1, 5))
+data = Dataset.load_from_df(ratings, reader)
+
+algo = SVD()   # Singular Value Decomposition
+cross_validate(algo, data, cv=3, verbose=True)</code></pre>
+        <p>این الگوریتم همان است که نتفلیکس و آمازون در اصل با آن شروع کردند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بعد از این آموزش، هم نظریه را می‌دانید (شباهت، ماتریس، عوامل نهان) و هم اجرا را. قدم بعدی: دادهٔ واقعی (مثل MovieLens) و مقایسهٔ معیارهای RMSE/Precision بین روش‌ها.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> DataCamp. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.datacamp.com/community/tutorials/recommender-systems-python" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

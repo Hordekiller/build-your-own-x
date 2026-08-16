@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | گام‌شمار دنیای واقعی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>گام‌شمار</span>
+      </div>
+      <h1>یک گام‌شمار در دنیای واقعی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/a-pedometer-in-the-real-world.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور فصل «A Pedometer in the Real World» از کتاب 500 Lines or Less است که با شتاب‌سنج گوشی، شمارش قدم را یاد می‌دهد.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/a-pedometer-in-the-real-world.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مسئله: شمارش قدم از روی شتاب سنج</h2>
+        <p>گوشی شما شتاب‌سنج دارد؛ هر قدم، یک نوسان کوچک در سیگنال شتاب می‌سازد. اما سیگنال خام پر از نویز است: دست‌تکان دادن گوشی، جادهٔ ناهموار و سوار شدن در اتوبوس هم الگوهای مشابهی می‌دهند. تبدیل «سیگنال نویزی» به «عدد قدم» یک کار مهندسی واقعی است — و این فصل از کتاب 500 Lines آن را با Ruby انجام می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>فیلتر کردن سیگنال</h2>
+        <p>اولین گام: نرم‌تر کردن (smoothing) سیگنال تا نویز لحظه‌ای حذف شود ولی شکل کلی نوسان بماند. یک «میانگین وزنی» مثل فیلتر پایین‌گذر کار می‌کند — یعنی ساده‌ترین و مهم‌ترین ابزار پردازش سیگنال:</p>
+        <pre class="code"><span class="lang-tag">Ruby</span><code>class Pedometer
+  def initialize
+    @window = []                 # پنجرهٔ آخرین نمونه‌ها
+    @sum = 0.0
+    @stepCount = 0
+  end
+
+  # فیلتر پایین‌گذر: میانگین پنجرهٔ ۲۰ نمونه
+  def filter(value)
+    @window &lt;&lt; value
+    @sum += value
+    if @window.size &gt; 20
+      @sum -= @window.shift
+    end
+    @sum / @window.size
+  end
+end</code></pre>
+        <p>اندازهٔ پنجره با «سرعت قدم زدن» (حدود ۲ قدم در ثانیه) هماهنگ تنظیم می‌شود؛ خیلی کوچک = نویز می‌ماند، خیلی بزرگ = قدم‌ها محو می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>تشخیص قدم: عبور از آستانه</h2>
+        <p>پس از نرم‌سازی، هر قدم یک «قله» است. الگوریتم: سیگنال از یک آستانه رو به بالا عبور کند → یک قدم. برای جلوگیری از شمارش توأمان همان قله، بعد از هر قدم، حالت «خنک شدن» (cooldown) بگیرید:</p>
+        <pre class="code"><span class="lang-tag">Ruby</span><code>def process(sample)
+  smoothed = filter(sample.acceleration_magnitude)
+  return unless smoothed &gt; @threshold   # زیر آستانه: رد کن
+
+  # آستانه از خود دادهٔ چند روز آموزش/کالیبراسیون به دست آمد
+  unless @last_step_at &amp;&amp; now - @last_step_at &lt; 0.3
+    @stepCount += 1
+    @last_step_at = now
+  end
+end</code></pre>
+        <p>مقدار دامنه (magnitude سه‌بعدی شتاب) به دست جهت گوشی وابسته نیست — انتخاب هوشمندانه‌ای برای تنوع حمل گوشی است.</p>
+      </section>
+
+      <section>
+        <h2>درس‌های فصل</h2>
+        <p>نکتهٔ آموزشی فصل فقط الگوریتم نیست: دادهٔ خام باید جمع شود، کالیبره شود و روی دستگاه واقعی تست شود. شماره‌گذاری قدم‌ها در جیب شلوار با دست‌تکان دادن کاملاً فرق می‌کند. این همان تفاوت «کد نمونه» با «سیستم دنیای واقعی» است — درسی که در کل کتاب 500 Lines تکرار می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> هامبرتو فورتس؟ — این فصل از کتاب «500 Lines or Less» است. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://aosabook.org/en/500L/a-pedometer-in-the-real-world.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

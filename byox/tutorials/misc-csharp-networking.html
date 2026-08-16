@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شبکه در C#</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>شبکه در C#</span>
+      </div>
+      <h1>شبکه در C#: سرور چت TCP، بازی‌های TCP، UDP Pong و بیشتر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C#</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://16bpp.net/tutorials/csharp-networking" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مجموعهٔ آموزشی «C# Networking» از 16bpp است که با پروژه‌های عملی، شبکه را در C# از پایه یاد می‌دهد.
+        </div>
+        <a class="btn solid" href="https://16bpp.net/tutorials/csharp-networking" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا شبکه با پروژه؟</h2>
+        <p>بسیاری از آموزش‌های شبکه فقط «API» را معرفی می‌کنند؛ اما این مجموعه هر مفهوم را به‌صورت یک پروژهٔ کامل و اجرایی (چت، بازی، pong) می‌سازد. این رویکرد باعث می‌شود «چرا» و «چطور» هر تصمیم (TCP یا UDP، بافر و encode) را عمیقاً بفهمید.</p>
+      </section>
+
+      <section>
+        <h2>TCP: سرور چت</h2>
+        <p>اولین پروژه، سرور چت TCP است که چند کلاینت را نگه می‌دارد و پیام‌ها را بین آن‌ها پخش می‌کند. نکتهٔ اصلی، همزمان‌سازی است: هر کلاینت به یک نخ (یا async) اختصاص دارد و پیام باید atomic ارسال شود:</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// سرور چت ساده با پذیرش client و پخش پیام
+using System.Net.Sockets;
+using System.Text;
+
+var listener = new TcpListener(System.Net.IPAddress.Any, 8888);
+listener.Start();
+Console.WriteLine("سرور آماده است...");
+
+while (true) {
+    TcpClient client = listener.AcceptTcpClient();
+    _ = Task.Run(() =&gt; HandleClient(client));
+}
+
+void HandleClient(TcpClient client) {
+    using var stream = client.GetStream();
+    byte[] buffer = new byte[1024];
+    while (true) {
+        int read = stream.Read(buffer, 0, buffer.Length);
+        if (read == 0) break;                    // کلاینت بسته شد
+        string msg = Encoding.UTF8.GetString(buffer, 0, read);
+        Broadcast($"[{client.Client.RemoteEndPoint}] {msg}");
+    }
+}</code></pre>
+        <p>با این ساختار ساده، اولین چت چندکلاینت کار می‌کند. گام بعدی، پروتکل encode (طول پیام + داده) است تا پیام‌های طولانی به‌درستی جدا شوند.</p>
+      </section>
+
+      <section>
+        <h2>UDP: Pong</h2>
+        <p>بازی‌های سریع مثل Pong با UDP انجام می‌شوند چون تأخیر کم مهم‌تر از تضمین همهٔ پیام‌هاست. در UDP، هر بسته باید خودش حاوی همهٔ اطلاعات (مثلاً وضعیت کامل بازی) باشد:</p>
+        <pre class="code"><span class="lang-tag">C#</span><code>// ارسال وضعیت بازی با UDP (هر فریم)
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+var socket = new Socket(AddressFamily.InterNetwork,
+                        SocketType.Dgram, ProtocolType.Udp);
+var server = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
+
+// وضعیت بازی: موقعیت‌ها را به یک رشته تبدیل می‌کنیم
+string state = $"{paddle1X};{paddle1Y};{ballX};{ballY}";
+byte[] data = Encoding.UTF8.GetBytes(state);
+socket.SendTo(data, server);</code></pre>
+        <p>نکتهٔ حیاتی UDP: اگر یک بسته گم شود، جایگزینش به کمک «بستهٔ بعدی» می‌آید؛ پس هر بسته باید نسخهٔ کامل وضعیت باشد.</p>
+      </section>
+
+      <section>
+        <h2>بازی TCP چندنفره</h2>
+        <p>در پایان، یک بازی گرافیکی ساده ساخته می‌شود که کلاینت‌ها روی TCP با هم ارتباط دارند و رویدادهای بازی (حرکت، ضربه) به سرور reporting می‌شود و سرور به همه پخش می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این مجموعه بهترین نقطهٔ ورود برای شبکه در C# است: با پروژه‌های عملی، تفاوت TCP/UDP، همزمانی، encoding و loop بازی را یاد می‌گیرید و می‌توانید همان مهارت‌ها را به هر زبان دیگری منتقل کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> تیم 16bpp. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://16bpp.net/tutorials/csharp-networking" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

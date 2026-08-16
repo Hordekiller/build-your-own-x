@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سیستم CI در ۵۰۰ خط</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سیستم CI</span>
+      </div>
+      <h1>سیستم یکپارچه‌سازی پیوسته (CI)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/a-continuous-integration-system.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور فصل «A Continuous Integration System» از کتاب 500 Lines or Less است که CI را از صفر می‌سازد.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/a-continuous-integration-system.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>CI چیست و چه می‌کند؟</h2>
+        <p>یکپارچه‌سازی پیوسته (Continuous Integration) یعنی: با هر کامیت، به‌طور خودکار تست‌ها روی یک سرور مستقل اجرا شوند و نتیجه در وب‌روی نمایش داده شود. GitHub Actions و GitLab CI همین کار را می‌کنند؛ این فصل (از کتاب معروف 500 Lines) آن را با یک سرور شیءگرا و یک runner ساده می‌سازد.</p>
+      </section>
+
+      <section>
+        <h2>معماری: دو بخش اصلی</h2>
+        <p>سیستم از دو مؤلفهٔ مستقل ساخته می‌شود: <b>برنامهٔ سرور</b> که وضعیت تست‌ها را ثبت و گزارش می‌کند، و <b>runner</b> که در هر ماشین تست را اجرا می‌کند. Publisherها هم وقایع را به کانال‌ها (ایمیل، IRC) می‌فرستند. این جدایی یعنی تست‌ها روی هر سروری قابل اجرا هستند و سرور فقط هماهنگ‌کننده است.</p>
+      </section>
+
+      <section>
+        <h2>مدل داده</h2>
+        <p>هر تست یک `Build` است که وضعیت‌های مختلف دارد. تغییر وضعیت، مشترکین (subscribe/unsubscribe) را خبر می‌کند — الگوی Observer:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>class BuildStatus:
+    """وضعیت یک build که مشترکان را خبر می‌کند."""
+    def __init__(self, name):
+        self.name = name
+        self.status = 'pending'
+        self.subscribers = []
+
+    def subscribe(self, sub):
+        self.subscribers.append(sub)
+
+    def set_status(self, status):
+        self.status = status
+        for sub in self.subscribers:
+            sub(self)   # خبر بده: buildت به این وضعیت رسید</code></pre>
+        <p>خبر کردن مشترکین (مثل ایمیل) در همان لحظهٔ تغییر وضعیت — و نه در حلقهٔ پولینگ — ساده و مستقیم است.</p>
+      </section>
+
+      <section>
+        <h2>Runner: اجرای تست</h2>
+        <p>runner درخواست‌ها را دریافت می‌کند، با تست مواجه شود یا نرود. نکتهٔ جالب فصل: تست‌ها در thread جدا با timeout اجرا می‌شوند تا تست آویزان (hang) CI را قفل نکند— «بن‌بست» بین مرگ یک thread و timeout:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def run_tests(repo, test_cmd, timeout=60):
+    """اجرای تست‌ها در thread جداگانه با محدودیت زمان."""
+    result = {'status': 'running'}
+
+    def _run():
+        # clone/repo update، اجرا و ثبت نتیجه
+        rc = subprocess.run(test_cmd, shell=True, timeout=timeout)
+        result['status'] = 'success' if rc.returncode == 0 else 'failed'
+
+    t = threading.Thread(target=_run)
+    t.start(); t.join(timeout)
+    if t.is_alive():
+        result['status'] = 'timeout'   # تست گیر کرده
+    return result</code></pre>
+        <p>می‌بینید که CI در قلبش فقط ۴ حالت می‌شناسد: pending، running، success، failed — همین چهارتا برای کل اکوسیستم Actions کافی است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>کل کتاب در ۵۰۰ خط؛ مفاهیم بزرگ (Observer، Publisher/Subscriber، threading با timeout، رست API) در یک پروژهٔ واقعی گره می‌خورد. بعد از این، هر پلتفرم CI را نگاه کنید، معماریش برایتان شفاف است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مایکل دیبرناردی. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://aosabook.org/en/500L/a-continuous-integration-system.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیش‌بینی بازار سهام با LSTM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پیش‌بینی سهام با LSTM</span>
+      </div>
+      <h1>پیش‌بینی بازار سهام با LSTM در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python + Keras</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.datacamp.com/community/tutorials/lstm-python-stock-market" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش DataCamp است که پیش‌بینی قیمت سهام را با LSTM در Keras پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://www.datacamp.com/community/tutorials/lstm-python-stock-market" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا LSTM برای سری زمانی؟</h2>
+        <p>قیمت سهام یک «سری زمانی» است: نتیجهٔ هر روز به روزهای قبل وابسته است. شبکه‌های عصبی معمولی گذشته را نمی‌بینند؛ LSTM (حافظهٔ بلند-کوتاه) دریچه‌هایی دارد که به شبکه می‌گوید چه چیزی از گذشته را نگه دارد و چه چیزی را فراموش کند.</p>
+        <p>⚠️ نکتهٔ واقع‌بینانه: بازار قابل پیش‌بینی قطعی نیست؛ هدف آموزش، یادگیری مدل‌سازی سری زمانی است، نه ثروتمند شدن!</p>
+      </section>
+
+      <section>
+        <h2>آماده‌سازی داده</h2>
+        <p>قیمت‌ها مقیاس سختی دارند؛ اول نرمال می‌کنیم (بین ۰ و ۱)، بعد پنجره‌ها می‌سازیم: برای پیش‌بینی روز t، ورودی قیمت ۶۰ روز قبلی است:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled = scaler.fit_transform(df['Close'].values.reshape(-1, 1))
+
+def make_windows(data, window=60):
+    X, y = [], []
+    for i in range(window, len(data)):
+        X.append(data[i-window:i, 0])
+        y.append(data[i, 0])
+    return np.array(X), np.array(y)
+
+X, y = make_windows(scaled)
+X = X.reshape(X.shape[0], X.shape[1], 1)   # شکل LSTM</code></pre>
+        <p>شکل ورودی LSTM: (تعداد نمونه، طول پنجره، تعداد ویژگی).</p>
+      </section>
+
+      <section>
+        <h2>مدل LSTM</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>from keras.models import Sequential
+from keras.layers import LSTM, Dense, Dropout
+
+model = Sequential([
+    LSTM(units=50, return_sequences=True, input_shape=(60, 1)),
+    Dropout(0.2),
+    LSTM(units=50, return_sequences=False),
+    Dropout(0.2),
+    Dense(units=1)          # قیمت بعدی
+])
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(X_train, y_train, epochs=50, batch_size=32)</code></pre>
+        <p>`return_sequences=True` برای لایه‌های میانی لازم است تا خروجی توالی به لایهٔ LSTM بعدی برسد. بعد از پیش‌بینی، با `inverse_transform` مقدار را به مقیاس واقعی برمی‌گردانیم.</p>
+      </section>
+
+      <section>
+        <h2>ارزیابی صادقانه</h2>
+        <p>هرگز دقت را روی همان داده‌های آموزش نگیرید؛ داده را به train/validation/test تقسیم کنید و «پیش‌بینی‌های خارج از بازهٔ دیده‌شده» را با RMSE بسنجید. در عمل، مدل‌های LSTM برای روند کوتاه‌مدت مفیدند و برای جهش‌های ناگهانی نه.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> DataCamp. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.datacamp.com/community/tutorials/lstm-python-stock-market" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

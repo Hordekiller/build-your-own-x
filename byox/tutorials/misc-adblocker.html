@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | AdBlocker در ۱۰ دقیقه</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>AdBlocker</span>
+      </div>
+      <h1>AdBlocker خودت را در (واقعاً) ۱۰ دقیقه بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://levelup.gitconnected.com/building-your-own-adblocker-in-literally-10-minutes-1eec093b04cd" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Building Your Own AdBlocker in Literally 10 Minutes» است که یک افزونهٔ کروم ساده را برای مسدودکردن تبلیغات می‌سازد.
+        </div>
+        <a class="btn solid" href="https://levelup.gitconnected.com/building-your-own-adblocker-in-literally-10-minutes-1eec093b04cd" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>افزونهٔ مسدودکردن تبلیغات چطور کار می‌کند؟</h2>
+        <p>تبلیغات معمولاً از دامنه‌های خاصی (مثل adserver.com) بارگذاری می‌شوند. یک AdBlocker درخواست‌های مرورگر را به این دامنه‌ها می‌بیند و آن‌ها را مسدود می‌کند. در Chrome، این کار با API `webRequest` و رویداد `onBeforeRequest` انجام می‌شود.</p>
+        <p>مزیت این روش: مسدودسازی در سطح شبکه است، پس تبلیغ حتی بارگذاری هم نمی‌شود (سریع‌تر از پنهان‌کردن با CSS).</p>
+      </section>
+
+      <section>
+        <h2>manifest.json</h2>
+        <p>اولین قدم در هر افزونه، فایل manifest است که دسترسی‌ها را اعلام می‌کند. برای AdBlocker باید `webRequest` و `webRequestBlocking` را داشته باشیم:</p>
+        <pre class="code"><span class="lang-tag">JSON</span><code>{
+  "manifest_version": 2,
+  "name": "AdBlocker ساده",
+  "version": "1.0",
+  "description": "مسدودکنندهٔ سادهٔ تبلیغات",
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "&lt;all_urls&gt;"
+  ],
+  "background": {
+    "scripts": ["blocker.js"],
+    "persistent": true
+  }
+}</code></pre>
+        <p>نسخهٔ ۳ افزونه‌ها (MV3) روش دیگری دارد (declarativeNetRequest)؛ اما این ساختار ساده برای یادگیری عالی است.</p>
+      </section>
+
+      <section>
+        <h2>منطق مسدودسازی</h2>
+        <p>قلب افزونه، اسکریپت background است که قبل از هر درخواست، URL را با لیست دامنه‌های تبلیغاتی مقایسه می‌کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// لیست سادهٔ دامنه‌های تبلیغاتی
+const AD_DOMAINS = [
+  'doubleclick.net',
+  'googleadservices.com',
+  'adservice.google.com',
+  'adsense.com',
+  'googlesyndication.com'
+];
+
+// مسدودکردن درخواست‌هایی که به دامنهٔ تبلیغاتی می‌روند
+chrome.webRequest.onBeforeRequest.addListener(
+  function (details) {
+    const url = new URL(details.url);
+    const host = url.hostname;
+
+    if (AD_DOMAINS.some(domain =&gt; host === domain || host.endsWith('.' + domain))) {
+      console.log('مسدود شد:', details.url);
+      return { cancel: true };   // قطع درخواست
+    }
+    return {};                   // اجازهٔ ادامه
+  },
+  { urls: ['&lt;all_urls&gt;'] },
+  ['blocking']
+);</code></pre>
+        <p>مقایسهٔ hostname به‌صورت دقیق (برابری یا پسوند) باعث می‌شود زیردامنه‌ها هم مسدود شوند و دامنه‌های مشابه اشتباهاً بلاک نشوند.</p>
+      </section>
+
+      <section>
+        <h2>گزینه‌های پیشرفته</h2>
+        <p>برای یک AdBlocker واقعی، موارد بیشتری لازم است: filter لیست‌های عظیم (EasyList)، مسدودسازی بر اساس الگوی URL (pattern) نه فقط دامنه، و UI برای مدیریت استثناها. اما همین ۲۰ خط، رفتار پایه را دارد و می‌تواند در سایت‌های شلوغ تفاوت محسوس ایجاد کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>ساختن AdBlocker اولین قدم عالی برای درک اکوسیستم افزونه‌های مرورگر است: manifest، background script و APIهای قدرتمند. با همین دانش می‌توانید افزونه‌های مفید دیگری هم بسازید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ مقالهٔ levelup (GitConnected). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://levelup.gitconnected.com/building-your-own-adblocker-in-literally-10-minutes-1eec093b04cd" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

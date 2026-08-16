@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کدک ویدیویی از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>کدک ویدیویی</span>
+      </div>
+      <h1>رمزگذاری ویدیو از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/kevmo314/codec-from-scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «Codec from Scratch» از کوین مونرسی است که یک کدک ویدیویی با زیرمجموعه‌ای از H.264 را در Go پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/kevmo314/codec-from-scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>کدک چیست و چرا از صفر؟</h2>
+        <p>کدک (Codec = Compressor-Decompressor) الگوریتمی است که ویدیو را برای ذخیره/انتقال فشرده می‌کند و دوباره بازیابی می‌کند. H.264 استاندارد محبوبی است که در اکثر پخش‌کننده‌ها و دوربین‌ها استفاده می‌شود. پروژهٔ «codec-from-scratch» زیرمجموعهٔ کاربردی آن را پیاده می‌کند که برای یادگیری، بسیار ارزشمندتر از مطالعهٔ سند ۶۰۰ صفحه‌ای است.</p>
+      </section>
+
+      <section>
+        <h2>ساختار فایل و NAL units</h2>
+        <p>در H.264، داده به «واحدهای NAL» (Network Abstraction Layer) تقسیم می‌شود که هرکدام یک «header» و بدنه دارند. پارس‌کردن این واحدها، اولین قدم است:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// پارس یک NAL unit: بایت آغازین + header + داده
+type NAL struct {
+    Header   byte
+    Type     int
+    Payload  []byte
+}
+
+func parseNAL(data []byte) (*NAL, error) {
+    start := 0
+    // فرمت 00 00 01 یا 00 00 00 01
+    if len(data) &gt; 4 &amp;&amp; data[0]==0 &amp;&amp; data[1]==0 &amp;&amp; data[2]==0 &amp;&amp; data[3]==1 {
+        start = 4
+    } else if len(data) &gt; 3 &amp;&amp; data[0]==0 &amp;&amp; data[1]==0 &amp;&amp; data[2]==1 {
+        start = 3
+    } else {
+        return nil, errors.New("فرمت NAL نامعتبر")
+    }
+    header := data[start]
+    return &amp;NAL{
+        Header:  header,
+        Type:    int(header &amp; 0x1F),   // 5 بیت میانی: نوع NAL
+        Payload: data[start+1:],
+    }, nil
+}</code></pre>
+        <p>نوع‌های مهم: `1` برای slice غیرIDR، `5` برای IDR (کلید فریم) و `7` برای SPS (پارامترهای متادیتا).</p>
+      </section>
+
+      <section>
+        <h2>رمزگشایی ماکروبلوک‌ها</h2>
+        <p>فریم‌ها به «ماکروبلوک‌های» ۱۶×۱۶ تقسیم می‌شوند. هر ماکروبلوک می‌تواند با جبران حرکت (motion) از فریم قبلی پیش‌بینی شود یا مستقیم رمزگشایی شود. برای هر ماکروبلوک، ضرایب DCT و رویدادهای CAVLC خوانده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// خواندن یک ماکروبلوک از استریم بیتی
+func (d *Decoder) decodeMacroblock() (mb, error) {
+    mbType := d.readUE()   // ازمپ جووینت شمارهٔ نوع
+    res := mb{}
+
+    if mbType &gt; 0 {        // نوع غیر «ترقی»
+        // خواندن تفاوت‌های جبران حرکت
+        res.mvDX = d.readSE()
+        res.mvDY = d.readSE()
+    }
+
+    // خواندن ضرایب تبدیل (جزئیات)
+    for i := 0; i &lt; 256; i++ {
+        c, more := d.readCoeff()
+        if !more { break }
+        res.coeffs = append(res.coeffs, c)
+    }
+    return res, nil
+}</code></pre>
+        <p>توابع `readUE`/`readSE` (Exp-Golomb) اجزای پایهٔ فشرده‌سازی هستند که اعداد کوچک را با بیت‌های کمتری نشان می‌دهند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این پروژه نشان می‌دهد که پیاده‌سازی یک کدک، ترکیبی از ساختار بیتی، پیش‌بینی تصویری و ریاضیات تحویل است. بعد از ساختن decoder ساده، مسیر به سمت encoder و استانداردهای جدیدتر (HEVC/AV1) باز می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کوین مونرسی (Kevin Monahan). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/kevmo314/codec-from-scratch" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

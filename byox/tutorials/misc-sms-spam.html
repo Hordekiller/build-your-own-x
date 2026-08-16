@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | تشخیص اسپم SMS با scikit-learn</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>تشخیص اسپم SMS</span>
+      </div>
+      <h1>تشخیص‌دهنده اسپم SMS با Scikit-learn بنویس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.com/@kopilov.vlad/detect-sms-spam-in-kaggle-with-scikit-learn-5f6afa7a3ca2" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ ولاد کپیلف است که با خبره scikit-learn روی دیتاست SMS اسپم کگل، مدل تشخیص می‌سازد.
+        </div>
+        <a class="btn solid" href="https://medium.com/@kopilov.vlad/detect-sms-spam-in-kaggle-with-scikit-learn-5f6afa7a3ca2" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>مسئله: متن را دسته‌بندی کن</h2>
+        <p>دیتاست (از کگل) شامل هزاران SMS با برچسب «spam» یا «ham» است. کار: یادگیری الگوریتمی که برای متن جدید تشخیص دهد. این یک مسئلهٔ کلاسیک NLP سطح پایین است و با scikit-learn در چند خط حل می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>از متن به اعداد: TF-IDF</h2>
+        <p>الگوریتم‌ها فقط عدد می‌فهمند. متن را به بردار «بسامد کلمات» تبدیل می‌کنیم؛ بهتر از شمارش خام، TF-IDF است که کلمه‌های پرتکرار در همهٔ پیام‌ها را کم‌اهمیت و کلمه‌های خاص را مهم می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# df: ستون‌های 'text' و 'label' (spam/ham)
+X = df['text']; y = df['label'].map({'spam': 1, 'ham': 0})
+
+# تبدیل متن به بردار TF-IDF
+vec = TfidfVectorizer(stop_words='english')
+Xv = vec.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    Xv, y, test_size=0.2, random_state=42)</code></pre>
+        <p>چرا Multinomial NB؟ چون برای دسته‌بندی متن با شمارش کلمات ذاتاً مناسب است و سریع.</p>
+      </section>
+
+      <section>
+        <h2>آموزش و ارزیابی</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>model = MultinomialNB()
+model.fit(X_train, y_train)
+
+pred = model.predict(X_test)
+print('دقت:', accuracy_score(y_test, pred).round(3))
+
+# جدول درهم: کجاست که اشتباه می‌کند؟
+print(confusion_matrix(y_test, pred))</code></pre>
+        <p>نکتهٔ حرفه‌ای: در اسپم، دقت (accuracy) کافی نیست؛ recall و precision مهم‌اند — چون از دست دادن یک اسپم ارزشی ندارد اما گمراه کردن یک کاربر عادی بد است. `classification_report` هر سه را نشان می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی و قدم بعدی</h2>
+        <p>با حدود ۱۵ خط کد یک طبقه‌بند کار می‌کند. چالش‌های بعدی: دادهٔ نامتعادل (اسپم کمتر است)، زبان فارسی (نیاز به توکن‌ساز فارسی)، و مدل‌های بهتر (SVM، fastText). اما پایه — TF-IDF + NB — هنوز در تولید هم کار می‌کند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ولاد کپیلف. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://medium.com/@kopilov.vlad/detect-sms-spam-in-kaggle-with-scikit-learn-5f6afa7a3ca2" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

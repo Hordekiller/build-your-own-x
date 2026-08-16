@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اپ تاکسی اینترنتی با React Native</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>تاکسی با React Native</span>
+      </div>
+      <h1>یک اپ درخواست سفر (ride hailing) با React Native بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://pusher.com/tutorials/ride-hailing-react-native" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «Build a Ride-Hailing App with React Native» از Pusher است که نقشه، مسیریابی و درخواست سفر را در یک اپ موبایل می‌سازد.
+        </div>
+        <a class="btn solid" href="https://pusher.com/tutorials/ride-hailing-react-native" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>اپ تاکسی اینترنتی چه بخش‌هایی دارد؟</h2>
+        <p>اپ‌های مثل Uber از سه بخش اصلی تشکیل شده‌اند: نمایش نقشه و موقعیت کاربر، تعیین مسیر و محاسبهٔ قیمت، و ارتباط بلادرنگ بین راننده و مسافر. در این آموزش، هر سه با ابزارهای رایگان پیاده می‌شوند: <b>React Native</b> برای رابط کاربری، <b>react-native-maps</b> برای نقشه و <b>Pusher Channels</b> برای پیام بلادرنگ.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۱: نقشه و موقعیت</h2>
+        <p>اولین صفحه، یک MapView با موقعیت فعلی کاربر است. با `react-native-maps` این کار بسیار ساده است:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>import MapView, { Marker, Polyline } from 'react-native-maps';
+
+export default function MapScreen({ route }) {
+  const { start, destination } = route.params;
+
+  return (
+    &lt;MapView
+      style={{ flex: 1 }}
+      initialRegion={{
+        latitude: start.latitude,
+        longitude: start.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }}
+    &gt;
+      &lt;Marker coordinate={start} title="مبدأ" pinColor="green" /&gt;
+      &lt;Marker coordinate={destination} title="مقصد" pinColor="red" /&gt;
+      &lt;Polyline coordinates={[start, destination]}
+                 strokeColor="#00a" strokeWidth={4} /&gt;
+    &lt;/MapView&gt;
+  );
+}</code></pre>
+        <p>با این کامپوننت، نقشه و مسیر مستقیم بین دو نقطه دیده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۲: مسیر واقعی و قیمت</h2>
+        <p>مسیر مستقیم واقعی نیست؛ برای مسیر جاده‌ای باید از یک سرویس مسیر (مثل Google Directions API) استفاده کنید. پاسخ API شامل polyline و فاصله است؛ با فاصله و تعرفه، قیمت تخمینی محاسبه می‌شود و روی صفحهٔ بعد نمایش داده می‌شود.</p>
+        <p>تماس با API باید در سرور واسطه انجام شود تا کلید API لو نرود — الگوی رایج اپ‌های واقعی.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۳: بلادرنگ با Pusher</h2>
+        <p>وقتی مسافر درخواست می‌دهد، یک رویداد در کانال Pusher فرستاده می‌شود که راننده‌ای (در اپ دوم) آن را دریافت کند. سادگی عالی کانال‌ها:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>import Pusher from 'pusher-js/react-native';
+
+// ساختار کلاینت
+const pusher = new Pusher('APP_KEY', { cluster: 'eu' });
+
+export function subscribeToRides(onRide) {
+  const channel = pusher.subscribe('rides');
+  channel.bind('new-ride', onRide);
+  return () =&gt; pusher.unsubscribe('rides');
+}
+
+// سمت سرور: انتشار رویداد جدید
+// pusher.trigger('rides', 'new-ride', { start, destination });</code></pre>
+        <p>با این‌حال، فریم‌ورک‌های جدیدتر (WebSockets خودتان + فایربیس) هم گزینه‌های جایگزینی هستند که در پایان آموزش بحث می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این پروژه تمام اجزای یک اپ موبایل واقعی (نقشه، شبکه، بلادرنگ) را پوشش می‌دهد و با React Native قابل اجرا روی Android/iOS است. بعد از آن، می‌توانید تشخیص خودکار مسیر با Google Places را هم اضافه کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Pusher. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://pusher.com/tutorials/ride-hailing-react-native" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

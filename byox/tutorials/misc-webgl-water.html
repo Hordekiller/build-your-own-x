@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | WebGL + Rust: آموزش آب پایه</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>WebGL + Rust</span>
+      </div>
+      <h1>WebGL + Rust: آموزش آب پایه</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust + wasm-bindgen</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.chinedufn.com/3d-webgl-basic-water-tutorial/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «3D WebGL + Rust: Basic Water Tutorial» از چیندو است که آب انیمیت‌شده را با Rust و Three.js روی وب می‌سازد.
+        </div>
+        <a class="btn solid" href="https://www.chinedufn.com/3d-webgl-basic-water-tutorial/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>Rust روی وب؟!</h2>
+        <p>Rust می‌تواند به WebAssembly (wasm) کامپایل شود و در مرورگر اجرا شود. این آموزش یک صحنهٔ سه‌بعدی با وب می‌سازد که در آن: صحنه و آب با Three.js ساخته می‌شود اما منحنی موج آب با Rust محاسبه می‌شود و نتیجهٔ هر فریم به WebGL داده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>حلقهٔ رندر در Rust</h2>
+        <p>کلید اصلی: یک ساختار `Water` در Rust که هر فریم، ارتفاع نقاط را محاسبه می‌کند. سه‌بعدی‌ها با `nalgebra` و ارسال عددها با `wasm-bindgen` انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>use wasm_bindgen::prelude::*;
+use nalgebra::Vector3;
+
+/// هندسهٔ آب: سطحی از نقاط (چند ضلعی)
+#[wasm_bindgen]
+pub struct Water {
+    pub segments: usize,
+}
+
+impl Water {
+    /// ارتفاع نقطه در لحظهٔ t — موج سینوسی ساده
+    pub fn height_at(&amp;self, x: f32, y: f32, t: f32) -&gt; f32 {
+        ((x * 0.3 + t) as f64).sin() as f32 * 0.5
+            + ((y * 0.2 - t) as f64).cos() as f32 * 0.3
+    }
+}</code></pre>
+        <p>ترکیب دو موج با فاز مخالف، الگوی «آب آرام» می‌دهد — پایهٔ همهٔ موج‌سازی‌های واقعی (FFT، Gerstner) همان نوسان ساده است.</p>
+      </section>
+
+      <section>
+        <h2>اتصال با Three.js</h2>
+        <p>در سمت JS، صحنه ساخته می‌شود و در هر فریم از متد Rust ارتفاع می‌گیرد تا vertex ها به‌روز شوند. مثل یک «عملگر بومی» که فریم به فریم کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const { Water } = wasm_bindgen('water_wasm.js');
+
+// ساخت هندسه با گرید 16×16
+const geometry = new THREE.PlaneGeometry(10, 10, 15, 15);
+const water = Water.new(16);
+const material = new THREE.MeshPhongMaterial({ color: 0x1e88e5, wireframe: true });
+
+function animate(time) {
+  const pos = geometry.attributes.position;
+  for (let i = 0; i &lt; pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i);
+    pos.setZ(i, water.height_at(x, y, time / 1000));  // Rust در کار
+  }
+  pos.needsUpdate = true;
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}</code></pre>
+        <p>ترکیب «Rust محاسبه، JS رندر» معماری محبوبی است: عملکرد بالا و بدون GC جایی که مهم است.</p>
+      </section>
+
+      <section>
+        <h2>چرا این را یاد بگیریم؟</h2>
+        <p>این پروژه پل شما به دو دنیاست: توسعهٔ سه‌بعدی (WebGL، shader، هندسه) و WebAssembly (کامپایل، بودجهٔ بایت، ورود/خروج با wasm-bindgen). در ادامهٔ آموزش: به‌روزرسانی با wasm-pack، باندل، و انیمیشن‌های پیچیده‌تر.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> چیندو (Chinedu). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.chinedufn.com/3d-webgl-basic-water-tutorial/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

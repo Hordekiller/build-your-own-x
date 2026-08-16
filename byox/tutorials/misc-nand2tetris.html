@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | از NAND تا تتریس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>NAND تا تتریس</span>
+      </div>
+      <h1>از NAND تا تتریس: ساخت یک کامپیوتر مدرن از اصول اولیه</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: HDL / چندزبانه</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://nand2tetris.org/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «The Elements of Computing Systems» (نویسندگان: نوام نایسان و شیمون شوکن) است که از یک گیت NAND تا اجرای بازی تتریس، کل کامپیوتر را می‌سازد.
+        </div>
+        <a class="btn solid" href="http://nand2tetris.org/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا nand2tetris یک دورهٔ منحصربه‌فرد است؟</h2>
+        <p>بیشتر آموزش‌های ساخت کامپیوتر، فقط روی یک لایه تمرکز دارند: یا سخت‌افزار، یا سیستم‌عامل، یا کامپایلر. اما nand2tetris همهٔ این لایه‌ها را به‌هم پیوند می‌دهد: شما شروع می‌کنید از یک گیت NAND (که با شبیه‌ساز HDL پیاده می‌شود) و در پایان یک کامپیوتر کامل با سیستمعامل و کامپایلر مخصوص خودش را می‌سازید که قادر به اجرای تتریس است.</p>
+        <p>این دورهٔ دوازده پروژه‌ای، مستقل از هر سخت‌افزار واقعی، روی شبیه‌ساز خودش اجرا می‌شود؛ همین باعث می‌شود همهٔ افراد (از دانش‌آموز دبیرستانی تا برنامه‌نویس حرفه‌ای) بتوانند تمام لایه‌ها را خودشان بسازند.</p>
+      </section>
+
+      <section>
+        <h2>نقشهٔ کامل پروژه</h2>
+        <p>پروژه‌ها به دو بخش اصلی تقسیم می‌شوند. <b>بخش سخت‌افزار (۱-۵):</b> ساخت گیت‌های منطقی، Adders، مالتی‌پلکسرها، ALU، و در نهایت CPU و حافظهٔ کامپیوتر HACK. <b>بخش نرم‌افزار (۶-۱۲):</b> ماشین‌اسمبلر، مفسر VM، کامپایلر زبان Jack، و سیستم‌عامل ساده (مدیریت صفحه‌ها، آریتمتیک، ورودی/خروجی).</p>
+        <p>نکتهٔ کلیدی جایی است که این لایه‌ها به‌هم متصل می‌شوند: برنامهٔ Jack که می‌نویسید، با VM واسطه، به اسمبلی HACK ترجمه و با مفسر روی CPU شبیه‌سازی اجرا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد HDL: یک گیت NAND ساده</h2>
+        <p>زبان توصیف سخت‌افزار (HDL) این دوره ساده و دقیق است. به‌عنوان نمونه، ساخت گیت NOT از روی NAND چنین است:</p>
+        <pre class="code"><span class="lang-tag">HDL</span><code>// گیت NOT: با اتصال دو ورودی به NAND ساخته می‌شود
+CHIP Not {
+    IN in;
+    OUT out;
+
+    PARTS:
+    Nand(a=in, b=in, out=out);
+}</code></pre>
+        <p>این الگو در همهٔ گیت‌های بعدی تکرار می‌شود: هر قطعه با `CHIP` تعریف، ورودی/خروجی با `IN`/`OUT` اعلام و اتصال‌ها در `PARTS` توصیف می‌شود. شبیه‌ساز بلادرنگ صحت را با جدول حقیقت بررسی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>درک نیم‌افزار: از HDL تا VM</h2>
+        <p>در پروژه‌های میانی، ساختار داده و پروتکل VM عمیق می‌شود. VM مفهومی میان زبان سطح بالا و اسمبلی دارد و دستورهای عمومی مثل `push`/`pop` و فراخوانی تابع را ارائه می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">VM</span><code>// برنامهٔ VM برای محاسبهٔ sum: 1+2
+push constant 1
+push constant 2
+add       // نتیجه در پشته می‌ماند
+pop local 0</code></pre>
+        <p>مفسرِ VM که می‌نویسید، این دستورها را به اسمبلی HACK ترجمه می‌کند. این لایه یعنی همان جایی که ماشینِ ریاضی واقعی شکل می‌گیرد و درک عمیق از «پشته و فراخوانی تابع» به وجود می‌آید.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>nand2tetris بدون اغراق بهترین مسیر برای «فهمیدن کامپیوتر از پایین به بالا» است. بعد از اتمام این دوره، مفاهیم معماری کامپیوتر، کامپایلر و سیستم‌عامل برایتان شفاف می‌شود؛ چنان‌که دیگر مطالب آن دسته آموزش‌ها برایتان «جعبه سیاه» نیستند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نوام نایسان و شیمون شوکن. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://nand2tetris.org/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

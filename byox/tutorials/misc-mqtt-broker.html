@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Sol — بروکر MQTT از صفر</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>بروکر MQTT</span>
+      </div>
+      <h1>Sol — یک بروکر MQTT از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://codepr.github.io/posts/sol-mqtt-broker" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور نوشتهٔ «Sol» است که ساخت یک بروکر MQTT را از صفر و با زبانی سطح‌پایین آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://codepr.github.io/posts/sol-mqtt-broker" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>MQTT و نقش بروکر</h2>
+        <p>MQTT یک پروتکل پیام‌رسانی سبک برای IoT است که بر پایهٔ مدل publish/subscribe کار می‌کند. در این مدل، دستگاه‌ها (clients) به موضوعاتی (topics) مشترک می‌شوند و بروکر وظیفه دارد پیام‌های منتشرشده را به مشترکین درست برساند. بروکر «قلب» سیستم است: بدون آن هیچ پیامی جابه‌جا نمی‌شود.</p>
+        <p>پیاده‌سازی بروکر به شما یاد می‌دهد که پروتکل باینری را بفهمید: هر پیام MQTT یک fixed header با یک byte از نوع و علامت، و به‌دنبالش باقی‌ماندهٔ بدنه با طول Variable-Length (۲ بایت LSB).</p>
+      </section>
+
+      <section>
+        <h2>ارسال و دریافت: ساختار پروتکل</h2>
+        <p>اولین گام، تعریف ساختار header و پارس آن است. برای مثال، پیام CONNECT شامل `protocol level` و `client id` است، و پیام SUBSCRIBE باید `packet identifier` و topic-filter را حمل کند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>typedef struct {
+    uint8_t type: 4;      // نوع پیام (1=CONNECT, 3=PUBLISH, ...)
+    uint8_t flags: 4;
+    uint8_t remaining_len; // طول Variable Byte Integer
+} mqtt_fixed_header;
+
+// یک تابع ساده برای ساخت پیام PUBLISH
+int build_publish(uint8_t* buf, const char* topic,
+                  const char* payload, int payload_len) {
+    int off = 0;
+    buf[off++] = 0x30;                    // PUBLISH QOS0
+    int rem = 2 + strlen(topic) + payload_len;
+    buf[off++] = (uint8_t)rem;
+    buf[off++] = (strlen(topic) &gt;&gt; 8) &amp; 0xff;
+    buf[off++] = strlen(topic) &amp; 0xff;
+    memcpy(buf + off, topic, strlen(topic));
+    off += strlen(topic);
+    memcpy(buf + off, payload, payload_len);
+    off += payload_len;
+    return off;
+}</code></pre>
+        <p>این بافر، خروجی کاملی از یک پیام publish است که می‌توان آن را روی socket ارسال کرد.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت اشتراک‌ها</h2>
+        <p>قلب بروکر، ساختار داده‌ای است که «topic → list of clients» را نگه می‌دارد. وقتی پیامی منتشر می‌شود، باید آن را به همهٔ مشترکین آن topic (یا wildcardها) ارسال کنیم. این کار با یک تری/هش‌مپ و چند رشتهٔ همزمان انجام می‌شود.</p>
+        <p>چالش‌های مهم: همزمانی (یک پیام چند کلاینت را می‌گیرد)، قطعی شدن QoS، و رفتار با clientهای بدون پاسخی (keep-alive). برای شروع، پیاده‌سازی تک‌نخی و سپس افزودن pthread کافی است.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>ساخت بروکر MQTT یک پروژهٔ واقعی و لذت‌بخش است: پروتکل پیام‌رسانی، شبکه و همزمانی را در کنار هم درگیر می‌کند. بعد از این پروژه، با مفاهیم pub/sub و نحوهٔ کار بروکرهای تجاری (مثل Mosquitto) عمیقاً آشنا می‌شوید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ پست Sol (codepr). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://codepr.github.io/posts/sol-mqtt-broker" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

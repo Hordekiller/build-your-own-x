@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | شبیه‌ساز ترمینال در Go</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>ترمینال در Go</span>
+      </div>
+      <h1>یک شبیه‌ساز ترمینال ساده در ۱۰۰ خط Golang بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Go</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Build a terminal emulator in 100 lines of Go» از ایشوا است که با یک ترمینال واقعی PTY، یک شبیه‌ساز ساده می‌سازد.
+        </div>
+        <a class="btn solid" href="https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>ترمینال و pseudo-terminal</h2>
+        <p>یک ترمینال رندری می‌کند که برنامه‌ها در آن اجرا می‌شوند. برای اینکه یک برنامهٔ واقعی (مثل sh) داخل ترمینال شما اجرا شود، به یک <b>pty</b> (پایانهٔ شبه) نیاز دارید: جفت master/slave که ورودی و خروجی را به‌هم می‌پیوندد. در Go، کتابخانهٔ `creack/pty` این کار را ساده می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>معماری: دو حلقه</h2>
+        <p>شبیه‌ساز دو جریان داده دارد: خروجیِ برنامه → نمایش، و ورودی کاربر → برنامه. این دو به‌صورت همزمان اجرا می‌شوند. نمایش با `termbox-go` (یک کتابخانهٔ TUI) انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>func runTerminal(ptmx *os.File) {
+    go func() {
+        // حلقهٔ خواندن خروجی برنامه و نمایش آن
+        buf := make([]byte, 4096)
+        for {
+            n, err := ptmx.Read(buf)
+            if err != nil { return }
+            termbox.SetCell(x, y, rune(buf[i]), fg, bg)
+            ...
+        }
+    }()
+
+    // حلقهٔ رویدادهای کیبورد: ارسال به ptmx
+    for {
+        ev := termbox.PollEvent()
+        if ev.Type == termbox.EventKey {
+            _, err := ptmx.Write([]byte{byte(ev.Ch)})
+            if err != nil { ... }
+        }
+    }
+}</code></pre>
+        <p>در این‌جا `ptmx` هم «بخوان» و هم «بنویس» می‌شود: خروجی برنامه را می‌خوانیم و روی grid نمایش می‌دهیم، و کلیدهای کاربر را به برنامه می‌فرستیم.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت escape sequences</h2>
+        <p>تمام ترمینال‌ها باید دنباله‌های ANSI را تفسیر کنند. ساده‌ترین طراحی، یک حالت‌ماشین کوچک است: وقتی کاراکتر `\x1b` دیده شد، بقیه را تا پایان کد (مثل `[m`) جمع کن:</p>
+        <pre class="code"><span class="lang-tag">Go</span><code>// تفسیر سادهٔ کدهای رنگی ANSI
+func interpretANSI(data []byte) {
+    if len(data) &gt; 2 &amp;&amp; data[0] == 0x1b &amp;&amp; data[1] == '[' {
+        // پارس پارامترها تا حرف پایانی
+        parts := strings.Split(string(data[2:len(data)-1]), ";")
+        if len(parts) &gt; 0 {
+            switch parts[0] {
+            case "31": fg = termbox.ColorRed
+            case "32": fg = termbox.ColorGreen
+            case "0":  fg = termbox.ColorDefault
+            }
+        }
+    }
+}</code></pre>
+        <p>با این تابع ساده، خروجی‌های رنگی `ls --color` به‌درستی نمایش داده می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش نشان می‌دهد که با کمتر از ۱۵۰ خط Go و دو کتابخانه، می‌توان یک ترمینال کارآمد ساخت. مفاهیم PTY، حلقه‌های همزمان و ANSI coding، پایهٔ همهٔ ترمینال‌های مدرن است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ایشوا (Ishuah). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

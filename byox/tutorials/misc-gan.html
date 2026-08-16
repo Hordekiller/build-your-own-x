@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت GAN با TensorFlow</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>ساخت GAN</span>
+      </div>
+      <h1>ساخت یک شبکه مولد تخاصمی (GAN) ساده با TensorFlow</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python + TensorFlow</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.paperspace.com/implementing-gans-in-tensorflow/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش Paperspace است که یک GAN ساده (نویز → تصویر MNIST) را با TensorFlow می‌سازد.
+        </div>
+        <a class="btn solid" href="https://blog.paperspace.com/implementing-gans-in-tensorflow/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>GAN چیست؟</h2>
+        <p>شبکهٔ مولد تخاصمی از دو شبکه ساخته می‌شود: <b>مولد (Generator)</b> که از نویز تصادفی، تصویر جعلی می‌سازد، و <b>متمایزکننده (Discriminator)</b> که می‌خواهد جعلی/واقعی را تشخیص دهد. این دو با هم «بازی» می‌کنند: جاعل بهتر می‌شود تا تشخیص‌دهنده گول بخورد، و تشخیص‌دهنده دقیق‌تر می‌شود — تعادل این رقابت، تصاویر واقعی‌نمای نهایی است.</p>
+      </section>
+
+      <section>
+        <h2>معماری</h2>
+        <p>در این آموزش ساده فقط لایه‌های Dense و LeakyReLU استفاده می‌شود، نه کانولوشن. مولد: ورودی ۱۰۰ نویز → چند لایه → تصویر ۲۸×۲۸. متمایزکننده: تصویر → چند لایه → احتمال «واقعی بودن»:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def generator(z_dim):
+    model = Sequential([
+        Dense(256, input_dim=z_dim),
+        LeakyReLU(alpha=0.2),
+        Dense(512), LeakyReLU(alpha=0.2),
+        Dense(784, activation='tanh')   # 28*28 پیکسل
+    ])
+    return model
+
+def discriminator():
+    model = Sequential([
+        Dense(256, input_dim=784),
+        LeakyReLU(alpha=0.2),
+        Dense(128), LeakyReLU(alpha=0.2),
+        Dense(1, activation='sigmoid')  # احتمال واقعی بودن
+    ])
+    return model</code></pre>
+        <p>`tanh` در خروجی مولد تصویر را بین ۱- و ۱ نگه می‌دارد: باید دادهٔ ورودی (MNIST) هم پیش‌تر به همین بازه مقیاس شده باشد.</p>
+      </section>
+
+      <section>
+        <h2>آموزش رقابتی</h2>
+        <p>در هر دونه آموزش اول متمایزکننده روی دادهٔ واقعی+جعلی، بعد مولد کل شبکهٔ ترکیبی را به‌دست می‌آورد. برای اینکه مولد در ابتدای کار گرفتار نشود، متمایزکننده را گاهی «قوی‌تر» نگه می‌دارند و labelهای جعلی برای مولد، به ۰.۹ نزدیک می‌شود (label smoothing):</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>for epoch in range(epochs):
+    # 1) آموزش متمایزکننده
+    real = batch_from_dataset()
+    fake = gen.predict(noise)
+    d_loss = disc.train_on_batch(
+        concat(real, fake),
+        concat(ones, zeros)          # real=1، fake=0
+
+    # 2) آموزش مولد از طریق شبکهٔ ترکیبی
+    combined.train_on_batch(noise, ones * 0.9)</code></pre>
+        <p>خطای کلاسیک: اگر متمایزکننده خیلی سریع «همه‌چیز را رد کند»، گرادیان مولد از بین می‌رود و تصاویر خاکستری می‌شوند؛ پایداری GAN هنر همین تعادل است.</p>
+      </section>
+
+      <section>
+        <h2>مشاهدهٔ پیشرفت</h2>
+        <p>هر چند دونه، از مولد عکس بگیرید و ذخیره کنید: می‌بینید که از نویز کامل به ارقام خوانا می‌رسد. همین «مشاهدهٔ یادگیری» یکی از لذت‌بخش‌ترین تجربه‌های یادگیری ماشین است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Paperspace. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://blog.paperspace.com/implementing-gans-in-tensorflow/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

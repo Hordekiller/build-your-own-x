@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پارسر پروتکل RESP در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پارسر RESP (Nim)</span>
+      </div>
+      <h1>نوشتن یک Parser پروتکل Redis</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day12_resp.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 12: RESP parser» از سری NimDays است که پروتکل سادهٔ Redis را در Nim پیاده‌سازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day12_resp.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>پروتکل RESP چیست؟</h2>
+        <p>RESP (REdis Serialization Protocol) یک پروتکل متنی-باینری ساده است که کلاینت و سرور Redis برای ارتباط از آن استفاده می‌کنند. هر نوع داده با یک حرف پیشوند مشخص می‌شود: `+` برای رشتهٔ ساده، `-` برای خطا، `:` برای عدد صحیح، `$` برای رشتهٔ باینری و `*` برای آرایه.</p>
+        <p>ساختن پارسر این پروتکل، گام عالی برای یادگیری «پروتکل‌های باینری-متنی» است و با Nim که سینتکس پایتون‌مانند ولی کارایی C دارد، لذت‌بخش می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>ساختار پیام‌ها</h2>
+        <p>مثال پیام‌ها: `:1000\r\n` یعنی عدد ۱۰۰۰؛ `$5\r\nhello\r\n` یعنی رشتهٔ binری با طول ۵؛ و `*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n` یعنی آرایه‌ای از دو رشته. CRLF جداکنندهٔ استاندارد است.</p>
+      </section>
+
+      <section>
+        <h2>پارسر ساده در Nim</h2>
+        <p>پیاده‌سازی با یک نوع «بافر خواندن» و توابع کوچک برای هر نوع انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>import strutils, sequtils
+
+# نوع دادهٔ مشترک برای هر پاسخ RESP
+type RespValue = object
+  case kind: enum
+    of rSimple: s: string
+    of rError:  e: string
+    of rInt:    i: int
+    of rBulk:   b: string
+    of rArray:  items: seq[RespValue]
+
+# پارس رشتهٔ ساده: +OK\r\n
+proc parseSimple(line: string): RespValue =
+  result = RespValue(kind: rSimple, s: line)
+
+# پارس bulk string: $len\r\n<payload>\r\n
+proc parseBulk(data: seq[string], idx: var int): RespValue =
+  let len = parseBiggestInt(data[idx]); inc idx
+  if len == -1:
+    return RespValue(kind: rBulk, b: "")
+  result = RespValue(kind: rBulk, b: data[idx])
+  inc idx</code></pre>
+        <p>در حلقهٔ اصلی، خط اول خوانده می‌شود و بر اساس حرف اول (پیشوند) به تابع مناسب واگذار می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>حلقهٔ اصلی پارس</h2>
+        <p>با یک ساختار داده که پیام‌ها را خط‌به‌خط می‌شکند، کل پارسر به‌صورت بازگشتی پیش می‌رود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code># پارس ارس: آرایه را متناوب پارس می‌کند
+proc parseArray(data: seq[string], idx: var int): RespValue =
+  let count = parseBiggestInt(data[idx]); inc idx
+  var items: seq[RespValue]
+  for i in 0..&lt;count:
+    items.add(parseMessage(data, idx))
+  RespValue(kind: rArray, items: items)
+
+proc parseMessage(data: seq[string], idx: var int): RespValue =
+  let first = data[idx][0]
+  case first
+  of '+': result = parseSimple(data[idx][1..^1]); inc idx
+  of ':': result = RespValue(kind: rInt, i: parseBiggestInt(data[idx][1..^1])); inc idx
+  of '$': result = parseBulk(data, idx)
+  of '*': result = parseArray(data, idx)
+  of '-': result = RespValue(kind: rError, e: data[idx][1..^1]); inc idx
+  else: raise newException(ValueError, "غیرقابل شناسایی: " &amp; first)</code></pre>
+        <p>با ۳۰ خط پارسر، هم‌صحبت با Redis امکان‌پذیر است (برای کوئری‌های GET/SET).</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>RESP یکی از ساده‌ترین پروتکل‌های واقعی برای یادگیری است و این آموزش Nim، آن را با کدی کوچک و تمیز آموزش می‌دهد. بعد از این، می‌توانید کلاینت Redis خودتان را کامل کنید یا سراغ پروتکل‌های باینری پیچیده‌تر بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day12_resp.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

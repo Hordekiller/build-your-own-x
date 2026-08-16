@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سیاست Same-Origin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سیاست Same-Origin</span>
+      </div>
+      <h1>سیاست Same-Origin (هم‌خاستگاهی)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Alloy</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://aosabook.org/en/500L/the-same-origin-policy.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور فصل «The Same-Origin Policy» از مجموعهٔ 500 Lines or Less است که سیاست هم‌خاستگاهی مرورگرها را به‌صورت ریاضی مدل‌سازی می‌کند.
+        </div>
+        <a class="btn solid" href="http://aosabook.org/en/500L/the-same-origin-policy.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>سیاست هم‌خاستگاهی چیست؟</h2>
+        <p>مرورگرها برای جدا نگه‌داشتن وب‌سایت‌های مختلف از هم، سیاستی به نام Same-Origin اعمال می‌کنند: جاوااسکریپت بارگذاری‌شده از یک «خاستگاه» (protocol + host + port) نباید به داده‌های خاستگاه دیگر دسترسی داشته باشد. بدون این سیاست، هر تب مخرب می‌توانست کوکی‌ها و محتوای سایر سایت‌ها را بخواند.</p>
+        <p>البته تعریف «خاستگاه» پیچیده‌تر از آن است که به‌نظر می‌رسد: اگر دو URL نتوانند یک «document» را با یکدیگر به اشتراک بگذارند یا یک «origin» مشترک داشته باشند، در مرحله‌ای سیاست اجازه یا منع دسترسی می‌دهد. برای مثال اگر `document.domain` را تنظیم کنیم، رفتار سیاست تغییر می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>مدل‌سازی با Alloy</h2>
+        <p>نقطهٔ قوت این فصل، استفاده از زبان رسمی <b>Alloy</b> برای اثبات رفتار سیاست در شرایط مختلف است. Alloy به شما اجازه می‌دهد با تعریف «signature» و «relation»، همهٔ ترکیب‌های ممکن وضعیت مرورگر (۲ یا چند تب، خاستگاه‌های گوناگون) را جست‌وجو و خواص امنیتی را بررسی کنید.</p>
+        <p>این رویکرد نشان می‌دهد که حتی مفاهیم امنیتی «بدیهی» هم در عمل با انواع مختلف دسترسی (مثل `<iframe>` و `document.domain` و کوکی‌ها) و حاشیهٔ قراردادن‌ها، پیچیده و قابل آزمون‌پذیری می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد Alloy</h2>
+        <p>مدل سادهٔ زیر مفاهیم «origin» و «document» و رابطهٔ میان آن‌ها را تعریف می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Alloy</span><code>// سیگنیچرهای پایه: خاستگاه، سند، و پنجره
+sig Origin {}
+sig Document { origin: Origin }
+sig Window {
+    document: Document,
+    opener: lone Window
+}
+
+// قانون: دو سند هم‌خاستگاه‌اند اگر origin یکسانی داشته باشند
+pred sameOrigin[w1, w2: Window] {
+    w1.document.origin = w2.document.origin
+}
+
+// تحت سیاست، یک سند فقط به سند هم‌خاستگاه خودش می‌تواند دسترسی داشته باشد
+assert sop {
+    all w1, w2: Window |
+        w2 in accessibleFrom[w1] =&gt; sameOrigin[w1, w2]
+}</code></pre>
+        <p>اجرای این assert با `check sop` می‌تواند نقض‌کنندهٔ سیاست را پیدا کند — یعنی ترکیبی که در آن سندِ غیرهم‌خاستگاه قابل دسترسی است. این همان چیزی است که در testing امنیتی مرورگرها واقعاً انجام می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این فصل به شما یاد می‌دهد که مسائل امنیتی را نه فقط با «کد»، بلکه با «مدل رسمی» تحلیل کنید. یادگیری Alloy + مدل‌سازی سیاست‌ها، مهارتی است که در هر پروژه‌ی امنیتی (نقص CORS، isolation، sandbox) به‌کارتان می‌آید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فصل به نویسندگی «اِیدین کاتولد» در مجموعهٔ 500 Lines or Less. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://aosabook.org/en/500L/the-same-origin-policy.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

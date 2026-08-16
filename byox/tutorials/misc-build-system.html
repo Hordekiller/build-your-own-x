@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سیستم Build در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سیستم Build</span>
+      </div>
+      <h1>نوشتن یک سیستم Build</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day11_buildsystem.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 11: Build System» از سری NimDays است که یک سیستم build ساده، با پشتیبانی از وابستگی‌های task، می‌سازد.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day11_buildsystem.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>سیستم Build چه کار می‌کند؟</h2>
+        <p>ابزارهایی مثل make یا ninja می‌دانند که «برای رسیدن به خروجی X، اول باید این کارها با این ترتیب انجام شوند». شما فقط خروجی را می‌خواهید؛ build system گراف وابستگی‌ها را می‌سازد، فقط کارهایی که لازم‌اند را اجرا می‌کند و کارهای تکراری (وقتی ورودی‌ها تغییر نکرده‌اند) را رد می‌کند.</p>
+        <p>در این آموزش، یک build system ساده در Nim می‌سازیم که taskها و وابستگی‌هایشان را تعریف می‌کند و با ترتیب درست اجرا می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>تعریف Task و وابستگی</h2>
+        <p>ایدهٔ اصلی: یک task اسم، بدنهٔ اجرایی و لیست وظایف پیش‌نیاز دارد. بعد از اجرای taskها، سیستم باید هر task را فقط یک بار اجرا کند (حتی اگر چند جا به آن اشاره شده باشد):</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>type
+  Task = ref object
+    name: string
+    deps: seq[string]
+    action: proc()
+
+var tasks = initTable[string, Task]()
+
+# ثبت یک task جدید
+proc task(name: string, deps: seq[string] = @[], action: proc()) =
+  tasks[name] = Task(name: name, deps: deps, action: action)
+
+# اجرای یک task + همهٔ وابستگی‌هایش (یک بار)
+proc build(name: string) =
+  if name in built: return        # بار دوم را رد کن
+  built.incl(name)
+  let t = tasks[name]
+  for d in t.deps: build(d)      # اول وابستگی‌ها
+  t.action()                     # بعد خود task</code></pre>
+        <p>مجموعهٔ `built` همان نقش «علامت‌گذاری انجام‌شده» را دارد و باعث می‌شود گراف حلقه‌ نمی‌زند و کار تکراری اجرا نشود.</p>
+      </section>
+
+      <section>
+        <h2>مثال استفاده</h2>
+        <p>چند task با وابستگی به هم تعریف می‌کنیم تا ترتیب اجرا دیده شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>task("compile") do:
+  echo "کامپایل فایل‌ها..."
+
+task("test", @["compile"]) do:
+  echo "اجرای تست‌ها..."
+
+task("package", @["test"]) do:
+  echo "ساخت بستهٔ نهایی..."
+
+build("package")
+# خروجی:
+# کامپایل فایل‌ها...
+# اجرای تست‌ها...
+# ساخت بستهٔ نهایی...</code></pre>
+        <p>این دقیقاً همان الگوریتمی است که make برای «هدف»ها انجام می‌دهد؛ فقط بدون تجزیهٔ سینتکس Makefile.</p>
+      </section>
+
+      <section>
+        <h2>به سمت سیستم واقعی</h2>
+        <p>در گام بعد می‌توانید مقایسهٔ «زمان فایل‌ها» (timestamps) را اضافه کنید تا مثل make فقط فایل‌های تغییرکرده ساخته شوند، خطاهای زنجیره‌ای را گزارش دهید، و taskها را موازی اجرا کنید. همین چهارچوب ساده، پایهٔ همهٔ build systemهای دنیاست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day11_buildsystem.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

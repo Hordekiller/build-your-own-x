@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اپ Reddit اندرویدی (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>اپ Reddit (ویدیو)</span>
+      </div>
+      <h1>چگونه یک اپ Reddit اندرویدی بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Java</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.youtube.com/playlist?list=PLgCYzUzKIBE9HUJU-upNvl3TRVAo9W47y" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور پلی‌لیست ویدیویی «Android Reddit App» است که ساخت یک برنامهٔ اندرویدی کامل با REST API و RecyclerView را آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.youtube.com/playlist?list=PLgCYzUzKIBE9HUJU-upNvl3TRVAo9W47y" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ پلی‌لیست</h2>
+        <p>این دورهٔ ویدیویی، یک اپ Reddit را گام‌به‌گام می‌سازد: از نمایش لیست پست‌ها با REST API و JSON، تا جزئیات پست و تصاویر. مفاهیم اصلی اندرویدی که پوشش داده می‌شود: <b>RecyclerView</b> (لیست کارآمد)، <b>Retrofit</b> (ارتباط HTTP)، <b>Picasso</b> (بارگذاری تصویر) و مدیریت وضعیت.</p>
+        <p><a class="btn solid" href="https://www.youtube.com/playlist?list=PLgCYzUzKIBE9HUJU-upNvl3TRVAo9W47y" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>معماری: Activity + Adapter</h2>
+        <p>در اندروید، هر صفحه یک Activity و ListView/RecyclerView با یک Adapter می‌آید. Adapter وظیفه دارد هر آیتم داده را به یک View تبدیل کند. این الگو پایهٔ تمام اپ‌های لیستی است:</p>
+        <pre class="code"><span class="lang-tag">Java</span><code>// آداپتر نمایش پست‌ها در RecyclerView
+public class PostAdapter extends RecyclerView.Adapter&lt;PostAdapter.ViewHolder&gt; {
+
+    private List&lt;Post&gt; posts = new ArrayList&lt;&gt;();
+
+    public void setPosts(List&lt;Post&gt; posts) { this.posts = posts; notifyDataSetChanged(); }
+
+    @NonNull @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int v) {
+        View view = LayoutInflater.from(parent.getContext())
+                  .inflate(R.layout.item_post, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder h, int pos) {
+        Post p = posts.get(pos);
+        h.title.setText(p.getTitle());          // عنوان پست
+        Picasso.get().load(p.getThumbnail()).into(h.image);  // تصویر
+    }
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView title; ImageView image;
+        ViewHolder(View v) { super(v); title = v.findViewById(R.id.title); image = v.findViewById(R.id.image); }
+    }
+}</code></pre>
+        <p>`onBindViewHolder` قلبِ نمایش است: برای هر موقعیت، داده را از لیست برمی‌دارد و View را پر می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>دریافت داده با Retrofit</h2>
+        <p>قسمت شبکه، با Retrofit ساده می‌شود: یک interface تعریف می‌کنید که هر متد، یک endpoint است؛ جکیسون به‌صورت خودکار به مدل تبدیل می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Java</span><code>public interface RedditApi {
+    @GET("r/{subreddit}/hot.json")
+    Call&lt;RedditResponse&gt; getHot(@Path("subreddit") String sub);
+}
+
+// فراخوانی در Activity
+Retrofit retrofit = new Retrofit.Builder()
+    .baseUrl("https://www.reddit.com/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .build();
+RedditApi api = retrofit.create(RedditApi.class);
+api.getHot("android").enqueue(new Callback&lt;RedditResponse&gt;() {
+    @Override public void onResponse(Call&lt;RedditResponse&gt; call, Response&lt;RedditResponse&gt; r) {
+        adapter.setPosts(r.body().getPosts());
+    }
+    @Override public void onFailure(Call&lt;RedditResponse&gt; call, Throwable t) {
+        Toast.makeText(getBaseContext(), "خطای شبکه", Toast.LENGTH_SHORT).show();
+    }
+});</code></pre>
+        <p>بخش‌های بعدی پلی‌لیست: جزئیات پست، صفحهٔ لودینگ و خطا، و کار با چرخهٔ حیات Activity.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این پلی‌لیست، برای شروع کار با اندروید عالی است: تمام بخش‌های اپ‌های روزمره (API، لیست، تصویر) را با ویدیو و کار عملی نشان می‌دهد. بعد از اتمام، می‌توانید MVVM و Jetpack Compose را شروع کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ پلی‌لیست YouTube. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.youtube.com/playlist?list=PLgCYzUzKIBE9HUJU-upNvl3TRVAo9W47y" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

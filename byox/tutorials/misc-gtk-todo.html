@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | اپ دسکتاپ GTK با Ruby</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>اپ GTK با Ruby</span>
+      </div>
+      <h1>ساخت یک اپ دسکتاپ لینوکسی با Ruby</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby + GTK3</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://iridakos.com/tutorials/2018/01/25/creating-a-gtk-todo-application-with-ruby" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Creating a GTK Todo application with Ruby» از ایریداکوس است که یک اپ دسکتاپ GTK را با Ruby می‌سازد.
+        </div>
+        <a class="btn solid" href="https://iridakos.com/tutorials/2018/01/25/creating-a-gtk-todo-application-with-ruby" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>GTK به‌جز C؟</h2>
+        <p>GTK اسم رابط گرافیکی لینوکس است (GNOME از آن استفاده می‌کند). با وجود اینکه GTK به زبان C نوشته شده، bindingهای عالی برای Ruby (gtk3 gem) دارد. این آموزش یک «فهرست کارها» (Todo list) کامل می‌سازد: پنجره، لیست، افزودن/حذف کار.</p>
+      </section>
+
+      <section>
+        <h2>پنجره و حلقهٔ رویداد</h2>
+        <p>GTK یک «حلقهٔ رویداد» دارد: برنامه منتظر رویدادها (کلیک، تایپ، بستن) می‌ماند و روی آن‌ها واکنش نشان می‌دهد. ساختار پایه:</p>
+        <pre class="code"><span class="lang-tag">Ruby</span><code>require 'gtk3'
+
+class TodoApp
+  def initialize
+    # ساخت پنجرهٔ اصلی
+    @window = Gtk::Window.new('تودولیست من')
+    @window.set_default_size(400, 500)
+    @window.signal_connect('destroy') { Gtk.main_quit }
+
+    # حالت عمودی: فیلد ورودی + دکمه + لیست
+    @vbox = Gtk::Box.new(:vertical, 6)
+    @entry = Gtk::Entry.new
+    @entry.placeholder_text = 'کار جدید...'
+    @add_button = Gtk::Button.new(label: 'افزودن')
+    @list = Gtk::ListBox.new
+
+    @vbox.pack_start(@entry, expand: false, fill: false, padding: 0)
+    @vbox.pack_start(@add_button, expand: false, fill: false, padding: 0)
+    @vbox.pack_start(@list, expand: true, fill: true, padding: 0)
+    @window.add(@vbox)
+  end
+
+  def run
+    @window.show_all
+    Gtk.main   # شروع حلقهٔ رویداد
+  end
+end
+
+TodoApp.new.run</code></pre>
+        <p>`signal_connect` اتصال رویداد را انجام می‌دهد — همان مکانیزم callback که در همهٔ toolkitها (Qt، Swing) وجود دارد.</p>
+      </section>
+
+      <section>
+        <h2>افزودن کار با سیگنال</h2>
+        <pre class="code"><span class="lang-tag">Ruby</span><code>def add_todo
+  text = @entry.text.strip
+  return if text.empty?
+
+  row = Gtk::ListBoxRow.new
+  row.add(Gtk::Label.new(text))
+  @list.add(row)          # به لیست اضافه کن
+  @entry.text = ''        # پاک کن ورودی
+end
+
+# اتصال: کلیک دکمه ← افزودن
+@add_button.signal_connect('clicked') { add_todo }
+# اتصال: فشردن Enter هم اضافه کند
+@entry.signal_connect('activate') { add_todo }</code></pre>
+        <p>برای حذف هم هر row یک دکمه با callback جدا می‌گیرد — همان الگوی «سیگنال» تکرار می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>توسعه‌ها و نتیجه</h2>
+        <p>در ادامهٔ آموزش: ذخیره‌سازی در فایل SQLite، قاب‌بندی listview برای کارهای انجام‌شده و استایل با CSS (GTK CSS). بعد از این پروژه، هر برنامهٔ دسکتاپی برایتان ساختاری شفاف دارد: widget + signal + model.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> ایریداکوس (Iridakos). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://iridakos.com/tutorials/2018/01/25/creating-a-gtk-todo-application-with-ruby" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

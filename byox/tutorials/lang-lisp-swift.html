@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ساخت یک LISP از صفر با Swift</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>LISP در Swift</span>
+      </div>
+      <h1>ساخت یک LISP از صفر با Swift</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Swift</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.uraimo.com/2017/02/05/building-a-lisp-from-scratch-with-swift/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Building a LISP from scratch with Swift» از فرانچسکو اورایمو است که ساخت یک مفسر کامل Lisp را با نوع‌های قدرتمند Swift آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://www.uraimo.com/2017/02/05/building-a-lisp-from-scratch-with-swift/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا Swift برای مفسر Lisp؟</h2>
+        <p>Lisp یکی از ساده‌ترین زبان‌ها برای ساخت مفسر است (سینتکس آن تقریباً فقط پرانتز و تابع است) و Swift با enumهای تودرتو و closure، ابزار مفیدی برای مدل‌سازی انواع دادهٔ تابعی فراهم می‌کند. این ترکیب، آموزش را هم برای آشنایان به مفسرها و هم برای علاقه‌مندان به Swift جذاب می‌کند.</p>
+        <p>مفسر ساخته‌شده سه مرحلهٔ کلاسیک دارد: <b>توکن‌کننده</b>، <b>پارسر</b> و <b>ارزیابی‌کننده</b> — و در نهایت یک REPL که می‌توانید در ترمینال با آن کار کنید.</p>
+      </section>
+
+      <section>
+        <h2>مدل‌سازی LispVal با enum</h2>
+        <p>مهم‌ترین تصمیم معماری، تعریف نوع دادهٔ همهٔ مقادیر Lisp است. با enum Swift این کار بسیار طبیعی انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Swift</span><code>// همهٔ مقادیر زبان: عدد، نام نماد، لیست، تابع
+enum LispVal {
+    case atom(String)
+    case number(Int)
+    case string(String)
+    case list([LispVal])
+    case function(String, ([LispVal]) throws -&gt; LispVal)
+}</code></pre>
+        <p>با این تعریف، یک لیست خودش حاوی LispValهای دیگر است و تابع به‌صورت یک ساختار قابل‌ترکیب مدل می‌شود. همهٔ الگوریتم‌های بعدی (پارسر و evaluator) بر همین پایه بنا می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>توکن‌کننده و پارسر</h2>
+        <p>پارسر با خواندن کاراکتر به کاراکتر کار می‌کند و با رسیدن به `(` شروع به ساخت یک لیست می‌کند. به‌طور خاص، بازگشت‌گر برای مدیریت پرانتزهای تودرتو به‌کار می‌رود:</p>
+        <pre class="code"><span class="lang-tag">Swift</span><code>func parseList(_ chars: [Character], _ pos: Int) throws -&gt; (LispVal, Int) {
+    var result: [LispVal] = []
+    var i = pos
+    while i &lt; chars.count {
+        let c = chars[i]
+        if c == ")" { return (LispVal.list(result), i + 1) }
+        if c == "(" {
+            let (list, next) = try parseList(chars, i + 1)
+            result.append(list)
+            i = next
+        } else {
+            let (v, next) = try parseAtom(chars, i)
+            result.append(v)
+            i = next
+        }
+    }
+    throw LispError.unexpectedEnd
+}
+
+// تبدیل یک علامت به عدد یا نماد
+func parseAtom(_ chars: [Character], _ pos: Int) throws -&gt; (LispVal, Int) {
+    var s = ""
+    var i = pos
+    while i &lt; chars.count, !"() ".contains(chars[i]) {
+        s.append(chars[i]); i += 1
+    }
+    if let n = Int(s) { return (LispVal.number(n), i) }
+    return (LispVal.atom(s), i)
+}</code></pre>
+        <p>این پارسر ساده، تمام Lisp پایه (اعداد، نمادها و لیست‌های عمیق) را بدون خطا می‌خواند.</p>
+      </section>
+
+      <section>
+        <h2>ارزیابی و closure</h2>
+        <p>ارزیاب با الگوگرفتن روی LispVal کار می‌کند: اگر `atom` بود، تابع اولیه‌ی تعریف‌شده را اجرا می‌کند؛ اگر `list` بود، عنصر اول را به‌عنوان تابع و بقیه را آرگومان ارزیابی می‌کند. تابع‌ها به‌عنوان closure نگهداری می‌شوند تا بتوانند به متغیرهای محیط‌شان دسترسی داشته باشند.</p>
+        <p>در پایان، آموزش solutionهای مختلف از جمله تعریف `defun` (توابع با نام)، عملگرهای حسابی و حتی بازگشت (fibonacci) را نشان می‌دهد — همهٔ این‌ها از همان سه ساختمان اصلی ساخته شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش نشان می‌دهد که Swift با تایپ‌های قوی خود، برای ساخت مفسرهای کوچک و تحصیلی فوق‌العاده است. اگر با Lisp یا ساخت زبان آشنایی ندارید، بعد از این پروژه می‌توانید سراغ پروژه‌های بزرگ‌تر مثل mal یا Crafting Interpreters بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> فرانچسکو اورایمو (Francesco Uraimo). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.uraimo.com/2017/02/05/building-a-lisp-from-scratch-with-swift/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

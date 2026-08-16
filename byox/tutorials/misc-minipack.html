@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Minipack — باندلر جاوااسکریپت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>Minipack</span>
+      </div>
+      <h1>باندل‌کننده ماژول خودت را بساز — Minipack</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/ronami/minipack" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Minipack» از رون آمی است که باندل‌رهای شبیه به webpack را در چند صد خط JavaScript می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/ronami/minipack" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>باندلر چه کار می‌کند؟</h2>
+        <p>وقتی پروژهٔ جاوااسکریپت شما از ماژول‌های ES Modules استفاده می‌کند، مرورگر نم‌تواند همهٔ آن‌ها را در یک فایل HTML بخواند (مگر با import map). باندلر (webpack، Rollup) همهٔ ماژول‌ها را به یک فایل اجرایی واحد تبدیل می‌کند. Minipack این فرآیند را با سه مرحلهٔ اصلی پیاده می‌کند: <b>استخراج وابستگی‌ها</b>، <b>ساخت گراف</b> و <b>تولید باندل</b>.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۱: خواندن و تجزیه</h2>
+        <p>هر فایل ماژول باید به AST تجزیه شود تا عبارت‌های import پیدا شوند. با `babel-core` و `babel-traverse` این کار ساده است:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// خواندن فایل، تجزیه به AST و یافتن وابستگی‌های import
+function createAsset(filename) {
+  const source = fs.readFileSync(filename, 'utf-8');
+
+  // تجزیه به درخت نحو (AST)
+  const ast = babel.parse(source, { sourceType: 'module' });
+
+  const dependencies = [];
+  // پیمایش درخت و پیدا کردن import ها
+  traverse(ast, {
+    ImportDeclaration: ({ node }) =&gt; {
+      dependencies.push(node.source.value);
+    }
+  });
+
+  // تبدیل ES Modules به CommonJS برای استفاده در باندل
+  const { code } = babel.transformFromAst(ast, null, {
+    presets: ['env']
+  });
+
+  return { filename, dependencies, code };
+}</code></pre>
+        <p>هر «asset» یعنی یک فایل با وابستگی‌هایش — بلوک ساخت گراف.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۲: ساخت گراف وابستگی</h2>
+        <p>با پیمایش BFS از فایل ورودی، همهٔ ماژول‌ها را جمع می‌کنیم و به هرکدام یک شناسه (id) می‌دهیم. گراف نهایی نقشهٔ id → asset است:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// ساخت graph با پیمایش breadth-first
+function createGraph(entry) {
+  const mainAsset = createAsset(entry);
+  const queue = [mainAsset];
+
+  for (const asset of queue) {
+    asset.mapping = {};
+    const dirname = path.dirname(asset.filename);
+
+    asset.dependencies.forEach(relativePath =&gt; {
+      const absolutePath = path.join(dirname, relativePath);
+      const child = createAsset(absolutePath);
+      asset.mapping[relativePath] = child.id;
+      queue.push(child);
+    });
+  }
+  return queue;
+}</code></pre>
+        <p>`mapping` همان جدولی است که نام‌مسیرِ نسبی را به id تبدیل می‌کند؛ در اجرای باندل استفاده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>مرحلهٔ ۳: توليد باندل</h2>
+        <p>حالا همهٔ assets به همراه یک loader کوچک (که `require` را شبیه‌سازی می‌کند) در یک IIFE کنار هم قرار می‌گیرند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// ساخت خروجی: هر ماژول داخل function با require-local
+function bundle(graph) {
+  let modules = '';
+
+  graph.forEach(mod =&gt; {
+    modules += `${mod.id}: [
+      function (require, module, exports) {
+        ${mod.code}
+      },
+      ${JSON.stringify(mod.mapping)},
+    ],`;
+  });
+
+  return `(function(modules) {
+    function require(id) {
+      const [fn, mapping] = modules[id];
+      function localRequire(name) { return require(mapping[name]); }
+      const module = { exports: {} };
+      fn(localRequire, module, module.exports);
+      return module.exports;
+    }
+    require(0);
+  })({${modules}})`;
+}</code></pre>
+        <p>این `require` داخلی دقیقاً کاری را می‌کند که runtime وب‌پک انجام می‌دهد: حل وابستگی‌ها از روی mapping و اجرای ماژول‌ها.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>Minipack در کمتر از ۲۰۰ خط نشان می‌دهد که باندلرها جادو نیستند: تجزیه، گراف و runtime. بعد از این، درک شما از رفتار واقعی webpack (tree shaking، chunking) بسیار عمیق‌تر می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> رون آمی (Ron Ami). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/ronami/minipack" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

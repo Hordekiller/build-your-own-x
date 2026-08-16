@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | CLI واقعی در Node</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>CLI واقعی Node</span>
+      </div>
+      <h1>چگونه یک اپ CLI واقعی Node برای دنیای واقعی بسازیم</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://medium.freecodecamp.org/how-to-create-a-real-world-node-cli-app-with-node-391b727bbed3" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ freeCodeCamp است که یک ابزار CLI واقعی (گیت-استاتیک‌ها) را با Node می‌سازد و روی npm منتشر می‌کند.
+        </div>
+        <a class="btn solid" href="https://medium.freecodecamp.org/how-to-create-a-real-world-node-cli-app-with-node-391b727bbed3" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>یک CLI واقعی چه شکلی است؟</h2>
+        <p>یک ابزار خط فرمان حرفه‌ای: آرگومان‌ها و فلگ‌ها را می‌فهمد، خروجی رنگی و مرتب دارد، با کاربر گفت‌وگو می‌کند (مثل درخواست تایید)، سوال‌های تعاملی دارد و در npm قابل نصب است. نمونهٔ این آموزش: ابزاری که آمار گیت شما را چاپ می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>اسکلت پروژه</h2>
+        <p>در `package.json` باید `bin` را تعریف کنید تا npm یک دستور بی‌واسطه از اسکریپت شما بسازد. و در ابتدای فایل، مسیر shebang برای اجرای مستقیم لازم است:</p>
+        <pre class="code"><span class="lang-tag">JSON</span><code>{
+  "name": "git-stats-cli",
+  "bin": {
+    "git-stats": "./index.js"
+  },
+  "dependencies": {
+    "chalk": "^2.0.0",
+    "inquirer": "^5.0.0",
+    "simple-git": "^1.0.0"
+  }
+}</code></pre>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>#!/usr/bin/env node
+'use strict';
+const chalk = require('chalk');
+const inquirer = require('inquirer');
+
+async function run() {
+  const { repo } = await inquirer.prompt([{
+    type: 'input',
+    name: 'repo',
+    message: 'پوشهٔ پروژه؟',
+    default: '.'
+  }]);
+
+  const stats = await analyzeGit(repo);
+  console.log(chalk.green.bold('کامیت‌ها:'), stats.total);
+  console.log(chalk.cyan('نویسندهٔ فعال:'), stats.topAuthor);
+}</code></pre>
+        <p>`chalk` رنگ را مدیریت می‌کند و `inquirer` سوال‌های تعاملی را — دو ستون اصلی هر CLI مدرن.</p>
+      </section>
+
+      <section>
+        <h2>پردازش آرگومان‌ها</h2>
+        <p>کلاینت‌های واقعی فلگ می‌پذیرند (مثل `--json` یا `-r`). ساده‌ترین روش بدون کتابخانهٔ جدا: خواندن `process.argv` و جست‌وجوی الگوهای شناخته‌شده:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>function parseFlags(argv) {
+  const flags = { json: false, repo: '.' };
+  for (let i = 2; i &lt; argv.length; i++) {
+    switch (argv[i]) {
+      case '--json': flags.json = true; break;
+      case '-r':
+      case '--repo': flags.repo = argv[++i]; break;
+      case '--help':
+        console.log('استفاده: git-stats [-r repo] [--json]');
+        process.exit(0);
+    }
+  }
+  return flags;
+}</code></pre>
+        <p>برای CLIهای بزرگ‌تر کتابخانه‌هایی مثل commander یا yargs وجود دارند، ولی فهمیدن این حلقهٔ دستی به شما می‌فهماند که آن‌ها چه می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>انتشار در npm</h2>
+        <p>با اضافه‌کردن `"bin"`، کافی است `npm publish` بزنید تا ابزار شما روی هر سیستم با `npx git-stats` یا `npm i -g` در دسترس باشد. تجربهٔ ساخت و انتشار یک ابزار، خودش نصف آموزش برنامه‌نویسی دیگه‌ست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> freeCodeCamp. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://medium.freecodecamp.org/how-to-create-a-real-world-node-cli-app-with-node-391b727bbed3" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

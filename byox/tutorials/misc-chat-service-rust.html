@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سرویس چت در Rust</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>سرویس چت در Rust</span>
+      </div>
+      <h1>نوشتن سرویس چت مقیاس‌پذیر از صفر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://nbaksalyar.github.io/2015/07/10/writing-chat-in-rust.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Writing a chat service from scratch» از نیکیتا باکسالیار است که چت با ZeroMQ و Protocol Buffers می‌سازد.
+        </div>
+        <a class="btn solid" href="https://nbaksalyar.github.io/2015/07/10/writing-chat-in-rust.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>یک سرویس چت چه چیزی می‌خواهد؟</h2>
+        <p>چت جمعی مشکل دوگانه دارد: <b>پخش پیام به همهٔ کاربران</b> (broadcast) و <b>قالب پیام</b> که بین سرور و کلاینت ثابت بماند. راه‌حل‌های استاندارد: یک الگوی انتشار/اشتراک (PUB/SUB) مثل ZeroMQ برای بخش اول، و Protocol Buffers برای بخش دوم. این آموزش هر دو را در Rust پیاده می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>معماری: زمگ و PUB/SUB</h2>
+        <p>ZeroMQ یک کتابخانهٔ سوکت است که الگوهای پیام‌رسانی دارد؛ PUB/SUB یعنی «ناشر» پیام را روی یک موضوع می‌فرستد و همهٔ مشترکانِ آن موضوع می‌گیرند. در چت: سرور PUB است، کلاینت‌ها SUB:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>// زرنگ: سمت سرور (پخش)
+let ctx = zmq::Context::new();
+let publisher = ctx.socket(zmq::PUB).unwrap();
+publisher.bind("tcp://*:5555").unwrap();
+
+// زرنگ: سمت کلاینت (دریافت همهٔ پیام‌ها)
+let subscriber = ctx.socket(zmq::SUB).unwrap();
+subscriber.connect("tcp://server:5555").unwrap();
+subscriber.set_subscribe(b"").unwrap();   // همهٔ موضوع‌ها
+
+loop {
+    let msg = subscriber.recv_string(0).unwrap();
+    println!("{}", msg.unwrap());
+}</code></pre>
+        <p>مزیت زمگ: بدون منطق اتصال/اتصال مجدد دستی؛ پیام‌ها صف‌بندی و قابل‌بازیابی‌اند، و مقیاس‌پذیری خوبی دارد.</p>
+      </section>
+
+      <section>
+        <h2>قالب با Protocol Buffers</h2>
+        <p>پیام چت فقط متن نیست: نام کاربر، زمان، آیدی اتاق. Protocol Buffers (از گوگل) قالب‌بندی فشرده و توسعه‌پذیری می‌دهد — تعریف در فایل `.proto` و کد تولیدشده تایپ‌ایمن:</p>
+        <pre class="code"><span class="lang-tag">Proto</span><code>message ChatMessage {
+  required string username = 1;
+  required string content = 2;
+  required int64 timestamp = 3;
+}</code></pre>
+        <pre class="code"><span class="lang-tag">Rust</span><code>// رمزگذاری پیام قبل از PUB کردن
+let mut msg = ChatMessage::new();
+msg.set_username(user);
+msg.set_content(text);
+let bytes = msg.write_to_bytes().unwrap();
+publisher.send(bytes, 0).unwrap();</code></pre>
+        <p>چون شماره‌گذاری فیلدها صریح است، نسخه‌های بعدی proto می‌توانند فیلد اضافه کنند بدون شکستن کلاینت‌های قدیمی — مشکل همیشگی APIهای متنی.</p>
+      </section>
+
+      <section>
+        <h2>مقیاس‌پذیری واقعی</h2>
+        <p>بعد از MVP: کلاینت بتواند پیام را به سرور بفرستد (REQ/REP جدا از PUB/SUB)، اتاق‌ها با موضوع‌های زمگ مجزا شوند، و تاریخچه در دیتابیس ذخیره شود. هستهٔ «انتشار به مشترکان» همان الگوی پایه است که الان دارید — همین است که در MQTT و Socket.IO هم نقش اصلی را بازی می‌کند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نیکیتا باکسالیار (nbaksalyar). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://nbaksalyar.github.io/2015/07/10/writing-chat-in-rust.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کامپایلر Markdown در Ruby</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر Markdown</span>
+      </div>
+      <h1>نوشتن یک کامپایلر Markdown در Ruby</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.beezwax.net/2017/07/07/writing-a-markdown-compiler/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Writing a Markdown Compiler» از تیم beezwax است که فرآیند ساخت یک کامپایلر Markdown ساده را در Ruby گام‌به‌گام نشان می‌دهد.
+        </div>
+        <a class="btn solid" href="https://blog.beezwax.net/2017/07/07/writing-a-markdown-compiler/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا Markdown یک زبان است؟</h2>
+        <p>Markdown اگرچه سینتکسی سبک دارد، اما دقیقاً همان کاری را می‌کند که هر زبان دیگر: یک ساختار متنی را به بازنمایی دیگری تبدیل می‌کند. در این آموزش، متن Markdown بهعنوان ورودی و HTML به‌عنوان خروجی در نظر گرفته می‌شود و مسیر ساخت یک کامپایلر کوچک — از lexer تا generator — بار دیگر تمرین می‌شود.</p>
+        <p>زیبایی این پروژه آن است که پیچیدگی زبان بسیار کم است، پس می‌توانیم روی <b>معماری کامپایلر</b> تمرکز کنیم: پارس، نگاشت به AST ساده و تولید خروجی یکپارچه.</p>
+      </section>
+
+      <section>
+        <h2>معماری: parsers و generators</h2>
+        <p>رویکرد beezwax از دو قسمت مستقل استفاده می‌کند. <b>Parser</b> قطعه‌های Markdown را تشخیص می‌دهد و هر خط را به‌صورت یک «حاصل» داخلی (مثل heading، paragraph یا bold) تبدیل می‌کند. <b>Generator</b> این حاصل‌ها را به HTML تبدیل می‌کند. جداسازی این دو مرحله باعث می‌شود که افزودن قواعد جدید صرفاً یک روش کوچک باشد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: یک rule ساده برای heading</h2>
+        <p>ساده‌ترین قاعده، تشخیص خطی است که با `#` شروع می‌شود. اگر دقت کنیم، هر قاعده فقط باید بگوید «اگر این الگو را دیدم، چه ساختاری بسازم»:</p>
+        <pre class="code"><span class="lang-tag">Ruby</span><code># قاعدهٔ heading: خطی که با یک تا شش # شروع می‌شود
+def parse_heading(line, output)
+  if line =~ /^(#{1,6})\s+(.*)$/
+    level = $1.length
+    text  = $2
+    # تبدیل به ساختار داخلی (AST)
+    output &lt;&lt; { type: :heading, level: level, text: render_inline(text) }
+    true
+  else
+    false
+  end
+end
+
+# الگوی bold: *متن* به &lt;strong&gt;متن&lt;/strong&gt;
+def render_inline(text)
+  text.gsub(/\*(.*?)\*/) { "&lt;strong&gt;#{$1}&lt;/strong&gt;" }
+end</code></pre>
+        <p>این روش، «پارس با پیشوند» نامیده می‌شود: برای هر خط، الگوها به ترتیب تست می‌شوند و اولین مورد موفق، مسئول تولید ساختار می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی کامل</h2>
+        <p>بعد از قواعد heading و پاراگراف، نوبت به مواردی می‌رسد که نیاز به «حالت» دارند: مانند بلاک‌های لیست و code fence که یک خط اول و خط آخر دارند. در این‌جا در نگه‌داشتن وضعیت جاری پیمایش (مثلاً «دارم داخل یک لیست هستم») اهمیت یاد می‌گیرید.</p>
+        <p>در پایان، یک <b>html_renderer</b> می‌نویسید که AST را به‌صورت تلفیقی به HTML تبدیل می‌کند و خروجی را به‌هم‌راه توابع escapte برای امنیت (جلوگیری از تزریق HTML) تولید می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش مرزهای بین «فرمت مستند» و «زبان برنامه‌نویسی» را کم می‌کند و نمونهٔ عالی برای شروع با پروژه‌های پارسینگ است. بعد از آن می‌توانید به سراغ زبان‌های واقعی‌تر (مثل JSON یا Lisp) بروید که همان معماری را با پیچیدگی بیشتری دنبال می‌کنند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> beezwax. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://blog.beezwax.net/2017/07/07/writing-a-markdown-compiler/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

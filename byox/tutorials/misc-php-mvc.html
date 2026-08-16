@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | MVC در PHP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>MVC در PHP</span>
+      </div>
+      <h1>MVC خودت را از صفر در PHP بنویس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: PHP</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://chaitya62.github.io/2018/04/29/Writing-your-own-MVC-from-Scratch-in-PHP.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Writing your own MVC from scratch in PHP» از چیتیا است که MVC را بدون فریمورک پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://chaitya62.github.io/2018/04/29/Writing-your-own-MVC-from-Scratch-in-PHP.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>MVC یعنی چه؟</h2>
+        <p>MVC تفکیک مسئولیت است: <b>Model</b> با دیتا و منطق سروکار دارد، <b>View</b> فقط نمایش (HTML)، و <b>Controller</b> بین این دو پل می‌زند؛ درخواست کاربر را می‌گیرد، Model را صدا می‌زند و نتیجه را به View می‌دهد. فریم‌ورک‌های Laravel و CodeIgniter همین الگو را منظم کرده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>Front Controller و routing</h2>
+        <p>اولین قدم: همهٔ درخواست‌ها به یک فایل (index.php) بیایند. با `.htaccess` همه چیز به index هدایت می‌شود و آن هم با متن URL تصمیم می‌گیرد کدام کنترولر/اکشن اجرا شود:</p>
+        <pre class="code"><span class="lang-tag">HTAccess</span><code>RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]</code></pre>
+        <pre class="code"><span class="lang-tag">PHP</span><code>class Application {
+    public function run() {
+        // مثل: home/index/5
+        $parts = explode('/', trim($_GET['url'] ?? 'home/index', '/'));
+        $controller = ucfirst($parts[0] ?? 'Home') . 'Controller';
+        $action = $parts[1] ?? 'index';
+
+        $file = "app/controllers/$controller.php";
+        if (!file_exists($file)) { http_response_code(404); die('یافت نشد'); }
+
+        require $file;
+        $obj = new $controller;
+        $obj-&gt;$action();   // کنترولر را با اکشن صدا بزن
+    }
+}</code></pre>
+        <p>تمام راز routing همین است: شکستن URL و صدا زدن کلاس روشن. (امنیت: فقط نام‌های معتبر دایرکتوری داخل کنترلرها پذیرفته می‌شوند.)</p>
+      </section>
+
+      <section>
+        <h2>کنترولر و مدل</h2>
+        <p>کنترولر از مدل، داده می‌گیرد و به ویو می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">PHP</span><code>class HomeController {
+    public function index() {
+        $posts = (new PostModel())-&gt;latest();   // داده از مدل
+        require "app/views/home.php";           // نمایش: $posts
+    }
+}
+
+class Model {
+    protected $db;
+    public function __construct() {
+        $this-&gt;db = new PDO('sqlite:app.db');   // یک اتصال مشترک
+    }
+    protected function query($sql, $params = []) {
+        $st = $this-&gt;db-&gt;prepare($sql);
+        $st-&gt;execute($params);
+        return $st-&gt;fetchAll();
+    }
+}</code></pre>
+        <p>با `PDO` آماده‌سازی (prepared) و bind کردن پارامترها — اولین رد پای امنیت در برابر SQL injection.</p>
+      </section>
+
+      <section>
+        <h2>ساختار نهایی</h2>
+        <p>پوشه‌بندی پایه: `app/controllers`، `app/models`، `app/views`، `core/` برای کلاس‌های پایه و `public/` برای فایل‌های استاتیک. این همان ساختاری است که همهٔ فریم‌ورک‌های معروف با همین ترتیب دارند؛ حالا که از صفرش ساخته‌اید، خواندن کد منبع فریم‌ورک‌ها مثل متن آشناست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> چیتیا (Chaitya62). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://chaitya62.github.io/2018/04/29/Writing-your-own-MVC-from-Scratch-in-PHP.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

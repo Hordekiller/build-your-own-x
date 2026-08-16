@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | غلط‌یاب املایی</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>غلط‌یاب املایی</span>
+      </div>
+      <h1>ساخت یک غلط‌یاب املایی</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Clojure</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://bernhardwenzel.com/articles/clojure-spellchecker/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Simple spellchecker in Clojure» از برنهارد ونزل است که با الگوریتم‌های کلاسیک، یک غلط‌یاب املایی را می‌سازد.
+        </div>
+        <a class="btn solid" href="https://bernhardwenzel.com/articles/clojure-spellchecker/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>غلط‌یاب چگونه کار می‌کند؟</h2>
+        <p>یک غلط‌یاب املایی دو گام دارد: <b>تشخیص</b> — تشخیص اینکه کلمه در دیکشنری نیست؛ و <b>پیشنهاد</b> — پیدا کردن نزدیک‌ترین کلمهٔ معتبر. ساده‌ترین روش برای پیشنهاد، تولید «ویرایش‌های یک فاصله» (deletion، insertion، substitution، transposition) و جست‌وجوی آن‌ها در دیکشنری است.</p>
+        <p>پروژهٔ این آموزش با Clojure ساخته می‌شود؛ زبانی که به‌خاطر ساختار دادهٔ ناپذیر و تابع‌های pure، نوشتن این الگوریتم را تمیز و خواناتر می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>تولید کاندیدها با ویرایش یک فاصله</h2>
+        <p>برای هر کلمه، تمام تغییرات یک‌حرفی تولید می‌شود: حذف، جایگزینی، درج و جابه‌جایی حروف مجاور:</p>
+        <pre class="code"><span class="lang-tag">Clojure</span><code>; تولید همهٔ کلماتی که با یک ویرایش بدست می‌آیند
+(defn edits1 [word]
+  (let [letters "abcdefghijklmnopqrstuvwxyz"
+        splits (for [i (range (inc (count word)))]
+                 [(subs word 0 i) (subs word i)])]
+    (concat
+      ; حذف یک حرف
+      (for [[a b] splits :when (pos? (count b))]
+        (str a (subs b 1)))
+      ; جابه‌جایی دو حرف مجاور
+      (for [[a b] splits :when (pos? (count (subs b 1)))]
+        (str a (subs b 1 2) (subs b 0 1) (subs b 2)))
+      ; جایگزینی
+      (for [[a b] splits :when (pos? (count b)) c letters]
+        (str a c (subs b 1)))
+      ; درج
+      (for [[a b] splits c letters]
+        (str a c b))))</code></pre>
+        <p>حالا کاندیدها را با دیکشنری مقایسه می‌کنیم و اگر هیچ‌کدام معتبر نبود، یک ویرایش دوم هم می‌زنیم (edits2).</p>
+      </section>
+
+      <section>
+        <h2>انتخاب بهترین پیشنهاد</h2>
+        <p>برای انتخاب بین چند کاندید معتبر، از فرکانس کلمات در یک corpus استفاده می‌شود: کلمه‌ای با بیشترین فراوانی برنده است. این مدل «بيز» ساده، پایهٔ غلط‌یاب‌های واقعی است:</p>
+        <pre class="code"><span class="lang-tag">Clojure</span><code>; بهترین کاندید با بالاترین فراوانی در دیکشنری
+(defn best-candidate [freqs candidates]
+  (when (seq candidates)
+    (reduce (fn [best c]
+              (if (&gt; (get freqs c 0) (get freqs best 0))
+                c best))
+            (first candidates)
+            (rest candidates))))
+
+; غلط‌یاب کامل: ویرایش ۱، سپس ۲
+(defn correct [word freqs known-words]
+  (cond
+    (contains? known-words word) word
+    (seq (filter known-words (edits1 word)))
+      (best-candidate freqs (filter known-words (edits1 word)))
+    :else (best-candidate freqs
+            (filter known-words (edits2 word)))))</code></pre>
+        <p>این ساختار نشان می‌دهد که الگوریتم‌های «هوشمندانه» گاهی از چند صد خط ساده تشکیل شده‌اند.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی و تست</h2>
+        <p>مراحل: ۱) ساخت دیکشنری از یک corpus متنی با یک تابع `frequencies`، ۲) پیاده‌سازی edits1/edits2، ۳) تابع correct و ۴) ساخت یک REPL کوچک که کلمهٔ کاربر را درست می‌کند + مجموعهٔ تست که صحت را بررسی می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این پروژهٔ کوچک، مفاهیم بزرگ مدل‌های زبانی (فرکانس، فاصلهٔ ویرایش) را نشان می‌دهد و با Clojure هم‌خوانی زیبایی دارد. بعد از آن می‌توانید سراغ الگوریتم‌های پیشرفته‌تر (مثل BK-tree یا Soundex) بروید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> برنهارد ونزل (Bernhard Wenzel). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://bernhardwenzel.com/articles/clojure-spellchecker/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

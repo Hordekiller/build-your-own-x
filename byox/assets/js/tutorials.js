@@ -1030,7 +1030,7 @@ window.TUTORIALS = [
     "file": "tutorials/emulator-0dmg-rust.html"
   },
   {
-    "id": "",
+    "id": "frontend-jsx",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "WTF است JSX (یک رندرکننده JSX بسازیم)",
@@ -1040,7 +1040,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-jsx.html"
   },
   {
-    "id": "",
+    "id": "frontend-didact",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "راهنمای DIY برای ساخت React خودت",
@@ -1050,7 +1050,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-didact.html"
   },
   {
-    "id": "",
+    "id": "frontend-react-from-scratch",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "ساخت React از صفر",
@@ -1060,7 +1060,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-react-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "frontend-gooact",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "Gooact: React در ۱۶۰ خط جاوااسکریپت",
@@ -1070,7 +1070,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-gooact.html"
   },
   {
-    "id": "",
+    "id": "frontend-custom-renderers",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "با ساختن React DOM سبک خودت یاد بگیر بسته Reconciler ری‌اکت چطور کار می‌کند",
@@ -1080,7 +1080,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-custom-renderers.html"
   },
   {
-    "id": "",
+    "id": "frontend-redux",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "Redux خودت را بساز",
@@ -1090,7 +1090,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-redux.html"
   },
   {
-    "id": "",
+    "id": "frontend-lets-write-redux",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "Redux بنویسیم!",
@@ -1100,7 +1100,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-lets-write-redux.html"
   },
   {
-    "id": "",
+    "id": "frontend-redux-store",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "Redux: پیاده‌سازی Store از صفر",
@@ -1110,7 +1110,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-redux-store.html"
   },
   {
-    "id": "",
+    "id": "frontend-angular-lite",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "AngularJS ساده‌شده خودت را در ۲۰۰ خط جاوااسکریپت بساز",
@@ -1120,7 +1120,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-angular-lite.html"
   },
   {
-    "id": "",
+    "id": "frontend-angular-scopes",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "AngularJS خودت را بساز",
@@ -1130,7 +1130,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-angular-scopes.html"
   },
   {
-    "id": "",
+    "id": "frontend-virtual-dom",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "چگونه Virtual DOM خودت را بنویسی",
@@ -1140,7 +1140,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-virtual-dom.html"
   },
   {
-    "id": "",
+    "id": "frontend-framework",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "ساخت یک فریم‌ورک فرانت‌اند از صفر با کامپوننت (قالب‌سازی، state، VDOM)",
@@ -1150,7 +1150,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-framework.html"
   },
   {
-    "id": "",
+    "id": "frontend-react-build-own",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "React خودت را بساز",
@@ -1160,7 +1160,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-react-build-own.html"
   },
   {
-    "id": "",
+    "id": "frontend-custom-renderer",
     "category": "فریم‌ورک / کتابخانه فرانت‌اند",
     "lang": "JavaScript",
     "title": "ساخت رندرکننده سفارشی React",
@@ -1170,7 +1170,7 @@ window.TUTORIALS = [
     "file": "tutorials/frontend-custom-renderer.html"
   },
   {
-    "id": "",
+    "id": "game-handmade-hero",
     "category": "بازی",
     "lang": "C",
     "title": "Handmade Hero",
@@ -1180,7 +1180,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-handmade-hero.html"
   },
   {
-    "id": "",
+    "id": "game-nes-c",
     "category": "بازی",
     "lang": "C",
     "title": "چگونه یک بازی NES را در C برنامه‌نویسی کنیم",
@@ -1190,7 +1190,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-nes-c.html"
   },
   {
-    "id": "",
+    "id": "game-chess-c",
     "category": "بازی",
     "lang": "C",
     "title": "موتور شطرنج در C",
@@ -1200,7 +1200,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-chess-c.html"
   },
   {
-    "id": "",
+    "id": "game-dangerous-dave",
     "category": "بازی",
     "lang": "C",
     "title": "بیایید بسازیم: Dangerous Dave",
@@ -1210,7 +1210,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-dangerous-dave.html"
   },
   {
-    "id": "",
+    "id": "game-c-game-programming",
     "category": "بازی",
     "lang": "C",
     "title": "برنامه‌نویسی بازی‌های ویدیویی را در C یاد بگیر",
@@ -1220,7 +1220,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-c-game-programming.html"
   },
   {
-    "id": "",
+    "id": "game-sudoku-c",
     "category": "بازی",
     "lang": "C",
     "title": "برنامه‌نویسی حل‌کننده سودوکو در C",
@@ -1230,7 +1230,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-sudoku-c.html"
   },
   {
-    "id": "",
+    "id": "game-roguelike-c",
     "category": "بازی",
     "lang": "C",
     "title": "برنامه‌نویسی بازی RPG سبک Rogue/Nethack در C",
@@ -1240,7 +1240,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-roguelike-c.html"
   },
   {
-    "id": "",
+    "id": "game-tetris-c",
     "category": "بازی",
     "lang": "C",
     "title": "درباره تتریس و بازپیاده‌سازی",
@@ -1250,7 +1250,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-tetris-c.html"
   },
   {
-    "id": "",
+    "id": "game-breakout",
     "category": "بازی",
     "lang": "C++",
     "title": "Breakout",
@@ -1260,7 +1260,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-breakout.html"
   },
   {
-    "id": "",
+    "id": "game-sdl-tutorials",
     "category": "بازی",
     "lang": "C++",
     "title": "شروع برنامه‌نویسی بازی نسخه ۲.۰",
@@ -1270,7 +1270,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-sdl-tutorials.html"
   },
   {
-    "id": "",
+    "id": "game-tetris-cpp",
     "category": "بازی",
     "lang": "C++",
     "title": "آموزش تتریس در C++ مستقل از پلتفرم، متمرکز بر منطق بازی برای مبتدیان",
@@ -1280,7 +1280,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-tetris-cpp.html"
   },
   {
-    "id": "",
+    "id": "game-cavestory-cpp",
     "category": "بازی",
     "lang": "C++",
     "title": "بازسازی Cavestory در C++",
@@ -1290,7 +1290,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-cavestory-cpp.html"
   },
   {
-    "id": "",
+    "id": "game-cave-story",
     "category": "بازی",
     "lang": "C++",
     "title": "بازسازی Cave Story",
@@ -1300,7 +1300,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-cave-story.html"
   },
   {
-    "id": "",
+    "id": "game-space-invaders",
     "category": "بازی",
     "lang": "C++",
     "title": "Space Invaders از صفر",
@@ -1310,7 +1310,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-space-invaders.html"
   },
   {
-    "id": "",
+    "id": "game-rpg-csharp",
     "category": "بازی",
     "lang": "C#",
     "title": "یادگیری C# با ساختن یک RPG ساده",
@@ -1320,7 +1320,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-rpg-csharp.html"
   },
   {
-    "id": "",
+    "id": "game-roguesharp",
     "category": "بازی",
     "lang": "C#",
     "title": "ساخت یک بازی Roguelike در C#",
@@ -1330,7 +1330,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-roguesharp.html"
   },
   {
-    "id": "",
+    "id": "game-rpg-wpf",
     "category": "بازی",
     "lang": "C#",
     "title": "یک RPG با C#/WPF بساز",
@@ -1340,7 +1340,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-rpg-wpf.html"
   },
   {
-    "id": "",
+    "id": "game-go-games",
     "category": "بازی",
     "lang": "Go",
     "title": "بازی‌ها با Go",
@@ -1350,7 +1350,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-go-games.html"
   },
   {
-    "id": "",
+    "id": "game-java-engine",
     "category": "بازی",
     "lang": "Java",
     "title": "موتور بازی دو بعدی را با جاوا کدنویسی کن — دوره کامل برای مبتدیان",
@@ -1360,7 +1360,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-java-engine.html"
   },
   {
-    "id": "",
+    "id": "game-lwjgl",
     "category": "بازی",
     "lang": "Java",
     "title": "توسعه بازی سه‌بعدی با LWJGL 3",
@@ -1370,7 +1370,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-lwjgl.html"
   },
   {
-    "id": "",
+    "id": "game-phaser-breakout",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "بازی breakout دو بعدی با Phaser",
@@ -1380,7 +1380,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-phaser-breakout.html"
   },
   {
-    "id": "",
+    "id": "game-flappy-bird",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "چگونه Flappy Bird را در HTML5 با Phaser بسازیم",
@@ -1390,7 +1390,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-flappy-bird.html"
   },
   {
-    "id": "",
+    "id": "game-react-svg",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "توسعه بازی با React، Redux و SVG",
@@ -1400,7 +1400,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-react-svg.html"
   },
   {
-    "id": "",
+    "id": "game-8ball",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "بازی بیلیارد ۸ توپ خودت را از صفر بساز",
@@ -1410,7 +1410,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-8ball.html"
   },
   {
-    "id": "",
+    "id": "game-first-roguelike",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "چگونه اولین Roguelike خود را بسازی",
@@ -1420,7 +1420,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-first-roguelike.html"
   },
   {
-    "id": "",
+    "id": "game-snake-js",
     "category": "بازی",
     "lang": "JavaScript",
     "title": "مثل یک برنامه‌نویس فکر کن: چگونه با فقط JavaScript، HTML و CSS بازی Snake بسازیم",
@@ -1430,7 +1430,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-snake-js.html"
   },
   {
-    "id": "",
+    "id": "game-bytepath",
     "category": "بازی",
     "lang": "Lua",
     "title": "BYTEPATH",
@@ -1440,7 +1440,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-bytepath.html"
   },
   {
-    "id": "",
+    "id": "game-pygame",
     "category": "بازی",
     "lang": "Python",
     "title": "توسعه بازی با PyGame",
@@ -1450,7 +1450,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-pygame.html"
   },
   {
-    "id": "",
+    "id": "game-python-pygame",
     "category": "بازی",
     "lang": "Python",
     "title": "ساخت بازی با پایتون و Pygame",
@@ -1460,7 +1460,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-python-pygame.html"
   },
   {
-    "id": "",
+    "id": "game-roguelike-python",
     "category": "بازی",
     "lang": "Python",
     "title": "آموزش بازنویسی‌شده Roguelike",
@@ -1470,7 +1470,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-roguelike-python.html"
   },
   {
-    "id": "",
+    "id": "game-ruby-shooter",
     "category": "بازی",
     "lang": "Ruby",
     "title": "توسعه بازی با Ruby",
@@ -1480,7 +1480,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-ruby-shooter.html"
   },
   {
-    "id": "",
+    "id": "game-ruby-snake",
     "category": "بازی",
     "lang": "Ruby",
     "title": "مار (Snake) با Ruby",
@@ -1490,7 +1490,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-ruby-snake.html"
   },
   {
-    "id": "",
+    "id": "game-rust-piston",
     "category": "بازی",
     "lang": "Rust",
     "title": "ماجراجویی‌ها در Rust: یک بازی دو بعدی پایه",
@@ -1500,7 +1500,7 @@ window.TUTORIALS = [
     "file": "tutorials/game-rust-piston.html"
   },
   {
-    "id": "",
+    "id": "game-rust-roguelike",
     "category": "بازی",
     "lang": "Rust",
     "title": "آموزش Roguelike در Rust + tcod",
@@ -2070,414 +2070,414 @@ window.TUTORIALS = [
     "file": "tutorials/processor-blinker-to-riscv.html"
   },
   {
-    "id": "",
+    "id": "lang-mal",
     "category": "زبان برنامه‌نویسی",
     "lang": "(هر زبانی)",
     "title": "mal — یک Lisp بساز",
     "url": "https://github.com/kanaka/mal#mal---make-a-lisp",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-mal.html"
   },
   {
-    "id": "",
+    "id": "lang-jonesforth",
     "category": "زبان برنامه‌نویسی",
     "lang": "Assembly",
     "title": "Jonesforth",
     "url": "https://github.com/nornagon/jonesforth/blob/master/jonesforth.S",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-jonesforth.html"
   },
   {
-    "id": "",
+    "id": "lang-gc-c",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "اولین زباله‌روب (Garbage Collector) نوزاد",
     "url": "http://journal.stuffwithstuff.com/2013/12/08/babys-first-garbage-collector/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-gc-c.html"
   },
   {
-    "id": "",
+    "id": "lang-buildyourownlisp",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "Lisp خودت را بساز: C را یاد بگیر و زبان برنامه‌نویسی خودت را در ۱۰۰۰ خط کد بساز",
     "url": "http://www.buildyourownlisp.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-buildyourownlisp.html"
   },
   {
-    "id": "",
+    "id": "lang-gc-simple",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "نوشتن یک زباله‌روب ساده در C",
     "url": "http://maplant.com/gc.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-gc-simple.html"
   },
   {
-    "id": "",
+    "id": "lang-c-interpreter",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "مفسر C که خودش را تفسیر می‌کند",
     "url": "https://github.com/lotabout/write-a-C-interpreter",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-c-interpreter.html"
   },
   {
-    "id": "",
+    "id": "lang-lets-build-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "نسخه C و x86 از «بیایید یک کامپایلر بسازیم» نوشته Jack Crenshaw",
     "url": "https://github.com/lotabout/Let-s-build-a-compiler",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-lets-build-compiler.html"
   },
   {
-    "id": "",
+    "id": "lang-acwj",
     "category": "زبان برنامه‌نویسی",
     "lang": "C",
     "title": "سفری که توضیح می‌دهد چگونه یک کامپایلر از صفر بسازیم",
     "url": "https://github.com/DoctorWkt/acwj",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-acwj.html"
   },
   {
-    "id": "",
+    "id": "lang-toy-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "C++",
     "title": "نوشتن کامپایلر اسباب‌بازی خودت با Flex",
     "url": "https://gnuu.org/2009/09/18/writing-your-own-toy-compiler/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-toy-compiler.html"
   },
   {
-    "id": "",
+    "id": "lang-compiler-video",
     "category": "زبان برنامه‌نویسی",
     "lang": "C++",
     "title": "چگونه یک کامپایلر بسازیم",
     "url": "https://www.youtube.com/watch?v=eF9qWbuQLuw",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-compiler-video.html"
   },
   {
-    "id": "",
+    "id": "lang-kaleidoscope",
     "category": "زبان برنامه‌نویسی",
     "lang": "C++",
     "title": "Kaleidoscope: پیاده‌سازی یک زبان با LLVM",
     "url": "https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/index.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-kaleidoscope.html"
   },
   {
-    "id": "",
+    "id": "lang-parser-combinators-fs",
     "category": "زبان برنامه‌نویسی",
     "lang": "F#",
     "title": "درک ترکیب‌گرهای Parser",
     "url": "https://fsharpforfunandprofit.com/posts/understanding-parser-combinators/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-parser-combinators-fs.html"
   },
   {
-    "id": "",
+    "id": "lang-compiler-elixir",
     "category": "زبان برنامه‌نویسی",
     "lang": "Elixir",
     "title": "رمزگشایی کامپایلرها با نوشتن کامپایلر خودت",
     "url": "https://www.youtube.com/watch?v=zMJYoYwOCd4",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-compiler-elixir.html"
   },
   {
-    "id": "",
+    "id": "lang-super-tiny-compiler-go",
     "category": "زبان برنامه‌نویسی",
     "lang": "Go",
     "title": "کامپایلر فوق‌کوچک",
     "url": "https://github.com/hazbo/the-super-tiny-compiler",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-super-tiny-compiler-go.html"
   },
   {
-    "id": "",
+    "id": "lang-lexical-scanning-go",
     "category": "زبان برنامه‌نویسی",
     "lang": "Go",
     "title": "اسکن واژگانی (Lexical Scanning) در Go",
     "url": "https://www.youtube.com/watch?v=HxaD_trXwRE",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-lexical-scanning-go.html"
   },
   {
-    "id": "",
+    "id": "lang-cradle",
     "category": "زبان برنامه‌نویسی",
     "lang": "Haskell",
     "title": "بیایید یک کامپایلر بسازیم",
     "url": "https://g-ford.github.io/cradle/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-cradle.html"
   },
   {
-    "id": "",
+    "id": "lang-write-haskell",
     "category": "زبان برنامه‌نویسی",
     "lang": "Haskell",
     "title": "یک Haskell به تو بنویسیم",
     "url": "http://dev.stephendiehl.com/fun/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-write-haskell.html"
   },
   {
-    "id": "",
+    "id": "lang-scheme-48h",
     "category": "زبان برنامه‌نویسی",
     "lang": "Haskell",
     "title": "در ۴۸ ساعت یک Scheme برای خودت بنویس",
     "url": "https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-scheme-48h.html"
   },
   {
-    "id": "",
+    "id": "lang-scheme-wyas",
     "category": "زبان برنامه‌نویسی",
     "lang": "Haskell",
     "title": "یک Scheme به تو بنویسیم",
     "url": "https://www.wespiser.com/writings/wyas/home.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-scheme-wyas.html"
   },
   {
-    "id": "",
+    "id": "lang-crafting-interpreters",
     "category": "زبان برنامه‌نویسی",
     "lang": "Java",
     "title": "Crafting interpreters: کتابچه‌ای برای ساخت زبان‌های برنامه‌نویسی",
     "url": "http://www.craftinginterpreters.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-crafting-interpreters.html"
   },
   {
-    "id": "",
+    "id": "lang-jvm-language",
     "category": "زبان برنامه‌نویسی",
     "lang": "Java",
     "title": "ساخت زبان JVM",
     "url": "http://jakubdziworski.github.io/categories.html#Enkel-ref",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-jvm-language.html"
   },
   {
-    "id": "",
+    "id": "lang-super-tiny-compiler-js",
     "category": "زبان برنامه‌نویسی",
     "lang": "JavaScript",
     "title": "کامپایلر فوق‌کوچک",
     "url": "https://github.com/jamiebuilds/the-super-tiny-compiler",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-super-tiny-compiler-js.html"
   },
   {
-    "id": "",
+    "id": "lang-super-tiny-interpreter",
     "category": "زبان برنامه‌نویسی",
     "lang": "JavaScript",
     "title": "مفسر فوق‌کوچک",
     "url": "https://github.com/keyanzhang/the-super-tiny-interpreter",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-super-tiny-interpreter.html"
   },
   {
-    "id": "",
+    "id": "lang-little-lisp",
     "category": "زبان برنامه‌نویسی",
     "lang": "JavaScript",
     "title": "مفسر Lisp کوچک",
     "url": "https://maryrosecook.com/blog/post/little-lisp-interpreter",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-little-lisp.html"
   },
   {
-    "id": "",
+    "id": "lang-js-programming-language",
     "category": "زبان برنامه‌نویسی",
     "lang": "JavaScript",
     "title": "چگونه یک زبان برنامه‌نویسی را در جاوااسکریپت پیاده‌سازی کنیم",
     "url": "http://lisperator.net/pltut/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-js-programming-language.html"
   },
   {
-    "id": "",
+    "id": "lang-let-write-lisp",
     "category": "زبان برنامه‌نویسی",
     "lang": "JavaScript",
     "title": "بیایید یک Lisp بنویسیم",
     "url": "https://idiocy.org/lets-go-write-a-lisp/part-1.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-let-write-lisp.html"
   },
   {
-    "id": "",
+    "id": "lang-ocaml-c-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "OCaml",
     "title": "نوشتن یک کامپایلر C",
     "url": "https://norasandler.com/2017/11/29/Write-a-Compiler.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-ocaml-c-compiler.html"
   },
   {
-    "id": "",
+    "id": "lang-ocaml-lisp",
     "category": "زبان برنامه‌نویسی",
     "lang": "OCaml",
     "title": "نوشتن یک Lisp، سری",
     "url": "https://bernsteinbear.com/blog/lisp/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-ocaml-lisp.html"
   },
   {
-    "id": "",
+    "id": "lang-crenshaw",
     "category": "زبان برنامه‌نویسی",
     "lang": "Pascal",
     "title": "بیایید یک کامپایلر بسازیم",
     "url": "https://compilers.iecc.com/crenshaw/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-crenshaw.html"
   },
   {
-    "id": "",
+    "id": "lang-python-interpreter-python",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "یک مفسر پایتون که به پایتون نوشته شده",
     "url": "http://aosabook.org/en/500L/a-python-interpreter-written-in-python.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-python-interpreter-python.html"
   },
   {
-    "id": "",
+    "id": "lang-lispy-python",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "lisp.py: مفسر Lisp خودت را بساز",
     "url": "http://khamidou.com/compilers/lisp.py/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-lispy-python.html"
   },
   {
-    "id": "",
+    "id": "lang-norvig-lispy",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "چگونه یک مفسر Lisp در پایتون بنویسیم",
     "url": "http://norvig.com/lispy.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-norvig-lispy.html"
   },
   {
-    "id": "",
+    "id": "lang-lsbasi",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "بیایید یک مفسر ساده بسازیم",
     "url": "https://ruslanspivak.com/lsbasi-part1/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-lsbasi.html"
   },
   {
-    "id": "",
+    "id": "lang-interpreted-language-video",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "زبان برنامه‌نویسی تفسیری ساده خودت را بساز",
     "url": "https://www.youtube.com/watch?v=dj9CBS3ikGA&list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD&index=1",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-interpreted-language-video.html"
   },
   {
-    "id": "",
+    "id": "lang-build-your-own-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "Python",
     "title": "از کد منبع تا کد ماشین: کامپایلر خودت را از صفر بساز",
     "url": "https://build-your-own.org/compiler/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-build-your-own-compiler.html"
   },
   {
-    "id": "",
+    "id": "lang-beautiful-racket",
     "category": "زبان برنامه‌نویسی",
     "lang": "Racket",
     "title": "Beautiful Racket: چگونه با Racket زبان برنامه‌نویسی خودت را بسازی",
     "url": "https://beautifulracket.com/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-beautiful-racket.html"
   },
   {
-    "id": "",
+    "id": "lang-compiler-from-scratch",
     "category": "زبان برنامه‌نویسی",
     "lang": "Ruby",
     "title": "یک کامپایلر از صفر",
     "url": "https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-compiler-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "lang-markdown-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "Ruby",
     "title": "کامپایلر مارک‌داون از صفر در Ruby",
     "url": "https://blog.beezwax.net/2017/07/07/writing-a-markdown-compiler/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-markdown-compiler.html"
   },
   {
-    "id": "",
+    "id": "lang-parser-combinators-rust",
     "category": "زبان برنامه‌نویسی",
     "lang": "Rust",
     "title": "یادگیری ترکیب‌گرهای Parser با Rust",
     "url": "https://bodil.lol/parser-combinators/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-parser-combinators-rust.html"
   },
   {
-    "id": "",
+    "id": "lang-lisp-swift",
     "category": "زبان برنامه‌نویسی",
     "lang": "Swift",
     "title": "ساخت یک LISP از صفر با Swift",
     "url": "https://www.uraimo.com/2017/02/05/building-a-lisp-from-scratch-with-swift/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-lisp-swift.html"
   },
   {
-    "id": "",
+    "id": "lang-wasm-compiler",
     "category": "زبان برنامه‌نویسی",
     "lang": "TypeScript",
     "title": "کامپایلر WebAssembly خودت را بساز",
     "url": "https://blog.scottlogic.com/2019/05/17/webassembly-compiler.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/lang-wasm-compiler.html"
   },
   {
     "id": "regex-matcher-princeton",
@@ -2970,623 +2970,623 @@ window.TUTORIALS = [
     "file": "tutorials/websockets-server-ruby.html"
   },
   {
-    "id": "",
+    "id": "misc-nand2tetris",
     "category": "دسته‌بندی نشده",
     "lang": "(هر زبانی)",
     "title": "از NAND تا تتریس: ساخت یک کامپیوتر مدرن از اصول اولیه",
     "url": "http://nand2tetris.org/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-nand2tetris.html"
   },
   {
-    "id": "",
+    "id": "misc-vibe-coding",
     "category": "دسته‌بندی نشده",
     "lang": "(هر زبانی)",
     "title": "build-your-own-x-vibe-coding: آموزش‌های سبک BYOX تطبیق‌یافته برای کدنویسی وایب (vibe coding)",
     "url": "https://github.com/inFaaa/build-your-own-x-vibe-coding",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-vibe-coding.html"
   },
   {
-    "id": "",
+    "id": "misc-same-origin-policy",
     "category": "دسته‌بندی نشده",
     "lang": "Alloy",
     "title": "سیاست Same-Origin",
     "url": "http://aosabook.org/en/500L/the-same-origin-policy.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-same-origin-policy.html"
   },
   {
-    "id": "",
+    "id": "misc-ffmpeg-player",
     "category": "دسته‌بندی نشده",
     "lang": "C",
     "title": "چگونه یک پخش‌کننده ویدیو در کمتر از ۱۰۰۰ خط بنویسیم",
     "url": "http://dranger.com/ffmpeg/ffmpeg.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-ffmpeg-player.html"
   },
   {
-    "id": "",
+    "id": "misc-hash-table",
     "category": "دسته‌بندی نشده",
     "lang": "C",
     "title": "نوشتن جدول هش در C را یاد بگیر",
     "url": "https://github.com/jamesroutley/write-a-hash-table",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-hash-table.html"
   },
   {
-    "id": "",
+    "id": "misc-terminal-emulator-c",
     "category": "دسته‌بندی نشده",
     "lang": "C",
     "title": "مبانی اولیه یک شبیه‌ساز ترمینال",
     "url": "https://www.uninformativ.de/blog/postings/2018-02-24/0/POSTING-en.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-terminal-emulator-c.html"
   },
   {
-    "id": "",
+    "id": "misc-system-call",
     "category": "دسته‌بندی نشده",
     "lang": "C",
     "title": "یک System Call بنویس",
     "url": "https://brennan.io/2016/11/14/kernel-dev-ep3/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-system-call.html"
   },
   {
-    "id": "",
+    "id": "misc-mqtt-broker",
     "category": "دسته‌بندی نشده",
     "lang": "C",
     "title": "Sol — یک بروکر MQTT از صفر",
     "url": "https://codepr.github.io/posts/sol-mqtt-broker",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-mqtt-broker.html"
   },
   {
-    "id": "",
+    "id": "misc-vr-headset",
     "category": "دسته‌بندی نشده",
     "lang": "C++",
     "title": "هدست واقعیت مجازی خودت را با ۲۰۰ دلار بساز",
     "url": "https://github.com/relativty/Relativ",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-vr-headset.html"
   },
   {
-    "id": "",
+    "id": "misc-x-window-managers",
     "category": "دسته‌بندی نشده",
     "lang": "C++",
     "title": "مدیران پنجره X چگونه کار می‌کنند و چگونه یکی بنویسیم",
     "url": "https://seasonofcode.com/posts/how-x-window-managers-work-and-how-to-write-one-part-i.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-x-window-managers.html"
   },
   {
-    "id": "",
+    "id": "misc-linux-debugger",
     "category": "دسته‌بندی نشده",
     "lang": "C++",
     "title": "نوشتن یک دیباگر لینوکس",
     "url": "https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-linux-debugger.html"
   },
   {
-    "id": "",
+    "id": "misc-64k-intro",
     "category": "دسته‌بندی نشده",
     "lang": "C++",
     "title": "یک اینترو ۶۴K چگونه ساخته می‌شود",
     "url": "http://www.lofibucket.com/articles/64k_intro.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-64k-intro.html"
   },
   {
-    "id": "",
+    "id": "misc-game-engine-video",
     "category": "دسته‌بندی نشده",
     "lang": "C++",
     "title": "موتور بازی خودت را بساز",
     "url": "https://www.youtube.com/playlist?list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-game-engine-video.html"
   },
   {
-    "id": "",
+    "id": "misc-csharp-networking",
     "category": "دسته‌بندی نشده",
     "lang": "C#",
     "title": "شبکه در C#: یک سرور چت TCP، بازی‌های TCP، UDP Pong و موارد بیشتر بساز",
     "url": "https://16bpp.net/tutorials/csharp-networking",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-csharp-networking.html"
   },
   {
-    "id": "",
+    "id": "misc-skeletal-animation",
     "category": "دسته‌بندی نشده",
     "lang": "C#",
     "title": "بارگذاری و رندر انیمیشن‌های سه‌بعدی اسکلتی از صفر در C# و GLSL",
     "url": "https://www.seanjoflynn.com/research/skeletal-animation.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-skeletal-animation.html"
   },
   {
-    "id": "",
+    "id": "misc-spellchecker",
     "category": "دسته‌بندی نشده",
     "lang": "Clojure",
     "title": "ساخت یک غلط‌یاب املایی",
     "url": "https://bernhardwenzel.com/articles/clojure-spellchecker/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-spellchecker.html"
   },
   {
-    "id": "",
+    "id": "misc-terminal-emulator-go",
     "category": "دسته‌بندی نشده",
     "lang": "Go",
     "title": "یک شبیه‌ساز ترمینال ساده در ۱۰۰ خط Golang بساز",
     "url": "https://ishuah.com/2021/03/10/build-a-terminal-emulator-in-100-lines-of-go/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-terminal-emulator-go.html"
   },
   {
-    "id": "",
+    "id": "misc-load-balancer",
     "category": "دسته‌بندی نشده",
     "lang": "Go",
     "title": "بیایید یک Load Balancer ساده بسازیم",
     "url": "https://kasvith.me/posts/lets-create-a-simple-lb-go/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-load-balancer.html"
   },
   {
-    "id": "",
+    "id": "misc-codec-from-scratch",
     "category": "دسته‌بندی نشده",
     "lang": "Go",
     "title": "رمزگذاری ویدیو از صفر",
     "url": "https://github.com/kevmo314/codec-from-scratch",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-codec-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "misc-reddit-app",
     "category": "دسته‌بندی نشده",
     "lang": "Java",
     "title": "چگونه یک اپ Reddit اندرویدی بسازیم",
     "url": "https://www.youtube.com/playlist?list=PLgCYzUzKIBE9HUJU-upNvl3TRVAo9W47y",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-reddit-app.html"
   },
   {
-    "id": "",
+    "id": "misc-minipack",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "باندل‌کننده ماژول خودت را بساز — Minipack",
     "url": "https://github.com/ronami/minipack",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-minipack.html"
   },
   {
-    "id": "",
+    "id": "misc-promise-from-scratch",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "پرامیس‌های جاوااسکریپت را با ساختن یک Promise از صفر یاد بگیر",
     "url": "https://levelup.gitconnected.com/understand-javascript-promises-by-building-a-promise-from-scratch-84c0fd855720",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-promise-from-scratch.html"
   },
   {
-    "id": "",
+    "id": "misc-promise-tdd",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "پیاده‌سازی پرامیس‌ها از صفر (به روش TDD)",
     "url": "https://www.mauriciopoppe.com/notes/computer-science/computation/promises/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-promise-tdd.html"
   },
   {
-    "id": "",
+    "id": "misc-call-apply-bind",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "متدهای call()، apply() و bind() را خودت در جاوااسکریپت پیاده‌سازی کن",
     "url": "https://blog.usejournal.com/implement-your-own-call-apply-and-bind-method-in-javascript-42cc85dba1b",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-call-apply-bind.html"
   },
   {
-    "id": "",
+    "id": "misc-javascript-algorithms",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "الگوریتم‌ها و ساختمان داده‌های جاوااسکریپت",
     "url": "https://github.com/trekhleb/javascript-algorithms",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-javascript-algorithms.html"
   },
   {
-    "id": "",
+    "id": "misc-ride-hailing",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "یک اپ درخواست سفر (ride hailing) با React Native بساز",
     "url": "https://pusher.com/tutorials/ride-hailing-react-native",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-ride-hailing.html"
   },
   {
-    "id": "",
+    "id": "misc-adblocker",
     "category": "دسته‌بندی نشده",
     "lang": "JavaScript",
     "title": "AdBlocker خودت را در (واقعاً) ۱۰ دقیقه بساز",
     "url": "https://levelup.gitconnected.com/building-your-own-adblocker-in-literally-10-minutes-1eec093b04cd",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-adblocker.html"
   },
   {
-    "id": "",
+    "id": "misc-cache-lite",
     "category": "دسته‌بندی نشده",
     "lang": "Kotlin",
     "title": "کش خودت را بساز",
     "url": "https://github.com/kezhenxu94/cache-lite",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-cache-lite.html"
   },
   {
-    "id": "",
+    "id": "misc-cdn",
     "category": "دسته‌بندی نشده",
     "lang": "Lua",
     "title": "ساخت یک CDN از صفر برای یادگیری درباره CDN",
     "url": "https://github.com/leandromoreira/cdn-up-and-running",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-cdn.html"
   },
   {
-    "id": "",
+    "id": "misc-redis-parser",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک Parser پروتکل Redis",
     "url": "https://xmonader.github.io/nimdays/day12_resp.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-redis-parser.html"
   },
   {
-    "id": "",
+    "id": "misc-build-system",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک سیستم Build",
     "url": "https://xmonader.github.io/nimdays/day11_buildsystem.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-build-system.html"
   },
   {
-    "id": "",
+    "id": "misc-minitest",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک فریم‌ورک MiniTest",
     "url": "https://xmonader.github.io/nimdays/day08_minitest.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-minitest.html"
   },
   {
-    "id": "",
+    "id": "misc-dmidecode",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک Parser برای DMIDecode",
     "url": "https://xmonader.github.io/nimdays/day01_dmidecode.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-dmidecode.html"
   },
   {
-    "id": "",
+    "id": "misc-ini-parser",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک Parser برای INI",
     "url": "https://xmonader.github.io/nimdays/day05_iniparser.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-ini-parser.html"
   },
   {
-    "id": "",
+    "id": "misc-async-links-checker",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک بررسی‌کننده لینک",
     "url": "https://xmonader.github.io/nimdays/day04_asynclinkschecker.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-async-links-checker.html"
   },
   {
-    "id": "",
+    "id": "misc-shorturl",
     "category": "دسته‌بندی نشده",
     "lang": "Nim",
     "title": "نوشتن یک سرویس کوتاه‌کننده URL",
     "url": "https://xmonader.github.io/nimdays/day07_shorturl.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-shorturl.html"
   },
   {
-    "id": "",
+    "id": "misc-ssg-node",
     "category": "دسته‌بندی نشده",
     "lang": "Node.js",
     "title": "یک مولد سایت استاتیک در ۴۰ خط با Node.js بساز",
     "url": "https://www.webdevdrops.com/en/build-static-site-generator-nodejs-8969ebe34b22/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-ssg-node.html"
   },
   {
-    "id": "",
+    "id": "misc-sso-server",
     "category": "دسته‌بندی نشده",
     "lang": "Node.js",
     "title": "ساخت یک سرور و راه‌حل Single Sign On (SSO) ساده از صفر در Node.js.",
     "url": "https://codeburst.io/building-a-simple-single-sign-on-sso-server-and-solution-from-scratch-in-node-js-ea6ee5fdf340",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-sso-server.html"
   },
   {
-    "id": "",
+    "id": "misc-node-cli",
     "category": "دسته‌بندی نشده",
     "lang": "Node.js",
     "title": "چگونه یک اپ CLI واقعی Node برای دنیای واقعی بسازیم",
     "url": "https://medium.freecodecamp.org/how-to-create-a-real-world-node-cli-app-with-node-391b727bbed3",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-node-cli.html"
   },
   {
-    "id": "",
+    "id": "misc-dns-server-node",
     "category": "دسته‌بندی نشده",
     "lang": "Node.js",
     "title": "یک سرور DNS در Node.js بساز",
     "url": "https://engineerhead.github.io/dns-server/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-dns-server-node.html"
   },
   {
-    "id": "",
+    "id": "misc-sync-engine",
     "category": "دسته‌بندی نشده",
     "lang": "Node.js",
     "title": "یک موتور همگام‌سازی با Node.js و Y.js بساز",
     "url": "https://greenvitriol.com/posts/sync-engine-for-everyone",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-sync-engine.html"
   },
   {
-    "id": "",
+    "id": "misc-php-mvc",
     "category": "دسته‌بندی نشده",
     "lang": "PHP",
     "title": "MVC خودت را از صفر در PHP بنویس",
     "url": "https://chaitya62.github.io/2018/04/29/Writing-your-own-MVC-from-Scratch-in-PHP.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-php-mvc.html"
   },
   {
-    "id": "",
+    "id": "misc-php-blog",
     "category": "دسته‌بندی نشده",
     "lang": "PHP",
     "title": "وبلاگ خودت را بساز",
     "url": "https://ilovephp.jondh.me.uk/en/tutorial/make-your-own-blog",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-php-blog.html"
   },
   {
-    "id": "",
+    "id": "misc-php-no-framework",
     "category": "دسته‌بندی نشده",
     "lang": "PHP",
     "title": "PHP مدرن بدون فریم‌ورک",
     "url": "https://kevinsmith.io/modern-php-without-a-framework",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-php-no-framework.html"
   },
   {
-    "id": "",
+    "id": "misc-php-search-engine",
     "category": "دسته‌بندی نشده",
     "lang": "PHP",
     "title": "یک موتور جست‌وجوی وب در PHP بنویس",
     "url": "https://boyter.org/2013/01/code-for-a-search-engine-in-php-part-1/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-php-search-engine.html"
   },
   {
-    "id": "",
+    "id": "misc-dl-library",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "یک کتابخانه یادگیری عمیق بساز",
     "url": "https://www.youtube.com/watch?v=o64FV-ez6Gw",
     "video": true,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-dl-library.html"
   },
   {
-    "id": "",
+    "id": "misc-document-scanner",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "چگونه یک اسکنر اسناد موبایل فوق‌العاده در فقط ۵ دقیقه بسازیم",
     "url": "https://www.pyimagesearch.com/2014/09/01/build-kick-ass-mobile-document-scanner-just-5-minutes/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-document-scanner.html"
   },
   {
-    "id": "",
+    "id": "misc-ci-system",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "سیستم یکپارچه‌سازی پیوسته (CI)",
     "url": "http://aosabook.org/en/500L/a-continuous-integration-system.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-ci-system.html"
   },
   {
-    "id": "",
+    "id": "misc-recommender-systems",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "سیستم‌های پیشنهاددهنده در پایتون: آموزش مبتدیان",
     "url": "https://www.datacamp.com/community/tutorials/recommender-systems-python",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-recommender-systems.html"
   },
   {
-    "id": "",
+    "id": "misc-sms-spam",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "تشخیص‌دهنده اسپم SMS با Scikit-learn بنویس",
     "url": "https://medium.com/@kopilov.vlad/detect-sms-spam-in-kaggle-with-scikit-learn-5f6afa7a3ca2",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-sms-spam.html"
   },
   {
-    "id": "",
+    "id": "misc-product-recommendation",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "یک موتور پیشنهاددهنده ساده مبتنی بر محتوا در پایتون",
     "url": "http://blog.untrod.com/2016/06/simple-similar-products-recommendation-engine-in-python.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-product-recommendation.html"
   },
   {
-    "id": "",
+    "id": "misc-stock-lstm",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "پیش‌بینی بازار سهام با LSTM در پایتون",
     "url": "https://www.datacamp.com/community/tutorials/lstm-python-stock-market",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-stock-lstm.html"
   },
   {
-    "id": "",
+    "id": "misc-gan",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "ساخت یک شبکه مولد تخاصمی (GAN) ساده با Tensorflow",
     "url": "https://blog.paperspace.com/implementing-gans-in-tensorflow/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-gan.html"
   },
   {
-    "id": "",
+    "id": "misc-decision-trees",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "الگوریتم‌های یادگیری ماشین را با کدنویسی یاد بگیر: درخت تصمیم",
     "url": "https://lethalbrains.com/learn-ml-algorithms-by-coding-decision-trees-439ac503c9a4",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-decision-trees.html"
   },
   {
-    "id": "",
+    "id": "misc-json-algorithm",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "الگوریتم رمزگشایی JSON",
     "url": "https://github.com/cheery/json-algorithm",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-json-algorithm.html"
   },
   {
-    "id": "",
+    "id": "misc-git-plugin",
     "category": "دسته‌بندی نشده",
     "lang": "Python",
     "title": "پلاگین گیت خودت را با پایتون بساز",
     "url": "https://joshburns-xyz.vercel.app/posts/build-your-own-git-plugin",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-git-plugin.html"
   },
   {
-    "id": "",
+    "id": "misc-pedometer",
     "category": "دسته‌بندی نشده",
     "lang": "Ruby",
     "title": "یک گام‌شمار در دنیای واقعی",
     "url": "http://aosabook.org/en/500L/a-pedometer-in-the-real-world.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-pedometer.html"
   },
   {
-    "id": "",
+    "id": "misc-gtk-todo",
     "category": "دسته‌بندی نشده",
     "lang": "Ruby",
     "title": "ساخت یک اپ دسکتاپ لینوکسی با Ruby",
     "url": "https://iridakos.com/tutorials/2018/01/25/creating-a-gtk-todo-application-with-ruby",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-gtk-todo.html"
   },
   {
-    "id": "",
+    "id": "misc-dns-server-rust",
     "category": "دسته‌بندی نشده",
     "lang": "Rust",
     "title": "ساخت یک سرور DNS در Rust",
     "url": "https://github.com/EmilHernvall/dnsguide/blob/master/README.md",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-dns-server-rust.html"
   },
   {
-    "id": "",
+    "id": "misc-chat-service-rust",
     "category": "دسته‌بندی نشده",
     "lang": "Rust",
     "title": "نوشتن سرویس چت مقیاس‌پذیر از صفر",
     "url": "https://nbaksalyar.github.io/2015/07/10/writing-chat-in-rust.html",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-chat-service-rust.html"
   },
   {
-    "id": "",
+    "id": "misc-webgl-water",
     "category": "دسته‌بندی نشده",
     "lang": "Rust",
     "title": "WebGL + Rust: آموزش آب پایه",
     "url": "https://www.chinedufn.com/3d-webgl-basic-water-tutorial/",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-webgl-water.html"
   },
   {
-    "id": "",
+    "id": "misc-package-manager",
     "category": "دسته‌بندی نشده",
     "lang": "TypeScript",
     "title": "مدیر بسته کوچک: یاد بگیر npm یا Yarn چگونه کار می‌کند",
     "url": "https://github.com/g-plane/tiny-package-manager",
     "video": false,
-    "done": false,
-    "file": ""
+    "done": true,
+    "file": "tutorials/misc-package-manager.html"
   }
 ];

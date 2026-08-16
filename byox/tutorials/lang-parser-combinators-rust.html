@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | ترکیب‌گرهای Parser در Rust</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>ترکیب‌گرهای Parser در Rust</span>
+      </div>
+      <h1>یادگیری ترکیب‌گرهای Parser با Rust</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Rust</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://bodil.lol/parser-combinators/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Learning Parser Combinators With Rust» از بودیل استوکه است که پارس‌کردن ترکیبی (parser combinators) را از پایه و با ساخت یک پارسر JSON در Rust آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://bodil.lol/parser-combinators/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>ترکیب‌گرهای Parserچیست؟</h2>
+        <p>به‌جای نوشتن یک پارسر بزرگ و پیچیده، روش ترکیب‌گر (combinator) پارسرهای کوچک را تعریف می‌کند که هرکدام یک قالب ساده را می‌شناسند و سپس با عملگرهای ترکیب، آن‌ها را به‌وجود پارس‌کنندهٔ کامل ترکیب می‌کند. نتیجهٔ نهایی، کدی ماژولار و قابل‌مطالعه است که برای هر ساختار نحو یا باینری کار می‌کند.</p>
+        <p>فلسفهٔ اصلی آن است که یک پارسر در نگاه «تابع» است: ورودی‌ای می‌گیرد، و اگر موفق بود مقداری و باقی‌ماندهٔ ورودی را برمی‌گرداند و اگر ناموفق بود یک خطا. این طراحی ساده، پایهٔ هماهنگی همهٔ ترکیب‌گرهاست.</p>
+      </section>
+
+      <section>
+        <h2>ساختار پایه در Rust</h2>
+        <p>در Rust این الگو با یک ترِیت (trait) و یک تابع ژنریک قابل بیان است. در تعریف این آموزش، پارسر با `Parser` و تابع `parse` تعریف می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>pub trait Parser&lt;I, O&gt; {
+    fn parse(&amp;self, input: I) -&gt; Result&lt;(O, I), ParserErr&gt;;
+}
+
+// ترکیب‌گر pair: دو پارسر را پشت سر هم اجرا می‌کند
+pub fn pair&lt;P1, P2, I, O1, O2&gt;(
+    p1: P1,
+    p2: P2,
+) -&gt; impl Parser&lt;I, (O1, O2)&gt;
+where
+    P1: Parser&lt;I, O1&gt;,
+    P2: Parser&lt;I, O2&gt;,
+{
+    move |input: I| {
+        let (o1, rest) = p1.parse(input)?;
+        let (o2, rest) = p2.parse(rest)?;
+        Ok(((o1, o2), rest))
+    }
+}</code></pre>
+        <p>مشاهده می‌کنید که `pair` هیچ دانشی دربارهٔ محتوای خاص ندارد؛ فقط دو پارسر دریافت می‌کند و آن‌ها را دنبال هم اجرا می‌کند. این ترکیب‌پذیری، ویژگی اصلی روش است.</p>
+      </section>
+
+      <section>
+        <h2>ترکیب‌گر many: صفر یا بیشتر</h2>
+        <p>برای موارد مثل یک لیست یا دنباله، به پارسری نیاز داریم که «صفر یا چند بار» اجرا شود. این همان `many` است:</p>
+        <pre class="code"><span class="lang-tag">Rust</span><code>// many: پارسرِ ورودی را تا جایی که ممکن است اجرا می‌کند
+pub fn many&lt;P, I, O&gt;(p: P) -&gt; impl Parser&lt;I, Vec&lt;O&gt;&gt;
+where
+    P: Parser&lt;I, O&gt;,
+    I: Clone,
+{
+    move |mut input: I| {
+        let mut result = Vec::new();
+        while let Ok((o, next)) = p.parse(input.clone()) {
+            input = next;
+            result.push(o);
+        }
+        Ok((result, input))
+    }
+}</code></pre>
+        <p>نکتهٔ آموزشی مهم: چون پارسرها می‌توانند شکست بخورند، برای «برگرداندن عقب» (backtracking) باید ورودی را clone کنیم و فقط در صورت موفقیت جلو برویم.</p>
+      </section>
+
+      <section>
+        <h2>ساخت پارسر JSON</h2>
+        <p>پس از شناختن `map`، `and_then`، `left` و `right`، آموزش گام‌به‌گام پارسر JSON را می‌سازد: ابتدا `null`، `boolean` و `number`، سپس جفت `key: value`، سپس «object» و «array» با جداکنندهٔ `,`. هر مرحله از ترکیب‌گرهای تعریف‌شده استفاده می‌کند.</p>
+        <p>برای تست، مجموعه‌ای از تست‌های ساده هم نوشته می‌شود که نشان می‌دهد پارسر روی داده‌های درست و غلط چگونه رفتار می‌کند؛ نتیجه این است که پاسر نهایی با کمتر از ۲۰۰ خط کد، JSON کامل را می‌خواند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش به‌خوبی نشان می‌دهد که چگونه می‌توان بدون ابزار خارجی و فقط با چند تابع کوچک، یک پارسر کامل و قابل‌اعتماد ساخت. تکنیک ترکیب‌گرها در پروژه‌های واقعی (مثل مفسرها و ابزارهای خط فرمان) بسیار پرکاربرد است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> بودیل استوکه (Bodil Stokke). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://bodil.lol/parser-combinators/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

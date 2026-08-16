@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مدیر بسته کوچک</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>مدیر بسته</span>
+      </div>
+      <h1>مدیر بسته کوچک: یاد بگیر npm یا Yarn چگونه کار می‌کند</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: TypeScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/g-plane/tiny-package-manager" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «tiny package manager» از g-plane است که گام‌به‌گام npm را با TypeScript پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/g-plane/tiny-package-manager" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>npm چه کار می‌کند؟ (و چه کار نمی‌کند؟)</h2>
+        <p>مدیر بسته سه کار اصلی دارد: خواندن `package.json`، حل وابستگی‌ها (رزولوشن) و نصب فایل‌ها در `node_modules`. ساده به نظر می‌رسد، اما بخش «حل وابستگی» — فهمیدن اینکه هر پکیج کدام نسخه را می‌خواهد — جایی است که پیچیدگی واقعی است. این پروژه با نوشتن تدریجی گام‌به‌گام، آن را روشن می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>رزولوشن: کدام نسخه؟</h2>
+        <p>یک پکیج می‌گوید `"lodash": "^4.17.0"` — یعنی 4.17.0 یا بالاتر ولی زیر 5. برای هر وابستگی، باید اطلاعات نسخه‌های موجود را از رجیستری بگیریم و بهترین را انتخاب کنیم. نسخه‌های semver با مقایسهٔ اجزا (major.minor.patch) معنا می‌یابند:</p>
+        <pre class="code"><span class="lang-tag">TypeScript</span><code>// مقایسهٔ دو نسخهٔ semver مثل "2.1.4" و "2.2.0"
+function compareVersions(a: string, b: string): number {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i &lt; 3; i++) {
+    if (pa[i] !== pb[i]) return pa[i] - pb[i];
+  }
+  return 0;
+}
+
+// "^4.17.0": نسخه‌ای که major=4 داشته باشد و بیشترین نسخه
+function resolveRange(range: string, versions: string[]): string {
+  const [major] = range.slice(1).split('.').map(Number);
+  return versions
+    .filter(v =&gt; Number(v.split('.')[0]) === major)
+    .sort(compareVersions)
+    .pop()!;
+}</code></pre>
+        <p>در واقعیت semver پیچیده‌تر است (پرام ها، tilde، prerelease) — پکیج‌هایی مثل `semver` هست که باید آن را هم ببینید یا خودتان بنویسید.</p>
+      </section>
+
+      <section>
+        <h2>گراف وابستگی و بحران تو در تویی</h2>
+        <p>پکیج A به B وابسته است، B به C و... ساختار درخت (گراف) ساخته می‌شود و با BFS حل می‌شود و یک «قفل» (lockfile) می‌سازد که همهٔ نسخه‌ها را دقیق ثبت کرده تا نصب‌های بعدی یکسان باشد:</p>
+        <pre class="code"><span class="lang-tag">TypeScript</span><code>// فلت کردن گراف وابستگی و ثبت در lockfile
+const lock: Record&lt;string, string&gt; = {};
+
+function resolve(pkg, versions, depth = 0) {
+  for (const [name, range] of Object.entries(pkg.dependencies ?? {})) {
+    const version = resolveRange(range, versions[name]);
+    if (lock[name] === undefined) lock[name] = version;
+    // ... برای زیروابستگی‌ها بازگشت
+  }
+}</code></pre>
+        <p>چالشی که yarn/pnpm حل می‌کنند: دو پکیج می‌توانند دو نسخهٔ متفاوت از یک وابستگی مشترک بخواهند؛ «همگام‌سازی» (dedupe) یا «پوشه‌های جدا» (pnpm) — هر دو راه‌حل همین مسئله‌اند.</p>
+      </section>
+
+      <section>
+        <h2>نصب و جمع‌بندی</h2>
+        <p>مرحلهٔ آخر: دانلود tarball از رجیستری (`registry.npmjs.org`)، آنزیپ کردن در `node_modules/<name>`. با همین ۲۰۰ خط TypeScript، `tiny-package-manager` npm را شبیه‌سازی می‌کند. بعد از آن، هر ابزار مثل Yarn، pnpm یا Bun را ببینید، می‌دانید چه تصمیم‌هایی گرفته‌اند و چرا.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> g-plane. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/g-plane/tiny-package-manager" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | Beautiful Racket — ساخت زبان با Racket</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>Beautiful Racket</span>
+      </div>
+      <h1>Beautiful Racket — ساخت زبان‌های برنامه‌نویسی با Racket و #lang</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Racket</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://beautifulracket.com/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Beautiful Racket» از متیو باتریک است؛ کتابی که ساختن زبان‌های برنامه‌نویسی کوچک را از طریق سیستم #lang و ماکروهای Racket قدم‌به‌قدم آموزش می‌دهد.
+        </div>
+        <a class="btn solid" href="https://beautifulracket.com/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا Racket برای ساخت زبان ایده‌آل است؟</h2>
+        <p>اکثر آموزش‌های ساخت زبان، مفسر یا کامپایلری را در یک زبان عمومی می‌نویسند و سپس برای هر پروژه باید از نو شروع کنند. رویکرد متیو باتریک متفاوت است: به‌جای ساخت یک مفسر مستقل، از قابلیت «فراحلقوی» (meta-circular) Racket بهره می‌گیرد و با تعریف یک <b>زیان‌نامه (language) جدید</b>، سینتکس و رفتار زبان خودش را اعلام می‌کند.</p>
+        <p>نقطهٔ مرکزی این روش، آپدیت `#lang` است: شما یک ماژول Racket می‌نویسید که یک «ریدر» (reader) سفارشی و یک مجموعه از ماکروها را ارائه می‌دهد. بعد کافی است فایل بعدی با `#lang my-lang` شروع شود تا تمام قدرت Racket — از جمله سیستم تایپ، eval و محیط‌ها — در اختیار زبان جدیدتان باشد.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم کلیدی: ریدر، ماکرو و ماژول</h2>
+        <p>یک زبان در Beautiful Racket از سه لایه تشکیل می‌شود. <b>ریدر</b> (reader) متن ورودی را به ساختار دادهٔ Racket تبدیل می‌کند؛ syntax-objectها در این میان منبع و پوزیشن خود را حفظ می‌کنند تا خطاها دقیق باشند. <b>ماکروها</b> معنای ساختارهای خوانده‌شده را تعریف می‌کنند و در مرحلهٔ بسط، ساختارهای جدید (مثل توابع Racket) را تولید می‌کنند. <b>ماژول</b> هم‌مقدار (module) هر آزادسازی، مرز بومی زبان را مشخص می‌کند.</p>
+        <p>تفاوت بزرگ با ساخت مفسر از صفر: در این‌جا شما هرگز لازم نیست evaluator بنویسید. کافی است سینتکس زبان خود را به سینتکس هستهٔ Racket بسط (expand) دهید و مابقی را زبان میزبان انجام می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>ساخت یک #lang ساده</h2>
+        <p>ساده‌ترین راه شروع، ساختن یک zip-لغتی است که هر چیزی را به‌صورت literal نگه می‌دارد. برای زبان‌های واقعی‌تر، شما یک <b>module reader</b> می‌نویسید که فاز خواندن را کنترل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">Racket</span><code>#lang racket/base
+
+(require (for-syntax racket/base))
+
+(define (read-one in src-name)
+  (read-syntax src-name in))
+
+#;
+(reader (read-one read-one))
+
+(module reader racket/base
+  (require racket/base syntax/readerr)
+  (provide read-syntax)
+  (define (read-syntax src in)
+    ...))</code></pre>
+        <p>این الگو مبنای همهٔ زبان‌های Beautiful Racket است: هر فایل با `#lang` به این ماژول متصل می‌شود و خواندن ورودی به عهدهٔ ریدر شماست. گام بعدی اضافه‌کردن ماکروهای معنایی است که ساختار خام را به اجرا تبدیل کنند.</p>
+      </section>
+
+      <section>
+        <h2>گام‌های پیاده‌سازی در کتاب</h2>
+        <p>کتاب با یک مثال سادهٔ «زبان عدد» شروع می‌شود، سپس سراغ مثال‌های واقعی می‌رود: <b>br-fruit</b> زبانی برای توصیف دستورهای غذایی با کلمات طبیعی است و <b>br-braces</b> زبان توصیف ساختارهای گرافیکی با آکولاد. هر مثال نشان می‌دهد که چه بخشی از فرآیند باید به ریدر و چه بخشی به ماکرو سپرده شود.</p>
+        <p>در پایان هر مثال، شما یاد می‌گیرید که error messages را فارسی/دقیق کنید، از ابزارهای دیباگ Racket به‌همراه زبان خودتان استفاده کنید و درنهایت زبان را به‌صورت مستقل `raco pkg` کنید تا دیگران بتوانند آن را نصب کنند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>Beautiful Racket بهترین نقطهٔ ورود برای «ساخت زبان سریع» است: حتی اگر فقط به ماکروهای Racket آشنا باشید، ظرف چند ساعت یک زبان کاری با خطاهای دقیق و محیط توسعهٔ کامل می‌سازید. برای علاقه‌مندان به زبان‌های دامنه‌خاص (DSL) این کتاب تقریباً اجباری است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> متیو باتریک (Matthew Butterick). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://beautifulracket.com/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

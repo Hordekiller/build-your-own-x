@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | مولد سایت استاتیک در Node.js</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>SSG در Node</span>
+      </div>
+      <h1>یک مولد سایت استاتیک در ۴۰ خط با Node.js بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Node.js</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.webdevdrops.com/en/build-static-site-generator-nodejs-8969ebe34b22/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Build a static site generator in 40 lines» از WebDevDrops است که SSG را با Node.js ساده و شفاف می‌سازد.
+        </div>
+        <a class="btn solid" href="https://www.webdevdrops.com/en/build-static-site-generator-nodejs-8969ebe34b22/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>SSG چیست و چرا؟</h2>
+        <p>مولد سایت استاتیک، محتوا (معمولاً Markdown) را در زمان Build به HTML می‌کند؛ برخلاف CMS که در لحظهٔ درخواست، صفحه را روی سرور می‌سازد. مزیت: فوق‌العاده سریع، امن و ارزان (هر هاست استاتیک کافی است). Jekyll، Hugo و Next.js (SSG) همین روند را دارند.</p>
+      </section>
+
+      <section>
+        <h2>قلب SSG در ۴۰ خط</h2>
+        <p>فایل‌های Markdown در یک پوشهٔ `posts` قرار می‌گیرند. اسکریپت Node برای هر فایل: محتوا را می‌خواند، Markdown را به HTML تبدیل می‌کند و نتیجه را در قالب صفحهٔ کامل HTML می‌پیچد:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>const fs = require('fs');
+const path = require('path');
+const MarkdownIt = require('markdown-it')();
+
+const md = new MarkdownIt();               // پارسر Markdown
+const DIR = 'posts';
+const OUT = 'public';
+
+// قالب HTML اطراف هر پست
+const template = (title, body) =&gt; `&lt;!DOCTYPE html&gt;
+&lt;html lang="fa"&gt;&lt;head&gt;&lt;meta charset="utf-8"&gt;
+&lt;title&gt;${title}&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;article&gt;${body}&lt;/article&gt;&lt;/body&gt;&lt;/html&gt;`;
+
+fs.readdirSync(DIR).forEach(file =&gt; {
+  const content = fs.readFileSync(path.join(DIR, file), 'utf8');
+  const html = md.render(content);         // Markdown → HTML
+  const title = file.replace('.md', '');
+  fs.writeFileSync(path.join(OUT, title + '.html'), template(title, html));
+});</code></pre>
+        <p>تمام! برای هر فایل `*.md` یک فایل HTML ساخته می‌شود — بدون سرور، بدون دیتابیس.</p>
+      </section>
+
+      <section>
+        <h2>اضافه‌کردن متادیتا</h2>
+        <p>پست‌های واقعی front matter دارند (عنوان، تاریخ، برچسب). می‌توانید ساده شروع کنید و بعد آن را با جداکردن دو خط `---` در ابتدای فایل اضافه کنید. همین الگو با template هم توسعه می‌یابد — فهرست پست‌ها (index) هم تولید می‌شود:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// ساخت صفحهٔ فهرست از همهٔ پست‌ها
+const indexItems = fs.readdirSync(DIR)
+  .map(f =&gt; `&lt;li&gt;&lt;a href="${f.replace('.md', '.html')}"&gt;${f}&lt;/a&gt;&lt;/li&gt;`)
+  .join('\n');
+fs.writeFileSync(path.join(OUT, 'index.html'),
+  template('وبلاگ من', `&lt;ul&gt;${indexItems}&lt;/ul&gt;`));</code></pre>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش نشان داد که SSG ظاهراً بزرگ، از ترکیب سه عملگر ساده ساخته می‌شود: خواندن فایل، تبدیل Markdown، تزریق در قالب. همین بلوک‌ها را که بزرگ کنید (tag، RSS، صفحات تمیز) یک مولد واقعی دارید — بدون وابستگی به فناوری پیچیده.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> تیم WebDevDrops. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.webdevdrops.com/en/build-static-site-generator-nodejs-8969ebe34b22/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

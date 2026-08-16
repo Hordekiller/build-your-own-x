@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | جدول هش در C</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>جدول هش</span>
+      </div>
+      <h1>نوشتن جدول هش در C را یاد بگیر</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/jamesroutley/write-a-hash-table" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور آموزش «Write a hash table in C» از جیمز روتلی است که ساختار دادهٔ محبوبِ جدول هش را در C گام‌به‌گام می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/jamesroutley/write-a-hash-table" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>جدول هش چیست و چرا مهم است؟</h2>
+        <p>جدول هش (hash table) ساختاری است که با استفاده از یک تابع هش، کلید را به یک ایندکس در آرایه می‌نگارد؛ بهاین‌ترتیب جست‌وجو، افزودن و حذف در حالت متوسط O(1) می‌شود. تقریباً همه‌چیز — از دیکشنری‌های پایتون تا کش مرورگر — روی همین ساختار بنا شده‌اند.</p>
+        <p>ساختن یک جدول هش در C به شما یاد می‌دهد که حافظه را مدیریت کنید و دربارهٔ برخورد (collision) و بزرگ‌شدن جدول تصمیم بگیرید؛ چیزهایی که در زبان‌های سطح بالا پنهان‌اند.</p>
+      </section>
+
+      <section>
+        <h2>ساختارهای پایه و توابع هش</h2>
+        <p>اولین گام، تعریف ساختارهای `ht_item` (عنصر شامل کلید و مقدار) و `ht_hash_table` (آرایهٔ عناصر و اندازه). تابع هش، رشته را به یک عدد بزرگ و then modulo تبدیل می‌کند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+typedef struct {
+    char* key;
+    char* value;
+} ht_item;
+
+// تابع هش ساده: جمع وزنی کاراکترها
+static int hash(const char* s, const int a, const int m) {
+    long hash = 0;
+    const int len = strlen(s);
+    for (int i = 0; i &lt; len; i++) {
+        hash = (hash * a + s[i]) % m;
+    }
+    return hash;
+}</code></pre>
+        <p>این تابع را می‌توان با تنظیم `a` (که نخست‌وزن است) و `m` (اندازهٔ جدول) بهینه کرد تا توزیع یکنواخت‌تری داشته باشیم.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت برخورد با زنجیره‌سازی</h2>
+        <p>وقتی دو کلید به یک ایندکس می‌رسند، «برخورد» رخ داده است. ساده‌ترین راه، <b>زنجیره‌سازی</b> است: هر خانهٔ جدول، یک لیست پیوندی از عناصر است. راه دیگر، «گشویی باز» (open addressing) است که در آن عنصر به خانهٔ بعدی خالی منتقل می‌شود.</p>
+        <p>در این آموزش از گشویی باز استفاده می‌شود؛ یعنی هنگام جست‌وجو اگر خانه اشغال بود، با پرش منظم ادامه می‌دهیم تا خانهٔ خالی پیدا شود.</p>
+      </section>
+
+      <section>
+        <h2>درج و بازیابی</h2>
+        <p>تابع‌های `ht_insert` و `ht_search` هستهٔ جدول را می‌سازند:</p>
+        <pre class="code"><span class="lang-tag">C</span><code>// درج یک جفت کلید/مقدار
+void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
+    ht_item* item = ht_new_item(key, value);
+    int index = hash(key, ht-&gt;base_size, ht-&gt;size);
+    ht_item* cur = ht-&gt;items[index];
+
+    // گشویی باز: خانهٔ خالی یا خانه با همان کلید را پیدا کن
+    int i = index;
+    while (cur != NULL) {
+        if (cur != &amp;DELETED_ITEM) {
+            if (strcmp(cur-&gt;key, key) == 0) {
+                free(cur-&gt;value);
+                cur-&gt;value = item-&gt;value;
+                free(item);
+                return;
+            }
+        }
+        i = (i + 1) % ht-&gt;size;
+        cur = ht-&gt;items[i];
+    }
+    ht-&gt;items[i] = item;
+    ht-&gt;count++;
+    // وقتی پر شد، بزرگش کن
+    if (ht-&gt;count == ht-&gt;size) ht_resize_up(ht);
+}</code></pre>
+        <p>در این کد، خانهٔ حذف‌شده با نشانگر اختصاصی `DELETED_ITEM` مشخص می‌شود تا زنجیرهٔ گشویی قطع نشود؛ و وقتی جدول پر شد، `ht_resize_up` اندازه را دو برابر می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش با تکیه بر تست و گام‌های کوچک، جدول هش را در C کامل می‌کند. بعد از اتمام، به عمق مفاهیمی مثل «برخورد»، «بزرگ‌شدن جدول» و «مدیریت حافظه» مسلط می‌شوید و می‌توانید رفتار ساختار در زبان‌های دیگر را هم راحت‌تر بفهمید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> جیمز روتلی (James Routley). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/jamesroutley/write-a-hash-table" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پارسر DMI/DMIDecode در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>پارسر DMIDecode</span>
+      </div>
+      <h1>نوشتن یک Parser برای DMIDecode</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day01_dmidecode.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 1: DMIDecode parser» از سری NimDays است که خروجی ابزار dmidecode را در Nim تجزیه می‌کند.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day01_dmidecode.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>dmidecode چیست؟</h2>
+        <p>ابزار `dmidecode` اطلاعات سخت‌افزار سیستم را از جداول SMBIOS/DMI می‌خواند: سازندهٔ مادربرد، نسخهٔ BIOS، نوع حافظه، شمارهٔ سریال و... این داده‌ها روی خروجی استاندارد به‌صورت متن ساخت‌یافته چاپ می‌شوند و معمولاً برای اتوماسیون سرورها (مانیتورینگ، inventory) باید تجزیه شوند.</p>
+      </section>
+
+      <section>
+        <h2>ساختار خروجی</h2>
+        <p>خروجی dmidecode به شکل «بخش‌ها» است: هر بخش با نوع (Type) و Handle شروع می‌شود و سپس فیلدها با تورفتگی می‌آیند؛ دستهٔ اطلاعات مانند BIOS، System و Baseboard:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code># خروجی نمونه:
+# Handle 0x0000, DMI type 0, 24 bytes
+# BIOS Information
+#     Vendor: American Megatrends Inc.
+#     Version: 5.19
+#     Release Date: 08/10/2023
+# Handle 0x0001, DMI type 1, 27 bytes
+# System Information
+#     Manufacturer: LENOVO
+#     Product Name: ThinkPad T14</code></pre>
+        <p>الگوی نقطهٔ شروع هر بخش: خطی که با `Handle` شروع می‌شود و نوع DMI و اندازه را می‌گوید، و خط بعدی نام دسته.</p>
+      </section>
+
+      <section>
+        <h2>پارسر در Nim</h2>
+        <p>پارسر خط‌به‌خط می‌خواند؛ وقتی خط `Handle` دید، بخش جدیدی را شروع می‌کند و فیلدهای تورفتاده را به آن می‌چسباند:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>import strutils, tables, sequtils
+
+type
+  DmiRecord = object
+    dmiType: int
+    name: string
+    fields: Table[string, string]
+
+proc parseDMI(content: string): seq[DmiRecord] =
+  var
+    current: DmiRecord
+    inRecord = false
+
+  for line in content.splitLines():
+    if line.startsWith("Handle"):
+      if inRecord: result.add(current)
+      # استخراج نوع از: Handle 0x0001, DMI type 1, 27 bytes
+      let m = line.findAll("\d+")
+      current = DmiRecord(
+        dmiType: parseInt(m[1]),
+        name: "", fields: initTable[string, string]()
+      )
+      inRecord = true
+    elif line.startsWith("    ") and inRecord:
+      let parts = line.strip().split(":", 1)
+      if parts.len == 2:
+        current.fields[parts[0]] = parts[1].strip()
+    elif inRecord and not line.startsWith(" "):
+      current.name = line.strip()
+
+  if inRecord: result.add(current)</code></pre>
+        <p>نکتهٔ ظریف: فیلدها ۴ فضای تورفتگی دارند، ولی نام بخش بدون تورفتگی است؛ همین دو قانون کافی است کل خروجی را ساختارمند کنیم.</p>
+      </section>
+
+      <section>
+        <h2>به سمت ابزار واقعی</h2>
+        <p>وقتی داده ساختارمند شد، می‌توانید سریال‌های سرور را جمع کنید، MAC کارت‌های شبکه را از بخشهای نوع 41 (Onboard Device) بخوانید یا خروجی JSON بسازید. `dmidecode` بیش از ۴۰ نوع DMI دارد؛ همین آموزش پایهٔ خواندن همهٔ آن‌هاست.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day01_dmidecode.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

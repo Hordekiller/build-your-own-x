@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور جست‌وجو در PHP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>موتور جست‌وجو</span>
+      </div>
+      <h1>یک موتور جست‌وجوی وب در PHP بنویس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: PHP</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://boyter.org/2013/01/code-for-a-search-engine-in-php-part-1/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Code for a search engine in PHP» از بن بویر است که نمایه»سازی و جست‌وجو را با SQLite می‌سازد.
+        </div>
+        <a class="btn solid" href="https://boyter.org/2013/01/code-for-a-search-engine-in-php-part-1/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>موتور جست‌وجو چطور کار می‌کند؟</h2>
+        <p>هر موتور جست‌وجو دو فاز دارد: <b>نمایه‌سازی (indexing)</b> و <b>پرس‌وجو (query)</b>. در نمایه‌سازی، هر سند به «توکن» شکسته می‌شود (کلمات) و نقشهٔ معکوس «کلمه → اسناد» ساخته می‌شود؛ در پرس‌وجو، کلمات عبارت جست‌وجو در این نقشه پیدا و اسناد حاوی همه‌شان بازگردانده می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>توکن‌سازی و پایگاه داده</h2>
+        <p>بن در این سری از SQLite استفاده می‌کند: جدول اسناد + جدول واژه‌ها + جدول پیوند (کلمه به سند با شمارش). توکن‌سازی یعنی جداسازی کلمات و حذف نویسه‌های تزئینی:</p>
+        <pre class="code"><span class="lang-tag">PHP</span><code>function tokenise($text) {
+    // جدا کردن کلمات ساده (با حفظ حالت)
+    $words = str_word_count(strtolower($text), 1);
+    // حذف کلمات توقف (stop words) مثل «و، با، به»
+    $stop = ['the', 'and', 'for', 'php'];
+    return array_diff($words, $stop);
+}</code></pre>
+        <p>حذف stop words باعث می‌شود رایج‌ترین کلمه‌ها پرونده‌های غول‌آسا نسازند و نتیجه هم دقیق‌تر شود.</p>
+      </section>
+
+      <section>
+        <h2>نمایه‌سازی اسناد</h2>
+        <pre class="code"><span class="lang-tag">PHP</span><code>foreach ($documents as $doc) {
+    $docId = insertDocument($db, $doc['url'], $doc['title']);
+
+    foreach (tokenise($doc['body']) as $word) {
+        $wordId = getOrCreateWord($db, $word);
+        // ردیف پیوند: کلمه—سند با تعداد تکرار
+        incrementLink($db, $wordId, $docId);
+    }
+}</code></pre>
+        <p>جدول `links` با (word_id, doc_id, count) قلب «اندیس معکوس» است — فرمت شفافی که موتورهای تجاری با فرمت‌های فشرده‌تر دارند.</p>
+      </section>
+
+      <section>
+        <h2>پرس‌وجو</h2>
+        <p>جست‌وجو با JOIN بین واژه‌ها و پیوندها انجام می‌شود و با شمارش و ترتیب‌دهی، مرتب‌ترین نتیجه می‌آید. رتبه‌بندی سادهٔ TF (بسامد تکرار کلمه در سند) حتی بدون IDF هم نتایج خوبی می‌دهد:</p>
+        <pre class="code"><span class="lang-tag">SQL</span><code>SELECT d.url, SUM(l.count) AS score
+FROM words w
+JOIN links  l ON l.word_id = w.id
+JOIN docs   d ON d.id = l.doc_id
+WHERE w.word IN ('php', 'search')
+GROUP BY d.id
+ORDER BY score DESC
+LIMIT 10;</code></pre>
+        <p>بعد از این پیاده‌سازی ۱۰۰ خطی، مفاهیم BM25، PageRank و indexing توزیع‌شده دیگر رمزآلود نیستند — همهٔ آن‌ها ارتقاهای همین پایه‌اند.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> بن بویر (Ben Boyter). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://boyter.org/2013/01/code-for-a-search-engine-in-php-part-1/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

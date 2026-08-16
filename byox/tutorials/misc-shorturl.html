@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | سرویس کوتاه‌کننده URL در Nim</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>کوتاه‌کننده URL</span>
+      </div>
+      <h1>نوشتن یک سرویس کوتاه‌کننده URL</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Nim</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://xmonader.github.io/nimdays/day07_shorturl.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Day 7: URL Shortener» از سری NimDays است که یک سرویس HTTP کوتاه‌کنندهٔ لینک با Redis می‌سازد.
+        </div>
+        <a class="btn solid" href="https://xmonader.github.io/nimdays/day07_shorturl.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>سرویس کوتاه‌کننده چه کاری می‌کند؟</h2>
+        <p>یک URL بلند (مثلاً خبر یا صفحهٔ فروشگاه) داده می‌شود و سرویس یک کد کوتاه مثل `abc123` برمی‌گرداند. سپس با درخواست `GET /abc123`، کاربر با `301 Redirect` به لینک اصلی می‌رود. خبر خوب این است که خود نوع «کوتاه شدن» با یک نگاشت در Redis/DB حل می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>ایدهٔ کلیدی: کدگذاری Base62</h2>
+        <p>از اعداد صعودی (مثلاً شمارنده در Redis با INCR) استفاده می‌کنیم و عدد را به الفبای ۶۲ کاراکتری (a-z، A-Z، 0-9) ترجمه می‌کنیم تا کد کوتاه و مرتب شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>const Alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+# تبدیل عدد به کد base62
+proc toBase62(num: int): string =
+  var n = num
+  while n &gt; 0:
+    result.add(Alphabet[n mod 62])
+    n = n div 62
+  result.reverse()   # کم‌ارزش‌ترین رقم آخر
+
+# تبدیل کد به عدد (برای دیکدر / جست‌وجو)
+proc fromBase62(code: string): int =
+  for c in code:
+    result = result * 62 + Alphabet.find(c)</code></pre>
+        <p>با ۷ کاراکتر، ۶۲^۷ ≈ ۳.۵ تریلیون لینک ممکن است؛ یعنی برای هر کاربرد عملی کافی است.</p>
+      </section>
+
+      <section>
+        <h2>سرویس HTTP</h2>
+        <p>نیم‌قسمت HTTP: دو مسیر اصلی. `GET /` فرم کوتاه‌کردن را نشان می‌دهد؛ `POST /shorten` لینک را ثبت می‌کند؛ و `GET /&lt;code&gt;` مسیر را به مقصد هدایت می‌کند. برای ماندگاری شمارنده‌ها از Redis استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Nim</span><code>proc shortenHandler(req: Request, resp: Response) =
+  let longUrl = req.body["url"]
+  # شمارنده را در Redis یک واحد بالا ببر
+  let id = redis.incr("url_counter")
+  let code = toBase62(id)
+  # نگاشت کد → URL را هم ذخیره کن
+  redis.set("short:" &amp; code, longUrl)
+  resp.send("لینک کوتاه: /" &amp; code)
+
+proc redirectHandler(code: string, resp: Response) =
+  let target = redis.get("short:" &amp; code)
+  if target.isEmpty:
+    resp.send("یافت نشد", Http404)
+  else:
+    resp.redirect(target, Http301)   # هدایت دائمی</code></pre>
+        <p>استفاده از `301` مهم است: موتورهای جست‌وجو آن را «انتقال دائمی محتوا» می‌دانند و رتبهٔ صفحه را منتقل می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>چالش‌های دنیای واقعی</h2>
+        <p>برای سرویس واقعی: اعتبارسنجی URL، محافظت از spam (همه لینک‌ها به سایت‌های بد نروند)، محدودیت نرخ، و آمار کلیک. اما هستهٔ سرویس — شمارنده + Base62 + redirect — دقیقاً همین‌جا نشان داده شد و در کمتر از ۱۰۰ خط کامل می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> احمد منصور (xmonader). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://xmonader.github.io/nimdays/day07_shorturl.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | نوشتن یک دیباگر لینوکس</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>دیباگر لینوکس</span>
+      </div>
+      <h1>نوشتن یک دیباگر لینوکس</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور سری «Writing a Linux Debugger» از سایمون برند (TartanLlama) است که یک دیباگر واقعی با ptrace و ELF می‌سازد.
+        </div>
+        <a class="btn solid" href="https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دیباگرها چه می‌کنند؟</h2>
+        <p>یک دیباگر مثل gdb به شما اجازه می‌دهد اجرای برنامه را ببرید، در نقطه‌های شکست (breakpoint) متوقف کنید، و وضعیت حافظه و پشته را بررسی کنید. برای نوشتن دیباگر لینوکس، مفاهیم اصلی سه‌گانه‌اند: <b>ptrace</b> (API هسته برای کنترل فرآیندها)، <b>ELF</b> (فرمت باینری) و <b>DWARF</b> (متادیتای دیباگِ ترسیمی).</p>
+        <p>این آموزش در چند «قسمت»، از صفر همین سه لایه را پیاده می‌کند و در پایان به یک tui دیباگر قابل استفاده می‌رسد.</p>
+      </section>
+
+      <section>
+        <h2>ptrace: بنیان همه‌چیز</h2>
+        <p>مهم‌ترین فراخوانی، `ptrace` است که با `PTRACE_ATTACH` به فرآیند می‌چسبد، با `PTRACE_CONT` آن را ادامه می‌دهد و با `PTRACE_PEEKDATA` حافظه را می‌خواند. برای خواندن وضعیت رجیسترها از `PTRACE_GETREGS` استفاده می‌شود:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>// شروع: پیوستن به یک فرآیند و خواندن رجیسترها
+#include &lt;sys/ptrace.h&gt;
+#include &lt;sys/user.h&gt;
+#include &lt;sys/wait.h&gt;
+
+void continue_execution(pid_t pid) {
+    if (ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1) {
+        perror("ptrace CONT");
+        return;
+    }
+    waitpid(pid, nullptr, 0);
+}
+
+void get_registers(pid_t pid, user_regs_struct&amp; regs) {
+    if (ptrace(PTRACE_GETREGS, pid, nullptr, &amp;regs) == -1) {
+        perror("ptrace GETREGS");
+    }
+}</code></pre>
+        <p>در این مرحله، وقتی فرآیند متوقف شد، `PTRACE_GETREGS` محتوای رجیسترها (مثل rip) را برمی‌گرداند و شما می‌توانید پشته را دنبال کنید.</p>
+      </section>
+
+      <section>
+        <h2>نقطه‌های شکست</h2>
+        <p>ساده‌ترین روش برای breakpoint، جایگزینی بایت اول دستور در آدرس موردنظر با `0xcc` (دستور INT3) است و پس از وقفه، مقدار اصلی را دوباره برمی‌گردانید. به یاد داشته باشید پس از برخورد، يكبایت must به قبل برگردد (rip--).</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>// تنظیم breakpoint: ذخیره بایت اصلی و جایگزینی با 0xcc
+uint64_t set_breakpoint(pid_t pid, uint64_t addr) {
+    uint64_t data = ptrace(PTRACE_PEEKDATA, pid, addr, nullptr);
+    uint64_t intr = (data &amp; 0xFFFFFFFFFFFFFF00) | 0xCC;
+    ptrace(PTRACE_POKEDATA, pid, addr, intr);
+    return data;   // برای بازیابی بعدی
+}
+
+void unset_breakpoint(pid_t pid, uint64_t addr, uint64_t orig) {
+    ptrace(PTRACE_POKEDATA, pid, addr, orig);
+}</code></pre>
+        <p>این دو تابع، هستهٔ هر سیستم دیباگینگ هستند — همان چیزی که در gdb رخ می‌دهد.</p>
+      </section>
+
+      <section>
+        <h2>مفاهیم DWARF و متادیتا</h2>
+        <p>برای نمایش نام متغیرها و خطوط کد، باید بخش `.debug_info` فایل ELF را بخوانیم (استاندارد DWARF). دیباگر شما باید درتمامآدرس‌ها jumptable داشته باشد: آدرس ← نام فایل/خط، stdin تا بتوانید «مکان فعلی اجرا» را نشان دهید.</p>
+        <p>پیاده‌سازی کامل، در سری آموزش گام‌به‌گام تاjابادبلیو بخش‌های خط (line table) و expression‌های DWARF پیش می‌رود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>ساختن دیباگر، عمیق‌ترین درک را از «اجرای برنامه» به شما می‌دهد: رجیسترها، پشته، breakpoint و فرآیندهای یونیکس. اگر می‌خواهید پشت صحنهٔ gdb/LLDB را بفهمید یا ابزار دیباگ خودتان را بسازید، این سری کامل‌ترین مرجع است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> سایمون برند (Simon Brand). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://blog.tartanllama.xyz/writing-a-linux-debugger-setup/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

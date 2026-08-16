@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | الگوریتم رمزگشایی JSON</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </div>
+    </header>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>الگوریتم JSON</span>
+      </div>
+      <h1>الگوریتم رمزگشایی JSON</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/cheery/json-algorithm" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «json-algorithm» از چری است که یک رمزگشای JSON را از صفر در پایتون با «الگوریتم» ساده و شفاف می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/cheery/json-algorithm" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>JSON چه شکلی است؟</h2>
+        <p>JSON زبانی کوچک با ۸ نوع مقدار: null، true، false، عدد، رشته (با escape مثل `\"` و `\n`)، آرایه `[...]`، شیء `{"k": v}` و ترکیب‌های تو در تو. رمزگشایی یعنی: متن را بخوان و به ساختار دادهٔ زبان مقصد تبدیل کن.</p>
+      </section>
+
+      <section>
+        <h2>الگوریتم اصلی</h2>
+        <p>ایدهٔ متمرکز این پیاده‌سازی: یک تابع `decoder` که بر حسب نویسهٔ بعدی، فرم مناسب را انتخاب می‌کند — حالت Kind. کل منطق در تابعی تکی و بازگشتی می‌نشیند:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>def decode(json_string):
+    """رمزگشای ۸۰ خطی JSON از چری"""
+    pos = 0
+    n = len(json_string)
+
+    def read_ws():
+        nonlocal pos
+        while pos < n and json_string[pos] in ' \t\n\r':
+            pos += 1
+
+    def read_string():
+        nonlocal pos
+        pos += 1                       # رد کردن "
+        out = []
+        while json_string[pos] != '"':
+            c = json_string[pos]
+            if c == '\\':              # escape
+                pos += 1
+                esc = json_string[pos]
+                out.append({'n': '\n', 't': '\t', '"': '"'}.get(esc, esc))
+            else:
+                out.append(c)
+            pos += 1
+        pos += 1                       # رد کردن " پایانی
+        return ''.join(out)
+
+    # ... و توابع read_number، read_array، read_object
+
+    def read_value():
+        nonlocal pos
+        read_ws()
+        c = json_string[pos]
+        if c == '"': return read_string()
+        if c == '[': return read_array()
+        if c == '{': return read_object()
+        if c in '0123456789-': return read_number()
+        if json_string.startswith('true', pos): pos += 4; return True
+        if json_string.startswith('false', pos): pos += 5; return False
+        if json_string.startswith('null', pos): pos += 4; return None
+        raise ValueError(f'JSON نامعتبر: {c} در {pos}')
+
+    return read_value()</code></pre>
+        <p>الگوی «یک نویسه را نگاه کن، ادعای نامعتبری‌بودن را کوتاه کن» (single-dispatch) بهترین راه برای رمزگشایی دستی است: رشته، آرایه و شیء هر کدام تابع خودشان را دارند و بازگشتی به هم می‌پیوندند.</p>
+      </section>
+
+      <section>
+        <h2>عددها و ساختارها</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>    def read_number():
+        nonlocal pos
+        start = pos
+        while pos < n and json_string[pos] in '0123456789.eE+-':
+            pos += 1
+        return float/json or int(...)   # بر اساس کاراکترها
+
+    def read_array():
+        nonlocal pos
+        pos += 1                        # رد کردن [
+        out = []
+        read_ws()
+        if json_string[pos] == ']':     # آرایهٔ خالی
+            pos += 1; return out
+        while True:
+            out.append(read_value())
+            read_ws()
+            if json_string[pos] == ',': pos += 1
+            elif json_string[pos] == ']':
+                pos += 1; return out</code></pre>
+        <p>همین الگو برای آرایه، برای object هم با دیکشنری تکرار می‌شود. با این ۸۰ خط، خودتان JSON.parse را دارید — همانی که مرورگرها هر روز صدها بار اجرا می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>بعد از این‌کار، رمزگشای هر فرمت دیگری (YAML، TOML، XML) فقط یک حالت اضافه و چند قانون escape است. درک چنین الگوریتم کوچکی، پایه‌ای است برای شناختن «چرا فرمت‌ها این‌طور طراحی می‌شوند».</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> چری (Cheery). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/cheery/json-algorithm" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

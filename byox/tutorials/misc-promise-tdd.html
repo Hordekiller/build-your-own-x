@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | پیاده‌سازی Promise با TDD</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>Promise با TDD</span>
+      </div>
+      <h1>پیاده‌سازی پرامیس‌ها از صفر (به روش TDD)</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.mauriciopoppe.com/notes/computer-science/computation/promises/" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «Implementing promises from scratch (TDD way)» از مائوریسیو پوپه است که با نوشتن تست، پرامیس را به‌تدریج می‌سازد.
+        </div>
+        <a class="btn solid" href="https://www.mauriciopoppe.com/notes/computer-science/computation/promises/" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا TDD برای این پروژه؟</h2>
+        <p>پرامیس دارای رفتارهای دقیق و مشخصی است (یک‌بار settle، زنجیره، خطا). تست‌نویسی قبل از کد، دقیقاً مشخص می‌کند که «چه رفتاری باید داشته باشیم» و به ما اجازه می‌دهد بدون حدس‌زدن، پیاده‌سازی کنیم. این آموزش با `jest` یا یک تست‌رانر ساده کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>اولین تست: resolve و then</h2>
+        <p>اولین تست‌های ما رفتار پایه را مشخص می‌کنند: یک پرامیس با resolve مقدار می‌گیرد؛ و then آن مقدار را می‌گیرد:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// تست: پرامیس ساخته شده و resolve می‌شود
+test('resolve مقدار را می‌دهد', () =&gt; {
+  const p = new MyPromise((resolve) =&gt; resolve(42));
+  return p.then(value =&gt; {
+    expect(value).toBe(42);
+  });
+});
+
+test('then زنجیره‌ای کار می‌کند', () =&gt; {
+  const p = new MyPromise((resolve) =&gt; resolve(2));
+  return p
+    .then(v =&gt; v * 10)
+    .then(v =&gt; v + 1)
+    .then(v =&gt; {
+      expect(v).toBe(21);
+    });
+});</code></pre>
+        <p>حالا کد مینیمال را می‌نویسیم تا این تست‌ها سبز شوند: state، settle و then با زنجیره.</p>
+      </section>
+
+      <section>
+        <h2>تست‌های reject و catch</h2>
+        <p>مرحلهٔ بعدی خطاهاست: reject مقدار خطا را می‌دهد، catch آن را می‌گیرد و throw در executor باعث reject می‌شود:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// روش رد شدن را با همان ساختار settle پیاده می‌کنیم
+test('reject باعث فراخوانی catch می‌شود', () =&gt; {
+  const p = new MyPromise((resolve, reject) =&gt; reject(new Error('بد')));
+
+  return p.catch(err =&gt; {
+    expect(err.message).toBe('بد');
+  });
+});
+
+test('throw در executor مساوی reject است', () =&gt; {
+  const p = new MyPromise(() =&gt; {
+    throw new Error('منفجر شد');
+  });
+  return expect(p).rejects.toThrow('منفجر شد');
+});</code></pre>
+        <p>برای پاس شدن، `constructor` باید با try/catch آرگومان executor را اجرا کند و `catch` را روی `then(undefined, onRejected)` تعریف کنیم.</p>
+      </section>
+
+      <section>
+        <h2>پیاده‌سازی نهایی (خلاصه)</h2>
+        <p>با این تست‌ها، پیاده‌سازی خاکستری روشن می‌شود: یک object با سه حالت، یک آرایهٔ handlers و یک `settle` که فقط یک باr فراخوانی می‌شود:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>class MyPromise {
+  static PENDING = 'pending';
+  static FULFILLED = 'fulfilled';
+  static REJECTED = 'rejected';
+
+  constructor(executor) {
+    this.state = MyPromise.PENDING;
+    this.value = undefined;
+    this.handlers = [];
+    const resolve = v =&gt; this.settle(MyPromise.FULFILLED, v);
+    const reject = r =&gt; this.settle(MyPromise.REJECTED, r);
+    try { executor(resolve, reject); } catch (e) { reject(e); }
+  }
+
+  settle(state, value) {
+    if (this.state !== MyPromise.PENDING) return;
+    this.state = state;
+    this.value = value;
+    this.handlers.forEach(h =&gt; h());
+  }
+
+  then(onF, onR) {
+    return new MyPromise((resolve, reject) =&gt; {
+      this.handlers.push(() =&gt; {
+        const handler = this.state === MyPromise.FULFILLED ? onF : onR;
+        try {
+          const r = handler ? handler(this.value) : this.value;
+          if (r instanceof MyPromise) r.then(resolve, reject);
+          else resolve(r);
+        } catch (e) { reject(e); }
+      });
+    });
+  }
+
+  catch(onR) { return this.then(undefined, onR); }
+}</code></pre>
+        <p>نکتهٔ مهم: تست‌ها ابتدا نوشته می‌شوند، بعد کد; و هر مرحله فقط «به‌قدر کافی» برای سبز شدن پیاده‌سازی می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این آموزش نشان می‌دهد که TDD فقط برای پروژه‌های بزرگ نیست — حتی برای فاخته‌های الگوریتمی هم بهترین راه برای دقیق‌شدن است. پس از اتمام، تست‌های رفتار ناهمگام (setTimeout و میکروتسک) را هم می‌توانید اضافه کنید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> مائوریسیو پوپه (Mauricio Poppe). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.mauriciopoppe.com/notes/computer-science/computation/promises/" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

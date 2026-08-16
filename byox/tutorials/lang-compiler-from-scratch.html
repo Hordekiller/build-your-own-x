@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | یک کامپایلر از صفر (ویدیو)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">زبان برنامه‌نویسی</a>
+        <span class="sep">←</span>
+        <span>کامپایلر از صفر (ویدیو)</span>
+      </div>
+      <h1>یک کامپایلر از صفر — اسکرین‌کست گری برن‌هارت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">🎥 ویدیو</span>
+        <span class="meta-badge">⚙ زبان: Ruby</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه مرور اسکرین‌کست «A Compiler From Scratch» از گری برن‌هارت (Destroy All Software) است؛ در این ویدیوی کوتاه و عملی، یک کامپایلر واقعی برای یک زبان کوچک به‌صورت زنده ساخته می‌شود.
+        </div>
+        <a class="btn solid" href="https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>دربارهٔ ویدیو</h2>
+        <p>گری برن‌هارت در این اسکرین‌کست نشان می‌دهد که ساخت یک کامپایلر لازم نیست دلهره‌آور باشد. او با یک تعریف کوچک و متمرکز شروع می‌کند و در عرض حدود ۹۰ دقیقه، یک زبان برنامه‌نویسی ساده را به کد اسمبلی کامپایل می‌کند — نه به یک واسطه، بلکه مستقیم به دستورهای واقعی CPU.</p>
+        <p>ارزش اصلی این ویدیو در «دیدن فرآیند» است: بدانید که یک کامپایلر واقعی چگونه تصمیم می‌گیرد، خطا را کجا پیدا می‌کند و چطور خروجی اسمبلی را تولید می‌کند.</p>
+        <p><a class="btn solid" href="https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch" target="_blank" rel="noopener">▶ تماشای ویدیو</a></p>
+      </section>
+
+      <section>
+        <h2>مسیر: از توکن تا اسمبلی</h2>
+        <p>زبان مورد نظر در این قسمت، ساختار شبیه‌به C دارد (متغیر، تابع، عبارت حسابی). مراحل کلاسیک طی می‌شود: <b>lexer</b> متن را به توکن تقسیم می‌کند، <b>parser</b> ساختار درخت نحو (AST) را می‌سازد و درنهایت <b>قدرت‌دهندهٔ اسمبلی</b> (emitter) درخت را به دستورهای x86 تبدیل می‌کند. تفاوت این‌جا با مفسرها این است که خروجی، یک فایل اجرایی مستقل است.</p>
+        <p>بخش هیجان‌انگیز، پشت‌سرهم گذاشتن پشتهٔ مکالمات (call stack) با push/ret و قراردادهای فراخوانی است — یعنی همان چیزی که در دورهٔ سیستم‌عامل یا اسمبلی با آن آشنا شده‌اید.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: ساختار پارسر در Ruby</h2>
+        <p>با اینکه ویدیو با Ruby نگاشته شده، مفاهیم آن برای هر زبانی کلی است. ساختار پارسر معمولاً با یک حلقهٔ «بخوان و پیشرفت کن» نوشته می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Ruby</span><code># پرشسندهٔ گام‌به‌گام روی توکن‌ها
+class Parser
+  def initialize(tokens)
+    @tokens = tokens
+    @pos = 0
+  end
+
+  def peek
+    @tokens[@pos]
+  end
+
+  def next_token
+    tok = @tokens[@pos]
+    @pos += 1
+    tok
+  end
+
+  # تجزیهٔ عبارت: اولویت ضرب قبل از جمع
+  def parse_expression
+    left = parse_term
+    while peek.to_s == "+" || peek.to_s == "-"
+      op = next_token.to_s
+      right = parse_term
+      left = Emitter.binary(op, left, right)
+    end
+    left
+  end
+end</code></pre>
+        <p>نکتهٔ مهم، مدیریت اولویت عملگرهاست: هرچه لایه به سطح پایین‌تر (parse_term) برویم، اولویت بالاتر می‌رود و درخت دقیق‌تر ساخته می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این اسکرین‌کست یک نقطهٔ شروع عالی است: بعد از دیدن آن، ساختار کلی یک کامپایلر (از توکن تا اسمبلی) برایتان شفاف می‌شود و می‌توانید با پروژه‌های متنی بزرگ‌تر مثل Crafting Interpreters یا Compilers: Principles ادامه دهید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> گری برن‌هارت (Gary Bernhardt). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

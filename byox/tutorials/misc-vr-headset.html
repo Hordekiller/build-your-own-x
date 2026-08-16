@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | هدست واقعیت مجازی با ۲۰۰ دلار</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>هدست VR</span>
+      </div>
+      <h1>هدست واقعیت مجازی خودت را با ۲۰۰ دلار بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: C++</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/relativty/Relativ" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور پروژهٔ «Relativ» است که یک هدست واقعیت مجازی با قطعات ارزان‌قیمت و نرم‌افزار منبع‌باز می‌سازد.
+        </div>
+        <a class="btn solid" href="https://github.com/relativty/Relativ" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا یک هدست VR خانگی؟</h2>
+        <p>هدست‌های تجاری گران‌اند و درونشان جعبهٔ سیاه است. پروژهٔ Relativ نشان می‌دهد که با یک نمایشگر (در اصل دو پنل)، یک سنسور اینرسی (IMU) و قطعات چاپ سه‌بعدی، می‌توان یک هدست واقعیت مجازی ساخت که با SteamVR کار کند و تمام سورس آن باز است.</p>
+        <p>این پروژه برای علاقه‌مندان به سخت‌افزار، الکترونیک و توسعهٔ نرم‌افزار دسکتاپ، یک تجربهٔ ترکیبی کامل است.</p>
+      </section>
+
+      <section>
+        <h2>اجزای اصلی</h2>
+        <p>قلب نرم‌افزار، یک «درایور» است که از طریق SteamVR-OpenVR با بازی‌ها صحبت می‌کند. اجزای کلیدی عبارتند از: <b>نمایشگر</b> با رفرش‌ریت بالا، <b>IMU</b> که دادهٔ شتاب و ژیروسکوپ را می‌دهد، <b>میکروکنترلر</b> برای پردازش و ارسال، و <b>لنز</b> برای فوکوس.</p>
+        <p>نکتهٔ مهندسی مهم: تأخیر (latency) در VR کشنده است. برای کاهش آن باید داده‌های حسگر را سریع خواند و با نسبت اینرسی درست نمایش داد.</p>
+      </section>
+
+      <section>
+        <h2>نمونهٔ کد: خواندن و ترکیب دادهٔ IMU</h2>
+        <p>ترکیب دادهٔ ژیروسکوپ و شتاب‌سنج (سنسور fusion) کاری است که با فیلتر مکمل (complementary filter) ساده انجام می‌شود:</p>
+        <pre class="code"><span class="lang-tag">C++</span><code>// ترکیب سادهٔ دادهٔ شتاب و ژیروسکوپ با فیلتر مکمل
+struct Orientation {
+    float pitch, roll;
+    double last_time;
+};
+
+void update_orientation(Orientation* o, float gx, float gy,
+                        float ax, float ay, double dt) {
+    const float alpha = 0.98f;   // وزن ژیروسکوپ
+
+    // زاویه از شتاب‌سنج (gravitational vector)
+    float acc_pitch = atan2f(ay, sqrtf(ax*ax + 1.0f));
+    float acc_roll  = atan2f(ax, sqrtf(ay*ay + 1.0f));
+
+    // ترکیب: ژیروسکوپ بلندمدت + شتاب‌سنج کوتاه‌مدت
+    o-&gt;pitch = alpha * (o-&gt;pitch + gy * dt) + (1.0f - alpha) * acc_pitch;
+    o-&gt;roll  = alpha * (o-&gt;roll  + gx * dt) + (1.0f - alpha) * acc_roll;
+}</code></pre>
+        <p>این فیلتر ساده، زاویهٔ سر را با دقت خوبی بین دو نمونه محاسبه می‌کند؛ در نسخهٔ پیشرفته از Madgwick یا Kalman filter استفاده می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>اتصال به SteamVR</h2>
+        <p>برای اینکه بازی هدست شما را ببیند، باید یک درایور OpenVR بنویسید که موقعیت (pose) و display را معرفی کند. پروژهٔ Relativ این بخش را با یک سرور UDP ساده و یک رندرر گلوبال پیاده می‌کند. پس از نصب، بازی‌های VR عادی بدون کد اضافه کار می‌کنند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>این پروژه نشان می‌دهد که VR فقط برای شرکت‌های بزرگ نیست: با ۲۰۰ دلار و کمی صبر می‌توانید تجربهٔ واقعیت مجازی را از صفر بسازید و در میانهٔ راه دربارهٔ IMU، پروتکل‌ها و درایورهای سیستم عاملی بسیار یاد بگیرید.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> تیم پروژهٔ Relativ. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/relativty/Relativ" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

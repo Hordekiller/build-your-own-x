@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | الگوریتم‌های جاوااسکریپت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>الگوریتم‌های JS</span>
+      </div>
+      <h1>الگوریتم‌ها و ساختمان داده‌های جاوااسکریپت</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/trekhleb/javascript-algorithms" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور ریپوی «JavaScript Algorithms and Data Structures» از اولکسی ترهلب است که مجموعه‌ای جامع از الگوریتم‌ها را با تست و توضیح ارائه می‌دهد.
+        </div>
+        <a class="btn solid" href="https://github.com/trekhleb/javascript-algorithms" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>چرا این ریپو؟</h2>
+        <p>یادگیری الگوریتم با کد معمولی، اغلب خشک و بی‌حاصل است. این ریپو بیش از ۱۲۰ الگوریتم و ساختار داده را در جاوااسکریپت خالص (بدون وابستگی) پیاده کرده است: از باینری‌سرچ و سریع‌ساز (sort) تا درختان، گراف‌ها و برنامه‌نویسی پویا. هر فایل دارای تست جِی‌زیست و توضیح نظری است.</p>
+        <p>برای هر مبحث (مدل، لینکدلیست، گراف…) کاملاً روشن است که «چرا» و «چطور» — با پیچیدگی زمانی Big-O در کنار هر تابع.</p>
+      </section>
+
+      <section>
+        <h2>ساختار: الگوریتم‌ها و ساختارهای داده</h2>
+        <p>پوشش‌ها: <b>ساختارهای داده</b>: لینکدلیست، صف، پشته، درخت دودویی (BST)، هش‌مپ، گراف، تری، هیپ (heap). <b>الگوریتم‌ها</b>: مرتب‌سازی (مقایسه‌ای، غیرمقایسه‌ای)، جست‌وجو (خطی، باینری، DFS/BFS)، ریاضیات (GCD، فاکتوریل، اعداد اول)، مسیرهای گراف (Dijkstra، Bellman-Ford) و DP.</p>
+        <p>این تنوع باعث می‌شود برای آماده‌سازی مصاحبه و نیز فهم الگوریتم‌ها، یک مرجع کامل در دسترس باشد.</p>
+      </section>
+
+      <section>
+        <h2>نمونه: مرتب‌سازی سریع (Quick Sort)</h2>
+        <p>مرتب‌سازی سریع با انتخاب یک pivot و تقسیم آرایه به دو بخش کوچک‌تر و بزرگ‌تر کار می‌کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// مرتب‌سازی سریع با پیچیدگی میانگین O(n log n)
+function quickSort(original) {
+  const arr = [...original];
+  if (arr.length &lt;= 1) return arr;
+
+  const pivot = arr[0];
+  const left = [];
+  const right = [];
+
+  for (let i = 1; i &lt; arr.length; i++) {
+    (arr[i] &lt; pivot ? left : right).push(arr[i]);
+  }
+
+  return [...quickSort(left), pivot, ...quickSort(right)];
+}
+
+// نمونه استفاده
+console.log(quickSort([5, 2, 9, 1, 5, 6])); // [1, 2, 5, 5, 6, 9]</code></pre>
+        <p>نسخهٔ بهینه‌تر در ریپو با پارتش درحال حرکت و pivot تصادفی پیاده شده است تا پایین‌ترین حالت (آرایه مرتب) را هم پوشش دهد.</p>
+      </section>
+
+      <section>
+        <h2>درخت جست‌وجوی باینری</h2>
+        <p>یکی از رسمی‌ترین ساختارها در ریپو، BST است که عملیات insert/find/delete را با recurse پیاده می‌کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>class BinarySearchTreeNode {
+  constructor(value) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+  }
+
+  insert(value) {
+    if (value &lt; this.value) {
+      if (this.left) this.left.insert(value);
+      else this.left = new BinarySearchTreeNode(value);
+    } else if (value &gt; this.value) {
+      if (this.right) this.right.insert(value);
+      else this.right = new BinarySearchTreeNode(value);
+    }
+    return this;
+  }
+
+  find(value) {
+    if (value === this.value) return this;
+    if (value &lt; this.value) return this.left ? this.left.find(value) : null;
+    return this.right ? this.right.find(value) : null;
+  }
+}</code></pre>
+        <p>با این شاکله‌ی کوچک، عملیات جست‌وجو در یک درخت متوازن در O(log n) انجام می‌شود.</p>
+      </section>
+
+      <section>
+        <h2>چطور از آن بیشترین بهره را ببریم؟</h2>
+        <p>بهترین روش، پیاده‌سازی دوبارهٔ هر الگوریتم ابتدا بدون دیدن کد و بعد مقایسه با پیاده‌سازی ریپو است. هر فایل یک تست کوچک دارد که می‌توانید با `jest` اجرا کنید؛ این چرخه — تمرین، تست، مقایسه — یادگیری را عمیق و ماندگار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>اگر می‌خواهید «الگوریتم» را در زبان‌های مدرن یاد بگیرید، این مخزن بهترین نقطهٔ شروع است. هم برای مصاحبه‌ها، هم برای ساختن ابزار شخصی، به‌عنوان مرجع همیشه در دسترس است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> اولکسی ترهلب (Oleksii Trekhleb). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/trekhleb/javascript-algorithms" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

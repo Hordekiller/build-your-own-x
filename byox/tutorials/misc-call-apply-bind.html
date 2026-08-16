@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | call/apply/bind خودت</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>call/apply/bind</span>
+      </div>
+      <h1>متدهای call()، apply() و bind() را خودت در جاوااسکریپت پیاده‌سازی کن</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: JavaScript</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://blog.usejournal.com/implement-your-own-call-apply-and-bind-method-in-javascript-42cc85dba1b" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ «Implement your own call, apply and bind» است که رفتار سه متد مهم Function.prototype را از صفر بازسازی می‌کند.
+        </div>
+        <a class="btn solid" href="https://blog.usejournal.com/implement-your-own-call-apply-and-bind-method-in-javascript-42cc85dba1b" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>این سه متد چه کار می‌کنند؟</h2>
+        <p>هر سه، «this» تابع را عوض می‌کنند: <b>call</b> با آرگومان‌های جدا، <b>apply</b> با آرایه، و <b>bind</b> یک تابع جدید برمی‌گرداند که this به آن گره خورده است. درک عمیق آن‌ها به شما نشان می‌دهد که this در جاوااسکریپت چطور کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>پیاده‌سازی myCall</h2>
+        <p>ایدهٔ اصلی ساده است: تابع را به‌عنوان متدِ `context` صدا بزنیم. با اینکه این‌روش را می‌توان با `Reflect` و `Function` هم انجام داد، درخت ساده با property موقت واضح است:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// myCall: فراخوانی تابع با this دلخواه و آرگومان‌های جدا
+Function.prototype.myCall = function (context = globalThis, ...args) {
+  // یک کلید یکتا برای جلوگیری از collision
+  const fnKey = Symbol('fn');
+
+  context[fnKey] = this;        // تابع را به context وصل کن
+  const result = context[fnKey](...args);  // با آرگومان‌ها صدا بزن
+  delete context[fnKey];        // ردِّ پا را پاک کن
+  return result;
+};
+
+// استفاده: قطعه =
+const person = { name: 'سارا' };
+function greet(greeting) {
+  return `${greeting}, ${this.name}`;
+}
+console.log(greet.myCall(person, 'سلام')); // سلام, سارا</code></pre>
+        <p>نکات: اگر context null بود، `globalThis` را بگیریم و با Symbol کلید یکتا بسازیم.</p>
+      </section>
+
+      <section>
+        <h2>myApply و myBind</h2>
+        <p>myApply با یک آرایهٔ آرگومان کار می‌کند (یا `arguments`)، و myBind باید یک تابع جدید برگرداند که آرگومان‌های اولیه را ادغام کند:</p>
+        <pre class="code"><span class="lang-tag">JavaScript</span><code>// myApply: مثل call ولی با آرایهٔ آرگومان
+Function.prototype.myApply = function (context = globalThis, argsArray = []) {
+  const fnKey = Symbol('fn');
+  context[fnKey] = this;
+  const result = context[fnKey](...argsArray);
+  delete context[fnKey];
+  return result;
+};
+
+// myBind: تابعِ گره‌خورده به this برمی‌گرداند
+Function.prototype.myBind = function (context = globalThis, ...initialArgs) {
+  const original = this;
+  return function (...laterArgs) {
+    return original.myCall(context, ...initialArgs, ...laterArgs);
+  };
+};
+
+// استفاده از bind
+const boundGreet = greet.myBind(person);
+console.log(boundGreet('درود'));  // درود, سارا</code></pre>
+        <p>`myBind` بستار (closure) می‌سازد: original و context و initialArgs حفظ می‌شوند و با هر فراخوانی با هم ترکیب می‌شوند.</p>
+      </section>
+
+      <section>
+        <h2>چرا پیاده‌سازی آن‌ها مهم است؟</h2>
+        <p>بازسازی این متدها، سازوکار this و بستارها را از «ماژیک» به «مفهوم» تبدیل می‌کند. روش‌های جایگزین (مثل `Reflect.apply` و `WeakMap` برای context) هم بحث می‌شوند؛ و در پایان می‌فهمید که bind/getcomrature میان receive untracked توسط V8 چطور کار می‌کند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>با این سه تابع، هم این‌ها را درک کرده‌اید و هم با مفاهیم مهم JS آشنا شده‌اید: function invocation، spread، و closure. این یک گام عالی برای رسیدن به فهم عمیق JavaScript است.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> نویسندهٔ مقالهٔ usejournal. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://blog.usejournal.com/implement-your-own-call-apply-and-bind-method-in-javascript-42cc85dba1b" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

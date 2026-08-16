@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | موتور پیشنهاددهنده محصول در Python</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>موتور پیشنهاددهنده محصول</span>
+      </div>
+      <h1>یک موتور پیشنهاددهنده ساده مبتنی بر محتوا در پایتون</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Python</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="http://blog.untrod.com/2016/06/simple-similar-products-recommendation-engine-in-python.html" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور مقالهٔ Untrod است که موتور پیشنهاددهندهٔ محتوامحور را با TF-IDF و شباهت کسینوسی می‌سازد.
+        </div>
+        <a class="btn solid" href="http://blog.untrod.com/2016/06/simple-similar-products-recommendation-engine-in-python.html" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>پیشنهاد محتوامحور چیست؟</h2>
+        <p>«اگر این را دوست داری، این‌ها را هم دوست داری» — بر اساس خودِ آیتم‌ها، نه رفتار دیگران. هر محصول به یک بردار ویژگی تبدیل می‌شود (متن توضیح، دسته، برند) و آیتم‌هایی که بردارشان نزدیک‌تر است، پیشنهاد می‌شوند. مزیت: برای محصول جدید بدون سابقهٔ فروش هم کار می‌کند (cold start حل می‌شود).</p>
+      </section>
+
+      <section>
+        <h2>ساخت بردار با TF-IDF</h2>
+        <p>اگر محصولات توصیف متنی داشته باشند (یا ترکیب ویژگی‌ها به یک رشته)، TF-IDF آن را به بردار تبدیل می‌کند؛ کلمه‌هایی که فقط در بعضی محصولات آمده‌اند وزن بیشتری می‌گیرند:</p>
+        <pre class="code"><span class="lang-tag">Python</span><code>from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+
+# هر محصول: id + ترکیب متن ویژگی‌ها (title, brand, category)
+docs = products['combined'].values
+
+vec = TfidfVectorizer(stop_words='english')
+matrix = vec.fit_transform(docs)          # (n_products, n_terms)
+
+# ماتریس شباهت بین همهٔ محصولات (یک‌بار محاسبه)
+cosine = linear_kernel(matrix, matrix)</code></pre>
+        <p>`linear_kernel` همان شباهت کسینوسی است ولی سریع‌تر از brute force برای ماتریس‌های بزرگ.</p>
+      </section>
+
+      <section>
+        <h2>پیشنهاد برای یک محصول</h2>
+        <pre class="code"><span class="lang-tag">Python</span><code>def recommend(product_id, top_n=5):
+    idx = products.index[products['id'] == product_id][0]
+
+    scores = list(enumerate(cosine[idx]))   # شباهت به همه
+    scores = sorted(scores, key=lambda x: x[1], reverse=True)
+
+    # اولی خودِ محصول است؛ از دومی شروع کن و محصولات مشابه بگیر
+    similar = [products.iloc[i]['id'] for i, s in scores[1:top_n + 1]]
+    return similar
+
+print(recommend('P-1042'))   # پنج محصول مشابه</code></pre>
+        <p>جذابیت این رویکرد: هیچ آموزشی لازم نیست — فقط TF-IDF و یک ضرب ماتریس؛ در کمتر از ۵۰ خط یک فروشگاه اینترنتی می‌تواند «محصولات مشابه» داشته باشد.</p>
+      </section>
+
+      <section>
+        <h2>توسعه‌ها</h2>
+        <p>در نسخهٔ پیشرفته: ترکیب چند ویژگی با وزن‌های متفاوت (برند مهم‌تر از کلمات توضیح)، بردارهای embedding (Word2Vec) به‌جای TF-IDF برای درک معنایی، و ترکیب با پیشنهاد همکارانه (hybrid) برای بهترین دقت.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> Untrod. این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="http://blog.untrod.com/2016/06/simple-similar-products-recommendation-engine-in-python.html" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>

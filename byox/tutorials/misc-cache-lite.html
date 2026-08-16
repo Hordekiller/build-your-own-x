@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BYOX | کش در کاتلین</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=2" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container inner">
+      <a class="brand" href="../index.html">
+        <span class="logo">◈</span>
+        <span>BYOX <small style="font-weight:400;color:var(--muted)">— خودت بساز</small></span>
+      </a>
+      <nav class="links">
+        <a href="../index.html">همه آموزش‌ها</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <header class="page-header">
+      <div class="crumbs">
+        <a href="../index.html">خانه</a>
+        <span class="sep">←</span>
+        <a href="../index.html">دسته‌بندی‌نشده</a>
+        <span class="sep">←</span>
+        <span>کش در Kotlin</span>
+      </div>
+      <h1>cache-lite: کش خودت را در کاتلین بساز</h1>
+      <div class="meta-row">
+        <span class="meta-badge">⚙ زبان: Kotlin</span>
+        <span class="meta-badge">✅ ترجمه شده</span>
+        <span class="meta-badge"><a href="https://github.com/kezhenxu94/cache-lite" target="_blank" rel="noopener">🔗 منبع اصلی</a></span>
+      </div>
+      <div class="sourcebox">
+        <div class="txt">
+          <b>منبع اصلی:</b> این صفحه ترجمهٔ فارسی و مرور «cache-lite» از کژیژن خو است که یک کش LRU را در کاتلین با کد تمیز و کوچک پیاده می‌کند.
+        </div>
+        <a class="btn solid" href="https://github.com/kezhenxu94/cache-lite" target="_blank" rel="noopener">↗ مشاهده منبع اصلی</a>
+      </div>
+    </header>
+    <article class="content">
+      <section>
+        <h2>کش LRU چیست؟</h2>
+        <p>کش (Cache) داده‌های پرتکرار را نزدیک برنامه نگه می‌دارد تا دفعهٔ بعد سریع‌تر پاسخ دهد. LRU (کم‌استفاده‌ترین اخیر) سیاستی است که وقتی ظرفیت پر شد، عنصری که «مدت بیشتری استفاده نشده» را حذف می‌کند. این سیاست در سیستم‌عامل‌ها، دیتابیس‌ها و مرورگرها استفاده می‌شود.</p>
+        <p>پیاده‌سازی درست LRU نیاز به ترکیب HashMap (برای جست‌وجوی سریع) و Doubly Linked List (برای دانستن ترتیب استفاده) دارد.</p>
+      </section>
+
+      <section>
+        <h2>ساختار داده</h2>
+        <p>ایدهٔ اصلی: هر عنصر یک «گره» در لیست دوطرفه است و HashMap کلیدها را به گره‌ها نگاشت می‌کند. وقتی عنصری استفاده شد، گره به آخر لیست (جوان‌ترین) منتقل می‌شود؛ و وقتی ظرفیت پر شد، گرهٔ اول لیست حذف می‌شود:</p>
+        <pre class="code"><span class="lang-tag">Kotlin</span><code>class CacheLite&lt;K, V&gt;(private val capacity: Int) {
+
+    private class Node&lt;K, V&gt;(val key: K, var value: V) {
+        var prev: Node&lt;K, V&gt;? = null
+        var next: Node&lt;K, V&gt;? = null
+    }
+
+    private val map = HashMap&lt;K, Node&lt;K, V&gt;&gt;()
+    private var head: Node&lt;K, V&gt;? = null   // قدیمی‌ترین
+    private var tail: Node&lt;K, V&gt;? = null   // جوان‌ترین
+
+    operator fun get(key: K): V? =
+        map[key]?.also { node -&gt; moveToTail(node) }?.value
+
+    operator fun set(key: K, value: V) {
+        val existing = map[key]
+        if (existing != null) {
+            existing.value = value              // به‌روزرسانی
+            moveToTail(existing)
+        } else {
+            val node = Node(key, value)
+            map[key] = node
+            appendTail(node)                    // به انتها اضافه کن
+            if (map.size &gt; capacity) evictHead()  // حذف قدیمی
+        }
+    }
+}</code></pre>
+        <p>عملگرهای `get`/`set`، استفاده از کش را شبیه HashMap طبیعی می‌کنند — همان تجربهٔ کاربردی که نویسندهٔ اصلی هدف گرفته.</p>
+      </section>
+
+      <section>
+        <h2>مدیریت لیست</h2>
+        <p>عملکردهای کمکی (moveToTail، evictHead) قلب ترتیب‌سنجی هستند:</p>
+        <pre class="code"><span class="lang-tag">Kotlin</span><code>    private fun moveToTail(node: Node&lt;K, V&gt;) {
+        if (node === tail) return
+        if (node === head) {
+            head = node.next
+            head?.prev = null
+        } else {
+            node.prev?.next = node.next
+            node.next?.prev = node.prev
+        }
+        appendTail(node)
+    }
+
+    private fun appendTail(node: Node&lt;K, V&gt;) {
+        node.prev = tail
+        node.next = null
+        tail = node
+        node.prev?.next = node
+        if (head == null) head = node
+    }
+
+    private fun evictHead() {
+        head?.let {
+            map.remove(it.key)
+            head = it.next
+            head?.prev = null
+        }
+    }</code></pre>
+        <p>توجه کنید که `evictHead` باید کلید را از HashMap هم حذف کند — وگرنه ردپای منقضی می‌ماند.</p>
+      </section>
+
+      <section>
+        <h2>جمع‌بندی</h2>
+        <p>با حدود ۷۰ خط، یک کش LRU کامل در کاتلین ساخته‌اید که هم خواناتر و هم ایمن‌تر از اجراهای C است. مفاهیم این‌جا (لیست + هش‌مپ) را در LruCache اندروید و Redis هم می‌بینید و همین بار دیگر درک آن‌ها عمیق می‌شود.</p>
+      </section>
+
+      <div class="callout note">
+        <strong>کپیرایت:</strong> کژیژن خو (Kezhen Xu). این صفحه فقط ترجمهٔ فارسی و مرور آن است و تمام حقوق محتوا، تصاویر و کدها متعلق به نویسندهٔ اصلی است. برای مشاهدهٔ اصل مطلب به <a href="https://github.com/kezhenxu94/cache-lite" target="_blank" rel="noopener">سایت اصلی</a> مراجعه کنید.
+      </div>
+    </article>
+  </main>
+  <footer>
+    <p>ساخته‌شده با <span class="heart">♥</span> برای فارسی‌زبانان — آموزش متعلق به نویسنده اصلی است.</p>
+    <p style="margin-top:6px;font-size:0.78rem;opacity:0.8" dir="ltr">All tutorials belong to their original authors.</p>
+  </footer>
+</body>
+</html>
